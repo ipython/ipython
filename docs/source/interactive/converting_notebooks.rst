@@ -59,6 +59,7 @@ The currently supported export formats are the following:
 
 .. _Sphinx: http://sphinx-doc.org/
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
+.. _Markdown: http://daringfireball.net/projects/markdown/syntax
 
 * Python:
 

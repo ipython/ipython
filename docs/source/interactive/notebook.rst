@@ -38,7 +38,7 @@ The IPython Notebook combines two components:
 
 Since the similarity in names can lead to some confusion, in this 
 documentation we will  use capitalization of the word "notebook" to 
-distinguish the *N*otebook app and *n*otebook documents, thinking of the 
+distinguish the Notebook app and notebook documents, thinking of the 
 Notebook app as being a proper noun. We will also always refer to the 
 "Notebook app" when we are referring to the browser-based interface, 
 and usually to "notebook documents", instead of "notebooks", for added
@@ -52,7 +52,7 @@ The Notebook app automatically saves, at certain intervals, the contents of
 the notebook space to a notebook document stored on disk, with the same name 
 as the title of the notebook space, and the file extension ``.ipynb``. For 
 this reason, there is no confusion about using the same word "notebook" for 
-both the notebook space and the corresonding notebook document, since they are 
+both the notebook space and the corresponding notebook document, since they are 
 really one and the same concept (we could say that they are "isomorphic").
 
 
@@ -85,35 +85,32 @@ The main features of the IPython Notebook app include:
 Notebook documents
 ~~~~~~~~~~~~~~~~~~
 
-Notebook document files are just standard, ASCII-coded text files with the 
-extension ``.ipynb``, stored in the working directory on your computer. 
-Since the contents of the files are just plain text, they can be easily 
-version-controlled and shared with colleagues.
-
-Internally, notebook document files use the JSON_ format, allowing them to 
-store a *complete*, *reproducible*, *one-to-one* copy of the state of the
+Notebook document files are simple JSON_ files with the 
+extension ``.ipynb``.
+Since JSON is just plain text, they can be easily version-controlled and shared with colleagues.
+The notebook stores a *complete*, *reproducible*, *one-to-one* copy of the state of the
 computational state as it is inside the Notebook app. All computations
 carried out, and the corresponding results obtained, can be combined in
 a literate way, interleaving executable code with rich text, mathematics, 
-and HTML 5 representations of objects.
+and rich representations of objects.
 
 .. _JSON: http://en.wikipedia.org/wiki/JSON
 
 Notebooks may easily be exported to a range of static formats, including 
-HTML (for example, for blog posts), PDF and slide shows, via the 
-newly-included `nbconvert script`_ functionality.
+HTML (for example, for blog posts), PDF and slide shows, 
+via the new nbconvert_ command.
 
-Furthermore, any  ``.ipynb`` notebook document with a publicly-available 
-URL can be shared via the `IPython Notebook Viewer`_ service. This service
- loads the notebook document from the URL  which will 
-provide it as a static web page. The results may thus be shared with a 
+Furthermore, any  ``.ipynb`` notebook document available from a public 
+URL can be shared via the `IPython Notebook Viewer <nbviewer>`_ service.
+This service loads the notebook document from the URL and will 
+render it as a static web page. The results may thus be shared with a 
 colleague, or as a public blog post, without other users needing to install 
-IPython themselves.
+IPython themselves.  NbViewer is simply NbConvert as a simple heroku webservice.
 
 See the :ref:`installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
 
-.. _`Ipython Notebook Viewer`: http://nbviewer.ipython.org
+.. _nbviewer: http://nbviewer.ipython.org
 
 .. note::
 
@@ -137,8 +134,8 @@ You can start running the Notebook web app using the following command::
 (Here, and in the sequel, the initial ``$`` represents the shell prompt, 
 indicating that the command is to be run from the command line in a shell.)
 
-The landing page of the IPython Notebook  application, the *dashboard*, shows 
-the notebooks currently available in the *working directory* (the directory 
+The landing page of the IPython Notebook application, the *dashboard*, shows 
+the notebooks currently available in the *notebook directory* (By default, the directory 
 from which the notebook was started).
 You can create new notebooks from the dashboard with the ``New Notebook``
 button, or open existing ones by clicking on their name.
@@ -155,7 +152,7 @@ The `.ipynb` extension is assumed if no extension is given.
 
 The `File | Open...` menu option will open the dashboard in a new browser tab, 
 to allow you to select a current notebook 
-from the working directory or to create a new notebook
+from the notebook directory or to create a new notebook.
 
 
 
@@ -189,7 +186,7 @@ Creating a new notebook document
 
 A new notebook space/document may be created at any time, either from the 
 dashboard, or using the `File | New` menu option from within an active 
-notebook. The new notebook is created within the same working directory and 
+notebook. The new notebook is created within the same directory and 
 will open in a new browser tab. It will also be reflected as a new entry in 
 the notebook list on the dashboard.
 
@@ -267,9 +264,9 @@ way, using standard LaTeX notation: ``$...$`` for inline mathematics and
 ``$$...$$`` for displayed mathematics. When the Markdown cell is executed, 
 the LaTeX portions are automatically rendered in the HTML output as equations 
 with high quality typography. This is made possible by MathJax_, which 
-supports a `large subset`_ of LaTeX functionality 
+supports a `large subset <mathjax_tex>`_ of LaTeX functionality 
 
-.. _`large subset`: http://docs.mathjax.org/en/latest/tex.html
+.. _mathjax_tex: http://docs.mathjax.org/en/latest/tex.html
 
 Standard mathematics environments defined by LaTeX and AMS-LaTeX (the 
 `amsmath` package) also work, such as 
@@ -278,18 +275,20 @@ New LaTeX macros may be defined using standard methods,
 such as ``\newcommand``, by placing them anywhere *between math delimiters* in 
 a Markdown cell. These definitions are then available throughout the rest of 
 the IPython session. (Note, however, that more care must be taken when using 
-the `nbconvert script`_ to output to LaTeX).
+nbconvert_ to output to LaTeX).
 
 Raw input cells
 ~~~~~~~~~~~~~~~
-*Raw* input cells provide a place in which you can put additional information 
-which you do not want to evaluated by the Notebook. This can be used, for 
-example, to include extra information that is needed when exporting to a 
-certain format. The output after evaluating a raw cell is just a verbatim copy 
-of the input.
+
+*Raw* input cells provide a place in which you can write *output* directly.
+Raw cells are not evaluated by the Notebook, and have no output.
+When passed through nbconvert, Raw cells arrive in the destination format unmodified,
+allowing you to type full latex into a raw cell, which will only be rendered
+by latex after conversion by nbconvert.
 
 Heading cells
 ~~~~~~~~~~~~~
+
 You can provide a conceptual structure for your computational document as a 
 whole using different levels of headings; there are 6 levels available, from 
 level 1 (top level) down to level 6 (paragraph). These can be used later for 
@@ -301,6 +300,7 @@ rendering of the heading when the cell is executed.
 
 Basic workflow
 --------------
+
 The normal workflow in a notebook is, then, quite similar to a standard 
 IPython session, with the difference that you can edit cells in-place multiple 
 times until you obtain the desired results, rather than having to 
@@ -548,7 +548,7 @@ Importing `.py` files
 
 
 ``.py`` files will be imported into the IPython Notebook as a notebook with 
-the same basename, but an ``.ipynb`` extension, located in the working 
+the same basename, but an ``.ipynb`` extension, located in the notebook 
 directory. The notebook created will have just one cell, which will contain 
 all the code in the ``.py`` file. You can later manually partition this into 
 individual cells using the ``Edit | Split Cell`` menu option, or the 
@@ -559,6 +559,3 @@ nbformat>2</nbformat>`` at the start of the file, and then add separators for
 text and code cells, to get a cleaner import with the file already broken into 
 individual cells.
 
-
-    
-.. _Markdown: http://daringfireball.net/projects/markdown/basics
