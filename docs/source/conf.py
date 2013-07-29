@@ -69,6 +69,15 @@ templates_path = ['_templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
+if iprelease['_version_extra']:
+    rst_prolog = """
+    .. note::
+
+        This documentation is for a development version of IPython. There may be
+        significant differences from the latest stable release (0.13.2).
+
+    """
+
 # The master toctree document.
 master_doc = 'index'
 
