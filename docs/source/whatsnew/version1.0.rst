@@ -5,10 +5,6 @@
 Release 1.0
 ===========
 
-.. note::
-
-   This document describes a pre-release version of IPython.
-
 IPython 1.0 requires Python ≥ 2.6.5 or ≥ 3.2.1.
 It does not support Python 3.0, 3.1, or 2.5.
 
