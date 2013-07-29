@@ -5,13 +5,18 @@ Parallel examples
 =================
 
 In this section we describe two more involved examples of using an IPython
-cluster to perform a parallel computation. In these examples, we will be using
-IPython's "pylab" mode, which enables interactive plotting using the
-Matplotlib package. IPython can be started in this mode by typing::
+cluster to perform a parallel computation. We will be doing some plotting,
+so we start IPython with matplotlib integration by typing::
 
-    ipython --pylab
+    ipython --matplotlib
 
 at the system command line.
+Or you can enable matplotlib integration at any point with:
+
+.. sourcecode:: ipython
+
+    In [1]: %matplotlib
+
 
 150 million digits of pi
 ========================
@@ -62,8 +67,6 @@ SymPy:
 
     In [11]: digits = (d for d in str(pi)[2:])  # create a sequence of digits
 
-    In [12]: run pidigits.py  # load one_digit_freqs/plot_one_digit_freqs
-
     In [13]: freqs = one_digit_freqs(digits)
 
     In [14]: plot_one_digit_freqs(freqs)
@@ -111,7 +114,7 @@ using IPython by following these steps:
 1. Use :command:`ipcluster` to start 15 engines. We used 16 cores of an SGE linux
    cluster (1 controller + 15 engines).
 2. With the file :file:`parallelpi.py` in your current working directory, open
-   up IPython in pylab mode and type ``run parallelpi.py``.  This will download
+   up IPython, enable matplotlib, and type ``run parallelpi.py``.  This will download
    the pi files via ftp the first time you run it, if they are not
    present in the Engines' working directory.
 
