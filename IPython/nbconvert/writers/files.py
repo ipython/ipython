@@ -99,5 +99,4 @@ class FilesWriter(WriterBase):
             # Write conversion results.
             with io.open(dest, 'w') as f:
                 f.write(output)
-            return dest 
-                      
+            return dest
