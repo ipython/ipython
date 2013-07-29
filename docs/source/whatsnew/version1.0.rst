@@ -5,6 +5,10 @@
 Release 1.0
 ===========
 
+.. note::
+
+   This document describes a pre-release version of IPython.
+
 IPython 1.0 requires Python ≥ 2.6.5 or ≥ 3.2.1.
 It does not support Python 3.0, 3.1, or 2.5.
 
@@ -212,7 +216,7 @@ The javascript components used in the notebook have been updated significantly.
 Some relevant changes that are results of this:
 
 - Markdown cells now support GitHub-flavored Markdown (GFM),
-which includes ``\`\`\`python`` code blocks and tables.
+  which includes ``\`\`\`python`` code blocks and tables.
 - Notebook UI behaves better on more screen sizes.
 - Various code cell input issues have been fixed.
 
