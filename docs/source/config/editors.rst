@@ -78,9 +78,9 @@ IPython, opening IPython as your Python shell via ``C-c !``, etc.
 
 You can customize the arguments passed to the IPython instance at startup by
 setting the ``py-python-command-args`` variable.  For example, to start always
-in ``pylab`` mode with hardcoded light-background colors, you can use::
+with ``matplotlib`` integration and hardcoded light-background colors, you can use::
 
-    (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
+    (setq py-python-command-args '("--matplotlib" "--colors" "LightBG"))
 
 If you happen to get garbage instead of colored prompts as described in
 the previous section, you may need to set also in your :file:`.emacs` file::

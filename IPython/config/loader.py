@@ -511,7 +511,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             if raw == '--':
                 # don't parse arguments after '--'
                 # this is useful for relaying arguments to scripts, e.g.
-                # ipython -i foo.py --pylab=qt -- args after '--' go-to-foo.py
+                # ipython -i foo.py --matplotlib=qt -- args after '--' go-to-foo.py
                 self.extra_args.extend(uargv[idx+1:])
                 break
 

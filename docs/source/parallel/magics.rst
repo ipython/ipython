@@ -60,17 +60,13 @@ Since engines are IPython as well, you can even run magics remotely:
     In [28]: %px %pylab inline
     Parallel execution on engine(s): all
     [stdout:0] 
-    Welcome to pylab, a matplotlib-based Python environment...
-    For more information, type 'help(pylab)'.
+    Populating the interactive namespace from numpy and matplotlib
     [stdout:1] 
-    Welcome to pylab, a matplotlib-based Python environment...
-    For more information, type 'help(pylab)'.
+    Populating the interactive namespace from numpy and matplotlib
     [stdout:2] 
-    Welcome to pylab, a matplotlib-based Python environment...
-    For more information, type 'help(pylab)'.
+    Populating the interactive namespace from numpy and matplotlib
     [stdout:3] 
-    Welcome to pylab, a matplotlib-based Python environment...
-    For more information, type 'help(pylab)'.
+    Populating the interactive namespace from numpy and matplotlib
 
 And once in pylab mode with the inline backend,
 you can make plots and they will be displayed in your frontend
