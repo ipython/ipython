@@ -33,7 +33,7 @@ except:
 from IPython.core import page
 from IPython.utils.warn import warn, error
 from IPython.utils import io
-from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode
+from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
@@ -44,6 +44,15 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
     _executing = False
     _execution_state = Unicode('')
+    kernel_timeout = Float(60, config=True,
+        help="""Timeout for giving up on a kernel (in seconds).
+        
+        On first connect and restart, the console tests whether the
+        kernel is running and responsive by sending kernel_info_requests.
+        This sets the timeout in seconds for how long the kernel can take
+        before being presumed dead.
+        """
+    )
 
     image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
                          config=True, help=
@@ -393,7 +402,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # run a non-empty no-op, so that we don't get a prompt until
         # we know the kernel is ready. This keeps the connection
         # message above the first prompt.
-        if not self.wait_for_kernel(60):
+        if not self.wait_for_kernel(self.kernel_timeout):
             error("Kernel did not respond\n")
             return
         
@@ -414,7 +423,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 if ans:
                     if self.manager:
                         self.manager.restart_kernel(True)
-                    self.wait_for_kernel(30)
+                    self.wait_for_kernel(self.kernel_timeout)
                 else:
                     self.exit_now = True
                 continue
