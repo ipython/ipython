@@ -29,9 +29,9 @@ document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/cs
 <![endif]-->
 
 {% for css in resources.inlining.css -%}
-<style type="text/css">
-{{css}}
-</style>
+    <style type="text/css">
+    {{ css }}
+    </style>
 {% endfor %}
 
 <style type="text/css">
@@ -95,11 +95,11 @@ text-align: inherit;
 
 {% block body %}
 <body>
-<div class="reveal"><div class="slides">
-
+<div class="reveal">
+<div class="slides">
 {{ super() }}
-
-</div></div>
+</div>
+</div>
 
 <!--
 Uncomment the following block and the addthis_widget.js (see below inside dependencies)

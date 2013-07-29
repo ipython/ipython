@@ -9,6 +9,7 @@ Note: For best display, use latex syntax highlighting. =))
 
 ((*- extends 'display_priority.tplx' -*))
 
+
 \nonstopmode
 
 %==============================================================================
@@ -181,7 +182,9 @@ Note: For best display, use latex syntax highlighting. =))
             \tableofcontents 
         ((* endblock toc *))
 
-        ((* endblock bodyBegin *))((( super() )))((* block bodyEnd *))
+        ((* endblock bodyBegin *))
+        ((( super() )))
+        ((* block bodyEnd *))
 
         \renewcommand{\indexname}{Index}
         \printindex
@@ -222,7 +225,8 @@ Note: For best display, use latex syntax highlighting. =))
     ((= It's important to make sure that underscores (which tend to be common
     in IPYNB file titles) do not make their way into latex.  Sometimes this
     causes latex to barf. =))
-    ((*- endif -*)){((( cell.source | markdown2latex )))}
+    ((*- endif -*))
+    {((( cell.source | markdown2latex )))}
 ((*- endblock headingcell *))
 
 %==============================================================================
@@ -232,7 +236,7 @@ Note: For best display, use latex syntax highlighting. =))
 %          called since we know we want latex output.
 %==============================================================================
 ((*- block markdowncell scoped-*))
-    ((( cell.source | markdown2latex )))
+((( cell.source | markdown2latex )))
 ((*- endblock markdowncell -*))
 
 %==============================================================================
@@ -242,7 +246,7 @@ Note: For best display, use latex syntax highlighting. =))
 %          will not get touched by the templating system.
 %==============================================================================
 ((*- block rawcell *))
-    ((( cell.source | wrap_text(wrap_size) )))
+((( cell.source | wrap_text(wrap_size) )))
 ((* endblock rawcell -*))
 
 %==============================================================================
@@ -253,9 +257,8 @@ Note: For best display, use latex syntax highlighting. =))
 %          can't flow off of the page.
 %==============================================================================
 ((* block unknowncell scoped*))
-
-    % Unsupported cell type, no formatting
-    ((( cell.source | wrap_text | escape_latex )))
+% Unsupported cell type, no formatting
+((( cell.source | wrap_text | escape_latex )))
 ((* endblock unknowncell *))
 
 %==============================================================================
@@ -338,34 +341,40 @@ Note: For best display, use latex syntax highlighting. =))
 % Additional formating
 %==============================================================================
 ((* block data_text *))
-    ((( custom_verbatim(output.text) | ansi2latex)))
+((( custom_verbatim(output.text) | ansi2latex )))
 ((* endblock *))
 
 ((* block traceback_line *))
-    ((( conditionally_center_output(line | indent| strip_ansi) )))
+((( conditionally_center_output( line | indent| strip_ansi ) )))
 ((* endblock traceback_line *))
 
 %==============================================================================
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-    ((( conditionally_center_output(insert_graphics(output.png_filename)) )))
+((( conditionally_center_output(insert_graphics(output.png_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
-    ((( conditionally_center_output(insert_graphics(output.jpg_filename)) )))
+((( conditionally_center_output(insert_graphics(output.jpg_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-    ((( conditionally_center_output(insert_graphics(output.svg_filename)) )))
+((( conditionally_center_output(insert_graphics(output.svg_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_pdf -*))
-    ((( conditionally_center_output(insert_graphics(output.pdf_filename)) )))
+((( conditionally_center_output(insert_graphics(output.pdf_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_latex *))
-    ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | strip_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
+((* if resources.sphinx.centeroutput *))
+    \begin{center}
+((* endif -*))
+((( output.latex | strip_math_space )))
+((*- if resources.sphinx.centeroutput *))
+    \end{center}
+((* endif -*))
 ((*- endblock -*))
 
 %==============================================================================
@@ -439,14 +448,19 @@ Note: For best display, use latex syntax highlighting. =))
 % Name: conditionally_center_output
 % Purpose: This macro centers the output if the output centering is enabled.
 ((* macro conditionally_center_output(text) -*))
-    ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))((* if resources.sphinx.centeroutput *))}((* endif *))
+    ((* if resources.sphinx.centeroutput *))
+        {\centering
+    ((* endif *))
+    ((( text )))
+    ((* if resources.sphinx.centeroutput *))}
+    ((* endif *))
 ((*- endmacro *))
 
 % Name: insert_graphics
 % Purpose: This macro will insert an image in the latex document given a path.
 ((* macro insert_graphics(path) -*))
     \begin{center}
-    \includegraphics[max size={\textwidth}{\textheight}]{(((path)))}
+    \includegraphics[max size={\textwidth}{\textheight}]{((( path )))}
     \par
     \end{center}
 ((*- endmacro *))
