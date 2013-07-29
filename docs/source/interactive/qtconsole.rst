@@ -48,19 +48,19 @@ for playing with examples from documentation, such as matplotlib.
 
     In [7]: from mpl_toolkits.mplot3d import axes3d
        ...: import matplotlib.pyplot as plt
-       ...: 
+       ...:
        ...: fig = plt.figure()
        ...: ax = fig.add_subplot(111, projection='3d')
        ...: X, Y, Z = axes3d.get_test_data(0.05)
        ...: cset = ax.contour(X, Y, Z)
        ...: ax.clabel(cset, fontsize=9, inline=1)
-       ...: 
+       ...:
        ...: plt.show()
 
-Pylab
-=====
+Inline Matplotlib
+=================
 
-One of the most exciting features of the new console is embedded matplotlib
+One of the most exciting features of the QtConsole is embedded matplotlib
 figures. You can use any standard matplotlib GUI backend
 to draw the figures, and since there is now a two-process model, there is no
 longer a conflict between user input and the drawing eventloop.
@@ -68,24 +68,27 @@ longer a conflict between user input and the drawing eventloop.
 .. image:: figs/besselj.png
     :width: 519px
 
-.. display:
+.. _display:
 
 :func:`display`
 ***************
 
-An additional function, :func:`display`, will be added to the global namespace
-if you specify the ``--pylab`` option at the command line. The IPython display
+IPython provides a function :func:`display` for displaying rich representations
+of objects if they are available. The IPython display
 system provides a mechanism for specifying PNG or SVG (and more)
-representations of objects for GUI frontends. By default, IPython registers
+representations of objects for GUI frontends.
+When you enable matplotlib integration via the ``%matplotlib`` magic, IPython registers
 convenient PNG and SVG renderers for matplotlib figures, so you can embed them
 in your document by calling :func:`display` on one or more of them. This is
 especially useful for saving_ your work.
 
 .. sourcecode:: ipython
 
-    In [5]: plot(range(5)) # plots in the matplotlib window
+    In [4]: from IPython.display import display
     
-    In [6]: display(gcf()) # embeds the current figure in the qtconsole
+    In [5]: plt.plot(range(5)) # plots in the matplotlib window
+    
+    In [6]: display(plt.gcf()) # embeds the current figure in the qtconsole
     
     In [7]: display(*getfigs()) # embeds all active figures in the qtconsole
 
@@ -94,16 +97,16 @@ that specific figure:
 
 .. sourcecode:: ipython
 
-   In [1]: f = figure()
+   In [1]: f = plt.figure()
 
-   In [2]: plot(rand(100))
+   In [2]: plt.plot(np.rand(100))
    Out[2]: [<matplotlib.lines.Line2D at 0x7fc6ac03dd90>]
 
    In [3]: display(f)
 
    # Plot is shown here
 
-   In [4]: title('A title')
+   In [4]: plt.title('A title')
    Out[4]: <matplotlib.text.Text at 0x7fc6ac023450>
 
    In [5]: display(f)
@@ -112,15 +115,16 @@ that specific figure:
 
 .. _inline:
 
-``--pylab=inline``
-******************
+``--matplotlib inline``
+***********************
 
 If you want to have all of your figures embedded in your session, instead of
-calling :func:`display`, you can specify ``--pylab=inline`` when you start the
+calling :func:`display`, you can specify ``--matplotlib inline`` when you start the
 console, and each time you make a plot, it will show up in your document, as if
 you had called :func:`display(fig)`.
 
 The inline backend can use either SVG or PNG figures (PNG being the default).
+It also supports the special key ``'retina'``, which is 2x PNG for high-DPI displays.
 To switch between them, set the ``InlineBackend.figure_format`` configurable
 in a config file, or via the ``%config`` magic:
 
@@ -140,10 +144,10 @@ each cell will always create a new figure:
 
 .. sourcecode:: ipython
 
-    In [11]: plot(range(100))
+    In [11]: plt.plot(range(100))
     <single-line plot>
     
-    In [12]: plot([1,3,2])
+    In [12]: plt.plot([1,3,2])
     <another single-line plot>
 
 
@@ -177,7 +181,7 @@ Saving and Printing
 ===================
 
 IPythonQt has the ability to save your current session, as either HTML or
-XHTML. If you have been using :func:`display` or inline_ pylab, your figures
+XHTML. If you have been using :func:`display` or inline_ matplotlib, your figures
 will be PNG in HTML, or inlined as SVG in XHTML. PNG images have the option to
 be either in an external folder, as in many browsers' "Webpage, Complete"
 option, or inlined as well, for a larger, but more portable file.
@@ -546,7 +550,7 @@ An important part of working with the QtConsole when you are writing your own
 Qt code is to remember that user code (in the kernel) is *not* in the same
 process as the frontend.  This means that there is not necessarily any Qt code
 running in the kernel, and under most normal circumstances there isn't. If,
-however, you specify ``--pylab=qt`` at the command-line, then there *will* be a
+however, you specify ``--matplotlib qt`` at the command-line, then there *will* be a
 :class:`QCoreApplication` instance running in the kernel process along with
 user-code. To get a reference to this application, do:
 
