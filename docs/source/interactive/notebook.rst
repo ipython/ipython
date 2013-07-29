@@ -477,26 +477,7 @@ setup for IPython to work correctly hand in hand with ``matplotlib``; it does
 *not*, however, actually execute any Python ``import`` commands, that is, no 
 names are added to the namespace.
 
-For more agile *interactive* use of the notebook space, an alternative magic, 
-``%pylab``, is provided. This does the same work as the ``%matplotlib`` magic, 
-but *in addition* it automatically executes a standard sequence of ``import`` 
-statements required to work with the ``%matplotlib`` library, importing the 
-following names into the namespace:
-
-  ``numpy`` as ``np``; ``matplotlib.pyplot`` as ``plt``;
-  ``matplotlib``, ``pylab`` and ``mlab`` from ``matplotlib``; and *all names* 
-  from within ``numpy`` and ``pylab``. 
-
-However, the use of ``%pylab`` is discouraged, since names coming from 
-different packages may collide. In general, the use of ``from package import 
-*`` is discouraged. A better option is then::
-  
-    %pylab --no-import-all
-
-which imports the  names listed above, but does *not* perform this 
-``import *`` imports.
-
-If the ``%matplotlib`` or ``%pylab` magics are called without an argument, the 
+If the ``%matplotlib`` magic is called without an argument, the 
 output of a plotting command is displayed using the default ``matplotlib`` 
 backend in a separate window. Alternatively, the backend can be explicitly 
 requested using, for example::
@@ -504,7 +485,7 @@ requested using, for example::
   %matplotlib gtk
 
 A particularly interesting backend is the ``inline`` backend.
-This is applicable only for the IPython Notebook and the IPython Qtconsole. 
+This is applicable only for the IPython Notebook and the IPython QtConsole.
 It can be invoked as follows::
 
   %matplotlib inline
