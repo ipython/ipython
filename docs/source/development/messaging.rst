@@ -947,12 +947,11 @@ Message type: ``pyout``::
         # (for prompt N).
         'execution_count' : int,
         
-        # The data dict contains key/value pairs, where the kids are MIME
-        # types and the values are the raw data of the representation in that
-        # format. The data dict must minimally contain the ``text/plain``
-        # MIME type which is used as a backup representation.
+        # data and metadata are identical to a display_data message.
+        # the object being displayed is that passed to the display hook,
+        # i.e. the *result* of the execution.
         'data' : dict,
-
+        'metadata' : dict,
     }
     
 Python errors
