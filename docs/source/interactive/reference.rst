@@ -784,17 +784,27 @@ command-line options, as those are trapped first by Python itself.
 Embedding IPython
 =================
 
-It is possible to start an IPython instance inside your own Python
-programs. This allows you to evaluate dynamically the state of your
-code, operate with your variables, analyze them, etc. Note however that
+You can start a regular IPython session with
+
+.. sourcecode:: python
+
+    import IPython
+    IPython.start_ipython()
+
+at any point in your program.  This will load IPython configuration,
+startup files, and everything, just as if it were a normal IPython session.
+In addition to this,
+it is possible to embed an IPython instance inside your own Python programs.
+This allows you to evaluate dynamically the state of your code,
+operate with your variables, analyze them, etc. Note however that
 any changes you make to values while in the shell do not propagate back
 to the running code, so it is safe to modify your values because you
 won't break your code in bizarre ways by doing so.
 
 .. note::
 
-  At present, trying to embed IPython from inside IPython causes problems. Run
-  the code samples below outside IPython.
+  At present, embedding IPython cannot be done from inside IPython.
+  Run the code samples below outside IPython.
 
 This feature allows you to easily have a fully functional python
 environment for doing object introspection anywhere in your code with a
