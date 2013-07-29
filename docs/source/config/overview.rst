@@ -484,9 +484,9 @@ For instance:
     # is equivalent to
     $> ipcontroller --Application.log_level=DEBUG
     # and
-    $> ipython --pylab
+    $> ipython --matploitlib
     # is equivalent to
-    $> ipython --pylab=auto
+    $> ipython --matplotlib auto
     # or
     $> ipython --no-banner
     # is equivalent to
@@ -502,14 +502,14 @@ Some IPython applications have **subcommands**. Subcommands are modeled after
 
 .. code-block:: bash
 
-    $> ipython qtconsole --profile=myprofile
+    $> ipython qtconsole --profile myprofile
 
 and :command:`ipcluster` is simply a wrapper for its various subcommands (start,
 stop, engines).
 
 .. code-block:: bash
 
-    $> ipcluster start --profile=myprofile --n=4
+    $> ipcluster start --profile=myprofile -n 4
 
 
 To see a list of the available aliases, flags, and subcommands for an IPython application, simply pass ``-h`` or ``--help``.  And to see the full list of configurable options (*very* long), pass ``--help-all``.

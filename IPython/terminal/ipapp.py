@@ -298,15 +298,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             argv = argv[:] # copy, don't clobber
             idx = argv.index('-pylab')
             warn.warn("`-pylab` flag has been deprecated.\n"
-            "    Use `--pylab` instead, or `--pylab=foo` to specify a backend.")
-            sub = '--pylab'
-            if len(argv) > idx+1:
-                # check for gui arg, as in '-pylab qt'
-                gui = argv[idx+1]
-                if gui in ('wx', 'qt', 'qt4', 'gtk', 'auto'):
-                    sub = '--pylab='+gui
-                    argv.pop(idx+1)
-            argv[idx] = sub
+            "    Use `--matplotlib <backend>` and import pylab manually.")
+            argv[idx] = '--pylab'
 
         return super(TerminalIPythonApp, self).parse_command_line(argv)
     

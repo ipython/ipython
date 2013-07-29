@@ -81,8 +81,8 @@ from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 #-----------------------------------------------------------------------------
 
 _examples = """
-ipython qtconsole                 # start the qtconsole
-ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
+ipython qtconsole                      # start the qtconsole
+ipython qtconsole --matplotlib=inline  # start with matplotlib inline plotting mode
 """
 
 #-----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         The QtConsole supports various extra features beyond the Terminal IPython
         shell, such as inline plotting with matplotlib, via:
         
-            ipython qtconsole --pylab=inline
+            ipython qtconsole --matplotlib=inline
         
         as well as saving your session as HTML, and printing the output.
         

@@ -96,9 +96,7 @@ from .utils import url_path_join
 _examples = """
 ipython notebook                       # start the notebook
 ipython notebook --profile=sympy       # use the sympy profile
-ipython notebook --pylab=inline        # pylab in inline plotting mode
 ipython notebook --certfile=mycert.pem # use SSL/TLS certificate
-ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 """
 
 #-----------------------------------------------------------------------------
