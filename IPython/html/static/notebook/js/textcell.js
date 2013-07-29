@@ -321,7 +321,7 @@ var IPython = (function (IPython) {
             var html = marked.parser(marked.lexer(text));
             html = $(IPython.mathjaxutils.replace_math(html, math));
             // links in markdown cells should open in new tabs
-            html.find("a[href]").attr("target", "_blank");
+            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             try {
                 this.set_rendered(html);
             } catch (e) {
