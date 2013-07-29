@@ -14,6 +14,8 @@ Contains postprocessor for serving nbconvert output.
 #-----------------------------------------------------------------------------
 
 import os
+import webbrowser
+
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
@@ -41,7 +43,10 @@ class ServePostProcessor(PostProcessorBase):
             os.chdir(self.build_directory)
             httpd = HTTPServer(('127.0.0.1', 8000), SimpleHTTPRequestHandler)
             sa = httpd.socket.getsockname()
-            print("Serving " + input[2:] + " on http://" + sa[0] + ":" + str(sa[1]))
+            name = input[2:]
+            url = "http://" + sa[0] + ":" + str(sa[1]) + "/" + name
+            webbrowser.open(url, new=2)
+            print("Serving " + name + " on " + url)
             print("Use Control-C to stop this server.")
             httpd.serve_forever()
         except KeyboardInterrupt:
