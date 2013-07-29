@@ -23,11 +23,13 @@ import glob
 
 # From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
+from IPython.core.error import UsageError
 from IPython.config import catch_config_error, Configurable
 from IPython.utils.traitlets import (
     Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
 )
 from IPython.utils.importstring import import_item
+from IPython.utils.text import dedent
 
 from .exporters.export import export_by_name, get_export_names, ExporterNameError
 from IPython.nbconvert import exporters, transformers, writers, post_processors
@@ -58,7 +60,8 @@ nbconvert_aliases.update({
     'template' : 'Exporter.template_file',
     'notebooks' : 'NbConvertApp.notebooks',
     'writer' : 'NbConvertApp.writer_class',
-    'post': 'NbConvertApp.post_processor_class'
+    'post': 'NbConvertApp.post_processor_class',
+    'output': 'NbConvertApp.output_base'
 })
 
 nbconvert_flags = {}
@@ -92,6 +95,10 @@ class NbConvertApp(BaseIPythonApplication):
         to various other formats.
 
         WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.""")
+
+    output_base = Unicode('', config=True, help='''overwrite base name use for output files.
+            can only  be use when converting one notebook at a time.
+            ''')
 
     examples = Unicode(u"""
         The simplest way to use nbconvert is
@@ -253,11 +260,21 @@ class NbConvertApp(BaseIPythonApplication):
         """
         # Export each notebook
         conversion_success = 0
+
+        if self.output_base != '' and len(self.notebooks) > 1:
+            print(dedent(
+            """UsageError: --output flag or `NbConvertApp.output_base` config option
+            cannot be used when converting multiple notebooks.
+            """))
+            self.exit(1)
+
         for notebook_filename in self.notebooks:
 
             # Get a unique key for the notebook and set it in the resources object.
             basename = os.path.basename(notebook_filename)
             notebook_name = basename[:basename.rfind('.')]
+            if self.output_base:
+                notebook_name = self.output_base
             resources = {}
             resources['unique_key'] = notebook_name
             resources['output_files_dir'] = '%s_files' % notebook_name
