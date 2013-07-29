@@ -19,7 +19,7 @@ import webbrowser
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, Bool
 
 from .base import PostProcessorBase
 
@@ -33,6 +33,10 @@ class ServePostProcessor(PostProcessorBase):
     build_directory = Unicode(".", config=True, 
                               help="""Directory to write output to.  Leave blank
                               to output to the current directory""")
+                              
+    open_in_browser = Bool(True, config=True,
+                           help="""Set to False to deactivate 
+                           the opening of the browser""")
 
     def call(self, input):
         """
@@ -45,7 +49,8 @@ class ServePostProcessor(PostProcessorBase):
             sa = httpd.socket.getsockname()
             name = input[2:]
             url = "http://" + sa[0] + ":" + str(sa[1]) + "/" + name
-            webbrowser.open(url, new=2)
+            if self.open_in_browser:
+                webbrowser.open(url, new=2)
             print("Serving " + name + " on " + url)
             print("Use Control-C to stop this server.")
             httpd.serve_forever()
