@@ -23,7 +23,6 @@ import glob
 
 # From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
-from IPython.core.error import UsageError
 from IPython.config import catch_config_error, Configurable
 from IPython.utils.traitlets import (
     Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
