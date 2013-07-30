@@ -31,25 +31,31 @@ The currently supported export formats are:
 * ``--to html``
 
   - ``--template full`` (default)
+  
     A full static HTML render of the notebook.
     This looks very similar to the interactive view.
 
   - ``--template basic``
+  
     Simplified HTML, useful for embedding in webpages, blogs, etc.
     This excludes HTML headers.
 
 * ``--to latex``
+
   Latex export.  This generates ``NOTEBOOK_NAME.tex`` file,
   ready for export.  You can automatically run latex on it to generate a PDF
   by adding ``--post PDF``.
   
   - ``--template article`` (default)
+  
     Latex article, derived from Sphinx's howto template.
 
   - ``--template book``
+  
     Latex book, derived from Sphinx's manual template.
 
   - ``--template basic``
+  
     Very basic latex output - mainly meant as a starting point for custom templates.
 
 * ``--to slides``
@@ -58,14 +64,23 @@ The currently supported export formats are:
   It must be served by an HTTP server.  The easiest way to get this is to add
   ``--post serve`` on the command-line.
 
-* ``--to markdown`` Simple markdown
+* ``--to markdown``
 
-* ``--to rst`` reStructuredText
+  Simple markdown output.  Markdown cells are unaffected,
+  and code cells are placed in triple-backtick (``\`\`\```) blocks.
 
-* ``--to python`` Convert a notebook to an executable Python script.
+* ``--to rst``
+
+  Basic reStructuredText output. Useful as a starting point for embedding notebooks
+  in Sphinx docs.
+
+* ``--to python``
+
+  Convert a notebook to an executable Python script.
   This is the simplest way to get a Python script out of a notebook.
   If there were any magics in the notebook, this may only be executable from
   an IPython session.
+  
 
 The output file created by ``nbconvert`` will have the same base name as
 the notebook and will be placed in the current working directory. Any
