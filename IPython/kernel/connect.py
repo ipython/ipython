@@ -391,7 +391,6 @@ class ConnectionFileMixin(HasTraits):
     _connection_file_written = Bool(False)
 
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
-    signature_scheme = Unicode('')
 
     ip = Unicode(LOCALHOST, config=True,
         help="""Set the kernel\'s IP address [default localhost].
@@ -439,7 +438,8 @@ class ConnectionFileMixin(HasTraits):
             stdin_port=self.stdin_port,
             hb_port=self.hb_port,
             control_port=self.control_port,
-            signature_scheme=self.signature_scheme,
+            signature_scheme=self.session.signature_scheme,
+            key=self.session.key,
         )
 
     def cleanup_connection_file(self):
@@ -476,7 +476,7 @@ class ConnectionFileMixin(HasTraits):
             stdin_port=self.stdin_port, iopub_port=self.iopub_port,
             shell_port=self.shell_port, hb_port=self.hb_port,
             control_port=self.control_port,
-            signature_scheme=self.signature_scheme,
+            signature_scheme=self.session.signature_scheme,
         )
         # write_connection_file also sets default ports:
         for name in port_names:
