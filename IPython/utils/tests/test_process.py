@@ -21,7 +21,8 @@ from unittest import TestCase
 import nose.tools as nt
 
 from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
-                                   system, getoutput, getoutputerror)
+                                   system, getoutput, getoutputerror,
+                                   get_output_error_code)
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
@@ -132,3 +133,14 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         out, err = getoutputerror('%s "%s"' % (python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
+    
+    def test_get_output_error_code(self):
+        quiet_exit = '%s -c "import sys; sys.exit(1)"' % python
+        out, err, code = get_output_error_code(quiet_exit)
+        self.assertEqual(out, '')
+        self.assertEqual(err, '')
+        self.assertEqual(code, 1)
+        out, err, code = get_output_error_code('%s "%s"' % (python, self.fname))
+        self.assertEqual(out, 'on stdout')
+        self.assertEqual(err, 'on stderr')
+        self.assertEqual(code, 0)
