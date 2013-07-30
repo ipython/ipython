@@ -1,6 +1,4 @@
-
-
-.. _`nbconvert script`:
+.. _nbconvert:
 
 Converting notebooks to other formats
 =====================================
