@@ -81,6 +81,13 @@ The currently supported export formats are:
   If there were any magics in the notebook, this may only be executable from
   an IPython session.
   
+.. note::
+
+  nbconvert uses pandoc_ to convert between various markup languages,
+  so pandoc is a dependency of most nbconvert transforms,
+  excluding Markdown and Python.
+
+.. _pandoc: http://johnmacfarlane.net/pandoc/
 
 The output file created by ``nbconvert`` will have the same base name as
 the notebook and will be placed in the current working directory. Any
