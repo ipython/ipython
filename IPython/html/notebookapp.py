@@ -442,7 +442,14 @@ class NotebookApp(BaseIPythonApplication):
         )
         try:
             mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
-        except IOError:
+            # IOError will be raised if mathjax cannot be found locally, but
+            # AttributeError will be raise once if mathjax url try to be set in
+            # config as self.static_file_path (actually self.profile_dir but
+            # the first depend on the second) does not exist yet. Still we
+            # don't care as at mathjax url will be set later.  It will just
+            # have the side effect of printing "Using MathJax from CDN" then
+            # printing "using mathjax from <custom url>"
+        except (IOError, AttributeError):
             if self.certfile:
                 # HTTPS: load from Rackspace CDN, because SSL certificate requires it
                 base = u"https://c328740.ssl.cf1.rackcdn.com"
