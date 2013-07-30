@@ -95,7 +95,7 @@ class TestExporter(ExportersTestsBase):
 
     def test_transformer_via_method(self):
         """
-        Can a transformer be added via the Exporter convinience method?
+        Can a transformer be added via the Exporter convenience method?
         """
         exporter = self._make_exporter()
         exporter.register_transformer(CheeseTransformer, enabled=True)
@@ -108,6 +108,5 @@ class TestExporter(ExportersTestsBase):
     def _make_exporter(self, config=None):
         #Create the exporter instance, make sure to set a template name since
         #the base Exporter doesn't have a template associated with it.
-        exporter = Exporter(config=config)
-        exporter.template_file = 'python'
+        exporter = Exporter(config=config, template_file='python')
         return exporter        

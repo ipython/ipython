@@ -170,11 +170,13 @@ class Exporter(LoggingConfigurable):
         template : str (optional, kw arg)
             Template to use when exporting.
         """
+        if not config:
+            config = self.default_config
         
         super(Exporter, self).__init__(config=config, **kw)
 
         #Init
-        self._init_template(**kw)
+        self._init_template()
         self._init_environment(extra_loaders=extra_loaders)
         self._init_transformers()
         self._init_filters()
@@ -189,8 +191,9 @@ class Exporter(LoggingConfigurable):
         c = self.default_config
         if new:
             c.merge(new)
-        if c != new:
+        if c != old:
             self.config = c
+        super(Exporter, self)._config_changed(name, old, c)
         
 
     def _load_template(self):
@@ -382,14 +385,12 @@ class Exporter(LoggingConfigurable):
             raise TypeError('filter')
 
         
-    def _init_template(self, **kw):
+    def _init_template(self):
         """
         Make sure a template name is specified.  If one isn't specified, try to
         build one from the information we know.
         """
         self._template_file_changed('template_file', self.template_file, self.template_file)
-        if 'template' in kw:
-            self.template_file = kw['template']
         
 
     def _init_environment(self, extra_loaders=None):
