@@ -165,18 +165,13 @@ class Exporter(LoggingConfigurable):
         config : config
             User configuration instance.
         extra_loaders : list[of Jinja Loaders]
-            ordered list of Jinja loder to find templates. Will be tried in order
-            before the default FileSysteme ones.
+            ordered list of Jinja loader to find templates. Will be tried in order
+            before the default FileSystem ones.
         template : str (optional, kw arg)
             Template to use when exporting.
         """
         
-        #Call the base class constructor
-        c = self.default_config
-        if config:
-            c.merge(config)
-
-        super(Exporter, self).__init__(config=c, **kw)
+        super(Exporter, self).__init__(config=config, **kw)
 
         #Init
         self._init_template(**kw)
@@ -188,6 +183,14 @@ class Exporter(LoggingConfigurable):
     @property
     def default_config(self):
         return Config()
+    
+    def _config_changed(self, name, old, new):
+        c = self.default_config
+        if new:
+            c.merge(new)
+        if c != new:
+            self.config = c
+        
 
     def _load_template(self):
         if self.template is not None:
