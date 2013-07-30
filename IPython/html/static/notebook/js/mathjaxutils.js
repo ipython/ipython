@@ -131,7 +131,7 @@ IPython.mathjaxutils = (function (IPython) {
     //
     var remove_math = function (text) {
         if (!window.MathJax) {
-            return text;
+            return [text, null];
         }
 
         var math = []; // stores math strings for later
