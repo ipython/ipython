@@ -29,6 +29,7 @@ def test_cython_inline():
     nt.assert_equal(result, 30)
 
 
+@dec.skip_win32
 def test_cython_pyximport():
     module_name = '_test_cython_pyximport'
     ip.run_cell_magic('cython_pyximport', module_name, code)
