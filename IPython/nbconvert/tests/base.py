@@ -13,15 +13,13 @@ Contains base test class for nbconvert
 # Imports
 #-----------------------------------------------------------------------------
 
-import subprocess
 import os
 import glob
 import shutil
-import sys
 
 import IPython
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.utils import py3compat
+from IPython.utils.process import get_output_error_code
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -166,12 +164,8 @@ class TestsBase(object):
         return path
 
 
-    def call(self, parameters):
-        output = subprocess.Popen(parameters, stdout=subprocess.PIPE).communicate()[0]
-        
-        #Convert the output to a string if running Python3
-        if py3compat.PY3:
-            return output.decode('utf-8')
-        else:
-            return output
-     
+    def call(self, parameters, raise_on_error=True):
+        stdout, stderr, retcode = get_output_error_code(parameters)
+        if retcode != 0 and raise_on_error:
+            raise OSError(stderr)
+        return stdout, stderr
