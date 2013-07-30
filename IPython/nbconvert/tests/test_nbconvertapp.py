@@ -83,6 +83,7 @@ class TestNbConvertApp(TestsBase):
 
 
     @dec.onlyif_cmds_exist('pdflatex')
+    @dec.onlyif_cmds_exist('pandoc')
     def test_post_processor(self):
         """
         Do post processors work?
@@ -95,6 +96,7 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook1.pdf')
 
 
+    @dec.onlyif_cmds_exist('pandoc')
     def test_template(self):
         """
         Do export templates work?
