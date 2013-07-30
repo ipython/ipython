@@ -113,8 +113,11 @@ def export(exporter, nb, **kw):
         exporter_instance = exporter
     else:
         if exporter not in _exporters:
-            _exporters[exporter] = exporter(**kw)
-        exporter_instance = _exporters[exporter]
+            exporter_instance = _exporters[exporter] = exporter(**kw)
+        else:
+            exporter_instance = _exporters[exporter]
+            for attr, value in kw.items():
+                setattr(exporter_instance, attr, value)
 
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
