@@ -438,7 +438,7 @@ class ConnectionFileMixin(HasTraits):
             stdin_port=self.stdin_port,
             hb_port=self.hb_port,
             control_port=self.control_port,
-            signature_schme=self.session.signature_scheme,
+            signature_scheme=self.session.signature_scheme,
             key=self.session.key,
         )
 
