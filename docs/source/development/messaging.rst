@@ -450,6 +450,10 @@ When status is 'ok', the following extra fields are present::
        ip.payload_manager.write_payload(payload_dict)
 
    which appends a dictionary to the list of payloads.
+   
+   The payload API is not yet stabilized,
+   and should probably not be supported by non-Python kernels at this time.
+   In such cases, the payload list should always be empty.
 
    
 When status is 'error', the following extra fields are present::
