@@ -119,6 +119,10 @@ class NbConvertApp(BaseIPythonApplication):
 
         > ipython nbconvert mynotebook.ipynb --to latex --post PDF
         
+        You can get (and serve) a Reveal.js-powered slideshow
+        
+        > ipython nbconvert myslides.ipynb --to slides --post serve
+        
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
   
@@ -157,7 +161,8 @@ class NbConvertApp(BaseIPythonApplication):
     post_processor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    post_processor_aliases = {'PDF': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor'}
+    post_processor_aliases = {'PDF': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor',
+                              'serve': 'IPython.nbconvert.post_processors.serve.ServePostProcessor'}
     post_processor_factory = Type()
 
     def _post_processor_class_changed(self, name, old, new):
@@ -292,8 +297,7 @@ class NbConvertApp(BaseIPythonApplication):
         if conversion_success == 0:
             self.print_help()
             sys.exit(-1)
-
-
+            
 #-----------------------------------------------------------------------------
 # Main entry point
 #-----------------------------------------------------------------------------
