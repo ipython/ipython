@@ -185,6 +185,7 @@ class Exporter(LoggingConfigurable):
         return Config()
     
     def _config_changed(self, name, old, new):
+        """When setting config, make sure to start with our default_config"""
         c = self.default_config
         if new:
             c.merge(new)
@@ -193,6 +194,13 @@ class Exporter(LoggingConfigurable):
         
 
     def _load_template(self):
+        """Load the Jinja template object from the template file
+        
+        This is a no-op if the template attribute is already defined,
+        or the Jinja environment is not setup yet.
+        
+        This is triggered by various trait changes that would change the template.
+        """
         if self.template is not None:
             return
         # called too early, do nothing
