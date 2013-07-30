@@ -54,7 +54,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call(IPYTHON + ' nbconvert --to="python"'
-                       ' --notebooks=["*.ipynb"]')
+                       ' --notebooks=*.ipynb')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -65,8 +65,8 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd():
             self.copy_files_to(['notebook*.ipynb'], 'subdir/')
-            self.call(IPYTHON + ' nbconvert --to="python"',
-                      ' --notebooks=["%s"]' % os.path.join('subdir', '*.ipynb'))
+            self.call(IPYTHON + ' nbconvert --to="python"'
+                      ' --notebooks=%s' % os.path.join('subdir', '*.ipynb'))
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -77,7 +77,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call(IPYTHON + ' nbconvert --to="python"'
-                      ' --notebooks=["notebook2.ipynb"]')
+                      ' --notebooks=notebook2.ipynb')
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -101,7 +101,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook2.ipynb']):
             self.call(IPYTHON + ' nbconvert --to=slides'
-                       ' --notebooks=["notebook2.ipynb"]'
+                       ' --notebooks=notebook2.ipynb'
                        ' --template=reveal')
             assert os.path.isfile('notebook2.slides.html')
             with open('notebook2.slides.html') as f:
@@ -114,7 +114,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call(IPYTHON + ' nbconvert --to="python" --notebooks='
-                      '["*.ipynb", "notebook1.ipynb", "notebook2.ipynb"]')
+                      '*.ipynb,notebook1.ipynb,notebook2.ipynb')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -125,7 +125,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call(IPYTHON + ' nbconvert --to="python" --notebooks='
-                      '["notebook1.ipynb", "notebook2.ipynb", "*.ipynb"]')
+                      'notebook1.ipynb,notebook2.ipynb,*.ipynb')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
