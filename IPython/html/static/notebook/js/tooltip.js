@@ -135,7 +135,8 @@ var IPython = (function (IPython) {
             'clear_output': empty,
             'cell': cell
         }, {
-            'silent': false
+            'silent': false,
+            'store_history': true
         });
         this.remove_and_cancel_tooltip();
     }
