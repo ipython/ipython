@@ -28,10 +28,10 @@ import datetime
 from jinja2 import Environment, FileSystemLoader, ChoiceLoader, TemplateNotFound
 
 # IPython imports
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.config import Config
 from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict
+from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
 from IPython.utils import py3compat
@@ -78,7 +78,7 @@ class ResourcesDict(collections.defaultdict):
         return ''
 
 
-class Exporter(Configurable):
+class Exporter(LoggingConfigurable):
     """
     Exports notebooks into other file formats.  Uses Jinja 2 templating engine
     to output new formats.  Inherit from this class if you are creating a new
@@ -102,7 +102,11 @@ class Exporter(Configurable):
             self.template_file = self.default_template
         else:
             self.template_file = new
+        self._load_template()
+    
     default_template = Unicode(u'')
+    template = Any()
+    environment = Any()
 
     file_extension = Unicode(
         'txt', config=True, 
@@ -110,6 +114,8 @@ class Exporter(Configurable):
         )
 
     template_path = List(['.'], config=True)
+    def _template_path_changed(self, name, old, new):
+        self._load_template()
 
     default_template_path = Unicode(
         os.path.join("..", "templates"), 
@@ -183,6 +189,30 @@ class Exporter(Configurable):
     def default_config(self):
         return Config()
 
+    def _load_template(self):
+        if self.template is not None:
+            return
+        # called too early, do nothing
+        if self.environment is None:
+            return
+        # Try different template names during conversion.  First try to load the
+        # template by name with extension added, then try loading the template
+        # as if the name is explicitly specified, then try the name as a 
+        # 'flavor', and lastly just try to load the template by module name.
+        module_name = self.__module__.rsplit('.', 1)[-1]
+        try_names = [self.template_file + self.template_extension,
+                     self.template_file,
+                     module_name + '_' + self.template_file + self.template_extension,
+                     module_name + self.template_extension]
+        for try_name in try_names:
+            self.log.debug("Attempting to load template %s", try_name)
+            try:
+                self.template = self.environment.get_template(try_name)
+            except TemplateNotFound:
+                pass
+            else:
+                self.log.info("Loaded template %s", try_name)
+                break
     
     def from_notebook_node(self, nb, resources=None, **kw):
         """
@@ -201,23 +231,9 @@ class Exporter(Configurable):
         # Preprocess
         nb_copy, resources = self._transform(nb_copy, resources)
 
-        # Try different template names during conversion.  First try to load the
-        # template by name with extension added, then try loading the template
-        # as if the name is explicitly specified, then try the name as a 
-        # 'flavor', and lastly just try to load the template by module name.
-        module_name = self.__module__.split('.')[-1]
-        try_names = [self.template_file + self.template_extension,
-                     self.template_file,
-                     module_name + '_' + self.template_file + self.template_extension,
-                     module_name + self.template_extension]
-        for try_name in try_names:
-            try:
-                self.template = self.environment.get_template(try_name)
-                break
-            except TemplateNotFound:
-                pass
+        self._load_template()
 
-        if hasattr(self, 'template'):
+        if self.template is not None:
             output = self.template.render(nb=nb_copy, resources=resources)
         else:
             raise IOError('template file "%s" could not be found' % self.template_file)
