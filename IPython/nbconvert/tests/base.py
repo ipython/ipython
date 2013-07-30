@@ -20,6 +20,13 @@ import shutil
 import IPython
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import get_output_error_code
+from IPython.utils import py3compat
+
+# Define ipython command line name
+if py3compat.PY3:
+    ipy_cmd = 'ipython3 '
+else:
+    ipy_cmd = 'ipython '
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -165,7 +172,7 @@ class TestsBase(object):
 
 
     def call(self, parameters, raise_on_error=True):
-        stdout, stderr, retcode = get_output_error_code(parameters)
+        stdout, stderr, retcode = get_output_error_code(ipy_cmd + parameters)
         if retcode != 0 and raise_on_error:
             raise OSError(stderr)
         return stdout, stderr
