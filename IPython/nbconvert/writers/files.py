@@ -75,7 +75,7 @@ class FilesWriter(WriterBase):
                 self._makedir(path)
 
                 # Write file
-                self.log.info("Writing support file %s", dest)
+                self.log.debug("Writing %i bytes to support file %s", len(data), dest)
                 with io.open(dest, 'wb') as f:
                     f.write(data)
 
@@ -102,7 +102,7 @@ class FilesWriter(WriterBase):
                 dest = os.path.join(self.build_directory, dest)
 
             # Write conversion results.
-            self.log.info("Writing %s", dest)
+            self.log.info("Writing %i bytes to support file %s", len(output), dest)
             with io.open(dest, 'w') as f:
                 f.write(output)
             return dest
