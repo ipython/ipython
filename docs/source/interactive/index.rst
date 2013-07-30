@@ -11,7 +11,7 @@ Using IPython for interactive work
    shell
    qtconsole
    notebook
-   converting_notebooks
+   nbconvert
    working_remotely
 
 
