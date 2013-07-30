@@ -17,6 +17,8 @@ Command-line interface for the NbConvert conversion utility.
 
 # Stdlib imports
 from __future__ import print_function
+
+import logging
 import sys
 import os
 import glob
@@ -79,6 +81,9 @@ class NbConvertApp(BaseIPythonApplication):
     name = 'ipython-nbconvert'
     aliases = nbconvert_aliases
     flags = nbconvert_flags
+    
+    def _log_level_default(self):
+        return logging.INFO
     
     def _classes_default(self):
         classes = [NbConvertBase]
@@ -273,6 +278,7 @@ class NbConvertApp(BaseIPythonApplication):
             self.exit(1)
 
         for notebook_filename in self.notebooks:
+            self.log.info("Converting notebook %s to %s", notebook_filename, self.export_format)
 
             # Get a unique key for the notebook and set it in the resources object.
             basename = os.path.basename(notebook_filename)
@@ -282,6 +288,7 @@ class NbConvertApp(BaseIPythonApplication):
             resources = {}
             resources['unique_key'] = notebook_name
             resources['output_files_dir'] = '%s_files' % notebook_name
+            self.log.debug("Writing extra files to %s", resources['output_files_dir'])
 
             # Try to export
             try:
