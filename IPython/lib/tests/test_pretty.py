@@ -58,6 +58,13 @@ class NoModule(object):
 
 NoModule.__module__ = None
 
+class Breaking(object):
+    def _repr_pretty_(self, p, cycle):
+        with p.group(4,"TG: ",":"):
+            p.text("Breaking(")
+            p.break_()
+            p.text(")")
+
 
 def test_indentation():
     """Test correct indentation in groups"""
@@ -118,3 +125,11 @@ def test_pprint_nomod():
     """
     output = pretty.pretty(NoModule)
     nt.assert_equal(output, 'NoModule')
+    
+def test_pprint_break():
+    """
+    Test that p.break_ produces expected output
+    """
+    output = pretty.pretty(Breaking())
+    expected = "TG: Breaking(\n    ):"
+    nt.assert_equal(output, expected)

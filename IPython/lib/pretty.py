@@ -229,7 +229,17 @@ class PrettyPrinter(_PrettyPrinterBase):
             self.buffer.append(Breakable(sep, width, self))
             self.buffer_width += width
             self._break_outer_groups()
-
+            
+    def break_(self):
+        """
+        Explicitly insert a newline into the output, maintaining correct indentation.
+        """
+        self.flush()
+        self.output.write(self.newline)
+        self.output.write(' ' * self.indentation)
+        self.output_width = self.indentation
+        self.buffer_width = 0
+        
 
     def begin_group(self, indent=0, open=''):
         """
