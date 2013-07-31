@@ -85,7 +85,6 @@ __all__ = [
 class ExporterNameError(NameError):
     pass
 
-
 @DocDecorator
 def export(exporter, nb, **kw):
     """
@@ -112,7 +111,7 @@ def export(exporter, nb, **kw):
         exporter_instance = exporter
     else:
         exporter_instance = exporter(**kw)
-
+    
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
         output, resources = exporter_instance.from_notebook_node(nb, resources)
@@ -122,62 +121,27 @@ def export(exporter, nb, **kw):
         output, resources = exporter_instance.from_file(nb, resources)
     return output, resources
 
+exporter_map = dict(
+    custom=Exporter,
+    html=HTMLExporter,
+    slides=SlidesExporter,
+    latex=LatexExporter,
+    markdown=MarkdownExporter,
+    python=PythonExporter,
+    rst=RSTExporter,
+)
 
-@DocDecorator
-def export_custom(nb, **kw):
-    """
-    Export a notebook object to a custom format
-    """
-    return export(Exporter, nb, **kw)
+def _make_exporter(name, E):
+    """make an export_foo function from a short key and Exporter class E"""
+    def _export(nb, **kw):
+        return export(E, nb, **kw)
+    _export.__doc__ = """Export a notebook object to {0} format""".format(name)
+    return _export
+    
+g = globals()
 
-
-@DocDecorator
-def export_html(nb, **kw):
-    """
-    Export a notebook object to HTML
-    """
-    return export(HTMLExporter, nb, **kw)
-
-
-@DocDecorator
-def export_slides(nb, **kw):
-    """
-    Export a notebook object to Slides
-    """
-    return export(SlidesExporter, nb, **kw)
-
-
-@DocDecorator
-def export_latex(nb, **kw):
-    """
-    Export a notebook object to LaTeX
-    """
-    return export(LatexExporter, nb, **kw)
-
-
-@DocDecorator
-def export_markdown(nb, **kw):
-    """
-    Export a notebook object to Markdown
-    """
-    return export(MarkdownExporter, nb, **kw)
-
-
-@DocDecorator
-def export_python(nb, **kw):
-    """
-    Export a notebook object to Python
-    """
-    return export(PythonExporter, nb, **kw)
-
-
-@DocDecorator
-def export_rst(nb, **kw):
-    """
-    Export a notebook object to reStructuredText
-    """
-    return export(RSTExporter, nb, **kw)
-
+for name, E in exporter_map.items():
+    g['export_%s' % name] = DocDecorator(_make_exporter(name, E))
 
 @DocDecorator
 def export_by_name(format_name, nb, **kw):
@@ -202,10 +166,4 @@ def get_export_names():
     """Return a list of the currently supported export targets
 
     WARNING: API WILL CHANGE IN FUTURE RELEASES OF NBCONVERT"""
-    
-    # grab everything after 'export_'
-    l = [x[len('export_'):] for x in __all__ if x.startswith('export_')]
-    
-    # filter out the one method that is not a template
-    l = [x for x in l if 'by_name' not in x]
-    return sorted(l)
+    return sorted(exporter_map.keys())

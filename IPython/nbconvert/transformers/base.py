@@ -79,8 +79,9 @@ class Transformer(NbConvertBase):
             Additional resources used in the conversion process.  Allows
             transformers to pass variables into the Jinja engine.
         """
+        self.log.debug("Applying transform: %s", self.__class__.__name__)
         try :
-            for worksheet in nb.worksheets :
+            for worksheet in nb.worksheets:
                 for index, cell in enumerate(worksheet.cells):
                     worksheet.cells[index], resources = self.transform_cell(cell, resources, index)
             return nb, resources

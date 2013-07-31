@@ -12,13 +12,13 @@
 #-----------------------------------------------------------------------------
 
 from IPython.utils.traitlets import List
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
            
-class NbConvertBase(Configurable):
+class NbConvertBase(LoggingConfigurable):
     """Global configurable class for shared config
 
     Usefull for display data priority that might be use by many trasnformers
