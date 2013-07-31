@@ -17,6 +17,7 @@ import os
 import glob
 import shutil
 
+from nose.tools import assert_equal
 import IPython
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
@@ -72,8 +73,8 @@ class TestsBase(object):
         if not case_sensitive:
             a = a.lower()
             b = b.lower()
-            
-        self.assertEqual(a, b)
+
+        assert_equal(a, b)
 
 
     def recursive_replace(self, text, search, replacement):
