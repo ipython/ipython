@@ -488,8 +488,12 @@ def _default_pprint(obj, p, cycle):
     """
     klass = getattr(obj, '__class__', None) or type(obj)
     if getattr(klass, '__repr__', None) not in _baseclass_reprs:
-        # A user-provided repr.
-        p.text(repr(obj))
+        # A user-provided repr. Find newlines and replace them with p.break_()
+        output = repr(obj)
+        for idx,output_line in enumerate(output.splitlines()):
+            if idx:
+                p.break_()
+            p.text(output_line)
         return
     p.begin_group(1, '<')
     p.pretty(klass)
