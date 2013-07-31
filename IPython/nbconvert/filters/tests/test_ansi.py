@@ -67,7 +67,7 @@ class TestAnsi(TestsBase):
 
 
     def _try_ansi2html(self, inval, outval):
-        assert self.fuzzy_compare(outval, ansi2html(inval))
+        self.fuzzy_compare(outval, ansi2html(inval))
 
 
     def test_ansi2latex(self):
@@ -88,4 +88,4 @@ class TestAnsi(TestsBase):
 
 
     def _try_ansi2latex(self, inval, outval):
-        assert self.fuzzy_compare(outval, ansi2latex(inval), case_sensitive=True)
+        self.fuzzy_compare(outval, ansi2latex(inval), case_sensitive=True)

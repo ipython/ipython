@@ -72,8 +72,8 @@ class TestsBase(object):
         if not case_sensitive:
             a = a.lower()
             b = b.lower()
-
-        return a == b
+            
+        self.assertEqual(a, b)
 
 
     def recursive_replace(self, text, search, replacement):

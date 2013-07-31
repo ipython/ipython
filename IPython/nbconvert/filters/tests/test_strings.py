@@ -123,4 +123,4 @@ class TestStrings(TestsBase):
         """
         #TODO: More tests
         results = ipython2python('%%pylab\nprint("Hello-World")')
-        assert self.fuzzy_compare(results, "get_ipython().run_cell_magic(u'pylab', u'', u'print(\"Hello-World\")')")
+        self.fuzzy_compare(results, "get_ipython().run_cell_magic(u'pylab', u'', u'print(\"Hello-World\")')")

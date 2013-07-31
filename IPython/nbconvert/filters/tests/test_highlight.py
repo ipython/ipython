@@ -67,7 +67,7 @@ class TestHighlight(TestsBase):
         """
         Try highlighting source as html
         """
-        assert self.fuzzy_compare(results, highlight2html(test), ignore_newlines=True, ignore_spaces=True)
+        self.fuzzy_compare(results, highlight2html(test), ignore_newlines=True, ignore_spaces=True)
 
 
     def test_highlight2latex(self):
@@ -100,4 +100,4 @@ class TestHighlight(TestsBase):
         """
         Try highlighting source as latex
         """
-        assert self.fuzzy_compare(results, highlight2latex(test), ignore_newlines=True, ignore_spaces=True)
+        self.fuzzy_compare(results, highlight2latex(test), ignore_newlines=True, ignore_spaces=True)

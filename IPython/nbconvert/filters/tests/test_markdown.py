@@ -162,7 +162,7 @@ You are so cool! I wish I could do that.
 
 
     def _try_markdown2latex(self, test, results):
-        assert self.fuzzy_compare(markdown2latex(test), results)
+        self.fuzzy_compare(markdown2latex(test), results)
 
 
     @onlyif_cmds_exist('pandoc')
@@ -232,7 +232,7 @@ You are so cool! I wish I could do that.
 
 
     def _try_markdown2html(self, test, results):
-        assert self.fuzzy_compare(markdown2html(test), results)
+        self.fuzzy_compare(markdown2html(test), results)
 
 
     @onlyif_cmds_exist('pandoc')
@@ -312,4 +312,4 @@ Mike said
 
 
     def _try_markdown2rst(self, test, results):
-        assert self.fuzzy_compare(markdown2rst(test), results)
+        self.fuzzy_compare(markdown2rst(test), results)
