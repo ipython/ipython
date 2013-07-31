@@ -1862,14 +1862,20 @@ class InteractiveShell(SingletonConfigurable):
             # Ignore blank lines and consecutive duplicates
             cell = cell.rstrip()
             if cell and (cell != last_cell):
-                if self.multiline_history:
-                      self.readline.add_history(py3compat.unicode_to_str(cell,
-                                                                stdin_encoding))
-                else:
-                    for line in cell.splitlines():
-                        self.readline.add_history(py3compat.unicode_to_str(line,
-                                                                stdin_encoding))
-                last_cell = cell
+                try:
+                    if self.multiline_history:
+                          self.readline.add_history(py3compat.unicode_to_str(cell,
+                                                                    stdin_encoding))
+                    else:
+                        for line in cell.splitlines():
+                            self.readline.add_history(py3compat.unicode_to_str(line,
+                                                                    stdin_encoding))
+                    last_cell = cell
+                
+                except TypeError:
+                    # The history DB can get corrupted so it returns strings
+                    # containing null bytes, which readline objects to.
+                    continue
 
     @skip_doctest
     def set_next_input(self, s):
