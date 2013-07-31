@@ -1208,11 +1208,6 @@ class Container(Instance):
         raise TraitError(e)
 
     def validate(self, obj, value):
-        # Command line arguments come in as strings, let's make them into
-        # lists so we can proceed with validation
-        if isinstance(value, basestring):
-            value = value.split(',')
-
         value = super(Container, self).validate(obj, value)
         if value is None:
             return value
