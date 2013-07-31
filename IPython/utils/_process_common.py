@@ -139,13 +139,31 @@ def getoutputerror(cmd):
     stdout : str
     stderr : str
     """
+    return get_output_error_code(cmd)[:2]
 
-    out_err = process_handler(cmd, lambda p: p.communicate())
+def get_output_error_code(cmd):
+    """Return (standard output, standard error, return code) of executing cmd
+    in a shell.
+
+    Accepts the same arguments as os.system().
+
+    Parameters
+    ----------
+    cmd : str
+      A command to be executed in the system shell.
+
+    Returns
+    -------
+    stdout : str
+    stderr : str
+    returncode: int
+    """
+
+    out_err, p = process_handler(cmd, lambda p: (p.communicate(), p))
     if out_err is None:
-        return '', ''
+        return '', '', p.returncode
     out, err = out_err
-    return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
-
+    return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err), p.returncode
 
 def arg_split(s, posix=False, strict=True):
     """Split a command line's arguments in a shell-like manner.

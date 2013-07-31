@@ -13,55 +13,25 @@ Contains base test class for nbconvert
 # Imports
 #-----------------------------------------------------------------------------
 
-import subprocess
 import os
 import glob
 import shutil
-import sys
 
 import IPython
-from IPython.utils.tempdir import TemporaryDirectory
-from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryWorkingDirectory
+from IPython.utils.process import get_output_error_code
+from IPython.testing.tools import get_ipython_cmd
+
+# a trailing space allows for simpler concatenation with the other arguments
+ipy_cmd = get_ipython_cmd(as_string=True) + " "
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class TemporaryWorkingDirectory(TemporaryDirectory):
-    """
-    Creates a temporary directory and sets the cwd to that directory.
-    Automatically reverts to previous cwd upon cleanup.
-    Usage example:
-
-        with TemporaryWorakingDirectory() as tmpdir:
-            ...
-    """
-
-    def __init__(self, **kw):
-        """
-        Constructor
-        """
-        super(TemporaryWorkingDirectory, self).__init__(**kw)
-
-        #Change cwd to new temp dir.  Remember old cwd.
-        self.old_wd = os.getcwd()
-        os.chdir(self.name)
-
-
-    def cleanup(self):
-        """
-        Destructor
-        """
-
-        #Revert to old cwd.
-        os.chdir(self.old_wd)
-
-        #Cleanup
-        super(TemporaryWorkingDirectory, self).cleanup()
-
 
 class TestsBase(object):
-    """Base tests class.  Contains usefull fuzzy comparison and nbconvert
+    """Base tests class.  Contains useful fuzzy comparison and nbconvert
     functions."""
 
 
@@ -126,30 +96,25 @@ class TestsBase(object):
             text = text.replace(search, replacement)
         return text
 
-            
     def create_temp_cwd(self, copy_filenames=None):
         temp_dir = TemporaryWorkingDirectory()
 
         #Copy the files if requested.
-        if not copy_filenames is None:
+        if copy_filenames is not None:
             self.copy_files_to(copy_filenames)
 
         #Return directory handler
         return temp_dir
 
 
-    def copy_files_to(self, copy_filenames=None, destination=None):
-        
-        #Copy test files into the destination directory.
-        if copy_filenames:
-            for pattern in copy_filenames:
-                for match in glob.glob(os.path.join(self._get_files_path(), pattern)):
-                    if destination is None:
-                        shutil.copyfile(match, os.path.basename(match))
-                    else:
-                        if not os.path.isdir(destination):
-                            os.makedirs(destination)
-                        shutil.copyfile(match, os.path.join(destination, os.path.basename(match)))
+    def copy_files_to(self, copy_filenames, dest='.'):
+        "Copy test files into the destination directory"
+        if not os.path.isdir(dest):
+            os.makedirs(dest)
+        files_path = self._get_files_path()
+        for pattern in copy_filenames:
+            for match in glob.glob(os.path.join(files_path, pattern)):
+                shutil.copyfile(match, os.path.join(dest, os.path.basename(match)))
 
 
     def _get_files_path(self):
@@ -166,12 +131,8 @@ class TestsBase(object):
         return path
 
 
-    def call(self, parameters):
-        output = subprocess.Popen(parameters, stdout=subprocess.PIPE).communicate()[0]
-        
-        #Convert the output to a string if running Python3
-        if py3compat.PY3:
-            return output.decode('utf-8')
-        else:
-            return output
-     
+    def call(self, parameters, raise_on_error=True):
+        stdout, stderr, retcode = get_output_error_code(ipy_cmd + parameters)
+        if retcode != 0 and raise_on_error:
+            raise OSError(stderr)
+        return stdout, stderr
