@@ -268,6 +268,9 @@ class BaseIPythonApplication(Application):
     def init_profile_dir(self):
         """initialize the profile dir"""
         self._in_init_profile_dir = True
+        if self.profile_dir is not None:
+            # already ran
+            return
         try:
             # location explicitly specified:
             location = self.config.ProfileDir.location
