@@ -31,7 +31,7 @@ ipy_cmd = get_ipython_cmd(as_string=True) + " "
 
 
 class TestsBase(object):
-    """Base tests class.  Contains usefull fuzzy comparison and nbconvert
+    """Base tests class.  Contains useful fuzzy comparison and nbconvert
     functions."""
 
 
@@ -96,12 +96,11 @@ class TestsBase(object):
             text = text.replace(search, replacement)
         return text
 
-            
     def create_temp_cwd(self, copy_filenames=None):
         temp_dir = TemporaryWorkingDirectory()
 
         #Copy the files if requested.
-        if not copy_filenames is None:
+        if copy_filenames is not None:
             self.copy_files_to(copy_filenames)
 
         #Return directory handler
