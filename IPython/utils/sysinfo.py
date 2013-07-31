@@ -82,6 +82,7 @@ def pkg_info(pkg_path):
     return dict(
         ipython_version=release.version,
         ipython_path=pkg_path,
+        codename=release.codename,
         commit_source=src,
         commit_hash=hsh,
         sys_version=sys.version,
