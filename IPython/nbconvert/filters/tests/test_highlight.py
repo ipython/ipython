@@ -79,16 +79,16 @@ class TestHighlight(TestsBase):
             \begin{Verbatim}[commandchars=\\\{\}]
             \PY{c}{\PYZsh{}Hello World Example}
 
-            \PY{k}{def} \PY{n+nf}{say}\PY{p}{(}\PY{n}{text}\PY{p}{)}\PY{p}{:}
-            \PY{k}{print}\PY{p}{(}\PY{n}{text}\PY{p}{)}
+                \PY{k}{def} \PY{n+nf}{say}\PY{p}{(}\PY{n}{text}\PY{p}{)}\PY{p}{:}
+                    \PY{k}{print}\PY{p}{(}\PY{n}{text}\PY{p}{)}
 
-            \PY{n}{say}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{Hello World!}\PY{l+s}{'}\PY{p}{)}
+                \PY{n}{say}\PY{p}{(}\PY{l+s}{\PYZsq{}}\PY{l+s}{Hello World!}\PY{l+s}{\PYZsq{}}\PY{p}{)}
             \end{Verbatim}
         """,
         r"""        
             \begin{Verbatim}[commandchars=\\\{\}]
             \PY{o}{\PYZpc{}\PYZpc{}}\PY{k}{pylab}
-            \PY{n}{plot}\PY{p}{(}\PY{n}{x}\PY{p}{,}\PY{n}{y}\PY{p}{,} \PY{l+s}{'}\PY{l+s}{r}\PY{l+s}{'}\PY{p}{)}
+                \PY{n}{plot}\PY{p}{(}\PY{n}{x}\PY{p}{,}\PY{n}{y}\PY{p}{,} \PY{l+s}{\PYZsq{}}\PY{l+s}{r}\PY{l+s}{\PYZsq{}}\PY{p}{)}
             \end{Verbatim}
         """, 
         r"\begin{Verbatim}[commandchars=\\\{\}]\end{Verbatim}"]
