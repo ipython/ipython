@@ -19,7 +19,6 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import os
-import pipes
 import re
 import sys
 import tempfile
@@ -38,7 +37,6 @@ except ImportError:
     has_nose = False
 
 from IPython.config.loader import Config
-from IPython.utils.process import getoutputerror
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
@@ -156,6 +154,28 @@ def default_config():
     return config
 
 
+def get_ipython_cmd(as_string=False):
+    """
+    Return appropriate IPython command line name. By default, this will return
+    a list that can be used with subprocess.Popen, for example, but passing
+    `as_string=True` allows for returning the IPython command as a string.
+
+    Parameters
+    ----------
+    as_string: bool
+        Flag to allow to return the command as a string.
+    """
+    # FIXME: remove workaround for 2.6 support
+    if sys.version_info[:2] > (2,6):
+        ipython_cmd = [sys.executable, "-m", "IPython"]
+    else:
+        ipython_cmd = ["ipython"]
+
+    if as_string:
+        ipython_cmd = " ".join(ipython_cmd)
+
+    return ipython_cmd
+
 def ipexec(fname, options=None):
     """Utility to call 'ipython filename'.
 
@@ -186,14 +206,9 @@ def ipexec(fname, options=None):
     ]
     cmdargs = default_argv() + prompt_opts + options
 
-    _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
-    
-    # FIXME: remove workaround for 2.6 support
-    if sys.version_info[:2] > (2,6):
-        ipython_cmd = [sys.executable, "-m", "IPython"]
-    else:
-        ipython_cmd = ["ipython"]
+
+    ipython_cmd = get_ipython_cmd()
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = ipython_cmd + cmdargs + [full_fname]

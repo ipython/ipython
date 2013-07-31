@@ -27,7 +27,7 @@ else:
     from ._process_posix import _find_cmd, system, getoutput, arg_split
 
 
-from ._process_common import getoutputerror
+from ._process_common import getoutputerror, get_output_error_code
 
 #-----------------------------------------------------------------------------
 # Code
