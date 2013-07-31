@@ -108,18 +108,14 @@ class TestsBase(object):
         return temp_dir
 
 
-    def copy_files_to(self, copy_filenames=None, destination=None):
-        
-        #Copy test files into the destination directory.
-        if copy_filenames:
-            for pattern in copy_filenames:
-                for match in glob.glob(os.path.join(self._get_files_path(), pattern)):
-                    if destination is None:
-                        shutil.copyfile(match, os.path.basename(match))
-                    else:
-                        if not os.path.isdir(destination):
-                            os.makedirs(destination)
-                        shutil.copyfile(match, os.path.join(destination, os.path.basename(match)))
+    def copy_files_to(self, copy_filenames, dest='.'):
+        "Copy test files into the destination directory"
+        if not os.path.isdir(dest):
+            os.makedirs(dest)
+        files_path = self._get_files_path()
+        for pattern in copy_filenames:
+            for match in glob.glob(os.path.join(files_path, pattern)):
+                shutil.copyfile(match, os.path.join(dest, os.path.basename(match)))
 
 
     def _get_files_path(self):
