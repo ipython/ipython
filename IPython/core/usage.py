@@ -550,9 +550,8 @@ gui_note = """\
 default_banner_parts = [
     'Python %s\n' % (sys.version.split('\n')[0],),
     'Type "copyright", "credits" or "license" for more information.\n\n',
-    'IPython {version} ({name}) -- An enhanced Interactive Python.\n'.format(
+    'IPython {version} -- An enhanced Interactive Python.\n'.format(
         version=release.version,
-        name=release.codename
         ),
     quick_guide
 ]
