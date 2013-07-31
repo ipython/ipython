@@ -46,5 +46,5 @@ class TestSlidesExporter(ExportersTestsBase):
         """
         Can a SlidesExporter export using the 'reveal' template?
         """
-        (output, resources) = SlidesExporter(template='reveal').from_filename(self._get_notebook())
+        (output, resources) = SlidesExporter(template_file='reveal').from_filename(self._get_notebook())
         assert len(output) > 0

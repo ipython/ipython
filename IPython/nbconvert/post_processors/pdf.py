@@ -43,6 +43,7 @@ class PDFPostProcessor(PostProcessorBase):
             See files.py for more...
             """        
             command = self.compiler.format(input)
+            self.log.info("Building PDF: `%s`", command)
             for index in range(self.iteration_count):
                 if self.verbose:
                     subprocess.Popen(command, shell=True)

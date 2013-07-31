@@ -45,7 +45,12 @@ class FilesWriter(WriterBase):
         super(FilesWriter, self).__init__(**kw)
         self._build_directory_changed('build_directory', self.build_directory, 
                                       self.build_directory)
-
+    
+    def _makedir(self, path):
+        """Make a directory if it doesn't already exist"""
+        if not os.path.isdir(path):
+            self.log.info("Making directory %s", path)
+            os.makedirs(path)
 
     def write(self, output, resources, notebook_name=None, **kw):
             """
@@ -67,10 +72,10 @@ class FilesWriter(WriterBase):
                 # Determine where to write the file to
                 dest = os.path.join(self.build_directory, filename)
                 path = os.path.dirname(dest)
-                if not os.path.isdir(path):
-                    os.makedirs(path)
+                self._makedir(path)
 
                 # Write file
+                self.log.debug("Writing %i bytes to support file %s", len(data), dest)
                 with io.open(dest, 'wb') as f:
                     f.write(data)
 
@@ -84,11 +89,11 @@ class FilesWriter(WriterBase):
                         # Make sure folder exists.
                         dest = os.path.join(self.build_directory, filename)
                         path = os.path.dirname(dest)
-                        if not os.path.isdir(path):
-                            os.makedirs(path)
+                        self._makedir(path)
 
                         # Copy if destination is different.
                         if not os.path.normpath(dest) == os.path.normpath(matching_filename):
+                            self.log.info("Linking %s -> %s", matching_filename, dest)
                             link_or_copy(matching_filename, dest)
 
             # Determine where to write conversion results.
@@ -97,6 +102,7 @@ class FilesWriter(WriterBase):
                 dest = os.path.join(self.build_directory, dest)
 
             # Write conversion results.
+            self.log.info("Writing %i bytes to %s", len(output), dest)
             with io.open(dest, 'w') as f:
                 f.write(output)
             return dest

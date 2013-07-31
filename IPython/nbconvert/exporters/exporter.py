@@ -28,10 +28,10 @@ import datetime
 from jinja2 import Environment, FileSystemLoader, ChoiceLoader, TemplateNotFound
 
 # IPython imports
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import LoggingConfigurable
 from IPython.config import Config
 from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict
+from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
 from IPython.utils import py3compat
@@ -78,7 +78,7 @@ class ResourcesDict(collections.defaultdict):
         return ''
 
 
-class Exporter(Configurable):
+class Exporter(LoggingConfigurable):
     """
     Exports notebooks into other file formats.  Uses Jinja 2 templating engine
     to output new formats.  Inherit from this class if you are creating a new
@@ -102,7 +102,12 @@ class Exporter(Configurable):
             self.template_file = self.default_template
         else:
             self.template_file = new
+        self.template = None
+        self._load_template()
+    
     default_template = Unicode(u'')
+    template = Any()
+    environment = Any()
 
     file_extension = Unicode(
         'txt', config=True, 
@@ -110,6 +115,8 @@ class Exporter(Configurable):
         )
 
     template_path = List(['.'], config=True)
+    def _template_path_changed(self, name, old, new):
+        self._load_template()
 
     default_template_path = Unicode(
         os.path.join("..", "templates"), 
@@ -159,21 +166,18 @@ class Exporter(Configurable):
         config : config
             User configuration instance.
         extra_loaders : list[of Jinja Loaders]
-            ordered list of Jinja loder to find templates. Will be tried in order
-            before the default FileSysteme ones.
+            ordered list of Jinja loader to find templates. Will be tried in order
+            before the default FileSystem ones.
         template : str (optional, kw arg)
             Template to use when exporting.
         """
+        if not config:
+            config = self.default_config
         
-        #Call the base class constructor
-        c = self.default_config
-        if config:
-            c.merge(config)
-
-        super(Exporter, self).__init__(config=c, **kw)
+        super(Exporter, self).__init__(config=config, **kw)
 
         #Init
-        self._init_template(**kw)
+        self._init_template()
         self._init_environment(extra_loaders=extra_loaders)
         self._init_transformers()
         self._init_filters()
@@ -182,7 +186,48 @@ class Exporter(Configurable):
     @property
     def default_config(self):
         return Config()
+    
+    def _config_changed(self, name, old, new):
+        """When setting config, make sure to start with our default_config"""
+        c = self.default_config
+        if new:
+            c.merge(new)
+        if c != old:
+            self.config = c
+        super(Exporter, self)._config_changed(name, old, c)
+        
 
+    def _load_template(self):
+        """Load the Jinja template object from the template file
+        
+        This is a no-op if the template attribute is already defined,
+        or the Jinja environment is not setup yet.
+        
+        This is triggered by various trait changes that would change the template.
+        """
+        if self.template is not None:
+            return
+        # called too early, do nothing
+        if self.environment is None:
+            return
+        # Try different template names during conversion.  First try to load the
+        # template by name with extension added, then try loading the template
+        # as if the name is explicitly specified, then try the name as a 
+        # 'flavor', and lastly just try to load the template by module name.
+        module_name = self.__module__.rsplit('.', 1)[-1]
+        try_names = [self.template_file + self.template_extension,
+                     self.template_file,
+                     module_name + '_' + self.template_file + self.template_extension,
+                     module_name + self.template_extension]
+        for try_name in try_names:
+            self.log.debug("Attempting to load template %s", try_name)
+            try:
+                self.template = self.environment.get_template(try_name)
+            except TemplateNotFound:
+                pass
+            else:
+                self.log.info("Loaded template %s", try_name)
+                break
     
     def from_notebook_node(self, nb, resources=None, **kw):
         """
@@ -201,23 +246,9 @@ class Exporter(Configurable):
         # Preprocess
         nb_copy, resources = self._transform(nb_copy, resources)
 
-        # Try different template names during conversion.  First try to load the
-        # template by name with extension added, then try loading the template
-        # as if the name is explicitly specified, then try the name as a 
-        # 'flavor', and lastly just try to load the template by module name.
-        module_name = self.__module__.split('.')[-1]
-        try_names = [self.template_file + self.template_extension,
-                     self.template_file,
-                     module_name + '_' + self.template_file + self.template_extension,
-                     module_name + self.template_extension]
-        for try_name in try_names:
-            try:
-                self.template = self.environment.get_template(try_name)
-                break
-            except TemplateNotFound:
-                pass
+        self._load_template()
 
-        if hasattr(self, 'template'):
+        if self.template is not None:
             output = self.template.render(nb=nb_copy, resources=resources)
         else:
             raise IOError('template file "%s" could not be found' % self.template_file)
@@ -355,14 +386,12 @@ class Exporter(Configurable):
             raise TypeError('filter')
 
         
-    def _init_template(self, **kw):
+    def _init_template(self):
         """
         Make sure a template name is specified.  If one isn't specified, try to
         build one from the information we know.
         """
         self._template_file_changed('template_file', self.template_file, self.template_file)
-        if 'template' in kw:
-            self.template_file = kw['template']
         
 
     def _init_environment(self, extra_loaders=None):
