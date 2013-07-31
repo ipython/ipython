@@ -83,9 +83,10 @@ github_project_url = "https://github.com/ipython/ipython"
 # other places throughout the built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = iprelease['version']
-# The short X.Y version.
-version = '.'.join(release.split('.',2)[:2])
+codename = iprelease['codename']
+release = "%s: %s" % (iprelease['version'], codename)
+# Just the X.Y.Z part, no '-dev'
+version = iprelease['version'].split('-', 1)[0]
 
 
 # There are two options for replacing |today|: either, you set today to some
