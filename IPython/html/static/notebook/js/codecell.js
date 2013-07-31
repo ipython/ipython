@@ -252,7 +252,7 @@ var IPython = (function (IPython) {
             'set_next_input': $.proxy(this._handle_set_next_input, this),
             'input_request': $.proxy(this._handle_input_request, this)
         };
-        var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false});
+        var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
     };
 
     /**

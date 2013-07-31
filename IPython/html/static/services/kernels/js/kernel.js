@@ -300,6 +300,7 @@ var IPython = (function (IPython) {
         var content = {
             code : code,
             silent : true,
+            store_history : false,
             user_variables : [],
             user_expressions : {},
             allow_stdin : false
