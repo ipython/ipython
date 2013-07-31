@@ -106,3 +106,7 @@ class FilesWriter(WriterBase):
             with io.open(dest, 'w') as f:
                 f.write(output)
             return dest
+
+
+    def write_notes(self):
+            pass
