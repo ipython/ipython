@@ -63,7 +63,11 @@ The currently supported export formats are:
   This generates a Reveal.js HTML slideshow.
   It must be served by an HTTP server.  The easiest way to get this is to add
   ``--post serve`` on the command-line.
-
+  If you want to use the speaker notes plugin, just add
+  ``--notes True`` on the command-line.
+  For low connectivity environments, you can use a local copy of the reveal.js library, just add
+  ``--local reveal.js`` on the command-line, and do not forget to move your downloaded ``reveal.js`` library to the same folder where your slides are located.
+  
 * ``--to markdown``
 
   Simple markdown output.  Markdown cells are unaffected,

@@ -62,7 +62,9 @@ nbconvert_aliases.update({
     'notebooks' : 'NbConvertApp.notebooks',
     'writer' : 'NbConvertApp.writer_class',
     'post': 'NbConvertApp.post_processor_class',
-    'output': 'NbConvertApp.output_base'
+    'output': 'NbConvertApp.output_base',
+    'local': 'RevealHelpTransformer.url_prefix',
+    'notes': 'RevealHelpTransformer.speaker_notes'
 })
 
 nbconvert_flags = {}
