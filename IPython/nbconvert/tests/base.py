@@ -45,6 +45,10 @@ class TestsBase(object):
         parameters of this method.
         """
 
+        if ignore_newlines:
+            a = a.replace('\n', '')
+            b = b.replace('\n', '')
+
         if newlines_are_spaces:
             a = a.replace('\n', ' ')
             b = b.replace('\n', ' ')
@@ -60,10 +64,6 @@ class TestsBase(object):
         if fuzzy_spacing:
             a = self.recursive_replace(a, '  ', ' ')
             b = self.recursive_replace(b, '  ', ' ')
-
-        if ignore_newlines:
-            a = a.replace('\n', '')
-            b = b.replace('\n', '')
 
         if not case_sensitive:
             a = a.lower()
