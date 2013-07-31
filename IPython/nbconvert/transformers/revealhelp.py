@@ -27,12 +27,11 @@ class RevealHelpTransformer(Transformer):
     url_prefix = Unicode('//cdn.jsdelivr.net/reveal.js/2.4.0',
                          config=True,
                          help="""If you want to use a local reveal.js library,
-                         use 'url_prefix':'reveal.js' in your config object or
-                         --local reveal.js in command line.""")
+                         use 'url_prefix':'reveal.js' in your config object.""")
 
     speaker_notes = Bool(False, config=True, help="""
-                     If you want to use the speaker notes set speaker_notes:True
-                     in your config object or --notes True in command line.""")
+                         If you want to use the speaker notes set 
+                         'speaker_notes':'True' in your config object.""")
 
     def call(self, nb, resources):
         """
