@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.importstring import import_item
 from IPython.utils.text import dedent
 
-from .exporters.export import export_by_name, get_export_names, ExporterNameError
+from .exporters.export import get_export_names, exporter_map
 from IPython.nbconvert import exporters, transformers, writers, post_processors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
@@ -273,11 +273,13 @@ class NbConvertApp(BaseIPythonApplication):
         conversion_success = 0
 
         if self.output_base != '' and len(self.notebooks) > 1:
-            print(dedent(
+            self.log.error(
             """UsageError: --output flag or `NbConvertApp.output_base` config option
             cannot be used when converting multiple notebooks.
-            """))
+            """)
             self.exit(1)
+        
+        exporter = exporter_map[self.export_format](config=self.config)
 
         for notebook_filename in self.notebooks:
             self.log.info("Converting notebook %s to %s", notebook_filename, self.export_format)
@@ -294,21 +296,10 @@ class NbConvertApp(BaseIPythonApplication):
 
             # Try to export
             try:
-                output, resources = export_by_name(self.export_format,
-                                              notebook_filename, 
-                                              resources=resources,
-                                              config=self.config)
-            except ExporterNameError as e:
-                print("Error while converting '%s': '%s' exporter not found."
-                      %(notebook_filename, self.export_format),
-                      file=sys.stderr)
-                print("Known exporters are:",
-                      "\n\t" + "\n\t".join(get_export_names()),
-                      file=sys.stderr)
-                self.exit(1)
+                output, resources = exporter.from_filename(notebook_filename, resources=resources)
             except ConversionException as e:
-                print("Error while converting '%s': %s" %(notebook_filename, e),
-                      file=sys.stderr)
+                self.log.error("Error while converting '%s'", notebook_filename,
+                      exc_info=True)
                 self.exit(1)
             else:
                 write_resultes = self.writer.write(output, resources, notebook_name=notebook_name)
