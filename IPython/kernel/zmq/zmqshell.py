@@ -172,7 +172,7 @@ class KernelMagics(Magics):
 
         # Send the payload back so that clients can modify their prompt display
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.doctest_mode',
+            source='doctest_mode',
             mode=dstore.mode)
         shell.payload_manager.write_payload(payload)
         
@@ -324,7 +324,7 @@ class KernelMagics(Magics):
         filename = os.path.abspath(filename)
 
         payload = {
-            'source' : 'IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.edit_magic',
+            'source' : 'edit_magic',
             'filename' : filename,
             'line_number' : lineno
         }
@@ -536,7 +536,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """
         new = self.prompt_manager.render('rewrite') + cmd
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
+            source='auto_rewrite_input',
             transformed_input=new,
             )
         self.payload_manager.write_payload(payload)
@@ -545,7 +545,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """Engage the exit actions."""
         self.exit_now = True
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
+            source='ask_exit',
             exit=True,
             keepkernel=self.keepkernel_on_exit,
             )
@@ -583,7 +583,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """Send the specified text to the frontend to be presented at the next
         input cell."""
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.set_next_input',
+            source='set_next_input',
             text=text
         )
         self.payload_manager.write_payload(payload)
