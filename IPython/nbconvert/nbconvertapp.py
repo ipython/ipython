@@ -66,6 +66,10 @@ nbconvert_aliases.update({
 nbconvert_flags = {}
 nbconvert_flags.update(base_flags)
 nbconvert_flags.update({
+    'notes' : (
+        {'NbConvertApp' : {'writer_class' : "NotesWriter"}},
+        ""
+        ),
     'stdout' : (
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."
@@ -150,6 +154,7 @@ class NbConvertApp(BaseIPythonApplication):
                                     help="""Writer class used to write the 
                                     results of the conversion""")
     writer_aliases = {'FilesWriter': 'IPython.nbconvert.writers.files.FilesWriter',
+                      'NotesWriter': 'IPython.nbconvert.writers.notes.NotesWriter',
                       'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
                       'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
     writer_factory = Type()
@@ -303,6 +308,7 @@ class NbConvertApp(BaseIPythonApplication):
                 self.exit(1)
             else:
                 write_resultes = self.writer.write(output, resources, notebook_name=notebook_name)
+                write_notes = self.writer.write_notes()
 
                 #Post-process if post processor has been defined.
                 if hasattr(self, 'post_processor') and self.post_processor:
