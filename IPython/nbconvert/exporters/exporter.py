@@ -102,6 +102,7 @@ class Exporter(LoggingConfigurable):
             self.template_file = self.default_template
         else:
             self.template_file = new
+        self.template = None
         self._load_template()
     
     default_template = Unicode(u'')
