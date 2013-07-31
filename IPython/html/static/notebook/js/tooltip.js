@@ -334,11 +334,14 @@ var IPython = (function (IPython) {
         if (docstring == null) {
             docstring = reply.docstring;
         }
-
-        if (docstring == null && this._hide_if_no_docstring) {
-            return;
-        } else {
-            docstring = "<empty docstring>";
+        
+        if (docstring == null) {
+            // For reals this time, no docstring
+            if (this._hide_if_no_docstring) {
+                return;
+            } else {
+                docstring = "<empty docstring>";
+            }
         }
 
         this.tooltip.fadeIn('fast');
