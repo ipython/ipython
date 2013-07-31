@@ -19,7 +19,6 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import os
-import pipes
 import re
 import sys
 import tempfile
@@ -38,7 +37,6 @@ except ImportError:
     has_nose = False
 
 from IPython.config.loader import Config
-from IPython.utils.process import getoutputerror
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
@@ -208,7 +206,6 @@ def ipexec(fname, options=None):
     ]
     cmdargs = default_argv() + prompt_opts + options
 
-    _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
 
     ipython_cmd = get_ipython_cmd()
