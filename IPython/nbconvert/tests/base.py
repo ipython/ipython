@@ -20,13 +20,10 @@ import shutil
 import IPython
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import get_output_error_code
-from IPython.utils import py3compat
+from IPython.testing.tools import get_ipython_cmd
 
-# Define ipython command line name
-if py3compat.PY3:
-    ipy_cmd = 'ipython3 '
-else:
-    ipy_cmd = 'ipython '
+# a trailing space allows for simpler concatenation with the other arguments
+ipy_cmd = get_ipython_cmd(as_string=True) + " "
 
 #-----------------------------------------------------------------------------
 # Classes and functions
