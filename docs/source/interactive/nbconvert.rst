@@ -65,8 +65,9 @@ The currently supported export formats are:
   ``--post serve`` on the command-line.
   If you want to use the speaker notes plugin, just add
   ``--notes True`` on the command-line.
-  For low connectivity environments, you can use a local copy of the reveal.js library, just add
-  ``--local reveal.js`` on the command-line, and do not forget to move your downloaded ``reveal.js`` library to the same folder where your slides are located.
+  For low connectivity environments, you can use a local copy of the reveal.js library, 
+  just add ``--local reveal.js`` on the command-line, and do not forget to move your 
+  downloaded ``reveal.js`` library to the same folder where your slides are located.
   
 * ``--to markdown``
 
