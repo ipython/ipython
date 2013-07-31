@@ -85,8 +85,6 @@ __all__ = [
 class ExporterNameError(NameError):
     pass
 
-_exporters = {}
-
 @DocDecorator
 def export(exporter, nb, **kw):
     """
@@ -112,13 +110,8 @@ def export(exporter, nb, **kw):
     if isinstance(exporter, Exporter):
         exporter_instance = exporter
     else:
-        if exporter not in _exporters:
-            exporter_instance = _exporters[exporter] = exporter(**kw)
-        else:
-            exporter_instance = _exporters[exporter]
-            for attr, value in kw.items():
-                setattr(exporter_instance, attr, value)
-
+        exporter_instance = exporter(**kw)
+    
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
         output, resources = exporter_instance.from_notebook_node(nb, resources)
