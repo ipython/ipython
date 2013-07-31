@@ -314,10 +314,11 @@ var IPython = (function (IPython) {
     MarkdownCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_text();
+            var math = null;
             if (text === "") { text = this.placeholder; }
-            var text_math = IPython.mathjaxutils.remove_math(text);
-            var text = text_math[0];
-            var math = text_math[1];
+            var text_and_math = IPython.mathjaxutils.remove_math(text);
+            text = text_and_math[0];
+            math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             html = $(IPython.mathjaxutils.replace_math(html, math));
             // links in markdown cells should open in new tabs
@@ -517,13 +518,14 @@ var IPython = (function (IPython) {
     HeadingCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_text();
+            var math = null;
             // Markdown headings must be a single line
             text = text.replace(/\n/g, ' ');
             if (text === "") { text = this.placeholder; }
             text = Array(this.level + 1).join("#") + " " + text;
             var text_and_math = IPython.mathjaxutils.remove_math(text);
-            var text = text_and_math[0];
-            var math = text_and_math[1];
+            text = text_and_math[0];
+            math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             var h = $(IPython.mathjaxutils.replace_math(html, math));
             // add id and linkback anchor
