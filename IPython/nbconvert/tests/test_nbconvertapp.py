@@ -84,7 +84,6 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert --to="latex" notebook1'
                       ' --post="PDF" --PDFPostProcessor.verbose=True')
             assert os.path.isfile('notebook1.tex')
-            print("\n\n\t" + "\n\t".join([f for f in os.listdir('.') if os.path.isfile(f)]) + "\n\n")
             assert os.path.isfile('notebook1.pdf')
 
 
