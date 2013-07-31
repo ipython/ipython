@@ -18,7 +18,7 @@ import glob
 import shutil
 
 import IPython
-from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
 from IPython.testing.tools import get_ipython_cmd
 
@@ -28,38 +28,6 @@ ipy_cmd = get_ipython_cmd(as_string=True) + " "
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
-
-class TemporaryWorkingDirectory(TemporaryDirectory):
-    """
-    Creates a temporary directory and sets the cwd to that directory.
-    Automatically reverts to previous cwd upon cleanup.
-    Usage example:
-
-        with TemporaryWorakingDirectory() as tmpdir:
-            ...
-    """
-
-    def __init__(self, **kw):
-        """
-        Constructor
-        """
-        super(TemporaryWorkingDirectory, self).__init__(**kw)
-
-        #Change cwd to new temp dir.  Remember old cwd.
-        self.old_wd = os.getcwd()
-        os.chdir(self.name)
-
-
-    def cleanup(self):
-        """
-        Destructor
-        """
-
-        #Revert to old cwd.
-        os.chdir(self.old_wd)
-
-        #Cleanup
-        super(TemporaryWorkingDirectory, self).cleanup()
 
 
 class TestsBase(object):

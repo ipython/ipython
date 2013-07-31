@@ -104,3 +104,29 @@ class NamedFileInTemporaryDirectory(object):
 
     def __exit__(self, type, value, traceback):
         self.cleanup()
+
+
+class TemporaryWorkingDirectory(TemporaryDirectory):
+    """
+    Creates a temporary directory and sets the cwd to that directory.
+    Automatically reverts to previous cwd upon cleanup.
+    Usage example:
+
+        with TemporaryWorakingDirectory() as tmpdir:
+            ...
+    """
+
+    def __init__(self, **kw):
+        super(TemporaryWorkingDirectory, self).__init__(**kw)
+
+        #Change cwd to new temp dir.  Remember old cwd.
+        self.old_wd = _os.getcwd()
+        _os.chdir(self.name)
+
+
+    def cleanup(self):
+        #Revert to old cwd.
+        _os.chdir(self.old_wd)
+
+        #Cleanup
+        super(TemporaryWorkingDirectory, self).cleanup()
