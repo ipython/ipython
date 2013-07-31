@@ -39,7 +39,7 @@ from IPython.config.loader import ConfigFileNotFound
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set
+from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -133,6 +133,15 @@ class BaseIPythonApplication(Application):
         the environment variable IPYTHONDIR.
         """
     )
+    _in_init_profile_dir = False
+    profile_dir = Instance(ProfileDir)
+    def _profile_dir_default(self):
+        # avoid recursion
+        if self._in_init_profile_dir:
+            return
+        # profile_dir requested early, force initialization
+        self.init_profile_dir()
+        return self.profile_dir
 
     overwrite = Bool(False, config=True,
         help="""Whether to overwrite existing config files when copying""")
@@ -258,6 +267,10 @@ class BaseIPythonApplication(Application):
 
     def init_profile_dir(self):
         """initialize the profile dir"""
+        self._in_init_profile_dir = True
+        if self.profile_dir is not None:
+            # already ran
+            return
         try:
             # location explicitly specified:
             location = self.config.ProfileDir.location
@@ -302,6 +315,7 @@ class BaseIPythonApplication(Application):
 
         self.profile_dir = p
         self.config_file_paths.append(p.location)
+        self._in_init_profile_dir = False
 
     def init_config_files(self):
         """[optionally] copy default config files into profile dir."""
