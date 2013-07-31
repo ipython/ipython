@@ -69,7 +69,7 @@ shell_flags.update(dict(
 ))
 addflag('pprint', 'PlainTextFormatter.pprint',
     "Enable auto pretty printing of results.",
-    "Disable auto auto pretty printing of results."
+    "Disable auto pretty printing of results."
 )
 addflag('color-info', 'InteractiveShell.color_info',
     """IPython can display information about objects via a set of func-
