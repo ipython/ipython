@@ -103,6 +103,6 @@ class FilesWriter(WriterBase):
 
             # Write conversion results.
             self.log.info("Writing %i bytes to %s", len(output), dest)
-            with io.open(dest, 'w') as f:
-                f.write(output)
+            with io.open(dest, 'wb') as f:
+                f.write(output.encode('utf-8'))
             return dest
