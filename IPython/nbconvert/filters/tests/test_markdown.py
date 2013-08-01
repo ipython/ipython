@@ -17,7 +17,7 @@ Module with tests for Markdown
 
 
 from IPython.testing.decorators import onlyif_cmds_exist
-# @onlyif_cmds_exist('pandoc')
+from IPython.utils.py3compat import string_types
 
 from ...tests.base import TestsBase
 from ..markdown import *
@@ -42,30 +42,27 @@ class TestMarkdown(TestsBase):
         'test\n----',
         'test [link](https://google.com/)']
 
+    tokens = [
+        '*test',
+        '**test',
+        'test',
+        'test',
+        'test',
+        'test',
+        'test',
+        'test',
+        'test',
+        'test',
+        ('test', 'https://google.com/')]
+
 
     @onlyif_cmds_exist('pandoc')
     def test_markdown2latex(self):
         """
         markdown2latex test
         """
-        results = [
-            '*test',
-            '**test',
-            r'\emph{test}',
-            r'\emph{test}',
-            r'\textbf{test}',
-            r'\textbf{\emph{test}}',
-            r'\textbf{test}',
-            r'\section{test}',
-            r'\subsection{test}',
-            r'\subsection{test}',
-            r'test \href{https://google.com/}{link}']   
         for index, test in enumerate(self.tests):
-            yield self._try_markdown2latex, test, results[index]
-
-
-    def _try_markdown2latex(self, test, results):
-        self.fuzzy_compare(markdown2latex(test), results)
+            yield self._try_markdown, markdown2latex, test, tokens[index]
 
 
     @onlyif_cmds_exist('pandoc')
@@ -73,24 +70,8 @@ class TestMarkdown(TestsBase):
         """
         markdown2html test
         """
-        results = [
-            '<p>*test</p>',
-            '<p>**test</p>',
-            '<p><em>test</em></p>',
-            '<p><em>test</em></p>',
-            '<p><strong>test</strong></p>',
-            '<p><strong><em>test</em></strong></p>',
-            '<p><strong>test</strong></p>',
-            '<h1 id="test">test</h1>',
-            '<h2 id="test">test</h2>',
-            '<h2 id="test">test</h2>',
-            '<p>test <a href="https://google.com/">link</a></p>']   
         for index, test in enumerate(self.tests):
-            yield self._try_markdown2html, test, results[index]
-
-
-    def _try_markdown2html(self, test, results):
-        self.fuzzy_compare(markdown2html(test), results)
+            yield self._try_markdown, markdown2html, test, tokens[index]
 
 
     @onlyif_cmds_exist('pandoc')
@@ -98,21 +79,14 @@ class TestMarkdown(TestsBase):
         """
         markdown2rst test
         """
-        results = [
-            '\*test',
-            '\*\*test',
-            '*test*',
-            '*test*',
-            '**test**',
-            '***test***',
-            '**test**',
-            'test\n====',
-            'test\n----',
-            'test\n----',
-            'test `link <https://google.com/>`_']       
         for index, test in enumerate(self.tests):
-            yield self._try_markdown2rst, test, results[index]
+            yield self._try_markdown, markdown2rst, test, tokens[index]
 
 
-    def _try_markdown2rst(self, test, results):
-        self.fuzzy_compare(markdown2rst(test), results)
+    def _try_markdown(self, method, test, tokens):
+        results = method(test)
+        if isinstance(tokens, string_types):
+            assert tokens in results
+        else:
+            for token in tokens:
+                assert token in results
