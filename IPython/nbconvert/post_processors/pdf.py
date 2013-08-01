@@ -15,9 +15,8 @@ Contains writer for writing nbconvert output to PDF.
 
 import subprocess
 import os
-import shlex
 
-from IPython.utils.traitlets import Integer, Unicode, Bool
+from IPython.utils.traitlets import Integer, List, Bool
 
 from .base import PostProcessorBase
 
@@ -31,7 +30,7 @@ class PDFPostProcessor(PostProcessorBase):
         How many times pdflatex will be called.
         """)
 
-    compiler = Unicode(u'pdflatex {0}', config=True, help="""
+    compiler = List(["pdflatex", "{filename}"], config=True, help="""
         Shell command used to compile PDF.""")
 
     verbose = Bool(False, config=True, help="""
@@ -43,8 +42,8 @@ class PDFPostProcessor(PostProcessorBase):
             Consume and write Jinja output a PDF.  
             See files.py for more...
             """        
-            command = self.compiler.format(shlex.quote(input))
-            self.log.info("Building PDF: `%s`", command)
+            command = [c.format(filename=input) for c in self.compiler]
+            self.log.info("Building PDF: `%s`", ' '.join(command))
             for index in range(self.iteration_count):
                 if self.verbose:
                     subprocess.Popen(command, shell=True)
