@@ -39,7 +39,7 @@ class TestHighlight(TestsBase):
         """
         %%pylab
         plot(x,y, 'r')
-        """, ""
+        """
         ]   
 
     tokens = [
