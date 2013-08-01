@@ -122,5 +122,6 @@ class TestStrings(TestsBase):
         ipython2python test
         """
         #TODO: More tests
-        results = ipython2python('%%pylab\nprint("Hello-World")')
-        self.fuzzy_compare(results, "get_ipython().run_cell_magic(u'pylab', u'', u'print(\"Hello-World\")')")
+        results = ipython2python(u'%%pylab\nprint("Hello-World")')
+        self.fuzzy_compare(results, u"get_ipython().run_cell_magic(u'pylab', u'', u'print(\"Hello-World\")')", 
+            ignore_spaces=True, ignore_newlines=True)
