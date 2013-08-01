@@ -35,8 +35,8 @@ class TestDataTypeFilter(TestsBase):
     def test_junk_types(self):
         """Can the DataTypeFilter pickout a useful type from a list of junk types?"""
         filter = DataTypeFilter()
-        assert filter(["hair", "water", "png", "rock"]) == ["png"]
-        assert filter(["pdf", "hair", "water", "png", "rock"]) == ["pdf"]
+        assert "png" in filter(["hair", "water", "png", "rock"])
+        assert "pdf" in filter(["pdf", "hair", "water", "png", "rock"])
         assert filter(["hair", "water", "rock"]) == []
 
 
