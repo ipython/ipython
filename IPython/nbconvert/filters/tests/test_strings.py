@@ -15,7 +15,8 @@ Module with tests for Strings
 #-----------------------------------------------------------------------------
 
 from ...tests.base import TestsBase
-from ..strings import *
+from ..strings import wrap_text, html2text, add_anchor, strip_dollars, 
+    strip_files_prefix, get_lines, comment_lines, ipython2python
 
 
 #-----------------------------------------------------------------------------

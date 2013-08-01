@@ -21,7 +21,7 @@ from IPython.testing.decorators import onlyif_cmds_exist
 from IPython.utils.py3compat import string_types
 
 from ...tests.base import TestsBase
-from ..markdown import *
+from ..markdown import markdown2latex, markdown2html, markdown2rst
 
 
 #-----------------------------------------------------------------------------

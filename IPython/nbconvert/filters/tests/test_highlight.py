@@ -16,7 +16,7 @@ Module with tests for Highlight
 
 
 from ...tests.base import TestsBase
-from ..highlight import *
+from ..highlight import highlight2html, highlight2latex
 
 
 #-----------------------------------------------------------------------------

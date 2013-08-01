@@ -17,7 +17,7 @@ Module with tests for ansi filters
 from IPython.utils.coloransi import TermColors
 
 from ...tests.base import TestsBase
-from ..ansi import *
+from ..ansi import strip_ansi, ansi2html, ansi2latex
 
 
 #-----------------------------------------------------------------------------

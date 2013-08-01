@@ -16,7 +16,7 @@ Module with tests for Latex
 
 
 from ...tests.base import TestsBase
-from ..latex import *
+from ..latex import escape_latex, strip_math_space
 
 
 #-----------------------------------------------------------------------------
