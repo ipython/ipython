@@ -30,7 +30,7 @@ class PDFPostProcessor(PostProcessorBase):
         How many times pdflatex will be called.
         """)
 
-    compiler = List(["pdflatex", "{filename}"], config=True, help="""
+    command = List(["pdflatex", "{filename}"], config=True, help="""
         Shell command used to compile PDF.""")
 
     verbose = Bool(False, config=True, help="""
@@ -42,7 +42,7 @@ class PDFPostProcessor(PostProcessorBase):
             Consume and write Jinja output a PDF.  
             See files.py for more...
             """        
-            command = [c.format(filename=input) for c in self.compiler]
+            command = [c.format(filename=input) for c in self.command]
             self.log.info("Building PDF: `%s`", ' '.join(command))
             for index in range(self.iteration_count):
                 if self.verbose:
