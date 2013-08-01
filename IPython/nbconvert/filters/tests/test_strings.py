@@ -46,7 +46,7 @@ class TestStrings(TestsBase):
         html2text test
         """
         #TODO: More tests
-        assert html2text('<name>joe</name>') == 'joe'
+        self.assert_equals(html2text('<name>joe</name>'), 'joe')
         
 
     def test_add_anchor(self):
@@ -80,7 +80,7 @@ class TestStrings(TestsBase):
 
 
     def _try_strip_dollars(self, test, result):
-        assert strip_dollars(test) == result
+        self.assert_equals(strip_dollars(test), result)
 
 
     def test_strip_files_prefix(self):
@@ -98,7 +98,7 @@ class TestStrings(TestsBase):
 
 
     def _try_files_prefix(self, test, result):
-        assert strip_files_prefix(test) == result
+        self.assert_equals(strip_files_prefix(test), result)
         
 
     def test_comment_lines(self):
@@ -116,10 +116,10 @@ class TestStrings(TestsBase):
         get_lines test
         """
         text = "hello\nworld\n!"
-        assert get_lines(text, start=1) == "world\n!"
-        assert get_lines(text, end=2) == "hello\nworld"
-        assert get_lines(text, start=2, end=5) == "!"
-        assert get_lines(text, start=-2) == "world\n!"
+        self.assert_equals(get_lines(text, start=1), "world\n!")
+        self.assert_equals(get_lines(text, end=2), "hello\nworld")
+        self.assert_equals(get_lines(text, start=2, end=5), "!")
+        self.assert_equals(get_lines(text, start=-2), "world\n!")
         
 
     def test_ipython2python(self):

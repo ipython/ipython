@@ -36,6 +36,14 @@ class TestsBase(object):
     functions."""
 
 
+    def __init__(self):
+
+        # We need to manually add assert_equal to the class instead of inheriting
+        # from unittest.TestCase because if we inherit from unittest.TestCase
+        # support for test generators is lost (a known 'feature' of nose).
+        self.assert_equal = assert_equal
+
+
     def fuzzy_compare(self, a, b, newlines_are_spaces=True, tabs_are_spaces=True, 
                       fuzzy_spacing=True, ignore_spaces=False, 
                       ignore_newlines=False, case_sensitive=False, leave_padding=False):
@@ -74,7 +82,7 @@ class TestsBase(object):
             a = a.lower()
             b = b.lower()
 
-        assert_equal(a, b)
+        self.assert_equal(a, b)
 
 
     def recursive_replace(self, text, search, replacement):

@@ -44,7 +44,7 @@ class TestLatex(TestsBase):
         """
         Try to remove latex from string
         """
-        assert escape_latex(test) == result
+        self.assert_equals(escape_latex(test), result)
 
 
     def test_strip_math_space(self):
@@ -69,4 +69,4 @@ class TestLatex(TestsBase):
         """
         Try to remove spaces between dollar symbols and contents correctly
         """
-        assert strip_math_space(test) == result
+        self.assert_equals(strip_math_space(test), result)

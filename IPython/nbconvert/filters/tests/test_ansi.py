@@ -46,7 +46,7 @@ class TestAnsi(TestsBase):
 
 
     def _try_strip_ansi(self, inval, outval):
-        assert outval == strip_ansi(inval)
+        self.assert_equals(outval, strip_ansi(inval))
 
 
     def test_ansi2html(self):
