@@ -351,31 +351,30 @@ afresh.
 
 Keyboard shortcuts
 ~~~~~~~~~~~~~~~~~~
-All actions in the notebook can be achieved with the mouse, but keyboard 
-shortcuts are also available for the most common ones, so that productive use 
-of the notebook can be achieved with minimal mouse usage. The main shortcuts 
+All actions in the notebook can be performed with the mouse, but keyboard 
+shortcuts are also available for the most common ones. The essential shortcuts
 to remember are the following:
 
-* :kbd:`Shift-Enter`: 
-
+* :kbd:`Shift-Enter`:  run cell
     Execute the current cell, show output (if any), and jump to the next cell 
     below. If :kbd:`Shift-Enter` is invoked on the last input cell, a new code 
     cell will also be created. Note that in the notebook, typing :kbd:`Enter` 
     on its own *never* forces execution, but rather just inserts a new line in 
-    the current input cell. In the Notebook it is thus always necessary to use 
-    :kbd:`Shift-Enter` to execute the cell (or use the ``Cell | Run`` menu 
-    item).
+    the current input cell. :kbd:`Shift-Enter` is equivalent to clicking the 
+    ``Cell | Run`` menu item.
 
-* :kbd:`Ctrl-Enter`: 
+* :kbd:`Ctrl-Enter`: run cell in-place
     Execute the current cell as if it were in "terminal mode", where any 
-    output is shown, but the cursor *remains* in the current cell. This is 
-    convenient for doing quick experiments in place, or for querying things 
-    like filesystem content, without needing to create additional cells that 
-    you may not want to be saved in the notebook.
+    output is shown, but the cursor *remains* in the current cell. The cell's
+    entire contents are selected after execution, so you can just start typing
+    and only the new input will be in the cell. This is convenient for doing
+    quick experiments in place, or for querying things like filesystem
+    content, without needing to create additional cells that you may not want
+    to be saved in the notebook.
 
-* :kbd:`Alt-Enter`: 
+* :kbd:`Alt-Enter`: run cell, insert below
     Executes the current cell, shows the output, and inserts a *new* input 
-    cell between the current cell and the adjacent cell (if one exists). This  
+    cell between the current cell and the cell below (if one exists). This  
     is thus a shortcut for the sequence :kbd:`Shift-Enter`, :kbd:`Ctrl-m a`.
     (:kbd:`Ctrl-m a` adds a new cell above the current one.)
   
@@ -384,6 +383,46 @@ to remember are the following:
   followed by a single letter or character. For example, if you type 
   :kbd:`Ctrl-m h` (that is, the sole letter :kbd:`h` after :kbd:`Ctrl-m`), 
   IPython will show you all the available keyboard shortcuts.
+
+
+..
+    TODO: these live in IPython/html/static/notebook/js/quickhelp.js
+    They were last updated for IPython 1.0 release, so update them again for
+    future releases.
+
+Here is the complete set of keyboard shortcuts available:
+
+============  ==========================
+**Shortcut**        **Action**
+------------  --------------------------
+Shift-Enter    run cell
+Ctrl-Enter     run cell in-place
+Alt-Enter      run cell, insert below
+Ctrl-m x       cut cell
+Ctrl-m c       copy cell
+Ctrl-m v       paste cell
+Ctrl-m d       delete cell
+Ctrl-m z       undo last cell deletion
+Ctrl-m -       split cell
+Ctrl-m a       insert cell above
+Ctrl-m b       insert cell below
+Ctrl-m o       toggle output
+Ctrl-m O       toggle output scroll
+Ctrl-m l       toggle line numbers
+Ctrl-m s       save notebook
+Ctrl-m j       move cell down
+Ctrl-m k       move cell up
+Ctrl-m y       code cell
+Ctrl-m m       markdown cell
+Ctrl-m t       raw cell
+Ctrl-m 1-6     heading 1-6 cell
+Ctrl-m p       select previous
+Ctrl-m n       select next
+Ctrl-m i       interrupt kernel
+Ctrl-m .       restart kernel
+Ctrl-m h       show keyboard shortcuts
+============  ==========================
+
    
 
 Magic commands
