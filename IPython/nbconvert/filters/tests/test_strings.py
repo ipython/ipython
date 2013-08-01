@@ -54,7 +54,7 @@ class TestStrings(TestsBase):
         add_anchor test
         """
         #TODO: More tests
-        assert add_anchor('<b>Hello World!</b>') == '<b id="Hello-World!">Hello World!<a class="anchor-link" href="#Hello-World!">&#182;</a></b>'
+        self.fuzzy_compare(add_anchor('<b>Hello World!</b>'), '<b id="Hello-World!">Hello World!<a class="anchor-link" href="#Hello-World!">&#182;</a></b>')
 
         
     def test_strip_dollars(self):
