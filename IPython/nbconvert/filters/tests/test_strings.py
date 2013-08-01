@@ -14,6 +14,7 @@ Module with tests for Strings
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.py3compat import bytes_to_str
 
 from ...tests.base import TestsBase
 from ..strings import *
@@ -54,7 +55,12 @@ class TestStrings(TestsBase):
         add_anchor test
         """
         #TODO: More tests
-        self.fuzzy_compare(add_anchor('<b>Hello World!</b>'), '<b id="Hello-World!">Hello World!<a class="anchor-link" href="#Hello-World!">&#182;</a></b>')
+        results = bytes_to_str(add_anchor('<b>Hello World!</b>'))
+        assert 'Hello World!' in results
+        assert 'id="' in results
+        assert 'class="anchor-link"' in results
+        assert '<b' in results
+        assert '</b>' in results
 
         
     def test_strip_dollars(self):
@@ -122,6 +128,6 @@ class TestStrings(TestsBase):
         ipython2python test
         """
         #TODO: More tests
-        results = ipython2python(u'%%pylab\nprint("Hello-World")')
-        self.fuzzy_compare(results, u"get_ipython().run_cell_magic(u'pylab', u'', u'print(\"Hello-World\")')", 
+        results = ipython2python(u'%%pylab\nprint("Hello-World")').replace("u'", "'")
+        self.fuzzy_compare(results, u"get_ipython().run_cell_magic('pylab', '', 'print(\"Hello-World\")')", 
             ignore_spaces=True, ignore_newlines=True)
