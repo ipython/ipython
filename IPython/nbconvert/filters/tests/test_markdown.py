@@ -40,41 +40,7 @@ class TestMarkdown(TestsBase):
         '#test',
         '##test',
         'test\n----',
-        'test [link](https://google.com/)',
-        """
-List
-----
-- Test
-- Test
-    1. Test
-    2. Test
-        - Test
-        - Test
-    2. Test
-        """,
-        "test\ntest",
-        "test\n  test",
-        "test\n\n---\n\ntest",
-        "test\n\n***\n\ntest",
-        """
-#Code
-
-Below
-
-    def hello_world(self):
-        print('hello_world')
-
-        """,
-        """
-Quote
------
-
-Mike said
-
-> You are so cool!
-> I wish I could do that.
-        """,
-        "inline `quote`"]
+        'test [link](https://google.com/)']
 
 
     @onlyif_cmds_exist('pandoc')
@@ -93,70 +59,7 @@ Mike said
             r'\section{test}',
             r'\subsection{test}',
             r'\subsection{test}',
-            r'test \href{https://google.com/}{link}',
-            r"""
-\subsection{List}
-
-\begin{itemize}
-\item
-  Test
-\item
-  Test
-
-  \begin{enumerate}[1.]
-  \item
-    Test
-  \item
-    Test
-
-    \begin{itemize}
-    \item
-      Test
-    \item
-      Test
-    \end{itemize}
-  \item
-    Test
-  \end{enumerate}
-\end{itemize}
-            """,
-            'test test',
-            'test test',
-            r"""
-            test
-
-            \begin{center}\rule{3in}{0.4pt}\end{center}
-
-            test
-            """,
-            r"""
-            test
-
-            \begin{center}\rule{3in}{0.4pt}\end{center}
-
-            test
-            """,
-            r"""
-\section{Code}
-
-Below
-
-\begin{verbatim}
-def hello_world(self):
-    print('hello_world')
-\end{verbatim}
-
-            """,
-            r"""
-\subsection{Quote}
-
-Mike said
-
-\begin{quote}
-You are so cool! I wish I could do that.
-\end{quote}
-            """,
-            r'inline \texttt{quote}']   
+            r'test \href{https://google.com/}{link}']   
         for index, test in enumerate(self.tests):
             yield self._try_markdown2latex, test, results[index]
 
@@ -181,52 +84,7 @@ You are so cool! I wish I could do that.
             '<h1 id="test">test</h1>',
             '<h2 id="test">test</h2>',
             '<h2 id="test">test</h2>',
-            '<p>test <a href="https://google.com/">link</a></p>',
-            """
-<h2 id="list">List</h2>
-<ul>
-<li>Test</li>
-<li>Test
-<ol style="list-style-type: decimal">
-<li>Test</li>
-<li>Test
-<ul>
-<li>Test</li>
-<li>Test</li>
-</ul></li>
-<li>Test</li>
-</ol></li>
-</ul>
-
-            """,
-            '<p>test test</p>',
-            '<p>test test</p>',
-            """
-            <p>test</p>
-            <hr />
-            <p>test</p>
-            """,
-            """
-            <p>test</p>
-            <hr />
-            <p>test</p>
-            """,
-            """
-<h1 id="code">Code</h1>
-<p>Below</p>
-<pre><code>def hello_world(self):
-    print(&#39;hello_world&#39;)</code></pre>
-
-            """,
-            """
-<h2 id="quote">Quote</h2>
-<p>Mike said</p>
-<blockquote>
-<p>You are so cool! I wish I could do that.</p>
-</blockquote>
-
-            """,
-            '<p>inline <code>quote</code></p>']   
+            '<p>test <a href="https://google.com/">link</a></p>']   
         for index, test in enumerate(self.tests):
             yield self._try_markdown2html, test, results[index]
 
@@ -251,62 +109,7 @@ You are so cool! I wish I could do that.
             'test\n====',
             'test\n----',
             'test\n----',
-            'test `link <https://google.com/>`_',
-            """
-List
-----
-
--  Test
--  Test
-
-   1. Test
-   2. Test
-
-      -  Test
-      -  Test
-
-   3. Test
-
-            """,
-            'test test',
-            'test test',
-            """
-test
-
---------------
-
-test
-            """,
-            """
-test
-
---------------
-
-test
-
-            """,
-            """
-Code
-====
-
-Below
-
-::
-
-    def hello_world(self):
-        print('hello_world')
-
-            """,
-            """
-Quote
------
-
-Mike said
-
-    You are so cool! I wish I could do that.
-
-            """,
-            'inline ``quote``']       
+            'test `link <https://google.com/>`_']       
         for index, test in enumerate(self.tests):
             yield self._try_markdown2rst, test, results[index]
 
