@@ -14,8 +14,6 @@ Module with tests for Latex
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.testing import decorators as dec
-
 from ...tests.base import TestsBase
 from ..latex import escape_latex, strip_math_space
 
@@ -27,7 +25,6 @@ from ..latex import escape_latex, strip_math_space
 class TestLatex(TestsBase):
 
 
-    @dec.parametric
     def test_escape_latex(self):
         """escape_latex test"""
         tests = [
@@ -37,15 +34,14 @@ class TestLatex(TestsBase):
             ('','')]
 
         for test in tests:
-            yield self._try_escape_latex, test[0], test[1]
+            yield self._try_escape_latex(test[0], test[1])
 
 
     def _try_escape_latex(self, test, result):
         """Try to remove latex from string"""
-        self.assert_equal(escape_latex(test), result)
+        self.assertEqual(escape_latex(test), result)
 
 
-    @dec.parametric
     def test_strip_math_space(self):
         """strip_math_space test"""
         tests = [
@@ -59,11 +55,11 @@ class TestLatex(TestsBase):
             ('','')]
 
         for test in tests:
-            yield self._try_strip_math_space, test[0], test[1]
+            yield self._try_strip_math_space(test[0], test[1])
 
 
     def _try_strip_math_space(self, test, result):
         """
         Try to remove spaces between dollar symbols and contents correctly
         """
-        self.assert_equal(strip_math_space(test), result)
+        self.assertEqual(strip_math_space(test), result)

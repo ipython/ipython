@@ -14,8 +14,6 @@ Module with tests for Highlight
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.testing import decorators as dec
-
 from ...tests.base import TestsBase
 from ..highlight import highlight2html, highlight2latex
 
@@ -48,18 +46,16 @@ class TestHighlight(TestsBase):
         ['pylab', 'plot']]
 
 
-    @dec.parametric
     def test_highlight2html(self):
         """highlight2html test"""
         for index, test in enumerate(self.tests):
-            yield self._try_highlight, highlight2html, test, self.tokens[index]
+            yield self._try_highlight(highlight2html, test, self.tokens[index])
 
 
-    @dec.parametric
     def test_highlight2latex(self):
         """highlight2latex test"""
         for index, test in enumerate(self.tests):
-            yield self._try_highlight, highlight2latex, test, self.tokens[index]
+            yield self._try_highlight(highlight2latex, test, self.tokens[index])
 
 
     def _try_highlight(self, method, test, tokens):

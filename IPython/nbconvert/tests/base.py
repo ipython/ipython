@@ -17,11 +17,11 @@ import os
 import glob
 import shutil
 
-from nose.tools import assert_equal
 import IPython
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
 from IPython.testing.tools import get_ipython_cmd
+from IPython.testing.ipunittest import ParametricTestCase
 
 # a trailing space allows for simpler concatenation with the other arguments
 ipy_cmd = get_ipython_cmd(as_string=True) + " "
@@ -31,17 +31,9 @@ ipy_cmd = get_ipython_cmd(as_string=True) + " "
 #-----------------------------------------------------------------------------
 
 
-class TestsBase(object):
+class TestsBase(ParametricTestCase):
     """Base tests class.  Contains useful fuzzy comparison and nbconvert
     functions."""
-
-
-    def __init__(self):
-
-        # We need to manually add assert_equal to the class instead of inheriting
-        # from unittest.TestCase because if we inherit from unittest.TestCase
-        # support for test generators is lost (a known 'feature' of nose).
-        self.assert_equal = assert_equal
 
 
     def fuzzy_compare(self, a, b, newlines_are_spaces=True, tabs_are_spaces=True, 
@@ -82,7 +74,7 @@ class TestsBase(object):
             a = a.lower()
             b = b.lower()
 
-        self.assert_equal(a, b)
+        self.assertEqual(a, b)
 
 
     def recursive_replace(self, text, search, replacement):

@@ -26,7 +26,6 @@ from ..strings import (wrap_text, html2text, add_anchor, strip_dollars,
 
 class TestStrings(TestsBase):
 
-    @dec.parametric
     def test_wrap_text(self):
         """wrap_text test"""
         test_text = """
@@ -35,7 +34,7 @@ class TestStrings(TestsBase):
         As if the strings were thine, shouldst know of this.
         """
         for length in [30,5,1]:
-            yield self._confirm_wrap_text, test_text, length
+            yield self._confirm_wrap_text(test_text, length)
     
 
     def _confirm_wrap_text(self, text, length):
@@ -46,7 +45,7 @@ class TestStrings(TestsBase):
     def test_html2text(self):
         """html2text test"""
         #TODO: More tests
-        self.assert_equal(html2text('<name>joe</name>'), 'joe')
+        self.assertEqual(html2text('<name>joe</name>'), 'joe')
         
 
     def test_add_anchor(self):
@@ -60,7 +59,6 @@ class TestStrings(TestsBase):
         assert '</b>' in results
 
         
-    @dec.parametric
     def test_strip_dollars(self):
         """strip_dollars test"""
         tests = [
@@ -73,14 +71,13 @@ class TestStrings(TestsBase):
             ('Hello', 'Hello'),
             ('W$o$rld', 'W$o$rld')]
         for test in tests:
-            yield self._try_strip_dollars, test[0], test[1]
+            yield self._try_strip_dollars(test[0], test[1])
 
 
     def _try_strip_dollars(self, test, result):
-        self.assert_equal(strip_dollars(test), result)
+        self.assertEqual(strip_dollars(test), result)
 
 
-    @dec.parametric
     def test_strip_files_prefix(self):
         """strip_files_prefix test"""
         tests = [
@@ -90,11 +87,11 @@ class TestStrings(TestsBase):
             ('My files are in `files/`', 'My files are in `files/`'),
             ('<a href="files/test.html">files/test.html</a>', '<a href="test.html">files/test.html</a>')]
         for test in tests:
-            yield self._try_files_prefix, test[0], test[1]
+            yield self._try_files_prefix(test[0], test[1])
 
 
     def _try_files_prefix(self, test, result):
-        self.assert_equal(strip_files_prefix(test), result)
+        self.assertEqual(strip_files_prefix(test), result)
         
 
     def test_comment_lines(self):
@@ -108,10 +105,10 @@ class TestStrings(TestsBase):
     def test_get_lines(self):
         """get_lines test"""
         text = "hello\nworld\n!"
-        self.assert_equal(get_lines(text, start=1), "world\n!")
-        self.assert_equal(get_lines(text, end=2), "hello\nworld")
-        self.assert_equal(get_lines(text, start=2, end=5), "!")
-        self.assert_equal(get_lines(text, start=-2), "world\n!")
+        self.assertEqual(get_lines(text, start=1), "world\n!")
+        self.assertEqual(get_lines(text, end=2), "hello\nworld")
+        self.assertEqual(get_lines(text, start=2, end=5), "!")
+        self.assertEqual(get_lines(text, start=-2), "world\n!")
         
 
     def test_ipython2python(self):

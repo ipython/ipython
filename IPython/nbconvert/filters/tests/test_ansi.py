@@ -14,7 +14,6 @@ Module with tests for ansi filters
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.testing import decorators as dec
 from IPython.utils.coloransi import TermColors
 
 from ...tests.base import TestsBase
@@ -28,7 +27,6 @@ from ..ansi import strip_ansi, ansi2html, ansi2latex
 class TestAnsi(TestsBase):
     """Contains test functions for ansi.py"""
 
-    @dec.parametric
     def test_strip_ansi(self):
         """strip_ansi test"""
         correct_outputs = {
@@ -41,14 +39,13 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_strip_ansi, inval, outval
+            yield self._try_strip_ansi(inval, outval)
 
 
     def _try_strip_ansi(self, inval, outval):
-        self.assert_equal(outval, strip_ansi(inval))
+        self.assertEqual(outval, strip_ansi(inval))
 
 
-    @dec.parametric
     def test_ansi2html(self):
         """ansi2html test"""
         correct_outputs = {
@@ -61,14 +58,13 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_ansi2html, inval, outval
+            yield self._try_ansi2html(inval, outval)
 
 
     def _try_ansi2html(self, inval, outval):
         self.fuzzy_compare(outval, ansi2html(inval))
 
 
-    @dec.parametric
     def test_ansi2latex(self):
         """ansi2latex test"""
         correct_outputs = {
@@ -81,7 +77,7 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_ansi2latex, inval, outval
+            yield self._try_ansi2latex(inval, outval)
 
 
     def _try_ansi2latex(self, inval, outval):
