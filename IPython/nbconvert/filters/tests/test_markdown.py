@@ -62,7 +62,7 @@ class TestMarkdown(TestsBase):
         markdown2latex test
         """
         for index, test in enumerate(self.tests):
-            yield self._try_markdown, markdown2latex, test, tokens[index]
+            yield self._try_markdown, markdown2latex, test, self.tokens[index]
 
 
     @onlyif_cmds_exist('pandoc')
@@ -71,7 +71,7 @@ class TestMarkdown(TestsBase):
         markdown2html test
         """
         for index, test in enumerate(self.tests):
-            yield self._try_markdown, markdown2html, test, tokens[index]
+            yield self._try_markdown, markdown2html, test, self.tokens[index]
 
 
     @onlyif_cmds_exist('pandoc')
