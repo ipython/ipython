@@ -15,6 +15,7 @@ Contains writer for writing nbconvert output to PDF.
 
 import subprocess
 import os
+import shlex
 
 from IPython.utils.traitlets import Integer, Unicode, Bool
 
@@ -42,7 +43,7 @@ class PDFPostProcessor(PostProcessorBase):
             Consume and write Jinja output a PDF.  
             See files.py for more...
             """        
-            command = self.compiler.format(input)
+            command = self.compiler.format(shlex.quote(input))
             self.log.info("Building PDF: `%s`", command)
             for index in range(self.iteration_count):
                 if self.verbose:
