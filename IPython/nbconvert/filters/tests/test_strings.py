@@ -14,8 +14,6 @@ Module with tests for Strings
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.py3compat import bytes_to_str
-
 from ...tests.base import TestsBase
 from ..strings import *
 
@@ -55,7 +53,7 @@ class TestStrings(TestsBase):
         add_anchor test
         """
         #TODO: More tests
-        results = bytes_to_str(add_anchor('<b>Hello World!</b>'))
+        results = add_anchor('<b>Hello World!</b>')
         assert 'Hello World!' in results
         assert 'id="' in results
         assert 'class="anchor-link"' in results

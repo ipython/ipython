@@ -84,7 +84,11 @@ def add_anchor(html):
     a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
     a.text = u'¶'
     h.append(a)
-    return ElementTree.tostring(h)
+
+    # Known issue of Python3.x, ElementTree.tostring() returns a byte string
+    # instead of a text string.  See issue http://bugs.python.org/issue10942
+    # Workaround is to make sure the bytes are casted to a string.
+    return py3compat.bytes_to_str(ElementTree.tostring(h))
 
 
 def strip_dollars(text):
