@@ -15,6 +15,7 @@ Module with tests for Markdown
 # Imports
 #-----------------------------------------------------------------------------
 
+from copy import copy
 
 from IPython.testing.decorators import onlyif_cmds_exist
 from IPython.utils.py3compat import string_types
@@ -79,6 +80,12 @@ class TestMarkdown(TestsBase):
         """
         markdown2rst test
         """
+
+        #Modify token array for rst, escape asterik
+        tokens = copy(self.tokens)
+        tokens[0] = r'\*test'
+        tokens[1] = r'\*\*test'
+
         for index, test in enumerate(self.tests):
             yield self._try_markdown, markdown2rst, test, tokens[index]
 
