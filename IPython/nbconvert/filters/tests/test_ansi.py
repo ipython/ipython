@@ -29,9 +29,7 @@ class TestAnsi(TestsBase):
 
 
     def test_strip_ansi(self):
-        """
-        strip_ansi test
-        """
+        """strip_ansi test"""
         correct_outputs = {
             '%s%s%s' % (TermColors.Green, TermColors.White, TermColors.Red)  : '',
             'hello%s' % TermColors.Blue: 'hello',
@@ -50,9 +48,7 @@ class TestAnsi(TestsBase):
 
 
     def test_ansi2html(self):
-        """
-        ansi2html test
-        """
+        """ansi2html test"""
         correct_outputs = {
             '%s' % (TermColors.Red)  : '<span class="ansired"></span>',
             'hello%s' % TermColors.Blue: 'hello<span class="ansiblue"></span>',
@@ -71,9 +67,7 @@ class TestAnsi(TestsBase):
 
 
     def test_ansi2latex(self):
-        """
-        ansi2latex test
-        """
+        """ansi2latex test"""
         correct_outputs = {
             '%s' % (TermColors.Red)  : r'\red{}',
             'hello%s' % TermColors.Blue: r'hello\blue{}',

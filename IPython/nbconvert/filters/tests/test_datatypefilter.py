@@ -37,10 +37,10 @@ class TestDataTypeFilter(TestsBase):
         filter = DataTypeFilter()
         assert "png" in filter(["hair", "water", "png", "rock"])
         assert "pdf" in filter(["pdf", "hair", "water", "png", "rock"])
-        assert filter(["hair", "water", "rock"]) == []
+        self.assert_equals(filter(["hair", "water", "rock"]), [])
 
 
     def test_null(self):
         """Will the DataTypeFilter fail if no types are passed in?"""
         filter = DataTypeFilter()
-        assert filter([]) == []
+        self.assert_equals(filter([]), [])

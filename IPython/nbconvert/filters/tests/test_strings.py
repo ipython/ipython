@@ -26,9 +26,7 @@ from ..strings import (wrap_text, html2text, add_anchor, strip_dollars,
 class TestStrings(TestsBase):
 
     def test_wrap_text(self):
-        """
-        wrap_text test
-        """
+        """wrap_text test"""
         test_text = """
         Tush! never tell me; I take it much unkindly
         That thou, Iago, who hast had my purse
@@ -42,17 +40,13 @@ class TestStrings(TestsBase):
             assert len(line) <= length
 
     def test_html2text(self):
-        """
-        html2text test
-        """
+        """html2text test"""
         #TODO: More tests
         self.assert_equal(html2text('<name>joe</name>'), 'joe')
         
 
     def test_add_anchor(self):
-        """
-        add_anchor test
-        """
+        """add_anchor test"""
         #TODO: More tests
         results = add_anchor('<b>Hello World!</b>')
         assert 'Hello World!' in results
@@ -63,9 +57,7 @@ class TestStrings(TestsBase):
 
         
     def test_strip_dollars(self):
-        """
-        strip_dollars test
-        """
+        """strip_dollars test"""
         tests = [
             ('', ''), 
             ('$$', ''), 
@@ -84,9 +76,7 @@ class TestStrings(TestsBase):
 
 
     def test_strip_files_prefix(self):
-        """
-        strip_files_prefix test
-        """
+        """strip_files_prefix test"""
         tests = [
             ('', ''), 
             ('/files', '/files'), 
@@ -102,9 +92,7 @@ class TestStrings(TestsBase):
         
 
     def test_comment_lines(self):
-        """
-        comment_lines test
-        """
+        """comment_lines test"""
         for line in comment_lines('hello\nworld\n!').split('\n'):
             assert line.startswith('# ')
         for line in comment_lines('hello\nworld\n!', 'beep').split('\n'):
@@ -112,9 +100,7 @@ class TestStrings(TestsBase):
         
 
     def test_get_lines(self):
-        """
-        get_lines test
-        """
+        """get_lines test"""
         text = "hello\nworld\n!"
         self.assert_equal(get_lines(text, start=1), "world\n!")
         self.assert_equal(get_lines(text, end=2), "hello\nworld")
@@ -123,9 +109,7 @@ class TestStrings(TestsBase):
         
 
     def test_ipython2python(self):
-        """
-        ipython2python test
-        """
+        """ipython2python test"""
         #TODO: More tests
         results = ipython2python(u'%%pylab\nprint("Hello-World")').replace("u'", "'")
         self.fuzzy_compare(results, u"get_ipython().run_cell_magic('pylab', '', 'print(\"Hello-World\")')", 

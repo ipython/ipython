@@ -27,9 +27,7 @@ class TestLatex(TestsBase):
 
 
     def test_escape_latex(self):
-        """
-        escape_latex test
-        """
+        """escape_latex test"""
         tests = [
             (r'How are \you doing today?', r'How are \textbackslashyou doing today?'),
             (r'\escapechar=`\A\catcode`\|=0 |string|foo', r'\textbackslashescapechar=`\textbackslashA\textbackslashcatcode`\textbackslash|=0 |string|foo'),
@@ -41,16 +39,12 @@ class TestLatex(TestsBase):
 
 
     def _try_escape_latex(self, test, result):
-        """
-        Try to remove latex from string
-        """
+        """Try to remove latex from string"""
         self.assert_equal(escape_latex(test), result)
 
 
     def test_strip_math_space(self):
-        """
-        strip_math_space test
-        """
+        """strip_math_space test"""
         tests = [
             ('$e$','$e$'),
             ('$ e $','$e$'),
