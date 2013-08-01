@@ -14,6 +14,7 @@ Module with tests for ansi filters
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.testing import decorators as dec
 from IPython.utils.coloransi import TermColors
 
 from ...tests.base import TestsBase
@@ -27,7 +28,7 @@ from ..ansi import strip_ansi, ansi2html, ansi2latex
 class TestAnsi(TestsBase):
     """Contains test functions for ansi.py"""
 
-
+    @dec.parametric
     def test_strip_ansi(self):
         """strip_ansi test"""
         correct_outputs = {
@@ -47,6 +48,7 @@ class TestAnsi(TestsBase):
         self.assert_equal(outval, strip_ansi(inval))
 
 
+    @dec.parametric
     def test_ansi2html(self):
         """ansi2html test"""
         correct_outputs = {
@@ -66,6 +68,7 @@ class TestAnsi(TestsBase):
         self.fuzzy_compare(outval, ansi2html(inval))
 
 
+    @dec.parametric
     def test_ansi2latex(self):
         """ansi2latex test"""
         correct_outputs = {

@@ -17,8 +17,8 @@ Module with tests for Markdown
 
 from copy import copy
 
-from IPython.testing.decorators import onlyif_cmds_exist
 from IPython.utils.py3compat import string_types
+from IPython.testing import decorators as dec
 
 from ...tests.base import TestsBase
 from ..markdown import markdown2latex, markdown2html, markdown2rst
@@ -57,21 +57,24 @@ class TestMarkdown(TestsBase):
         ('test', 'https://google.com/')]
 
 
-    @onlyif_cmds_exist('pandoc')
+    @dec.onlyif_cmds_exist('pandoc')
+    @dec.parametric
     def test_markdown2latex(self):
         """markdown2latex test"""
         for index, test in enumerate(self.tests):
             yield self._try_markdown, markdown2latex, test, self.tokens[index]
 
 
-    @onlyif_cmds_exist('pandoc')
+    @dec.onlyif_cmds_exist('pandoc')
+    @dec.parametric
     def test_markdown2html(self):
         """markdown2html test"""
         for index, test in enumerate(self.tests):
             yield self._try_markdown, markdown2html, test, self.tokens[index]
 
 
-    @onlyif_cmds_exist('pandoc')
+    @dec.onlyif_cmds_exist('pandoc')
+    @dec.parametric
     def test_markdown2rst(self):
         """markdown2rst test"""
 

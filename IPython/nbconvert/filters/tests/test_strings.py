@@ -14,6 +14,7 @@ Module with tests for Strings
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..strings import (wrap_text, html2text, add_anchor, strip_dollars, 
     strip_files_prefix, get_lines, comment_lines, ipython2python)
@@ -25,6 +26,7 @@ from ..strings import (wrap_text, html2text, add_anchor, strip_dollars,
 
 class TestStrings(TestsBase):
 
+    @dec.parametric
     def test_wrap_text(self):
         """wrap_text test"""
         test_text = """
@@ -35,9 +37,11 @@ class TestStrings(TestsBase):
         for length in [30,5,1]:
             yield self._confirm_wrap_text, test_text, length
     
+
     def _confirm_wrap_text(self, text, length):
         for line in wrap_text(text, length).split('\n'):
             assert len(line) <= length
+
 
     def test_html2text(self):
         """html2text test"""
@@ -56,6 +60,7 @@ class TestStrings(TestsBase):
         assert '</b>' in results
 
         
+    @dec.parametric
     def test_strip_dollars(self):
         """strip_dollars test"""
         tests = [
@@ -75,6 +80,7 @@ class TestStrings(TestsBase):
         self.assert_equal(strip_dollars(test), result)
 
 
+    @dec.parametric
     def test_strip_files_prefix(self):
         """strip_files_prefix test"""
         tests = [

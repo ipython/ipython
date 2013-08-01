@@ -14,6 +14,7 @@ Module with tests for Latex
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.testing import decorators as dec
 
 from ...tests.base import TestsBase
 from ..latex import escape_latex, strip_math_space
@@ -26,6 +27,7 @@ from ..latex import escape_latex, strip_math_space
 class TestLatex(TestsBase):
 
 
+    @dec.parametric
     def test_escape_latex(self):
         """escape_latex test"""
         tests = [
@@ -43,6 +45,7 @@ class TestLatex(TestsBase):
         self.assert_equal(escape_latex(test), result)
 
 
+    @dec.parametric
     def test_strip_math_space(self):
         """strip_math_space test"""
         tests = [
