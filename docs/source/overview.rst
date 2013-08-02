@@ -172,9 +172,8 @@ Main features of the interactive shell
 
 .. sourcecode:: ipython
 
-    In [5]: %timeit 1+1
+    In [1]: %timeit 1+1
     10000000 loops, best of 3: 25.5 ns per loop
-    .. _sourcecode:
 
     In [2]: %timeit [math.sin(x) for x in range(5000)]
     1000 loops, best of 3: 719 µs per loop
@@ -186,9 +185,10 @@ Main features of the interactive shell
   
 
 * Doctest support. The special :samp:`%doctest_mode` command toggles a mode
-  uses doctest-compatible prompts, so you can use IPython sessions as doctest
-  code.. By default, IPython also allows you to paste existing doctests (with
-  leading :samp:`>>>`  and :samp:`...` prompts in them
+  to use doctest-compatible prompts, so you can use IPython sessions as
+  doctest code. By default, IPython also allows you to paste existing
+  doctests, and strips out the leading :samp:`>>>` and :samp:`...` prompts in
+  them.
 
 .. _ipythonzmq:
 
