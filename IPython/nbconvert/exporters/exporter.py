@@ -223,8 +223,10 @@ class Exporter(LoggingConfigurable):
             self.log.debug("Attempting to load template %s", try_name)
             try:
                 self.template = self.environment.get_template(try_name)
-            except TemplateNotFound:
+            except (TemplateNotFound, IOError):
                 pass
+            except Exception as e:
+                self.log.warn("Unexpected exception loading template: %s", try_name, exc_info=True)
             else:
                 self.log.info("Loaded template %s", try_name)
                 break
