@@ -21,6 +21,7 @@ import IPython
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
 from IPython.testing.tools import get_ipython_cmd
+from IPython.testing.ipunittest import ParametricTestCase
 
 # a trailing space allows for simpler concatenation with the other arguments
 ipy_cmd = get_ipython_cmd(as_string=True) + " "
@@ -30,20 +31,28 @@ ipy_cmd = get_ipython_cmd(as_string=True) + " "
 #-----------------------------------------------------------------------------
 
 
-class TestsBase(object):
+class TestsBase(ParametricTestCase):
     """Base tests class.  Contains useful fuzzy comparison and nbconvert
     functions."""
 
 
     def fuzzy_compare(self, a, b, newlines_are_spaces=True, tabs_are_spaces=True, 
                       fuzzy_spacing=True, ignore_spaces=False, 
-                      ignore_newlines=False, case_sensitive=False):
+                      ignore_newlines=False, case_sensitive=False, leave_padding=False):
         """
         Performs a fuzzy comparison of two strings.  A fuzzy comparison is a
         comparison that ignores insignificant differences in the two comparands.
         The significance of certain differences can be specified via the keyword
         parameters of this method.
         """
+
+        if not leave_padding:
+            a = a.strip()
+            b = b.strip()
+
+        if ignore_newlines:
+            a = a.replace('\n', '')
+            b = b.replace('\n', '')
 
         if newlines_are_spaces:
             a = a.replace('\n', ' ')
@@ -61,15 +70,11 @@ class TestsBase(object):
             a = self.recursive_replace(a, '  ', ' ')
             b = self.recursive_replace(b, '  ', ' ')
 
-        if ignore_newlines:
-            a = a.replace('\n', '')
-            b = b.replace('\n', '')
-
         if not case_sensitive:
             a = a.lower()
             b = b.lower()
 
-        return a == b
+        self.assertEqual(a, b)
 
 
     def recursive_replace(self, text, search, replacement):
