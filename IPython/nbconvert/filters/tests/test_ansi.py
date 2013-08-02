@@ -17,7 +17,7 @@ Module with tests for ansi filters
 from IPython.utils.coloransi import TermColors
 
 from ...tests.base import TestsBase
-from ..ansi import *
+from ..ansi import strip_ansi, ansi2html, ansi2latex
 
 
 #-----------------------------------------------------------------------------
@@ -27,11 +27,8 @@ from ..ansi import *
 class TestAnsi(TestsBase):
     """Contains test functions for ansi.py"""
 
-
     def test_strip_ansi(self):
-        """
-        strip_ansi test
-        """
+        """strip_ansi test"""
         correct_outputs = {
             '%s%s%s' % (TermColors.Green, TermColors.White, TermColors.Red)  : '',
             'hello%s' % TermColors.Blue: 'hello',
@@ -42,17 +39,15 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_strip_ansi, inval, outval
+            yield self._try_strip_ansi(inval, outval)
 
 
     def _try_strip_ansi(self, inval, outval):
-        assert outval == strip_ansi(inval)
+        self.assertEqual(outval, strip_ansi(inval))
 
 
     def test_ansi2html(self):
-        """
-        ansi2html test
-        """
+        """ansi2html test"""
         correct_outputs = {
             '%s' % (TermColors.Red)  : '<span class="ansired"></span>',
             'hello%s' % TermColors.Blue: 'hello<span class="ansiblue"></span>',
@@ -63,17 +58,15 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_ansi2html, inval, outval
+            yield self._try_ansi2html(inval, outval)
 
 
     def _try_ansi2html(self, inval, outval):
-        assert self.fuzzy_compare(outval, ansi2html(inval))
+        self.fuzzy_compare(outval, ansi2html(inval))
 
 
     def test_ansi2latex(self):
-        """
-        ansi2latex test
-        """
+        """ansi2latex test"""
         correct_outputs = {
             '%s' % (TermColors.Red)  : r'\red{}',
             'hello%s' % TermColors.Blue: r'hello\blue{}',
@@ -84,8 +77,8 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_ansi2latex, inval, outval
+            yield self._try_ansi2latex(inval, outval)
 
 
     def _try_ansi2latex(self, inval, outval):
-        assert self.fuzzy_compare(outval, ansi2latex(inval), case_sensitive=True)
+        self.fuzzy_compare(outval, ansi2latex(inval), case_sensitive=True)
