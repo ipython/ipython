@@ -46,7 +46,7 @@ class PDFPostProcessor(PostProcessorBase):
             self.log.info("Building PDF: `%s`", ' '.join(command))
             for index in range(self.iteration_count):
                 if self.verbose:
-                    subprocess.Popen(command, shell=True)
+                    subprocess.Popen(command)
                 else:
                     with open(os.devnull, 'wb') as null:
-                        subprocess.Popen(command, shell=True, stdout=null)
+                        subprocess.Popen(command, stdout=null)
