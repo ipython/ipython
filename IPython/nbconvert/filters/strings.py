@@ -88,7 +88,7 @@ def add_anchor(html):
     # Known issue of Python3.x, ElementTree.tostring() returns a byte string
     # instead of a text string.  See issue http://bugs.python.org/issue10942
     # Workaround is to make sure the bytes are casted to a string.
-    return py3compat.str_to_unicode(py3compat.bytes_to_str(ElementTree.tostring(h)))
+    return py3compat.decode(ElementTree.tostring(h), 'utf-8')
 
 
 def strip_dollars(text):
