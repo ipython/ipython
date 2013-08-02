@@ -8,7 +8,7 @@ Overview
 ========
 
 One of Python's most useful features is its interactive interpreter.
-This system allows very fast testing of ideas without the overhead of
+It allows for very fast testing of ideas without the overhead of
 creating test files as is typical in most programming languages.
 However, the interpreter supplied with the standard Python distribution
 is somewhat limited for extended interactive use.
@@ -32,29 +32,28 @@ IPython's interactive shell (:command:`ipython`), has the following goals,
 amongst others:
 
 1. Provide an interactive shell superior to Python's default. IPython
-   has many features for object introspection, system shell access,
-   and its own special command system for adding functionality when
-   working interactively. It tries to be a very efficient environment
-   both for Python code development and for exploration of problems
-   using Python objects (in situations like data analysis).
+   has many features for tab-completion, object introspection, system shell
+   access, command history retrieval across sessions, and its own special
+   command system for adding functionality when working interactively. It
+   tries to be a very efficient environment both for Python code development
+   and for exploration of problems using Python objects (in situations like
+   data analysis).
   
 2. Serve as an embeddable, ready to use interpreter for your own
-   programs. IPython can be started with a single call from inside
-   another program, providing access to the current namespace. This
-   can be very useful both for debugging purposes and for situations
-   where a blend of batch-processing and interactive exploration are
-   needed.  New in the 0.9 version of IPython is a reusable wxPython
-   based IPython widget.
+   programs. An interactive IPython shell can be started with a single call
+   from inside another program, providing access to the current namespace.
+   This can be very useful both for debugging purposes and for situations
+   where a blend of batch-processing and interactive exploration are needed.
   
 3. Offer a flexible framework which can be used as the base
-   environment for other systems with Python as the underlying
-   language. Specifically scientific environments like Mathematica,
+   environment for working with other systems, with Python as the underlying
+   bridge language. Specifically scientific environments like Mathematica,
    IDL and Matlab inspired its design, but similar ideas can be
    useful in many fields.
   
 4. Allow interactive testing of threaded graphical toolkits. IPython
-   has support for interactive, non-blocking control of GTK, Qt and
-   WX applications via special threading flags. The normal Python
+   has support for interactive, non-blocking control of GTK, Qt, WX, GLUT, and
+   OS X applications via special threading flags. The normal Python
    shell can only do this for Tkinter applications.
 
 Main features of the interactive shell
