@@ -44,9 +44,8 @@ class PDFPostProcessor(PostProcessorBase):
             """        
             command = [c.format(filename=input) for c in self.command]
             self.log.info("Building PDF: `%s`", ' '.join(command))
-            for index in range(self.iteration_count):
-                if self.verbose:
-                    subprocess.Popen(command, shell=True)
-                else:
-                    with open(os.devnull, 'wb') as null:
-                        subprocess.Popen(command, shell=True, stdout=null)
+            with open(os.devnull, 'wb') as null:
+                stdout = null if self.verbose else None
+                for index in range(self.iteration_count):
+                    p = subprocess.Popen(command, stdout=stdout)
+                    p.wait()
