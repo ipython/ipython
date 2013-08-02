@@ -89,10 +89,6 @@ Main features of the interactive shell
   directly to the system shell, and using :samp:`!!` or :samp:`var = !cmd` 
   captures shell output into python variables for further use.
 
-* Background execution of Python commands in a separate thread.
-  IPython has an internal job manager called jobs, and a
-  convenience backgrounding magic function called :samp:`%bg`.
-
 * The ability to expand python variables when calling the system shell. In a
   shell command, any python variable prefixed with :samp:`$` is expanded. A
   double :samp:`$$` allows passing a literal :samp:`$` to the shell (for access
@@ -104,14 +100,14 @@ Main features of the interactive shell
 
 * A lightweight persistence framework via the :samp:`%store` command, which
   allows you to save arbitrary Python variables. These get restored
-  automatically when your session restarts.
+  when you run the :samp:`%store -r` command.
 
 * Automatic indentation (optional) of code as you type (through the
   readline library).
 
 * Macro system for quickly re-executing multiple lines of previous
-  input with a single name. Macros can be stored persistently via
-  :samp:`%store` and edited via :samp:`%edit`.
+  input with a single name via the :samp:`%macro` command. Macros can be
+  stored persistently via :samp:`%store` and edited via :samp:`%edit`.
 
 * Session logging (you can then later use these logs as code in your
   programs). Logs can optionally timestamp all input, and also store
@@ -126,8 +122,9 @@ Main features of the interactive shell
   debugging information (basically a terminal version of the cgitb
   module).
 
-* Auto-parentheses: callable objects can be executed without
-  parentheses: :samp:`sin 3` is automatically converted to :samp:`sin(3)`.
+* Auto-parentheses via the :samp:`%autocall` command: callable objects can be
+  executed without parentheses: :samp:`sin 3` is automatically converted to
+  :samp:`sin(3)`
 
 * Auto-quoting: using :samp:`,`, or :samp:`;` as the first character forces
   auto-quoting of the rest of the line: :samp:`,my_function a b` becomes
@@ -140,11 +137,11 @@ Main features of the interactive shell
   :samp:`>>>` or :samp:`...` such as those from other python sessions or the
   standard Python documentation.
 
-* Flexible configuration system. It uses a configuration file which
-  allows permanent setting of all command-line options, module
-  loading, code and file execution. The system allows recursive file
-  inclusion, so you can have a base file with defaults and layers
-  which load other customizations for particular projects.
+* Flexible :ref:`configuration system <config_overview>`. It uses a
+  configuration file which allows permanent setting of all command-line
+  options, module loading, code and file execution. The system allows
+  recursive file inclusion, so you can have a base file with defaults and
+  layers which load other customizations for particular projects.
 
 * Embeddable. You can call IPython as a python shell inside your own
   python programs. This can be used both for debugging code or for
@@ -160,8 +157,7 @@ Main features of the interactive shell
   any script under pdb's control, automatically setting initial breakpoints for
   you.  This version of pdb has IPython-specific improvements, including
   tab-completion and traceback coloring support. For even easier debugger
-  access, try :samp:`%debug` after seeing an exception. winpdb is also
-  supported, see ipy_winpdb extension.
+  access, try :samp:`%debug` after seeing an exception.
 
 * Profiler support. You can run single statements (similar to
   :samp:`profile.run()`) or complete programs under the profiler's control.
@@ -169,10 +165,30 @@ Main features of the interactive shell
   IPython wraps this functionality with magic commands (see :samp:`%prun`
   and :samp:`%run -p`) convenient for rapid interactive work.
 
+* Simple timing information. You can use the :samp:`%timeit` command to get
+  the execution time of a Python statement or expression. This machinery is
+  intelligent enough to do more repetitions for commands that finish very
+  quickly in order to get a better estimate of their running time. 
+
+.. sourcecode:: ipython
+
+    In [5]: %timeit 1+1
+    10000000 loops, best of 3: 25.5 ns per loop
+    .. _sourcecode:
+
+    In [2]: %timeit [math.sin(x) for x in range(5000)]
+    1000 loops, best of 3: 719 µs per loop
+
+.. 
+
+  To get the timing information for more than one expression, use the
+  :samp:`%%timeit` cell magic command.
+  
+
 * Doctest support. The special :samp:`%doctest_mode` command toggles a mode
-  that allows you to paste existing doctests (with leading :samp:`>>>`
-  prompts and whitespace) and uses doctest-compatible prompts and
-  output, so you can use IPython sessions as doctest code.
+  uses doctest-compatible prompts, so you can use IPython sessions as doctest
+  code.. By default, IPython also allows you to paste existing doctests (with
+  leading :samp:`>>>`  and :samp:`...` prompts in them
 
 .. _ipythonzmq:
 
