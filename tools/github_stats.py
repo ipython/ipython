@@ -180,7 +180,7 @@ if __name__ == "__main__":
         cmd = ['git', 'log', '--oneline', since_tag]
         ncommits = len(check_output(cmd).splitlines())
         
-        author_cmd = ['git', 'log', '--use-mailmap', "--format='* %aN'", since_tag]
+        author_cmd = ['git', 'log', '--use-mailmap', "--format=* %aN", since_tag]
         all_authors = check_output(author_cmd).decode('utf-8', 'replace').splitlines()
         unique_authors = sorted(set(all_authors), key=lambda s: s.lower())
         print("The following %i authors contributed %i commits." % (len(unique_authors), ncommits))
