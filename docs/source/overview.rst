@@ -8,7 +8,7 @@ Overview
 ========
 
 One of Python's most useful features is its interactive interpreter.
-This system allows very fast testing of ideas without the overhead of
+It allows for very fast testing of ideas without the overhead of
 creating test files as is typical in most programming languages.
 However, the interpreter supplied with the standard Python distribution
 is somewhat limited for extended interactive use.
@@ -32,29 +32,28 @@ IPython's interactive shell (:command:`ipython`), has the following goals,
 amongst others:
 
 1. Provide an interactive shell superior to Python's default. IPython
-   has many features for object introspection, system shell access,
-   and its own special command system for adding functionality when
-   working interactively. It tries to be a very efficient environment
-   both for Python code development and for exploration of problems
-   using Python objects (in situations like data analysis).
+   has many features for tab-completion, object introspection, system shell
+   access, command history retrieval across sessions, and its own special
+   command system for adding functionality when working interactively. It
+   tries to be a very efficient environment both for Python code development
+   and for exploration of problems using Python objects (in situations like
+   data analysis).
   
 2. Serve as an embeddable, ready to use interpreter for your own
-   programs. IPython can be started with a single call from inside
-   another program, providing access to the current namespace. This
-   can be very useful both for debugging purposes and for situations
-   where a blend of batch-processing and interactive exploration are
-   needed.  New in the 0.9 version of IPython is a reusable wxPython
-   based IPython widget.
+   programs. An interactive IPython shell can be started with a single call
+   from inside another program, providing access to the current namespace.
+   This can be very useful both for debugging purposes and for situations
+   where a blend of batch-processing and interactive exploration are needed.
   
 3. Offer a flexible framework which can be used as the base
-   environment for other systems with Python as the underlying
-   language. Specifically scientific environments like Mathematica,
+   environment for working with other systems, with Python as the underlying
+   bridge language. Specifically scientific environments like Mathematica,
    IDL and Matlab inspired its design, but similar ideas can be
    useful in many fields.
   
 4. Allow interactive testing of threaded graphical toolkits. IPython
-   has support for interactive, non-blocking control of GTK, Qt and
-   WX applications via special threading flags. The normal Python
+   has support for interactive, non-blocking control of GTK, Qt, WX, GLUT, and
+   OS X applications via special threading flags. The normal Python
    shell can only do this for Tkinter applications.
 
 Main features of the interactive shell
@@ -90,10 +89,6 @@ Main features of the interactive shell
   directly to the system shell, and using :samp:`!!` or :samp:`var = !cmd` 
   captures shell output into python variables for further use.
 
-* Background execution of Python commands in a separate thread.
-  IPython has an internal job manager called jobs, and a
-  convenience backgrounding magic function called :samp:`%bg`.
-
 * The ability to expand python variables when calling the system shell. In a
   shell command, any python variable prefixed with :samp:`$` is expanded. A
   double :samp:`$$` allows passing a literal :samp:`$` to the shell (for access
@@ -105,14 +100,14 @@ Main features of the interactive shell
 
 * A lightweight persistence framework via the :samp:`%store` command, which
   allows you to save arbitrary Python variables. These get restored
-  automatically when your session restarts.
+  when you run the :samp:`%store -r` command.
 
 * Automatic indentation (optional) of code as you type (through the
   readline library).
 
 * Macro system for quickly re-executing multiple lines of previous
-  input with a single name. Macros can be stored persistently via
-  :samp:`%store` and edited via :samp:`%edit`.
+  input with a single name via the :samp:`%macro` command. Macros can be
+  stored persistently via :samp:`%store` and edited via :samp:`%edit`.
 
 * Session logging (you can then later use these logs as code in your
   programs). Logs can optionally timestamp all input, and also store
@@ -127,8 +122,9 @@ Main features of the interactive shell
   debugging information (basically a terminal version of the cgitb
   module).
 
-* Auto-parentheses: callable objects can be executed without
-  parentheses: :samp:`sin 3` is automatically converted to :samp:`sin(3)`.
+* Auto-parentheses via the :samp:`%autocall` command: callable objects can be
+  executed without parentheses: :samp:`sin 3` is automatically converted to
+  :samp:`sin(3)`
 
 * Auto-quoting: using :samp:`,`, or :samp:`;` as the first character forces
   auto-quoting of the rest of the line: :samp:`,my_function a b` becomes
@@ -141,11 +137,11 @@ Main features of the interactive shell
   :samp:`>>>` or :samp:`...` such as those from other python sessions or the
   standard Python documentation.
 
-* Flexible configuration system. It uses a configuration file which
-  allows permanent setting of all command-line options, module
-  loading, code and file execution. The system allows recursive file
-  inclusion, so you can have a base file with defaults and layers
-  which load other customizations for particular projects.
+* Flexible :ref:`configuration system <config_overview>`. It uses a
+  configuration file which allows permanent setting of all command-line
+  options, module loading, code and file execution. The system allows
+  recursive file inclusion, so you can have a base file with defaults and
+  layers which load other customizations for particular projects.
 
 * Embeddable. You can call IPython as a python shell inside your own
   python programs. This can be used both for debugging code or for
@@ -161,8 +157,7 @@ Main features of the interactive shell
   any script under pdb's control, automatically setting initial breakpoints for
   you.  This version of pdb has IPython-specific improvements, including
   tab-completion and traceback coloring support. For even easier debugger
-  access, try :samp:`%debug` after seeing an exception. winpdb is also
-  supported, see ipy_winpdb extension.
+  access, try :samp:`%debug` after seeing an exception.
 
 * Profiler support. You can run single statements (similar to
   :samp:`profile.run()`) or complete programs under the profiler's control.
@@ -170,10 +165,30 @@ Main features of the interactive shell
   IPython wraps this functionality with magic commands (see :samp:`%prun`
   and :samp:`%run -p`) convenient for rapid interactive work.
 
+* Simple timing information. You can use the :samp:`%timeit` command to get
+  the execution time of a Python statement or expression. This machinery is
+  intelligent enough to do more repetitions for commands that finish very
+  quickly in order to get a better estimate of their running time. 
+
+.. sourcecode:: ipython
+
+    In [1]: %timeit 1+1
+    10000000 loops, best of 3: 25.5 ns per loop
+
+    In [2]: %timeit [math.sin(x) for x in range(5000)]
+    1000 loops, best of 3: 719 µs per loop
+
+.. 
+
+  To get the timing information for more than one expression, use the
+  :samp:`%%timeit` cell magic command.
+  
+
 * Doctest support. The special :samp:`%doctest_mode` command toggles a mode
-  that allows you to paste existing doctests (with leading :samp:`>>>`
-  prompts and whitespace) and uses doctest-compatible prompts and
-  output, so you can use IPython sessions as doctest code.
+  to use doctest-compatible prompts, so you can use IPython sessions as
+  doctest code. By default, IPython also allows you to paste existing
+  doctests, and strips out the leading :samp:`>>>` and :samp:`...` prompts in
+  them.
 
 .. _ipythonzmq:
 
@@ -254,11 +269,10 @@ for parallel computing.
 Portability and Python requirements
 -----------------------------------
 
-As of the 0.11 release, IPython works with Python 2.6 and 2.7. Versions 0.9 and
-0.10 worked with Python 2.4 and above. IPython now also supports Python 3,
-although for now the code for this is separate, and kept up to date with the
-main IPython repository. In the future, these will converge to a single codebase
-which can be automatically translated using 2to3.
+As of the 1.0 release, IPython works with Python 2.6, 2.7, 3.2 and 3.3.
+Version 0.12 introduced full support for Python 3. Version 0.11 worked with
+Python 2.6 and 2.7 only. Versions 0.9 and 0.10 worked with Python 2.4 and
+above (not including Python 3).
 
 IPython is known to work on the following operating systems:
 
