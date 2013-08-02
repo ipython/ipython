@@ -6,11 +6,12 @@ Issues closed in the 1.0 development cycle
 Issues closed in 1.0
 --------------------
 
-GitHub stats for 2012/06/30 - 2013/07/19 (since 0.13)
+
+GitHub stats for 2012/06/30 - 2013/08/02 (since 0.13)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-The following 148 authors contributed 3683 commits.
+The following 153 authors contributed 4157 commits.
 
 * Aaron Meurer
 * Adam Davis
@@ -48,7 +49,9 @@ The following 148 authors contributed 3683 commits.
 * Dan McDougall
 * Danny Staple
 * David Hirschfeld
+* David P. Sanders
 * David Warde-Farley
+* David Wolever
 * David Wyde
 * debjan
 * Diane Trout
@@ -100,6 +103,7 @@ The following 148 authors contributed 3683 commits.
 * Lars Solberg
 * Lessandro Mariano
 * Mark Sienkiewicz at STScI
+* Martijn Vermaat
 * Martin Spacek
 * Matthias Bussonnier
 * Maxim Grechkin
@@ -116,6 +120,7 @@ The following 148 authors contributed 3683 commits.
 * Olivier Grisel
 * Olivier Verdier
 * Owen Healy
+* Pankaj Pandey
 * Paul Ivanov
 * Pawel Jasinski
 * Pietro Berkes
@@ -137,6 +142,7 @@ The following 148 authors contributed 3683 commits.
 * Skylar Saveland
 * slojo404
 * smithj1
+* Stefan Karpinski
 * Stefan van der Walt
 * Steven Silvester
 * Takafumi Arakaki
@@ -161,12 +167,97 @@ The following 148 authors contributed 3683 commits.
 * Zoltán Vörös
 
 
-We closed a total of 1291 issues, 679 pull requests and 612 regular issues;
+We closed a total of 1426 issues, 764 pull requests and 662 regular issues;
 this is the full list (generated with the script 
 :file:`tools/github_stats.py`):
 
-Pull Requests (679):
+Pull Requests (764):
 
+* :ghpull:`3877`: don't use `shell=True` in PDF export
+* :ghpull:`3878`: minor template loading cleanup
+* :ghpull:`3855`: nbconvert: Filter tests
+* :ghpull:`3879`: finish 3870
+* :ghpull:`3870`: Fix for converting notebooks that contain unicode characters.
+* :ghpull:`3876`: Update parallel_winhpc.rst
+* :ghpull:`3872`: removing vim-ipython, since it has it's own repo
+* :ghpull:`3871`: updating docs
+* :ghpull:`3873`: remove old examples
+* :ghpull:`3868`: update CodeMirror component to 3.15
+* :ghpull:`3865`: Escape filename for pdflatex in nbconvert
+* :ghpull:`3861`: remove old external.js
+* :ghpull:`3864`: add keyboard shortcut to docs
+* :ghpull:`3834`: This PR fixes a few issues with nbconvert tests
+* :ghpull:`3840`: prevent profile_dir from being undefined
+* :ghpull:`3859`: Add "An Afternoon Hack" to docs
+* :ghpull:`3854`: Catch errors filling readline history on startup
+* :ghpull:`3857`: Delete extra auto
+* :ghpull:`3845`: nbconvert: Serve from original build directory
+* :ghpull:`3846`: Add basic logging to nbconvert
+* :ghpull:`3850`: add missing store_history key to Notebook execute_requests
+* :ghpull:`3844`: update payload source
+* :ghpull:`3830`: mention metadata / display_data similarity in pyout spec
+* :ghpull:`3848`: fix incorrect `empty-docstring`
+* :ghpull:`3836`: Parse markdown correctly when mathjax is disabled
+* :ghpull:`3849`: skip a failing test on windows
+* :ghpull:`3828`: signature_scheme lives in Session
+* :ghpull:`3831`: update nbconvert doc with new CLI
+* :ghpull:`3822`: add output flag to nbconvert
+* :ghpull:`3780`: Added serving the output directory if html-based format are selected.
+* :ghpull:`3764`: Cleanup nbconvert templates
+* :ghpull:`3829`: remove now-duplicate 'this is dev' note
+* :ghpull:`3814`: add `ConsoleWidget.execute_on_complete_input` flag
+* :ghpull:`3826`: try rtfd
+* :ghpull:`3821`: add sphinx prolog
+* :ghpull:`3817`: relax timeouts in terminal console and tests
+* :ghpull:`3825`: fix more tests that fail when pandoc is missing
+* :ghpull:`3824`: don't set target on internal markdown links
+* :ghpull:`3816`: s/pylab/matplotlib in docs
+* :ghpull:`3812`: Describe differences between start_ipython and embed
+* :ghpull:`3805`: Print View has been removed
+* :ghpull:`3820`: Make it clear that 1.0 is not released yet
+* :ghpull:`3784`: nbconvert: Export flavors & PDF writer (ipy dev meeting)
+* :ghpull:`3800`: semantic-versionify version number for non-releases
+* :ghpull:`3802`: Documentation .txt to .rst
+* :ghpull:`3765`: cleanup terminal console iopub handling
+* :ghpull:`3720`: Fix for #3719
+* :ghpull:`3787`: re-raise KeyboardInterrupt in raw_input
+* :ghpull:`3770`: Organizing reveal's templates.
+* :ghpull:`3751`: Use link(2) when possible in nbconvert
+* :ghpull:`3792`: skip tests that require pandoc
+* :ghpull:`3782`: add Importing Notebooks example
+* :ghpull:`3752`: nbconvert: Add cwd to sys.path
+* :ghpull:`3789`: fix raw_input in qtconsole
+* :ghpull:`3756`: document the wire protocol
+* :ghpull:`3749`: convert IPython syntax to Python syntax in nbconvert python template
+* :ghpull:`3793`: Closes #3788
+* :ghpull:`3794`: Change logo link to ipython.org
+* :ghpull:`3746`: Raise a named exception when pandoc is missing
+* :ghpull:`3781`: comply with the message spec in the notebook
+* :ghpull:`3779`: remove bad `if logged_in` preventing new-notebook without login
+* :ghpull:`3743`: remove notebook read-only view
+* :ghpull:`3732`: add delay to autosave in beforeunload
+* :ghpull:`3761`: Added rm_math_space to markdown cells in the basichtml.tpl to be rendered ok by mathjax after the nbconvertion.
+* :ghpull:`3758`: nbconvert: Filter names cleanup
+* :ghpull:`3769`: Add configurability to  tabcompletion timeout
+* :ghpull:`3771`: Update px pylab test to match new output of pylab
+* :ghpull:`3741`: better message when notebook format is not supported
+* :ghpull:`3753`: document Ctrl-C not working in ipython kernel
+* :ghpull:`3766`: handle empty metadata in pyout messages more gracefully.
+* :ghpull:`3736`: my attempt to fix #3735
+* :ghpull:`3759`: nbconvert: Provide a more useful error for invalid use case.
+* :ghpull:`3760`: nbconvert: Allow notebook filenames without their extensions
+* :ghpull:`3750`: nbconvert: Add cwd to default templates search path.
+* :ghpull:`3748`: Update nbconvert docs
+* :ghpull:`3734`: Nbconvert: Export extracted files into `nbname_files` subdirectory
+* :ghpull:`3733`: Nicer message when pandoc is missing, closes #3730
+* :ghpull:`3722`: fix two failing test in IPython.lib
+* :ghpull:`3704`: Start what's new for 1.0
+* :ghpull:`3705`: Complete rewrite of IPython Notebook documentation: docs/source/interactive/htmlnotebook.txt
+* :ghpull:`3709`: Docs cleanup
+* :ghpull:`3716`: raw_input fixes for kernel restarts
+* :ghpull:`3683`: use `%matplotlib` in example notebooks
+* :ghpull:`3686`: remove quarantine
+* :ghpull:`3699`: svg2pdf unicode fix
 * :ghpull:`3695`: fix SVG2PDF
 * :ghpull:`3685`: fix Pager.detach
 * :ghpull:`3675`: document new dependencies
@@ -847,8 +938,58 @@ Pull Requests (679):
 * :ghpull:`2061`: use explicit tuple in exception
 * :ghpull:`2060`: change minus to \- or \(hy in manpages
 
-Issues (612):
+Issues (662):
 
+* :ghissue:`3874`: Up/Down keys don't work to "Search previous command history" (besides Ctrl-p/Ctrl-n)
+* :ghissue:`3853`: CodeMirror locks up in the notebook
+* :ghissue:`3862`: can only connect to an ipcluster started with v1.0.0-dev (master branch) using an older ipython (v0.13.2), but cannot connect using ipython (v1.0.0-dev)
+* :ghissue:`3869`: custom css not working. 
+* :ghissue:`2960`: Keyboard shortcuts
+* :ghissue:`3795`: ipcontroller process goes to 100% CPU, ignores connection requests
+* :ghissue:`3553`: Ipython and pylab crashes in windows and canopy
+* :ghissue:`3837`: Cannot set custom mathjax url, crash notebook server.
+* :ghissue:`3808`: "Naming" releases ?
+* :ghissue:`2431`: TypeError: must be string without null bytes, not str
+* :ghissue:`3856`: `?` at end of comment causes line to execute
+* :ghissue:`3731`: nbconvert: add logging for the different steps of nbconvert
+* :ghissue:`3835`: Markdown cells do not render correctly when mathjax is disabled
+* :ghissue:`3843`: nbconvert to rst: leftover "In[ ]"
+* :ghissue:`3799`: nbconvert: Ability to specify name of output file
+* :ghissue:`3726`: Document when IPython.start_ipython() should be used versus IPython.embed()
+* :ghissue:`3778`: Add no more readonly view in what's new
+* :ghissue:`3754`: No Print View in Notebook in 1.0dev
+* :ghissue:`3798`: IPython 0.12.1 Crashes on autocompleting sqlalchemy.func.row_number properties
+* :ghissue:`3811`: Opening notebook directly from the command line with multi-directory support installed
+* :ghissue:`3775`: Annoying behavior when clicking on cell after execution (Ctrl+Enter)
+* :ghissue:`3809`: Possible to add some bpython features?
+* :ghissue:`3810`: Printing the contents of an image file messes up shell text
+* :ghissue:`3702`: `nbconvert`: Default help message should be that of --help
+* :ghissue:`3735`: Nbconvert 1.0.0a1 does not take into account the pdf extensions in graphs
+* :ghissue:`3719`: Bad strftime format, for windows, in nbconvert exporter 
+* :ghissue:`3786`: Zmq errors appearing with `Ctrl-C` in console/qtconsole
+* :ghissue:`3019`: disappearing scrollbar on tooltip in Chrome 24 on Ubuntu 12.04
+* :ghissue:`3785`: ipdb completely broken in Qt console
+* :ghissue:`3796`: Document the meaning of milestone/issues-tags for users.
+* :ghissue:`3788`: Do not auto show tooltip if docstring empty.
+* :ghissue:`1366`: [Web page] No link to front page from documentation
+* :ghissue:`3739`: nbconvert (to slideshow) misses some of the math in markdown cells
+* :ghissue:`3768`: increase and make timeout configurable in console completion.
+* :ghissue:`3724`: ipcluster only running on one cpu
+* :ghissue:`1592`: better message for unsupported nbformat
+* :ghissue:`2049`: Can not stop "ipython kernel" on windows
+* :ghissue:`3757`: Need direct entry point to given notebook 
+* :ghissue:`3745`: ImportError: cannot import name check_linecache_ipython
+* :ghissue:`3701`: `nbconvert`: Final output file should be in same directory as input file
+* :ghissue:`3738`: history -o works but history with -n produces identical results
+* :ghissue:`3740`: error when attempting to run 'make' in docs directory
+* :ghissue:`3737`: ipython nbconvert crashes with ValueError: Invalid format string.
+* :ghissue:`3730`: nbconvert: unhelpful error when pandoc isn't installed
+* :ghissue:`3718`: markdown cell cursor misaligned in notebook
+* :ghissue:`3710`: mutiple input fields for %debug in the notebook after resetting the kernel
+* :ghissue:`3713`: PyCharm has problems with IPython working inside PyPy created by virtualenv
+* :ghissue:`3712`: Code completion: Complete on dictionary keys
+* :ghissue:`3680`: --pylab and --matplotlib flag
+* :ghissue:`3698`: nbconvert: Unicode error with minus sign
 * :ghissue:`3693`: nbconvert does not process SVGs into PDFs
 * :ghissue:`3688`: nbconvert, figures not extracting with Python 3.x
 * :ghissue:`3542`: note new dependencies in docs / setup.py
