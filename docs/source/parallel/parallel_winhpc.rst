@@ -28,7 +28,7 @@ With these components, it is possible to perform all aspects of a parallel
 computation interactively. This type of workflow is particularly relevant in
 scientific and numerical computing where algorithms, code and data are
 continually evolving as the user/developer explores a problem. The broad
-treads in computing (commodity clusters, multicore, cloud computing, etc.)
+threads in computing (commodity clusters, multicore, cloud computing, etc.)
 make these capabilities of IPython particularly relevant.
 
 While IPython is a cross platform tool, it has particularly strong support for
