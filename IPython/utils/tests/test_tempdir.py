@@ -23,6 +23,6 @@ def test_named_file_in_temporary_directory():
 def test_temporary_working_directory():
     with TemporaryWorkingDirectory() as dir:
         assert os.path.exists(dir)
-        assert os.path.abspath(os.curdir) == dir
+        assert os.path.realpath(os.curdir) == os.path.realpath(dir)
     assert not os.path.exists(dir)
     assert os.path.abspath(os.curdir) != dir
