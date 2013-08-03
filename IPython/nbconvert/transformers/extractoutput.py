@@ -91,7 +91,7 @@ class ExtractOutputTransformer(Transformer):
                     # Where
                     #   cell.outputs[i].svg  contains the data
                     if output_files_dir is not None:
-                        filename = os.path.join(output_files_dir, filename)
+                        filename = os.path.join(output_files_dir, filename).replace('\\', '/')
                     out[out_type + '_filename'] = filename
 
                     #In the resources, make the figure available via
