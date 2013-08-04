@@ -13,6 +13,7 @@ Module with tests for Strings
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import os
 
 from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
@@ -122,6 +123,6 @@ class TestStrings(TestsBase):
     def test_posix_path(self):
         path_list = ['foo', 'bar']
         expected = '/'.join(path_list)
-        native = os.path.join(path_list)
+        native = os.path.join(*path_list)
         filtered = posix_path(native)
         self.assertEqual(filtered, expected)
