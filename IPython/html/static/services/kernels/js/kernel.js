@@ -187,7 +187,7 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Start the `shell`and `iopub` channels.
+     * Stop the `shell`and `iopub` channels.
      * @method stop_channels
      */
     Kernel.prototype.stop_channels = function () {
