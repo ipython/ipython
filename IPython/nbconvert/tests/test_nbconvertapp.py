@@ -50,7 +50,6 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert --to="python" --notebooks=\'["*.ipynb"]\' --log-level=0')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
-            assert os.path.isfile('notebook with space.py')
 
 
     def test_glob_subdir(self):
@@ -63,7 +62,6 @@ class TestNbConvertApp(TestsBase):
                       '\'["%s"]\'' % os.path.join('subdir', '*.ipynb'))
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
-            assert os.path.isfile('notebook with space.py')
 
 
     def test_explicit(self):
@@ -77,17 +75,18 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook2.py')
 
 
-    def test_filename_space(self):
+    def test_filename_spaces(self):
         """
         Are spaces removed from filenames?
         """
-        with self.create_temp_cwd(['notebook with space.ipynb']):
-            self.call('nbconvert --log-level=0 --to="latex" "notebook with space"')
-            assert os.path.isfile('notebook with space.tex')
-            assert os.path.isdir('notebook_with_space_files')
-            for f in glob.glob('notebook_with_space_files/*'):
+        with self.create_temp_cwd(['notebook1.ipynb']):
+            os.rename('notebook1.ipynb', 'notebook with spaces.ipynb')
+            self.call('nbconvert --log-level=0 --to="latex" "notebook with spaces"')
+            assert os.path.isfile('notebook with spaces.tex')
+            assert os.path.isdir('notebook_with_spaces_files')
+            for f in glob.glob('notebook_with_spaces_files/*'):
                 assert r" \t\n" not in f
-            
+           
     @dec.onlyif_cmds_exist('pdflatex')
     @dec.onlyif_cmds_exist('pandoc')
     def test_post_processor(self):
