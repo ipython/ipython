@@ -16,6 +16,7 @@ templates.
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 import re
 import textwrap
 from xml.etree import ElementTree
@@ -36,6 +37,7 @@ __all__ = [
     'comment_lines',
     'get_lines',
     'ipython2python',
+    'posix_path',
 ]
 
 
@@ -169,3 +171,13 @@ def ipython2python(code):
     """
     shell = InteractiveShell.instance()
     return shell.input_transformer_manager.transform_cell(code)
+
+def posix_path(path):
+    """Turn a path into posix-style path/to/etc
+    
+    Mainly for use in latex on Windows,
+    where native Windows paths are not allowed.
+    """
+    if os.path.sep != '/':
+        return path.replace(os.path.sep, '/')
+    return path
