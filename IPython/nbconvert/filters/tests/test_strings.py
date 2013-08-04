@@ -13,11 +13,13 @@ Module with tests for Strings
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import os
 
 from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..strings import (wrap_text, html2text, add_anchor, strip_dollars, 
-    strip_files_prefix, get_lines, comment_lines, ipython2python)
+    strip_files_prefix, get_lines, comment_lines, ipython2python, posix_path,
+)
 
 
 #-----------------------------------------------------------------------------
@@ -117,3 +119,10 @@ class TestStrings(TestsBase):
         results = ipython2python(u'%%pylab\nprint("Hello-World")').replace("u'", "'")
         self.fuzzy_compare(results, u"get_ipython().run_cell_magic('pylab', '', 'print(\"Hello-World\")')", 
             ignore_spaces=True, ignore_newlines=True)
+    
+    def test_posix_path(self):
+        path_list = ['foo', 'bar']
+        expected = '/'.join(path_list)
+        native = os.path.join(*path_list)
+        filtered = posix_path(native)
+        self.assertEqual(filtered, expected)

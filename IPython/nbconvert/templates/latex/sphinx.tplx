@@ -46,7 +46,7 @@ Note: For best display, use latex syntax highlighting. =))
     \def\sphinxdocclass{(((parentdocumentclass)))}
 
     % Declare the document class
-    \documentclass[letterpaper,10pt,english]{((( resources.sphinx.texinputs )))/sphinx(((documentclass)))}
+    \documentclass[letterpaper,10pt,english]{((( resources.sphinx.texinputs | posix_path )))/sphinx(((documentclass)))}
 
     % Imports
     \usepackage[utf8]{inputenc}
@@ -55,9 +55,9 @@ Note: For best display, use latex syntax highlighting. =))
     \usepackage{babel}
     \usepackage{times}
     \usepackage{import}
-    \usepackage[((( resources.sphinx.chapterstyle )))]{((( resources.sphinx.texinputs )))/fncychap}
+    \usepackage[((( resources.sphinx.chapterstyle )))]{((( resources.sphinx.texinputs | posix_path )))/fncychap}
     \usepackage{longtable}
-    \usepackage{((( resources.sphinx.texinputs )))/sphinx}
+    \usepackage{((( resources.sphinx.texinputs | posix_path )))/sphinx}
     \usepackage{multirow}
 
     \usepackage{amsmath}
@@ -352,19 +352,19 @@ Note: For best display, use latex syntax highlighting. =))
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-((( conditionally_center_output(insert_graphics(output.png_filename)) )))
+((( conditionally_center_output(insert_graphics(output.png_filename | posix_path)) )))
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
-((( conditionally_center_output(insert_graphics(output.jpg_filename)) )))
+((( conditionally_center_output(insert_graphics(output.jpg_filename | posix_path)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-((( conditionally_center_output(insert_graphics(output.svg_filename)) )))
+((( conditionally_center_output(insert_graphics(output.svg_filename | posix_path)) )))
 ((*- endblock -*))
 
 ((*- block data_pdf -*))
-((( conditionally_center_output(insert_graphics(output.pdf_filename)) )))
+((( conditionally_center_output(insert_graphics(output.pdf_filename | posix_path)) )))
 ((*- endblock -*))
 
 ((*- block data_latex *))

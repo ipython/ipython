@@ -55,6 +55,7 @@ default_filters = {
         'highlight2html': filters.highlight2html,
         'highlight2latex': filters.highlight2latex,
         'ipython2python': filters.ipython2python,
+        'posix_path': filters.posix_path,
         'markdown2latex': filters.markdown2latex,
         'markdown2rst': filters.markdown2rst,
         'comment_lines': filters.comment_lines,
@@ -66,7 +67,7 @@ default_filters = {
         'ansi2latex': filters.ansi2latex,
         'strip_math_space': filters.strip_math_space,
         'wrap_text': filters.wrap_text,
-        'escape_latex': filters.escape_latex
+        'escape_latex': filters.escape_latex,
 }
 
 #-----------------------------------------------------------------------------

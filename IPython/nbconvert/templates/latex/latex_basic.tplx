@@ -49,28 +49,28 @@ it introduces a new line
 
 ((*- block data_png -*))
 \begin{center}
-\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{((( output.png_filename )))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{((( output.png_filename | posix_path )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
 \begin{center}
-\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{((( output.jpeg_filename )))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{((( output.jpeg_filename | posix_path )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_svg -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth]{((( output.svg_filename )))}
+\includegraphics[width=0.7\textwidth]{((( output.svg_filename | posix_path )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_pdf -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth]{((( output.pdf_filename )))}
+\includegraphics[width=0.7\textwidth]{((( output.pdf_filename | posix_path )))}
 \par
 \end{center}
 ((*- endblock -*))
