@@ -176,6 +176,8 @@ Major changes to the IPython Notebook in 1.0:
   than traditional save. If you change nothing about your save habits,
   you will always have a checkpoint that you have written,
   and an autosaved file that is kept up to date.
+- The notebook supports :func:`raw_input` / :func:`input`, and thus also ``%debug``,
+  and many other Python calls that expect user input.
 - You can load custom javascript and CSS in the notebook by editing the files
   :file:`$(ipython locate profile)/static/custom/custom.{js,css}`.
 - Add ``%%html``, ``%%svg``, ``%%javascript``, and ``%%latex`` cell magics
@@ -201,7 +203,6 @@ Major changes to the IPython Notebook in 1.0:
   supported values.
 - The static files path can be found as ``IPython.html.DEFAULT_STATIC_FILES_PATH``,
   which may be changed by package managers.
-- The notebook supports :func:`raw_input`, and thus also ``%debug``.
 - IPython's CSS is installed in :file:`static/css/style.min.css`
   (all style, including bootstrap), and :file:`static/css/ipython.min.css`,
   which only has IPython's own CSS. The latter file should be useful for embedding
