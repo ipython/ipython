@@ -82,77 +82,77 @@ class ExecuteReply(object):
         self._content = content
         self.execution_count = content['execution_count']
         self.metadata = metadata
-
+    
     def __getitem__(self, key):
         return self.metadata[key]
-
+    
     def __getattr__(self, key):
         if key not in self.metadata:
             raise AttributeError(key)
         return self.metadata[key]
-
+    
     def __repr__(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         text_out = pyout['data'].get('text/plain', '')
         if len(text_out) > 32:
             text_out = text_out[:29] + '...'
-
+        
         return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
-
+    
     def _repr_pretty_(self, p, cycle):
         pyout = self.metadata['pyout'] or {'data':{}}
         text_out = pyout['data'].get('text/plain', '')
-
+        
         if not text_out:
             return
-
+        
         try:
             ip = get_ipython()
         except NameError:
             colors = "NoColor"
         else:
             colors = ip.colors
-
+        
         if colors == "NoColor":
             out = normal = ""
         else:
             out = TermColors.Red
             normal = TermColors.Normal
-
+        
         if '\n' in text_out and not text_out.startswith('\n'):
             # add newline for multiline reprs
             text_out = '\n' + text_out
-
+        
         p.text(
             out + u'Out[%i:%i]: ' % (
                 self.metadata['engine_id'], self.execution_count
             ) + normal + text_out
         )
-
+    
     def _repr_html_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("text/html")
-
+    
     def _repr_latex_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("text/latex")
-
+    
     def _repr_json_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("application/json")
-
+    
     def _repr_javascript_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("application/javascript")
-
+    
     def _repr_png_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("image/png")
-
+    
     def _repr_jpeg_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("image/jpeg")
-
+    
     def _repr_svg_(self):
         pyout = self.metadata['pyout'] or {'data':{}}
         return pyout['data'].get("image/svg+xml")
@@ -383,16 +383,16 @@ class Client(HasTraits):
             context = zmq.Context.instance()
         self._context = context
         self._stop_spinning = Event()
-
+        
         if 'url_or_file' in extra_args:
             url_file = extra_args['url_or_file']
             warnings.warn("url_or_file arg no longer supported, use url_file", DeprecationWarning)
-
+        
         if url_file and util.is_url(url_file):
             raise ValueError("single urls cannot be specified, url-files must be used.")
 
         self._setup_profile_dir(self.profile, profile_dir, ipython_dir)
-
+        
         if self._cd is not None:
             if url_file is None:
                 if not cluster_id:
@@ -405,10 +405,10 @@ class Client(HasTraits):
                 "I can't find enough information to connect to a hub!"
                 " Please specify at least one of url_file or profile."
             )
-
+        
         with open(url_file) as f:
             cfg = json.load(f)
-
+        
         self._task_scheme = cfg['task_scheme']
 
         # sync defaults from args, json:
@@ -416,17 +416,17 @@ class Client(HasTraits):
             cfg['ssh'] = sshserver
 
         location = cfg.setdefault('location', None)
-
+        
         proto,addr = cfg['interface'].split('://')
         addr = util.disambiguate_ip_address(addr, location)
         cfg['interface'] = "%s://%s" % (proto, addr)
-
+        
         # turn interface,port into full urls:
         for key in ('control', 'task', 'mux', 'iopub', 'notification', 'registration'):
             cfg[key] = cfg['interface'] + ':%i' % cfg[key]
-
+        
         url = cfg['registration']
-
+        
         if location is not None and addr == LOCALHOST:
             # location specified, and connection is expected to be local
             if location not in LOCAL_IPS and not sshserver:
@@ -495,9 +495,9 @@ class Client(HasTraits):
         self._queue_handlers = {'execute_reply' : self._handle_execute_reply,
                                 'apply_reply' : self._handle_apply_reply}
         self._connect(sshserver, ssh_kwargs, timeout)
-
+        
         # last step: setup magics, if we are in IPython:
-
+        
         try:
             ip = get_ipython()
         except NameError:
@@ -747,7 +747,7 @@ class Client(HasTraits):
         md.update(self._extract_metadata(msg))
         # is this redundant?
         self.metadata[msg_id] = md
-
+        
         e_outstanding = self._outstanding_dict[md['engine_uuid']]
         if msg_id in e_outstanding:
             e_outstanding.remove(msg_id)
@@ -934,18 +934,18 @@ class Client(HasTraits):
 
     def activate(self, targets='all', suffix=''):
         """Create a DirectView and register it with IPython magics
-
+        
         Defines the magics `%px, %autopx, %pxresult, %%px`
-
+        
         Parameters
         ----------
-
+        
         targets: int, list of ints, or 'all'
             The engines on which the view's magics will run
         suffix: str [default: '']
             The suffix, if any, for the magics.  This allows you to have
             multiple views associated with parallel magics at the same time.
-
+            
             e.g. ``rc.activate(targets=0, suffix='0')`` will give you
             the magics ``%px0``, ``%pxresult0``, etc. for running magics just
             on engine 0.
@@ -975,27 +975,27 @@ class Client(HasTraits):
 
     def spin_thread(self, interval=1):
         """call Client.spin() in a background thread on some regular interval
-
+        
         This helps ensure that messages don't pile up too much in the zmq queue
         while you are working on other things, or just leaving an idle terminal.
-
+        
         It also helps limit potential padding of the `received` timestamp
         on AsyncResult objects, used for timings.
-
+        
         Parameters
         ----------
-
+        
         interval : float, optional
             The interval on which to spin the client in the background thread
             (simply passed to time.sleep).
-
+        
         Notes
         -----
-
+        
         For precision timing, you may want to use this method to put a bound
         on the jitter (in seconds) in `received` timestamps used
         in AsyncResult.wall_time.
-
+        
         """
         if self._spin_thread is not None:
             self.stop_spin_thread()
@@ -1003,7 +1003,7 @@ class Client(HasTraits):
         self._spin_thread = Thread(target=self._spin_every, args=(interval,))
         self._spin_thread.daemon = True
         self._spin_thread.start()
-
+    
     def stop_spin_thread(self):
         """stop background spin_thread, if any"""
         if self._spin_thread is not None:
@@ -1111,14 +1111,14 @@ class Client(HasTraits):
 
         jobs : msg_id, list of msg_ids, or AsyncResult
             The jobs to be aborted
-
+            
             If unspecified/None: abort all outstanding jobs.
 
         """
         block = self.block if block is None else block
         jobs = jobs if jobs is not None else list(self.outstanding)
         targets = self._build_targets(targets)[0]
-
+        
         msg_ids = []
         if isinstance(jobs, (basestring,AsyncResult)):
             jobs = [jobs]
@@ -1151,10 +1151,10 @@ class Client(HasTraits):
     @spin_first
     def shutdown(self, targets='all', restart=False, hub=False, block=None):
         """Terminates one or more engine processes, optionally including the hub.
-
+        
         Parameters
         ----------
-
+        
         targets: list of ints or 'all' [default: all]
             Which engines to shutdown.
         hub: bool [default: False]
@@ -1168,7 +1168,7 @@ class Client(HasTraits):
         from IPython.parallel.error import NoEnginesRegistered
         if restart:
             raise NotImplementedError("Engine restart is not yet implemented")
-
+        
         block = self.block if block is None else block
         if hub:
             targets = 'all'
@@ -1223,7 +1223,7 @@ class Client(HasTraits):
 
         if self._closed:
             raise RuntimeError("Client cannot be used after its sockets have been closed")
-
+        
         # defaults:
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
@@ -1268,7 +1268,7 @@ class Client(HasTraits):
 
         if self._closed:
             raise RuntimeError("Client cannot be used after its sockets have been closed")
-
+        
         # defaults:
         metadata = metadata if metadata is not None else {}
 
@@ -1277,7 +1277,7 @@ class Client(HasTraits):
             raise TypeError("code must be text, not %s" % type(code))
         if not isinstance(metadata, dict):
             raise TypeError("metadata must be dict, not %s" % type(metadata))
-
+        
         content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
 
 
@@ -1324,11 +1324,11 @@ class Client(HasTraits):
         """construct a DirectView object.
 
         If no targets are specified, create a DirectView using all engines.
-
+        
         rc.direct_view('all') is distinguished from rc[:] in that 'all' will
         evaluate the target engines at each execution, whereas rc[:] will connect to
         all *current* engines, and that list will not change.
-
+        
         That is, 'all' will always use all engines, whereas rc[:] will not use
         engines added after the DirectView is constructed.
 
@@ -1391,7 +1391,7 @@ class Client(HasTraits):
         block = self.block if block is None else block
         if indices_or_msg_ids is None:
             indices_or_msg_ids = -1
-
+        
         single_result = False
         if not isinstance(indices_or_msg_ids, (list,tuple)):
             indices_or_msg_ids = [indices_or_msg_ids]
@@ -1407,7 +1407,7 @@ class Client(HasTraits):
 
         local_ids = filter(lambda msg_id: msg_id in self.outstanding or msg_id in self.results, theids)
         remote_ids = filter(lambda msg_id: msg_id not in local_ids, theids)
-
+        
         # given single msg_id initially, get_result shot get the result itself,
         # not a length-one list
         if single_result:
@@ -1572,7 +1572,7 @@ class Client(HasTraits):
                 if rec.get('received'):
                     md['received'] = rec['received']
                 md.update(iodict)
-
+                
                 if rcontent['status'] == 'ok':
                     if header['msg_type'] == 'apply_reply':
                         res,buffers = serialize.unserialize_object(buffers)
@@ -1630,9 +1630,9 @@ class Client(HasTraits):
         """Build a list of msg_ids from the list of engine targets"""
         if not targets: # needed as _build_targets otherwise uses all engines
             return []
-        target_ids = self._build_targets(targets)[0]
+        target_ids = self._build_targets(targets)[0] 
         return filter(lambda md_id: self.metadata[md_id]["engine_uuid"] in target_ids, self.metadata)
-
+    
     def _build_msgids_from_jobs(self, jobs=None):
         """Build a list of msg_ids from "jobs" """
         if not jobs:
@@ -1648,11 +1648,11 @@ class Client(HasTraits):
                 msg_ids.extend(j.msg_ids)
             else:
                 msg_ids.append(j)
-        return msg_ids
-
+        return msg_ids        
+        
     def purge_local_results(self, jobs=[], targets=[]):
         """Clears the client caches of results and frees such memory.
-
+        
         Individual results can be purged by msg_id, or the entire
         history of specific targets can be purged.
 
@@ -1666,7 +1666,7 @@ class Client(HasTraits):
         If you must "reget" the results, you can still do so by using
         `client.get_result(msg_id)` or `client.get_result(asyncresult)`. This will
         redownload the results from the hub if they are still available
-        (i.e `client.purge_hub_results(...)` has not been called.
+        (i.e `client.purge_hub_results(...)` has not been called.        
 
         Parameters
         ----------
@@ -1679,10 +1679,10 @@ class Client(HasTraits):
                 default : None
         """
         assert not self.outstanding, "Can't purge a client with outstanding tasks!"
-
+        
         if not targets and not jobs:
             raise ValueError("Must specify at least one of `targets` and `jobs`")
-
+                
         if jobs == 'all':
             self.results.clear()
             self.metadata.clear()
@@ -1736,14 +1736,14 @@ class Client(HasTraits):
 
     def purge_results(self,  jobs=[], targets=[]):
         """Clears the cached results from both the hub and the local client
-
+                
         Individual results can be purged by msg_id, or the entire
         history of specific targets can be purged.
 
-        Use `purge_results('all')` to scrub every cached result from both the Hub's and
+        Use `purge_results('all')` to scrub every cached result from both the Hub's and 
         the Client's db.
-
-        Equivalent to calling both `purge_hub_results()` and `purge_client_results()` with
+        
+        Equivalent to calling both `purge_hub_results()` and `purge_client_results()` with 
         the same arguments.
 
         Parameters
@@ -1761,9 +1761,9 @@ class Client(HasTraits):
 
     def purge_everything(self):
         """Clears all content from previous Tasks from both the hub and the local client
-
-        In addition to calling `purge_results("all")` it also deletes the history and
-        other bookkeeping lists.
+        
+        In addition to calling `purge_results("all")` it also deletes the history and 
+        other bookkeeping lists.        
         """
         self.purge_results("all")
         self.history = []
