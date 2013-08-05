@@ -98,7 +98,7 @@ and rich representations of objects.
 
 Notebooks may easily be exported to a range of static formats, including 
 HTML (for example, for blog posts), PDF and slide shows, 
-via the new ``nbconvert`_ command.
+via the new `nbconvert`_ command.
 
 Furthermore, any  ``.ipynb`` notebook document available from a public 
 URL can be shared via the `IPython Notebook Viewer <nbviewer>`_ service.
