@@ -547,12 +547,12 @@ on available options, use::
 
   $ ipython profile create
 
-.. seealso:
+.. seealso::
 
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-Importing ``.py` files
+Importing ``.py`` files
 ----------------------
 
 
@@ -562,9 +562,3 @@ directory. The notebook created will have just one cell, which will contain
 all the code in the ``.py`` file. You can later manually partition this into 
 individual cells using the ``Edit | Split Cell`` menu option, or the 
 :kbd:`Ctrl-m -` keyboard shortcut.
-
-.. Alternatively, prior to importing the ``.py``, you can manually add ``# <
-.. nbformat>2</nbformat>`` at the start of the file, and then add separators for 
-.. text and code cells, to get a cleaner import with the file already broken into 
-.. individual cells.
-
