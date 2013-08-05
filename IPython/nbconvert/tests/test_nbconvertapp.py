@@ -82,9 +82,10 @@ class TestNbConvertApp(TestsBase):
         """
         Generate PDFs with graphics if notebooks have spaces in the name?
         """
-        with self.create_temp_cwd(['notebook1.ipynb']):
-            os.rename('notebook1.ipynb', 'notebook with spaces.ipynb')
-            self.call('nbconvert --log-level=0 --to="latex" "notebook with spaces"')
+        with self.create_temp_cwd(['notebook2.ipynb']):
+            os.rename('notebook2.ipynb', 'notebook with spaces.ipynb')
+            o,e = self.call('nbconvert --log-level=0 --to="latex" "notebook with spaces"'
+                            ' --post="PDF" --PDFPostProcessor.verbose=True')
             assert os.path.isfile('notebook with spaces.tex')
             assert os.path.isdir('notebook with spaces_files')
             assert os.path.isfile('notebook with spaces.pdf')
