@@ -65,16 +65,12 @@ class ExtractOutputTransformer(Transformer):
 
             #Get the output in data formats that the template is interested in.
             for out_type in self.display_data_priority:
-
-                # Only extract the output if it's data exists as an attribute.
-                # This means things like output_type="stream" where the data
-                # is stored in "text" (instead of "stream"), will not be 
-                # extracted (intentional).
                 if out.hasattr(out_type): 
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
                     if out_type in ('png', 'jpg', 'jpeg', 'pdf'):
+
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
                         data = py3compat.cast_bytes(data)
