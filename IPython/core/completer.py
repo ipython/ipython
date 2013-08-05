@@ -171,7 +171,6 @@ def expand_user(path):
 
     return newpath, tilde_expand, tilde_val
 
-
 def compress_user(path, tilde_expand, tilde_val):
     """Does the opposite of expand_user, with its outputs.
     """
@@ -179,22 +178,6 @@ def compress_user(path, tilde_expand, tilde_val):
         return path.replace(tilde_val, '~')
     else:
         return path
-
-
-def uniquify(seq):
-    """uniquify a list
-    i.e. remove duplicate elements, but preserving original order
-    Taken from http://www.peterbe.com/plog/uniqifiers-benchmark and
-    http://stackoverflow.com/questions/480214/
-    how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
-
-    """
-    
-    seen = set()
-    seen_add = seen.add
-
-    return [ x for x in seq if x not in seen and not seen_add(x)]
-
 
 def penalize_magics_key(word):
     """key for sorting that penalizes magic commands in the ordering
@@ -224,7 +207,6 @@ def penalize_magics_key(word):
         word = word[m.end():] + m.group()  # move all %'s to the end
        
     return word
-
 
 
 class Bunch(object): pass
@@ -554,9 +536,9 @@ class IPCompleter(Completer):
         # All active matcher routines for completion
         self.matchers = [self.python_matches,
                          self.file_matches,
+                         self.magic_matches,
                          self.alias_matches,
-                         self.python_func_kw_matches,
-                         self.magic_matches
+                         self.python_func_kw_matches
                          ]
 
     def all_completions(self, text):
@@ -881,7 +863,6 @@ class IPCompleter(Completer):
                 pass
 
         return None
-
 
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Find completions for the given text and line context.

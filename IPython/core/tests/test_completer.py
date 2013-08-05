@@ -364,7 +364,6 @@ def test_line_cell_magics():
     nt.assert_not_in('%_bar_cellm', matches)
     nt.assert_in('%%_bar_cellm', matches)
 
-
 def test_magic_completion_order():
 
     ip = get_ipython()
@@ -379,7 +378,7 @@ def test_magic_completion_order():
     nt.assert_equal(matches, ["%matplotlib"])
 
 
-    ip.run_cell("maplotlib = 1")  # introduce name into namespace
+    ip.run_cell("matplotlib = 1")  # introduce name into namespace
 
     # After the import, there should be two options, ordered like this:
     text, matches = c.complete('mat')
@@ -391,6 +390,3 @@ def test_magic_completion_order():
     # Order of user variable and line and cell magics with same name:
     text, matches = c.complete('timeit')
     nt.assert_equal(matches, ["timeit", "%timeit","%%timeit"])
-
-
-
