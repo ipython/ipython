@@ -98,21 +98,23 @@ and rich representations of objects.
 
 Notebooks may easily be exported to a range of static formats, including 
 HTML (for example, for blog posts), PDF and slide shows, 
-via the new nbconvert_ command.
+via the new ``nbconvert`_ command.
 
 Furthermore, any  ``.ipynb`` notebook document available from a public 
 URL can be shared via the `IPython Notebook Viewer <nbviewer>`_ service.
-This service loads the notebook document from the URL and will 
-render it as a static web page. The results may thus be shared with a 
-colleague, or as a public blog post, without other users needing to install 
-IPython themselves.  NbViewer is simply NbConvert as a simple heroku webservice.
+This service loads the notebook document from the URL and renders it as a 
+static web page. The results may thus be shared with a colleague, or as a 
+public blog post, without other users needing to install IPython themselves.  
+NbViewer is a simple heroku_ webservice wrapper around `nbconvert`.
 
 See the :ref:`installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
 
-.. _nbconvert: nbconvert.html
+.. _nbconvert: ./nbconvert.html
 
 .. _nbviewer: http://nbviewer.ipython.org
+
+.. _heroku: https://www.heroku.com/
 
 .. note::
 
@@ -155,7 +157,6 @@ The ``.ipynb`` extension is assumed if no extension is given.
 The ``File | Open...`` menu option will open the dashboard in a new browser tab, 
 to allow you to select a current notebook 
 from the notebook directory or to create a new notebook.
-
 
 
 Notebook user interface
@@ -211,7 +212,6 @@ number which denotes the order in which the cells were executed over the
 history of the computational process. The contents of all of these cells are 
 accessible as Python variables with the same names, forming a complete record 
 of the history of the computation.
-
 
 
 Input cell types
@@ -279,6 +279,7 @@ a Markdown cell. These definitions are then available throughout the rest of
 the IPython session. (Note, however, that more care must be taken when using 
 nbconvert_ to output to LaTeX).
 
+
 Raw input cells
 ~~~~~~~~~~~~~~~
 
@@ -287,6 +288,7 @@ Raw cells are not evaluated by the Notebook, and have no output.
 When passed through nbconvert, Raw cells arrive in the destination format unmodified,
 allowing you to type full latex into a raw cell, which will only be rendered
 by latex after conversion by nbconvert.
+
 
 Heading cells
 ~~~~~~~~~~~~~
@@ -379,7 +381,7 @@ to remember are the following:
     They were last updated for IPython 1.0 release, so update them again for
     future releases.
 
-Here is the complete set of keyboard shortcuts available:
+Here is the complete set of available keyboard shortcuts:
 
 ===============    ==========================
   **Shortcut**            **Action**
@@ -411,7 +413,6 @@ Here is the complete set of keyboard shortcuts available:
 ``Ctrl-m .``       restart kernel
 ``Ctrl-m h``       show keyboard shortcuts
 ===============    ==========================
-
    
 
 Magic commands
@@ -458,6 +459,7 @@ Some of the available line magics are the following:
 
       Provides a list of all available magic commands
 
+
 Cell magics
 ~~~~~~~~~~~
 
@@ -487,13 +489,13 @@ Cell magics
       current code cell.
 
 
-
 Several of the cell magics provide functionality to manipulate the filesystem 
 of a remote server to which you otherwise do not have access.  
 
 
 Plotting
 --------
+
 One major feature of the Notebook is the ability to interact with 
 plots that are the output of running code cells. IPython is designed to work 
 seamlessly with the ``matplotlib`` plotting library to provide this 
@@ -527,9 +529,9 @@ Notebook.
 .. _reproducibility: https://en.wikipedia.org/wiki/Reproducibility
 
 
-
 Configuring the IPython Notebook
 --------------------------------
+
 The IPython Notebook can be run with a variety of command line arguments. 
 To see a list of available options enter::
 
@@ -553,8 +555,7 @@ on available options, use::
 
 
 Importing ``.py`` files
-----------------------
-
+-----------------------
 
 ``.py`` files will be imported into the IPython Notebook as a notebook with 
 the same basename, but an ``.ipynb`` extension, located in the notebook 
