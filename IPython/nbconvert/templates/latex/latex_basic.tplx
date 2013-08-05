@@ -144,6 +144,7 @@ unknown type  ((( cell.type )))
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{grffile}
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
 
