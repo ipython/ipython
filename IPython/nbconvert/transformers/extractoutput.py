@@ -51,9 +51,9 @@ class ExtractOutputTransformer(Transformer):
         """
 
         #Get the unique key from the resource dict if it exists.  If it does not 
-        #exist, use 'figure' as the default.  Also, get files directory if it
+        #exist, use 'output' as the default.  Also, get files directory if it
         #has been specified
-        unique_key = resources.get('unique_key', 'figure')
+        unique_key = resources.get('unique_key', 'output')
         output_files_dir = resources.get('output_files_dir', None)
         
         #Make sure outputs key exists
@@ -79,7 +79,7 @@ class ExtractOutputTransformer(Transformer):
                     else:
                         data = data.encode("UTF-8")
                     
-                    #Build a figure name
+                    #Build a output name
                     filename = self.figure_filename_template.format( 
                                     unique_key=unique_key,
                                     cell_index=cell_index,
