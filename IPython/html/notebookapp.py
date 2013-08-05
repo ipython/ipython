@@ -298,6 +298,7 @@ class NotebookApp(BaseIPythonApplication):
 
     # file to be opened in the notebook server
     file_to_run = Unicode('')
+    entry_path = Unicode('')
 
     # Network related information.
 
@@ -505,11 +506,13 @@ class NotebookApp(BaseIPythonApplication):
         if self.extra_args:
             f = os.path.abspath(self.extra_args[0])
             if os.path.isdir(f):
-                nbdir = f
-            else:
+                self.entry_path = self.extra_args[0]
+            elif os.path.isfile(f):
                 self.file_to_run = f
-                nbdir = os.path.dirname(f)
-            self.config.NotebookManager.notebook_dir = nbdir
+                path = os.path.split(self.extra_args[0])
+                if path[0] != '':
+                    self.entry_path = path[0]+'/'
+                
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
@@ -737,9 +740,9 @@ class NotebookApp(BaseIPythonApplication):
 
             if self.file_to_run:
                 name, _ = os.path.splitext(os.path.basename(self.file_to_run))
-                url = self.notebook_manager.rev_mapping.get(name, '')
+                url = 'notebooks/' + self.entry_path + name + _
             else:
-                url = ''
+                url = 'tree/' + self.entry_path
             if browser:
                 b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
                     self.port, self.base_project_url, url), new=2)
