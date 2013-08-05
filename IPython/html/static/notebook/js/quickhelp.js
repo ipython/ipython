@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
-            body.append($('<div>').
+            body.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key)).
                 append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
             );
