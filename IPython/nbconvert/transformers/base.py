@@ -82,8 +82,19 @@ class Transformer(NbConvertBase):
         self.log.debug("Applying transform: %s", self.__class__.__name__)
         try :
             for worksheet in nb.worksheets:
+                remove_indicies = []
                 for index, cell in enumerate(worksheet.cells):
                     worksheet.cells[index], resources = self.transform_cell(cell, resources, index)
+
+                    # If a null cell was returned, remember to remove it from 
+                    # the list of cells.
+                    if worksheet.cells[index] is None:
+                        remove_indicies.append(index)
+
+                # Remove the cells in separate pass to prevent the for loop from
+                # failing.
+                for index in remove_indicies[::-1]:
+                    del worksheet.cells[index]
             return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
