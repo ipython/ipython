@@ -76,17 +76,18 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook2.py')
 
 
+    @dec.onlyif_cmds_exist('pdflatex')
+    @dec.onlyif_cmds_exist('pandoc')
     def test_filename_spaces(self):
         """
-        Are spaces removed from filenames?
+        Generate PDFs with graphics if notebooks have spaces in the name?
         """
         with self.create_temp_cwd(['notebook1.ipynb']):
             os.rename('notebook1.ipynb', 'notebook with spaces.ipynb')
             self.call('nbconvert --log-level=0 --to="latex" "notebook with spaces"')
             assert os.path.isfile('notebook with spaces.tex')
-            assert os.path.isdir('notebook_with_spaces_files')
-            for f in glob.glob('notebook_with_spaces_files/*'):
-                assert r" \t\n" not in f
+            assert os.path.isdir('notebook with spaces_files')
+            assert os.path.isfile('notebook with spaces.pdf')
 
     @dec.onlyif_cmds_exist('pdflatex')
     @dec.onlyif_cmds_exist('pandoc')
