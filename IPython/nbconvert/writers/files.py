@@ -30,7 +30,7 @@ class FilesWriter(WriterBase):
     """Consumes nbconvert output and produces files."""
 
 
-    build_directory = Unicode(".", config=True, 
+    build_directory = Unicode("", config=True,
                               help="""Directory to write output to.  Leave blank
                               to output to the current directory""")
 
