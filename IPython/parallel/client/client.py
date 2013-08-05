@@ -464,8 +464,10 @@ class Client(HasTraits):
         extra_args['unpacker'] = cfg['unpack']
         if 'key' in cfg:
             extra_args['key'] = cast_bytes(cfg['key'])
+            extra_args['signature_scheme'] = cfg.get('signature_scheme', 'hmac-sha256')
         elif 'exec_key' in cfg:
             extra_args['key'] = cast_bytes(cfg['exec_key'])
+            extra_args['signature_scheme'] = cfg.get('signature_scheme', 'hmac-md5')
             warnings.warn(
                 "It appears that the configuration files were created with an "
                 "older version of IPython.\nThe `exec_key` argument is now named "
@@ -475,7 +477,6 @@ class Client(HasTraits):
                 DeprecationWarning)
         else:
             raise KeyError("`key` is required to be specified in the configuration files.")
-        extra_args['signature_scheme'] = cfg.get('signature_scheme', 'hmac-md5')
 
         self.session = Session(**extra_args)
 
