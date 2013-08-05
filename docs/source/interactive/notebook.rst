@@ -1,4 +1,4 @@
-.. _htmlnotebook:
+.. _notebook:
 
 The IPython Notebook
 ====================
@@ -110,6 +110,8 @@ IPython themselves.  NbViewer is simply NbConvert as a simple heroku webservice.
 See the :ref:`installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
 
+.. _nbconvert: nbconvert.html
+
 .. _nbviewer: http://nbviewer.ipython.org
 
 .. note::
@@ -144,13 +146,13 @@ source code files into the notebook list area.
 
 
 You can open an existing notebook directly, without having to go via the 
-dashboard, with:
+dashboard, with::
 
-  ipython notebook my_notebook
+  $ ipython notebook my_notebook
 
-The `.ipynb` extension is assumed if no extension is given.
+The ``.ipynb`` extension is assumed if no extension is given.
 
-The `File | Open...` menu option will open the dashboard in a new browser tab, 
+The ``File | Open...`` menu option will open the dashboard in a new browser tab, 
 to allow you to select a current notebook 
 from the notebook directory or to create a new notebook.
 
@@ -185,7 +187,7 @@ Creating a new notebook document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A new notebook space/document may be created at any time, either from the 
-dashboard, or using the `File | New` menu option from within an active 
+dashboard, or using the ``File | New`` menu option from within an active 
 notebook. The new notebook is created within the same directory and 
 will open in a new browser tab. It will also be reflected as a new entry in 
 the notebook list on the dashboard.
@@ -392,36 +394,36 @@ to remember are the following:
 
 Here is the complete set of keyboard shortcuts available:
 
-============  ==========================
-**Shortcut**        **Action**
-------------  --------------------------
-Shift-Enter    run cell
-Ctrl-Enter     run cell in-place
-Alt-Enter      run cell, insert below
-Ctrl-m x       cut cell
-Ctrl-m c       copy cell
-Ctrl-m v       paste cell
-Ctrl-m d       delete cell
-Ctrl-m z       undo last cell deletion
-Ctrl-m -       split cell
-Ctrl-m a       insert cell above
-Ctrl-m b       insert cell below
-Ctrl-m o       toggle output
-Ctrl-m O       toggle output scroll
-Ctrl-m l       toggle line numbers
-Ctrl-m s       save notebook
-Ctrl-m j       move cell down
-Ctrl-m k       move cell up
-Ctrl-m y       code cell
-Ctrl-m m       markdown cell
-Ctrl-m t       raw cell
-Ctrl-m 1-6     heading 1-6 cell
-Ctrl-m p       select previous
-Ctrl-m n       select next
-Ctrl-m i       interrupt kernel
-Ctrl-m .       restart kernel
-Ctrl-m h       show keyboard shortcuts
-============  ==========================
+===============    ==========================
+  **Shortcut**            **Action**
+---------------    --------------------------
+``Shift-Enter``    run cell
+``Ctrl-Enter``     run cell in-place
+``Alt-Enter``      run cell, insert below
+``Ctrl-m x``       cut cell
+``Ctrl-m c``       copy cell
+``Ctrl-m v``       paste cell
+``Ctrl-m d``       delete cell
+``Ctrl-m z``       undo last cell deletion
+``Ctrl-m -``       split cell
+``Ctrl-m a``       insert cell above
+``Ctrl-m b``       insert cell below
+``Ctrl-m o``       toggle output
+``Ctrl-m O``       toggle output scroll
+``Ctrl-m l``       toggle line numbers
+``Ctrl-m s``       save notebook
+``Ctrl-m j``       move cell down
+``Ctrl-m k``       move cell up
+``Ctrl-m y``       code cell
+``Ctrl-m m``       markdown cell
+``Ctrl-m t``       raw cell
+``Ctrl-m 1-6``     heading 1-6 cell
+``Ctrl-m p``       select previous
+``Ctrl-m n``       select next
+``Ctrl-m i``       interrupt kernel
+``Ctrl-m .``       restart kernel
+``Ctrl-m h``       show keyboard shortcuts
+===============    ==========================
 
    
 
@@ -532,8 +534,8 @@ It can be invoked as follows::
 With this backend, output of plotting commands is displayed *inline* within 
 the notebook format, directly below the input cell that produced it. The 
 resulting plots will then also be stored in the notebook document. This 
-provides a key part of the functionality for reproducibility_ that the IPython 
-Notebook provides.
+provides a key part of the functionality for reproducibility_ of the IPython 
+Notebook.
 
 .. _reproducibility: https://en.wikipedia.org/wiki/Reproducibility
 
@@ -563,7 +565,7 @@ on available options, use::
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-Importing `.py` files
+Importing ``.py`` files
 ----------------------
 
 
@@ -575,7 +577,7 @@ individual cells using the ``Edit | Split Cell`` menu option, or the
 :kbd:`Ctrl-m -` keyboard shortcut.
 
 .. Alternatively, prior to importing the ``.py``, you can manually add ``# <
-nbformat>2</nbformat>`` at the start of the file, and then add separators for 
-text and code cells, to get a cleaner import with the file already broken into 
-individual cells.
+.. nbformat>2</nbformat>`` at the start of the file, and then add separators for 
+.. text and code cells, to get a cleaner import with the file already broken into 
+.. individual cells.
 
