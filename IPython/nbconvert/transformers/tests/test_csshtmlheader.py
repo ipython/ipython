@@ -34,4 +34,4 @@ class TestCSSHTMLHeader(TransformerTestsBase):
         """Test the output of the CSSHTMLHeaderTransformer"""
         nb, res = CSSHTMLHeaderTransformer()(self.build_notebook(), {})
         assert 'inlining' in res
-        assert 'css' in res.inlining 
+        assert 'css' in res['inlining'] 
