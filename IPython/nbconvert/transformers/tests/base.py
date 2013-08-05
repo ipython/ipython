@@ -37,8 +37,8 @@ class TransformerTestsBase(TestsBase):
                    nbformat.new_output(output_type="stream", stream="stderr", output_text="f"),
                    nbformat.new_output(output_type="png", output_png='Zw==')] #g
         
-        cells=[nbformat.new_code_cell(input="test",
-            prompt_number=1,outputs=outputs)]
+        cells=[nbformat.new_code_cell(input="$ e $", prompt_number=1,outputs=outputs),
+               nbformat.new_text_cell('markdown', source="$ e $")]
         worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
 
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
