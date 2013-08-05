@@ -302,7 +302,7 @@ overridden by the ``config_file`` command line flag.
 
 To generate the default configuration files, do::
 
-    $> ipython profile create
+    $ ipython profile create
 
 and you will have a default :file:`ipython_config.py` in your IPython directory
 under :file:`profile_default`. If you want the default config files for the
@@ -318,10 +318,10 @@ profile with:
 
 .. sourcecode:: bash
 
-    $> ipython locate
+    $ ipython locate
     /home/you/.ipython
     
-    $> ipython locate profile foo
+    $ ipython locate profile foo
     /home/you/.ipython/profile_foo
 
 These map to the utility functions: :func:`IPython.utils.path.get_ipython_dir`
@@ -356,7 +356,7 @@ The general pattern is this: simply create a new profile with:
 
 .. code-block:: bash
 
-    ipython profile create <name>
+    $ ipython profile create <name>
 
 which adds a directory called ``profile_<name>`` to your IPython directory. Then
 you can load this profile by adding ``--profile=<name>`` to your command line
@@ -410,7 +410,7 @@ object.  Values are assigned in much the same way as in a config file:
 
 .. code-block:: bash
 
-    $> ipython --InteractiveShell.use_readline=False --BaseIPythonApplication.profile='myprofile'
+    $ ipython --InteractiveShell.use_readline=False --BaseIPythonApplication.profile='myprofile'
 
 Is the same as adding:
 
@@ -434,7 +434,7 @@ that are single characters, in which case they can be specified with a single ``
 
 .. code-block:: bash
 
-    $> ipython -i -c "import numpy; x=numpy.linspace(0,1)" --profile testing --colors=lightbg
+    $ ipython -i -c "import numpy; x=numpy.linspace(0,1)" --profile testing --colors=lightbg
 
 Aliases
 *******
@@ -444,11 +444,11 @@ to specify the whole class name:
 
 .. code-block:: bash
 
-    $> ipython --profile myprofile
+    $ ipython --profile myprofile
     # and
-    $> ipython --profile='myprofile'
+    $ ipython --profile='myprofile'
     # are equivalent to
-    $> ipython --BaseIPythonApplication.profile='myprofile'
+    $ ipython --BaseIPythonApplication.profile='myprofile'
 
 Flags
 *****
@@ -461,17 +461,17 @@ For instance:
 
 .. code-block:: bash
 
-    $> ipcontroller --debug
+    $ ipcontroller --debug
     # is equivalent to
-    $> ipcontroller --Application.log_level=DEBUG
+    $ ipcontroller --Application.log_level=DEBUG
     # and
-    $> ipython --matploitlib
+    $ ipython --matploitlib
     # is equivalent to
-    $> ipython --matplotlib auto
+    $ ipython --matplotlib auto
     # or
-    $> ipython --no-banner
+    $ ipython --no-banner
     # is equivalent to
-    $> ipython --TerminalIPythonApp.display_banner=False
+    $ ipython --TerminalIPythonApp.display_banner=False
 
 Subcommands
 -----------
@@ -483,14 +483,14 @@ Some IPython applications have **subcommands**. Subcommands are modeled after
 
 .. code-block:: bash
 
-    $> ipython qtconsole --profile myprofile
+    $ ipython qtconsole --profile myprofile
 
 and :command:`ipcluster` is simply a wrapper for its various subcommands (start,
 stop, engines).
 
 .. code-block:: bash
 
-    $> ipcluster start --profile=myprofile -n 4
+    $ ipcluster start --profile=myprofile -n 4
 
 
 To see a list of the available aliases, flags, and subcommands for an IPython application, simply pass ``-h`` or ``--help``.  And to see the full list of configurable options (*very* long), pass ``--help-all``.
