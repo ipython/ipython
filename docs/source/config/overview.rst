@@ -4,27 +4,12 @@
 Overview of the IPython configuration system
 ============================================
 
-This section describes the IPython configuration system. Starting with version
-0.11, IPython has a completely new configuration system that is quite
-different from the older :file:`ipythonrc` or :file:`ipy_user_conf.py`
-approaches. The new configuration system was designed from scratch to address
-the particular configuration needs of IPython. While there are many
-other excellent configuration systems out there, we found that none of them
-met our requirements.
+This section describes the IPython configuration system. 
 
-.. warning::
-
-    If you are upgrading to version 0.11 of IPython, you will need to migrate
-    your old :file:`ipythonrc` or :file:`ipy_user_conf.py` configuration files
-    to the new system. You may want to read the section on 
-    :ref:`configuring IPython <configuring_ipython>`. There are also some ideas
-    `on the IPython wiki <http://wiki.ipython.org/Cookbook/Moving_config_to_IPython_0.11>`_
-    about this.
-
-The discussion that follows is focused on teaching users how to configure
-IPython to their liking.  Developers who want to know more about how they
-can enable their objects to take advantage of the configuration system
-should consult our :ref:`developer guide <developer_guide>`
+The following discussion is for users who want to configure
+IPython to their liking.  Developers who want to know how they can
+enable their objects to take advantage of the configuration system
+should consult the :ref:`developer guide <developer_guide>`
 
 The main concepts
 =================
@@ -399,18 +384,14 @@ name.
 Startup Files
 -------------
 
-If you want some code to be run at the beginning of every IPython session with a
-particular profile, the easiest way is to add Python (.py) or IPython (.ipy) scripts
-to your :file:`<profile>/startup` directory. Files in this directory will always be
-executed as soon as the IPython shell is constructed, and before any other code or
-scripts you have specified. If you have multiple files in the startup directory,
-they will be run in lexicographical order, so you can control the ordering by adding
-a '00-' prefix.
-
-.. note::
-
-    Automatic startup files are new in IPython 0.12. Use the
-    InteractiveShellApp.exec_files configurable for similar behavior in 0.11.
+If you want some code to be run at the beginning of every IPython session with
+a particular profile, the easiest way is to add Python (``.py``) or 
+IPython (``.ipy``) scripts to your :file:`<profile>/startup` directory. Files
+in this directory will always be executed as soon as the IPython shell is 
+constructed, and before any other code or scripts you have specified. If you 
+have multiple files in the startup directory, they will be run in 
+lexicographical order, so you can control the ordering by adding a '00-' 
+prefix.
 
 
 .. _commandline:
