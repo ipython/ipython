@@ -27,7 +27,7 @@ class TestCoalesceStreams(TestsBase):
     """Contains test functions for coalescestreams.py"""
 
 
-    def build_test_notebook(self):
+    def build_notebook(self):
         outputs = [nbformat.new_output(output_type="stream", stream="stdout", output_text="a"),
                    nbformat.new_output(output_type="text", output_text="b"),
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="c"),
@@ -40,7 +40,7 @@ class TestCoalesceStreams(TestsBase):
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
 
     def test_coalesce_streams(self):
-        nb, res = coalesce_streams(self.build_test_notebook(), {})
+        nb, res = coalesce_streams(self.build_notebook(), {})
         self.assertEqual(nb.worksheets[0].cells[0].outputs[0].text, "a")
         self.assertEqual(nb.worksheets[0].cells[0].outputs[1].output_type, "text")
         self.assertEqual(nb.worksheets[0].cells[0].outputs[2].text, "cd")
