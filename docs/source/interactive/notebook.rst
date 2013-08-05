@@ -315,19 +315,6 @@ correctly. This is much more convenient for interactive exploration than
 breaking up a computation into scripts that must be executed together, as was 
 previously necessary, especially if parts of them take a long time to run
 
-The only significant limitation that the Notebook currently has, compared to 
-the Qt console, is that it cannot run any code that expects input from the 
-kernel (such as scripts that call :func:`raw_input`).  Very importantly, this 
-means that the ``%debug`` magic does *not* currently work in the notebook!  
-
-This limitation will be overcome in the future, but in the meantime, there is 
-a simple solution for debugging: you can attach a Qt console to your existing 
-notebook kernel, and run ``%debug`` from the Qt console.
-If your notebook is running on a local computer (i.e. if you are accessing it 
-via your localhost address at ``127.0.0.1``), then you can just type 
-``%qtconsole`` in the notebook and a Qt console will open up, connected to 
-that same kernel.
-
 At certain moments, it may be necessary to interrupt a calculation which is 
 taking too long to complete. This may be done with the ``Kernel | Interrupt`` 
 menu option, or the :kbd:``Ctrl-i`` keyboard shortcut.
@@ -565,7 +552,7 @@ on available options, use::
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-Importing ``.py`` files
+Importing ``.py` files
 ----------------------
 
 
