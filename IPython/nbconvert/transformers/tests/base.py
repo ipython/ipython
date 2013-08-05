@@ -14,9 +14,10 @@ Module with utility functions for transformer tests
 # Imports
 #-----------------------------------------------------------------------------
 
-from ...tests.base import TestsBase
-
 from IPython.nbformat import current as nbformat
+
+from ...tests.base import TestsBase
+from ...exporters.exporter import ResourcesDict
 
 #-----------------------------------------------------------------------------
 # Class
@@ -42,3 +43,11 @@ class TransformerTestsBase(TestsBase):
         worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
 
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
+
+
+    def build_resources(self):
+        """Build an empty resources dictionary."""
+        
+        res = ResourcesDict()
+        res['metadata'] = ResourcesDict()
+        return res
