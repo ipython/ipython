@@ -1,5 +1,5 @@
 """
-Module with tests for the coalescestreams transformer
+Module with tests for the csshtmlheader transformer
 """
 
 #-----------------------------------------------------------------------------
@@ -15,21 +15,23 @@ Module with tests for the coalescestreams transformer
 #-----------------------------------------------------------------------------
 
 from .base import TransformerTestsBase
-from ..coalescestreams import coalesce_streams
+from ..csshtmlheader import CSSHTMLHeaderTransformer
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestCoalesceStreams(TransformerTestsBase):
-    """Contains test functions for coalescestreams.py"""
+class TestCSSHTMLHeader(TransformerTestsBase):
+    """Contains test functions for csshtmlheader.py"""
 
-    def test_coalesce_streams(self):
-        """coalesce_streams transformer output test"""
-        nb, res = coalesce_streams(self.build_notebook(), {})
-        self.assertEqual(nb.worksheets[0].cells[0].outputs[0].text, "a")
-        self.assertEqual(nb.worksheets[0].cells[0].outputs[1].output_type, "text")
-        self.assertEqual(nb.worksheets[0].cells[0].outputs[2].text, "cd")
-        self.assertEqual(nb.worksheets[0].cells[0].outputs[3].text, "ef")
+    def test_constructor(self):
+        """Can a CSSHTMLHeaderTransformer be constructed?"""
+        CSSHTMLHeaderTransformer()
     
+
+    def test_output(self):
+        """Test the output of the CSSHTMLHeaderTransformer"""
+        nb, res = CSSHTMLHeaderTransformer()(self.build_notebook(), {})
+        assert 'inlining' in res
+        assert 'css' in res.inlining 
