@@ -142,6 +142,8 @@ need to have Git installed on your system.  Then just do:
 
     $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
+    $ git submodule init
+    $ git submodule update
     $ python setup.py install
 
 Some users want to be able to follow the development branch as it changes.  If
