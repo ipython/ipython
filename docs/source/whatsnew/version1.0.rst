@@ -154,10 +154,14 @@ IPython notebooks to various other formats.
 
 To use nbconvert to convert various file formats::
 
-    ipython nbconvert --format full_html *.ipynb
+    ipython nbconvert --to html *.ipynb
 
 See ``ipython nbconvert --help`` for more information.
 nbconvert depends on `pandoc`_ for many of the translations to and from various formats.
+
+.. seealso::
+
+    :ref:`nbconvert`
 
 .. _pandoc: http://johnmacfarlane.net/pandoc/
 
@@ -183,7 +187,8 @@ Major changes to the IPython Notebook in 1.0:
 - ``_repr_foo_`` methods can return a tuple of (data, metadata),
   where metadata is a dict containing metadata about the displayed object.
   This is used to set size, etc. for retina graphics. To enable retina matplotlib figures,
-  simply set ``InlineBackend.figure_format = 'retina'`` for 2x PNG figures.
+  simply set ``InlineBackend.figure_format = 'retina'`` for 2x PNG figures,
+  in your :ref:`IPython config file <config_overview>` or via the ``%config`` magic.
 - Add display.FileLink and FileLinks for quickly displaying HTML links to local files.
 - Cells have metadata, which can be edited via cell toolbars.
   This metadata can be used by external code (e.g. reveal.js or exporters),
