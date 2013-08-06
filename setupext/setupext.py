@@ -130,6 +130,16 @@ def check_for_pyzmq():
             " qtconsole, notebook, and parallel computing capabilities)" % zmq.__version__)
             return False
 
+def check_for_tornado():
+    try:
+        import tornado
+    except ImportError:
+        print_status('tornado', "no (required for notebook)")
+        return False
+    else:
+        print_status('tornado', tornado.version)
+        return True
+
 def check_for_readline():
     from distutils.version import LooseVersion
     try:
