@@ -127,7 +127,7 @@ to the user, with callbacks in Javascript executing calls to the Kernel.  This
 will enable many interactive elements to be added by users in notebooks.
 
 An example of this capability has been provided as a proof of concept in
-:file:`docs/examples/widgets` that lets you directly communicate with one or more
+:file:`examples/widgets` that lets you directly communicate with one or more
 parallel engines, acting as a mini-console for parallel debugging and
 introspection.
 

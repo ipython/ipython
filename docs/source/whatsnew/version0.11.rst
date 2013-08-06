@@ -497,7 +497,7 @@ Additional new features
 
 * For developers :mod:`IPython.lib.inputhook` provides a simple interface
   for managing the event loops in their interactive GUI applications.
-  Examples can be found in our :file:`docs/examples/lib` directory.
+  Examples can be found in our :file:`examples/lib` directory.
 
 Backwards incompatible changes
 ------------------------------
