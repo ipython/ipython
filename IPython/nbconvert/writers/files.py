@@ -63,7 +63,7 @@ class FilesWriter(WriterBase):
 
             # Verify that a notebook name is provided.
             if notebook_name is None:
-                raise AttributeError('notebook_name')
+                raise TypeError('notebook_name')
 
             # Pull the extension and subdir from the resources dict.
             output_extension = resources.get('output_extension', None)
