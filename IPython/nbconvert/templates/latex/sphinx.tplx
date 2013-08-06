@@ -95,6 +95,9 @@ Note: For best display, use latex syntax highlighting. =))
     \graphicspath{ {figs/} }
     \usepackage[Export]{adjustbox} % To resize
 
+    % used so that images for notebooks which have spaces in the name can still be included
+    \usepackage{grffile}
+
 
     % For formatting output while also word wrapping.
     \usepackage{listings}
