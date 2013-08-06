@@ -38,5 +38,5 @@ class DebugWriter(WriterBase):
             print('-' * 80)
             pprint(resources['outputs'], indent=2, width=70)
         else:
-            print("No outputs extracted from %s" % notebook_name)
+            print("no outputs extracted from %s" % notebook_name)
         print('=' * 80)
