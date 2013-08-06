@@ -30,7 +30,7 @@ million digits.
 
 In both the serial and parallel calculation we will be using functions defined
 in the :file:`pidigits.py` file, which is available in the
-:file:`docs/examples/parallel` directory of the IPython source distribution.
+:file:`examples/parallel` directory of the IPython source distribution.
 These functions provide basic facilities for working with the digits of pi and
 can be loaded into IPython by putting :file:`pidigits.py` in your current
 working directory and then doing:
@@ -108,7 +108,7 @@ calculation, we will need two top-level functions from :file:`pidigits.py`:
 
 We will also use the :func:`plot_two_digit_freqs` function to plot the
 results. The code to run this calculation in parallel is contained in
-:file:`docs/examples/parallel/parallelpi.py`. This code can be run in parallel
+:file:`examples/parallel/parallelpi.py`. This code can be run in parallel
 using IPython by following these steps:
 
 1. Use :command:`ipcluster` to start 15 engines. We used 16 cores of an SGE linux

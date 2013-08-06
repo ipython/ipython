@@ -10,7 +10,7 @@ for working with Graphs is NetworkX_.  Here, we will walk through a demo mapping
 a nx DAG to task dependencies.
 
 The full script that runs this demo can be found in
-:file:`docs/examples/parallel/dagdeps.py`.
+:file:`examples/parallel/dagdeps.py`.
 
 Why are DAGs good for task dependencies?
 ----------------------------------------

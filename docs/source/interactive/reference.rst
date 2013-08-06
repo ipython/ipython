@@ -1033,7 +1033,7 @@ Second, when using the ``PyOSInputHook`` approach, a GUI application should
 in IPython and as standalone apps need to have special code to detects how the
 application is being run. We highly recommend using IPython's support for this.
 Since the details vary slightly between toolkits, we point you to the various
-examples in our source directory :file:`docs/examples/lib` that demonstrate
+examples in our source directory :file:`examples/lib` that demonstrate
 these capabilities.
 
 Third, unlike previous versions of IPython, we no longer "hijack" (replace
@@ -1042,7 +1042,7 @@ actually need to run the real event loops to do so. This is often needed to
 process pending events at critical points.
 
 Finally, we also have a number of examples in our source directory
-:file:`docs/examples/lib` that demonstrate these capabilities.
+:file:`examples/lib` that demonstrate these capabilities.
 
 PyQt and PySide
 ---------------

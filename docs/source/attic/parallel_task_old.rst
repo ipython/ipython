@@ -74,7 +74,7 @@ The actual results are stored in a dictionary, ``tr.results``, and a namespace o
 
 That should cover the basics of running simple Tasks.  There are several more powerful things the user can do with Tasks covered later.  The most useful probably being using a ``MutiEngineClient`` interface to initialize all the engines with the import dependencies necessary to run the user's Tasks.
 
-There are many options for running and managing Tasks. The best way to learn further about the ``Task`` interface is to study the examples in ``docs/examples``. If the user do so and learn a lots about this interface, we encourage the user to expand this documentation about the ``Task`` system.
+There are many options for running and managing Tasks. The best way to learn further about the ``Task`` interface is to study the examples in ``examples``. If the user do so and learn a lots about this interface, we encourage the user to expand this documentation about the ``Task`` system.
 
 Overview of the Task System
 ===========================
