@@ -40,6 +40,9 @@ class TestCSSHTMLHeader(TransformerTestsBase):
 
     def test_output(self):
         """Test the output of the CSSHTMLHeaderTransformer"""
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
         assert 'inlining' in res
         assert 'css' in res['inlining'] 

@@ -78,10 +78,13 @@ class Testsvg2pdf(TransformerTestsBase):
     def test_constructor(self):
         """Can a SVG2PDFTransformer be constructed?"""
         self.build_transformer()
-        
+
 
     @dec.onlyif_cmds_exist('inkscape')
     def test_output(self):
         """Test the output of the SVG2PDFTransformer"""
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
         assert 'svg' in nb.worksheets[0].cells[0].outputs[0]

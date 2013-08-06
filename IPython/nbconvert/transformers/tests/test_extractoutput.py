@@ -40,7 +40,10 @@ class TestExtractOutput(TransformerTestsBase):
 
     def test_output(self):
         """Test the output of the ExtractOutputTransformer"""
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
 
         # Check if text was extracted.
         assert 'text_filename' in nb.worksheets[0].cells[0].outputs[1]

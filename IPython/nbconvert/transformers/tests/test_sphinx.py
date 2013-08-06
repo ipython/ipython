@@ -41,7 +41,10 @@ class TestSphinx(TransformerTestsBase):
     def test_resources(self):
         """Make sure the SphinxTransformer adds the appropriate resources to the
         resources dict."""
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
         assert 'sphinx' in res
         assert "author" in res['sphinx']
         assert "version" in res['sphinx']

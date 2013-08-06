@@ -39,7 +39,10 @@ class TestLatex(TransformerTestsBase):
 
     def test_output(self):
         """Test the output of the LatexTransformer"""
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
 
         # Make sure the code cell wasn't modified.
         self.assertEqual(nb.worksheets[0].cells[0].input, '$ e $')

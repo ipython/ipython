@@ -60,14 +60,20 @@ class Testrevealhelp(TransformerTestsBase):
 
     def test_reveal_attribute(self):
         """Make sure the reveal url_prefix resources is set"""
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
         assert 'reveal' in res
         assert  'url_prefix' in res['reveal']
 
 
     def test_reveal_output(self):
         """Make sure that the reveal transformer """
-        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
+        nb = self.build_notebook()
+        res = self.build_resources()
+        transformer = self.build_transformer()
+        nb, res = transformer(nb, res)
         cells = nb.worksheets[0].cells
         
         # Make sure correct metadata tags are available on every cell.
