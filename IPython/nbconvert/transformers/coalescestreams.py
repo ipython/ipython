@@ -69,6 +69,7 @@ def coalesce_streams(cell, resources, index):
             last.text += output.text
         else:
             new_outputs.append(output)
+        last = output
 
     cell.outputs = new_outputs
     return cell, resources
