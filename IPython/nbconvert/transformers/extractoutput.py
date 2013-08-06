@@ -31,7 +31,7 @@ class ExtractOutputTransformer(Transformer):
     outputs are returned in the 'resources' dictionary.
     """
 
-    figure_filename_template = Unicode(
+    output_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}.{extension}", config=True)
 
 
@@ -80,7 +80,7 @@ class ExtractOutputTransformer(Transformer):
                         data = data.encode("UTF-8")
                     
                     #Build an output name
-                    filename = self.figure_filename_template.format( 
+                    filename = self.output_filename_template.format( 
                                     unique_key=unique_key,
                                     cell_index=cell_index,
                                     index=index,
