@@ -325,20 +325,6 @@ process, with the ``Kernel | Restart`` menu option or :kbd:``Ctrl-.``
 shortcut. This gives an equivalent state to loading the notebook document 
 afresh.
 
-    
-.. warning::
-
-   While in simple cases you can "roundtrip" a notebook to Python, edit the
-   Python file, and then import it back without loss of main content, this is 
-   in general *not guaranteed to work*.  First, there is extra metadata
-   saved in the notebook that may not be saved to the ``.py`` format.  And as
-   the notebook format evolves in complexity, there will be attributes of the
-   notebook that will not survive a roundtrip through the Python form.  You
-   should think of the Python format as a way to output a script version of a
-   notebook and the import capabilities as a way to load existing code to get 
-   a notebook started.  But the Python version is *not* an alternate notebook
-   format.
-
 
 Keyboard shortcuts
 ~~~~~~~~~~~~~~~~~~
@@ -563,3 +549,22 @@ directory. The notebook created will have just one cell, which will contain
 all the code in the ``.py`` file. You can later manually partition this into 
 individual cells using the ``Edit | Split Cell`` menu option, or the 
 :kbd:`Ctrl-m -` keyboard shortcut.
+
+Note that ``.py`` scripts obtained from a notebook document using nbconvert_ 
+maintain the structure of the notebook in comments. Reimporting such a
+script back into the Notebook will preserve this structxure.
+
+
+.. warning::
+
+   You can "roundtrip" a notebook to Python, by exporting the
+   notebook to a ``.py`` script, editing the script, and then importing it back
+   into the Notebook without loss of main content. However, 
+   in general this is *not guaranteed* to work.  First, there is extra metadata
+   saved in the notebook that may not be saved to the ``.py`` format.  Second,
+   as the notebook format evolves in complexity, there will be attributes of 
+   the notebook that will not survive a roundtrip through the Python form.  You
+   should think of the Python format as a way to output a script version of a
+   notebook and the import capabilities as a way to load existing code to get 
+   a notebook started.  But the Python version is *not* an alternate notebook
+   format.
