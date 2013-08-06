@@ -460,10 +460,17 @@ class Client(HasTraits):
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
 
         # configure and construct the session
-        extra_args['packer'] = cfg['pack']
-        extra_args['unpacker'] = cfg['unpack']
-        extra_args['key'] = cast_bytes(cfg['key'])
-        extra_args['signature_scheme'] = cfg['signature_scheme']
+        try:
+            extra_args['packer'] = cfg['pack']
+            extra_args['unpacker'] = cfg['unpack']
+            extra_args['key'] = cast_bytes(cfg['key'])
+            extra_args['signature_scheme'] = cfg['signature_scheme']
+        except KeyError as exc:
+            msg = '\n'.join([
+                "Connection file is invalid (missing '{}'), possibly from an old version of IPython.",
+                "If you are reusing connection files, remove them and start ipcontroller again."
+            ])
+            raise ValueError(msg.format(exc.message))
         
         self.session = Session(**extra_args)
 
