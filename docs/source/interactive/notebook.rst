@@ -383,36 +383,36 @@ to remember are the following:
 
 Here is the complete set of available keyboard shortcuts:
 
-===============    ==========================
+==================     ==========================
   **Shortcut**            **Action**
----------------    --------------------------
-``Shift-Enter``    run cell
-``Ctrl-Enter``     run cell in-place
-``Alt-Enter``      run cell, insert below
-``Ctrl-m x``       cut cell
-``Ctrl-m c``       copy cell
-``Ctrl-m v``       paste cell
-``Ctrl-m d``       delete cell
-``Ctrl-m z``       undo last cell deletion
-``Ctrl-m -``       split cell
-``Ctrl-m a``       insert cell above
-``Ctrl-m b``       insert cell below
-``Ctrl-m o``       toggle output
-``Ctrl-m O``       toggle output scroll
-``Ctrl-m l``       toggle line numbers
-``Ctrl-m s``       save notebook
-``Ctrl-m j``       move cell down
-``Ctrl-m k``       move cell up
-``Ctrl-m y``       code cell
-``Ctrl-m m``       markdown cell
-``Ctrl-m t``       raw cell
-``Ctrl-m 1-6``     heading 1-6 cell
-``Ctrl-m p``       select previous
-``Ctrl-m n``       select next
-``Ctrl-m i``       interrupt kernel
-``Ctrl-m .``       restart kernel
-``Ctrl-m h``       show keyboard shortcuts
-===============    ==========================
+------------------     --------------------------
+:kbd:`Shift-Enter`     run cell
+:kbd:`Ctrl-Enter`      run cell in-place
+:kbd:`Alt-Enter`       run cell, insert below
+:kbd:`Ctrl-m x`        cut cell
+:kbd:`Ctrl-m c`        copy cell
+:kbd:`Ctrl-m v`        paste cell
+:kbd:`Ctrl-m d`        delete cell
+:kbd:`Ctrl-m z`        undo last cell deletion
+:kbd:`Ctrl-m -`        split cell
+:kbd:`Ctrl-m a`        insert cell above
+:kbd:`Ctrl-m b`        insert cell below
+:kbd:`Ctrl-m o`        toggle output
+:kbd:`Ctrl-m O`        toggle output scroll
+:kbd:`Ctrl-m l`        toggle line numbers
+:kbd:`Ctrl-m s`        save notebook
+:kbd:`Ctrl-m j`        move cell down
+:kbd:`Ctrl-m k`        move cell up
+:kbd:`Ctrl-m y`        code cell
+:kbd:`Ctrl-m m`        markdown cell
+:kbd:`Ctrl-m t`        raw cell
+:kbd:`Ctrl-m 1-6`      heading 1-6 cell
+:kbd:`Ctrl-m p`        select previous
+:kbd:`Ctrl-m n`        select next
+:kbd:`Ctrl-m i`        interrupt kernel
+:kbd:`Ctrl-m .`        restart kernel
+:kbd:`Ctrl-m h`        show keyboard shortcuts
+==================     ==========================
    
 
 Magic commands
