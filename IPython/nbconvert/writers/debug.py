@@ -36,7 +36,7 @@ class DebugWriter(WriterBase):
         if 'outputs' in resources:
             print("outputs extracted from %s" % notebook_name)
             print('-' * 80)
-            pprint.pprint(resources['outputs'], indent=2, width=70)
+            pprint(resources['outputs'], indent=2, width=70)
         else:
             print("No outputs extracted from %s" % notebook_name)
         print('=' * 80)
