@@ -5,11 +5,15 @@ Working remotely
 
 
 The IPython Notebook web app is based on a server-client structure. 
-This server uses a two-process kernel architecture based on ZeroMQ, as well as 
-Tornado for serving HTTP requests. Other clients may connect to the same 
+This server uses a two-process kernel architecture based on ZeroMQ_, as well as 
+Tornado_ for serving HTTP requests. Other clients may connect to the same 
 underlying IPython kernel; see below.
 
 .. _notebook_security:
+
+.. _ZeroMQ: http://zeromq.org/
+
+.. _Tornado: http://www.tornadoweb.org/
 
 Security
 --------
