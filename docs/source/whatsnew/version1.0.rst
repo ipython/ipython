@@ -109,9 +109,14 @@ Core
 - editor hooks have been restored from quarantine, enabling TextMate as editor,
   etc.
 - The env variable PYTHONSTARTUP is respected by IPython.
-- A ``%matplotlib`` magic is added, which is like the old ``%pylab`` magic,
+- The ``%matplotlib`` magic was added, which is like the old ``%pylab`` magic,
   but it does not import anything to the interactive namespace.
   It is recommended that users switch to ``%matplotlib`` and explicit imports.
+- The ``--matplotlib`` command line flag was also added. It invokes the new
+  ``%matplotlib`` magic and can be used in the same way as the old ``--pylab``
+  flag. You can either use it by itself as a flag (``--matplotlib``), or you
+  can also pass a backend explicitly (``--matplotlib qt`` or
+  ``--matplotlib=wx``, etc).
 
 
 Backwards incompatible changes
