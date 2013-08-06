@@ -36,7 +36,7 @@ class TransformerTestsBase(TestsBase):
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="d"),
                    nbformat.new_output(output_type="stream", stream="stderr", output_text="e"),
                    nbformat.new_output(output_type="stream", stream="stderr", output_text="f"),
-                   nbformat.new_output(output_type="png", output_png='Zw==')] #g
+                   nbformat.new_output(output_type="png", output_png=u'Zw==')] #g
         
         cells=[nbformat.new_code_cell(input="$ e $", prompt_number=1,outputs=outputs),
                nbformat.new_text_cell('markdown', source="$ e $")]
