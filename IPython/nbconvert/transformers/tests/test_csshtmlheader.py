@@ -25,15 +25,21 @@ from ..csshtmlheader import CSSHTMLHeaderTransformer
 class TestCSSHTMLHeader(TransformerTestsBase):
     """Contains test functions for csshtmlheader.py"""
 
-    def test_constructor(self):
-        """Can a CSSHTMLHeaderTransformer be constructed?"""
+
+    def build_transformer(self):
+        """Make an instance of a transformer"""
         transformer = CSSHTMLHeaderTransformer()
         transformer.enabled = True
         return transformer
+
+
+    def test_constructor(self):
+        """Can a CSSHTMLHeaderTransformer be constructed?"""
+        self.build_transformer()
     
 
     def test_output(self):
         """Test the output of the CSSHTMLHeaderTransformer"""
-        nb, res = self.test_constructor()(self.build_notebook(), self.build_resources())
+        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
         assert 'inlining' in res
         assert 'css' in res['inlining'] 

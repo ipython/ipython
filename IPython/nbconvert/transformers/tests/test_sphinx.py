@@ -25,17 +25,23 @@ from ..sphinx import SphinxTransformer
 class TestSphinx(TransformerTestsBase):
     """Contains test functions for sphinx.py"""
 
-    def test_constructor(self):
-        """Can a SphinxTransformer be constructed?"""
+
+    def build_transformer(self):
+        """Make an instance of a transformer"""
         transformer = SphinxTransformer()
         transformer.enabled = True
         return transformer
+
+
+    def test_constructor(self):
+        """Can a SphinxTransformer be constructed?"""
+        self.build_transformer()
     
 
     def test_resources(self):
         """Make sure the SphinxTransformer adds the appropriate resources to the
         resources dict."""
-        nb, res = self.test_constructor()(self.build_notebook(), self.build_resources())
+        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
         assert 'sphinx' in res
         assert "author" in res['sphinx']
         assert "version" in res['sphinx']

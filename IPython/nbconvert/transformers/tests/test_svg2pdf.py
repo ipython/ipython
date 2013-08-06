@@ -68,15 +68,20 @@ class Testsvg2pdf(TransformerTestsBase):
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
 
 
-    def test_constructor(self):
-        """Can a SVG2PDFTransformer be constructed?"""
+    def build_transformer(self):
+        """Make an instance of a transformer"""
         transformer = SVG2PDFTransformer()
         transformer.enabled = True
         return transformer
-    
+
+
+    def test_constructor(self):
+        """Can a SVG2PDFTransformer be constructed?"""
+        self.build_transformer()
+        
 
     @dec.onlyif_cmds_exist('inkscape')
     def test_output(self):
         """Test the output of the SVG2PDFTransformer"""
-        nb, res = self.test_constructor()(self.build_notebook(), self.build_resources())
+        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
         assert 'svg' in nb.worksheets[0].cells[0].outputs[0]

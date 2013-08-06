@@ -25,16 +25,21 @@ from ..latex import LatexTransformer
 class TestLatex(TransformerTestsBase):
     """Contains test functions for latex.py"""
 
-    def test_constructor(self):
-        """Can a LatexTransformer be constructed?"""
+
+    def build_transformer(self):
+        """Make an instance of a transformer"""
         transformer = LatexTransformer()
         transformer.enabled = True
         return transformer
-    
+
+    def test_constructor(self):
+        """Can a LatexTransformer be constructed?"""
+        self.build_transformer()
+        
 
     def test_output(self):
         """Test the output of the LatexTransformer"""
-        nb, res = self.test_constructor()(self.build_notebook(), self.build_resources())
+        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
 
         # Make sure the code cell wasn't modified.
         self.assertEqual(nb.worksheets[0].cells[0].input, '$ e $')

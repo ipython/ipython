@@ -25,16 +25,22 @@ from ..extractoutput import ExtractOutputTransformer
 class TestExtractOutput(TransformerTestsBase):
     """Contains test functions for extractoutput.py"""
 
-    def test_constructor(self):
-        """Can a ExtractOutputTransformer be constructed?"""
+
+    def build_transformer(self):
+        """Make an instance of a transformer"""
         transformer = ExtractOutputTransformer()
         transformer.enabled = True
         return transformer
+
+
+    def test_constructor(self):
+        """Can a ExtractOutputTransformer be constructed?"""
+        self.build_transformer()
     
 
     def test_output(self):
         """Test the output of the ExtractOutputTransformer"""
-        nb, res = self.test_constructor()(self.build_notebook(), self.build_resources())
+        nb, res = self.build_transformer()(self.build_notebook(), self.build_resources())
 
         # Check if text was extracted.
         assert 'text_filename' in nb.worksheets[0].cells[0].outputs[1]
