@@ -9,11 +9,11 @@ Examples
 ========
 
 We have various example scripts and notebooks for using IPython.parallel in our
-:file:`docs/examples/parallel` directory, or they can be found `on GitHub`__.
+:file:`examples/parallel` directory, or they can be found `on GitHub`__.
 Some of these are covered in more detail in the :ref:`examples
 <parallel_examples>` section.
 
-.. __: https://github.com/ipython/ipython/tree/master/docs/examples/parallel
+.. __: https://github.com/ipython/ipython/tree/master/examples/parallel
 
 Introduction
 ============

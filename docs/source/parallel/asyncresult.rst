@@ -147,4 +147,4 @@ To break that down:
     handling individual results as they arrive, but with metadata), you can always
     just split the original result's ``msg_ids`` attribute, and handle them as you like.
     
-    For an example of this, see :file:`docs/examples/parallel/customresult.py`
+    For an example of this, see :file:`examples/parallel/customresult.py`
