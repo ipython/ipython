@@ -59,8 +59,9 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 _examples = """
-ipython --pylab            # start in pylab mode
-ipython --pylab=qt         # start in pylab mode with the qt4 backend
+ipython --matplotlib       # enable matplotlib integration
+ipython --matploltib=qt    # enable matplotlib integration with qt4 backend
+
 ipython --log-level=DEBUG  # set logging to DEBUG
 ipython --profile=foo      # start with profile foo
 
