@@ -22,6 +22,7 @@ import logging
 import sys
 import os
 import glob
+import re
 
 # From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
@@ -290,8 +291,10 @@ class NbConvertApp(BaseIPythonApplication):
             if self.output_base:
                 notebook_name = self.output_base
             resources = {}
-            resources['unique_key'] = notebook_name
-            resources['output_files_dir'] = '%s_files' % notebook_name
+            # Ensure that there are no spaces in output filenames because
+            # spaces break \includegraphics in LaTeX
+            resources['unique_key'] = re.sub(r"\s", "_", notebook_name)
+            resources['output_files_dir'] = '%s_files' % re.sub(r"\s", "_", notebook_name)
             self.log.info("Support files will be in %s", os.path.join(resources['output_files_dir'], ''))
 
             # Try to export

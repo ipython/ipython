@@ -14,6 +14,7 @@ Contains tests for the nbconvertapp
 #-----------------------------------------------------------------------------
 
 import os
+import glob
 from .base import TestsBase
 
 from IPython.testing import decorators as dec
@@ -74,6 +75,18 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook2.py')
 
 
+    def test_filename_spaces(self):
+        """
+        Are spaces removed from filenames?
+        """
+        with self.create_temp_cwd(['notebook1.ipynb']):
+            os.rename('notebook1.ipynb', 'notebook with spaces.ipynb')
+            self.call('nbconvert --log-level=0 --to="latex" "notebook with spaces"')
+            assert os.path.isfile('notebook with spaces.tex')
+            assert os.path.isdir('notebook_with_spaces_files')
+            for f in glob.glob('notebook_with_spaces_files/*'):
+                assert r" \t\n" not in f
+           
     @dec.onlyif_cmds_exist('pdflatex')
     @dec.onlyif_cmds_exist('pandoc')
     def test_post_processor(self):
