@@ -48,7 +48,7 @@ class FilesWriter(WriterBase):
     
     def _makedir(self, path):
         """Make a directory if it doesn't already exist"""
-        if not os.path.isdir(path):
+        if path and not os.path.isdir(path):
             self.log.info("Making directory %s", path)
             os.makedirs(path)
 
