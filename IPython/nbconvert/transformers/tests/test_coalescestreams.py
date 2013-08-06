@@ -29,7 +29,6 @@ class TestCoalesceStreams(TransformerTestsBase):
         """coalesce_streams transformer output test"""
         nb = self.build_notebook()
         res = self.build_resources()
-        nb, res = transformer(nb, res)
         nb, res = coalesce_streams(nb, res)
         outputs = nb.worksheets[0].cells[0].outputs
         self.assertEqual(outputs[0].text, "a")
