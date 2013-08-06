@@ -231,7 +231,7 @@ The javascript components used in the notebook have been updated significantly.
 Some relevant changes that are results of this:
 
 - Markdown cells now support GitHub-flavored Markdown (GFM),
-  which includes ``\`\`\`python`` code blocks and tables.
+  which includes `````python`` code blocks and tables.
 - Notebook UI behaves better on more screen sizes.
 - Various code cell input issues have been fixed.
 
