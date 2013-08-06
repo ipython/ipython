@@ -47,7 +47,7 @@ precision.
 We refer to the current state of the computational process taking place in the 
 Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
 *notebook space*. Notebook documents provide an *exact*, *one-to-one* record 
-of all the content in the notebook space, as a plain text file in JSON format. 
+of all the content in the notebook space, as a plain text file in JSON_ format. 
 The Notebook app automatically saves, at certain intervals, the contents of 
 the notebook space to a notebook document stored on disk, with the same name 
 as the title of the notebook space, and the file extension ``.ipynb``. For 
@@ -85,14 +85,13 @@ The main features of the IPython Notebook app include:
 Notebook documents
 ~~~~~~~~~~~~~~~~~~
 
-Notebook document files are simple JSON_ files with the 
-extension ``.ipynb``.
-Since JSON is just plain text, they can be easily version-controlled and shared with colleagues.
-The notebook stores a *complete*, *reproducible*, *one-to-one* copy of the state of the
-computational state as it is inside the Notebook app. All computations
-carried out, and the corresponding results obtained, can be combined in
-a literate way, interleaving executable code with rich text, mathematics, 
-and rich representations of objects.
+Notebook document files are simple JSON_ files with the  extension ``.ipynb``.
+Since JSON is just plain text, they can be easily  version-controlled and
+shared with colleagues. The notebook stores a  *complete*, *reproducible*,
+*one-to-one* copy of the state of the computational  state as it is inside the
+Notebook app. All computations carried out, and the  corresponding results
+obtained, can be combined in a literate way, interleaving executable code with
+rich text, mathematics, and rich representations of objects.
 
 .. _JSON: http://en.wikipedia.org/wiki/JSON
 
@@ -106,6 +105,7 @@ This service loads the notebook document from the URL and renders it as a
 static web page. The results may thus be shared with a colleague, or as a 
 public blog post, without other users needing to install IPython themselves.  
 NbViewer is a simple heroku_ webservice wrapper around `nbconvert`.
+
 
 See the :ref:`installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
@@ -568,3 +568,6 @@ script back into the Notebook will preserve this structxure.
    notebook and the import capabilities as a way to load existing code to get 
    a notebook started.  But the Python version is *not* an alternate notebook
    format.
+
+.. seealso::
+    :ref:`notebook_format`

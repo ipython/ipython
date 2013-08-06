@@ -9,11 +9,12 @@ This server uses a two-process kernel architecture based on ZeroMQ_, as well as
 Tornado_ for serving HTTP requests. Other clients may connect to the same 
 underlying IPython kernel; see below.
 
+.. _ZeroMQ: http://zeromq.org
+
+.. _Tornado: http://www.tornadoweb.org
+
+
 .. _notebook_security:
-
-.. _ZeroMQ: http://zeromq.org/
-
-.. _Tornado: http://www.tornadoweb.org/
 
 Security
 --------
@@ -62,7 +63,7 @@ the command::
 Your browser will warn you of a dangerous certificate because it is
 self-signed.  If you want to have a fully compliant certificate that will not
 raise warnings, it is possible (but rather involved) to obtain one,
-`as explained in detailed in this tutorial`__.
+as explained in detailed in `this tutorial`__.
 
 .. __: http://arstechnica.com/security/news/2009/12/how-to-get-set-with-a-
 secure-sertificate-for-free.ars
