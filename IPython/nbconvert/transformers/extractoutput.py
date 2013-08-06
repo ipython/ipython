@@ -79,7 +79,7 @@ class ExtractOutputTransformer(Transformer):
                     else:
                         data = data.encode("UTF-8")
                     
-                    #Build a output name
+                    #Build an output name
                     filename = self.figure_filename_template.format( 
                                     unique_key=unique_key,
                                     cell_index=cell_index,
