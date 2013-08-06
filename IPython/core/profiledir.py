@@ -23,6 +23,7 @@ Authors:
 
 import os
 import shutil
+import errno
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.path import get_ipython_package_dir, expand_path
