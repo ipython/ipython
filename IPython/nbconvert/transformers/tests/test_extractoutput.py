@@ -55,8 +55,8 @@ class TestExtractOutput(TransformerTestsBase):
 
         # Verify text output
         assert text_filename in res['outputs']
-        self.assertEqual(res['outputs'][text_filename], 'b')
+        self.assertEqual(res['outputs'][text_filename], b'b')
 
         # Verify png output
         assert png_filename in res['outputs']
-        self.assertEqual(res['outputs'][png_filename], 'g')
+        self.assertEqual(res['outputs'][png_filename], b'g')
