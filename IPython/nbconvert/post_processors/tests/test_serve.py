@@ -26,6 +26,6 @@ class TestServe(TestsBase):
     """Contains test functions for serve.py"""
 
 
-    def test_constructor():
+    def test_constructor(self):
         """Can a ServePostProcessor be constructed?"""
         ServePostProcessor()

@@ -41,22 +41,23 @@ class TestPDF(TestsBase):
     """Contains test functions for pdf.py"""
 
 
-    def test_constructor():
+    def test_constructor(self):
         """Can a PDFPostProcessor be constructed?"""
         PDFPostProcessor()
 
 
     @dec.onlyif_cmds_exist('pdflatex')
-    def test_pdf():
+    def test_pdf(self):
         """Can a PDF be made using the PDFPostProcessor?"""
 
         # Work in a temporary directory with hello world latex in it.
-        with self.create_temp_cwd()
+        with self.create_temp_cwd():
             with open('a.tex', 'w') as f:
                 f.write(HELLO_WORLD)
 
             # Construct post-processor
             processor = PDFPostProcessor()
+            processor.verbose = False
             processor('a.tex')
 
             # Check that the PDF was created.
