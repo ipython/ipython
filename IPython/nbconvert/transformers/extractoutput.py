@@ -31,7 +31,7 @@ class ExtractOutputTransformer(Transformer):
     outputs are returned in the 'resources' dictionary.
     """
 
-    figure_filename_template = Unicode(
+    output_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}.{extension}", config=True)
 
 
@@ -51,9 +51,9 @@ class ExtractOutputTransformer(Transformer):
         """
 
         #Get the unique key from the resource dict if it exists.  If it does not 
-        #exist, use 'figure' as the default.  Also, get files directory if it
+        #exist, use 'output' as the default.  Also, get files directory if it
         #has been specified
-        unique_key = resources.get('unique_key', 'figure')
+        unique_key = resources.get('unique_key', 'output')
         output_files_dir = resources.get('output_files_dir', None)
         
         #Make sure outputs key exists
@@ -79,8 +79,8 @@ class ExtractOutputTransformer(Transformer):
                     else:
                         data = data.encode("UTF-8")
                     
-                    #Build a figure name
-                    filename = self.figure_filename_template.format( 
+                    #Build an output name
+                    filename = self.output_filename_template.format( 
                                     unique_key=unique_key,
                                     cell_index=cell_index,
                                     index=index,
