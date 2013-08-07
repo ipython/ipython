@@ -100,6 +100,7 @@ var IPython = (function (IPython) {
                 that.find('input[type="text"]').keydown(function (event, ui) {
                     if (event.which === utils.keycodes.ENTER) {
                         that.find('.btn-primary').first().click();
+                        return false;
                     }
                 });
                 that.find('input[type="text"]').focus();
