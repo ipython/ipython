@@ -41,7 +41,8 @@ class ServePostProcessor(PostProcessorBase):
 
         try:
             dirname, filename = os.path.split(input)
-            os.chdir(dirname)
+            if dirname:
+                os.chdir(dirname)
             httpd = HTTPServer(('127.0.0.1', 8000), SimpleHTTPRequestHandler)
             sa = httpd.socket.getsockname()
             url = "http://" + sa[0] + ":" + str(sa[1]) + "/" + filename
