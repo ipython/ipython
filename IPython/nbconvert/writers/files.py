@@ -48,7 +48,7 @@ class FilesWriter(WriterBase):
     
     def _makedir(self, path):
         """Make a directory if it doesn't already exist"""
-        if not os.path.isdir(path):
+        if path and not os.path.isdir(path):
             self.log.info("Making directory %s", path)
             os.makedirs(path)
 
@@ -61,8 +61,12 @@ class FilesWriter(WriterBase):
             See base for more...
             """
 
+            # Verify that a notebook name is provided.
+            if notebook_name is None:
+                raise TypeError('notebook_name')
+
             # Pull the extension and subdir from the resources dict.
-            output_extension = resources['output_extension']
+            output_extension = resources.get('output_extension', None)
 
             # Write all of the extracted resources to the destination directory.
             # NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
@@ -97,7 +101,10 @@ class FilesWriter(WriterBase):
                             link_or_copy(matching_filename, dest)
 
             # Determine where to write conversion results.
-            dest = notebook_name + '.' + output_extension
+            if output_extension is not None:
+                dest = notebook_name + '.' + output_extension
+            else:
+                dest = notebook_name
             if self.build_directory:
                 dest = os.path.join(self.build_directory, dest)
 

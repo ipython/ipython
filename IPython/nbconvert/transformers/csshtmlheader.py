@@ -56,7 +56,7 @@ class CSSHTMLHeaderTransformer(Transformer):
             self._regen_header()
 
 
-    def __call__(self, nb, resources):
+    def call(self, nb, resources):
         """Fetch and add CSS to the resource dictionary
 
         Fetch CSS from IPython and Pygments to add at the beginning
