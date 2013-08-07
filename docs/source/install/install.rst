@@ -68,15 +68,15 @@ with no external dependencies.  However, some Python distributions
 (particularly on Windows and OS X), don't come with a working :mod:`readline`
 module.  The IPython shell will work without :mod:`readline`, but will lack
 many features that users depend on, such as tab completion and command line
-editing.  If you install IPython with :mod:`distribute`, (e.g. with
+editing.  If you install IPython with :mod:`setuptools`, (e.g. with
 `easy_install`), then the appropriate :mod:`readline` for your platform will be
 installed.  See below for details of how to make sure you have a working
 :mod:`readline`.
 
-Installation using easy_install
--------------------------------
+Installation using easy_install or pip
+--------------------------------------
 
-If you have :mod:`distribute` installed, the easiest way of getting IPython is
+If you have :mod:`setuptools`, the easiest way of getting IPython is
 to simply use :command:`easy_install`:
 
 .. code-block:: bash
@@ -104,12 +104,12 @@ permissions, you may need to run the last command with :command:`sudo`.
 Windows
 -------
 
-As mentioned above, on Windows, IPython requires :mod:`distribute`, and it also
+As mentioned above, on Windows, IPython requires :mod:`setuptools`, and it also
 requires the PyReadline library to properly support coloring and keyboard
 management (features that the default windows console doesn't have).  So on
 Windows, the installation procedure is:
 
-1. Install `distribute <http://pypi.python.org/pypi/distribute>`_.
+1. Install `setuptools <http://pypi.python.org/pypi/setuptools>`_.
 
 2. Install `pyreadline <http://pypi.python.org/pypi/pyreadline>`_.  You can use
    the command ``easy_install pyreadline`` from a terminal, or the binary
@@ -145,7 +145,7 @@ need to have Git installed on your system.  Then just do:
     $ python setup.py install
 
 Some users want to be able to follow the development branch as it changes.  If
-you have :mod:`distribute` installed, this is easy. Simply replace the last
+you have :mod:`setuptools` installed, this is easy. Simply replace the last
 step by:
 
 .. code-block:: bash
@@ -194,7 +194,7 @@ Therefore, we *strongly* recommend that on OS X you get the full
 :mod:`readline` module.  We will *not* consider completion/history problems to
 be bugs for IPython if you are using libedit.
 
-To get a working :mod:`readline` module, just do (with :mod:`distribute`
+To get a working :mod:`readline` module, just do (with :mod:`setuptools`
 installed):
 
 .. code-block:: bash
@@ -207,10 +207,10 @@ installed):
     python.org binaries) already have readline installed so you likely don't
     have to do this step.
 
-When IPython is installed with :mod:`distribute`, (e.g. using the
+When IPython is installed with :mod:`setuptools`, (e.g. using the
 ``easy_install`` command), readline is added as a dependency on OS X, and
 PyReadline on Windows, and will be installed on your system.  However, if you
-do not use distribute, you may have to install one of these packages yourself.
+do not use setuptools, you may have to install one of these packages yourself.
 
 
 nose
@@ -265,7 +265,7 @@ focus on fluid interactive workflows.  These features require just one package:
 PyZMQ.  See the next section for PyZMQ details.
 
 On a Unix style platform (including OS X), if you want to use
-:mod:`distribute`, you can just do:
+:mod:`setuptools`, you can just do:
 
 .. code-block:: bash
 
