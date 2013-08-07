@@ -29,9 +29,10 @@ class RevealHelpTransformer(Transformer):
                          help="""If you want to use a local reveal.js library,
                          use 'url_prefix':'reveal.js' in your config object.""")
 
-    speaker_notes = Bool(False, config=True, help="""
-                         If you want to use the speaker notes set 
-                         'speaker_notes':'True' in your config object.""")
+    speaker_notes = Bool(False, 
+                         config=True, 
+                         help="""If you want to use the speaker notes 
+                         set this to True.""")
 
     def call(self, nb, resources):
         """
