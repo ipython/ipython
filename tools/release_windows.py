@@ -23,10 +23,10 @@ except ImportError:
 
 github = '--github' in sys.argv
 
-cmd_t = "{py} setup.py bdist_wininst"
+cmd_t = "{py} setup.py bdist_msi"
 
 pypi = '--pypi' in sys.argv
-pypi_cmd_t = "python setup.py upload_wininst -f {fname}"
+pypi_cmd_t = "python setup.py upload_msi -f {fname}"
 
 # Windows Python cannot normally cross-compile,
 # so you must have 4 Pythons to make 4 installers:
@@ -53,9 +53,9 @@ for v,plat_py in pythons.items():
     for plat,py in plat_py.items():
         cmd = cmd_t.format(**locals())
         sh(cmd)
-        orig = glob.glob(os.path.join('dist', 'ipython-*.{plat}.exe'.format(**locals())))[0]
-        mangled = orig.replace('.{plat}.exe'.format(**locals()),
-                               '.py{v}-{plat}.exe'.format(**locals())
+        orig = glob.glob(os.path.join('dist', 'ipython-*.{plat}.msi'.format(**locals())))[0]
+        mangled = orig.replace('.{plat}.msi'.format(**locals()),
+                               '.py{v}-{plat}.msi'.format(**locals())
         )
         os.rename(orig, mangled)
         if pypi:
