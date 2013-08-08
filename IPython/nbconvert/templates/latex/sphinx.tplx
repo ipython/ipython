@@ -443,7 +443,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* macro custom_verbatim(text) -*))
     \begin{alltt}
     ((*- if resources.sphinx.centeroutput *))\begin{center} ((* endif -*))
-((( text | wrap_text(wrap_size) )))
+((( text | wrap_text(wrap_size) | escape_latex )))
     ((*- if resources.sphinx.centeroutput *))\end{center}((* endif -*))
     \end{alltt}
 ((*- endmacro *))
