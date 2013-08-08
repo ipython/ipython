@@ -51,6 +51,8 @@ class PDFPostProcessor(PostProcessorBase):
                     out, err = p.communicate()
                     if p.returncode:
                         if self.verbose:
+                            # verbose means I didn't capture stdout with PIPE,
+                            # so it's already been displayed and `out` is None.
                             out = u''
                         else:
                             out = out.decode('utf-8', 'replace')
