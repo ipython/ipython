@@ -411,8 +411,16 @@ def test_get_ipython_module_path():
 
 @dec.skip_if_not_win32
 def test_get_long_path_name_win32():
-    p = path.get_long_path_name('c:\\docume~1')
-    nt.assert_equal(p,u'c:\\Documents and Settings')
+    with TemporaryDirectory() as tmpdir:
+
+        # Make a long path.
+        long_path = os.path.join(tmpdir, u'this is my long path name')
+        os.makedirs(long_path)
+
+        # Test to see if the short path evaluates correctly.
+        short_path = os.path.join(tmpdir, u'THISIS~1')
+        evaluated_path = path.get_long_path_name(short_path)
+        nt.assert_equal(evaluated_path.lower(), long_path.lower())
 
 
 @dec.skip_win32
