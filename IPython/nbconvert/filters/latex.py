@@ -20,7 +20,6 @@ import re
 #-----------------------------------------------------------------------------
 
 LATEX_RE_SUBS = (
-    (re.compile('\033\[[0-9;]+m'), ''),  # handle console escapes
     (re.compile(r'\.\.\.+'), r'\\ldots'),
 )
 
