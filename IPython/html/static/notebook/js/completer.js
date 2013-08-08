@@ -102,7 +102,7 @@ var IPython = (function (IPython) {
 
         // we need to check that we are still on a word boundary
         // because while typing the completer is still reinvoking itself
-        if (!/[0-9a-z._/\\:~-]/i.test(pre_cursor)) {
+        if (!/[%0-9a-z._/\\:~-]/i.test(pre_cursor)) {
             this.close();
             return;
         }
