@@ -19,6 +19,11 @@ import re
 # Globals and constants
 #-----------------------------------------------------------------------------
 
+LATEX_RE_SUBS = (
+    (re.compile('\033\[[0-9;]+m'), ''),  # handle console escapes
+    (re.compile(r'\.\.\.+'), r'\\ldots'),
+)
+
 # Latex substitutions for escaping latex.
 # see: http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
 
@@ -52,8 +57,11 @@ def escape_latex(text):
     text : str
         Text containing characters that may conflict with Latex
     """
+    text = ''.join([LATEX_SUBS.get(c, c) for c in text])
+    for pattern, replacement in LATEX_RE_SUBS:
+        text = pattern.sub(replacement, text)
 
-    return ''.join([LATEX_SUBS.get(c, c) for c in text])
+    return text
     
     
 def strip_math_space(text):
