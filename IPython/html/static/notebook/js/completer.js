@@ -53,7 +53,12 @@ var IPython = (function (IPython) {
                 tem1 = tem1.substring(0, --s);
             }
             if (tem1 == "" || tem2.indexOf(tem1) != 0) {
-                return prepend_n_prc('', min_lead_prct);
+                return {
+                    str:prepend_n_prc('', min_lead_prct),
+                    type: "computed",
+                    from: B[0].from,
+                    to: B[0].to
+                    }
             }
             return {
                 str: prepend_n_prc(tem1, min_lead_prct),
