@@ -160,9 +160,8 @@ class NbConvertApp(BaseIPythonApplication):
     writer_factory = Type()
 
     def _writer_class_changed(self, name, old, new):
-        new = new.lower()
-        if new in self.writer_aliases:
-            new = self.writer_aliases[new]
+        if new.lower() in self.writer_aliases:
+            new = self.writer_aliases[new.lower()]
         self.writer_factory = import_item(new)
 
     # Post-processor specific variables
@@ -178,9 +177,8 @@ class NbConvertApp(BaseIPythonApplication):
     post_processor_factory = Type()
 
     def _post_processor_class_changed(self, name, old, new):
-        new = new.lower()
-        if new in self.post_processor_aliases:
-            new = self.post_processor_aliases[new]
+        if new.lower() in self.post_processor_aliases:
+            new = self.post_processor_aliases[new.lower()]
         if new:
             self.post_processor_factory = import_item(new)
 
