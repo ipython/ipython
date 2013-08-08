@@ -1,4 +1,4 @@
-.. _htmlnotebook:
+.. _notebook:
 
 The IPython Notebook
 ====================
@@ -47,7 +47,7 @@ precision.
 We refer to the current state of the computational process taking place in the 
 Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
 *notebook space*. Notebook documents provide an *exact*, *one-to-one* record 
-of all the content in the notebook space, as a plain text file in JSON format. 
+of all the content in the notebook space, as a plain text file in JSON_ format. 
 The Notebook app automatically saves, at certain intervals, the contents of 
 the notebook space to a notebook document stored on disk, with the same name 
 as the title of the notebook space, and the file extension ``.ipynb``. For 
@@ -85,32 +85,36 @@ The main features of the IPython Notebook app include:
 Notebook documents
 ~~~~~~~~~~~~~~~~~~
 
-Notebook document files are simple JSON_ files with the 
-extension ``.ipynb``.
-Since JSON is just plain text, they can be easily version-controlled and shared with colleagues.
-The notebook stores a *complete*, *reproducible*, *one-to-one* copy of the state of the
-computational state as it is inside the Notebook app. All computations
-carried out, and the corresponding results obtained, can be combined in
-a literate way, interleaving executable code with rich text, mathematics, 
-and rich representations of objects.
+Notebook document files are simple JSON_ files with the  extension ``.ipynb``.
+Since JSON is just plain text, they can be easily  version-controlled and
+shared with colleagues. The notebook stores a  *complete*, *reproducible*,
+*one-to-one* copy of the state of the computational  state as it is inside the
+Notebook app. All computations carried out, and the  corresponding results
+obtained, can be combined in a literate way, interleaving executable code with
+rich text, mathematics, and rich representations of objects.
 
 .. _JSON: http://en.wikipedia.org/wiki/JSON
 
 Notebooks may easily be exported to a range of static formats, including 
 HTML (for example, for blog posts), PDF and slide shows, 
-via the new nbconvert_ command.
+via the new `nbconvert`_ command.
 
 Furthermore, any  ``.ipynb`` notebook document available from a public 
 URL can be shared via the `IPython Notebook Viewer <nbviewer>`_ service.
-This service loads the notebook document from the URL and will 
-render it as a static web page. The results may thus be shared with a 
-colleague, or as a public blog post, without other users needing to install 
-IPython themselves.  NbViewer is simply NbConvert as a simple heroku webservice.
+This service loads the notebook document from the URL and renders it as a 
+static web page. The results may thus be shared with a colleague, or as a 
+public blog post, without other users needing to install IPython themselves.  
+NbViewer is a simple heroku_ webservice wrapper around `nbconvert`.
+
 
 See the :ref:`installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
 
+.. _nbconvert: ./nbconvert.html
+
 .. _nbviewer: http://nbviewer.ipython.org
+
+.. _heroku: https://www.heroku.com/
 
 .. note::
 
@@ -144,16 +148,15 @@ source code files into the notebook list area.
 
 
 You can open an existing notebook directly, without having to go via the 
-dashboard, with:
+dashboard, with::
 
-  ipython notebook my_notebook
+  $ ipython notebook my_notebook
 
-The `.ipynb` extension is assumed if no extension is given.
+The ``.ipynb`` extension is assumed if no extension is given.
 
-The `File | Open...` menu option will open the dashboard in a new browser tab, 
+The ``File | Open...`` menu option will open the dashboard in a new browser tab, 
 to allow you to select a current notebook 
 from the notebook directory or to create a new notebook.
-
 
 
 Notebook user interface
@@ -185,7 +188,7 @@ Creating a new notebook document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A new notebook space/document may be created at any time, either from the 
-dashboard, or using the `File | New` menu option from within an active 
+dashboard, or using the ``File | New`` menu option from within an active 
 notebook. The new notebook is created within the same directory and 
 will open in a new browser tab. It will also be reflected as a new entry in 
 the notebook list on the dashboard.
@@ -209,7 +212,6 @@ number which denotes the order in which the cells were executed over the
 history of the computational process. The contents of all of these cells are 
 accessible as Python variables with the same names, forming a complete record 
 of the history of the computation.
-
 
 
 Input cell types
@@ -277,6 +279,7 @@ a Markdown cell. These definitions are then available throughout the rest of
 the IPython session. (Note, however, that more care must be taken when using 
 nbconvert_ to output to LaTeX).
 
+
 Raw input cells
 ~~~~~~~~~~~~~~~
 
@@ -285,6 +288,7 @@ Raw cells are not evaluated by the Notebook, and have no output.
 When passed through nbconvert, Raw cells arrive in the destination format unmodified,
 allowing you to type full latex into a raw cell, which will only be rendered
 by latex after conversion by nbconvert.
+
 
 Heading cells
 ~~~~~~~~~~~~~
@@ -313,19 +317,6 @@ correctly. This is much more convenient for interactive exploration than
 breaking up a computation into scripts that must be executed together, as was 
 previously necessary, especially if parts of them take a long time to run
 
-The only significant limitation that the Notebook currently has, compared to 
-the Qt console, is that it cannot run any code that expects input from the 
-kernel (such as scripts that call :func:`raw_input`).  Very importantly, this 
-means that the ``%debug`` magic does *not* currently work in the notebook!  
-
-This limitation will be overcome in the future, but in the meantime, there is 
-a simple solution for debugging: you can attach a Qt console to your existing 
-notebook kernel, and run ``%debug`` from the Qt console.
-If your notebook is running on a local computer (i.e. if you are accessing it 
-via your localhost address at ``127.0.0.1``), then you can just type 
-``%qtconsole`` in the notebook and a Qt console will open up, connected to 
-that same kernel.
-
 At certain moments, it may be necessary to interrupt a calculation which is 
 taking too long to complete. This may be done with the ``Kernel | Interrupt`` 
 menu option, or the :kbd:``Ctrl-i`` keyboard shortcut.
@@ -333,20 +324,6 @@ Similarly, it may be necessary or desirable to restart the whole computational
 process, with the ``Kernel | Restart`` menu option or :kbd:``Ctrl-.`` 
 shortcut. This gives an equivalent state to loading the notebook document 
 afresh.
-
-    
-.. warning::
-
-   While in simple cases you can "roundtrip" a notebook to Python, edit the
-   Python file, and then import it back without loss of main content, this is 
-   in general *not guaranteed to work*.  First, there is extra metadata
-   saved in the notebook that may not be saved to the ``.py`` format.  And as
-   the notebook format evolves in complexity, there will be attributes of the
-   notebook that will not survive a roundtrip through the Python form.  You
-   should think of the Python format as a way to output a script version of a
-   notebook and the import capabilities as a way to load existing code to get 
-   a notebook started.  But the Python version is *not* an alternate notebook
-   format.
 
 
 Keyboard shortcuts
@@ -390,39 +367,38 @@ to remember are the following:
     They were last updated for IPython 1.0 release, so update them again for
     future releases.
 
-Here is the complete set of keyboard shortcuts available:
+Here is the complete set of available keyboard shortcuts:
 
-============  ==========================
-**Shortcut**        **Action**
-------------  --------------------------
-Shift-Enter    run cell
-Ctrl-Enter     run cell in-place
-Alt-Enter      run cell, insert below
-Ctrl-m x       cut cell
-Ctrl-m c       copy cell
-Ctrl-m v       paste cell
-Ctrl-m d       delete cell
-Ctrl-m z       undo last cell deletion
-Ctrl-m -       split cell
-Ctrl-m a       insert cell above
-Ctrl-m b       insert cell below
-Ctrl-m o       toggle output
-Ctrl-m O       toggle output scroll
-Ctrl-m l       toggle line numbers
-Ctrl-m s       save notebook
-Ctrl-m j       move cell down
-Ctrl-m k       move cell up
-Ctrl-m y       code cell
-Ctrl-m m       markdown cell
-Ctrl-m t       raw cell
-Ctrl-m 1-6     heading 1-6 cell
-Ctrl-m p       select previous
-Ctrl-m n       select next
-Ctrl-m i       interrupt kernel
-Ctrl-m .       restart kernel
-Ctrl-m h       show keyboard shortcuts
-============  ==========================
-
+==================     ==========================
+  **Shortcut**            **Action**
+------------------     --------------------------
+:kbd:`Shift-Enter`     run cell
+:kbd:`Ctrl-Enter`      run cell in-place
+:kbd:`Alt-Enter`       run cell, insert below
+:kbd:`Ctrl-m x`        cut cell
+:kbd:`Ctrl-m c`        copy cell
+:kbd:`Ctrl-m v`        paste cell
+:kbd:`Ctrl-m d`        delete cell
+:kbd:`Ctrl-m z`        undo last cell deletion
+:kbd:`Ctrl-m -`        split cell
+:kbd:`Ctrl-m a`        insert cell above
+:kbd:`Ctrl-m b`        insert cell below
+:kbd:`Ctrl-m o`        toggle output
+:kbd:`Ctrl-m O`        toggle output scroll
+:kbd:`Ctrl-m l`        toggle line numbers
+:kbd:`Ctrl-m s`        save notebook
+:kbd:`Ctrl-m j`        move cell down
+:kbd:`Ctrl-m k`        move cell up
+:kbd:`Ctrl-m y`        code cell
+:kbd:`Ctrl-m m`        markdown cell
+:kbd:`Ctrl-m t`        raw cell
+:kbd:`Ctrl-m 1-6`      heading 1-6 cell
+:kbd:`Ctrl-m p`        select previous
+:kbd:`Ctrl-m n`        select next
+:kbd:`Ctrl-m i`        interrupt kernel
+:kbd:`Ctrl-m .`        restart kernel
+:kbd:`Ctrl-m h`        show keyboard shortcuts
+==================     ==========================
    
 
 Magic commands
@@ -469,6 +445,7 @@ Some of the available line magics are the following:
 
       Provides a list of all available magic commands
 
+
 Cell magics
 ~~~~~~~~~~~
 
@@ -498,13 +475,13 @@ Cell magics
       current code cell.
 
 
-
 Several of the cell magics provide functionality to manipulate the filesystem 
 of a remote server to which you otherwise do not have access.  
 
 
 Plotting
 --------
+
 One major feature of the Notebook is the ability to interact with 
 plots that are the output of running code cells. IPython is designed to work 
 seamlessly with the ``matplotlib`` plotting library to provide this 
@@ -532,15 +509,15 @@ It can be invoked as follows::
 With this backend, output of plotting commands is displayed *inline* within 
 the notebook format, directly below the input cell that produced it. The 
 resulting plots will then also be stored in the notebook document. This 
-provides a key part of the functionality for reproducibility_ that the IPython 
-Notebook provides.
+provides a key part of the functionality for reproducibility_ of the IPython 
+Notebook.
 
 .. _reproducibility: https://en.wikipedia.org/wiki/Reproducibility
 
 
-
 Configuring the IPython Notebook
 --------------------------------
+
 The IPython Notebook can be run with a variety of command line arguments. 
 To see a list of available options enter::
 
@@ -558,14 +535,13 @@ on available options, use::
 
   $ ipython profile create
 
-.. seealso:
+.. seealso::
 
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-Importing `.py` files
-----------------------
-
+Importing ``.py`` files
+-----------------------
 
 ``.py`` files will be imported into the IPython Notebook as a notebook with 
 the same basename, but an ``.ipynb`` extension, located in the notebook 
@@ -574,8 +550,24 @@ all the code in the ``.py`` file. You can later manually partition this into
 individual cells using the ``Edit | Split Cell`` menu option, or the 
 :kbd:`Ctrl-m -` keyboard shortcut.
 
-.. Alternatively, prior to importing the ``.py``, you can manually add ``# <
-nbformat>2</nbformat>`` at the start of the file, and then add separators for 
-text and code cells, to get a cleaner import with the file already broken into 
-individual cells.
+Note that ``.py`` scripts obtained from a notebook document using nbconvert_ 
+maintain the structure of the notebook in comments. Reimporting such a
+script back into the Notebook will preserve this structxure.
 
+
+.. warning::
+
+   You can "roundtrip" a notebook to Python, by exporting the
+   notebook to a ``.py`` script, editing the script, and then importing it back
+   into the Notebook without loss of main content. However, 
+   in general this is *not guaranteed* to work.  First, there is extra metadata
+   saved in the notebook that may not be saved to the ``.py`` format.  Second,
+   as the notebook format evolves in complexity, there will be attributes of 
+   the notebook that will not survive a roundtrip through the Python form.  You
+   should think of the Python format as a way to output a script version of a
+   notebook and the import capabilities as a way to load existing code to get 
+   a notebook started.  But the Python version is *not* an alternate notebook
+   format.
+
+.. seealso::
+    :ref:`notebook_format`

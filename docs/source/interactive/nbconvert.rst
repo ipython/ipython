@@ -67,7 +67,7 @@ The currently supported export formats are:
 * ``--to markdown``
 
   Simple markdown output.  Markdown cells are unaffected,
-  and code cells are placed in triple-backtick (``\`\`\```) blocks.
+  and code cells are placed in triple-backtick (```````) blocks.
 
 * ``--to rst``
 

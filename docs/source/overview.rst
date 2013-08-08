@@ -20,7 +20,7 @@ has three main components:
 * An enhanced interactive Python shell.
 * A decoupled two-process communication model, which allows for multiple
   clients to connect to a computation kernel, most notably the web-based
-  :ref:`notebook <htmlnotebook>`
+  :ref:`notebook <notebook>`
 * An architecture for interactive parallel computing.
 
 All of IPython is open source (released under the revised BSD license).
@@ -218,7 +218,7 @@ which will be something like ``--existing kernel-19732.json`` but with
 different numbers which correspond to the Process ID of the kernel.
 
 You can read more about using :ref:`ipython qtconsole <qtconsole>`, and
-:ref:`ipython notebook <htmlnotebook>`. There is also a :ref:`message spec
+:ref:`ipython notebook <notebook>`. There is also a :ref:`message spec
 <messaging>` which documents the protocol for communication between kernels
 and clients.
 
