@@ -21,17 +21,19 @@ import re
 
 # Latex substitutions for escaping latex.
 # see: http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
+
 LATEX_SUBS = {
     '&':  r'\&',
-    '%':  r'\%', 
-    '$':  r'\$', 
-    '#':  r'\#', 
-    '_':  r'\letterunderscore{}', 
-    '{':  r'\letteropenbrace{}', 
-    '}':  r'\letterclosebrace{}',
-    '~':  r'\lettertilde{}', 
-    '^':  r'\letterhat{}', 
-    '\\': r'\letterbackslash{}'}
+    '%':  r'\%',
+    '$':  r'\$',
+    '#':  r'\#',
+    '_':  r'\_',
+    '{':  r'\{',
+    '}':  r'\}',
+    '~':  r'\textasciitilde{}',
+    '^':  r'\^{}',
+    '\\': r'\textbackslash{}',
+}
 
 
 #-----------------------------------------------------------------------------
