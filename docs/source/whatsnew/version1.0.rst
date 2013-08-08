@@ -203,7 +203,7 @@ Major changes to the IPython Notebook in 1.0:
 - Fix an issue parsing LaTeX in markdown cells, which required users to type ``\\\``,
   instead of ``\\``.
 - Notebook templates are rendered with Jinja instead of Tornado.
-- ``%%file`` has been renamed ``%%writefile`` (``%%file``) is deprecated.
+- ``%%file`` has been renamed ``%%writefile`` (``%%file`` is deprecated).
 - ANSI (and VT100) color parsing has been improved in both performance and
   supported values.
 - The static files path can be found as ``IPython.html.DEFAULT_STATIC_FILES_PATH``,
