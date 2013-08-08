@@ -50,7 +50,7 @@ __all__ = ['escape_latex',
 
 def escape_latex(text):
     """
-    Escape characters that may conflict with latex.
+    Remove ansi codes and escape characters that may conflict with latex.
 
     Parameters
     ----------
