@@ -154,14 +154,14 @@ class NbConvertApp(BaseIPythonApplication):
     writer_class = DottedObjectName('FilesWriter', config=True, 
                                     help="""Writer class used to write the 
                                     results of the conversion""")
-    writer_aliases = {'FilesWriter': 'IPython.nbconvert.writers.files.FilesWriter',
-                      'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
-                      'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
+    writer_aliases = {'fileswriter': 'IPython.nbconvert.writers.files.FilesWriter',
+                      'debugwriter': 'IPython.nbconvert.writers.debug.DebugWriter',
+                      'stdoutwriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
     writer_factory = Type()
 
     def _writer_class_changed(self, name, old, new):
-        if new in self.writer_aliases:
-            new = self.writer_aliases[new]
+        if new.lower() in self.writer_aliases:
+            new = self.writer_aliases[new.lower()]
         self.writer_factory = import_item(new)
 
     # Post-processor specific variables
@@ -172,13 +172,13 @@ class NbConvertApp(BaseIPythonApplication):
     post_processor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    post_processor_aliases = {'PDF': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor',
+    post_processor_aliases = {'pdf': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor',
                               'serve': 'IPython.nbconvert.post_processors.serve.ServePostProcessor'}
     post_processor_factory = Type()
 
     def _post_processor_class_changed(self, name, old, new):
-        if new in self.post_processor_aliases:
-            new = self.post_processor_aliases[new]
+        if new.lower() in self.post_processor_aliases:
+            new = self.post_processor_aliases[new.lower()]
         if new:
             self.post_processor_factory = import_item(new)
 
