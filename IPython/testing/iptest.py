@@ -272,6 +272,7 @@ def make_exclude():
                            ])
 
     if not have['zmq']:
+        exclusions.append(ipjoin('lib', 'kernel'))
         exclusions.append(ipjoin('kernel'))
         exclusions.append(ipjoin('qt'))
         exclusions.append(ipjoin('html'))
