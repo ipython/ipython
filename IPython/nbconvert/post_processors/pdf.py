@@ -30,7 +30,7 @@ class PDFPostProcessor(PostProcessorBase):
         How many times pdflatex will be called.
         """)
 
-    command = List(["pdflatex", "{filename}"], config=True, help="""
+    command = List(["pdflatex", "--interaction=batchmode", "{filename}"], config=True, help="""
         Shell command used to compile PDF.""")
 
     verbose = Bool(False, config=True, help="""

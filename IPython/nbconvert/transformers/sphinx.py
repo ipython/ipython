@@ -168,7 +168,7 @@ class SphinxTransformer(Transformer):
             resources["sphinx"]["header"] = self.use_headers
             
         # Find and pass in the path to the Sphinx dependencies.
-        resources["sphinx"]["texinputs"] = os.path.realpath(os.path.join(sphinx.__file__, "..", "texinputs"))
+        resources["sphinx"]["texinputs"] = os.path.realpath(os.path.join(sphinx.package_dir, "texinputs"))
         
         # Generate Pygments definitions for Latex 
         resources["sphinx"]["pygment_definitions"] = self._generate_pygments_latex_def()
