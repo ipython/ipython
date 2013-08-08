@@ -30,7 +30,7 @@ class PDFPostProcessor(PostProcessorBase):
         How many times pdflatex will be called.
         """)
 
-    command = List(["pdflatex", "--interaction=batchmode", "{filename}"], config=True, help="""
+    command = List(["pdflatex", "{filename}"], config=True, help="""
         Shell command used to compile PDF.""")
 
     verbose = Bool(False, config=True, help="""
@@ -43,9 +43,16 @@ class PDFPostProcessor(PostProcessorBase):
             See files.py for more...
             """        
             command = [c.format(filename=input) for c in self.command]
-            self.log.info("Building PDF: `%s`", ' '.join(command))
-            with open(os.devnull, 'wb') as null:
-                stdout = null if not self.verbose else None
+            self.log.info("Building PDF: %s", command)
+            with open(os.devnull, 'rb') as null:
+                stdout = subprocess.PIPE if not self.verbose else None
                 for index in range(self.iteration_count):
-                    p = subprocess.Popen(command, stdout=stdout)
-                    p.wait()
+                    p = subprocess.Popen(command, stdout=stdout, stdin=null)
+                    out, err = p.communicate()
+                    if p.returncode:
+                        if self.verbose:
+                            out = u''
+                        else:
+                            out = out.decode('utf-8', 'replace')
+                        self.log.critical(u"PDF conversion failed: %s\n%s", command, out)
+                        return
