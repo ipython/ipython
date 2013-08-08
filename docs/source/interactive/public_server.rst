@@ -1,13 +1,16 @@
 .. _working_remotely.txt
 
-Working remotely
-================
+Running a notebook server
+=========================
 
 
-The IPython Notebook web app is based on a server-client structure. 
-This server uses a two-process kernel architecture based on ZeroMQ_, as well
-as Tornado_ for serving HTTP requests. Other clients may connect to the same 
-underlying IPython kernel; see below.
+The  :ref:`IPython notebook <htmlnotebook>` web-application is based on a
+server-client structure.  This server uses a :ref:`two-process kernel
+architecture <ipythonzmq>` based on ZeroMQ_, as well as Tornado_ for serving
+HTTP requests. By default, a notebook server runs on http://127.0.0.1:8888/
+and is accessible only from `localhost`. This document describes how you can
+:ref:`secure a notebook server <notebook_security>` and how to :ref:`run it on
+a public interface <notebook_public_server>`.
 
 .. _ZeroMQ: http://zeromq.org
 
@@ -16,10 +19,10 @@ underlying IPython kernel; see below.
 
 .. _notebook_security:
 
-Security
---------
+Notebook security
+-----------------
 
-You can protect your Notebook server with a simple single password by
+You can protect your notebook server with a simple single password by
 setting the :attr:`NotebookApp.password` configurable. You can prepare a
 hashed password using the function :func:`IPython.lib.security.passwd`:
 
@@ -65,8 +68,7 @@ self-signed.  If you want to have a fully compliant certificate that will not
 raise warnings, it is possible (but rather involved) to obtain one,
 as explained in detail in `this tutorial`__.
 
-.. __: http://arstechnica.com/security/news/2009/12/how-to-get-set-with-a-
-secure-sertificate-for-free.ars
+.. __: http://arstechnica.com/security/news/2009/12/how-to-get-set-with-a-secure-sertificate-for-free.ars
 	
 Keep in mind that when you enable SSL support, you will need to access the
 notebook server over ``https://``, not over plain ``http://``.  The startup
@@ -74,32 +76,7 @@ message from the server prints this, but it is easy to overlook and think the
 server is for some reason non-responsive.
 
 
-Connecting to an existing kernel
----------------------------------
-
-The notebook server always prints to the terminal the full details of 
-how to connect to each kernel, with messages such as the following::
-
-    [IPKernelApp] To connect another client to this kernel, use:
-    [IPKernelApp] --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
-
-This long string is the name of a JSON file that contains all the port and 
-validation information necessary to connect to the kernel.  You can then, for 
-example, manually start a Qt console connected to the *same* kernel with::
-
-    $ ipython qtconsole --existing 
-    kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
-
-If you have only a single kernel running, simply typing::
-
-    $ ipython qtconsole --existing
-
-will automatically find it. (It will always find the most recently 
-started kernel if there is more than one.)  You can also request this 
-connection data by typing ``%connect_info``; this will print the same 
-file information as well as the content of the JSON data structure it 
-contains.
-
+.. _notebook_public_server:
 
 Running a public notebook server
 --------------------------------
@@ -152,8 +129,8 @@ modifying ``ipython_notebook_config.py``)::
 Using a different notebook store
 --------------------------------
 
-By default, the Notebook app stores the notebook documents that it saves as 
-files in the working directory of the Notebook app, also known as the 
+By default, the notebook server stores the notebook documents that it saves as 
+files in the working directory of the notebook server, also known as the
 ``notebook_dir``. This  logic is implemented in the 
 :class:`FileNotebookManager` class. However, the server can be configured to 
 use a different notebook manager class, which can 
@@ -178,9 +155,9 @@ Known issues
 ------------
 
 When behind a proxy, especially if your system or browser is set to autodetect
-the proxy, the Notebook app might fail to connect to the server's websockets,
-and present you with a warning at startup. In this case, you need to configure
-your system not to use the proxy for the server's address.
+the proxy, the notebook web application might fail to connect to the server's
+websockets, and present you with a warning at startup. In this case, you need
+to configure your system not to use the proxy for the server's address.
 
 For example, in Firefox, go to the Preferences panel, Advanced section,
 Network tab, click 'Settings...', and add the address of the notebook server
