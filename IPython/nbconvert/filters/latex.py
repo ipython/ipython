@@ -13,8 +13,7 @@ Module of useful filters for processing Latex within Jinja latex templates.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
-from ansi import strip_ansi
+import re
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -27,14 +26,12 @@ LATEX_SUBS = {
     '%':  r'\%', 
     '$':  r'\$', 
     '#':  r'\#', 
-    '_':  r'\_', 
-    '{':  r'\{', 
-    '}':  r'\}',
-    '~':  r'\textasciitilde{}', 
-    '^':  r'\^{}', 
-    '\\': r'\textbackslash{}',
-    '...': r'\ldots{}',
-}
+    '_':  r'\letterunderscore{}', 
+    '{':  r'\letteropenbrace{}', 
+    '}':  r'\letterclosebrace{}',
+    '~':  r'\lettertilde{}', 
+    '^':  r'\letterhat{}', 
+    '\\': r'\letterbackslash{}'}
 
 
 #-----------------------------------------------------------------------------
@@ -46,7 +43,7 @@ __all__ = ['escape_latex',
 
 def escape_latex(text):
     """
-    Remove ansi codes and escape characters that may conflict with latex.
+    Escape characters that may conflict with latex.
 
     Parameters
     ----------
@@ -54,14 +51,7 @@ def escape_latex(text):
         Text containing characters that may conflict with Latex
     """
 
-    # Remove the ansi coloring from the text and then escape it.  Escape single
-    # characters first and then multiple characters.
-    text = strip_ansi(text)
-    text = ''.join([LATEX_SUBS.get(c, c) for c in text])
-    for search, replace in LATEX_SUBS.items():
-        if len(search) > 1:
-            text = text.replace(search,replace)
-    return text
+    return ''.join([LATEX_SUBS.get(c, c) for c in text])
     
     
 def strip_math_space(text):

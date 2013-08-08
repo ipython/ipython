@@ -28,10 +28,9 @@ class TestLatex(TestsBase):
     def test_escape_latex(self):
         """escape_latex test"""
         tests = [
-            (r'How are \you doing today?', r'How are \textbackslash{}you doing today?'),
-            (r'\escapechar=`\A\catcode`\|=0 |string|foo', r'\textbackslash{}escapechar=`\textbackslash{}A\textbackslash{}catcode`\textbackslash{}|=0 |string|foo'),
-            (r'# $ % & ~ _ ^ \ { }', r'\# \$ \% \& \textasciitilde{} \_ \^{} \textbackslash{} \{ \}'),
-            (r"This SHOULD work...  If not, I'm wrong.", "This SHOULD work\ldots{}  If not, I'm wrong."),
+            (r'How are \you doing today?', r'How are \letterbackslash{}you doing today?'),
+            (r'\escapechar=`\A\catcode`\|=0 |string|foo', r'\letterbackslash{}escapechar=`\letterbackslash{}A\letterbackslash{}catcode`\letterbackslash{}|=0 |string|foo'),
+            (r'# $ % & ~ _ ^ \ { }', r'\# \$ \% \& \lettertilde{} \letterunderscore{} \letterhat{} \letterbackslash{} \letteropenbrace{} \letterclosebrace{}'),
             ('','')]
 
         for test in tests:
