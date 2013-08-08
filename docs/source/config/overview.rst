@@ -4,27 +4,12 @@
 Overview of the IPython configuration system
 ============================================
 
-This section describes the IPython configuration system. Starting with version
-0.11, IPython has a completely new configuration system that is quite
-different from the older :file:`ipythonrc` or :file:`ipy_user_conf.py`
-approaches. The new configuration system was designed from scratch to address
-the particular configuration needs of IPython. While there are many
-other excellent configuration systems out there, we found that none of them
-met our requirements.
+This section describes the IPython configuration system. 
 
-.. warning::
-
-    If you are upgrading to version 0.11 of IPython, you will need to migrate
-    your old :file:`ipythonrc` or :file:`ipy_user_conf.py` configuration files
-    to the new system. You may want to read the section on 
-    :ref:`configuring IPython <configuring_ipython>`. There are also some ideas
-    `on the IPython wiki <http://wiki.ipython.org/Cookbook/Moving_config_to_IPython_0.11>`_
-    about this.
-
-The discussion that follows is focused on teaching users how to configure
-IPython to their liking.  Developers who want to know more about how they
-can enable their objects to take advantage of the configuration system
-should consult our :ref:`developer guide <developer_guide>`
+The following discussion is for users who want to configure
+IPython to their liking.  Developers who want to know how they can
+enable their objects to take advantage of the configuration system
+should consult the :ref:`developer guide <developer_guide>`
 
 The main concepts
 =================
@@ -317,7 +302,7 @@ overridden by the ``config_file`` command line flag.
 
 To generate the default configuration files, do::
 
-    $> ipython profile create
+    $ ipython profile create
 
 and you will have a default :file:`ipython_config.py` in your IPython directory
 under :file:`profile_default`. If you want the default config files for the
@@ -333,10 +318,10 @@ profile with:
 
 .. sourcecode:: bash
 
-    $> ipython locate
+    $ ipython locate
     /home/you/.ipython
     
-    $> ipython locate profile foo
+    $ ipython locate profile foo
     /home/you/.ipython/profile_foo
 
 These map to the utility functions: :func:`IPython.utils.path.get_ipython_dir`
@@ -371,7 +356,7 @@ The general pattern is this: simply create a new profile with:
 
 .. code-block:: bash
 
-    ipython profile create <name>
+    $ ipython profile create <name>
 
 which adds a directory called ``profile_<name>`` to your IPython directory. Then
 you can load this profile by adding ``--profile=<name>`` to your command line
@@ -399,18 +384,14 @@ name.
 Startup Files
 -------------
 
-If you want some code to be run at the beginning of every IPython session with a
-particular profile, the easiest way is to add Python (.py) or IPython (.ipy) scripts
-to your :file:`<profile>/startup` directory. Files in this directory will always be
-executed as soon as the IPython shell is constructed, and before any other code or
-scripts you have specified. If you have multiple files in the startup directory,
-they will be run in lexicographical order, so you can control the ordering by adding
-a '00-' prefix.
-
-.. note::
-
-    Automatic startup files are new in IPython 0.12. Use the
-    InteractiveShellApp.exec_files configurable for similar behavior in 0.11.
+If you want some code to be run at the beginning of every IPython session with
+a particular profile, the easiest way is to add Python (``.py``) or 
+IPython (``.ipy``) scripts to your :file:`<profile>/startup` directory. Files
+in this directory will always be executed as soon as the IPython shell is 
+constructed, and before any other code or scripts you have specified. If you 
+have multiple files in the startup directory, they will be run in 
+lexicographical order, so you can control the ordering by adding a '00-' 
+prefix.
 
 
 .. _commandline:
@@ -429,7 +410,7 @@ object.  Values are assigned in much the same way as in a config file:
 
 .. code-block:: bash
 
-    $> ipython --InteractiveShell.use_readline=False --BaseIPythonApplication.profile='myprofile'
+    $ ipython --InteractiveShell.use_readline=False --BaseIPythonApplication.profile='myprofile'
 
 Is the same as adding:
 
@@ -453,7 +434,7 @@ that are single characters, in which case they can be specified with a single ``
 
 .. code-block:: bash
 
-    $> ipython -i -c "import numpy; x=numpy.linspace(0,1)" --profile testing --colors=lightbg
+    $ ipython -i -c "import numpy; x=numpy.linspace(0,1)" --profile testing --colors=lightbg
 
 Aliases
 *******
@@ -463,11 +444,11 @@ to specify the whole class name:
 
 .. code-block:: bash
 
-    $> ipython --profile myprofile
+    $ ipython --profile myprofile
     # and
-    $> ipython --profile='myprofile'
+    $ ipython --profile='myprofile'
     # are equivalent to
-    $> ipython --BaseIPythonApplication.profile='myprofile'
+    $ ipython --BaseIPythonApplication.profile='myprofile'
 
 Flags
 *****
@@ -480,17 +461,17 @@ For instance:
 
 .. code-block:: bash
 
-    $> ipcontroller --debug
+    $ ipcontroller --debug
     # is equivalent to
-    $> ipcontroller --Application.log_level=DEBUG
+    $ ipcontroller --Application.log_level=DEBUG
     # and
-    $> ipython --matploitlib
+    $ ipython --matploitlib
     # is equivalent to
-    $> ipython --matplotlib auto
+    $ ipython --matplotlib auto
     # or
-    $> ipython --no-banner
+    $ ipython --no-banner
     # is equivalent to
-    $> ipython --TerminalIPythonApp.display_banner=False
+    $ ipython --TerminalIPythonApp.display_banner=False
 
 Subcommands
 -----------
@@ -502,14 +483,14 @@ Some IPython applications have **subcommands**. Subcommands are modeled after
 
 .. code-block:: bash
 
-    $> ipython qtconsole --profile myprofile
+    $ ipython qtconsole --profile myprofile
 
 and :command:`ipcluster` is simply a wrapper for its various subcommands (start,
 stop, engines).
 
 .. code-block:: bash
 
-    $> ipcluster start --profile=myprofile -n 4
+    $ ipcluster start --profile=myprofile -n 4
 
 
 To see a list of the available aliases, flags, and subcommands for an IPython application, simply pass ``-h`` or ``--help``.  And to see the full list of configurable options (*very* long), pass ``--help-all``.
