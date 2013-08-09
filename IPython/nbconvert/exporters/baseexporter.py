@@ -51,11 +51,11 @@ class BaseExporter(LoggingConfigurable):
     reading a notebook from different sources.
 
     """
-    
+
     # finish the docstring
 
     file_extension = Unicode(
-        'txt', config=True, 
+        'txt', config=True,
         help="Extension of the file that should be written to disk"
         )
 
@@ -73,14 +73,14 @@ class BaseExporter(LoggingConfigurable):
                                  nbtransformers.LatexTransformer,
                                  nbtransformers.SphinxTransformer],
         config=True,
-        help="""List of transformers available by default, by name, namespace, 
+        help="""List of transformers available by default, by name, namespace,
         instance, or type.""")
 
 
     def __init__(self, config=None, **kw):
         """
         Public constructor
-    
+
         Parameters
         ----------
         config : config
@@ -88,7 +88,7 @@ class BaseExporter(LoggingConfigurable):
         """
         if not config:
             config = self.default_config
-        
+
         super(BaseExporter, self).__init__(config=config, **kw)
 
         #Init
@@ -98,7 +98,7 @@ class BaseExporter(LoggingConfigurable):
     @property
     def default_config(self):
         return Config()
-    
+
     def _config_changed(self, name, old, new):
         """When setting config, make sure to start with our default_config"""
         c = self.default_config
@@ -112,12 +112,12 @@ class BaseExporter(LoggingConfigurable):
     def from_notebook_node(self, nb, resources=None):
         """
         Convert a notebook from a notebook node instance.
-    
+
         Parameters
         ----------
         nb : Notebook node
-        resources : dict (**kw) 
-            of additional resources that can be accessed read/write by 
+        resources : dict (**kw)
+            of additional resources that can be accessed read/write by
             transformers.
         """
         nb_copy = copy.deepcopy(nb)
@@ -132,7 +132,7 @@ class BaseExporter(LoggingConfigurable):
     def from_filename(self, filename, resources=None, **kw):
         """
         Convert a notebook from a notebook file.
-    
+
         Parameters
         ----------
         filename : str
@@ -150,7 +150,7 @@ class BaseExporter(LoggingConfigurable):
 
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
         resources['metadata']['modified_date'] = modified_date.strftime("%B %d, %Y")
-        
+
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources, **kw)
 
@@ -158,7 +158,7 @@ class BaseExporter(LoggingConfigurable):
     def from_file(self, file_stream, resources=None, **kw):
         """
         Convert a notebook from a notebook file.
-    
+
         Parameters
         ----------
         file_stream : file-like object
@@ -174,7 +174,7 @@ class BaseExporter(LoggingConfigurable):
         passed into the Jinja templating engine.  Transformers are also
         capable of passing additional information to the Jinja
         templating engine.
-    
+
         Parameters
         ----------
         transformer : transformer
@@ -190,7 +190,7 @@ class BaseExporter(LoggingConfigurable):
             #this register_transformer method
             transformer_cls = import_item(transformer)
             return self.register_transformer(transformer_cls, enabled)
-        
+
         if constructed and hasattr(transformer, '__call__'):
             #Transformer is a function, no need to construct it.
             #Register and return the transformer.
@@ -200,7 +200,7 @@ class BaseExporter(LoggingConfigurable):
             return transformer
 
         elif isclass and isinstance(transformer, MetaHasTraits):
-            #Transformer is configurable.  Make sure to pass in new default for 
+            #Transformer is configurable.  Make sure to pass in new default for
             #the enabled flag if one was specified.
             self.register_transformer(transformer(parent=self), enabled)
 
@@ -209,8 +209,8 @@ class BaseExporter(LoggingConfigurable):
             self.register_transformer(transformer(), enabled)
 
         else:
-            #Transformer is an instance of something without a __call__ 
-            #attribute.  
+            #Transformer is an instance of something without a __call__
+            #attribute.
             raise TypeError('transformer')
 
 
@@ -231,7 +231,7 @@ class BaseExporter(LoggingConfigurable):
         if self.transformers:
             for transformer in self.transformers:
                 self.register_transformer(transformer, enabled=True)
- 
+
 
     def _init_resources(self, resources):
 
@@ -241,7 +241,7 @@ class BaseExporter(LoggingConfigurable):
         if not isinstance(resources, ResourcesDict):
             new_resources = ResourcesDict()
             new_resources.update(resources)
-            resources = new_resources 
+            resources = new_resources
 
         #Make sure the metadata extension exists in resources
         if 'metadata' in resources:
@@ -249,19 +249,19 @@ class BaseExporter(LoggingConfigurable):
                 resources['metadata'] = ResourcesDict(resources['metadata'])
         else:
             resources['metadata'] = ResourcesDict()
-            if not resources['metadata']['name']: 
+            if not resources['metadata']['name']:
                 resources['metadata']['name'] = 'Notebook'
 
         #Set the output extension
         resources['output_extension'] = self.file_extension
         return resources
-        
+
 
     def _transform(self, nb, resources):
         """
         Preprocess the notebook before passing it into the Jinja engine.
-        To preprocess the notebook is to apply all of the 
-    
+        To preprocess the notebook is to apply all of the
+
         Parameters
         ----------
         nb : notebook node
@@ -269,8 +269,8 @@ class BaseExporter(LoggingConfigurable):
         resources : a dict of additional resources that
             can be accessed read/write by transformers
         """
-        
-        # Do a copy.deepcopy first, 
+
+        # Do a copy.deepcopy first,
         # we are never safe enough with what the transformers could do.
         nbc =  copy.deepcopy(nb)
         resc = copy.deepcopy(resources)
