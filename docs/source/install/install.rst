@@ -342,7 +342,7 @@ Dependencies for the IPython HTML notebook
 ==========================================
 
 The IPython notebook is a notebook-style web interface to IPython and can be
-started withe command ``ipython notebook``.
+started with the command ``ipython notebook``.
 
 pyzmq
 -----

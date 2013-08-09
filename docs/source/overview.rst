@@ -18,9 +18,9 @@ interactive and exploratory computing.  To support this goal, IPython
 has three main components:
 
 * An enhanced interactive Python shell.
-* A decoupled two-process communication model, which allows for multiple
-  clients to connect to a computation kernel, most notably the web-based
-  :ref:`notebook <htmlnotebook>`
+* A decoupled :ref:`two-process communication model <ipythonzmq>`, which
+  allows for multiple clients to connect to a computation kernel, most notably
+  the web-based :ref:`notebook <htmlnotebook>`
 * An architecture for interactive parallel computing.
 
 All of IPython is open source (released under the revised BSD license).
@@ -197,7 +197,7 @@ Decoupled two-process model
 
 IPython has abstracted and extended the notion of a traditional
 *Read-Evaluate-Print Loop* (REPL) environment by decoupling the *evaluation*
-into its own process. We call this process a kernel: it receives execution
+into its own process. We call this process a **kernel**: it receives execution
 instructions from clients and communicates the results back to them.
 
 This decoupling allows us to have several clients connected to the same
@@ -221,6 +221,10 @@ You can read more about using :ref:`ipython qtconsole <qtconsole>`, and
 :ref:`ipython notebook <htmlnotebook>`. There is also a :ref:`message spec
 <messaging>` which documents the protocol for communication between kernels
 and clients.
+
+.. seealso::
+    
+    `Frontend/Kernel Model`_ example notebook
 
 
 Interactive parallel computing
@@ -283,3 +287,4 @@ IPython is known to work on the following operating systems:
 
 See :ref:`here <install_index>` for instructions on how to install IPython.
 
+.. include:: links.txt
