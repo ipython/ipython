@@ -171,7 +171,7 @@ IPython.utils = (function (IPython) {
         "40":"ansibgblack",
         "41":"ansibgred",
         "42":"ansibggreen",
-        "44":"ansibgyellow",
+        "43":"ansibgyellow",
         "44":"ansibgblue",
         "45":"ansibgpurple",
         "46":"ansibgcyan",
