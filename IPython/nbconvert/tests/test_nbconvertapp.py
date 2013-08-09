@@ -48,7 +48,7 @@ class TestNbConvertApp(TestsBase):
         Do search patterns work for notebook names?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            self.call('nbconvert --to="python" --notebooks=\'["*.ipynb"]\' --log-level=0')
+            self.call('nbconvert --to="python" --notebooks="[\'*.ipynb\']" --log-level=0')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -60,7 +60,7 @@ class TestNbConvertApp(TestsBase):
         with self.create_temp_cwd():
             self.copy_files_to(['notebook*.ipynb'], 'subdir/')
             self.call('nbconvert --to="python" --log-level=0 --notebooks='
-                      '\'["%s"]\'' % os.path.join('subdir', '*.ipynb'))
+                      '"[\'%s\']"' % os.path.join('subdir', '*.ipynb'))
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -71,7 +71,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call('nbconvert --log-level=0 --to="python" --notebooks='
-                      '\'["notebook2.ipynb"]\'')
+                      '"[\'notebook2.ipynb\']"')
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -110,7 +110,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook2.ipynb']):
             self.call('nbconvert --log-level=0 --to=slides --notebooks='
-                      '\'["notebook2.ipynb"]\' --template=reveal')
+                      '"[\'notebook2.ipynb\']" --template=reveal')
             assert os.path.isfile('notebook2.slides.html')
             with open('notebook2.slides.html') as f:
                 assert '/reveal.css' in f.read()
@@ -122,7 +122,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call('nbconvert --log-level=0 --to="python" --notebooks='
-                      '\'["*.ipynb","notebook1.ipynb","notebook2.ipynb"]\'')
+                      '"[\'*.ipynb\',\'notebook1.ipynb\',\'notebook2.ipynb\']"')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -133,7 +133,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             self.call('nbconvert --log-level=0 --to="python" --notebooks='
-                      '\'["notebook1.ipynb","notebook2.ipynb","*.ipynb"]\'')
+                      '"[\'notebook1.ipynb\',\'notebook2.ipynb\',\'*.ipynb\']"')
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
