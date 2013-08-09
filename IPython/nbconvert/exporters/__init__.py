@@ -6,3 +6,4 @@ from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
 from .rst import RSTExporter
+from .baseexporter import BaseExporter
