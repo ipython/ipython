@@ -6,12 +6,11 @@ Issues closed in the 1.0 development cycle
 Issues closed in 1.0
 --------------------
 
-
-GitHub stats for 2012/06/30 - 2013/08/02 (since 0.13)
+GitHub stats for 2012/06/30 - 2013/08/08 (since 0.13)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-The following 153 authors contributed 4157 commits.
+The following 155 authors contributed 4258 commits.
 
 * Aaron Meurer
 * Adam Davis
@@ -19,6 +18,7 @@ The following 153 authors contributed 4157 commits.
 * Alberto Valverde
 * Allen Riddell
 * Anders Hovmöller
+* Andrea Bedini
 * Andrew Spiers
 * Andrew Vandever
 * Anthony Scopatz
@@ -127,6 +127,7 @@ The following 153 authors contributed 4157 commits.
 * Piti Ongmongkolkul
 * Puneeth Chaganti
 * Rich Wareham
+* Richard Everson
 * Rick Lupton
 * Rob Young
 * Robert Kern
@@ -167,12 +168,41 @@ The following 153 authors contributed 4157 commits.
 * Zoltán Vörös
 
 
-We closed a total of 1426 issues, 764 pull requests and 662 regular issues;
+We closed a total of 1484 issues, 793 pull requests and 691 regular issues;
 this is the full list (generated with the script 
 :file:`tools/github_stats.py`):
 
-Pull Requests (764):
+Pull Requests (793):
 
+* :ghpull:`3958`: doc update
+* :ghpull:`3965`: Fix ansi color code for background yellow
+* :ghpull:`3964`: Fix casing of message.
+* :ghpull:`3942`: Pass on install docs
+* :ghpull:`3962`: exclude IPython.lib.kernel in iptest
+* :ghpull:`3961`: Longpath test fix
+* :ghpull:`3905`: Remove references to 0.11 and 0.12 from config/overview.rst
+* :ghpull:`3951`: nbconvert: fixed latex characters not escaped properly in nbconvert
+* :ghpull:`3949`: log fatal error when PDF conversion fails
+* :ghpull:`3947`: nbconvert: Make writer & post-processor aliases case insensitive.
+* :ghpull:`3938`: Recompile css.
+* :ghpull:`3948`: sphinx and PDF tweaks
+* :ghpull:`3943`: nbconvert: Serve post-processor Windows fix
+* :ghpull:`3934`: nbconvert: fix logic of verbose flag in PDF post processor
+* :ghpull:`3929`: swallow enter event in rename dialog
+* :ghpull:`3924`: nbconvert: Backport fixes
+* :ghpull:`3925`: Replace --pylab flag with --matplotlib in usage
+* :ghpull:`3910`: Added explicit error message for missing configuration arguments.
+* :ghpull:`3913`: grffile to support spaces in notebook names
+* :ghpull:`3918`: added check_for_tornado, closes #3916
+* :ghpull:`3917`: change docs/examples refs to be just examples
+* :ghpull:`3908`: what's new tweaks
+* :ghpull:`3896`: two column quickhelp dialog, closes #3895
+* :ghpull:`3911`: explicitly load python mode before IPython mode
+* :ghpull:`3901`: don't force . relative path, fix #3897
+* :ghpull:`3891`: fix #3889
+* :ghpull:`3892`: Fix documentation of Kernel.stop_channels
+* :ghpull:`3888`: posixify paths for Windows latex
+* :ghpull:`3882`: quick fix for #3881
 * :ghpull:`3877`: don't use `shell=True` in PDF export
 * :ghpull:`3878`: minor template loading cleanup
 * :ghpull:`3855`: nbconvert: Filter tests
@@ -938,8 +968,37 @@ Pull Requests (764):
 * :ghpull:`2061`: use explicit tuple in exception
 * :ghpull:`2060`: change minus to \- or \(hy in manpages
 
-Issues (662):
+Issues (691):
 
+* :ghissue:`3940`: Install process documentation overhaul 
+* :ghissue:`3946`: The PDF option for `--post` should work with lowercase 
+* :ghissue:`3957`: Notebook help page broken in Firefox
+* :ghissue:`3894`: nbconvert test failure
+* :ghissue:`3887`: 1.0.0a1 shows blank screen in both firefox and chrome (windows 7)
+* :ghissue:`3703`: `nbconvert`: Output options -- names and documentataion
+* :ghissue:`3931`: Tab completion not working during debugging in the notebook
+* :ghissue:`3936`: Ipcluster plugin is not working with Ipython 1.0dev
+* :ghissue:`3941`: IPython Notebook kernel crash on Win7x64
+* :ghissue:`3926`: Ending Notebook renaming dialog with return creates new-line
+* :ghissue:`3932`: Incorrect empty docstring
+* :ghissue:`3928`: Passing variables to script from the workspace
+* :ghissue:`3774`: Notebooks with spaces in their names breaks nbconvert latex graphics
+* :ghissue:`3916`: tornado needs its own check
+* :ghissue:`3915`: Link to Parallel examples "found on GitHub" broken in docs
+* :ghissue:`3895`: Keyboard shortcuts box in notebook doesn't fit the screen
+* :ghissue:`3912`: IPython.utils fails automated test for RC1 1.0.0
+* :ghissue:`3636`: Code cell missing highlight on load
+* :ghissue:`3897`: under Windows, "ipython3 nbconvert "C:/blabla/first_try.ipynb" --to latex --post PDF" POST processing action fails because of a bad parameter
+* :ghissue:`3900`: python3 install syntax errors (OS X 10.8.4)
+* :ghissue:`3899`: nbconvert to latex fails on notebooks with spaces in file name
+* :ghissue:`3881`: Temporary Working Directory Test Fails
+* :ghissue:`2750`: A way to freeze code cells in the notebook
+* :ghissue:`3893`: Resize Local Image Files in Notebook doesn't work
+* :ghissue:`3823`: nbconvert on windows: tex and paths
+* :ghissue:`3885`: under Windows, "ipython3 nbconvert "C:/blabla/first_try.ipynb" --to latex" write "\" instead of "/" to reference file path in the .tex file
+* :ghissue:`3889`: test_qt fails due to assertion error 'qt4' != 'qt'
+* :ghissue:`3890`: double post, disregard this issue
+* :ghissue:`3689`: nbconvert, remaining tests
 * :ghissue:`3874`: Up/Down keys don't work to "Search previous command history" (besides Ctrl-p/Ctrl-n)
 * :ghissue:`3853`: CodeMirror locks up in the notebook
 * :ghissue:`3862`: can only connect to an ipcluster started with v1.0.0-dev (master branch) using an older ipython (v0.13.2), but cannot connect using ipython (v1.0.0-dev)
