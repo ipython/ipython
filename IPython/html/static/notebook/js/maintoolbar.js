@@ -10,6 +10,7 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
 
     var MainToolBar = function (selector) {
         IPython.ToolBar.apply(this, arguments);

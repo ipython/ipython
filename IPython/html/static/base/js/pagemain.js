@@ -11,6 +11,7 @@
 
 
 $(document).ready(function () {
+    "use strict";
 
     IPython.page = new IPython.Page();
     IPython.page.show();

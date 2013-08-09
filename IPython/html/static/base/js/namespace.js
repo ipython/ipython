@@ -8,6 +8,8 @@
 var IPython = IPython || {};
 
 IPython.namespace = function (ns_string) {
+    "use strict";
+
     var parts = ns_string.split('.'),
         parent = IPython,
         i;

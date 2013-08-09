@@ -10,6 +10,7 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
 
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;

@@ -17,6 +17,7 @@
 
 
 var IPython = (function (IPython) {
+    "use strict";
 
     /**
      * A MenuBar Class to generate the menubar of IPython noteboko
