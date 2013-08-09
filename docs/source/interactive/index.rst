@@ -12,6 +12,6 @@ Using IPython for interactive work
    qtconsole
    notebook
    nbconvert
-   working_remotely
+   public_server
 
 

@@ -8,11 +8,26 @@ You don't need to know anything beyond Python to start using IPython – just ty
 commands as you would at the standard Python prompt. But IPython can do much
 more than the standard prompt. Some key features are described here. For more
 information, check the :ref:`tips page <tips>`, or look at examples in the
-`IPython cookbook <http://wiki.ipython.org/index.php?title=Cookbook>`_.
+`IPython cookbook <https://github.com/ipython/ipython/wiki/Cookbook%3A-Index>`_.
 
 If you've never used Python before, you might want to look at `the official
 tutorial <http://docs.python.org/tutorial/>`_ or an alternative, `Dive into
 Python <http://diveintopython.org/toc/index.html>`_.
+
+The four most helpful commands 
+===============================
+
+The four most helpful commands, as well as their brief description, is shown
+to you in a banner, every time you start IPython:
+
+==========    =========================================================
+command       description
+==========    =========================================================
+?             Introduction and overview of IPython's features.
+%quickref     Quick reference.
+help          Python's own help system.
+object?       Details about 'object', use 'object??' for extra details.
+==========    =========================================================
 
 Tab completion
 ==============
@@ -31,16 +46,19 @@ including docstrings, function definition lines (for call arguments) and
 constructor details for classes. To get specific information on an object, you
 can use the magic commands ``%pdoc``, ``%pdef``, ``%psource`` and ``%pfile``
 
+.. _magics_explained:
+
 Magic functions
 ===============
 
 IPython has a set of predefined 'magic functions' that you can call with a
 command line style syntax.  There are two kinds of magics, line-oriented and
-cell-oriented.  Line magics are prefixed with the ``%`` character and work much
+cell-oriented.  **Line magics** are prefixed with the ``%`` character and work much
 like OS command-line calls: they get as an argument the rest of the line, where
-arguments are passed without parentheses or quotes.  Cell magics are prefixed
-with a double ``%%``, and they are functions that get as an argument not only
-the rest of the line, but also the lines below it in a separate argument.
+arguments are passed without parentheses or quotes.  **Cell magics** are
+prefixed with a double ``%%``, and they are functions that get as an argument
+not only the rest of the line, but also the lines below it in a separate
+argument.
 
 The following examples show how to call the builtin ``timeit`` magic, both in
 line and cell mode::
@@ -58,34 +76,41 @@ The builtin magics include:
 - Functions that work with code: ``%run``, ``%edit``, ``%save``, ``%macro``,
   ``%recall``, etc.
 - Functions which affect the shell: ``%colors``, ``%xmode``, ``%autoindent``,
-  etc.
-- Other functions such as ``%reset``, ``%timeit`` or ``%paste``.
+  ``%automagic``, etc.
+- Other functions such as ``%reset``, ``%timeit``, ``%%file``, ``%load``, or
+  ``%paste``.
 
-You can always call them using the % prefix, and if you're calling a line magic
-on a line by itself, you can omit even that (cell magics must always have the
-``%%`` prefix)::
+You can always call them using the ``%`` prefix, and if you're calling a line
+magic on a line by itself, you can omit even that::
 
     run thescript.py
+
+You can toggle this behavior by running the ``%automagic`` magic.  Cell magics
+must always have the ``%%`` prefix.
 
 A more detailed explanation of the magic system can be obtained by calling
 ``%magic``, and for more details on any magic function, call ``%somemagic?`` to
 read its docstring. To see all the available magic functions, call
 ``%lsmagic``.
 
+.. seealso::
+
+    `Cell magics`_ example notebook
+
 Running and Editing
 -------------------
 
-The %run magic command allows you to run any python script and load all of its
-data directly into the interactive namespace. Since the file is re-read from
-disk each time, changes you make to it are reflected immediately (unlike
-imported modules, which have to be specifically reloaded). IPython also includes
-:ref:`dreload <dreload>`, a recursive reload function.
+The ``%run`` magic command allows you to run any python script and load all of
+its data directly into the interactive namespace. Since the file is re-read
+from disk each time, changes you make to it are reflected immediately (unlike
+imported modules, which have to be specifically reloaded). IPython also
+includes :ref:`dreload <dreload>`, a recursive reload function.
 
-%run has special flags for timing the execution of your scripts (-t), or for
-running them under the control of either Python's pdb debugger (-d) or
+``%run`` has special flags for timing the execution of your scripts (-t), or
+for running them under the control of either Python's pdb debugger (-d) or
 profiler (-p).
 
-The %edit command gives a reasonable approximation of multiline editing,
+The ``%edit`` command gives a reasonable approximation of multiline editing,
 by invoking your favorite editor on the spot. IPython will execute the
 code you type in there as if it were typed interactively.
 
@@ -153,11 +178,12 @@ visited directories and allows you to go to any previously visited one.
 Configuration
 =============
 
-Much of IPython can be tweaked through configuration. To get started, use the
-command ``ipython profile create`` to produce the default config files. These
-will be placed in :file:`~/.ipython/profile_default` or
-:file:`~/.config/ipython/profile_default`, and contain comments explaining what
-the various options do.
+Much of IPython can be tweaked through :ref:`configuration <config_overview>`.
+To get started, use the command ``ipython profile create`` to produce the
+default config files. These will be placed in
+:file:`~/.ipython/profile_default` or
+:file:`~/.config/ipython/profile_default`, and contain comments explaining
+what the various options do.
 
 Profiles allow you to use IPython for different tasks, keeping separate config
 files and history for each one. More details in :ref:`the profiles section
@@ -173,7 +199,4 @@ as the IPython shell is constructed, before any other code or scripts you have
 specified. The files will be run in order of their names, so you can control the
 ordering with prefixes, like ``10-myimports.py``.
 
-.. note::
-
-    Automatic startup files are new in IPython 0.12. Use InteractiveShellApp.exec_files
-    in :file:`ipython_config.py` for similar behavior in 0.11.
+.. include:: ../links.txt
