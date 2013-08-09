@@ -115,8 +115,10 @@ class LevelFormatter(logging.Formatter):
             record.highlevel = self.highlevel_format % record.__dict__
         else:
             record.highlevel = ""
-        
-        return super(LevelFormatter, self).format(record)
+        if sys.version_info[:2] > (2,6):
+            return super(LevelFormatter, self).format(record)
+        else:
+            return logging.Formatter.format(self, record)
             
 
 class Application(SingletonConfigurable):
