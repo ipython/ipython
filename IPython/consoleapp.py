@@ -49,6 +49,7 @@ from IPython.kernel.zmq.kernelapp import (
 )
 from IPython.kernel.zmq.session import Session, default_secure
 from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.connect import ConnectionFileMixin
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -89,8 +90,8 @@ aliases = dict(kernel_aliases)
 
 # also scrub aliases from the frontend
 app_aliases = dict(
-    ip = 'KernelManager.ip',
-    transport = 'KernelManager.transport',
+    ip = 'IPythonConsoleApp.ip',
+    transport = 'IPythonConsoleApp.transport',
     hb = 'IPythonConsoleApp.hb_port',
     shell = 'IPythonConsoleApp.shell_port',
     iopub = 'IPythonConsoleApp.iopub_port',
@@ -120,7 +121,7 @@ except ImportError:
 else:
     classes.append(InlineBackend)
 
-class IPythonConsoleApp(Configurable):
+class IPythonConsoleApp(ConnectionFileMixin):
     name = 'ipython-console-mixin'
 
     description = """
@@ -254,9 +255,8 @@ class IPythonConsoleApp(Configurable):
         self.log.debug(u"Loading connection file %s", fname)
         with open(fname) as f:
             cfg = json.load(f)
-        
-        self.config.KernelManager.transport = cfg.get('transport', 'tcp')
-        self.config.KernelManager.ip = cfg.get('ip', LOCALHOST)
+        self.transport = cfg.get('transport', 'tcp')
+        self.ip = cfg.get('ip', LOCALHOST)
         
         for channel in ('hb', 'shell', 'iopub', 'stdin'):
             name = channel + '_port'
@@ -272,11 +272,10 @@ class IPythonConsoleApp(Configurable):
         """set up ssh tunnels, if needed."""
         if not self.existing or (not self.sshserver and not self.sshkey):
             return
-        
         self.load_connection_file()
         
-        transport = self.config.KernelManager.transport
-        ip = self.config.KernelManager.ip
+        transport = self.transport
+        ip = self.ip
         
         if transport != 'tcp':
             self.log.error("Can only use ssh tunnels with TCP sockets, not %s", transport)
@@ -298,7 +297,7 @@ class IPythonConsoleApp(Configurable):
         self.log.info("Forwarding connections to %s via %s"%(ip, self.sshserver))
         
         # tunnels return a new set of ports, which will be on localhost:
-        self.config.KernelManager.ip = LOCALHOST
+        self.ip = LOCALHOST
         try:
             newports = tunnel_to_kernel(info, self.sshserver, self.sshkey)
         except:
@@ -337,6 +336,8 @@ class IPythonConsoleApp(Configurable):
 
         # Create a KernelManager and start a kernel.
         self.kernel_manager = self.kernel_manager_class(
+                                ip=self.ip,
+                                transport=self.transport,
                                 shell_port=self.shell_port,
                                 iopub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
@@ -367,6 +368,8 @@ class IPythonConsoleApp(Configurable):
             self.kernel_client = self.kernel_manager.client()
         else:
             self.kernel_client = self.kernel_client_class(
+                                ip=self.ip,
+                                transport=self.transport,
                                 shell_port=self.shell_port,
                                 iopub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
