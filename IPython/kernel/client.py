@@ -147,8 +147,10 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     def shell_channel(self):
         """Get the shell channel object for this kernel."""
         if self._shell_channel is None:
+            url = self._make_url('shell')
+            self.log.debug("connecting shell channel to %s", url)
             self._shell_channel = self.shell_channel_class(
-                self.context, self.session, self._make_url('shell')
+                self.context, self.session, url
             )
         return self._shell_channel
 
@@ -156,8 +158,10 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     def iopub_channel(self):
         """Get the iopub channel object for this kernel."""
         if self._iopub_channel is None:
+            url = self._make_url('iopub')
+            self.log.debug("connecting iopub channel to %s", url)
             self._iopub_channel = self.iopub_channel_class(
-                self.context, self.session, self._make_url('iopub')
+                self.context, self.session, url
             )
         return self._iopub_channel
 
@@ -165,8 +169,10 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     def stdin_channel(self):
         """Get the stdin channel object for this kernel."""
         if self._stdin_channel is None:
+            url = self._make_url('stdin')
+            self.log.debug("connecting stdin channel to %s", url)
             self._stdin_channel = self.stdin_channel_class(
-                self.context, self.session, self._make_url('stdin')
+                self.context, self.session, url
             )
         return self._stdin_channel
 
@@ -174,8 +180,10 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     def hb_channel(self):
         """Get the hb channel object for this kernel."""
         if self._hb_channel is None:
+            url = self._make_url('hb')
+            self.log.debug("connecting heartbeat channel to %s", url)
             self._hb_channel = self.hb_channel_class(
-                self.context, self.session, self._make_url('hb')
+                self.context, self.session, url
             )
         return self._hb_channel
 
