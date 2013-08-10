@@ -38,6 +38,9 @@ from IPython.utils import py3compat
 
 from IPython.nbconvert import transformers as nbtransformers
 from IPython.nbconvert import filters
+from IPython.nbformat.v3.validator import v3schema, nbvalidate
+from IPython.nbconvert.utils.exceptions import ConversionException
+import json
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -284,6 +287,11 @@ class Exporter(LoggingConfigurable):
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
         resources['metadata']['modified_date'] = modified_date.strftime("%B %d, %Y")
         
+        with io.open(filename) as f:
+            nb = json.load(f)
+            errors = nbvalidate(nb, v3schema(), key='/notebook')
+            if errors:
+                raise ConversionException('Not valid v3 notebook.')
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
 

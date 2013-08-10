@@ -7,6 +7,7 @@ from IPython.external import argparse
 import traceback
 import jsonref
 import json
+import os.path
 
 def nbvalidate(nbjson, schema, key=None, verbose=False):
     if key :
@@ -19,6 +20,10 @@ def nbvalidate(nbjson, schema, key=None, verbose=False):
             print(error)
     return errors
 
+def v3schema():
+    with open(os.path.join(os.path.dirname(__file__),'v3.withref.json')) as f:
+        schema=jsonref.load(f)
+    return schema
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
