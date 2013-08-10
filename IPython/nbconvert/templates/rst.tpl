@@ -1,9 +1,12 @@
 {%- extends 'display_priority.tpl' -%}
 
 
-{% block in_prompt -%}
+{% block in_prompt %}
+
 In[{{ cell.prompt_number if cell.prompt_number else ' ' }}]:
+
 .. code:: python
+
 {% endblock in_prompt %}
 
 {% block output_prompt %}
