@@ -136,8 +136,20 @@ class TestsBase(ParametricTestCase):
         return path
 
 
-    def call(self, parameters, raise_on_error=True):
+    def call(self, parameters, ignore_return_code=False):
+        """
+        Execute a, IPython shell command, listening for both Errors and non-zero
+        return codes.
+
+        PARAMETERS:
+        -----------
+        parameters : str
+            List of parameters to pass to IPython.
+        ignore_return_code : optional bool (default False)
+            Throw an OSError if the return code 
+        """
+
         stdout, stderr, retcode = get_output_error_code(ipy_cmd + parameters)
-        if retcode != 0 and raise_on_error:
+        if retcode != 0 and not ignore_return_code:
             raise OSError(stderr)
         return stdout, stderr
