@@ -12,6 +12,9 @@ before_install:
     - sudo apt-get install pandoc
     - pip install pygments
     - pip install sphinx
+    - pip install jsonschema
+    - pip install jsonpointer
+    - pip install jsonref
 install:
     - python setup.py install -q 
 script:
