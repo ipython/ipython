@@ -8,13 +8,11 @@ import traceback
 import jsonref
 import json
 
-def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
-    with open(schema) as f:
-        v3schema=jsonref.load(f)
+def nbvalidate(nbjson, schema, key=None, verbose=False):
     if key :
-        v3schema = jsonpointer.resolve_pointer(v3schema,key)
+        schema = jsonpointer.resolve_pointer(schema,key)
     errors = 0
-    v = Draft3Validator(v3schema);
+    v = Draft3Validator(schema);
     for error in v.iter_errors(nbjson):
         errors = errors + 1
         if verbose:
@@ -41,11 +39,16 @@ if __name__ == '__main__':
             metavar='names')
 
     args = parser.parse_args()
+
+    with open(args.schema) as f:
+        schema=jsonref.load(f)
+
     for name in args.filename :
-        nerror = nbvalidate(json.load(open(name,'r')),
-                            schema=args.schema,
-                            key=args.key,
-                            verbose=args.verbose)
+        with open(name) as notebook:
+            nerror = nbvalidate(json.load(notebook),
+                                schema,
+                                key=args.key,
+                                verbose=args.verbose)
         if nerror is 0:
             print u"[Pass]",name
         else :
