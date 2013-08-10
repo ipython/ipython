@@ -224,11 +224,11 @@ var IPython = (function (IPython) {
         this.update_restore_checkpoint(null);
         
         $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
-            that.update_restore_checkpoint(data);
+            that.update_restore_checkpoint(IPython.notebook.checkpoints);
         });
         
         $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
-            that.update_restore_checkpoint([data]);
+            that.update_restore_checkpoint(IPython.notebook.checkpoints);
         });
     };
 
@@ -247,8 +247,7 @@ var IPython = (function (IPython) {
             return;
         };
         
-        for (var i = 0; i < checkpoints.length; i++) {
-            var checkpoint = checkpoints[i];
+        checkpoints.map(function (checkpoint) {
             var d = new Date(checkpoint.last_modified);
             ul.append(
                 $("<li/>").append(
@@ -260,7 +259,7 @@ var IPython = (function (IPython) {
                     })
                 )
             );
-        };
+        });
     };
 
     IPython.MenuBar = MenuBar;

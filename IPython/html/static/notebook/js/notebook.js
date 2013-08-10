@@ -40,6 +40,7 @@ var IPython = (function (IPython) {
         this.metadata = {};
         this._checkpoint_after_save = false;
         this.last_checkpoint = null;
+        this.checkpoints = [];
         this.autosave_interval = 0;
         this.autosave_timer = null;
         // autosave *at most* every two minutes
@@ -1826,9 +1827,31 @@ var IPython = (function (IPython) {
     };
     
     /**
+     * Add a checkpoint for this notebook.
+     * for use as a callback from checkpoint creation.
+     * 
+     * @method add_checkpoint
+     */
+    Notebook.prototype.add_checkpoint = function (checkpoint) {
+        var found = false;
+        for (var i = 0; i < this.checkpoints.length; i++) {
+            var existing = this.checkpoints[i];
+            if (existing.checkpoint_id == checkpoint.checkpoint_id) {
+                found = true;
+                this.checkpoints[i] = checkpoint;
+                break;
+            }
+        }
+        if (!found) {
+            this.checkpoints.push(checkpoint);
+        }
+        this.last_checkpoint = this.checkpoints[this.checkpoints.length - 1];
+    };
+    
+    /**
      * List checkpoints for this notebook.
      * 
-     * @method list_checkpoint
+     * @method list_checkpoints
      */
     Notebook.prototype.list_checkpoints = function () {
         var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints';
@@ -1849,8 +1872,9 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.list_checkpoints_success = function (data, status, xhr) {
         var data = $.parseJSON(data);
+        this.checkpoints = data;
         if (data.length) {
-            this.last_checkpoint = data[0];
+            this.last_checkpoint = data[data.length - 1];
         } else {
             this.last_checkpoint = null;
         }
@@ -1893,7 +1917,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.create_checkpoint_success = function (data, status, xhr) {
         var data = $.parseJSON(data);
-        this.last_checkpoint = data;
+        this.add_checkpoint(data);
         $([IPython.events]).trigger('checkpoint_created.Notebook', data);
     };
 
