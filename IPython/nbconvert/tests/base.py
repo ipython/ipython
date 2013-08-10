@@ -150,6 +150,6 @@ class TestsBase(ParametricTestCase):
         """
 
         stdout, stderr, retcode = get_output_error_code(ipy_cmd + parameters)
-        if retcode != 0 and not ignore_return_code:
+        if not (retcode == 0 or ignore_return_code):
             raise OSError(stderr)
         return stdout, stderr
