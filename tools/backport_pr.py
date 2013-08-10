@@ -19,7 +19,7 @@ import sys
 from subprocess import Popen, PIPE, check_call, check_output
 from urllib import urlopen
 
-from gh_api import get_pull_request
+from gh_api import get_pull_request, get_pull_request_files
 
 def find_rejects(root='.'):
     for dirname, dirs, files in os.walk(root):
@@ -37,7 +37,8 @@ def backport_pr(branch, num, project='ipython/ipython'):
     current_branch = get_current_branch()
     if branch != current_branch:
         check_call(['git', 'checkout', branch])
-    pr = get_pull_request(project, num)
+    pr = get_pull_request(project, num, auth=True)
+    files = get_pull_request_files(project, num, auth=True)
     patch_url = pr['patch_url']
     title = pr['title']
     description = pr['body']
@@ -65,9 +66,16 @@ def backport_pr(branch, num, project='ipython/ipython'):
     
     p = Popen(['git', 'apply'], stdin=PIPE)
     a,b = p.communicate(patch)
+    
+    filenames = [ f['filename'] for f in files ]
+    add = Popen(['git', 'add'] + filenames)
+    add.wait()
+    if add.returncode:
+        print("git add %s failed!" % filenames)
+        return 1
 
-    commit = Popen(['git', 'commit', '-a', '-m', msg])
-    commit.communicate()
+    commit = Popen(['git', 'commit', '-m', msg])
+    commit.wait()
     if commit.returncode:
         print("commit failed!")
         return 1
