@@ -17,8 +17,6 @@ process.
 from __future__ import print_function, absolute_import
 
 # Stdlib imports
-# Used to find Sphinx package location
-import sphinx
 import os.path
 
 # Used to set the default date to today's date 
@@ -123,6 +121,8 @@ class SphinxTransformer(Transformer):
             Additional resources used in the conversion process.  Allows
             transformers to pass variables into the Jinja engine.
         """
+        # import sphinx here, so that sphinx is not a dependency when it's not used
+        import sphinx
          
         # TODO: Add versatile method of additional notebook metadata.  Include
         #       handling of multiple files.  For now use a temporay namespace,
