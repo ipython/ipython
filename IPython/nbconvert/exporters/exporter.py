@@ -289,7 +289,7 @@ class Exporter(LoggingConfigurable):
         
         with io.open(filename) as f:
             nb = json.load(f)
-            errors = nbvalidate(nb, v3schema)
+            errors = nbvalidate(nb, v3schema())
             if errors:
                 raise ConversionException('Not valid v3 notebook.')
         with io.open(filename) as f:

@@ -54,11 +54,7 @@ def detailed_error(nbjson):
         print " "*8,"unknown error",e
 
 
-@property
 def v3schema():
-    return getV3schema()
-
-def getV3schema():
     """schema to validate v3 notebook
     """
     with open(os.path.join(os.path.dirname(__file__),'v3.withref.json')) as f:
@@ -89,7 +85,7 @@ if __name__ == '__main__':
         with open(args.schema) as f:
             schema=jsonref.load(f)
     else:
-        schema = getV3schema()
+        schema = v3schema()
 
     for name in args.filename :
         with open(name) as notebook:
