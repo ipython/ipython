@@ -24,7 +24,6 @@ Authors:
 import atexit
 import json
 import os
-import shutil
 import signal
 import sys
 import uuid
@@ -32,7 +31,6 @@ import uuid
 
 # Local imports
 from IPython.config.application import boolean_flag
-from IPython.config.configurable import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel.blocking import BlockingKernelClient
 from IPython.kernel import KernelManager
@@ -40,7 +38,7 @@ from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, CUnicode, Int, CBool, Any, CaselessStrEnum
+    Dict, List, Unicode, CUnicode, Int, CBool, Any
 )
 from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
@@ -55,7 +53,7 @@ from IPython.kernel.connect import ConnectionFileMixin
 # Network Constants
 #-----------------------------------------------------------------------------
 
-from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
+from IPython.utils.localinterfaces import LOCALHOST
 
 #-----------------------------------------------------------------------------
 # Globals
