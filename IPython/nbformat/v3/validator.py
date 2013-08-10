@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
-import IPython.external.jsonpointer as jsonpointer
+from jsonschema import  Draft3Validator, validate, ValidationError
+import jsonpointer
 from IPython.external import argparse
 import traceback
+import jsonref
 import json
 
 def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
-    v3schema = resolve_ref(json.load(open(schema,'r')))
+    with open(schema) as f:
+        v3schema=jsonref.load(f)
     if key :
         v3schema = jsonpointer.resolve_pointer(v3schema,key)
     errors = 0
@@ -18,40 +20,6 @@ def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
         if verbose:
             print(error)
     return errors
-
-def resolve_ref(json, base=None):
-    """return a json with resolved internal references
-
-    only support local reference to the same json
-    """
-    if not base :
-        base = json
-
-    temp = None
-    if type(json) is list:
-        temp = [];
-        for item in json:
-            temp.append(resolve_ref(item, base=base))
-    elif type(json) is dict:
-        temp = {};
-        for key,value in json.iteritems():
-            if key == '$ref':
-                return resolve_ref(jsonpointer.resolve_pointer(base,value), base=base)
-            else :
-                temp[key]=resolve_ref(value, base=base)
-    else :
-        return json
-    return temp
-
-def convert(namein, nameout, indent=2):
-    """resolve the references of namein, save the result in nameout"""
-    jsn = None
-    with open(namein) as file :
-        jsn = json.load(file)
-    v = resolve_ref(jsn, base=jsn)
-    x = jsonpointer.resolve_pointer(v, '/notebook')
-    with open(nameout,'w') as file:
-        json.dump(x,file,indent=indent)
 
 
 if __name__ == '__main__':
