@@ -258,7 +258,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
         self.transport = cfg.get('transport', 'tcp')
         self.ip = cfg.get('ip', LOCALHOST)
         
-        for channel in ('hb', 'shell', 'iopub', 'stdin'):
+        for channel in ('hb', 'shell', 'iopub', 'stdin', 'control'):
             name = channel + '_port'
             if getattr(self, name) == 0 and name in cfg:
                 # not overridden by config or cl_args
