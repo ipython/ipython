@@ -249,10 +249,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.app.icon = QtGui.QIcon(icon_path)
         QtGui.QApplication.setWindowIcon(self.app.icon)
 
-        try:
-            ip = self.config.KernelManager.ip
-        except AttributeError:
-            ip = LOCALHOST
+        ip = self.ip
         local_kernel = (not self.existing) or ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
