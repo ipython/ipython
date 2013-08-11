@@ -119,7 +119,7 @@ Note: For best display, use latex syntax highlighting. =))
         {\begin{mdframed}[%
             roundcorner=1.0pt, %
             backgroundcolor=nbframe-bg, %
-            userdefinedwidth=1\linewidth, %
+            userdefinedwidth=0.9\linewidth, %
             leftmargin=0.1\linewidth, %
             innerleftmargin=0pt, %
             innerrightmargin=0pt, %
@@ -136,9 +136,27 @@ Note: For best display, use latex syntax highlighting. =))
             needspace=0pt
         ]}
         {\end{mdframed}}
-        
-        \newenvironment{InvisibleVerbatim}
-        {\begin{mdframed}[leftmargin=0.1\linewidth,innerleftmargin=3pt,innerrightmargin=3pt, userdefinedwidth=1\linewidth, linewidth=0pt, linecolor=white, usetwoside=false]}
+
+        \newenvironment{InvisibleVerbatim}[2]
+        {\begin{mdframed}[%
+            roundcorner=1.0pt, %
+            backgroundcolor=white, %
+            userdefinedwidth=#1, %
+            leftmargin=#2, %
+            innerleftmargin=0pt, %
+            innerrightmargin=0pt, %
+            linecolor=white, %
+            linewidth=1pt, %
+            usetwoside=false, %
+            everyline=true, %
+            innerlinewidth=3pt, %
+            innerlinecolor=white, %
+            middlelinewidth=1pt, %
+            middlelinecolor=white, %
+            outerlinewidth=0.5pt, %
+            outerlinecolor=white, %
+            needspace=0pt
+        ]}
         {\end{mdframed}}
 
         \renewenvironment{Verbatim}[1][\unskip]
@@ -275,27 +293,18 @@ Note: For best display, use latex syntax highlighting. =))
     ((* if resources.sphinx.outputstyle == 'simple' *))
 
         % Add a horizantal break, along with break title.
-        \vspace{10pt}
         {\scriptsize Input}\\*
         \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
 
         % Add contents below.
         ((( cell.input | highlight2latex )))
 
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        \vspace{6pt}
         ((( write_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
-        \vspace{-2.65\baselineskip}
-        \begin{ColorVerbatim}
-            \vspace{-0.7\baselineskip}
-            ((( cell.input | highlight2latex )))
-            ((* if cell.input == None or cell.input == '' *))
-                \vspace{0.3\baselineskip}
-            ((* else *))
-                \vspace{-0.2\baselineskip}
-            ((* endif *))
-        \end{ColorVerbatim}
+        \begin{ColorVerbatim}%
+            \vspace{-1.0em}%
+            ((( cell.input | highlight2latex )))%
+        \end{ColorVerbatim}%
     ((* endif *))
 ((* endblock input *))
 
@@ -315,10 +324,8 @@ Note: For best display, use latex syntax highlighting. =))
         ((* if resources.sphinx.outputstyle == 'simple' *))
 
             % Add a horizantal break, along with break title.
-            \vspace{10pt}
             {\scriptsize Output}\\*
             \rule[10pt]{\linewidth}{0.5pt}
-            \vspace{-20pt}
 
             % Add the contents of the first block.
             ((( render_output(cell.outputs[0]) )))
@@ -387,7 +394,13 @@ Note: For best display, use latex syntax highlighting. =))
 % Name: write_prompt
 % Purpose: Renders an output/input prompt for notebook style pdfs
 ((* macro write_prompt(prompt, number, color) -*))
-    \makebox[0.1\linewidth]{\smaller\hfill\tt\color{((( color )))}((( prompt )))\hspace{4pt}{[}((( number ))){]}:\hspace{4pt}}\\*
+
+    \begin{minipage}[t][0.1\linewidth]{1.0\linewidth}
+        {\begin{InvisibleVerbatim}{0.1\linewidth}{0pt}{
+            \mbox{\smaller\hfill\tt\color{((( color )))}((( prompt )))\hspace{2pt}{[}((( number ))){]}:\hspace{2pt}}
+        }\end{InvisibleVerbatim}}
+    \end{minipage}
+    \vspace{-0.106\linewidth}
 ((*- endmacro *))
 
 % Name: render_output
@@ -400,20 +413,20 @@ Note: For best display, use latex syntax highlighting. =))
     ((*- else -*))
 
         ((* if resources.sphinx.outputstyle == 'notebook' *))
+
             ((*- if output.output_type == 'pyout' -*))
                 ((( write_prompt("Out", prompt_number, "nbframe-out-prompt") )))
-                \vspace{-2.55\baselineskip}
             ((*- endif -*))
 
-            \begin{InvisibleVerbatim}
-                \vspace{-0.5\baselineskip}
+            \begin{InvisibleVerbatim}{0.9\linewidth}{0.1\linewidth}%
+                \vspace{-1.0em}%
         ((*- endif -*))
-
+        
         ((*- block display_data scoped -*))
             ((( super() )))
         ((*- endblock display_data -*))
 
-        ((* if resources.sphinx.outputstyle == 'notebook' *))
+        ((* if resources.sphinx.outputstyle == 'notebook' *))%
             \end{InvisibleVerbatim}
         ((*- endif -*))
     ((*- endif -*))
