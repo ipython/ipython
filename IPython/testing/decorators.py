@@ -330,7 +330,7 @@ skip_if_not_osx = skipif(sys.platform != 'darwin',
 
 
 _x11_skip_cond = (sys.platform not in ('darwin', 'win32') and
-                  os.environ['DISPLAY']=='')
+                  os.environ.get('DISPLAY', '') == '')
 _x11_skip_msg = "Skipped under *nix when X11/XOrg not available"
 
 skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
