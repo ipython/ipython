@@ -20,6 +20,20 @@ import traceback
 import jsonref
 import json
 import os.path
+import IPython.nbformat.v3 as v3
+
+class IPynValidator(object):
+    """A class which hold different methods linked to the validation of 
+    IPython notebook."""
+
+    def __init__(self, schema):
+        self.nbvalidator = Draft3Validator(jsonpointer.resolve_pointer(schema,'/notebook'));
+
+    def json_validate(self, notebook_json):
+        return self.nbvalidator.is_valid(notebook_json)
+
+    def node_validate(self, notebook_node):
+        return self.nbvalidator.is_valid(notebook_node)
 
 def nbvalidate(nbjson, schema, key='/notebook', verbose=False):
     """validate notebook versus a json schema
@@ -58,6 +72,7 @@ def v3schema():
     """schema to validate v3 notebook
     """
     with open(os.path.join(os.path.dirname(__file__),'v3.withref.json')) as f:
+        ## JSon schema seem to support references, but wasn't able to have it work
         schema=jsonref.load(f)
     return schema
 
@@ -87,6 +102,7 @@ if __name__ == '__main__':
     else:
         schema = v3schema()
 
+    val = IPynValidator(schema)
     for name in args.filename :
         with open(name) as notebook:
             nb = json.load(notebook)
@@ -94,11 +110,19 @@ if __name__ == '__main__':
                                 schema,
                                 key=args.key,
                                 verbose=args.verbose)
+        node = v3.to_dict(v3.nbjson.to_notebook(nb))
+        print type(node),node
+        print type(nb),nb
         if nerror is 0:
             print u"[Pass]",name
         else :
             print u"[    ]",name,'(%d)'%(nerror)
             detailed_error(nb)
+        print "and validator json:", val.json_validate(nb), type(nb)
+        print "and validator node:", val.json_validate(node), type(node)
+        print node == nb
+        detailed_error(node)
+        #val.nbvalidator.validate(node)
         if args.verbose :
             print '=================================================='
 

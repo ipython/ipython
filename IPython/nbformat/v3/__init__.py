@@ -23,8 +23,9 @@ from .nbbase import (
 )
 
 from .nbjson import reads as reads_json, writes as writes_json
-from .nbjson import reads as read_json, writes as write_json
+from .nbjson import reads as read_json, write as write_json
 from .nbjson import to_notebook as to_notebook_json
+from .nbjson import to_json_stream, to_dict
 
 from .nbpy import reads as reads_py, writes as writes_py
 from .nbpy import reads as read_py, writes as write_py
