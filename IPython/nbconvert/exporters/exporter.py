@@ -39,6 +39,7 @@ from IPython.utils import py3compat
 from IPython.nbconvert import transformers as nbtransformers
 from IPython.nbconvert import filters
 from IPython.nbformat.v3.validator import v3schema, nbvalidate
+from IPython.nbformat import v3 as v3
 from IPython.nbconvert.utils.exceptions import ConversionException
 import json
 
