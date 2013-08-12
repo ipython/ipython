@@ -44,19 +44,18 @@ class NotebookManager(LoggingConfigurable):
             
     def named_notebook_path(self, notebook_path):
         
-        l = len(notebook_path)
         names = notebook_path.split('/')
         if len(names) > 1:     
-            name = names[len(names)-1]
-            if name[(len(name)-6):(len(name))] == ".ipynb":
+            name = names[-1]
+            if name.endswith(".ipynb"):
                 name = name
-                path = notebook_path[0:l-len(name)-1]+'/'
+                path = notebook_path[0:-len(name)-1]+'/'
             else:
                 name = None
                 path = notebook_path+'/'
         else:
             name = names[0]
-            if name[(len(name)-6):(len(name))] == ".ipynb":
+            if name.endswith(".ipynb"):
                 name = name
                 path = None
             else:
