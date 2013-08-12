@@ -59,7 +59,6 @@ nbconvert_aliases.update(base_aliases)
 nbconvert_aliases.update({
     'to' : 'NbConvertApp.export_format',
     'template' : 'Exporter.template_file',
-    'notebooks' : 'NbConvertApp.notebooks',
     'writer' : 'NbConvertApp.writer_class',
     'post': 'NbConvertApp.post_processor_class',
     'output': 'NbConvertApp.output_base'
