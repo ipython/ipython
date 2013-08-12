@@ -291,7 +291,7 @@ class Exporter(LoggingConfigurable):
         with io.open(filename) as f:
             nbnode = nbformat.read(f, 'json')
             nbdict = v3.to_dict(nbnode)
-            errors = nbvalidate(nb, v3schema())
+            errors = nbvalidate(nbdict, v3schema())
             if errors:
                 raise ConversionException('Not valid v3 notebook.')
             return self.from_notebook_node(nbnode, resources=resources,**kw)
