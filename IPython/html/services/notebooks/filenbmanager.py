@@ -21,7 +21,6 @@ import io
 import os
 import glob
 import shutil
-import ast
 
 from unicodedata import normalize
 
