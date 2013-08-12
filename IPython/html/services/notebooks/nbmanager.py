@@ -65,19 +65,11 @@ class NotebookManager(LoggingConfigurable):
     
     def url_encode(self, path):
         parts = path.split('/')
-        path=""
-        for part in parts:
-           part = quote(part)
-           path = os.path.join(path,part)
-        return path
+        return os.path.join(*[quote(p) for p in parts])
 
     def url_decode(self, path):
         parts = path.split('/')
-        path=""
-        for part in parts:
-           part = unquote(part)
-           path = os.path.join(path,part)
-        return path
+        return os.path.join(*[unquote(p) for p in parts])
 
     def _notebook_dir_changed(self, new):
         """do a bit of validation of the notebook dir"""
