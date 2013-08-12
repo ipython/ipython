@@ -33,7 +33,7 @@ class DebugWriter(WriterBase):
         See base for more...
         """
 
-        if 'outputs' in resources:
+        if isinstance(resources['outputs'], dict):
             print("outputs extracted from %s" % notebook_name)
             print('-' * 80)
             pprint(resources['outputs'], indent=2, width=70)
