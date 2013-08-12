@@ -213,7 +213,7 @@ class NotebookManager(LoggingConfigurable):
         return name
 
     def new_notebook(self, notebook_path=None):
-        """Create a new notebook and return its notebook_id."""
+        """Create a new notebook and return its notebook_name."""
         name = self.increment_filename('Untitled', notebook_path)
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
@@ -221,7 +221,7 @@ class NotebookManager(LoggingConfigurable):
         return notebook_name
 
     def copy_notebook(self, name, path=None):
-        """Copy an existing notebook and return its notebook_id."""
+        """Copy an existing notebook and return its new notebook_name."""
         last_mod, nb = self.read_notebook_object(name, path)
         name = nb.metadata.name + '-Copy'
         name = self.increment_filename(name, path)
