@@ -44,5 +44,4 @@ class TestCSSHTMLHeader(TransformerTestsBase):
         res = self.build_resources()
         transformer = self.build_transformer()
         nb, res = transformer(nb, res)
-        assert 'inlining' in res
         assert 'css' in res['inlining'] 

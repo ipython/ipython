@@ -54,7 +54,7 @@ class RevealHelpTransformer(Transformer):
                     worksheet.cells[index - 1].metadata.slide_helper = 'subslide_end'
 
 
-        if 'reveal' not in resources:
+        if not isinstance(resources['reveal'], dict):
             resources['reveal'] = {}
         resources['reveal']['url_prefix'] = self.url_prefix
 

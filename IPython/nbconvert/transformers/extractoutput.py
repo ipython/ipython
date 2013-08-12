@@ -57,7 +57,7 @@ class ExtractOutputTransformer(Transformer):
         output_files_dir = resources.get('output_files_dir', None)
         
         #Make sure outputs key exists
-        if not 'outputs' in resources:
+        if not isinstance(resources['outputs'], dict):
             resources['outputs'] = {}
             
         #Loop through all of the outputs in the cell

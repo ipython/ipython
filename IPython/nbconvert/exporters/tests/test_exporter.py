@@ -53,7 +53,7 @@ class TestExporter(ExportersTestsBase):
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
-        assert 'outputs' in resources
+        assert isinstance(resources['outputs'], dict)
         assert len(resources['outputs']) > 0
 
 
@@ -65,7 +65,6 @@ class TestExporter(ExportersTestsBase):
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
-        assert 'cheese' in resources
         assert resources['cheese'] == 'real'
 
 
@@ -77,7 +76,6 @@ class TestExporter(ExportersTestsBase):
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
-        assert 'cheese' in resources
         assert resources['cheese'] == 'real'
 
 
@@ -89,7 +87,6 @@ class TestExporter(ExportersTestsBase):
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
-        assert 'cheese' in resources
         assert resources['cheese'] == 'real'
 
 
@@ -101,7 +98,6 @@ class TestExporter(ExportersTestsBase):
         exporter.register_transformer(CheeseTransformer, enabled=True)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
-        assert 'cheese' in resources
         assert resources['cheese'] == 'real'
 
 

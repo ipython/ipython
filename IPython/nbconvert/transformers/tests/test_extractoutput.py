@@ -53,9 +53,6 @@ class TestExtractOutput(TransformerTestsBase):
         assert 'png_filename' in nb.worksheets[0].cells[0].outputs[6]
         png_filename = nb.worksheets[0].cells[0].outputs[6]['png_filename']
 
-        # Make sure an entry to the resources was added.
-        assert 'outputs' in res
-
         # Verify text output
         assert text_filename in res['outputs']
         self.assertEqual(res['outputs'][text_filename], b'b')

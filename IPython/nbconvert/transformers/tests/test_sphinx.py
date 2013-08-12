@@ -45,7 +45,6 @@ class TestSphinx(TransformerTestsBase):
         res = self.build_resources()
         transformer = self.build_transformer()
         nb, res = transformer(nb, res)
-        assert 'sphinx' in res
         assert "author" in res['sphinx']
         assert "version" in res['sphinx']
         assert "release" in res['sphinx']
