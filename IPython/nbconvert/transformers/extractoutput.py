@@ -57,7 +57,7 @@ class ExtractOutputTransformer(Transformer):
         output_files_dir = resources.get('output_files_dir', None)
         
         #Make sure outputs key exists
-        if not 'outputs' in resources:
+        if not isinstance(resources['outputs'], dict):
             resources['outputs'] = {}
             
         #Loop through all of the outputs in the cell
@@ -65,11 +65,12 @@ class ExtractOutputTransformer(Transformer):
 
             #Get the output in data formats that the template is interested in.
             for out_type in self.display_data_priority:
-                if out.hasattr(out_type):
+                if out.hasattr(out_type): 
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
                     if out_type in ('png', 'jpg', 'jpeg', 'pdf'):
+
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
                         data = py3compat.cast_bytes(data)

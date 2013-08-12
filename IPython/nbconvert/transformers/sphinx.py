@@ -127,7 +127,7 @@ class SphinxTransformer(Transformer):
         # TODO: Add versatile method of additional notebook metadata.  Include
         #       handling of multiple files.  For now use a temporay namespace,
         #       '_draft' to signify that this needs to change.
-        if not "sphinx" in resources:
+        if not isinstance(resources["sphinx"], dict):
             resources["sphinx"] = {}
 
         if self.interactive:
