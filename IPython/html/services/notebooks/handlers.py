@@ -17,7 +17,6 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from tornado import web
-import ast
 
 from zmq.utils import jsonapi
 
