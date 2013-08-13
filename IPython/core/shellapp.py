@@ -197,6 +197,10 @@ class InteractiveShellApp(Configurable):
         """
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    
+    def __init__(self, user_ns=None, **kwargs):
+        self.user_ns = user_ns
+        super(InteractiveShellApp, self).__init__(**kwargs)
 
     def init_path(self):
         """Add current working directory, '', to sys.path"""
