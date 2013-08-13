@@ -32,6 +32,28 @@ class TestFileNotebookManager(TestCase):
         with NamedTemporaryFile() as tf:
             self.assertRaises(TraitError, FileNotebookManager, notebook_dir=tf.name)
 
+    def test_get_os_path(self):
+        # full filesystem path should be returned with correct operating system
+        # separators.
+        with TemporaryDirectory() as td:
+            nbdir = os.path.join(td, 'notebooks')
+            km = FileNotebookManager(notebook_dir=nbdir)
+            path = km.get_os_path('test.ipynb', '/path/to/notebook/')
+            self.assertEqual(path, km.notebook_dir+os.sep+'path'+os.sep+'to'+os.sep+
+                'notebook'+os.sep+'test.ipynb')
+
+        with TemporaryDirectory() as td:
+            nbdir = os.path.join(td, 'notebooks')
+            km = FileNotebookManager(notebook_dir=nbdir)
+            path = km.get_os_path('test.ipynb', None)
+            self.assertEqual(path, km.notebook_dir+os.sep+'test.ipynb')
+
+        with TemporaryDirectory() as td:
+            nbdir = os.path.join(td, 'notebooks')
+            km = FileNotebookManager(notebook_dir=nbdir)
+            path = km.get_os_path('test.ipynb', '////')
+            self.assertEqual(path, km.notebook_dir+os.sep+'test.ipynb')
+
 class TestNotebookManager(TestCase):
     def test_named_notebook_path(self):
         nm = NotebookManager()

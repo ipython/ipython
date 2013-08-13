@@ -74,12 +74,10 @@ class NotebookManager(LoggingConfigurable):
 
     def url_encode(self, path):
         parts = os.path.split(path)
-        #parts = path.split('/')
         return os.path.join(*[quote(p) for p in parts])
 
     def url_decode(self, path):
         parts = os.path.split(path)
-        #parts = path.split('/')
         return os.path.join(*[unquote(p) for p in parts])
 
     def _notebook_dir_changed(self, new):
