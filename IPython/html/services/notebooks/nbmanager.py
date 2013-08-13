@@ -44,7 +44,8 @@ class NotebookManager(LoggingConfigurable):
 
     def named_notebook_path(self, notebook_path):
         """Given a notebook_path name, returns a (name, path) tuple, where
-        name is a .ipynb file, and path is the directory for the file.
+        name is a .ipynb file, and path is the directory for the file, which
+        *always* starts *and* ends with a '/' character.
 
         Parameters
         ----------
@@ -59,10 +60,12 @@ class NotebookManager(LoggingConfigurable):
             the path to the directory which contains the notebook
         """
         names = notebook_path.split('/')
+        names = [n for n in names if n != ''] # remove duplicate splits
 
-        name = names[-1]
-        if name.endswith(".ipynb"):
-            name = name
+        names = [''] + names
+
+        if names and names[-1].endswith(".ipynb"):
+            name = names[-1]
             path = "/".join(names[:-1]) + '/'
         else:
             name = None
