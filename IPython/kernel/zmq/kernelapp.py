@@ -458,6 +458,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         except KeyboardInterrupt:
             pass
 
+launch_new_instance = IPKernelApp.launch_instance
 
 def main():
     """Run an IPKernel as an application"""
