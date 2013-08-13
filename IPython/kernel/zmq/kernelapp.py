@@ -393,6 +393,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                                 stdin_socket=self.stdin_socket,
                                 log=self.log,
                                 profile_dir=self.profile_dir,
+                                user_ns=self.user_ns,
         )
         kernel.record_ports(self.ports)
         self.kernel = kernel
