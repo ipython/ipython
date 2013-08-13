@@ -97,17 +97,17 @@ class FileNotebookManager(NotebookManager):
         changes = data.keys()
         response = 200
         for change in changes:
-            full_path = self.get_path(notebook_name, notebook_path)
+            full_path = self.get_os_path(notebook_name, notebook_path)
             if change == "name":
-                new_path = self.get_path(data['name'], notebook_path)
+                new_path = self.get_os_path(data['name'], notebook_path)
                 if not os.path.isfile(new_path):
                     os.rename(full_path,
-                        self.get_path(data['name'], notebook_path))
+                        self.get_os_path(data['name'], notebook_path))
                     notebook_name = data['name']
                 else:
                     response = 409
             if change == "path":
-                new_path = self.get_path(data['name'], data['path'])
+                new_path = self.get_os_path(data['name'], data['path'])
                 stutil.move(full_path, new_path)
                 notebook_path = data['path']
             if change == "content":
@@ -115,21 +115,45 @@ class FileNotebookManager(NotebookManager):
         model = self.notebook_model(notebook_name, notebook_path)
         return model, response
 
-    def notebook_exists(self, notebook_path):
-        """Does a notebook exist?"""
-        return os.path.isfile(notebook_path)
+    def notebook_exists(self, name, path):
+        """Returns a True if the notebook exists. Else, returns False.
+        
+        Parameters
+        ----------
+        name : string
+            The name of the notebook you are checking.
+        path : string
+            The relative path to the notebook (with '/' as separator)
+        
+        Returns
+        -------
+        bool
+        """
+        path = self.get_os_path(name, path)
+        return os.path.isfile(path)
 
-    def get_path(self, notebook_name, notebook_path=None):
-        """Return a full path to a notebook given its notebook_name."""
-        return self.get_path_by_name(notebook_name, notebook_path)
-
-    def get_path_by_name(self, name, notebook_path=None):
-        """Return a full path to a notebook given its name."""
-        filename = name #+ self.filename_ext
-        if notebook_path == None:
-            path = os.path.join(self.notebook_dir, filename)
-        else:    
-            path = os.path.join(self.notebook_dir, notebook_path, filename)
+    def get_os_path(self, fname, path=None):
+        """Return a full path to a notebook with the os.sep as the separator.
+        
+        Parameters
+        ----------
+        fname : string
+            The name of a notebook file with the .ipynb extension
+        path : string
+            The relative path (with '/' as separator) to the named notebook.
+            
+        Returns
+        -------
+        path : 
+            A path that combines notebook_dir (location where server started),
+            the relative path, and the filename with the current operating
+            system's url.
+        """
+        if path is None:
+            path = '/'
+        parts = path.split('/')
+        parts = [p for p in parts if p != ''] # remove duplicate splits
+        path = os.sep.join([self.notebook_dir] + parts + [fname])
         return path
 
     def read_notebook_object_from_path(self, path):
@@ -148,7 +172,7 @@ class FileNotebookManager(NotebookManager):
     
     def read_notebook_object(self, notebook_name, notebook_path=None):
         """Get the Notebook representation of a notebook by notebook_name."""
-        path = self.get_path(notebook_name, notebook_path)
+        path = self.get_os_path(notebook_name, notebook_path)
         if not os.path.isfile(path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_name)
         last_modified, nb = self.read_notebook_object_from_path(path)
@@ -172,7 +196,7 @@ class FileNotebookManager(NotebookManager):
         old_name = notebook_name
         old_checkpoints = self.list_checkpoints(old_name)
         
-        path = self.get_path_by_name(new_name, new_path)
+        path = self.get_os_path(new_name, new_path)
         
         # Right before we save the notebook, we write an empty string as the
         # notebook name in the metadata. This is to prepare for removing
@@ -201,7 +225,7 @@ class FileNotebookManager(NotebookManager):
             # remove old files if the name changed
             if old_name != new_name:            
                 # remove renamed original, if it exists
-                old_path = self.get_path_by_name(old_name, notebook_path)
+                old_path = self.get_os_path(old_name, notebook_path)
                 if os.path.isfile(old_path):
                     self.log.debug("unlinking notebook %s", old_path)
                     os.unlink(old_path)
@@ -226,7 +250,7 @@ class FileNotebookManager(NotebookManager):
             
     def delete_notebook(self, notebook_name, notebook_path):
         """Delete notebook by notebook_name."""
-        nb_path = self.get_path(notebook_name, notebook_path)
+        nb_path = self.get_os_path(notebook_name, notebook_path)
         if not os.path.isfile(nb_path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_name)
         
@@ -252,7 +276,7 @@ class FileNotebookManager(NotebookManager):
         i = 0
         while True:
             name = u'%s%i.ipynb' % (basename,i)
-            path = self.get_path_by_name(name, notebook_path)
+            path = self.get_os_path(name, notebook_path)
             if not os.path.isfile(path):
                 break
             else:
@@ -295,7 +319,7 @@ class FileNotebookManager(NotebookManager):
     
     def create_checkpoint(self, notebook_name, notebook_path=None):
         """Create a checkpoint from the current state of a notebook"""
-        nb_path = self.get_path(notebook_name, notebook_path)
+        nb_path = self.get_os_path(notebook_name, notebook_path)
         # only the one checkpoint ID:
         checkpoint_id = u"checkpoint"
         cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
@@ -323,7 +347,7 @@ class FileNotebookManager(NotebookManager):
     def restore_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
         """restore a notebook to a checkpointed state"""
         self.log.info("restoring Notebook %s from checkpoint %s", notebook_name, checkpoint_id)
-        nb_path = self.get_path(notebook_name, notebook_path)
+        nb_path = self.get_os_path(notebook_name, notebook_path)
         cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
         if not os.path.isfile(cp_path):
             self.log.debug("checkpoint file does not exist: %s", cp_path)
