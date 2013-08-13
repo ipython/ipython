@@ -599,7 +599,7 @@ class RMagics(Magics):
             else:
                 text_result, result, visible = self.eval(code)
                 text_output += text_result
-                if(visible):
+                if visible:
                     old_writeconsole = ri.get_writeconsole()
                     ri.set_writeconsole(self.write_console) 
                     ro.r.show(result)
