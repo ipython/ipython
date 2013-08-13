@@ -73,11 +73,13 @@ class NotebookManager(LoggingConfigurable):
         return name, path
 
     def url_encode(self, path):
-        parts = path.split('/')
+        parts = os.path.split(path)
+        #parts = path.split('/')
         return os.path.join(*[quote(p) for p in parts])
 
     def url_decode(self, path):
-        parts = path.split('/')
+        parts = os.path.split(path)
+        #parts = path.split('/')
         return os.path.join(*[unquote(p) for p in parts])
 
     def _notebook_dir_changed(self, new):
@@ -126,11 +128,6 @@ class NotebookManager(LoggingConfigurable):
             data = sorted(data, key=lambda item: item['name'])
         """
         raise NotImplementedError('must be implemented in a subclass')
-
-
-    def notebook_exists(self, notebook_path):
-        """Does a notebook exist?"""
-
 
     def notebook_model(self, notebook_name, notebook_path=None, content=True):
         """ Creates the standard notebook model """
