@@ -28,7 +28,8 @@ from nose import with_setup
 
 import IPython
 from IPython.testing import decorators as dec
-from IPython.testing.decorators import skip_if_not_win32, skip_win32
+from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
+                                        onlyif_unicode_paths,)
 from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path
 from IPython.utils import py3compat
@@ -479,7 +480,8 @@ def test_get_py_filename():
             else:
                 nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
                 nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)
-                
+
+@onlyif_unicode_paths
 def test_unicode_in_filename():
     """When a file doesn't exist, the exception raised should be safe to call
     str() on - i.e. in Python 2 it must only have ASCII characters.
