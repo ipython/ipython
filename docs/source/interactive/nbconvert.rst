@@ -64,9 +64,9 @@ The currently supported export formats are:
   It must be served by an HTTP server.  The easiest way to get this is to add
   ``--post serve`` on the command-line.
   If you want to use the speaker notes plugin, just add
-  ``--slide-notes True`` on the command-line.
+  ``--slide-notes=True`` on the command-line.
   For low connectivity environments, you can use a local copy of the reveal.js library, 
-  just add ``--offline-slides reveal.js`` on the command-line, and do not forget to move
+  just add ``--offline-slides=reveal.js`` on the command-line, and do not forget to move
   your downloaded ``reveal.js`` library to the same folder where your slides are located.
   
 * ``--to markdown``
