@@ -86,11 +86,11 @@ class FileNotebookManager(NotebookManager):
     def list_notebooks(self, path):
         """List all notebooks in the notebook dir."""
         notebook_names = self.get_notebook_names(path)
-        notebook_mapping = []
+        notebooks = []
         for name in notebook_names:
             model = self.notebook_model(name, path, content=False)
-            notebook_mapping.append(model)
-        return notebook_mapping
+            notebooks.append(model)
+        return notebooks
 
     def change_notebook(self, data, notebook_name, notebook_path=None):
         """Changes notebook"""
