@@ -52,14 +52,8 @@ var IPython = (function (IPython) {
 
     MenuBar.prototype.notebookPath = function() {
         var path = $('body').data('notebookPath');
-        if (path != 'None') {
-            if (path[path.length-1] != '/') {
-                path = path.substring(0,path.length);
-            };
-            return path;
-        } else {
-            return '';
-        }
+        path = decodeURIComponent(path);
+        return path
     };
     
     MenuBar.prototype.style = function () {
@@ -81,7 +75,7 @@ var IPython = (function (IPython) {
             IPython.notebook.new_notebook();
         });
         this.element.find('#open_notebook').click(function () {
-            window.open(that.baseProjectUrl() + 'tree/' + that.notebookPath());
+            window.open(that.baseProjectUrl() + 'tree' + that.notebookPath());
         });
         this.element.find('#copy_notebook').click(function () {
             IPython.notebook.copy_notebook();
@@ -89,13 +83,13 @@ var IPython = (function (IPython) {
         });
         this.element.find('#download_ipynb').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'api/notebooks/' + that.notebookPath() +
+            var url = that.baseProjectUrl() + 'api/notebooks' + that.notebookPath() +
                       notebook_name + '?format=json'+ '&download=True';
             window.location.assign(url);
         });
         this.element.find('#download_py').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'api/notebooks/' + that.notebookPath() +
+            var url = that.baseProjectUrl() + 'api/notebooks' + that.notebookPath() +
                       notebook_name + '?format=py' + '&download=True';
             window.location.assign(url);
         });

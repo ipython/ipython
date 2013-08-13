@@ -101,3 +101,4 @@ default_handlers = [
     (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
     (r"/notebooks/", NotebookHandler),
 ]
+
