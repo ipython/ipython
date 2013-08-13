@@ -18,7 +18,6 @@ Authors:
 
 from tornado import web
 from ..base.handlers import IPythonHandler
-from urllib import quote, unquote
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -43,15 +42,16 @@ class ProjectPathDashboardHandler(IPythonHandler):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         if name != None:
-            self.redirect(self.base_project_url + 'notebooks/' + notebook_path)
+            # ends with .ipynb
+            self.redirect(self.base_project_url + 'notebooks' + path + name)
         else:
+            project = self.project + path
             path = nbm.url_encode(path)
-            project = self.project + '/' + notebook_path
             self.write(self.render_template('tree.html',
                 project=project,
                 project_component=project.split('/'),
                 notebook_path=path,
-                notebook_name=name))    
+                notebook_name=name))
 
 
 class TreeRedirectHandler(IPythonHandler):
