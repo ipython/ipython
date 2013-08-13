@@ -34,7 +34,7 @@ from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
-    Unicode, Instance, List, Bool, CaselessStrEnum
+    Unicode, Instance, List, Bool, CaselessStrEnum, Dict
 )
 
 #-----------------------------------------------------------------------------
@@ -198,9 +198,11 @@ class InteractiveShellApp(Configurable):
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     
-    def __init__(self, user_ns=None, **kwargs):
-        self.user_ns = user_ns
-        super(InteractiveShellApp, self).__init__(**kwargs)
+    user_ns = Dict(default_value=None)
+    def _user_ns_changed(self, name, old, new):
+        if self.shell is not None:
+            self.shell.user_ns = new
+            self.shell.init_user_ns()
 
     def init_path(self):
         """Add current working directory, '', to sys.path"""
