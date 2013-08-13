@@ -39,10 +39,11 @@ class TestNotebookManager(TestCase):
         # doesn't end with ipynb, should just be path
         name, path = nm.named_notebook_path('hello')
         self.assertEqual(name, None)
-        self.assertEqual(path, 'hello/')
+        self.assertEqual(path, '/hello/')
         
         name, path = nm.named_notebook_path('/')
         self.assertEqual(name, None)
+        self.assertEqual(path, '/')
 
         name, path = nm.named_notebook_path('hello.ipynb')
         self.assertEqual(name, 'hello.ipynb')
@@ -55,5 +56,9 @@ class TestNotebookManager(TestCase):
         name, path = nm.named_notebook_path('/this/is/a/path/hello.ipynb')
         self.assertEqual(name, 'hello.ipynb')
         self.assertEqual(path, '/this/is/a/path/')
+        
+        name, path = nm.named_notebook_path('path/without/leading/slash/hello.ipynb')
+        self.assertEqual(name, 'hello.ipynb')
+        self.assertEqual(path, '/path/without/leading/slash/')
 
 
