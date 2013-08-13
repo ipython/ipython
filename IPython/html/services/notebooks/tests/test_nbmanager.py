@@ -40,10 +40,17 @@ class TestNotebookManager(TestCase):
         name, path = nm.named_notebook_path('hello')
         self.assertEqual(name, None)
         self.assertEqual(path, 'hello/')
+        
+        name, path = nm.named_notebook_path('/')
+        self.assertEqual(name, None)
 
         name, path = nm.named_notebook_path('hello.ipynb')
         self.assertEqual(name, 'hello.ipynb')
-        self.assertEqual(path, None)
+        self.assertEqual(path, '/')
+        
+        name, path = nm.named_notebook_path('/hello.ipynb')
+        self.assertEqual(name, 'hello.ipynb')
+        self.assertEqual(path, '/')
         
         name, path = nm.named_notebook_path('/this/is/a/path/hello.ipynb')
         self.assertEqual(name, 'hello.ipynb')
