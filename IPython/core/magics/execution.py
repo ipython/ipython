@@ -181,6 +181,7 @@ python-profiler package from non-free.""")
                                            list_all=True, posix=False)
         if cell is not None:
             arg_str += '\n' + cell
+        arg_str = self.shell.input_splitter.transform_cell(arg_str)
         return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
     def _run_with_profiler(self, code, opts, namespace):
