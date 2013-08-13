@@ -2,6 +2,7 @@
 
 This is copied from the stdlib and will be standard in Python 3.2 and onwards.
 """
+from __future__ import print_function
 
 import os as _os
 
