@@ -46,7 +46,7 @@ Note: For best display, use latex syntax highlighting. =))
     \def\sphinxdocclass{(((parentdocumentclass)))}
 
     % Declare the document class
-    \documentclass[letterpaper,10pt,english]{((( resources.sphinx.texinputs | posix_path )))/sphinx(((documentclass)))}
+    \documentclass[(((resources.sphinx.papersize))),10pt,english]{((( resources.sphinx.texinputs | posix_path )))/sphinx(((documentclass)))}
 
     % Imports
     \usepackage[utf8]{inputenc}
