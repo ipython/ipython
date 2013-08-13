@@ -50,7 +50,6 @@ var IPython = (function (IPython) {
         // single worksheet for now
         this.worksheet_metadata = {};
         this.control_key_active = false;
-        this.notebook_name = null;
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
         this.nbformat_minor = 0 // Increment this when changing the nbformat
@@ -87,14 +86,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.notebookPath = function() {
         var path = $('body').data('notebookPath');
         path = decodeURIComponent(path);
-        if (path != 'None') {
-            if (path[path.length-1] != '/') {
-                path = path.substring(0,path.length);
-            }; 
-            return path;
-        } else {
-            return '';
-        }
+        return path
     };
     
     /**
@@ -1368,7 +1360,7 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].clear_output();
+                cells[i].clear_output(true,true,true);
                 // Make all In[] prompts blank, as well
                 // TODO: make this configurable (via checkbox?)
                 cells[i].set_input_prompt();
@@ -1397,8 +1389,7 @@ var IPython = (function (IPython) {
      * @method start_session
      */
     Notebook.prototype.start_session = function () {
-        var notebook_info = this.notebookPath() + this.notebook_name;
-        this.session = new IPython.Session(notebook_info, this);
+        this.session = new IPython.Session(this.notebook_name, this.notebook_path, this);
         this.session.start();
         this.link_cells_to_session();
     };
@@ -1527,7 +1518,7 @@ var IPython = (function (IPython) {
      * @return {String} This notebook's name
      */
     Notebook.prototype.get_notebook_name = function () {
-        nbname = this.notebook_name.substring(0,this.notebook_name.length-6);
+        var nbname = this.notebook_name.substring(0,this.notebook_name.length-6);
         return nbname;
     };
 
@@ -1566,7 +1557,7 @@ var IPython = (function (IPython) {
      * @param {Object} data JSON representation of a notebook
      */
     Notebook.prototype.fromJSON = function (data) {
-        data = data.content;
+        var content = data.content;
         var ncells = this.ncells();
         var i;
         for (i=0; i<ncells; i++) {
@@ -1574,10 +1565,10 @@ var IPython = (function (IPython) {
             this.delete_cell(0);
         };
         // Save the metadata and name.
-        this.metadata = data.metadata;
-        this.notebook_name = data.metadata.name +'.ipynb';
+        this.metadata = content.metadata;
+        this.notebook_name = data.name;
         // Only handle 1 worksheet for now.
-        var worksheet = data.worksheets[0];
+        var worksheet = content.worksheets[0];
         if (worksheet !== undefined) {
             if (worksheet.metadata) {
                 this.worksheet_metadata = worksheet.metadata;
@@ -1598,7 +1589,7 @@ var IPython = (function (IPython) {
                 new_cell.fromJSON(cell_data);
             };
         };
-        if (data.worksheets.length > 1) {
+        if (content.worksheets.length > 1) {
             IPython.dialog.modal({
                 title : "Multiple worksheets",
                 body : "This notebook has " + data.worksheets.length + " worksheets, " +
@@ -1672,10 +1663,13 @@ var IPython = (function (IPython) {
     Notebook.prototype.save_notebook = function () {
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
-        data.metadata.name = this.notebook_name;
-        data.nbformat = this.nbformat;
-        data.nbformat_minor = this.nbformat_minor;
-        
+        var model = {};
+        // Create a JSON model to be sent to the server.
+        model['name'] = this.notebook_name;
+        model['path'] = this.notebook_path;
+        model['content'] = data
+        model.content.nbformat = this.nbformat;
+        model.content.nbformat_minor = this.nbformat_minor;
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
         // We do the call with settings so we can set cache to false.
@@ -1683,13 +1677,13 @@ var IPython = (function (IPython) {
             processData : false,
             cache : false,
             type : "PUT",
-            data : JSON.stringify(data),
+            data : JSON.stringify(model),
             headers : {'Content-Type': 'application/json'},
             success : $.proxy(this.save_notebook_success, this, start),
             error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath()+ this.notebook_name;
+        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath()+ this.notebook_name;
         $.ajax(url, settings);
     };
     
@@ -1752,13 +1746,14 @@ var IPython = (function (IPython) {
             type : "POST",
             dataType : "json",
             success:$.proxy(function (data, status, xhr){
-                notebook_name = data.name;
-                window.open(this._baseProjectUrl +'notebooks/' + this.notebookPath()+ notebook_name);
+                var notebook_name = data.name;
+                window.open(this.baseProjectUrl() +'notebooks' + this.notebookPath()+ notebook_name, '_blank');
             }, this)
         };
-        var url = this._baseProjectUrl + 'notebooks/' + path;
+        var url = this.baseProjectUrl() + 'api/notebooks' + path;
         $.ajax(url,settings);
     };
+
 
     Notebook.prototype.copy_notebook = function(){
         var path = this.notebookPath();
@@ -1771,10 +1766,10 @@ var IPython = (function (IPython) {
             dataType : "json",
             success:$.proxy(function (data, status, xhr){
                 notebook_name = data.name;
-                window.open(this._baseProjectUrl +'notebooks/' + this.notebookPath()+ notebook_name);
+                window.open(this._baseProjectUrl +'notebooks' + this.notebookPath()+ notebook_name);
             }, this)
         };
-        var url = this._baseProjectUrl + 'notebooks/' + path;
+        var url = this._baseProjectUrl + 'notebooks' + path;
         $.ajax(url,settings);
     };
 
@@ -1793,15 +1788,16 @@ var IPython = (function (IPython) {
             error : $.proxy(that.rename_error, this)
         };
         $([IPython.events]).trigger('notebook_rename.Notebook');
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath()+ this.notebook_name;
+        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath()+ this.notebook_name;
         $.ajax(url, settings);
     };
     
     
     Notebook.prototype.rename_success = function (json, status, xhr) {
         this.notebook_name = json.name
-        var notebook_path = this.notebookPath() + this.notebook_name;
-        this.session.notebook_rename(notebook_path);
+        var name = this.notebook_name
+        var path = json.path
+        this.session.notebook_rename(name, path);
         $([IPython.events]).trigger('notebook_renamed.Notebook');
     }
 
@@ -1855,7 +1851,7 @@ var IPython = (function (IPython) {
              error : $.proxy(this.load_notebook_error,this),
          };
          $([IPython.events]).trigger('notebook_loading.Notebook');
-         var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath() + this.notebook_name;
+         var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name;
          $.ajax(url, settings);
      };
 
@@ -1916,7 +1912,7 @@ var IPython = (function (IPython) {
         // Create the session after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
         if (this.session == null) {
-            this.start_session(this.notebook_path);
+            this.start_session();
         }
         // load our checkpoint list
         IPython.notebook.list_checkpoints();
@@ -1988,7 +1984,7 @@ var IPython = (function (IPython) {
      * @method list_checkpoints
      */
      Notebook.prototype.list_checkpoints = function () {
-         var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath() + this.notebook_name + '/checkpoints';
+         var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints';
          $.get(url).done(
              $.proxy(this.list_checkpoints_success, this)
          ).fail(
@@ -2033,7 +2029,7 @@ var IPython = (function (IPython) {
      * @method create_checkpoint
      */
      Notebook.prototype.create_checkpoint = function () {
-         var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath() + this.notebook_name + '/checkpoints';
+         var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints';
          $.post(url).done(
              $.proxy(this.create_checkpoint_success, this)
          ).fail(
@@ -2113,18 +2109,8 @@ var IPython = (function (IPython) {
      * @param {String} checkpoint ID
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
-<<<<<<< HEAD
-        $([IPython.events]).trigger('checkpoint_restoring.Notebook', checkpoint);
-        if (this.notebook_path != "") {
-            var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path + this.notebook_name + '/checkpoints/' + checkpoint;
-        }
-        else {
-            var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name + '/checkpoints/' + checkpoint;
-        }
-=======
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath() + this.notebook_name + '/checkpoints/' + checkpoint;
->>>>>>> fixing path redirects, cleaning path logic
+        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints/' + checkpoint;
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
         ).fail(
@@ -2165,7 +2151,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath() + this.notebook_name + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints/' + checkpoint;
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),
@@ -2205,4 +2191,3 @@ var IPython = (function (IPython) {
     return IPython;
 
 }(IPython));
-
