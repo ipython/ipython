@@ -8,8 +8,9 @@ from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
 
 from ..filenbmanager import FileNotebookManager
+from ..nbmanager import NotebookManager
 
-class TestNotebookManager(TestCase):
+class TestFileNotebookManager(TestCase):
 
     def test_nb_dir(self):
         with TemporaryDirectory() as td:
@@ -30,5 +31,22 @@ class TestNotebookManager(TestCase):
     def test_invalid_nb_dir(self):
         with NamedTemporaryFile() as tf:
             self.assertRaises(TraitError, FileNotebookManager, notebook_dir=tf.name)
+
+class TestNotebookManager(TestCase):
+    def test_named_notebook_path(self):
+        nm = NotebookManager()
+        
+        # doesn't end with ipynb, should just be path
+        name, path = nm.named_notebook_path('hello')
+        self.assertEqual(name, None)
+        self.assertEqual(path, 'hello/')
+
+        name, path = nm.named_notebook_path('hello.ipynb')
+        self.assertEqual(name, 'hello.ipynb')
+        self.assertEqual(path, None)
+        
+        name, path = nm.named_notebook_path('/this/is/a/path/hello.ipynb')
+        self.assertEqual(name, 'hello.ipynb')
+        self.assertEqual(path, '/this/is/a/path/')
 
 
