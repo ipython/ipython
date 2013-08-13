@@ -190,6 +190,7 @@ default_handlers = [
     (r"api/notebooks/%s/checkpoints" % _notebook_path_regex, NotebookCheckpointsHandler),
     (r"api/notebooks/%s/checkpoints/%s" % (_notebook_path_regex, _checkpoint_id_regex),
         ModifyNotebookCheckpointsHandler),
+    (r"api/notebooks/%s/" % _notebook_path_regex, NotebookHandler), 
     (r"api/notebooks/%s" % _notebook_path_regex, NotebookHandler),
     (r"api/notebooks/", NotebookRootRedirect),
     (r"api/notebooks", NotebookRootHandler),

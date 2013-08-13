@@ -77,8 +77,7 @@ class FileNotebookManager(NotebookManager):
     
     def get_notebook_names(self, path):
         """List all notebook names in the notebook dir."""
-        names = glob.glob(os.path.join(self.notebook_dir, path,
-                                       '*' + self.filename_ext))
+        names = glob.glob(self.get_os_path('*'+self.filename_ext, path))
         names = [os.path.basename(name)
                  for name in names]
         return names
