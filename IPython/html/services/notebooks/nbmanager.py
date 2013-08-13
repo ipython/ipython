@@ -54,29 +54,21 @@ class NotebookManager(LoggingConfigurable):
         Returns
         -------
         name : string or None
-            the filename of the notebook, or None if not a .ipynb extesnsion
-        path : string or None
+            the filename of the notebook, or None if not a .ipynb extension
+        path : string
             the path to the directory which contains the notebook
         """
         names = notebook_path.split('/')
-        if len(names) > 1:
-            name = names[-1]
-            if name.endswith(".ipynb"):
-                name = name
-                path = notebook_path[:-1]+'/'
-            else:
-                name = None
-                path = notebook_path+'/'
+
+        name = names[-1]
+        if name.endswith(".ipynb"):
+            name = name
+            path = "/".join(names[:-1]) + '/'
         else:
-            name = names[0]
-            if name.endswith(".ipynb"):
-                name = name
-                path = None
-            else:
-                name = None
-                path = notebook_path+'/'
+            name = None
+            path = "/".join(names) + '/'
         return name, path
-    
+
     def url_encode(self, path):
         parts = path.split('/')
         return os.path.join(*[quote(p) for p in parts])
