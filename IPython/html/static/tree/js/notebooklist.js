@@ -29,14 +29,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.notebookPath = function() {
         var path = $('body').data('notebookPath');
         path = decodeURIComponent(path);
-        if (path != "") {
-            if (path[path.length-1] != '/') {
-                path = path.substring(0,path.length);  
-            };            
-            return path;
-        } else {
-            return path;
-        };
+        return path;
     };
     
     NotebookList.prototype.url_name = function(name){
@@ -147,7 +140,7 @@ var IPython = (function (IPython) {
                              },this)
         };
 
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath();
+        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath();
         $.ajax(url, settings);
     };
 
@@ -209,7 +202,7 @@ var IPython = (function (IPython) {
         item.data('path', path);
         item.find(".item_name").text(nbname);
         item.find("a.item_link")
-            .attr('href', this.baseProjectUrl() + "notebooks/" + this.notebookPath() + nbname + ".ipynb")
+            .attr('href', this.baseProjectUrl() + "notebooks" + this.notebookPath() + nbname + ".ipynb")
             .attr('target','_blank');
     };
 
@@ -280,7 +273,7 @@ var IPython = (function (IPython) {
                                         parent_item.remove();
                                     }
                                 };
-                                var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + notebooklist.notebookPath() + nbname + '.ipynb';
+                                var url = notebooklist.baseProjectUrl() + 'api/notebooks' + notebooklist.notebookPath() + nbname + '.ipynb';
                                 $.ajax(url, settings);
                             }
                         },
@@ -347,10 +340,10 @@ var IPython = (function (IPython) {
             dataType : "json",
             success:$.proxy(function (data, status, xhr){
                 notebook_name = data.name;
-                window.open(this.baseProjectUrl() +'notebooks/' + this.notebookPath()+ notebook_name);
+                window.open(this.baseProjectUrl() +'notebooks' + this.notebookPath()+ notebook_name, '_blank');
             }, this)
         };
-        var url = this.baseProjectUrl() + 'notebooks/' + path;
+        var url = this.baseProjectUrl() + 'notebooks' + path;
         $.ajax(url,settings);
     };
 

@@ -31,7 +31,7 @@ class ProjectDashboardHandler(IPythonHandler):
         self.write(self.render_template('tree.html',
             project=self.project,
             project_component=self.project.split('/'),
-            notebook_path= "''"
+            notebook_path= "/"
         ))
 
 
@@ -41,7 +41,7 @@ class ProjectPathDashboardHandler(IPythonHandler):
     def get(self, notebook_path):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
-        if name != None:
+        if name is not None:
             # ends with .ipynb
             self.redirect(self.base_project_url + 'notebooks' + path + name)
         else:
@@ -49,7 +49,7 @@ class ProjectPathDashboardHandler(IPythonHandler):
             path = nbm.url_encode(path)
             self.write(self.render_template('tree.html',
                 project=project,
-                project_component=project.split('/'),
+                project_component=project.split('/')[:-1],
                 notebook_path=path,
                 notebook_name=name))
 
@@ -65,7 +65,7 @@ class TreePathRedirectHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, notebook_path):
-        url = self.base_project_url + 'tree/'+ notebook_path
+        url = self.base_project_url + 'tree/'+ notebook_path+'/'
         self.redirect(url)
 
 class ProjectRedirectHandler(IPythonHandler):
@@ -84,8 +84,8 @@ class ProjectRedirectHandler(IPythonHandler):
 _notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
-    (r"/tree/%s/" % _notebook_path_regex, TreePathRedirectHandler),
-    (r"/tree/%s" % _notebook_path_regex, ProjectPathDashboardHandler),
+    (r"/tree/%s/" % _notebook_path_regex, ProjectPathDashboardHandler),
+    (r"/tree/%s" % _notebook_path_regex, TreePathRedirectHandler),
     (r"/tree", ProjectDashboardHandler),
     (r"/tree/", TreeRedirectHandler),
     (r"/", ProjectRedirectHandler)
