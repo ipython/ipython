@@ -87,32 +87,32 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     def patch(self, notebook_path):
         nbm = self.notebook_manager
-        notebook_name, notebook_path = nbm.named_notebook_path(notebook_path)
+        name, path = nbm.named_notebook_path(notebook_path)
         data = jsonapi.loads(self.request.body)
-        model, response = nbm.change_notebook(data, notebook_name, notebook_path)
+        model, response = nbm.change_notebook(data, name, path)
         self.set_status(response)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def put(self, notebook_path):
         nbm = self.notebook_manager
-        notebook_name, notebook_path = nbm.named_notebook_path(notebook_path)        
-        if notebook_name == None:
+        fname, path = nbm.named_notebook_path(notebook_path)
+        if fname == None:
             body = self.request.body.strip()
             format = self.get_argument('format', default='json')
             name = self.get_argument('name', default=None)
             if body:
-                notebook_name = nbm.save_new_notebook(body, notebook_path=notebook_path, name=name, format=format)
+                fname = nbm.save_new_notebook(body, notebook_path=path, name=name, format=format)
             else:
-                notebook_name = nbm.new_notebook(notebook_path=notebook_path)
-            self.set_header('Location', nbm.notebook_dir + notebook_path + notebook_name)
-            model = nbm.notebook_model(notebook_name, notebook_path)
+                fname = nbm.new_notebook(notebook_path=path)
+            self.set_header('Location', nbm.notebook_dir + path + fname)
+            model = nbm.notebook_model(fname, path)
             self.finish(jsonapi.dumps(model))
         else:            
             format = self.get_argument('format', default='json')
             name = self.get_argument('name', default=None)
-            nbm.save_notebook(self.request.body, notebook_path=notebook_path, name=name, format=format)
-            model = nbm.notebook_model(notebook_name, notebook_path)
+            nbm.save_notebook(self.request.body, notebook_path=path, name=name, format=format)
+            model = nbm.notebook_model(fname, path)
             self.set_status(204)
             self.finish(jsonapi.dumps(model))
 
