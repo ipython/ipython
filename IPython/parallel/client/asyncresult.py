@@ -31,15 +31,6 @@ from IPython.parallel import error
 # Functions
 #-----------------------------------------------------------------------------
 
-def _total_seconds(td):
-    """timedelta.total_seconds was added in 2.7"""
-    try:
-        # Python >= 2.7
-        return td.total_seconds()
-    except AttributeError:
-        # Python 2.6
-        return 1e-6 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-
 def _raw_text(s):
     display_pretty(s, raw=True)
 
@@ -338,7 +329,7 @@ class AsyncResult(object):
             # handle single_result AsyncResults, where ar.stamp is single object,
             # not a list
             end = end_key(end)
-        return _total_seconds(end - start)
+        return (end - start).total_seconds()
         
     @property
     def progress(self):
@@ -361,7 +352,7 @@ class AsyncResult(object):
                 stamp = self._client.metadata[msg_id]['submitted']
                 if stamp and stamp < submitted:
                     submitted = stamp
-        return _total_seconds(now-submitted)
+        return (now-submitted).total_seconds()
     
     @property
     @check_ready
@@ -372,7 +363,7 @@ class AsyncResult(object):
         """
         t = 0
         for md in self._metadata:
-            t += _total_seconds(md['completed'] - md['started'])
+            t += (md['completed'] - md['started']).total_seconds()
         return t
     
     @property
