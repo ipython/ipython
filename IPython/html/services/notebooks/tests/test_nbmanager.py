@@ -14,14 +14,14 @@ class TestFileNotebookManager(TestCase):
 
     def test_nb_dir(self):
         with TemporaryDirectory() as td:
-            km = FileNotebookManager(notebook_dir=td)
-            self.assertEqual(km.notebook_dir, td)
+            fm = FileNotebookManager(notebook_dir=td)
+            self.assertEqual(fm.notebook_dir, td)
 
     def test_create_nb_dir(self):
         with TemporaryDirectory() as td:
             nbdir = os.path.join(td, 'notebooks')
-            km = FileNotebookManager(notebook_dir=nbdir)
-            self.assertEqual(km.notebook_dir, nbdir)
+            fm = FileNotebookManager(notebook_dir=nbdir)
+            self.assertEqual(fm.notebook_dir, nbdir)
 
     def test_missing_nb_dir(self):
         with TemporaryDirectory() as td:
@@ -37,22 +37,21 @@ class TestFileNotebookManager(TestCase):
         # separators.
         with TemporaryDirectory() as td:
             nbdir = os.path.join(td, 'notebooks')
-            km = FileNotebookManager(notebook_dir=nbdir)
-            path = km.get_os_path('test.ipynb', '/path/to/notebook/')
-            self.assertEqual(path, km.notebook_dir+os.sep+'path'+os.sep+'to'+os.sep+
-                'notebook'+os.sep+'test.ipynb')
+            fm = FileNotebookManager(notebook_dir=nbdir)
+            path = fm.get_os_path('test.ipynb', '/path/to/notebook/')
+            rel_path_list =  '/path/to/notebook/test.ipynb'.split('/')
+            fs_path = os.path.join(fm.notebook_dir, *rel_path_list)
+            self.assertEqual(path, fs_path)
 
-        with TemporaryDirectory() as td:
-            nbdir = os.path.join(td, 'notebooks')
-            km = FileNotebookManager(notebook_dir=nbdir)
-            path = km.get_os_path('test.ipynb', None)
-            self.assertEqual(path, km.notebook_dir+os.sep+'test.ipynb')
+            fm = FileNotebookManager(notebook_dir=nbdir)
+            path = fm.get_os_path('test.ipynb')
+            fs_path = os.path.join(fm.notebook_dir, 'test.ipynb')
+            self.assertEqual(path, fs_path)
 
-        with TemporaryDirectory() as td:
-            nbdir = os.path.join(td, 'notebooks')
-            km = FileNotebookManager(notebook_dir=nbdir)
-            path = km.get_os_path('test.ipynb', '////')
-            self.assertEqual(path, km.notebook_dir+os.sep+'test.ipynb')
+            fm = FileNotebookManager(notebook_dir=nbdir)
+            path = fm.get_os_path('test.ipynb', '////')
+            fs_path = os.path.join(fm.notebook_dir, 'test.ipynb')
+            self.assertEqual(path, fs_path)
 
 class TestNotebookManager(TestCase):
     def test_named_notebook_path(self):
