@@ -148,7 +148,7 @@ class SphinxTransformer(Transformer):
             resources["sphinx"]["author"] = self._prompt_author()
             resources["sphinx"]["version"] = self._prompt_version()
             resources["sphinx"]["release"] = self._prompt_release()
-            resources["sphinx"]["date"] = self._prompt_date()
+            resources["sphinx"]["date"] = self._prompt_date(resources)
             
             # Prompt the user for the document style.
             resources["sphinx"]["papersize"] = self._prompt_papersize()
