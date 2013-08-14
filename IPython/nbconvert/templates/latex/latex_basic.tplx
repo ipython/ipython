@@ -141,6 +141,7 @@ unknown type  ((( cell.type )))
 %% include a documentclass declaration, that is added at runtime to the overall
 %% document.
 
+\usepackage{babel}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
