@@ -44,7 +44,7 @@ for playing with examples from documentation, such as matplotlib.
 
 .. sourcecode:: ipython
 
-    In [6]: %load http://matplotlib.sourceforge.net/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
+    In [6]: %load http://matplotlib.org/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
 
     In [7]: from mpl_toolkits.mplot3d import axes3d
        ...: import matplotlib.pyplot as plt

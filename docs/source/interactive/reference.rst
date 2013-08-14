@@ -1013,7 +1013,7 @@ object, do::
 
     %gui wx
 
-For information on IPython's Matplotlib integration (and the ``matplotlib``
+For information on IPython's matplotlib_ integration (and the ``matplotlib``
 mode) see :ref:`this section <matplotlib_support>`.
 
 For developers that want to use IPython's GUI event loop integration in the
@@ -1088,7 +1088,7 @@ neither v2 PyQt nor PySide work.
 Plotting with matplotlib
 ========================
 
-`Matplotlib`_ provides high quality 2D and 3D plotting for Python. Matplotlib
+matplotlib_ provides high quality 2D and 3D plotting for Python. matplotlib_
 can produce plots on screen using a variety of GUI toolkits, including Tk,
 PyGTK, PyQt4 and wxPython. It also provides a number of commands useful for
 scientific computing, all with a syntax compatible with that of the popular
@@ -1103,8 +1103,6 @@ matplotlib backend.  You can also request a specific backend with
 backend value, which produces static figures inlined inside the application
 window instead of matplotlib's interactive figures that live in separate
 windows.
-
-.. _Matplotlib: http://matplotlib.sourceforge.net
 
 .. _interactive_demos:
 
@@ -1163,3 +1161,4 @@ divisions are allowed. If you want to be able to open an IPython
 instance at an arbitrary point in a program, you can use IPython's
 embedding facilities, see :func:`IPython.embed` for details.
 
+.. include:: ../links.txt
