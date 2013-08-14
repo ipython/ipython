@@ -112,7 +112,7 @@ class TestNbConvertApp(TestsBase):
                       'notebook2.ipynb --template full ')
             assert os.path.isfile('notebook2.html')
             with open('notebook2.html') as f:
-                assert "data:image/png;base64,i" in f.read()
+                assert "data:image/png;base64,b'" not in f.read()
 
 
 
