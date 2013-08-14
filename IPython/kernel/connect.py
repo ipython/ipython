@@ -316,7 +316,7 @@ def connect_qtconsole(connection_file=None, argv=None, profile=None):
     ])
     
     return Popen([sys.executable, '-c', cmd, '--existing', cf] + argv,
-        stdout=PIPE, stderr=PIPE, close_fds=True,
+        stdout=PIPE, stderr=PIPE, close_fds=(sys.platform != 'win32'),
     )
 
 
