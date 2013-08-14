@@ -131,28 +131,29 @@ class FileNotebookManager(NotebookManager):
         path = self.get_os_path(name, path)
         return os.path.isfile(path)
 
-    def get_os_path(self, fname, path=None):
-        """Return a full path to a notebook with the os.sep as the separator.
+    def get_os_path(self, fname, path='/'):
+        """Given a notebook name and a server URL path, return its file system
+        path.
         
         Parameters
         ----------
         fname : string
             The name of a notebook file with the .ipynb extension
         path : string
-            The relative path (with '/' as separator) to the named notebook.
+            The relative URL path (with '/' as separator) to the named
+            notebook.
             
         Returns
         -------
-        path : 
-            A path that combines notebook_dir (location where server started),
-            the relative path, and the filename with the current operating
-            system's url.
+        path : string
+            A file system path that combines notebook_dir (location where
+            server started), the relative path, and the filename with the
+            current operating system's url.
         """
-        if path is None:
-            path = '/'
         parts = path.split('/')
         parts = [p for p in parts if p != ''] # remove duplicate splits
-        path = os.sep.join([self.notebook_dir] + parts + [fname])
+        parts += [fname]
+        path = os.path.join(self.notebook_dir, *parts)
         return path
 
     def read_notebook_object_from_path(self, path):
