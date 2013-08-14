@@ -37,3 +37,4 @@ global-exclude *.flc
 global-exclude *.pyc
 global-exclude *.pyo
 global-exclude .dircopy.log
+global-exclude .git
