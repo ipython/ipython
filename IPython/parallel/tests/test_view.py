@@ -343,7 +343,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # ensure it will be an iterator, even in Python 3
         it = iter(arr)
         r = view.map_sync(lambda x: x, it)
-        self.assertEqual(r, list(it))
+        self.assertEqual(r, list(arr))
 
     @skip_without('numpy')
     def test_map_numpy(self):
