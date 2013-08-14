@@ -12,7 +12,7 @@ interactive numerical work. Second, it is easy (often times trivial) to
 integrate legacy C/C++/Fortran code into Python. Third, a large number of
 high-quality open source projects provide all the needed building blocks for
 numerical computing: numerical arrays (NumPy), algorithms (SciPy), 2D/3D
-Visualization (Matplotlib, Mayavi, Chaco), Symbolic Mathematics (Sage, Sympy)
+Visualization (matplotlib_, Mayavi, Chaco), Symbolic Mathematics (Sage, Sympy)
 and others.
 
 The IPython project is a core part of this open-source toolchain and is
@@ -86,7 +86,7 @@ In addition, the following dependencies are needed to run the demos described
 in this document.
 
 * NumPy and SciPy (http://www.scipy.org)
-* Matplotlib (http://matplotlib.sourceforge.net/)
+* matplotlib_ (http://matplotlib.org)
 
 The easiest way of obtaining these dependencies is through the Enthought
 Python Distribution (EPD) (http://www.enthought.com/products/epd.php). EPD is
@@ -358,3 +358,4 @@ The :meth:`map` method has the same signature as Python's builtin :func:`map`
 function, but runs the calculation in parallel. More involved examples of using
 :class:`DirectView` are provided in the examples that follow.
 
+.. include:: ../links.txt

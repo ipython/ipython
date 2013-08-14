@@ -31,7 +31,7 @@
 .. _graphviz: http://www.graphviz.org
 .. _Sphinx: http://sphinx.pocoo.org
 .. _`Sphinx reST`: http://sphinx.pocoo.org/rest.html
-.. _sampledoc: http://matplotlib.sourceforge.net/sampledoc
+.. _sampledoc: http://matplotlib.org/sampledoc
 .. _reST: http://docutils.sourceforge.net/rst.html
 .. _docutils: http://docutils.sourceforge.net
 .. _lyx: http://www.lyx.org
