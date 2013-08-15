@@ -172,12 +172,15 @@ class NotebookWebApplication(web.Application):
             # IPython stuff
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
-            use_less=ipython_app.use_less,
-            jinja2_env=Environment(loader=FileSystemLoader(template_path)),
+            use_less=ipython_app.use_less
         )
 
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
+
+        # create a jinja2 environment using the template path and store it in settings
+        settings.jinja2_env=Environment(loader=FileSystemLoader(settings.template_path))
+
         return settings
 
     def init_handlers(self, settings):
