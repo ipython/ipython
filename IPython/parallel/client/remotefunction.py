@@ -232,7 +232,8 @@ class ParallelFunction(RemoteFunction):
             for seq in sequences:
                 part = self.mapObject.getPartition(seq, index, nparts, maxlen)
                 args.append(part)
-            if not any(args):
+
+            if sum([len(arg) for arg in args]) == 0:
                 continue
 
             if self._mapping:
