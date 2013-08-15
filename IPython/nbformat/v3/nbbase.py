@@ -69,9 +69,9 @@ def new_output(output_type=None, output_text=None, output_png=None,
         if output_text is not None:
             output.text = unicode(output_text)
         if output_png is not None:
-            output.png = bytes(output_png)
+            output.png = unicode(output_png)
         if output_jpeg is not None:
-            output.jpeg = bytes(output_jpeg)
+            output.jpeg = unicode(output_jpeg)
         if output_html is not None:
             output.html = unicode(output_html)
         if output_svg is not None:

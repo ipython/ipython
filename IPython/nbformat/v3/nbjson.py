@@ -46,7 +46,7 @@ class JSONReader(NotebookReader):
         return nb
 
     def to_notebook(self, d, **kwargs):
-        return restore_bytes(rejoin_lines(from_dict(d)))
+        return rejoin_lines(from_dict(d))
 
 
 class JSONWriter(NotebookWriter):
