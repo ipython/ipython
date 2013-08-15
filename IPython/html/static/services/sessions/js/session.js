@@ -66,7 +66,6 @@ var IPython = (function (IPython) {
         this.kernel_content = json.kernel;
         var base_url = $('body').data('baseKernelUrl') + "api/kernels";
         this.kernel = new IPython.Kernel(base_url, this.session_id);
-        // Now that the kernel has been created, tell the CodeCells about it.
         this.kernel._kernel_started(this.kernel_content);
     };
     

@@ -24,16 +24,15 @@ var IPython = (function (IPython) {
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (base_url, session_id) {
+    var Kernel = function (base_url) {
         this.kernel_id = null;
-        this.session_id = session_id
         this.shell_channel = null;
         this.iopub_channel = null;
         this.stdin_channel = null;
         this.base_url = base_url;
         this.running = false;
-        this.username = "username";
-        this.base_session_id = utils.uuid();
+        this.username= "username";
+        this.session_id = utils.uuid();
         this._msg_callbacks = {};
 
         if (typeof(WebSocket) !== 'undefined') {
@@ -52,7 +51,7 @@ var IPython = (function (IPython) {
             header : {
                 msg_id : utils.uuid(),
                 username : this.username,
-                session : this.base_session_id,
+                session : this.session_id,
                 msg_type : msg_type
             },
             metadata : {},
@@ -76,7 +75,6 @@ var IPython = (function (IPython) {
      Kernel.prototype.start = function (params) {
          var that = this;
          params = params || {};
-         params.session = this.session_id;
          if (!this.running) {
              var qs = $.param(params);
              var url = this.base_url + '?' + qs;
