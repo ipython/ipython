@@ -1,5 +1,6 @@
 """Tests for debugging machinery.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012, The IPython Development Team.
 #
@@ -36,7 +37,7 @@ class _FakeInput(object):
 
     def readline(self):
         line = next(self.lines)
-        print line
+        print(line)
         return line+'\n'
 
 class PdbTestInput(object):

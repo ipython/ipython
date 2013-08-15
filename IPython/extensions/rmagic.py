@@ -26,6 +26,7 @@ Usage
 {RGET_DOC}
 
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012 The IPython Development Team
@@ -607,9 +608,9 @@ class RMagics(Magics):
                     ri.set_writeconsole(old_writeconsole)
         
         except RInterpreterError as e:
-            print(e.stdout)
+            print((e.stdout))
             if not e.stdout.endswith(e.err):
-                print(e.err)
+                print((e.err))
             rmtree(tmpd)
             return
 

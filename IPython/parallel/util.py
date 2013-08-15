@@ -23,6 +23,9 @@ import stat
 import socket
 import sys
 from signal import signal, SIGINT, SIGABRT, SIGTERM
+import six
+from six.moves import map
+from six.moves import zip
 try:
     from signal import SIGKILL
 except ImportError:
@@ -58,7 +61,7 @@ class Namespace(dict):
     
     def __getattr__(self, key):
         """getattr aliased to getitem"""
-        if key in self.iterkeys():
+        if key in six.iterkeys(self):
             return self[key]
         else:
             raise NameError(key)
@@ -76,7 +79,7 @@ class ReverseDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self._reverse = dict()
-        for key, value in self.iteritems():
+        for key, value in six.iteritems(self):
             self._reverse[value] = key
     
     def __getitem__(self, key):
@@ -167,7 +170,7 @@ def validate_url_container(container):
         url = container
         return validate_url(url)
     elif isinstance(container, dict):
-        container = container.itervalues()
+        container = six.itervalues(container)
     
     for element in container:
         validate_url_container(element)
@@ -230,9 +233,9 @@ def _push(**ns):
     while tmp in user_ns:
         tmp = tmp + '_'
     try:
-        for name, value in ns.iteritems():
+        for name, value in six.iteritems(ns):
             user_ns[tmp] = value
-            exec "%s = %s" % (name, tmp) in user_ns
+            exec("%s = %s" % (name, tmp), user_ns)
     finally:
         user_ns.pop(tmp, None)
 
@@ -247,7 +250,7 @@ def _pull(keys):
 @interactive
 def _execute(code):
     """helper method for implementing `client.execute` via `client.apply`"""
-    exec code in globals()
+    exec(code, globals())
 
 #--------------------------------------------------------------------------
 # extra process management utilities
@@ -258,7 +261,7 @@ _random_ports = set()
 def select_random_ports(n):
     """Selects and return n random ports that are available."""
     ports = []
-    for i in xrange(n):
+    for i in range(n):
         sock = socket.socket()
         sock.bind(('', 0))
         while sock.getsockname()[1] in _random_ports:

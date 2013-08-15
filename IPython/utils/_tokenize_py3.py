@@ -35,6 +35,8 @@ operators.  Additionally, all token lists start with an ENCODING token
 which tells you which encoding was used to decode the bytes stream.
 """
 from __future__ import absolute_import
+from six.moves import map
+from six.moves import zip
 
 __author__ = 'Ka-Ping Yee <ping@lfw.org>'
 __credits__ = ('GvR, ESR, Tim Peters, Thomas Wouters, Fred Drake, '

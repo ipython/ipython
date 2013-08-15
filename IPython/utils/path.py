@@ -29,6 +29,8 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat
+from six.moves import map
+from six.moves import zip
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------

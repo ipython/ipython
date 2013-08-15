@@ -34,6 +34,8 @@ from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
+from six.moves import map
+from six.moves import zip
 
 # Platform-dependent imports
 try:
@@ -499,8 +501,8 @@ class TestShellGlob(object):
 
     @classmethod
     def setUpClass(cls):
-        cls.filenames_start_with_a = map('a{0}'.format, range(3))
-        cls.filenames_end_with_b = map('{0}b'.format, range(3))
+        cls.filenames_start_with_a = map('a{0}'.format, list(range(3)))
+        cls.filenames_end_with_b = map('{0}b'.format, list(range(3)))
         cls.filenames = cls.filenames_start_with_a + cls.filenames_end_with_b
         cls.tempdir = TemporaryDirectory()
         td = cls.tempdir.name

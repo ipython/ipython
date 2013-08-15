@@ -40,6 +40,8 @@ import re
 import sys
 import unittest
 from doctest import DocTestFinder, DocTestRunner, TestResults
+from six.moves import map
+from six.moves import zip
 
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':

@@ -19,6 +19,7 @@ import copy
 import logging
 import sys
 from types import FunctionType
+import six
 
 try:
     import cPickle as pickle
@@ -30,9 +31,9 @@ try:
 except:
     numpy = None
 
-import codeutil  # This registers a hook when it's imported
-import py3compat
-from importstring import import_item
+from . import codeutil  # This registers a hook when it's imported
+from . import py3compat
+from .importstring import import_item
 
 from IPython.config import Application
 
@@ -109,9 +110,9 @@ class CannedFunction(CannedObject):
 
     def __init__(self, f):
         self._check_type(f)
-        self.code = f.func_code
-        if f.func_defaults:
-            self.defaults = [ can(fd) for fd in f.func_defaults ]
+        self.code = f.__code__
+        if f.__defaults__:
+            self.defaults = [ can(fd) for fd in f.__defaults__ ]
         else:
             self.defaults = None
         self.module = f.__module__ or '__main__'
@@ -248,7 +249,7 @@ def can(obj):
     
     import_needed = False
     
-    for cls,canner in can_map.iteritems():
+    for cls,canner in six.iteritems(can_map):
         if isinstance(cls, basestring):
             import_needed = True
             break
@@ -273,7 +274,7 @@ def can_dict(obj):
     """can the *values* of a dict"""
     if istype(obj, dict):
         newobj = {}
-        for k, v in obj.iteritems():
+        for k, v in six.iteritems(obj):
             newobj[k] = can(v)
         return newobj
     else:
@@ -293,7 +294,7 @@ def uncan(obj, g=None):
     """invert canning"""
     
     import_needed = False
-    for cls,uncanner in uncan_map.iteritems():
+    for cls,uncanner in six.iteritems(uncan_map):
         if isinstance(cls, basestring):
             import_needed = True
             break
@@ -311,7 +312,7 @@ def uncan(obj, g=None):
 def uncan_dict(obj, g=None):
     if istype(obj, dict):
         newobj = {}
-        for k, v in obj.iteritems():
+        for k, v in six.iteritems(obj):
             newobj[k] = uncan(v,g)
         return newobj
     else:

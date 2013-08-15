@@ -13,16 +13,15 @@
 
 # Standard library imports.
 import abc
+import six
 
 #-----------------------------------------------------------------------------
 # Channels
 #-----------------------------------------------------------------------------
 
 
-class ChannelABC(object):
+class ChannelABC(six.with_metaclass(abc.ABCMeta, object)):
     """A base class for all channel ABCs."""
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def start(self):
@@ -130,15 +129,13 @@ class HBChannelABC(ChannelABC):
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
-class KernelManagerABC(object):
+class KernelManagerABC(six.with_metaclass(abc.ABCMeta, object)):
     """KernelManager ABC.
 
     The docstrings for this class can be found in the base implementation:
 
     `IPython.kernel.kernelmanager.KernelManager`
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def kernel(self):

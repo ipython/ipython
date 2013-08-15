@@ -42,6 +42,10 @@ from IPython.parallel.factory import RegistrationFactory
 from IPython.kernel.zmq.session import SessionFactory
 
 from .heartmonitor import HeartMonitor
+import six
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Code
@@ -607,7 +611,7 @@ class Hub(SessionFactory):
         try:
             # it's posible iopub arrived first:
             existing = self.db.get_record(msg_id)
-            for key,evalue in existing.iteritems():
+            for key,evalue in six.iteritems(existing):
                 rvalue = record.get(key, None)
                 if evalue and rvalue and evalue != rvalue:
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r", msg_id, rvalue, key, evalue)
@@ -713,7 +717,7 @@ class Hub(SessionFactory):
                     # still check content,header which should not change
                     # but are not expensive to compare as buffers
 
-            for key,evalue in existing.iteritems():
+            for key,evalue in six.iteritems(existing):
                 if key.endswith('buffers'):
                     # don't compare buffers
                     continue
@@ -888,7 +892,7 @@ class Hub(SessionFactory):
         self.log.info("client::client %r connected", client_id)
         content = dict(status='ok')
         jsonable = {}
-        for k,v in self.keytable.iteritems():
+        for k,v in six.iteritems(self.keytable):
             if v not in self.dead_engines:
                 jsonable[str(k)] = v
         content['engines'] = jsonable
@@ -916,7 +920,7 @@ class Hub(SessionFactory):
                 content = error.wrap_exception()
                 self.log.error("uuid %r in use", uuid, exc_info=True)
         else:
-            for h, ec in self.incoming_registrations.iteritems():
+            for h, ec in six.iteritems(self.incoming_registrations):
                 if uuid == h:
                     try:
                         raise KeyError("heart_id %r in use" % uuid)
@@ -1069,7 +1073,7 @@ class Hub(SessionFactory):
         self.log.debug("save engine state to %s" % self.engine_state_file)
         state = {}
         engines = {}
-        for eid, ec in self.engines.iteritems():
+        for eid, ec in six.iteritems(self.engines):
             if ec.uuid not in self.dead_engines:
                 engines[eid] = ec.uuid
         
@@ -1093,7 +1097,7 @@ class Hub(SessionFactory):
         
         save_notifier = self.notifier
         self.notifier = None
-        for eid, uuid in state['engines'].iteritems():
+        for eid, uuid in six.iteritems(state['engines']):
             heart = uuid.encode('ascii')
             # start with this heart as current and beating:
             self.heartmonitor.responses.add(heart)
@@ -1286,7 +1290,7 @@ class Hub(SessionFactory):
         finish(dict(status='ok', resubmitted=resubmitted))
         
         # store the new IDs in the Task DB
-        for msg_id, resubmit_id in resubmitted.iteritems():
+        for msg_id, resubmit_id in six.iteritems(resubmitted):
             try:
                 self.db.update_record(msg_id, {'resubmitted' : resubmit_id})
             except Exception:

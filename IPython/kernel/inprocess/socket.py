@@ -20,14 +20,15 @@ import zmq
 
 # Local imports.
 from IPython.utils.traitlets import HasTraits, Instance, Int
+import six
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Generic socket interface
 #-----------------------------------------------------------------------------
 
-class SocketABC(object):
-    __metaclass__ = abc.ABCMeta
-
+class SocketABC(six.with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def recv_multipart(self, flags=0, copy=True, track=False):
         raise NotImplementedError

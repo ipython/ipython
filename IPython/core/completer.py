@@ -84,6 +84,7 @@ from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
 from IPython.utils.traitlets import CBool, Enum
+from six.moves import filter
 
 #-----------------------------------------------------------------------------
 # Globals

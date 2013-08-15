@@ -26,6 +26,9 @@ from zmq import MessageTracker
 from IPython.core.display import clear_output, display, display_pretty
 from IPython.external.decorator import decorator
 from IPython.parallel import error
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Functions

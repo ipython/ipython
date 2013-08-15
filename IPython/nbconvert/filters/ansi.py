@@ -14,6 +14,7 @@
 
 import re
 from IPython.utils import coloransi
+import six
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -71,7 +72,7 @@ def ansi2html(text):
         '`': '&#96;',
     }
     
-    for c, escape in html_escapes.iteritems():
+    for c, escape in six.iteritems(html_escapes):
         text = text.replace(c, escape)
 
     ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')

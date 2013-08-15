@@ -104,6 +104,7 @@ Inheritance diagram:
 :license: BSD License.
 """
 from __future__ import with_statement
+from __future__ import print_function
 from contextlib import contextmanager
 import sys
 import types
@@ -111,6 +112,8 @@ import re
 import datetime
 from StringIO import StringIO
 from collections import deque
+from six.moves import map
+from six.moves import zip
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
@@ -709,7 +712,7 @@ _type_pprinters = {
     type:                       _type_pprint,
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
-    types.SliceType:            _repr_pprint,
+    slice:            _repr_pprint,
     types.MethodType:           _repr_pprint,
     
     datetime.datetime:          _repr_pprint,
@@ -719,7 +722,7 @@ _type_pprinters = {
 
 try:
     _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
-    _type_pprinters[types.ClassType] = _type_pprint
+    _type_pprinters[type] = _type_pprint
 except AttributeError: # Python 3
     pass
     
@@ -766,11 +769,11 @@ if __name__ == '__main__':
         def __init__(self):
             self.foo = 1
             self.bar = re.compile(r'\s+')
-            self.blub = dict.fromkeys(range(30), randrange(1, 40))
+            self.blub = dict.fromkeys(list(range(30)), randrange(1, 40))
             self.hehe = 23424.234234
             self.list = ["blub", "blah", self]
 
         def get_foo(self):
-            print "foo"
+            print("foo")
 
     pprint(Foo(), verbose=True)

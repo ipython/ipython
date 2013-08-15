@@ -13,6 +13,7 @@ Authors:
 * Fernando Perez
 * Min RK
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -28,9 +29,10 @@ Authors:
 import datetime
 from copy import deepcopy
 
-from loader import Config
+from .loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
 from IPython.utils.text import indent, wrap_paragraphs
+import six
 
 
 #-----------------------------------------------------------------------------
@@ -147,7 +149,7 @@ class Configurable(HasTraits):
             section_names = self.section_names()
         
         my_config = self._find_my_config(cfg)
-        for name, config_value in my_config.iteritems():
+        for name, config_value in six.iteritems(my_config):
             if name in traits:
                 # We have to do a deepcopy here if we don't deepcopy the entire
                 # config object. If we don't, a mutable config_value will be
@@ -191,7 +193,7 @@ class Configurable(HasTraits):
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
         final_help.append(len(final_help[0])*u'-')
-        for k, v in sorted(cls.class_traits(config=True).iteritems()):
+        for k, v in sorted(six.iteritems(cls.class_traits(config=True))):
             help = cls.class_get_trait_help(v, inst)
             final_help.append(help)
         return '\n'.join(final_help)
@@ -231,7 +233,7 @@ class Configurable(HasTraits):
     @classmethod
     def class_print_help(cls, inst=None):
         """Get the help string for a single trait and print it."""
-        print cls.class_get_help(inst)
+        print(cls.class_get_help(inst))
 
     @classmethod
     def class_config_section(cls):
@@ -271,7 +273,7 @@ class Configurable(HasTraits):
             lines.append(c('%s will inherit config from: %s'%(cls.__name__, pstr)))
             lines.append('')
 
-        for name, trait in cls.class_traits(config=True).iteritems():
+        for name, trait in six.iteritems(cls.class_traits(config=True)):
             help = trait.get_metadata('help') or ''
             lines.append(c(help))
             lines.append('# c.%s.%s = %r'%(cls.__name__, name, trait.get_default_value()))

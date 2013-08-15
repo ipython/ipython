@@ -76,6 +76,7 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
+import six
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -742,7 +743,7 @@ class InteractiveShell(SingletonConfigurable):
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
         try:
-            for k, v in self._orig_sys_module_state.iteritems():
+            for k, v in six.iteritems(self._orig_sys_module_state):
                 setattr(sys, k, v)
         except AttributeError:
             pass
@@ -1226,7 +1227,7 @@ class InteractiveShell(SingletonConfigurable):
             # Also check in output history
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
-                to_delete = [n for n, o in ns.iteritems() if o is obj]
+                to_delete = [n for n, o in six.iteritems(ns) if o is obj]
                 for name in to_delete:
                     del ns[name]
 
@@ -1317,7 +1318,7 @@ class InteractiveShell(SingletonConfigurable):
         variables : dict
           A dictionary mapping object names (as strings) to the objects.
         """
-        for name, obj in variables.iteritems():
+        for name, obj in six.iteritems(variables):
             if name in self.user_ns and self.user_ns[name] is obj:
                 del self.user_ns[name]
                 self.user_ns_hidden.discard(name)
@@ -2422,7 +2423,7 @@ class InteractiveShell(SingletonConfigurable):
         user_ns = self.user_ns
         global_ns = self.user_global_ns
         
-        for key, expr in expressions.iteritems():
+        for key, expr in six.iteritems(expressions):
             try:
                 value = self._format_user_obj(eval(expr, global_ns, user_ns))
             except:
@@ -2437,7 +2438,7 @@ class InteractiveShell(SingletonConfigurable):
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
         with self.builtin_trap:
-            exec cmd in self.user_global_ns, self.user_ns
+            exec(cmd, self.user_global_ns, self.user_ns)
 
     def ev(self, expr):
         """Evaluate python expression expr in user namespace.
@@ -2662,7 +2663,7 @@ class InteractiveShell(SingletonConfigurable):
                     
                     # Execute any registered post-execution functions.
                     # unless we are silent
-                    post_exec = [] if silent else self._post_execute.iteritems()
+                    post_exec = [] if silent else six.iteritems(self._post_execute)
                     
                     for func, status in post_exec:
                         if self.disable_failing_post_execute and not status:
@@ -2818,7 +2819,7 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 self.hooks.pre_run_code_hook()
                 #rprint('Running code', repr(code_obj)) # dbg
-                exec code_obj in self.user_global_ns, self.user_ns
+                exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
@@ -3132,8 +3133,7 @@ class InteractiveShell(SingletonConfigurable):
         self.restore_sys_module_state()
 
 
-class InteractiveShellABC(object):
+class InteractiveShellABC(six.with_metaclass(abc.ABCMeta, object)):
     """An abstract base class for InteractiveShell."""
-    __metaclass__ = abc.ABCMeta
 
 InteractiveShellABC.register(InteractiveShell)

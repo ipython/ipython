@@ -44,9 +44,10 @@ from IPython.utils.traitlets import (
     Type
 )
 
-from serialize import serialize_object, unpack_apply_message
-from session import Session
-from zmqshell import ZMQInteractiveShell
+from .serialize import serialize_object, unpack_apply_message
+from .session import Session
+from .zmqshell import ZMQInteractiveShell
+import six
 
 
 #-----------------------------------------------------------------------------
@@ -613,10 +614,10 @@ class Kernel(Configurable):
             working.update(ns)
             code = "%s = %s(*%s,**%s)" % (resultname, fname, argname, kwargname)
             try:
-                exec code in shell.user_global_ns, shell.user_ns
+                exec(code, shell.user_global_ns, shell.user_ns)
                 result = working.get(resultname)
             finally:
-                for key in ns.iterkeys():
+                for key in six.iterkeys(ns):
                     working.pop(key)
 
             result_buf = serialize_object(result,

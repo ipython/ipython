@@ -28,6 +28,8 @@ from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
+from six.moves import map
+from six.moves import zip
 
 def setup():
     add_engines(1, total=True)
@@ -41,9 +43,9 @@ def wait(n):
 def func(x):
     return x*x
 
-mixed = map(str, range(10))
-completed = map(str, range(0,10,2))
-failed = map(str, range(1,10,2))
+mixed = map(str, list(range(10)))
+completed = map(str, list(range(0,10,2)))
+failed = map(str, list(range(1,10,2)))
 
 class DependencyTest(ClusterTestCase):
     
@@ -52,8 +54,8 @@ class DependencyTest(ClusterTestCase):
         self.user_ns = {'__builtins__' : __builtins__}
         self.view = self.client.load_balanced_view()
         self.dview = self.client[-1]
-        self.succeeded = set(map(str, range(0,25,2)))
-        self.failed = set(map(str, range(1,25,2)))
+        self.succeeded = set(map(str, list(range(0,25,2))))
+        self.failed = set(map(str, list(range(1,25,2))))
     
     def assertMet(self, dep):
         self.assertTrue(dep.check(self.succeeded, self.failed), "Dependency should be met")

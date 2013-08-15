@@ -4,6 +4,7 @@ Authors:
 
 * Min RK
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
@@ -35,6 +36,9 @@ from IPython.parallel.controller.dependency import Dependency, dependent
 from . import map as Map
 from .asyncresult import AsyncResult, AsyncMapResult
 from .remotefunction import ParallelFunction, parallel, remote, getname
+import six
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -162,7 +166,7 @@ class View(HasTraits):
             safely edit after arrays and buffers during non-copying
             sends.
         """
-        for name, value in kwargs.iteritems():
+        for name, value in six.iteritems(kwargs):
             if name not in self._flag_names:
                 raise KeyError("Invalid name: %r"%name)
             else:
@@ -482,9 +486,9 @@ class DirectView(View):
                 modules.add(key)
                 if not quiet:
                     if fromlist:
-                        print "importing %s from %s on engine(s)"%(','.join(fromlist), name)
+                        print("importing %s from %s on engine(s)"%(','.join(fromlist), name))
                     else:
-                        print "importing %s on engine(s)"%name
+                        print("importing %s on engine(s)"%name)
                 results.append(self.apply_async(remote_import, name, fromlist, level))
             # restore override
             __builtin__.__import__ = save_import
@@ -830,7 +834,7 @@ class DirectView(View):
             # This is injected into __builtins__.
             ip = get_ipython()
         except NameError:
-            print "The IPython parallel magics (%px, etc.) only work within IPython."
+            print("The IPython parallel magics (%px, etc.) only work within IPython.")
             return
         
         M = ParallelMagics(ip, self, suffix)

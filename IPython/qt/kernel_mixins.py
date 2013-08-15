@@ -6,7 +6,8 @@ from IPython.external.qt import QtCore
 
 # IPython imports.
 from IPython.utils.traitlets import HasTraits, Type
-from util import MetaQObjectHasTraits, SuperQObject
+from .util import MetaQObjectHasTraits, SuperQObject
+import six
 
 
 class ChannelQObject(SuperQObject):
@@ -168,26 +169,21 @@ class QtHBChannelMixin(ChannelQObject):
         self.kernel_died.emit(since_last_heartbeat)
 
 
-class QtKernelRestarterMixin(HasTraits, SuperQObject):
+class QtKernelRestarterMixin(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (HasTraits, SuperQObject), {}))):
 
-    __metaclass__ = MetaQObjectHasTraits
     _timer = None
 
 
-class QtKernelManagerMixin(HasTraits, SuperQObject):
+class QtKernelManagerMixin(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (HasTraits, SuperQObject), {}))):
     """ A KernelClient that provides signals and slots.
     """
-
-    __metaclass__ = MetaQObjectHasTraits
 
     kernel_restarted = QtCore.Signal()
 
 
-class QtKernelClientMixin(HasTraits, SuperQObject):
+class QtKernelClientMixin(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (HasTraits, SuperQObject), {}))):
     """ A KernelClient that provides signals and slots.
     """
-
-    __metaclass__ = MetaQObjectHasTraits
 
     # Emitted when the kernel client has started listening.
     started_channels = QtCore.Signal()

@@ -22,6 +22,8 @@ except ImportError:
 from IPython.utils.traitlets import Dict, List, Unicode, Instance
 
 from .dictdb import BaseDB
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # MongoDB class

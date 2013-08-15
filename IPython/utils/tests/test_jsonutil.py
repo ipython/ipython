@@ -23,6 +23,7 @@ from IPython.testing import decorators as dec
 from IPython.utils import jsonutil, tz
 from ..jsonutil import json_clean, encode_images
 from ..py3compat import unicode_to_str, str_to_bytes
+import six
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -73,7 +74,7 @@ def test_encode_images():
         'image/jpeg' : jpegdata,
     }
     encoded = encode_images(fmt)
-    for key, value in fmt.iteritems():
+    for key, value in six.iteritems(fmt):
         # encoded has unicode, want bytes
         decoded = decodestring(encoded[key].encode('ascii'))
         yield nt.assert_equal(decoded, value)
@@ -81,11 +82,11 @@ def test_encode_images():
     yield nt.assert_equal(encoded, encoded2)
     
     b64_str = {}
-    for key, encoded in encoded.iteritems():
+    for key, encoded in six.iteritems(encoded):
         b64_str[key] = unicode_to_str(encoded)
     encoded3 = encode_images(b64_str)
     yield nt.assert_equal(encoded3, b64_str)
-    for key, value in fmt.iteritems():
+    for key, value in six.iteritems(fmt):
         # encoded3 has str, want bytes
         decoded = decodestring(str_to_bytes(encoded3[key]))
         yield nt.assert_equal(decoded, value)

@@ -16,7 +16,7 @@ from io import StringIO, UnsupportedOperation
 
 import zmq
 
-from session import extract_header
+from .session import extract_header
 
 from IPython.utils import py3compat
 

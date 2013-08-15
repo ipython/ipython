@@ -31,6 +31,7 @@ from .channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )
+import six
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -61,7 +62,7 @@ def validate_string_dict(dct):
     """Validate that the input is a dict with string keys and values.
 
     Raises ValueError if not."""
-    for k,v in dct.iteritems():
+    for k,v in six.iteritems(dct):
         if not isinstance(k, basestring):
             raise ValueError('key %r in dict must be a string' % k)
         if not isinstance(v, basestring):
@@ -444,7 +445,7 @@ class IOPubChannel(ZMQSocketChannel):
         # We do the IOLoop callback process twice to ensure that the IOLoop
         # gets to perform at least one full poll.
         stop_time = time.time() + timeout
-        for i in xrange(2):
+        for i in range(2):
             self._flushed = False
             self.ioloop.add_callback(self._flush)
             while not self._flushed and time.time() < stop_time:

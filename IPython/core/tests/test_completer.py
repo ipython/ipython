@@ -18,6 +18,8 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.generics import complete_object
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Test functions

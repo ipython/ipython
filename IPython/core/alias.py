@@ -31,6 +31,7 @@ from IPython.core.splitinput import split_user_input
 
 from IPython.utils.traitlets import List, Instance
 from IPython.utils.warn import warn, error
+import six
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -125,7 +126,7 @@ class AliasManager(Configurable):
 
     @property
     def aliases(self):
-        return [(item[0], item[1][1]) for item in self.alias_table.iteritems()]
+        return [(item[0], item[1][1]) for item in six.iteritems(self.alias_table)]
 
     def exclude_aliases(self):
         # set of things NOT to alias (keywords, builtins and some magics)

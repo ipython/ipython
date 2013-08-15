@@ -21,6 +21,8 @@ import sys
 import warnings
 
 from IPython.utils.warn import warn
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Code

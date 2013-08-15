@@ -58,6 +58,7 @@ import re
 import sys
 import types
 from types import FunctionType
+import six
 try:
     from types import ClassType, InstanceType
     ClassTypes = (ClassType, type)
@@ -373,7 +374,7 @@ class MetaHasTraits(type):
         # print "MetaHasTraitlets (mcls, name): ", mcls, name
         # print "MetaHasTraitlets (bases): ", bases
         # print "MetaHasTraitlets (classdict): ", classdict
-        for k,v in classdict.iteritems():
+        for k,v in six.iteritems(classdict):
             if isinstance(v, TraitType):
                 v.name = k
             elif inspect.isclass(v):
@@ -389,14 +390,12 @@ class MetaHasTraits(type):
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         """
-        for k, v in classdict.iteritems():
+        for k, v in six.iteritems(classdict):
             if isinstance(v, TraitType):
                 v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
-class HasTraits(object):
-
-    __metaclass__ = MetaHasTraits
+class HasTraits(six.with_metaclass(MetaHasTraits, object)):
 
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
@@ -429,7 +428,7 @@ class HasTraits(object):
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.
-        for key, value in kw.iteritems():
+        for key, value in six.iteritems(kw):
             setattr(self, key, value)
 
     def _notify_trait(self, name, old_value, new_value):
@@ -901,7 +900,7 @@ else:
     class Long(TraitType):
         """A long integer trait."""
 
-        default_value = 0L
+        default_value = 0
         info_text = 'a long'
 
         def validate(self, obj, value):

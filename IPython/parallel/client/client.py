@@ -4,6 +4,7 @@ Authors:
 
 * MinRK
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
@@ -24,6 +25,10 @@ import warnings
 from datetime import datetime
 from getpass import getpass
 from pprint import pprint
+import six
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 pjoin = os.path.join
 
@@ -199,21 +204,21 @@ class Metadata(dict):
 
     def __getattr__(self, key):
         """getattr aliased to getitem"""
-        if key in self.iterkeys():
+        if key in six.iterkeys(self):
             return self[key]
         else:
             raise AttributeError(key)
 
     def __setattr__(self, key, value):
         """setattr aliased to setitem, with strict"""
-        if key in self.iterkeys():
+        if key in six.iterkeys(self):
             self[key] = value
         else:
             raise AttributeError(key)
 
     def __setitem__(self, key, value):
         """strict static key enforcement"""
-        if key in self.iterkeys():
+        if key in six.iterkeys(self):
             dict.__setitem__(self, key, value)
         else:
             raise KeyError(key)
@@ -533,13 +538,13 @@ class Client(HasTraits):
 
     def _update_engines(self, engines):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
-        for k,v in engines.iteritems():
+        for k,v in six.iteritems(engines):
             eid = int(k)
             if eid not in self._engines:
                 self._ids.append(eid)
             self._engines[eid] = v
         self._ids = sorted(self._ids)
-        if sorted(self._engines.keys()) != range(len(self._engines)) and \
+        if sorted(self._engines.keys()) != list(range(len(self._engines))) and \
                         self._task_scheme == 'pure' and self._task_socket:
             self._stop_scheduling_tasks()
 
@@ -580,7 +585,7 @@ class Client(HasTraits):
             targets = [targets]
 
         if isinstance(targets, slice):
-            indices = range(len(self._ids))[targets]
+            indices = list(range(len(self._ids)))[targets]
             ids = self.ids
             targets = [ ids[i] for i in indices ]
 
@@ -734,9 +739,9 @@ class Client(HasTraits):
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
-                print ("got stale result: %s"%msg_id)
+                print(("got stale result: %s"%msg_id))
             else:
-                print ("got unknown result: %s"%msg_id)
+                print(("got unknown result: %s"%msg_id))
         else:
             self.outstanding.remove(msg_id)
 
@@ -770,11 +775,11 @@ class Client(HasTraits):
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
-                print ("got stale result: %s"%msg_id)
-                print self.results[msg_id]
-                print msg
+                print(("got stale result: %s"%msg_id))
+                print(self.results[msg_id])
+                print(msg)
             else:
-                print ("got unknown result: %s"%msg_id)
+                print(("got unknown result: %s"%msg_id))
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']

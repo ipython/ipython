@@ -32,6 +32,7 @@ from IPython.utils.traitlets import (
     Unicode, Integer, List, Instance,
     Enum, Bool
 )
+import six
 
 #-----------------------------------------------------------------------------
 # Job and Task classes
@@ -215,7 +216,7 @@ class WinHPCTask(Configurable):
 
     def get_env_vars(self):
         env_vars = ET.Element('EnvironmentVariables')
-        for k, v in self.environment_variables.iteritems():
+        for k, v in six.iteritems(self.environment_variables):
             variable = ET.SubElement(env_vars, "Variable")
             name = ET.SubElement(variable, "Name")
             name.text = k

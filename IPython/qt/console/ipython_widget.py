@@ -22,8 +22,10 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.inputtransformer import ipy_prompt
 from IPython.utils.traitlets import Bool, Unicode
-from frontend_widget import FrontendWidget
-import styles
+from .frontend_widget import FrontendWidget
+from . import styles
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Constants

@@ -19,6 +19,7 @@ import sys
 import tempfile
 from StringIO import StringIO
 from .capture import CapturedIO, capture_output
+from six.moves import filter
 
 #-----------------------------------------------------------------------------
 # Code

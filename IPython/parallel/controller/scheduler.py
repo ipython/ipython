@@ -27,6 +27,9 @@ from collections import deque
 from datetime import datetime
 from random import randint, random
 from types import FunctionType
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 try:
     import numpy
@@ -52,7 +55,7 @@ from .dependency import Dependency
 @decorator
 def logged(f,self,*args,**kwargs):
     # print ("#--------------------")
-    self.log.debug("scheduler::%s(*%s,**%s)", f.func_name, args, kwargs)
+    self.log.debug("scheduler::%s(*%s,**%s)", f.__name__, args, kwargs)
     # print ("#--")
     return f(self,*args, **kwargs)
 
@@ -515,7 +518,7 @@ class TaskScheduler(SessionFactory):
     def available_engines(self):
         """return a list of available engine indices based on HWM"""
         if not self.hwm:
-            return range(len(self.targets))
+            return list(range(len(self.targets)))
         available = []
         for idx in range(len(self.targets)):
             if self.loads[idx] < self.hwm:

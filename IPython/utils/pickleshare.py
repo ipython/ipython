@@ -32,6 +32,7 @@ Author: Ville Vainio <vivainio@gmail.com>
 License: MIT open source license.
 
 """
+from __future__ import print_function
 
 from IPython.external.path import path as Path
 import os,stat,time
@@ -138,7 +139,7 @@ class PickleShareDB(collections.MutableMapping):
             try:
                 all.update(self[f])
             except KeyError:
-                print "Corrupt",f,"deleted - hset is not threadsafe!"
+                print("Corrupt",f,"deleted - hset is not threadsafe!")
                 del self[f]
 
             self.uncache(f)
@@ -280,25 +281,25 @@ class PickleShareLink:
 def test():
     db = PickleShareDB('~/testpickleshare')
     db.clear()
-    print "Should be empty:",db.items()
+    print("Should be empty:",db.items())
     db['hello'] = 15
     db['aku ankka'] = [1,2,313]
     db['paths/nest/ok/keyname'] = [1,(5,46)]
     db.hset('hash', 'aku', 12)
     db.hset('hash', 'ankka', 313)
-    print "12 =",db.hget('hash','aku')
-    print "313 =",db.hget('hash','ankka')
-    print "all hashed",db.hdict('hash')
-    print db.keys()
-    print db.keys('paths/nest/ok/k*')
-    print dict(db) # snapsot of whole db
+    print("12 =",db.hget('hash','aku'))
+    print("313 =",db.hget('hash','ankka'))
+    print("all hashed",db.hdict('hash'))
+    print(db.keys())
+    print(db.keys('paths/nest/ok/k*'))
+    print(dict(db)) # snapsot of whole db
     db.uncache() # frees memory, causes re-reads later
 
     # shorthand for accessing deeply nested files
     lnk = db.getlink('myobjects/test')
     lnk.foo = 2
     lnk.bar = lnk.foo + 5
-    print lnk.bar # 7
+    print(lnk.bar) # 7
 
 def stress():
     db = PickleShareDB('~/fsdbtest')
@@ -316,7 +317,7 @@ def stress():
             db[str(j)] = db.get(str(j), []) + [(i,j,"proc %d" % os.getpid())]
             db.hset('hash',j, db.hget('hash',j,15) + 1 )
 
-        print i,
+        print(i, end=' ')
         sys.stdout.flush()
         if i % 10 == 0:
             db.uncache()
@@ -335,7 +336,7 @@ def main():
     DB = PickleShareDB
     import sys
     if len(sys.argv) < 2:
-        print usage
+        print(usage)
         return
 
     cmd = sys.argv[1]
@@ -355,7 +356,7 @@ def main():
     elif cmd == 'testwait':
         db = DB(args[0])
         db.clear()
-        print db.waitget('250')
+        print(db.waitget('250'))
     elif cmd == 'test':
         test()
         stress()

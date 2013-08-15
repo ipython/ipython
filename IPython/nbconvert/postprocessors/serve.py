@@ -1,6 +1,7 @@
 """
 Contains postprocessor for serving nbconvert output.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #Copyright (c) 2013, the IPython Development Team.
 #
@@ -48,7 +49,7 @@ class ServePostProcessor(PostProcessorBase):
             url = "http://" + sa[0] + ":" + str(sa[1]) + "/" + filename
             if self.open_in_browser:
                 webbrowser.open(url, new=2)
-            print("Serving your slides on " + url)
+            print(("Serving your slides on " + url))
             print("Use Control-C to stop this server.")
             httpd.serve_forever()
         except KeyboardInterrupt:

@@ -29,6 +29,7 @@ from IPython.parallel import error
 from IPython.parallel import Client
 
 from IPython.parallel.tests import launchers, add_engines
+from six.moves import filter
 
 # simple tasks for use in apply tests
 

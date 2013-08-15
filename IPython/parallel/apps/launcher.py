@@ -30,6 +30,9 @@ import time
 # signal imports, handling various platforms, versions
 
 from signal import SIGINT, SIGTERM
+import six
+from six.moves import map
+from six.moves import zip
 try:
     from signal import SIGKILL
 except ImportError:
@@ -404,14 +407,14 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
 
     def signal(self, sig):
         dlist = []
-        for el in self.launchers.itervalues():
+        for el in six.itervalues(self.launchers):
             d = el.signal(sig)
             dlist.append(d)
         return dlist
 
     def interrupt_then_kill(self, delay=1.0):
         dlist = []
-        for el in self.launchers.itervalues():
+        for el in six.itervalues(self.launchers):
             d = el.interrupt_then_kill(delay)
             dlist.append(d)
         return dlist
@@ -421,7 +424,7 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
 
     def _notice_engine_stopped(self, data):
         pid = data['pid']
-        for idx,el in self.launchers.iteritems():
+        for idx,el in six.iteritems(self.launchers):
             if el.process.pid == pid:
                 break
         self.launchers.pop(idx)
@@ -742,7 +745,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
     def engine_count(self):
         """determine engine count from `engines` dict"""
         count = 0
-        for n in self.engines.itervalues():
+        for n in six.itervalues(self.engines):
             if isinstance(n, (tuple,list)):
                 n,args = n
             count += n
@@ -754,7 +757,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
         """
 
         dlist = []
-        for host, n in self.engines.iteritems():
+        for host, n in six.iteritems(self.engines):
             if isinstance(n, (tuple, list)):
                 n, args = n
             else:

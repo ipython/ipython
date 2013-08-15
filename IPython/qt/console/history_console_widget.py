@@ -3,7 +3,7 @@ from IPython.external.qt import QtGui
 
 # Local imports
 from IPython.utils.traitlets import Bool
-from console_widget import ConsoleWidget
+from .console_widget import ConsoleWidget
 
 
 class HistoryConsoleWidget(ConsoleWidget):

@@ -25,6 +25,7 @@ import unittest
 import sys
 import nose.loader
 from inspect import ismethod, isfunction
+from six.moves import filter
 
 #-----------------------------------------------------------------------------
 # Classes and functions

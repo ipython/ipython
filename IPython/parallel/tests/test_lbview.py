@@ -29,6 +29,8 @@ from IPython.parallel import error
 from IPython.parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, crash, wait, skip_without
+from six.moves import map
+from six.moves import zip
 
 def setup():
     add_engines(3, total=True)
@@ -55,7 +57,7 @@ class TestLoadBalancedView(ClusterTestCase):
     def test_map(self):
         def f(x):
             return x**2
-        data = range(16)
+        data = list(range(16))
         r = self.view.map_sync(f, data)
         self.assertEqual(r, map(f, data))
     
@@ -63,7 +65,7 @@ class TestLoadBalancedView(ClusterTestCase):
         def f(x):
             return x**2
         
-        data = range(16)
+        data = list(range(16))
         r = self.view.map_sync(f, iter(data))
         self.assertEqual(r, map(f, iter(data)))
     
@@ -74,8 +76,8 @@ class TestLoadBalancedView(ClusterTestCase):
             if x is None:
                 return x
             return x*y
-        data = range(10)
-        data2 = range(4)
+        data = list(range(10))
+        data2 = list(range(4))
         
         r = self.view.map_sync(f, data, data2)
         self.assertEqual(r, map(f, data, data2))
@@ -87,8 +89,8 @@ class TestLoadBalancedView(ClusterTestCase):
             if x is None:
                 return x
             return x*y
-        data = range(4)
-        data2 = range(10)
+        data = list(range(4))
+        data2 = list(range(10))
         
         r = self.view.map_sync(f, data, data2)
         self.assertEqual(r, map(f, data, data2))
@@ -100,7 +102,7 @@ class TestLoadBalancedView(ClusterTestCase):
             import time
             time.sleep(0.05*x)
             return x**2
-        data = range(16,0,-1)
+        data = list(range(16,0,-1))
         reference = map(f, data)
         
         amr = self.view.map_async(slow_f, data, ordered=False)
@@ -119,7 +121,7 @@ class TestLoadBalancedView(ClusterTestCase):
             import time
             time.sleep(0.05*x)
             return x**2
-        data = range(16,0,-1)
+        data = list(range(16,0,-1))
         reference = map(f, data)
         
         amr = self.view.map_async(slow_f, data)
@@ -135,7 +137,7 @@ class TestLoadBalancedView(ClusterTestCase):
         """test map on iterables (balanced)"""
         view = self.view
         # 101 is prime, so it won't be evenly distributed
-        arr = range(101)
+        arr = list(range(101))
         # so that it will be an iterator, even in Python 3
         it = iter(arr)
         r = view.map_sync(lambda x:x, arr)

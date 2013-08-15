@@ -15,6 +15,9 @@ import json
 import os
 import cPickle as pickle
 from datetime import datetime
+import six
+from six.moves import map
+from six.moves import zip
 
 try:
     import sqlite3
@@ -292,9 +295,9 @@ class SQLiteDB(BaseDB):
         if skeys:
             raise KeyError("Illegal testing key(s): %s"%skeys)
 
-        for name,sub_check in check.iteritems():
+        for name,sub_check in six.iteritems(check):
             if isinstance(sub_check, dict):
-                for test,value in sub_check.iteritems():
+                for test,value in six.iteritems(sub_check):
                     try:
                         op = operators[test]
                     except KeyError:

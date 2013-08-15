@@ -6,6 +6,7 @@ from . import formattest
 
 from .. import nbpy
 from .nbexamples import nb0, nb0_py
+import six
 
 
 class TestPy(formattest.NBFormatTest, TestCase):
@@ -22,7 +23,7 @@ class TestPy(formattest.NBFormatTest, TestCase):
         elements.
         """
         if isinstance(da, dict):
-            for k,v in da.iteritems():
+            for k,v in six.iteritems(da):
                 if k in self.ignored_keys:
                     continue
                 self.assertTrue(k in db)

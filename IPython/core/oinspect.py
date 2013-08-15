@@ -187,13 +187,13 @@ def getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     elif hasattr(obj, '__call__'):
         func_obj = obj.__call__
     else:
         raise TypeError('arg is not a Python function')
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
+    args, varargs, varkw = inspect.getargs(func_obj.__code__)
+    return args, varargs, varkw, func_obj.__defaults__
 
 
 def format_argspec(argspec):

@@ -27,6 +27,8 @@ from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import Set, Instance, CFloat, Integer, Dict
 
 from IPython.parallel.util import log_errors
+from six.moves import map
+from six.moves import zip
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.

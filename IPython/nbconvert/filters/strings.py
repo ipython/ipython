@@ -23,6 +23,8 @@ from xml.etree import ElementTree
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils import py3compat
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Functions

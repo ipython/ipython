@@ -40,6 +40,8 @@ from IPython.core.application import (
 from IPython.utils.path import expand_path
 
 from IPython.utils.traitlets import Unicode, Bool, Instance, Dict, List
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Module errors

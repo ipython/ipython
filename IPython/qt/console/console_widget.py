@@ -23,11 +23,12 @@ from IPython.qt.rich_text import HtmlExporter
 from IPython.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
 from IPython.utils.traitlets import Bool, Enum, Integer, Unicode
-from ansi_code_processor import QtAnsiCodeProcessor
-from completion_widget import CompletionWidget
-from completion_html import CompletionHtml
-from completion_plain import CompletionPlain
-from kill_ring import QtKillRing
+from .ansi_code_processor import QtAnsiCodeProcessor
+from .completion_widget import CompletionWidget
+from .completion_html import CompletionHtml
+from .completion_plain import CompletionPlain
+from .kill_ring import QtKillRing
+import six
 
 
 #-----------------------------------------------------------------------------
@@ -69,7 +70,7 @@ def is_letter_or_number(char):
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
+class ConsoleWidget(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (LoggingConfigurable, QtGui.QWidget), {}))):
     """ An abstract base class for console-type widgets. This class has
         functionality for:
 
@@ -82,7 +83,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         ConsoleWidget also provides a number of utility methods that will be
         convenient to implementors of a console-style widget.
     """
-    __metaclass__ = MetaQObjectHasTraits
 
     #------ Configuration ------------------------------------------------------
 

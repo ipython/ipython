@@ -27,6 +27,9 @@ from string import Formatter
 from IPython.external.path import path
 from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Code
@@ -602,7 +605,7 @@ class DollarFormatter(FullEvalFormatter):
 
 def _chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i+n]
 
 

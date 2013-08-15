@@ -12,6 +12,8 @@
 import IPython.utils.text as text
 
 from IPython.external.qt import QtCore, QtGui
+from six.moves import map
+from six.moves import zip
 
 #--------------------------------------------------------------------------
 # Return an HTML table with selected item in a special class

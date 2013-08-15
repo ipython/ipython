@@ -64,7 +64,7 @@ class TestPyFileCL(TestCase):
         self.assertEqual(config.a, 10)
         self.assertEqual(config.b, 20)
         self.assertEqual(config.Foo.Bar.value, 10)
-        self.assertEqual(config.Foo.Bam.value, range(10))
+        self.assertEqual(config.Foo.Bam.value, list(range(10)))
         self.assertEqual(config.D.C.value, 'hi there')
 
 class MyLoader1(ArgParseConfigLoader):
@@ -126,7 +126,7 @@ class TestKeyValueCL(TestCase):
         self.assertEqual(config.a, 10)
         self.assertEqual(config.b, 20)
         self.assertEqual(config.Foo.Bar.value, 10)
-        self.assertEqual(config.Foo.Bam.value, range(10))
+        self.assertEqual(config.Foo.Bam.value, list(range(10)))
         self.assertEqual(config.D.C.value, 'hi there')
     
     def test_expanduser(self):
@@ -247,7 +247,7 @@ class TestConfig(TestCase):
         c1.Foo.bar = 10
         c1.Foo.bam = 30
         c1.a = 'asdf'
-        c1.b = range(10)
+        c1.b = list(range(10))
         import copy
         c2 = copy.deepcopy(c1)
         self.assertEqual(c1, c2)
@@ -256,7 +256,7 @@ class TestConfig(TestCase):
 
     def test_builtin(self):
         c1 = Config()
-        exec 'foo = True' in c1
+        exec('foo = True', c1)
         self.assertEqual(c1.foo, True)
         c1.format = "json"
     
