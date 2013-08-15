@@ -1,6 +1,10 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import functools
 import sys
 import re
@@ -187,7 +191,7 @@ else:
             # The rstrip() is necessary b/c trailing whitespace in files will
             # cause an IndentationError in Python 2.6 (this was fixed in 2.7,
             # but we still support 2.6).  See issue 1027.
-            scripttext = __builtin__.open(fname).read().rstrip() + '\n'
+            scripttext = builtins.open(fname).read().rstrip() + '\n'
             # compile converts unicode filename to str assuming
             # ascii. Let's do the conversion before calling compile
             if isinstance(fname, unicode):
@@ -201,4 +205,4 @@ else:
                 filename = fname.encode(sys.getfilesystemencoding())
             else:
                 filename = fname
-            __builtin__.execfile(filename, *where)
+            builtins.execfile(filename, *where)

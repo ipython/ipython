@@ -20,7 +20,11 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # stdlib
-import __builtin__ as builtin_mod
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import os
 import sys
 
@@ -159,8 +163,8 @@ def start_ipython():
     # now return this without recursively calling here again.
     _ip = shell
     get_ipython = _ip.get_ipython
-    builtin_mod._ip = _ip
-    builtin_mod.get_ipython = get_ipython
+    builtins._ip = _ip
+    builtins.get_ipython = get_ipython
 
     # To avoid extra IPython messages during testing, suppress io.stdout/stderr
     io.stdout = StreamProxy('stdout')

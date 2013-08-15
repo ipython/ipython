@@ -16,7 +16,11 @@ Things to do:
 from __future__ import print_function
 
 # Standard library imports
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import sys
 import time
 import traceback
@@ -357,11 +361,11 @@ class Kernel(Configurable):
             raw_input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
-            self._sys_raw_input = __builtin__.input
-            __builtin__.input = raw_input
+            self._sys_raw_input = builtins.input
+            builtins.input = raw_input
         else:
-            self._sys_raw_input = __builtin__.raw_input
-            __builtin__.raw_input = raw_input
+            self._sys_raw_input = builtins.raw_input
+            builtins.raw_input = raw_input
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
@@ -401,9 +405,9 @@ class Kernel(Configurable):
         finally:
             # Restore raw_input.
              if py3compat.PY3:
-                 __builtin__.input = self._sys_raw_input
+                 builtins.input = self._sys_raw_input
              else:
-                 __builtin__.raw_input = self._sys_raw_input
+                 builtins.raw_input = self._sys_raw_input
 
         reply_content[u'status'] = status
 

@@ -20,7 +20,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import keyword
 import os
 import re
@@ -132,7 +136,7 @@ class AliasManager(Configurable):
         # set of things NOT to alias (keywords, builtins and some magics)
         no_alias = set(['cd','popd','pushd','dhist','alias','unalias'])
         no_alias.update(set(keyword.kwlist))
-        no_alias.update(set(__builtin__.__dict__.keys()))
+        no_alias.update(set(builtins.__dict__.keys()))
         self.no_alias = no_alias
 
     def init_aliases(self):

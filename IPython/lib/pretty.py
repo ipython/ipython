@@ -115,6 +115,8 @@ from collections import deque
 from six.moves import map
 from six.moves import zip
 
+from IPython.utils.py3compat import builtin_mod_name
+
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name']
@@ -647,7 +649,7 @@ def _type_pprint(obj, p, cycle):
         # and others may set it to None.
         return p.text(obj.__name__)
 
-    if mod in ('__builtin__', 'exceptions'):
+    if mod in (builtin_mod_name, 'exceptions'):
         name = obj.__name__
     else:
         name = mod + '.' + obj.__name__
@@ -661,7 +663,7 @@ def _repr_pprint(obj, p, cycle):
 
 def _function_pprint(obj, p, cycle):
     """Base pprint for all functions and builtin functions."""
-    if obj.__module__ in ('__builtin__', 'exceptions') or not obj.__module__:
+    if obj.__module__ in (builtin_mod_name, 'exceptions') or not obj.__module__:
         name = obj.__name__
     else:
         name = obj.__module__ + '.' + obj.__name__

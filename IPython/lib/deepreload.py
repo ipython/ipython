@@ -6,6 +6,8 @@ To enable it type::
     import __builtin__, deepreload
     __builtin__.reload = deepreload.reload
 
+For Python 3, replace '__builtin__' with 'builtins'.
+
 You can then disable it with::
 
     __builtin__.reload = deepreload.original_reload
@@ -25,7 +27,11 @@ from __future__ import print_function
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 from contextlib import contextmanager
 import imp
 import sys
@@ -33,16 +39,18 @@ import sys
 from types import ModuleType
 from warnings import warn
 
-original_import = __builtin__.__import__
+from IPython.utils.py3compat import builtin_mod_name
+
+original_import = builtins.__import__
 
 @contextmanager
 def replace_import_hook(new_import):
-    saved_import = __builtin__.__import__
-    __builtin__.__import__ = new_import
+    saved_import = builtins.__import__
+    builtins.__import__ = new_import
     try:
         yield
     finally:
-        __builtin__.__import__ = saved_import
+        builtins.__import__ = saved_import
 
 def get_parent(globals, level):
     """
@@ -313,12 +321,12 @@ def deep_reload_hook(m):
 
 # Save the original hooks
 try:
-    original_reload = __builtin__.reload
+    original_reload = builtins.reload
 except AttributeError:
     original_reload = imp.reload    # Python 3
 
 # Replacement for reload()
-def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
+def reload(module, exclude=['sys', 'os.path', builtin_mod_name, '__main__']):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
     list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
@@ -336,4 +344,4 @@ def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
 
 # Uncomment the following to automatically activate deep reloading whenever
 # this module is imported
-#__builtin__.reload = reload
+#builtins.reload = reload

@@ -15,7 +15,11 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # Stdlib
-import __builtin__ as builtin_mod
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import ast
 import bdb
 import os
@@ -661,7 +665,7 @@ python-profiler package from non-free.""")
             # Since this seems to be done by the interpreter itself, the best
             # we can do is to at least restore __builtins__ for the user on
             # exit.
-            self.shell.user_ns['__builtins__'] = builtin_mod
+            self.shell.user_ns['__builtins__'] = builtins
 
             # Ensure key global structures are restored
             sys.argv = save_argv

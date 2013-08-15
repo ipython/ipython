@@ -23,7 +23,11 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__ as builtin_mod
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import os
 import re
 import sys
@@ -156,11 +160,11 @@ class Config(dict):
         is_section_key = self.__class__._is_section_key.__get__(self)
 
         # Because we use this for an exec namespace, we need to delegate
-        # the lookup of names in __builtin__ to itself.  This means
+        # the lookup of names in builtins to itself.  This means
         # that you can't have section or attribute names that are
         # builtins.
         try:
-            return getattr(builtin_mod, key)
+            return getattr(builtins, key)
         except AttributeError:
             pass
         if is_section_key(key):

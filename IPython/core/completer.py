@@ -66,7 +66,11 @@ used, and this module (and the readline module) are silently inactive.
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import __main__
 import glob
 import inspect
@@ -315,7 +319,7 @@ class Completer(Configurable):
         match_append = matches.append
         n = len(text)
         for lst in [keyword.kwlist,
-                    __builtin__.__dict__.keys(),
+                    builtins.__dict__.keys(),
                     self.namespace.keys(),
                     self.global_namespace.keys()]:
             for word in lst:

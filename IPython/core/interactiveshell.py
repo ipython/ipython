@@ -17,7 +17,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import __builtin__ as builtin_mod
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import __future__
 import abc
 import ast
@@ -620,14 +624,14 @@ class InteractiveShell(SingletonConfigurable):
         # that an IPython shell has been created, and we make no attempts at
         # removing on exit or representing the existence of more than one
         # IPython at a time.
-        builtin_mod.__dict__['__IPYTHON__'] = True
+        builtins.__dict__['__IPYTHON__'] = True
 
         # In 0.11 we introduced '__IPYTHON__active' as an integer we'd try to
         # manage on enter/exit, but with all our shells it's virtually
         # impossible to get all the cases right.  We're leaving the name in for
         # those who adapted their codes to check for this flag, but will
         # eventually remove it after a few more releases.
-        builtin_mod.__dict__['__IPYTHON__active'] = \
+        builtins.__dict__['__IPYTHON__active'] = \
                                           'Deprecated, check for __IPYTHON__'
 
         self.builtin_trap = BuiltinTrap(shell=self)
@@ -1002,7 +1006,7 @@ class InteractiveShell(SingletonConfigurable):
         # introspection facilities can search easily.
         self.ns_table = {'user_global':self.user_module.__dict__,
                          'user_local':self.user_ns,
-                         'builtin':builtin_mod.__dict__
+                         'builtin':builtins.__dict__
                          }
     
     @property
@@ -1048,8 +1052,8 @@ class InteractiveShell(SingletonConfigurable):
         # We must ensure that __builtin__ (without the final 's') is always
         # available and pointing to the __builtin__ *module*.  For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-        user_module.__dict__.setdefault('__builtin__', builtin_mod)
-        user_module.__dict__.setdefault('__builtins__', builtin_mod)
+        user_module.__dict__.setdefault('__builtin__', builtins)
+        user_module.__dict__.setdefault('__builtins__', builtins)
         
         if user_ns is None:
             user_ns = user_module.__dict__
@@ -1348,7 +1352,7 @@ class InteractiveShell(SingletonConfigurable):
             # find things in the same order that Python finds them.
             namespaces = [ ('Interactive', self.user_ns),
                            ('Interactive (global)', self.user_global_ns),
-                           ('Python builtin', builtin_mod.__dict__),
+                           ('Python builtin', builtins.__dict__),
                            ('Alias', self.alias_manager.alias_table),
                            ]
             alias_ns = self.alias_manager.alias_table
