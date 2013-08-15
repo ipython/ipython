@@ -33,7 +33,7 @@ class Transformer(NbConvertBase):
     using c.SubClassName.atribute=value
 
     you can overwrite :meth:`transform_cell` to apply a transformation independently on each cell
-    or :meth:`call` if you prefer your own logic. See corresponding docstring for informations.
+    or :meth:`transform` if you prefer your own logic. See corresponding docstring for informations.
 
     Disabled by default and can be enabled via the config by
         'c.YourTransformerName.enabled = True'
@@ -58,12 +58,12 @@ class Transformer(NbConvertBase):
        
     def __call__(self, nb, resources):
         if self.enabled:
-            return self.call(nb,resources)
+            return self.transform(nb,resources)
         else:
             return nb, resources
 
 
-    def call(self, nb, resources):
+    def transform(self, nb, resources):
         """
         Transformation to apply on each notebook.
         

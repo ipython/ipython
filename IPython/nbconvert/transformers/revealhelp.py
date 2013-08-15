@@ -34,7 +34,7 @@ class RevealHelpTransformer(Transformer):
                          help="""If you want to use the speaker notes 
                          set this to True.""")
 
-    def call(self, nb, resources):
+    def transform(self, nb, resources):
         """
         Called once to 'transform' contents of the notebook.
 

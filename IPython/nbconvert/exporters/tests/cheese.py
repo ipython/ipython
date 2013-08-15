@@ -32,7 +32,7 @@ class CheeseTransformer(Transformer):
         super(CheeseTransformer, self).__init__(**kw)
 
 
-    def call(self, nb, resources):
+    def transform(self, nb, resources):
         """
         Sphinx transformation to apply on each notebook.
         

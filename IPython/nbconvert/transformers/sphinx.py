@@ -109,7 +109,7 @@ class SphinxTransformer(Transformer):
     overridetitle = Unicode("", config=True, help="")
 
     
-    def call(self, nb, resources):
+    def transform(self, nb, resources):
         """
         Sphinx transformation to apply on each notebook.
         
