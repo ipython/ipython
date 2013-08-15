@@ -29,9 +29,9 @@ Note: For best display, use latex syntax highlighting. =))
 % important that this limit is set so characters do not run off the
 % edges of latex pages (since latex does not always seem smart enough
 % to prevent this in some cases.)  This is only applied to textual output
-((* if resources.sphinx.outputstyle == 'simple' *))
+((* if resources.sphinx.cellstyle == 'simple' *))
     ((*- set wrap_size = 85 -*))
-((* elif resources.sphinx.outputstyle == 'notebook' *))
+((* elif resources.sphinx.cellstyle == 'notebook' *))
     ((*- set wrap_size = 70 -*))
 ((* endif *))
 
@@ -109,7 +109,7 @@ Note: For best display, use latex syntax highlighting. =))
     ((( resources.sphinx.pygment_definitions )))
 
     %Set pygments styles if needed...
-    ((* if resources.sphinx.outputstyle == 'notebook' *))
+    ((* if resources.sphinx.cellstyle == 'notebook' *))
         \definecolor{nbframe-border}{rgb}{0.867,0.867,0.867}
         \definecolor{nbframe-bg}{rgb}{0.969,0.969,0.969}
         \definecolor{nbframe-in-prompt}{rgb}{0.0,0.0,0.502}
@@ -272,7 +272,7 @@ Note: For best display, use latex syntax highlighting. =))
     % Make sure that atleast 4 lines are below the HR
     \needspace{((( min_header_lines )))\baselineskip}
 
-    ((* if resources.sphinx.outputstyle == 'simple' *))
+    ((* if resources.sphinx.cellstyle == 'simple' *))
 
         % Add a horizantal break, along with break title.
         \vspace{10pt}
@@ -283,7 +283,7 @@ Note: For best display, use latex syntax highlighting. =))
         % Add contents below.
         ((( cell.input | highlight2latex )))
 
-    ((* elif resources.sphinx.outputstyle == 'notebook' *))
+    ((* elif resources.sphinx.cellstyle == 'notebook' *))
         \vspace{6pt}
         ((( write_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
         \vspace{-2.65\baselineskip}
@@ -312,7 +312,7 @@ Note: For best display, use latex syntax highlighting. =))
         % request a certain amount of space for the input text.
         ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
         
-        ((* if resources.sphinx.outputstyle == 'simple' *))
+        ((* if resources.sphinx.cellstyle == 'simple' *))
 
             % Add a horizantal break, along with break title.
             \vspace{10pt}
@@ -330,7 +330,7 @@ Note: For best display, use latex syntax highlighting. =))
             ((* for output in cell.outputs[1:] *))
                 ((( render_output(output, cell.prompt_number) )))
             ((* endfor *))
-        ((* elif resources.sphinx.outputstyle == 'notebook' *))
+        ((* elif resources.sphinx.cellstyle == 'notebook' *))
 
             % Add document contents.
             ((* for output in cell.outputs *))
@@ -399,7 +399,7 @@ Note: For best display, use latex syntax highlighting. =))
         ((* endblock pyerr -*))
     ((*- else -*))
 
-        ((* if resources.sphinx.outputstyle == 'notebook' *))
+        ((* if resources.sphinx.cellstyle == 'notebook' *))
             ((*- if output.output_type == 'pyout' -*))
                 ((( write_prompt("Out", prompt_number, "nbframe-out-prompt") )))
                 \vspace{-2.55\baselineskip}
@@ -413,7 +413,7 @@ Note: For best display, use latex syntax highlighting. =))
             ((( super() )))
         ((*- endblock display_data -*))
 
-        ((* if resources.sphinx.outputstyle == 'notebook' *))
+        ((* if resources.sphinx.cellstyle == 'notebook' *))
             \end{InvisibleVerbatim}
         ((*- endif -*))
     ((*- endif -*))

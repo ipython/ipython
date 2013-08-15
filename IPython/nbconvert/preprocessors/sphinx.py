@@ -87,12 +87,11 @@ class SphinxPreprocessor(Preprocessor):
             "Sonny"    (used for international documents)
         """)
     
-    output_style = Unicode("notebook", config=True, help="""
-        Nbconvert Ipython
-        notebook input/output formatting style.
-        You may choose one of the following:
-            "simple     (recommended for long code segments)"
-            "notebook"  (default)
+    cell_style = Unicode("python", config=True, help="""
+        The code cell style to use. You may choose one of the following:
+            "python"    (default, plain Python prompts)
+            "simple"    (recommended for long code segments)
+            "notebook"  (notebook-like style)
         """)
     
     center_output = Bool(False, config=True, help="""
@@ -141,7 +140,7 @@ class SphinxPreprocessor(Preprocessor):
             
             # Prompt the user for the document style.
             resources["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
-            resources["sphinx"]["outputstyle"] = self._prompt_output_style()
+            resources["sphinx"]["cellstyle"] = self._prompt_cell_style()
             
             # Small options
             resources["sphinx"]["centeroutput"] = console.prompt_boolean("Do you want to center the output? (false)", False)
@@ -163,7 +162,7 @@ class SphinxPreprocessor(Preprocessor):
             
             # Sphinx traitlets.
             resources["sphinx"]["chapterstyle"] = self.chapter_style
-            resources["sphinx"]["outputstyle"] = self.output_style
+            resources["sphinx"]["cellstyle"] = self.cell_style
             resources["sphinx"]["centeroutput"] = self.center_output
             resources["sphinx"]["header"] = self.use_headers
             
@@ -227,8 +226,7 @@ class SphinxPreprocessor(Preprocessor):
         return user_date
     
     
-    def _prompt_output_style(self):
-        """
+    def _prompt_cell_style(self):""
         Prompts the user to pick an IPython output style.
         """
         
