@@ -46,12 +46,14 @@ class TestExtractOutput(PreprocessorTestsBase):
         nb, res = preprocessor(nb, res)
 
         # Check if text was extracted.
-        assert 'text_filename' in nb.worksheets[0].cells[0].outputs[1]
-        text_filename = nb.worksheets[0].cells[0].outputs[1]['text_filename']
+        output = nb.worksheets[0].cells[0].outputs[1]
+        assert 'text_filename' in output
+        text_filename = output['text_filename']
 
         # Check if png was extracted.
-        assert 'png_filename' in nb.worksheets[0].cells[0].outputs[6]
-        png_filename = nb.worksheets[0].cells[0].outputs[6]['png_filename']
+        output = nb.worksheets[0].cells[0].outputs[6]
+        assert 'png_filename' in output
+        png_filename = output['png_filename']
 
         # Verify text output
         assert text_filename in res['outputs']
