@@ -173,7 +173,7 @@ class NotebookWebApplication(web.Application):
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             use_less=ipython_app.use_less,
-            jinja2_env=Environment(loader=FileSystemLoader(template_path))
+            jinja2_env=Environment(loader=FileSystemLoader(template_path)),
         )
 
         # allow custom overrides for the tornado web app.
