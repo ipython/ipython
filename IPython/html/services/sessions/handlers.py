@@ -28,7 +28,6 @@ from ...base.handlers import IPythonHandler
 #-----------------------------------------------------------------------------
 
 
-
 class SessionRootHandler(IPythonHandler):
 
     @web.authenticated
@@ -45,12 +44,19 @@ class SessionRootHandler(IPythonHandler):
         nbm = self.notebook_manager
         km = self.kernel_manager
         notebook_path = self.get_argument('notebook_path', default=None)
-        notebook_name, path = nbm.named_notebook_path(notebook_path)
-        session_id, model = sm.get_session(notebook_name, path)
-        if model == None:
-            kernel_id = km.start_kernel()
+        name, path = nbm.named_notebook_path(notebook_path)
+        if sm.session_exists(name=name, path=path):
+            model = sm.get_session(name=name, path=path)
+            kernel_id = model['kernel']['id']
+            km.start_kernel(kernel_id, cwd=nbm.notebook_dir)
+        else:
+            session_id = sm.get_session_id()
+            sm.save_session(session_id=session_id, name=name, path=path)
+            kernel_id = km.start_kernel(cwd=nbm.notebook_dir)
             kernel = km.kernel_model(kernel_id, self.ws_url)
-            model = sm.session_model(session_id, notebook_name, path, kernel)
+            sm.update_session(session_id, kernel=kernel_id)
+            model = sm.get_session(id=session_id)
+        self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
         self.finish(jsonapi.dumps(model))
 
 class SessionHandler(IPythonHandler):
@@ -60,20 +66,19 @@ class SessionHandler(IPythonHandler):
     @web.authenticated
     def get(self, session_id):
         sm = self.session_manager
-        model = sm.get_session_from_id(session_id)
+        model = sm.get_session(id=session_id)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def patch(self, session_id):
+        # Currently, this handler is strictly for renaming notebooks
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
         notebook_path = self.request.body
-        notebook_name, path = nbm.named_notebook_path(notebook_path)
-        kernel_id = sm.get_kernel_from_session(session_id)
-        kernel = km.kernel_model(kernel_id, self.ws_url)
-        sm.delete_mapping_for_session(session_id)
-        model = sm.session_model(session_id, notebook_name, path, kernel)
+        name, path = nbm.named_notebook_path(notebook_path)
+        sm.update_session(id=session_id, name=name)
+        model = sm.get_session(id=session_id)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
@@ -81,9 +86,9 @@ class SessionHandler(IPythonHandler):
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
-        kernel_id = sm.get_kernel_from_session(session_id)
-        km.shutdown_kernel(kernel_id)
-        sm.delete_mapping_for_session(session_id)
+        session = sm.get_session(id=session_id)
+        sm.delete_session(session_id)        
+        km.shutdown_kernel(session['kernel']['id'])
         self.set_status(204)
         self.finish()
 
@@ -98,7 +103,4 @@ default_handlers = [
     (r"api/sessions/%s" % _session_id_regex, SessionHandler),
     (r"api/sessions",  SessionRootHandler)
 ]
-
-
-
 

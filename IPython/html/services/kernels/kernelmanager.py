@@ -46,17 +46,16 @@ class MappingKernelManager(MultiKernelManager):
         self.log.warn("Kernel %s died, removing from map.", kernel_id)
         self.remove_kernel(kernel_id)
 
-    def start_kernel(self, **kwargs):
+    def start_kernel(self, kernel_id=None, **kwargs):
         """Start a kernel for a session an return its kernel_id.
 
         Parameters
         ----------
-        session_id : uuid
-            The uuid of the session to associate the new kernel with. If this
-            is not None, this kernel will be persistent whenever the session
-            requests a kernel.
+        kernel_id : uuid
+            The uuid to associate the new kernel with. If this
+            is not None, this kernel will be persistent whenever it is 
+            requested.
         """
-        kernel_id = None
         if kernel_id is None:
             kwargs['extra_arguments'] = self.kernel_argv
             kernel_id = super(MappingKernelManager, self).start_kernel(**kwargs)
