@@ -44,8 +44,6 @@ pythons = {
 }
 
 for v,plat_py in pythons.items():
-    # deliberately mangle the name,
-    # so easy_install doesn't find these and do horrible wrong things
     try:
         shutil.rmtree('build')
     except OSError:
@@ -53,14 +51,10 @@ for v,plat_py in pythons.items():
     for plat,py in plat_py.items():
         cmd = cmd_t.format(**locals())
         sh(cmd)
-        orig = glob.glob(os.path.join('dist', 'ipython-*.{plat}.msi'.format(**locals())))[0]
-        mangled = orig.replace('.{plat}.msi'.format(**locals()),
-                               '.py{v}-{plat}.msi'.format(**locals())
-        )
-        os.rename(orig, mangled)
+        fname = glob.glob(os.path.join('dist', 'ipython-*.{plat}.msi'.format(**locals())))[0]
         if pypi:
-            sh(pypi_cmd_t.format(fname=mangled))
+            sh(pypi_cmd_t.format(fname=fname))
         if github and gh_api:
             print ("Uploading %s to GitHub" % mangled)
             desc = "IPython Installer for Python {v}.x on {plat}".format(**locals())
-            gh_api.post_download('ipython/ipython', mangled, description=desc)
+            gh_api.post_download('ipython/ipython', fname, description=desc)
