@@ -179,7 +179,7 @@ class NotebookWebApplication(web.Application):
         settings.update(settings_overrides)
 
         # create a jinja2 environment using the template path and store it in settings
-        settings.jinja2_env=Environment(loader=FileSystemLoader(settings.template_path))
+        settings["jinja2_env"]=Environment(loader=FileSystemLoader(settings["template_path"]))
 
         return settings
 
