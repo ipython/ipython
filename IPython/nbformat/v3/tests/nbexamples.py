@@ -9,9 +9,9 @@ from ..nbbase import (
     new_metadata, new_author, new_heading_cell, nbformat, nbformat_minor
 )
 
-# some random base64-encoded *bytes*
-png = encodestring(os.urandom(5))
-jpeg = encodestring(os.urandom(6))
+# some random base64-encoded *text*
+png = encodestring(os.urandom(5)).decode('ascii')
+jpeg = encodestring(os.urandom(6)).decode('ascii')
 
 ws = new_worksheet(name='worksheet1')
 
