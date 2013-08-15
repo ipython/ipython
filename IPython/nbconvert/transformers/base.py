@@ -32,8 +32,8 @@ class Transformer(NbConvertBase):
     Any configurable traitlets this class exposed will be configurable in profiles
     using c.SubClassName.atribute=value
 
-    you can overwrite `transform_cell` to apply a transformation independently on each cell
-    or `call` if you prefer your own logic. See corresponding docstring for informations.
+    you can overwrite :meth:`transform_cell` to apply a transformation independently on each cell
+    or :meth:`call` if you prefer your own logic. See corresponding docstring for informations.
 
     Disabled by default and can be enabled via the config by
         'c.YourTransformerName.enabled = True'
