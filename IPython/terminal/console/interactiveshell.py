@@ -25,11 +25,6 @@ import base64
 
 from Queue import Empty
 
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
-
 from IPython.core import page
 from IPython.utils.warn import warn, error
 from IPython.utils import io
@@ -303,8 +298,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         raw = base64.decodestring(data[mime].encode('ascii'))
         imageformat = self._imagemime[mime]
         filename = 'tmp.{0}'.format(imageformat)
-        with nested(NamedFileInTemporaryDirectory(filename),
-                    open(os.devnull, 'w')) as (f, devnull):
+        with NamedFileInTemporaryDirectory(filename) as f, \
+                    open(os.devnull, 'w') as devnull:
             f.write(raw)
             f.flush()
             fmt = dict(file=f.name, format=imageformat)

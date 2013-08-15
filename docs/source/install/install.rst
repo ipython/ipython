@@ -1,8 +1,8 @@
-IPython requires Python 2.6, 2.7, or ≥ 3.2.
+IPython requires Python 2.7 or ≥ 3.3.
 
 .. note::
 
-    If you need to use Python 2.5, you can find an old version (≤0.10) of IPython
+    If you need to use Python 2.6 or 3.2, you can find IPython 1.0
     `here <http://archive.ipython.org/release/>`__.
 
 Quickstart

@@ -19,13 +19,6 @@ import bdb
 import os
 import sys
 
-# We need to use nested to support python 2.6, once we move to >=2.7, we can
-# use the with keyword's new builtin support for nested managers
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
-
 from IPython.core.error import TryNext, UsageError
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.inputsplitter import IPythonInputSplitter
@@ -429,7 +422,7 @@ class TerminalInteractiveShell(InteractiveShell):
         internally created default banner.
         """
 
-        with nested(self.builtin_trap, self.display_trap):
+        with self.builtin_trap, self.display_trap:
 
             while 1:
                 try:

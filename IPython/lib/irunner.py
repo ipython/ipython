@@ -287,7 +287,6 @@ class InteractiveRunner(object):
 
         self.run_file(args[0],opts.interact)
 
-_ipython_cmd = "ipython3" if py3compat.PY3 else "ipython"
 
 # Specific runners for particular programs
 class IPythonRunner(InteractiveRunner):
@@ -303,15 +302,20 @@ class IPythonRunner(InteractiveRunner):
     prompts would break this.
     """
 
-    def __init__(self,program = _ipython_cmd, args=None, out=sys.stdout, echo=True):
+    def __init__(self, program='<ipython>', args=None, out=sys.stdout, echo=True):
         """New runner, optionally passing the ipython command to use."""
         args0 = ['--colors=NoColor',
                  '--no-term-title',
                  '--no-autoindent',
                  # '--quick' is important, to prevent loading default config:
                  '--quick']
-        if args is None: args = args0
-        else: args = args0 + args
+        args = args0 + (args or [])
+
+        # Special case to launch IPython with current interpreter
+        if program == '<ipython>':
+            program = sys.executable
+            args = ['-m', 'IPython'] + args
+
         prompts = [r'In \[\d+\]: ',r'   \.*: ']
         InteractiveRunner.__init__(self,program,prompts,args,out,echo)
 

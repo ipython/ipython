@@ -273,10 +273,9 @@ for parallel computing.
 Portability and Python requirements
 -----------------------------------
 
-As of the 1.0 release, IPython works with Python 2.6, 2.7, 3.2 and 3.3.
-Version 0.12 introduced full support for Python 3. Version 0.11 worked with
-Python 2.6 and 2.7 only. Versions 0.9 and 0.10 worked with Python 2.4 and
-above (not including Python 3).
+As of the 2.0 release, IPython works with Python 2.7 and 3.3 or above.
+Version 1.0 additionally worked with Python 2.6 and 3.2.
+Version 0.12 was the first version to fully support Python 3.
 
 IPython is known to work on the following operating systems:
 

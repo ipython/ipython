@@ -27,13 +27,6 @@ from __future__ import with_statement
 import sys
 import warnings
 
-# We need to use nested to support python 2.6, once we move to >=2.7, we can
-# use the with keyword's new builtin support for nested managers
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
-
 from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
@@ -251,7 +244,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # actually completes using the frame's locals/globals
         self.set_completer_frame()
 
-        with nested(self.builtin_trap, self.display_trap):
+        with self.builtin_trap, self.display_trap:
             self.interact(display_banner=display_banner)
         
         # now, purge out the local namespace of IPython's hidden variables.
