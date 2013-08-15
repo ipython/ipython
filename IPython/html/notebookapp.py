@@ -149,7 +149,7 @@ class NotebookWebApplication(web.Application):
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_project_url = py3compat.unicode_to_str(base_project_url, 'ascii')
-        template_path = os.path.join(os.path.dirname(__file__), "templates")
+        template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
         settings = dict(
             # basics
             base_project_url=base_project_url,
@@ -172,15 +172,12 @@ class NotebookWebApplication(web.Application):
             # IPython stuff
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
-            use_less=ipython_app.use_less
+            use_less=ipython_app.use_less,
+            jinja2_env=Environment(loader=FileSystemLoader(template_path))
         )
 
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
-
-        # create a jinja2 environment using the template path and store it in settings
-        settings["jinja2_env"]=Environment(loader=FileSystemLoader(settings["template_path"]))
-
         return settings
 
     def init_handlers(self, settings):
