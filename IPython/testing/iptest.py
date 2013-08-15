@@ -43,10 +43,6 @@ import warnings
 # is slow and we need it for our parametric tests to work correctly.
 from IPython.testing import nosepatch
 
-# Monkeypatch extra assert methods into nose.tools if they're not already there.
-# This can be dropped once we no longer test on Python 2.6
-from IPython.testing import nose_assert_methods
-
 # Now, proceed to import nose itself
 import nose.plugins.builtin
 from nose.plugins.xunit import Xunit

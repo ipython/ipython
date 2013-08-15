@@ -165,11 +165,7 @@ def get_ipython_cmd(as_string=False):
     as_string: bool
         Flag to allow to return the command as a string.
     """
-    # FIXME: remove workaround for 2.6 support
-    if sys.version_info[:2] > (2,6):
-        ipython_cmd = [sys.executable, "-m", "IPython"]
-    else:
-        ipython_cmd = ["ipython"]
+    ipython_cmd = [sys.executable, "-m", "IPython"]
 
     if as_string:
         ipython_cmd = " ".join(ipython_cmd)
