@@ -31,6 +31,8 @@ Note: For best display, use latex syntax highlighting. =))
 % to prevent this in some cases.)  This is only applied to textual output
 ((* if resources.sphinx.cellstyle == 'simple' *))
     ((*- set wrap_size = 85 -*))
+((* elif resources.sphinx.cellstyle == 'python' *))
+    ((*- set wrap_size = 80 -*))
 ((* elif resources.sphinx.cellstyle == 'notebook' *))
     ((*- set wrap_size = 70 -*))
 ((* endif *))
@@ -283,6 +285,11 @@ Note: For best display, use latex syntax highlighting. =))
         % Add contents below.
         ((( cell.input | highlight2latex )))
 
+    ((* elif resources.sphinx.cellstyle == 'python' *))
+
+        % Add contents below.
+        ((( cell.input | add_prompts | highlight2latex )))
+
     ((* elif resources.sphinx.cellstyle == 'notebook' *))
         \vspace{6pt}
         ((( write_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
@@ -330,6 +337,20 @@ Note: For best display, use latex syntax highlighting. =))
             ((* for output in cell.outputs[1:] *))
                 ((( render_output(output, cell.prompt_number) )))
             ((* endfor *))
+
+        ((* elif resources.sphinx.cellstyle == 'python' *))
+
+            % Add the contents of the first block.
+            ((( render_output(cell.outputs[0]) )))
+
+            % Close the minipage.
+            ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
+
+            % Add remainer of the document contents below.
+            ((* for output in cell.outputs[1:] *))
+                ((( render_output(output, cell.prompt_number) )))
+            ((* endfor *))
+
         ((* elif resources.sphinx.cellstyle == 'notebook' *))
 
             % Add document contents.

@@ -87,11 +87,12 @@ class SphinxPreprocessor(Preprocessor):
             "Sonny"    (used for international documents)
         """)
     
-    cell_style = Unicode("python", config=True, help="""
+    cell_style = Unicode("notebook", config=True, help="""
         The code cell style to use. You may choose one of the following:
-            "python"    (default, plain Python prompts)
+        
+            "notebook"  (default, notebook-like style)
             "simple"    (recommended for long code segments)
-            "notebook"  (notebook-like style)
+            "python"    (plain Python prompts)
         """)
     
     center_output = Bool(False, config=True, help="""
@@ -226,17 +227,20 @@ class SphinxPreprocessor(Preprocessor):
         return user_date
     
     
-    def _prompt_cell_style(self):""
+    def _prompt_cell_style(self):
+        """
         Prompts the user to pick an IPython output style.
         """
         
         # Dictionary of available output styles
-        styles = {1: "simple",
-                  2: "notebook"}
+        styles = {1: "notebook",
+                  2: "simple",
+                  3: "python"}
         
         #Append comments to the menu when displaying it to the user.
-        comments = {1: "(recommended for long code segments)",
-                    2: "(default)"}
+        comments = {1: "(default, notebook-like style)",
+                    2: "(recommended for long code segments)",
+                    3: "(plain Python prompts)"}
         
         return console.prompt_dictionary(styles, default_style=2, menu_comments=comments)
     
