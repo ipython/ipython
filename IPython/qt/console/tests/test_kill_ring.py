@@ -6,7 +6,9 @@ from IPython.external.qt import QtGui
 
 # Local imports
 from IPython.qt.console.kill_ring import KillRing, QtKillRing
+import IPython.testing.decorators as dec
 
+setup = dec.skip_file_no_x11(__name__)
 
 class TestKillRing(unittest.TestCase):
 

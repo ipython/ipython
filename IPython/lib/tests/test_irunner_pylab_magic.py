@@ -66,6 +66,7 @@ class RunnerTestCase(unittest.TestCase):
         self.assertTrue(mismatch==0,'Number of mismatched lines: %s' %
                         mismatch)
 
+    @decorators.skip_if_no_x11
     @decorators.skipif_not_matplotlib
     @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     def test_pylab_import_all_enabled(self):
@@ -92,6 +93,7 @@ Out\[6\]: True
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
+    @decorators.skip_if_no_x11
     @decorators.skipif_not_matplotlib
     @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     def test_pylab_import_all_disabled(self):

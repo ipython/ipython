@@ -49,6 +49,7 @@ Authors
 
 # Stdlib imports
 import sys
+import os
 import tempfile
 import unittest
 
@@ -295,6 +296,19 @@ def module_not_available(module):
 
     return mod_not_avail
 
+
+def decorated_dummy(dec, name):
+    """Return a dummy function decorated with dec, with the given name.
+    
+    Examples
+    --------
+    import IPython.testing.decorators as dec
+    setup = dec.decorated_dummy(dec.skip_if_no_x11, __name__)
+    """
+    dummy = lambda: None
+    dummy.__name__ = name
+    return dec(dummy)
+
 #-----------------------------------------------------------------------------
 # Decorators for public use
 
@@ -313,6 +327,17 @@ skip_if_not_linux = skipif(not sys.platform.startswith('linux'),
                            "This test only runs under Linux")
 skip_if_not_osx = skipif(sys.platform != 'darwin',
                          "This test only runs under OSX")
+
+
+_x11_skip_cond = (sys.platform not in ('darwin', 'win32') and
+                  os.environ.get('DISPLAY', '') == '')
+_x11_skip_msg = "Skipped under *nix when X11/XOrg not available"
+
+skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
+
+# not a decorator itself, returns a dummy function to be used as setup
+def skip_file_no_x11(name):
+    return decorated_dummy(skip_if_no_x11, name) if _x11_skip_cond else None
 
 # Other skip decorators
 
