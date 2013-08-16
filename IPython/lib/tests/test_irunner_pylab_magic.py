@@ -7,7 +7,6 @@ from __future__ import print_function
 VERBOSE = True
 
 # stdlib imports
-import StringIO
 import sys
 import unittest
 import re
@@ -15,6 +14,11 @@ import re
 # IPython imports
 from IPython.lib import irunner
 from IPython.testing import decorators
+from IPython.utils.py3compat import PY3
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 def pylab_not_importable():
     """Test if importing pylab fails. (For example, when having no display)"""
@@ -28,7 +32,7 @@ def pylab_not_importable():
 class RunnerTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.out = StringIO.StringIO()
+        self.out = StringIO()
         #self.out = sys.stdout
 
     def _test_runner(self,runner,source,output):
