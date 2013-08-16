@@ -36,10 +36,19 @@ def cast_bytes(s, encoding=None):
         return encode(s, encoding)
     return s
 
+if sys.version_info[0] >= 3:
+    PY3 = True
+    string_types = (str,)
+    unicode_type = str
+else:
+    PY3 = False
+    string_types = (str, unicode)
+    unicode_type = unicode
+
 def _modify_str_or_docstring(str_change_func):
     @functools.wraps(str_change_func)
     def wrapper(func_or_str):
-        if isinstance(func_or_str, basestring):
+        if isinstance(func_or_str, string_types):
             func = None
             doc = func_or_str
         else:
@@ -54,30 +63,10 @@ def _modify_str_or_docstring(str_change_func):
         return doc
     return wrapper
 
-def safe_unicode(e):
-    """unicode(e) with various fallbacks. Used for exceptions, which may not be
-    safe to call unicode() on.
-    """
-    try:
-        return unicode(e)
-    except UnicodeError:
-        pass
 
-    try:
-        return py3compat.str_to_unicode(str(e))
-    except UnicodeError:
-        pass
 
-    try:
-        return py3compat.str_to_unicode(repr(e))
-    except UnicodeError:
-        pass
 
-    return u'Unrecoverably corrupt evalue'
-
-if sys.version_info[0] >= 3:
-    PY3 = True
-    
+if PY3:
     input = input
     builtin_mod_name = "builtins"
     
@@ -86,8 +75,6 @@ if sys.version_info[0] >= 3:
     str_to_bytes = encode
     bytes_to_str = decode
     cast_bytes_py2 = no_code
-    
-    string_types = (str,)
     
     def isidentifier(s, dotted=False):
         if dotted:
@@ -124,10 +111,11 @@ if sys.version_info[0] >= 3:
         
         Accepts a string or a function, so it can be used as a decorator."""
         return s.format(u='')
+    
+    # Safe way to get a unicode extension, needed on Python 2
+    safe_unicode = str
 
 else:
-    PY3 = False
-    
     input = raw_input
     builtin_mod_name = "__builtin__"
     
@@ -136,8 +124,6 @@ else:
     str_to_bytes = no_code
     bytes_to_str = no_code
     cast_bytes_py2 = cast_bytes
-    
-    string_types = (str, unicode)
     
     import re
     _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
@@ -206,3 +192,24 @@ else:
             else:
                 filename = fname
             builtins.execfile(filename, *where)
+    
+    def safe_unicode(e):
+        """unicode(e) with various fallbacks. Used for exceptions, which may not be
+        safe to call unicode() on.
+        """
+        try:
+            return unicode(e)
+        except UnicodeError:
+            pass
+    
+        try:
+            return decode(str(e))
+        except UnicodeError:
+            pass
+    
+        try:
+            return decode(repr(e))
+        except UnicodeError:
+            pass
+    
+        return u'Unrecoverably corrupt evalue'
