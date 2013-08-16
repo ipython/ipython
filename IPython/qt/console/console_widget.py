@@ -28,7 +28,6 @@ from .completion_widget import CompletionWidget
 from .completion_html import CompletionHtml
 from .completion_plain import CompletionPlain
 from .kill_ring import QtKillRing
-import six
 
 
 #-----------------------------------------------------------------------------
@@ -70,7 +69,7 @@ def is_letter_or_number(char):
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConsoleWidget(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (LoggingConfigurable, QtGui.QWidget), {}))):
+class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.QWidget), {})):
     """ An abstract base class for console-type widgets. This class has
         functionality for:
 
@@ -221,7 +220,7 @@ class ConsoleWidget(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (Lo
 
     # The shortcuts defined by this widget. We need to keep track of these to
     # support 'override_shortcuts' above.
-    _shortcuts = set(_ctrl_down_remap.keys() +
+    _shortcuts = set(list(_ctrl_down_remap.keys()) +
                      [ QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
                        QtCore.Qt.Key_V ])
 

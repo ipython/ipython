@@ -169,19 +169,19 @@ class QtHBChannelMixin(ChannelQObject):
         self.kernel_died.emit(since_last_heartbeat)
 
 
-class QtKernelRestarterMixin(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (HasTraits, SuperQObject), {}))):
+class QtKernelRestarterMixin(MetaQObjectHasTraits('NewBase', (HasTraits, SuperQObject), {})):
 
     _timer = None
 
 
-class QtKernelManagerMixin(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (HasTraits, SuperQObject), {}))):
+class QtKernelManagerMixin(MetaQObjectHasTraits('NewBase', (HasTraits, SuperQObject), {})):
     """ A KernelClient that provides signals and slots.
     """
 
     kernel_restarted = QtCore.Signal()
 
 
-class QtKernelClientMixin(six.with_metaclass(MetaQObjectHasTraits, type('NewBase', (HasTraits, SuperQObject), {}))):
+class QtKernelClientMixin(MetaQObjectHasTraits('NewBase', (HasTraits, SuperQObject), {})):
     """ A KernelClient that provides signals and slots.
     """
 
