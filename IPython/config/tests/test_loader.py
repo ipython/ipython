@@ -93,8 +93,8 @@ class TestArgParseCL(TestCase):
         self.assertEqual(config.n, True)
         self.assertEqual(config.Global.bam, 'wow')
         config = cl.load_config(['wow'])
-        self.assertEqual(config.keys(), ['Global'])
-        self.assertEqual(config.Global.keys(), ['bam'])
+        self.assertEqual(list(config.keys()), ['Global'])
+        self.assertEqual(list(config.Global.keys()), ['bam'])
         self.assertEqual(config.Global.bam, 'wow')
 
     def test_add_arguments(self):

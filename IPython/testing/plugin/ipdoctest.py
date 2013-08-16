@@ -617,7 +617,7 @@ class ExtensionDoctest(doctests.Doctest):
 
         if exclude_patterns is None:
             exclude_patterns = []
-        self.exclude_patterns = map(re.compile,exclude_patterns)
+        self.exclude_patterns = list(map(re.compile,exclude_patterns))
         doctests.Doctest.__init__(self)
 
     def options(self, parser, env=os.environ):
