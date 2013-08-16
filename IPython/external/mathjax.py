@@ -32,6 +32,7 @@ To find the directory where IPython would like MathJax installed:
     $ python -m IPython.external.mathjax -d
 
 """
+from __future__ import print_function
 
 
 #-----------------------------------------------------------------------------
@@ -74,7 +75,7 @@ def check_perms(dest, replace=False):
     components = dest.split(os.path.sep)
     subpaths = [ os.path.sep+os.path.sep.join(components[1:i]) for i in range(1,len(components))]
 
-    existing_path = filter(os.path.exists, subpaths)
+    existing_path = [p for p in subpaths if os.path.exists(p)]
     last_writable = existing_path[-1]
     if not os.access(last_writable, os.W_OK):
         raise IOError("Need have write access to %s" % parent)
@@ -89,11 +90,11 @@ def check_perms(dest, replace=False):
         if replace:
             if not os.access(dest, os.W_OK):
                 raise IOError("Need have write access to %s" % dest)
-            print "removing previous MathJax install"
+            print("removing previous MathJax install")
             shutil.rmtree(dest)
             return True
         else:
-            print "offline MathJax apparently already installed"
+            print("offline MathJax apparently already installed")
             return False
     else :
         return True
@@ -130,7 +131,7 @@ def extract_zip( fd, dest ) :
 
     # it will be mathjax-MathJax-<sha>, rename to just mathjax
     d = os.path.join(parent, topdir)
-    print d
+    print(d)
     os.rename(os.path.join(parent, topdir), dest)
 
 ##
@@ -165,11 +166,11 @@ def install_mathjax(tag='v2.0', dest=default_dest, replace=False, file=None, ext
     if file is None :
         # download mathjax
         mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s" % tag
-        print "Downloading mathjax source from %s" % mathjax_url
+        print("Downloading mathjax source from %s" % mathjax_url)
         response = urllib2.urlopen(mathjax_url)
         file = response.fp
 
-    print "Extracting to %s" % dest
+    print("Extracting to %s" % dest)
     extractor( file, dest )
 
 ##
@@ -178,12 +179,12 @@ def test_func( remove, dest) :
     """See if mathjax appears to be installed correctly"""
     status = 0
     if not os.path.isdir( dest ) :
-        print "%s directory not found" % dest
+        print("%s directory not found" % dest)
         status = 1
     if not os.path.exists( dest + "/MathJax.js" ) :
-        print "MathJax.js not present in %s" % dest
+        print("MathJax.js not present in %s" % dest)
         status = 1
-    print "ok"
+    print("ok")
     if remove and os.path.exists(dest):
         shutil.rmtree( dest )
     return status
@@ -227,7 +228,7 @@ def main() :
 
     dest = pargs.install_dir
     if pargs.dest :
-        print dest
+        print(dest)
         return
 
     # remove/replace existing mathjax?
