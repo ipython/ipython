@@ -24,15 +24,14 @@ from IPython.utils.traitlets import Unicode, Bool
 
 class RevealHelpPreprocessor(Preprocessor):
 
-    url_prefix = Unicode('//cdn.jsdelivr.net/reveal.js/2.4.0',
-                         config=True,
-                         help="""If you want to use a local reveal.js library,
-                         use 'url_prefix':'reveal.js' in your config object.""")
-
-    speaker_notes = Bool(False, 
-                         config=True, 
-                         help="""If you want to use the speaker notes 
-                         set this to True.""")
+    url_prefix = Unicode('https://cdn.jsdelivr.net/reveal.js/2.4.0', config=True,
+                         help="""The URL prefix for reveal.js.
+                         This can be a a relative URL for a local copy of reveal.js,
+                         or point to a CDN.
+                         
+                         For speaker notes to work, a local reveal.js must be used.
+                         """
+    )
 
     def preprocess(self, nb, resources):
         """
@@ -65,30 +64,4 @@ class RevealHelpPreprocessor(Preprocessor):
         if not isinstance(resources['reveal'], dict):
             resources['reveal'] = {}
         resources['reveal']['url_prefix'] = self.url_prefix
-        resources['reveal']['notes_prefix'] = self.url_prefix
-
-        cdn = 'http://cdn.jsdelivr.net/reveal.js/2.4.0'
-        local = 'local'
-        html_path = 'plugin/notes/notes.html'
-        js_path = 'plugin/notes/notes.js'
-
-        html_infile = os.path.join(cdn, html_path)
-        js_infile = os.path.join(cdn, js_path)
-        html_outfile = os.path.join(local, html_path)
-        js_outfile = os.path.join(local, js_path)
-
-        if self.speaker_notes:
-            if 'outputs' not in resources:
-                resources['outputs'] = {}
-            resources['outputs'][html_outfile] = self.notes_helper(html_infile)
-            resources['outputs'][js_outfile] = self.notes_helper(js_infile)
-            resources['reveal']['notes_prefix'] = local
-
         return nb, resources
-
-    def notes_helper(self, infile):
-        """Helper function to get the content from an url."""
-
-        content = urllib2.urlopen(infile).read()
-
-        return content
