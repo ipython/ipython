@@ -144,6 +144,8 @@ class TIMEOUT(ExceptionPexpect):
 ##    """Raised when a scan buffer fills before matching an expected pattern."""
 
 PY3 = (sys.version_info[0] >= 3)
+if PY3:
+    unicode = str
 
 def _cast_bytes(s, enc):
     if isinstance(s, unicode):
