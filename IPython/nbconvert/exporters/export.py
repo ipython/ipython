@@ -18,7 +18,7 @@ from functools import wraps
 from IPython.nbformat.v3.nbbase import NotebookNode
 from IPython.config import Config
 
-from .exporter import Exporter
+from .exporter import TemplateExporter
 from .html import HTMLExporter
 from .slides import SlidesExporter
 from .latex import LatexExporter
@@ -100,14 +100,14 @@ def export(exporter, nb, **kw):
     #Check arguments
     if exporter is None:
         raise TypeError("Exporter is None")
-    elif not isinstance(exporter, Exporter) and not issubclass(exporter, Exporter):
+    elif not isinstance(exporter, TemplateExporter) and not issubclass(exporter, TemplateExporter):
         raise TypeError("exporter does not inherit from Exporter (base)")
     if nb is None:
         raise TypeError("nb is None")
     
     #Create the exporter
     resources = kw.pop('resources', None)
-    if isinstance(exporter, Exporter):
+    if isinstance(exporter, TemplateExporter):
         exporter_instance = exporter
     else:
         exporter_instance = exporter(**kw)
@@ -122,7 +122,7 @@ def export(exporter, nb, **kw):
     return output, resources
 
 exporter_map = dict(
-    custom=Exporter,
+    custom=TemplateExporter,
     html=HTMLExporter,
     slides=SlidesExporter,
     latex=LatexExporter,
