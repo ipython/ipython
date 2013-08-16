@@ -61,7 +61,9 @@ nbconvert_aliases.update({
     'template' : 'Exporter.template_file',
     'writer' : 'NbConvertApp.writer_class',
     'post': 'NbConvertApp.post_processor_class',
-    'output': 'NbConvertApp.output_base'
+    'output': 'NbConvertApp.output_base',
+    'offline-slides': 'RevealHelpTransformer.url_prefix',
+    'slide-notes': 'RevealHelpTransformer.speaker_notes'
 })
 
 nbconvert_flags = {}
