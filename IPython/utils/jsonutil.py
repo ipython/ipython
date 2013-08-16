@@ -17,7 +17,6 @@ import types
 from datetime import datetime
 import six
 from six.moves import map
-from six.moves import zip
 
 try:
     # base64.encodestring is deprecated in Python 3.x
@@ -46,7 +45,7 @@ def rekey(dikt):
     """Rekey a dict that has been forced to use str keys where there should be
     ints by json."""
     for k in six.iterkeys(dikt):
-        if isinstance(k, basestring):
+        if isinstance(k, py3compat.string_types):
             ik=fk=None
             try:
                 ik = int(k)
@@ -73,7 +72,7 @@ def extract_dates(obj):
             obj[k] = extract_dates(v)
     elif isinstance(obj, (list, tuple)):
         obj = [ extract_dates(o) for o in obj ]
-    elif isinstance(obj, basestring):
+    elif isinstance(obj, py3compat.string_types):
         m = ISO8601_PAT.match(obj)
         if m:
             # FIXME: add actual timezone support
@@ -175,7 +174,7 @@ def json_clean(obj):
     --------
     >>> json_clean(4)
     4
-    >>> json_clean(range(10))
+    >>> json_clean(list(range(10)))
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     >>> sorted(json_clean(dict(x=1, y=2)).items())
     [('x', 1), ('y', 2)]
@@ -186,7 +185,7 @@ def json_clean(obj):
     """
     # types that are 'atomic' and ok in json as-is.  bool doesn't need to be
     # listed explicitly because bools pass as int instances
-    atomic_ok = (unicode, int, type(None))
+    atomic_ok = (py3compat.unicode_type, int, type(None))
 
     # containers that we need to convert into lists
     container_to_list = (tuple, set, types.GeneratorType)

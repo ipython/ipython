@@ -15,14 +15,17 @@ from __future__ import print_function
 
 import sys
 
-from StringIO import StringIO
 from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
 from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import Tee, capture_output
-from IPython.utils.py3compat import doctest_refactor_print
+from IPython.utils.py3compat import doctest_refactor_print, PY3
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO    
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -34,7 +37,7 @@ def test_tee_simple():
     chan = StringIO()
     text = 'Hello'
     tee = Tee(chan, channel='stdout')
-    print(text, file=chan)
+    print(text, file=tee)
     nt.assert_equal(chan.getvalue(), text+"\n")
 
 

@@ -24,7 +24,12 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import sys
-import types, copy_reg
+import types
+try:
+    import copyreg
+except ImportError:
+    # Python 2
+    import copy_reg as copyreg
 
 def code_ctor(*args):
     return types.CodeType(*args)
@@ -40,4 +45,4 @@ def reduce_code(co):
         args.insert(1, co.co_kwonlyargcount)
     return code_ctor, tuple(args)
 
-copy_reg.pickle(types.CodeType, reduce_code)
+copyreg.pickle(types.CodeType, reduce_code)

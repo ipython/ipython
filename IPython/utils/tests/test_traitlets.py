@@ -148,16 +148,16 @@ class TestTraitType(TestCase):
 
         a = A()
         self.assertEqual(a._trait_values, {})
-        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(list(a._trait_dyn_inits.keys()), ['x'])
         self.assertEqual(a.x, 11)
         self.assertEqual(a._trait_values, {'x': 11})
         b = B()
         self.assertEqual(b._trait_values, {'x': 20})
-        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(list(a._trait_dyn_inits.keys()), ['x'])
         self.assertEqual(b.x, 20)
         c = C()
         self.assertEqual(c._trait_values, {})
-        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(list(a._trait_dyn_inits.keys()), ['x'])
         self.assertEqual(c.x, 21)
         self.assertEqual(c._trait_values, {'x': 21})
         # Ensure that the base class remains unmolested when the _default
@@ -165,7 +165,7 @@ class TestTraitType(TestCase):
         a = A()
         c = C()
         self.assertEqual(a._trait_values, {})
-        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(list(a._trait_dyn_inits.keys()), ['x'])
         self.assertEqual(a.x, 11)
         self.assertEqual(a._trait_values, {'x': 11})
 
