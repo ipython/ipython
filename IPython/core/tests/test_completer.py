@@ -228,8 +228,8 @@ def test_omit__names():
     cfg.IPCompleter.omit__names = 0
     c.update_config(cfg)
     s,matches = c.complete('ip.')
-    nt.assert_true('ip.__str__' in matches)
-    nt.assert_true('ip._hidden_attr' in matches)
+    nt.assert_in('ip.__str__', matches)
+    nt.assert_in('ip._hidden_attr', matches)
     cfg.IPCompleter.omit__names = 1
     c.update_config(cfg)
     s,matches = c.complete('ip.')
@@ -238,8 +238,8 @@ def test_omit__names():
     cfg.IPCompleter.omit__names = 2
     c.update_config(cfg)
     s,matches = c.complete('ip.')
-    nt.assert_false('ip.__str__' in matches)
-    nt.assert_false('ip._hidden_attr' in matches)
+    nt.assert_not_in('ip.__str__', matches)
+    nt.assert_not_in('ip._hidden_attr', matches)
     del ip._hidden_attr
 
 
@@ -252,7 +252,7 @@ def test_limit_to__all__False_ok():
     cfg.IPCompleter.limit_to__all__ = False
     c.update_config(cfg)
     s, matches = c.complete('d.')
-    nt.assert_true('d.x' in matches) 
+    nt.assert_in('d.x', matches) 
 
 
 def test_limit_to__all__True_ok():

@@ -114,7 +114,7 @@ def test_remove_comments():
 
 def test_get_input_encoding():
     encoding = isp.get_input_encoding()
-    nt.assert_true(isinstance(encoding, basestring))
+    nt.assert_true(isinstance(encoding, py3compat.string_types))
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
     nt.assert_equal(u'test'.encode(encoding), b'test')

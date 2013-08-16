@@ -12,7 +12,6 @@ from __future__ import absolute_import
 import io
 import os
 import sys
-from StringIO import StringIO
 from unittest import TestCase
 import six
 
@@ -38,6 +37,10 @@ from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import find_cmd
+if py3compat.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Test functions begin
