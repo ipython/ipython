@@ -180,7 +180,7 @@ class OutStream(object):
             raise ValueError('I/O operation on closed file')
         else:
             # Make sure that we're handling unicode
-            if not isinstance(string, unicode):
+            if not isinstance(string, py3compat.unicode_type):
                 string = string.decode(self.encoding, 'replace')
             
             is_child = (self._check_mp_mode() == CHILD)

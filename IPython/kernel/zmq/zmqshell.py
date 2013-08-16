@@ -555,7 +555,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
         exc_content = {
             u'traceback' : stb,
-            u'ename' : unicode(etype.__name__),
+            u'ename' : py3compat.unicode_type(etype.__name__),
             u'evalue' : py3compat.safe_unicode(evalue),
         }
 

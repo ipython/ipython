@@ -30,8 +30,7 @@ Authors:
 from __future__ import print_function
 
 from IPython.config.configurable import Configurable
-from IPython.utils import io
-from IPython.utils.traitlets import List
+from IPython.utils import io, py3compat
 
 #-----------------------------------------------------------------------------
 # Main payload class
@@ -58,7 +57,7 @@ class DisplayPublisher(Configurable):
             Any metadata for the data.
         """
 
-        if not isinstance(source, basestring):
+        if not isinstance(source, py3compat.string_types):
             raise TypeError('source must be a str, got: %r' % source)
         if not isinstance(data, dict):
             raise TypeError('data must be a dict, got: %r' % data)

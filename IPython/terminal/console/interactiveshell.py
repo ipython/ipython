@@ -23,11 +23,14 @@ import subprocess
 from io import BytesIO
 import base64
 
-from Queue import Empty
+try:
+    from queue import Empty  # Python 3
+except ImportError:
+    from Queue import Empty  # Python 2
 
 from IPython.core import page
 from IPython.utils.warn import warn, error
-from IPython.utils import io
+from IPython.utils import io, py3compat
 from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
@@ -326,7 +329,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             signal.signal(signal.SIGINT, double_int)
             
             try:
-                raw_data = raw_input(msg_rep["content"]["prompt"])
+                raw_data = py3compat.input(msg_rep["content"]["prompt"])
             except EOFError:
                 # turn EOFError into EOF character
                 raw_data = '\x04'
@@ -387,7 +390,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if display_banner is None:
             display_banner = self.display_banner
         
-        if isinstance(display_banner, basestring):
+        if isinstance(display_banner, py3compat.string_types):
             self.show_banner(display_banner)
         elif display_banner:
             self.show_banner()
