@@ -107,6 +107,15 @@ def get_pull_request(project, num, auth=False):
     response.raise_for_status()
     return json.loads(response.text, object_hook=Obj)
 
+def get_pull_request_files(project, num, auth=False):
+    """get list of files in a pull request"""
+    url = "https://api.github.com/repos/{project}/pulls/{num}/files".format(project=project, num=num)
+    if auth:
+        header = make_auth_header()
+    else:
+        header = None
+    return get_paged_request(url, headers=header)
+
 element_pat = re.compile(r'<(.+?)>')
 rel_pat = re.compile(r'rel=[\'"](\w+)[\'"]')
 
