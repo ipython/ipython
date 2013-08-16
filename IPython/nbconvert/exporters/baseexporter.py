@@ -1,4 +1,4 @@
-"""This module defines Exporter, a highly configurable converter
+"""This module defines BaseExporter, a highly configurable converter
 that uses Jinja2 to export notebook files into different formats.
 """
 
