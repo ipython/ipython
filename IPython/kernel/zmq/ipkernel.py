@@ -103,7 +103,7 @@ class Kernel(Configurable):
     ident = Unicode()
 
     def _ident_default(self):
-        return unicode(uuid.uuid4())
+        return py3compat.unicode_type(uuid.uuid4())
 
 
     # Private interface
@@ -671,7 +671,7 @@ class Kernel(Configurable):
     def abort_request(self, stream, ident, parent):
         """abort a specifig msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
-        if isinstance(msg_ids, basestring):
+        if isinstance(msg_ids, py3compat.string_types):
             msg_ids = [msg_ids]
         if not msg_ids:
             self.abort_queues()

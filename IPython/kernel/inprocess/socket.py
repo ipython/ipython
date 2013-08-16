@@ -13,7 +13,10 @@
 
 # Standard library imports.
 import abc
-import Queue
+try:
+    import queue  # Python 3
+except:
+    import Queue as queue  # Python 2
 
 # System library imports.
 import zmq
@@ -22,7 +25,6 @@ import zmq
 from IPython.utils.traitlets import HasTraits, Instance, Int
 import six
 from six.moves import map
-from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Generic socket interface
@@ -46,7 +48,7 @@ SocketABC.register(zmq.Socket)
 class DummySocket(HasTraits):
     """ A dummy socket implementing (part of) the zmq.Socket interface. """
     
-    queue = Instance(Queue.Queue, ())
+    queue = Instance(queue.Queue, ())
     message_sent = Int(0) # Should be an Event
 
     #-------------------------------------------------------------------------

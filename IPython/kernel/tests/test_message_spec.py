@@ -9,7 +9,10 @@
 
 import re
 from subprocess import PIPE
-from Queue import Empty
+try:
+    from queue import Empty  # Python 3
+except:
+    from Queue import Empty  # Python 2
 
 import nose.tools as nt
 

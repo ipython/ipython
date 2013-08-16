@@ -91,7 +91,7 @@ class CannedObject(object):
 class Reference(CannedObject):
     """object for wrapping a remote reference by name."""
     def __init__(self, name):
-        if not isinstance(name, basestring):
+        if not isinstance(name, py3compat.string_types):
             raise TypeError("illegal name: %r"%name)
         self.name = name
         self.buffers = []
@@ -220,7 +220,7 @@ def _import_mapping(mapping, original=None):
     log = _logger()
     log.debug("Importing canning map")
     for key,value in mapping.items():
-        if isinstance(key, basestring):
+        if isinstance(key, py3compat.string_types):
             try:
                 cls = import_item(key)
             except Exception:
@@ -250,7 +250,7 @@ def can(obj):
     import_needed = False
     
     for cls,canner in six.iteritems(can_map):
-        if isinstance(cls, basestring):
+        if isinstance(cls, py3compat.string_types):
             import_needed = True
             break
         elif istype(obj, cls):
@@ -295,7 +295,7 @@ def uncan(obj, g=None):
     
     import_needed = False
     for cls,uncanner in six.iteritems(uncan_map):
-        if isinstance(cls, basestring):
+        if isinstance(cls, py3compat.string_types):
             import_needed = True
             break
         elif isinstance(obj, cls):
