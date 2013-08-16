@@ -24,18 +24,19 @@ try:
 except ImportError:  
     # Python 2
     import __builtin__ as builtins
-import commands
 import doctest
 import inspect
 import logging
 import os
 import re
 import sys
-import traceback
-import unittest
 
 from inspect import getmodule
-from StringIO import StringIO
+from IPython.utils import py3compat
+if py3compat.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 # We are overriding the default doctest runner, so we need to import a few
 # things from doctest directly
@@ -51,7 +52,6 @@ import nose.core
 from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 from six.moves import map
-from six.moves import zip
 
 # Our own imports
 
