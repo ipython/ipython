@@ -1,5 +1,6 @@
 # System library imports.
 from IPython.external.qt import QtGui
+from IPython.utils.py3compat import string_types
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexer import RegexLexer, _TokenType, Text, Error
 from pygments.lexers import PythonLexer
@@ -130,7 +131,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
     def set_style(self, style):
         """ Sets the style to the specified Pygments style.
         """
-        if isinstance(style, basestring):
+        if isinstance(style, string_types):
             style = get_style_by_name(style)
         self._style = style
         self._clear_caches()
