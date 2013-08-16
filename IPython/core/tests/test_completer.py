@@ -18,8 +18,8 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.generics import complete_object
+from IPython.utils.py3compat import unicode_type, string_types
 from six.moves import map
-from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -66,7 +66,7 @@ def check_line_split(splitter, test_specs):
 
 
 def test_line_split():
-    """Basice line splitter test with default specs."""
+    """Basic line splitter test with default specs."""
     sp = completer.CompletionSplitter()
     # The format of the test specs is: part1, part2, expected answer.  Parts 1
     # and 2 are joined into the 'line' sent to the splitter, as if the cursor
@@ -85,7 +85,7 @@ def test_line_split():
     check_line_split(sp, t)
     # Ensure splitting works OK with unicode by re-running the tests with
     # all inputs turned into unicode
-    check_line_split(sp, [ map(unicode, p) for p in t] )
+    check_line_split(sp, [ map(unicode_type, p) for p in t] )
 
 
 def test_custom_completion_error():
@@ -106,13 +106,13 @@ def test_unicode_completions():
     # Some strings that trigger different types of completion.  Check them both
     # in str and unicode forms
     s = ['ru', '%ru', 'cd /', 'floa', 'float(x)/']
-    for t in s + map(unicode, s):
+    for t in s + list(map(unicode_type, s)):
         # We don't need to check exact completion values (they may change
         # depending on the state of the namespace, but at least no exceptions
         # should be thrown and the return value should be a pair of text, list
         # values.
         text, matches = ip.complete(t)
-        nt.assert_true(isinstance(text, basestring))
+        nt.assert_true(isinstance(text, string_types))
         nt.assert_true(isinstance(matches, list))
 
 
@@ -160,7 +160,7 @@ def test_abspath_file_completions():
     ip = get_ipython()
     with TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, 'foo')
-        suffixes = map(str, [1,2])
+        suffixes = ('1', '2')
         names = [prefix+s for s in suffixes]
         for n in names:
             open(n, 'w').close()
@@ -183,10 +183,12 @@ def test_local_file_completions():
         with TemporaryDirectory() as tmpdir:
             os.chdir(tmpdir)
             prefix = './foo'
-            suffixes = map(str, [1,2])
+            suffixes = ('1', '2')
             names = [prefix+s for s in suffixes]
             for n in names:
                 open(n, 'w').close()
+            
+            print(os.listdir('.'))
 
             # Check simple completion
             c = ip.complete(prefix)[1]
@@ -265,8 +267,8 @@ def test_limit_to__all__True_ok():
     cfg.IPCompleter.limit_to__all__ = True
     c.update_config(cfg)
     s, matches = c.complete('d.')
-    nt.assert_true('d.z' in matches) 
-    nt.assert_false('d.x' in matches)
+    nt.assert_in('d.z', matches) 
+    nt.assert_not_in('d.x', matches)
 
 
 def test_get__all__entries_ok():
