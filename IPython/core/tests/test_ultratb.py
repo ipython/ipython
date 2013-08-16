@@ -6,6 +6,7 @@ import os.path
 import unittest
 
 from IPython.testing import tools as tt
+from IPython.testing.decorators import onlyif_unicode_paths
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -59,9 +60,22 @@ def fail():
 '''
 
 class NonAsciiTest(unittest.TestCase):
-    def test_iso8859_5(self):
+    @onlyif_unicode_paths
+    def test_nonascii_path(self):
         # Non-ascii directory name as well.
         with TemporaryDirectory(suffix=u'é') as td:
+            fname = os.path.join(td, u"fooé.py")
+            with open(fname, "w") as f:
+                f.write(file_1)
+
+            with prepended_to_syspath(td):
+                ip.run_cell("import foo")
+
+            with tt.AssertPrints("ZeroDivisionError"):
+                ip.run_cell("foo.f()")
+
+    def test_iso8859_5(self):
+        with TemporaryDirectory() as td:
             fname = os.path.join(td, 'dfghjkl.py')
 
             with io.open(fname, 'w', encoding='iso-8859-5') as f:

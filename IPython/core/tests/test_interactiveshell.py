@@ -33,7 +33,7 @@ from StringIO import StringIO
 import nose.tools as nt
 
 # Our own
-from IPython.testing.decorators import skipif
+from IPython.testing.decorators import skipif, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
 
@@ -404,6 +404,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
+    @onlyif_unicode_paths
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
         self.TESTDIR = join(self.BASETESTDIR, u"åäö")
@@ -418,6 +419,7 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         os.chdir(self.oldpath)
         shutil.rmtree(self.BASETESTDIR)
 
+    @onlyif_unicode_paths
     def test_1(self):
         """Test safe_execfile with non-ascii path
         """
@@ -425,6 +427,7 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
 
 class TestSystemRaw(unittest.TestCase):
+    @onlyif_unicode_paths
     def test_1(self):
         """Test system_raw with non-ascii cmd
         """

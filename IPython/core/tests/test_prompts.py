@@ -63,6 +63,7 @@ class PromptTests(unittest.TestCase):
         self.pm.in_template = r'\#>'
         self.assertEqual(self.pm.render('in',color=False), '%d>' % ip.execution_count)
     
+    @dec.onlyif_unicode_paths
     def test_render_unicode_cwd(self):
         save = os.getcwdu()
         with TemporaryDirectory(u'ünicødé') as td:
