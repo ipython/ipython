@@ -95,7 +95,7 @@ def markdown2rst(source):
 def extended_markdown2latex(source):
     """Convert a markdown string with html tags to LaTeX via pandoc.
 
-    Splits the string into markdown, html and raw comment parts. 
+    Splits the string into markdown and html parts. 
     These are converted using the base methods and combined.
 
     Parameters
@@ -117,8 +117,6 @@ def extended_markdown2latex(source):
             outtext += markdown2latex(substring[3])
         elif substring[0] == 'html':
             outtext += html2latex(substring[3])
-        elif substring[0] == 'mcomment':
-            outtext += substring[3]
         else:
             # tag type not defined
             pass
@@ -130,16 +128,13 @@ def extended_markdown2latex(source):
 class MarkdownSplitParser(HTMLParser):
     """Markdown Split Parser
 
-    inherites from HTMLParser
-    overrides:
+    Splits the markdown source into markdown and html parts.
+    
+    Inherites from HTMLParser, overrides:
      - handle_starttag
      - handle_endtag
      - handle_startendtag
      - handle_data
-     - handle_comment
-
-    HTML comments starting with ## are treated as raw comments.
-    These are passed without conversion. Can be used to inject latex code.
     """
     opentags = []
     splitlist = []
@@ -195,15 +190,6 @@ class MarkdownSplitParser(HTMLParser):
             self.splitlist.append(['markdown',pos])
             self.datag = True
         
-    def handle_comment(self, data):
-        """ Parse marked comments """
-        if data.startswith('##') and len(self.opentags)==0:
-            pos = self.get_offset()
-            end_pos = pos + len(data) + 7
-            self.splitlist[-1].append(pos)
-            self.splitlist.append(['mcomment',pos+6, end_pos-3])
-            self.splitlist.append(['markdown',end_pos])
-
     def feed(self, data):
         self.data = data
         HTMLParser.feed(self,data)
