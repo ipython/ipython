@@ -149,7 +149,7 @@ class NotebookWebApplication(web.Application):
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_project_url = py3compat.unicode_to_str(base_project_url, 'ascii')
-        template_path = os.path.join(os.path.dirname(__file__), "templates")
+        template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
         settings = dict(
             # basics
             base_project_url=base_project_url,
