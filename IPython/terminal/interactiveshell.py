@@ -105,7 +105,7 @@ class TerminalMagics(Magics):
         # Sanity checks
         if b is None:
             raise UsageError('No previous pasted block available')
-        if not isinstance(b, basestring):
+        if not isinstance(b, py3compat.string_types):
             raise UsageError(
                 "Variable 'pasted_block' is not a string, can't execute")
 
@@ -473,7 +473,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if display_banner is None:
             display_banner = self.display_banner
 
-        if isinstance(display_banner, basestring):
+        if isinstance(display_banner, py3compat.string_types):
             self.show_banner(display_banner)
         elif display_banner:
             self.show_banner()

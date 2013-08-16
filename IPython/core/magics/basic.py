@@ -28,6 +28,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import unquote_filename
 from IPython.utils.warn import warn, error
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Magics class implementation
@@ -600,7 +601,7 @@ Defaulting color scheme to 'NoColor'"""
              'format. The filename argument gives the name of the source file.'
     )
     @magic_arguments.argument(
-        'filename', type=unicode,
+        'filename', type=unicode_type,
         help='Notebook name or filename'
     )
     @line_magic

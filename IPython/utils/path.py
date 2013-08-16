@@ -30,7 +30,6 @@ from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat
 from six.moves import map
-from six.moves import zip
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -157,7 +156,7 @@ def filefind(filename, path_dirs=None):
 
     if path_dirs is None:
         path_dirs = ("",)
-    elif isinstance(path_dirs, basestring):
+    elif isinstance(path_dirs, py3compat.string_types):
         path_dirs = (path_dirs,)
 
     for path in path_dirs:

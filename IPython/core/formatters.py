@@ -27,8 +27,6 @@ Authors:
 import abc
 import sys
 import warnings
-# We must use StringIO, as cStringIO doesn't handle unicode properly.
-from StringIO import StringIO
 
 # Our own imports
 from IPython.config.configurable import Configurable
@@ -36,7 +34,11 @@ from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
-from IPython.utils.py3compat import unicode_to_str
+from IPython.utils.py3compat import unicode_to_str, PY3
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 import six
 
 
@@ -169,7 +171,7 @@ class DisplayFormatter(Configurable):
     @property
     def format_types(self):
         """Return the format types (MIME types) of the active formatters."""
-        return self.formatters.keys()
+        return list(self.formatters.keys())
 
 
 #-----------------------------------------------------------------------------

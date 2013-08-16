@@ -110,12 +110,15 @@ import sys
 import types
 import re
 import datetime
-from StringIO import StringIO
 from collections import deque
 from six.moves import map
 from six.moves import zip
 
-from IPython.utils.py3compat import builtin_mod_name
+from IPython.utils.py3compat import builtin_mod_name, PY3
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
@@ -699,10 +702,8 @@ except NameError:
 #: printers for builtin types
 _type_pprinters = {
     int:                        _repr_pprint,
-    long:                       _repr_pprint,
     float:                      _repr_pprint,
     str:                        _repr_pprint,
-    unicode:                    _repr_pprint,
     tuple:                      _seq_pprinter_factory('(', ')', tuple),
     list:                       _seq_pprinter_factory('[', ']', list),
     dict:                       _dict_pprinter_factory('{', '}', dict),
@@ -730,7 +731,9 @@ except AttributeError: # Python 3
     
 try:
     _type_pprinters[xrange] = _repr_pprint
-except NameError:
+    _type_pprinters[long] = _repr_pprint
+    _type_pprinters[unicode] = _repr_pprint
+except NameError:  # Python 3
     _type_pprinters[range] = _repr_pprint
 
 #: printers for types specified by name

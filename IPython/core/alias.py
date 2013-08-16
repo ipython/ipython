@@ -32,7 +32,7 @@ import sys
 
 from IPython.config.configurable import Configurable
 from IPython.core.splitinput import split_user_input
-
+from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import List, Instance
 from IPython.utils.warn import warn, error
 import six
@@ -176,7 +176,7 @@ class AliasManager(Configurable):
         if name in self.no_alias:
             raise InvalidAliasError("The name %s can't be aliased "
                                     "because it is a keyword or builtin." % name)
-        if not (isinstance(cmd, basestring)):
+        if not (isinstance(cmd, string_types)):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % cmd)
         nargs = cmd.count('%s')

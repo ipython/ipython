@@ -151,7 +151,7 @@ class Config(dict):
 
     def __deepcopy__(self, memo):
         import copy
-        return type(self)(copy.deepcopy(self.items()))
+        return type(self)(copy.deepcopy(list(self.items())))
 
     def __getitem__(self, key):
         # We cannot use directly self._is_section_key, because it triggers
@@ -469,7 +469,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         if enc is None:
             enc = DEFAULT_ENCODING
         for arg in argv:
-            if not isinstance(arg, unicode):
+            if not isinstance(arg, py3compat.unicode_type):
                 # only decode if not already decoded
                 arg = arg.decode(enc)
             uargv.append(arg)
@@ -659,9 +659,9 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             else:
                 nargs = None
             if len(key) is 1:
-                paa('-'+key, '--'+key, type=unicode, dest=value, nargs=nargs)
+                paa('-'+key, '--'+key, type=py3compat.unicode_type, dest=value, nargs=nargs)
             else:
-                paa('--'+key, type=unicode, dest=value, nargs=nargs)
+                paa('--'+key, type=py3compat.unicode_type, dest=value, nargs=nargs)
         for key, (value, help) in six.iteritems(flags):
             if key in self.aliases:
                 #
