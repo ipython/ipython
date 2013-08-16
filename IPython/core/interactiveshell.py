@@ -28,6 +28,7 @@ import runpy
 import sys
 import tempfile
 import types
+import subprocess
 from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
@@ -2235,7 +2236,7 @@ class InteractiveShell(SingletonConfigurable):
                 ec = os.system(cmd)
         else:
             cmd = py3compat.unicode_to_str(cmd)
-            ec = os.system(cmd)
+            ec = subprocess.call(cmd, shell=True, executable=os.environ.get('SHELL'))
             # The high byte is the exit code, the low byte is a signal number
             # that we discard for now. See the docs for os.wait()
             if ec > 255:
