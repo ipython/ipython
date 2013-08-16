@@ -50,7 +50,9 @@ def markdown2latex(source):
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'latex')
+    pre = ' '*source.startswith(' ')
+    post = ' '*source.endswith(' ')
+    return pre + pandoc(source, 'markdown', 'latex') + post
 
 def markdown2html(source):
     """Convert a markdown string to HTML via pandoc"""
@@ -118,10 +120,15 @@ class MarkdownSplitParser(HTMLParser):
      - handle_startendtag
      - handle_data
     """
-    opentags = []
-    splitlist = []
+    opentags = None
+    splitlist = None
     setag = False  # .. start-end-tag
     datag = False  # .. data-tag
+
+    def __init__(self):
+        self.splitlist = []
+        self.opentags = []
+        HTMLParser.__init__(self)
 
     def get_offset(self):
         """ Compute startposition in data list """
@@ -182,7 +189,8 @@ class MarkdownSplitParser(HTMLParser):
             j = i - num_pop
             self.splitlist[j].append(
                 self.data[self.splitlist[j][1]:self.splitlist[j][2]])
+            # remove empty entries
             if li[-3] == li[-2]: 
                 self.splitlist.pop(i)
                 num_pop += 1
-
+            
