@@ -31,7 +31,7 @@ class LatexPreprocessor(Preprocessor):
 
     def preprocess_cell(self, cell, resources, index):
         """
-        Apply a preprocessation on each cell,
+        Apply a transformation on each cell,
         
         Parameters
         ----------
