@@ -60,7 +60,7 @@ from IPython.utils.traitlets import (
 
 _examples = """
 ipython --matplotlib       # enable matplotlib integration
-ipython --matploltib=qt    # enable matplotlib integration with qt4 backend
+ipython --matplotlib=qt    # enable matplotlib integration with qt4 backend
 
 ipython --log-level=DEBUG  # set logging to DEBUG
 ipython --profile=foo      # start with profile foo
