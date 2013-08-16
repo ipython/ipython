@@ -17,7 +17,7 @@ Module with utility functions for preprocessor tests
 from IPython.nbformat import current as nbformat
 
 from ...tests.base import TestsBase
-from ...exporters.exporter import ResourcesDict
+from ...exporters.baseexporter import ResourcesDict
 
 #-----------------------------------------------------------------------------
 # Class
