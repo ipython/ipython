@@ -32,6 +32,8 @@ from IPython.nbformat.v3 import (
     nbformat_minor,
 )
 
+from IPython.utils.py3compat import unicode_type
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -132,7 +134,7 @@ def reads(s, format, **kwargs):
     nb : NotebookNode
         The notebook that was read.
     """
-    format = unicode(format)
+    format = unicode_type(format)
     if format == u'json' or format == u'ipynb':
         return reads_json(s, **kwargs)
     elif format == u'py':
@@ -158,7 +160,7 @@ def writes(nb, format, **kwargs):
     s : unicode
         The notebook string.
     """
-    format = unicode(format)
+    format = unicode_type(format)
     if format == u'json' or format == u'ipynb':
         return writes_json(nb, **kwargs)
     elif format == u'py':

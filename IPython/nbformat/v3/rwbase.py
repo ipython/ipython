@@ -20,8 +20,7 @@ from base64 import encodestring, decodestring
 import pprint
 
 from IPython.utils import py3compat
-
-str_to_bytes = py3compat.str_to_bytes
+from IPython.utils.py3compat import string_types, unicode_type, str_to_bytes
 
 #-----------------------------------------------------------------------------
 # Code
@@ -101,17 +100,17 @@ def split_lines(nb):
     for ws in nb.worksheets:
         for cell in ws.cells:
             if cell.cell_type == 'code':
-                if 'input' in cell and isinstance(cell.input, basestring):
+                if 'input' in cell and isinstance(cell.input, string_types):
                     cell.input = cell.input.splitlines(True)
                 for output in cell.outputs:
                     for key in _multiline_outputs:
                         item = output.get(key, None)
-                        if isinstance(item, basestring):
+                        if isinstance(item, string_types):
                             output[key] = item.splitlines(True)
             else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
-                    if isinstance(item, basestring):
+                    if isinstance(item, string_types):
                         cell[key] = item.splitlines(True)
     return nb
 
@@ -128,11 +127,11 @@ def base64_decode(nb):
             if cell.cell_type == 'code':
                 for output in cell.outputs:
                     if 'png' in output:
-                        if isinstance(output.png, unicode):
+                        if isinstance(output.png, unicode_type):
                             output.png = output.png.encode('ascii')
                         output.png = decodestring(output.png)
                     if 'jpeg' in output:
-                        if isinstance(output.jpeg, unicode):
+                        if isinstance(output.jpeg, unicode_type):
                             output.jpeg = output.jpeg.encode('ascii')
                         output.jpeg = decodestring(output.jpeg)
     return nb
