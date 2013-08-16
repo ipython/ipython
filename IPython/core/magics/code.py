@@ -264,7 +264,7 @@ class CodeMagics(Magics):
 
                     #print '*** args',args,'type',type(args)  # dbg
                     data = eval(args, shell.user_ns)
-                    if not isinstance(data, basestring):
+                    if not isinstance(data, py3compat.string_types):
                         raise DataIsObject
 
                 except (NameError,SyntaxError):

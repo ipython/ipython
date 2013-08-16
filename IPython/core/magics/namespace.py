@@ -401,8 +401,6 @@ class NamespaceMagics(Magics):
                 ndarray_type = ndarray.__name__
 
         # Find all variable names and types so we can figure out column sizes
-        def get_vars(i):
-            return self.shell.user_ns[i]
 
         # some types are well known and can be shorter
         abbrevs = {'IPython.core.macro.Macro' : 'Macro'}
@@ -410,7 +408,7 @@ class NamespaceMagics(Magics):
             tn = type(v).__name__
             return abbrevs.get(tn,tn)
 
-        varlist = map(get_vars,varnames)
+        varlist = [self.shell.user_ns[n] for n in varnames]
 
         typelist = []
         for vv in varlist:
@@ -583,7 +581,7 @@ class NamespaceMagics(Magics):
                     from numpy import ndarray
                     # This must be done with items and not iteritems because
                     # we're going to modify the dict in-place.
-                    for x,val in user_ns.items():
+                    for x,val in list(user_ns.items()):
                         if isinstance(val,ndarray):
                             del user_ns[x]
                 except ImportError:
