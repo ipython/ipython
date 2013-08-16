@@ -342,8 +342,20 @@ class TestView(ClusterTestCase, ParametricTestCase):
         arr = range(101)
         # ensure it will be an iterator, even in Python 3
         it = iter(arr)
-        r = view.map_sync(lambda x:x, arr)
+        r = view.map_sync(lambda x: x, it)
         self.assertEqual(r, list(arr))
+
+    @skip_without('numpy')
+    def test_map_numpy(self):
+        """test map on numpy arrays (direct)"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal
+
+        view = self.client[:]
+        # 101 is prime, so it won't be evenly distributed
+        arr = numpy.arange(101)
+        r = view.map_sync(lambda x: x, arr)
+        assert_array_equal(r, arr)
     
     def test_scatter_gather_nonblocking(self):
         data = range(16)
