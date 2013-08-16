@@ -16,7 +16,7 @@ Contains slide show exporter
 
 from IPython.utils.traitlets import Unicode
 
-from IPython.nbconvert import transformers
+from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
 from .exporter import Exporter
@@ -41,10 +41,10 @@ class SlidesExporter(Exporter):
     @property
     def default_config(self):
         c = Config({
-            'CSSHTMLHeaderTransformer':{
+            'CSSHTMLHeaderPreprocessor':{
                 'enabled':True
                 },
-            'RevealHelpTransformer':{
+            'RevealHelpPreprocessor':{
                 'enabled':True,
                 },                
             })

@@ -1,5 +1,5 @@
 """
-Module with tests for the revealhelp transformer
+Module with tests for the revealhelp preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -16,20 +16,20 @@ Module with tests for the revealhelp transformer
 
 from IPython.nbformat import current as nbformat
 
-from .base import TransformerTestsBase
-from ..revealhelp import RevealHelpTransformer
+from .base import PreprocessorTestsBase
+from ..revealhelp import RevealHelpPreprocessor
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class Testrevealhelp(TransformerTestsBase):
+class Testrevealhelp(PreprocessorTestsBase):
     """Contains test functions for revealhelp.py"""
 
     def build_notebook(self):
         """Build a reveal slides notebook in memory for use with tests.  
-        Overrides base in TransformerTestsBase"""
+        Overrides base in PreprocessorTestsBase"""
 
         outputs = [nbformat.new_output(output_type="stream", stream="stdout", output_text="a")]
         
@@ -46,34 +46,34 @@ class Testrevealhelp(TransformerTestsBase):
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
 
 
-    def build_transformer(self):
-        """Make an instance of a transformer"""
-        transformer = RevealHelpTransformer()
-        transformer.enabled = True
-        return transformer
+    def build_preprocessor(self):
+        """Make an instance of a preprocessor"""
+        preprocessor = RevealHelpPreprocessor()
+        preprocessor.enabled = True
+        return preprocessor
 
 
     def test_constructor(self):
-        """Can a RevealHelpTransformer be constructed?"""
-        self.build_transformer()
+        """Can a RevealHelpPreprocessor be constructed?"""
+        self.build_preprocessor()
     
 
     def test_reveal_attribute(self):
         """Make sure the reveal url_prefix resources is set"""
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
         assert 'reveal' in res
         assert  'url_prefix' in res['reveal']
 
 
     def test_reveal_output(self):
-        """Make sure that the reveal transformer """
+        """Make sure that the reveal preprocessor """
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
         cells = nb.worksheets[0].cells
         
         # Make sure correct metadata tags are available on every cell.

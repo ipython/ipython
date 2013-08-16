@@ -1,4 +1,4 @@
-"""Module containing a transformer that converts outputs in the notebook from 
+"""Module containing a preprocessor that converts outputs in the notebook from 
 one format to another.
 """
 #-----------------------------------------------------------------------------
@@ -13,14 +13,14 @@ one format to another.
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import Transformer
+from .base import Preprocessor
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConvertFiguresTransformer(Transformer):
+class ConvertFiguresPreprocessor(Preprocessor):
     """
     Converts all of the outputs in a notebook from one format to another.
     """
@@ -32,14 +32,14 @@ class ConvertFiguresTransformer(Transformer):
         """
         Public constructor
         """
-        super(ConvertFiguresTransformer, self).__init__(**kw)
+        super(ConvertFiguresPreprocessor, self).__init__(**kw)
 
 
     def convert_figure(self, data_format, data):
         raise NotImplementedError()
 
 
-    def transform_cell(self, cell, resources, cell_index):
+    def preprocess_cell(self, cell, resources, cell_index):
         """
         Apply a transformation on each cell,
         

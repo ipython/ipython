@@ -19,7 +19,7 @@ from pygments.formatters import HtmlFormatter
 
 from IPython.utils import path
 
-from .base import Transformer
+from .base import Preprocessor
 
 from IPython.utils.traitlets import Unicode
 
@@ -27,9 +27,9 @@ from IPython.utils.traitlets import Unicode
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CSSHTMLHeaderTransformer(Transformer):
+class CSSHTMLHeaderPreprocessor(Preprocessor):
     """
-    Transformer used to pre-process notebook for HTML output.  Adds IPython notebook
+    Preprocessor used to pre-process notebook for HTML output.  Adds IPython notebook
     front-end CSS and Pygments CSS to HTML output.
     """
 
@@ -50,13 +50,13 @@ class CSSHTMLHeaderTransformer(Transformer):
             Additional arguments
         """
         
-        super(CSSHTMLHeaderTransformer, self).__init__(config=config, **kw)
+        super(CSSHTMLHeaderPreprocessor, self).__init__(config=config, **kw)
 
         if self.enabled :
             self._regen_header()
 
 
-    def transform(self, nb, resources):
+    def preprocess(self, nb, resources):
         """Fetch and add CSS to the resource dictionary
 
         Fetch CSS from IPython and Pygments to add at the beginning
@@ -69,7 +69,7 @@ class CSSHTMLHeaderTransformer(Transformer):
             Notebook being converted
         resources : dictionary
             Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+            preprocessors to pass variables into the Jinja engine.
         """
         
         resources['inlining'] = {}

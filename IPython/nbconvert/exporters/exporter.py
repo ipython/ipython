@@ -36,7 +36,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
 from IPython.utils import py3compat
 
-from IPython.nbconvert import transformers as nbtransformers
+from IPython.nbconvert import preprocessors as nbpreprocessors
 from IPython.nbconvert import filters
 
 #-----------------------------------------------------------------------------
@@ -83,8 +83,8 @@ class Exporter(LoggingConfigurable):
     """
     Exports notebooks into other file formats.  Uses Jinja 2 templating engine
     to output new formats.  Inherit from this class if you are creating a new
-    template type along with new filters/transformers.  If the filters/
-    transformers provided by default suffice, there is no need to inherit from
+    template type along with new filters/preprocessors.  If the filters/
+    preprocessors provided by default suffice, there is no need to inherit from
     this class.  Instead, override the template_file and file_extension
     traits via a config file.
 
@@ -138,23 +138,23 @@ class Exporter(LoggingConfigurable):
     #Extension that the template files use.    
     template_extension = Unicode(".tpl", config=True)
 
-    #Configurability, allows the user to easily add filters and transformers.
-    transformers = List(config=True,
-        help="""List of transformers, by name or namespace, to enable.""")
+    #Configurability, allows the user to easily add filters and preprocessors.
+    preprocessors = List(config=True,
+        help="""List of preprocessors, by name or namespace, to enable.""")
 
     filters = Dict(config=True,
         help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
 
-    default_transformers = List([nbtransformers.coalesce_streams,
-                                 nbtransformers.SVG2PDFTransformer,
-                                 nbtransformers.ExtractOutputTransformer,
-                                 nbtransformers.CSSHTMLHeaderTransformer,
-                                 nbtransformers.RevealHelpTransformer,
-                                 nbtransformers.LatexTransformer,
-                                 nbtransformers.SphinxTransformer],
+    default_preprocessors = List([nbpreprocessors.coalesce_streams,
+                                 nbpreprocessors.SVG2PDFPreprocessor,
+                                 nbpreprocessors.ExtractOutputPreprocessor,
+                                 nbpreprocessors.CSSHTMLHeaderPreprocessor,
+                                 nbpreprocessors.RevealHelpPreprocessor,
+                                 nbpreprocessors.LatexPreprocessor,
+                                 nbpreprocessors.SphinxPreprocessor],
         config=True,
-        help="""List of transformers available by default, by name, namespace, 
+        help="""List of preprocessors available by default, by name, namespace, 
         instance, or type.""")
 
 
@@ -180,7 +180,7 @@ class Exporter(LoggingConfigurable):
         #Init
         self._init_template()
         self._init_environment(extra_loaders=extra_loaders)
-        self._init_transformers()
+        self._init_preprocessors()
         self._init_filters()
 
 
@@ -245,13 +245,13 @@ class Exporter(LoggingConfigurable):
         nb : Notebook node
         resources : dict (**kw) 
             of additional resources that can be accessed read/write by 
-            transformers and filters.
+            preprocessors and filters.
         """
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)
 
         # Preprocess
-        nb_copy, resources = self._transform(nb_copy, resources)
+        nb_copy, resources = self._preprocess(nb_copy, resources)
 
         self._load_template()
 
@@ -300,51 +300,51 @@ class Exporter(LoggingConfigurable):
         return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
 
 
-    def register_transformer(self, transformer, enabled=False):
+    def register_preprocessor(self, preprocessor, enabled=False):
         """
-        Register a transformer.
-        Transformers are classes that act upon the notebook before it is
-        passed into the Jinja templating engine.  Transformers are also
+        Register a preprocessor.
+        Preprocessors are classes that act upon the notebook before it is
+        passed into the Jinja templating engine.  Preprocessors are also
         capable of passing additional information to the Jinja
         templating engine.
     
         Parameters
         ----------
-        transformer : transformer
+        preprocessor : preprocessor
         """
-        if transformer is None:
-            raise TypeError('transformer')
-        isclass = isinstance(transformer, type)
+        if preprocessor is None:
+            raise TypeError('preprocessor')
+        isclass = isinstance(preprocessor, type)
         constructed = not isclass
 
-        #Handle transformer's registration based on it's type
-        if constructed and isinstance(transformer, py3compat.string_types):
-            #Transformer is a string, import the namespace and recursively call
-            #this register_transformer method
-            transformer_cls = import_item(transformer)
-            return self.register_transformer(transformer_cls, enabled)
+        #Handle preprocessor's registration based on it's type
+        if constructed and isinstance(preprocessor, py3compat.string_types):
+            #Preprocessor is a string, import the namespace and recursively call
+            #this register_preprocessor method
+            preprocessor_cls = import_item(preprocessor)
+            return self.register_preprocessor(preprocessor_cls, enabled)
         
-        if constructed and hasattr(transformer, '__call__'):
-            #Transformer is a function, no need to construct it.
-            #Register and return the transformer.
+        if constructed and hasattr(preprocessor, '__call__'):
+            #Preprocessor is a function, no need to construct it.
+            #Register and return the preprocessor.
             if enabled:
-                transformer.enabled = True
-            self._transformers.append(transformer)
-            return transformer
+                preprocessor.enabled = True
+            self._preprocessors.append(preprocessor)
+            return preprocessor
 
-        elif isclass and isinstance(transformer, MetaHasTraits):
-            #Transformer is configurable.  Make sure to pass in new default for 
+        elif isclass and isinstance(preprocessor, MetaHasTraits):
+            #Preprocessor is configurable.  Make sure to pass in new default for 
             #the enabled flag if one was specified.
-            self.register_transformer(transformer(parent=self), enabled)
+            self.register_preprocessor(preprocessor(parent=self), enabled)
 
         elif isclass:
-            #Transformer is not configurable, construct it
-            self.register_transformer(transformer(), enabled)
+            #Preprocessor is not configurable, construct it
+            self.register_preprocessor(preprocessor(), enabled)
 
         else:
-            #Transformer is an instance of something without a __call__ 
+            #Preprocessor is an instance of something without a __call__ 
             #attribute.  
-            raise TypeError('transformer')
+            raise TypeError('preprocessor')
 
 
     def register_filter(self, name, jinja_filter):
@@ -435,22 +435,22 @@ class Exporter(LoggingConfigurable):
             self.environment.comment_end_string = self.jinja_comment_block_end
 
     
-    def _init_transformers(self):
+    def _init_preprocessors(self):
         """
-        Register all of the transformers needed for this exporter, disabled
+        Register all of the preprocessors needed for this exporter, disabled
         unless specified explicitly.
         """
-        self._transformers = []
+        self._preprocessors = []
 
-        #Load default transformers (not necessarly enabled by default).
-        if self.default_transformers:
-            for transformer in self.default_transformers:
-                self.register_transformer(transformer)
+        #Load default preprocessors (not necessarly enabled by default).
+        if self.default_preprocessors:
+            for preprocessor in self.default_preprocessors:
+                self.register_preprocessor(preprocessor)
 
-        #Load user transformers.  Enable by default.
-        if self.transformers:
-            for transformer in self.transformers:
-                self.register_transformer(transformer, enabled=True)
+        #Load user preprocessors.  Enable by default.
+        if self.preprocessors:
+            for preprocessor in self.preprocessors:
+                self.register_preprocessor(preprocessor, enabled=True)
  
 
     def _init_filters(self):
@@ -492,7 +492,7 @@ class Exporter(LoggingConfigurable):
         return resources
         
 
-    def _transform(self, nb, resources):
+    def _preprocess(self, nb, resources):
         """
         Preprocess the notebook before passing it into the Jinja engine.
         To preprocess the notebook is to apply all of the 
@@ -502,17 +502,17 @@ class Exporter(LoggingConfigurable):
         nb : notebook node
             notebook that is being exported.
         resources : a dict of additional resources that
-            can be accessed read/write by transformers
+            can be accessed read/write by preprocessors
             and filters.
         """
         
         # Do a copy.deepcopy first, 
-        # we are never safe enough with what the transformers could do.
+        # we are never safe enough with what the preprocessors could do.
         nbc =  copy.deepcopy(nb)
         resc = copy.deepcopy(resources)
 
-        #Run each transformer on the notebook.  Carry the output along
-        #to each transformer
-        for transformer in self._transformers:
-            nbc, resc = transformer(nbc, resc)
+        #Run each preprocessor on the notebook.  Carry the output along
+        #to each preprocessor
+        for preprocessor in self._preprocessors:
+            nbc, resc = preprocessor(nbc, resc)
         return nbc, resc

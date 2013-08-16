@@ -15,14 +15,14 @@
 import os
 import urllib2
 
-from .base import Transformer
+from .base import Preprocessor
 from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class RevealHelpTransformer(Transformer):
+class RevealHelpPreprocessor(Preprocessor):
 
     url_prefix = Unicode('//cdn.jsdelivr.net/reveal.js/2.4.0',
                          config=True,
@@ -34,9 +34,9 @@ class RevealHelpTransformer(Transformer):
                          help="""If you want to use the speaker notes 
                          set this to True.""")
 
-    def transform(self, nb, resources):
+    def preprocess(self, nb, resources):
         """
-        Called once to 'transform' contents of the notebook.
+        Called once to 'preprocess' contents of the notebook.
 
         Parameters
         ----------
@@ -44,7 +44,7 @@ class RevealHelpTransformer(Transformer):
             Notebook being converted
         resources : dictionary
             Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+            preprocessors to pass variables into the Jinja engine.
         """
 
         for worksheet in nb.worksheets :
