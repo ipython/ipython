@@ -12,7 +12,12 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from pymongo import Connection
-from bson import Binary
+
+# bson.Binary import moved
+try:
+    from bson.binary import Binary
+except ImportError:
+    from bson import Binary
 
 from IPython.utils.traitlets import Dict, List, Unicode, Instance
 
