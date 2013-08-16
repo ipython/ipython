@@ -49,8 +49,8 @@ class WriterBase(NbConvertBase):
             converted file.
         resources : dict
             Resources created and filled by the nbconvert conversion process.
-            Includes output from transformers, such as the extract figure 
-            transformer.
+            Includes output from preprocessors, such as the extract figure
+            preprocessor.
         """
 
         raise NotImplementedError()
