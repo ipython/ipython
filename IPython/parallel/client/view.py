@@ -53,7 +53,7 @@ def save_ids(f, self, *args, **kwargs):
         nmsgs = len(self.client.history) - n_previous
         msg_ids = self.client.history[-nmsgs:]
         self.history.extend(msg_ids)
-        map(self.outstanding.add, msg_ids)
+        self.outstanding.update(msg_ids)
     return ret
 
 @decorator

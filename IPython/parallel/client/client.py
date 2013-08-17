@@ -1066,7 +1066,7 @@ class Client(HasTraits):
                     # index access
                     job = self.history[job]
                 elif isinstance(job, AsyncResult):
-                    map(theids.add, job.msg_ids)
+                    for id in job.msg_ids: theids.add(id)
                     continue
                 theids.add(job)
         if not theids.intersection(self.outstanding):
@@ -1697,8 +1697,9 @@ class Client(HasTraits):
             msg_ids = []
             msg_ids.extend(self._build_msgids_from_target(targets))
             msg_ids.extend(self._build_msgids_from_jobs(jobs))
-            map(self.results.pop, msg_ids)
-            map(self.metadata.pop, msg_ids)
+            for id in msg_ids:
+                self.results.pop(id)
+                self.metadata.pop(id)
 
 
     @spin_first
