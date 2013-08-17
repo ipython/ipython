@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+import base64
 import sys
 import platform
 import time
@@ -535,6 +536,18 @@ class TestView(ClusterTestCase, ParametricTestCase):
         er = ar.get()
         self.assertEqual(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
         self.assertEqual(er.pyout['data']['text/plain'], '5')
+
+    def test_execute_reply_rich(self):
+        e0 = self.client[self.client.ids[0]]
+        e0.block = True
+        e0.execute("from IPython.display import Image, HTML")
+        ar = e0.execute("Image(data=b'garbage', format='png', width=10)", silent=False)
+        er = ar.get()
+        b64data = base64.encodestring(b'garbage').decode('ascii')
+        self.assertEqual(er._repr_png_(), (b64data, dict(width=10)))
+        ar = e0.execute("HTML('<b>bold</b>')", silent=False)
+        er = ar.get()
+        self.assertEqual(er._repr_html_(), "<b>bold</b>")
 
     def test_execute_reply_stdout(self):
         e0 = self.client[self.client.ids[0]]

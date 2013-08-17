@@ -34,6 +34,7 @@ from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 
+from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
@@ -75,13 +76,46 @@ def spin_first(f, self, *args, **kwargs):
 #--------------------------------------------------------------------------
 
 
-class ExecuteReply(object):
+class ExecuteReply(RichOutput):
     """wrapper for finished Execute results"""
     def __init__(self, msg_id, content, metadata):
         self.msg_id = msg_id
         self._content = content
         self.execution_count = content['execution_count']
         self.metadata = metadata
+    
+    # RichOutput overrides
+    
+    @property
+    def source(self):
+        pyout = self.metadata['pyout']
+        if pyout:
+            return pyout.get('source', '')
+    
+    @property
+    def data(self):
+        pyout = self.metadata['pyout']
+        if pyout:
+            return pyout.get('data', {})
+    
+    @property
+    def _metadata(self):
+        pyout = self.metadata['pyout']
+        if pyout:
+            return pyout.get('metadata', {})
+    
+    def display(self):
+        from IPython.display import publish_display_data
+        publish_display_data(self.source, self.data, self.metadata)
+    
+    def _repr_mime_(self, mime):
+        if mime not in self.data:
+            return
+        data = self.data[mime]
+        if mime in self._metadata:
+            return data, self._metadata[mime]
+        else:
+            return data
     
     def __getitem__(self, key):
         return self.metadata[key]
@@ -128,34 +162,6 @@ class ExecuteReply(object):
                 self.metadata['engine_id'], self.execution_count
             ) + normal + text_out
         )
-    
-    def _repr_html_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("text/html")
-    
-    def _repr_latex_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("text/latex")
-    
-    def _repr_json_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("application/json")
-    
-    def _repr_javascript_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("application/javascript")
-    
-    def _repr_png_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("image/png")
-    
-    def _repr_jpeg_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("image/jpeg")
-    
-    def _repr_svg_(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        return pyout['data'].get("image/svg+xml")
 
 
 class Metadata(dict):
