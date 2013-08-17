@@ -27,7 +27,6 @@ import sys
 import time
 import six
 from six.moves import map
-from six.moves import zip
 
 # cProfile was added in Python2.5
 try:
@@ -933,7 +932,7 @@ python-profiler package from non-free.""")
         tc = clock()-t0
 
         ns = {}
-        exec(code, self.shell.user_ns, ns)
+        six.exec_(code, self.shell.user_ns, ns)
         timer.inner = ns["inner"]
 
         if number == 0:
