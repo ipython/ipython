@@ -24,12 +24,12 @@ from IPython.utils.traitlets import Unicode, Bool
 
 class RevealHelpPreprocessor(Preprocessor):
 
-    url_prefix = Unicode('https://cdn.jsdelivr.net/reveal.js/2.4.0', config=True,
+    url_prefix = Unicode('reveal.js', config=True,
                          help="""The URL prefix for reveal.js.
                          This can be a a relative URL for a local copy of reveal.js,
                          or point to a CDN.
                          
-                         For speaker notes to work, a local reveal.js must be used.
+                         For speaker notes to work, a local reveal.js prefix must be used.
                          """
     )
 
