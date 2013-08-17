@@ -61,24 +61,9 @@ The currently supported export formats are:
 * ``--to slides``
 
   This generates a Reveal.js HTML slideshow.
-  It must be served by an HTTP server.  The easiest way to get this is to add
+  It must be served by an HTTP server.  The easiest way to do this is adding
   ``--post serve`` on the command-line.
-  For low connectivity environments, you can use a local copy of the reveal.js library.
-  This can be any relative URL, ``reveal.js`` being most likely.
-  Do not forget to move your downloaded ``reveal.js`` library to the same folder where your slides are located.
-  
-  Fetching the latest reveal.js from GitHub:
-  
-  .. sourcecode: bash
-  
-      curl -L https://github.com/hakimel/reveal.js/archive/master.tar.gz | tar -xzf -
-      mv reveal.js-master reveal.js
-      ipython nbconvert mynotebook --to slides --reveal-prefix=reveal.js
-  
-  .. note::
-  
-      If you want to use the speaker notes plugin, you must use a local reveal.js copy
-  
+
 * ``--to markdown``
 
   Simple markdown output.  Markdown cells are unaffected,
