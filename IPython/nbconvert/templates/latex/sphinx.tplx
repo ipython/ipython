@@ -235,11 +235,11 @@ Note: For best display, use latex syntax highlighting. =))
 %==============================================================================
 % Markdown
 %
-% Purpose: Convert markdown to latex.  Here markdown2latex is explicitly
-%          called since we know we want latex output.
+% Purpose: Convert markdown to latex.  Here extended_markdown2latex is 
+%          explicitly called since we know we want latex output.
 %==============================================================================
 ((*- block markdowncell scoped-*))
-((( cell.source | markdown2latex )))
+((( cell.source | extended_markdown2latex )))
 ((*- endblock markdowncell -*))
 
 %==============================================================================
