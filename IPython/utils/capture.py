@@ -65,7 +65,17 @@ class RichOutput(object):
 
 
 class CapturedIO(object):
-    """Simple object for containing captured stdout/err StringIO objects"""
+    """Simple object for containing captured stdout/err and rich display StringIO objects
+
+    Each instance `c` has three attributes:
+
+        c.stdout : standard output as a string
+        c.stderr : standard error as a string
+        c.outputs: a list of rich display outputs
+
+    Additionally, there's a `c.show()` method which will print all of the
+    above in the same order, and can be invoked simply via `c()`.
+    """
     
     def __init__(self, stdout, stderr, outputs=None):
         self._stdout = stdout
@@ -130,7 +140,7 @@ class capture_output(object):
                 self.save_display_pub = None
                 self.display = False
         
-        stdout = stderr = outputs = False
+        stdout = stderr = outputs = None
         if self.stdout:
             stdout = sys.stdout = StringIO()
         if self.stderr:
