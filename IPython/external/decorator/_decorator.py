@@ -35,8 +35,6 @@ Patched in IPython to work in Python 3 without 2to3 conversion.
 """
 from __future__ import print_function
 
-import six
-
 __version__ = '3.4.0'
 
 __all__ = ["decorator", "FunctionMaker", "contextmanager"]
@@ -158,7 +156,7 @@ class FunctionMaker(object):
         try:
             code = compile(src, '<string>', 'single')
             # print >> sys.stderr, 'Compiling %s' % src
-            six.exec_(code, evaldict)
+            exec(code, evaldict)
         except:
             print('Error in generated code:', file=sys.stderr)
             print(src, file=sys.stderr)
