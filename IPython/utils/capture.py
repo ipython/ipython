@@ -24,7 +24,7 @@ from StringIO import StringIO
 
 
 class RichOutput(object):
-    def __init__(self, source, data, metadata):
+    def __init__(self, source="", data=None, metadata=None):
         self.source = source
         self.data = data or {}
         self.metadata = metadata or {}
@@ -58,7 +58,7 @@ class RichOutput(object):
         return self._repr_mime_("image/png")
     
     def _repr_jpeg_(self):
-        return self._repr_mime_("image/jpg")
+        return self._repr_mime_("image/jpeg")
     
     def _repr_svg_(self):
         return self._repr_mime_("image/svg+xml")
