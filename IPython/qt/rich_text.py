@@ -4,11 +4,12 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports.
+# Standard library imports
+import io
 import os
 import re
 
-# System library imports.
+# System library imports
 from IPython.external.qt import QtGui
 
 # IPython imports
@@ -69,7 +70,7 @@ class HtmlExporter(object):
         if dialog.exec_():
             self.filename = dialog.selectedFiles()[0]
             choice = dialog.selectedNameFilter()
-            html = self.control.document().toHtml().encode('utf-8')
+            html = py3compat.cast_unicode(self.control.document().toHtml())
 
             # Configure the exporter.
             if choice.startswith('XHTML'):
@@ -127,8 +128,8 @@ def export_html(html, filename, image_tag = None, inline = True):
 
     Parameters:
     -----------
-    html : str,
-        A utf-8 encoded Python string containing the Qt HTML to export.
+    html : unicode,
+        A Python unicode string containing the Qt HTML to export.
 
     filename : str
         The file to be saved.
@@ -143,8 +144,6 @@ def export_html(html, filename, image_tag = None, inline = True):
     """
     if image_tag is None:
         image_tag = default_image_tag
-    else:
-        image_tag = ensure_utf8(image_tag)
 
     if inline:
         path = None
@@ -154,7 +153,7 @@ def export_html(html, filename, image_tag = None, inline = True):
         if os.path.isfile(path):
             raise OSError("%s exists, but is not a directory." % path)
 
-    with open(filename, 'w') as f:
+    with io.open(filename, 'w', encoding='utf-8') as f:
         html = fix_html(html)
         f.write(IMG_RE.sub(lambda x: image_tag(x, path = path, format = "png"),
                            html))
@@ -165,8 +164,8 @@ def export_xhtml(html, filename, image_tag=None):
 
     Parameters:
     -----------
-    html : str,
-        A utf-8 encoded Python string containing the Qt HTML to export.
+    html : unicode,
+        A Python unicode string containing the Qt HTML to export.
 
     filename : str
         The file to be saved.
@@ -176,15 +175,13 @@ def export_xhtml(html, filename, image_tag=None):
     """
     if image_tag is None:
         image_tag = default_image_tag
-    else:
-        image_tag = ensure_utf8(image_tag)
 
-    with open(filename, 'w') as f:
+    with io.open(filename, 'w', encoding='utf-8') as f:
         # Hack to make xhtml header -- note that we are not doing any check for
         # valid XML.
         offset = html.find("<html>")
         assert offset > -1, 'Invalid HTML string: no <html> tag.'
-        html = ('<html xmlns="http://www.w3.org/1999/xhtml">\n'+
+        html = (u'<html xmlns="http://www.w3.org/1999/xhtml">\n'+
                 html[offset+6:])
 
         html = fix_html(html)
@@ -213,21 +210,7 @@ def default_image_tag(match, path = None, format = "png"):
     format : "png"|"svg", optional [default "png"]
         Format for returned or referenced images.
     """
-    return ''
-
-
-def ensure_utf8(image_tag):
-    """wrapper for ensuring image_tag returns utf8-encoded str on Python 2"""
-    if py3compat.PY3:
-        # nothing to do on Python 3
-        return image_tag
-    
-    def utf8_image_tag(*args, **kwargs):
-        s = image_tag(*args, **kwargs)
-        if isinstance(s, unicode):
-            s = s.encode('utf8')
-        return s
-    return utf8_image_tag
+    return u''
 
 
 def fix_html(html):
@@ -235,8 +218,8 @@ def fix_html(html):
 
     Parameters:
     -----------
-    html : str,
-        A utf-8 encoded Python string containing the Qt HTML.
+    html : unicode,
+        A Python unicode string containing the Qt HTML.
     """
     # A UTF-8 declaration is needed for proper rendering of some characters
     # (e.g., indented commands) when viewing exported HTML on a local system
