@@ -89,18 +89,29 @@ class CapturedIO(object):
     
     @property
     def stdout(self):
+        "Captured standard output"
         if not self._stdout:
             return ''
         return self._stdout.getvalue()
     
     @property
     def stderr(self):
+        "Captured standard error"
         if not self._stderr:
             return ''
         return self._stderr.getvalue()
     
     @property
     def outputs(self):
+        """A list of the captured rich display outputs, if any.
+        
+        If you have a CapturedIO object `c`, these can be displayed in IPython
+        using:
+
+            from IPython.display import display
+            for o in c.outputs:
+                display(o)
+        """
         return [ RichOutput(s, d, md) for s, d, md in self._outputs ]
     
     def show(self):
