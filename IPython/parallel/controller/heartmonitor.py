@@ -28,7 +28,6 @@ from IPython.utils.traitlets import Set, Instance, CFloat, Integer, Dict
 
 from IPython.parallel.util import log_errors
 from six.moves import map
-from six.moves import zip
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
@@ -127,10 +126,10 @@ class HeartMonitor(LoggingConfigurable):
         goodhearts = self.hearts.intersection(self.responses)
         missed_beats = self.hearts.difference(goodhearts)
         newhearts = self.responses.difference(goodhearts)
-        map(self.handle_new_heart, newhearts)
+        list(map(self.handle_new_heart, newhearts))
         heartfailures, on_probation = self._check_missed(missed_beats, self.on_probation,
                                                          self.hearts)
-        map(self.handle_heart_failure, heartfailures)
+        list(map(self.handle_heart_failure, heartfailures))
         self.on_probation = on_probation
         self.responses = set()
         #print self.on_probation, self.hearts
