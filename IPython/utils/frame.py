@@ -16,13 +16,11 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 import sys
-from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-@py3compat.doctest_refactor_print
 def extract_vars(*names,**kw):
     """Extract a set of variables by name from another frame.
 
@@ -40,7 +38,7 @@ def extract_vars(*names,**kw):
 
         In [2]: def func(x):
            ...:     y = 1
-           ...:     print sorted(extract_vars('x','y').items())
+           ...:     print(sorted(extract_vars('x','y').items()))
            ...:
 
         In [3]: func('hello')

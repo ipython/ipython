@@ -639,6 +639,7 @@ class TraitTestBase(TestCase):
     def test_bad_values(self):
         if hasattr(self, '_bad_values'):
             for value in self._bad_values:
+                print(value)
                 try:
                     self.assertRaises(TraitError, self.assign, value)
                 except AssertionError:
@@ -680,7 +681,7 @@ class TestInt(TraitTestBase):
                       10.1, -10.1, '10L', '-10L', '10.1', '-10.1', u'10L',
                       u'-10L', u'10.1', u'-10.1',  '10', '-10', u'10', u'-10']
     if not py3compat.PY3:
-        _bad_values.extend([10, -10, 10*sys.maxint, -10*sys.maxint])
+        _bad_values.extend([long(10), long(-10), 10*sys.maxint, -10*sys.maxint])
 
 
 class LongTrait(HasTraits):
@@ -742,7 +743,7 @@ class TestFloat(TraitTestBase):
                       1j, '10', '-10', '10L', '-10L', '10.1', '-10.1', u'10',
                       u'-10', u'10L', u'-10L', u'10.1', u'-10.1']
     if not py3compat.PY3:
-        _bad_values.extend([10, -10])
+        _bad_values.extend([long(10), long(-10)])
 
 
 class ComplexTrait(HasTraits):
@@ -758,7 +759,7 @@ class TestComplex(TraitTestBase):
                       10.1j, 10.1+10.1j, 10.1-10.1j]
     _bad_values    = [u'10L', u'-10L', 'ten', [10], {'ten': 10},(10,), None]
     if not py3compat.PY3:
-        _bad_values.extend([10, -10])
+        _bad_values.extend([long(10), long(-10)])
 
 
 class BytesTrait(HasTraits):
