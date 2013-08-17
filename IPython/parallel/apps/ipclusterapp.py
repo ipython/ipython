@@ -38,6 +38,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import string_types
 from IPython.utils.sysinfo import num_cpus
 from IPython.utils.traitlets import (Integer, Unicode, Bool, CFloat, Dict, List, Any,
                                         DottedObjectName)
@@ -258,7 +259,7 @@ class IPClusterEngines(BaseParallelApplication):
 
     engine_launcher = Any(config=True, help="Deprecated, use engine_launcher_class")
     def _engine_launcher_changed(self, name, old, new):
-        if isinstance(new, basestring):
+        if isinstance(new, string_types):
             self.log.warn("WARNING: %s.engine_launcher is deprecated as of 0.12,"
                     " use engine_launcher_class" % self.__class__.__name__)
             self.engine_launcher_class = new
@@ -462,7 +463,7 @@ class IPClusterStart(IPClusterEngines):
 
     controller_launcher = Any(config=True, help="Deprecated, use controller_launcher_class")
     def _controller_launcher_changed(self, name, old, new):
-        if isinstance(new, basestring):
+        if isinstance(new, string_types):
             # old 0.11-style config
             self.log.warn("WARNING: %s.controller_launcher is deprecated as of 0.12,"
                     " use controller_launcher_class" % self.__class__.__name__)

@@ -25,7 +25,6 @@ import sys
 from signal import signal, SIGINT, SIGABRT, SIGTERM
 import six
 from six.moves import map
-from six.moves import zip
 try:
     from signal import SIGKILL
 except ImportError:
@@ -47,6 +46,7 @@ from IPython.external.decorator import decorator
 # IPython imports
 from IPython.config.application import Application
 from IPython.utils.localinterfaces import LOCALHOST, PUBLIC_IPS
+from IPython.utils.py3compat import string_types
 from IPython.kernel.zmq.log import EnginePUBHandler
 from IPython.kernel.zmq.serialize import (
     unserialize_object, serialize_object, pack_apply_message, unpack_apply_message
@@ -133,7 +133,7 @@ def is_url(url):
 
 def validate_url(url):
     """validate a url for zeromq"""
-    if not isinstance(url, basestring):
+    if not isinstance(url, string_types):
         raise TypeError("url must be a string, not %r"%type(url))
     url = url.lower()
     
@@ -166,7 +166,7 @@ def validate_url(url):
 
 def validate_url_container(container):
     """validate a potentially nested collection of urls."""
-    if isinstance(container, basestring):
+    if isinstance(container, string_types):
         url = container
         return validate_url(url)
     elif isinstance(container, dict):

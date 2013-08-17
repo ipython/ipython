@@ -22,7 +22,6 @@ import platform
 import time
 from collections import namedtuple
 from tempfile import mktemp
-from StringIO import StringIO
 
 import zmq
 from nose import SkipTest
@@ -31,6 +30,7 @@ from nose.plugins.attrib import attr
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
+from IPython.utils.py3compat import unicode_type
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -456,7 +456,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         @interactive
         def check_unicode(a, check):
-            assert isinstance(a, unicode), "%r is not unicode"%a
+            assert isinstance(a, unicode_type), "%r is not unicode"%a
             assert isinstance(check, bytes), "%r is not bytes"%check
             assert a.encode('utf8') == check, "%s != %s"%(a,check)
         
@@ -598,7 +598,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view.execute("from IPython.core.display import *")
         ar = view.execute("[ display(i) for i in range(5) ]", block=True)
         
-        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        expected = [ {u'text/plain' : unicode_type(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
             self.assertEqual(mimes, expected)
@@ -614,7 +614,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         ar = view.apply_async(publish)
         ar.get(5)
-        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        expected = [ {u'text/plain' : unicode_type(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
             self.assertEqual(mimes, expected)

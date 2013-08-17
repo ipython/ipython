@@ -39,10 +39,10 @@ class ForwarderThread(Thread):
         """Loop through lines in self.fd, and send them over self.sock."""
         line = self.fd.readline()
         # allow for files opened in unicode mode
-        if isinstance(line, unicode):
-            send = self.sock.send_unicode
-        else:
+        if isinstance(line, bytes):
             send = self.sock.send
+        else:
+            send = self.sock.send_unicode
         while line:
             send(line)
             line = self.fd.readline()

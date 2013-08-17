@@ -20,11 +20,11 @@ import imp
 import sys
 import warnings
 from contextlib import contextmanager
-from types import ModuleType
 
 import zmq
 
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.py3compat import string_types, PY3
 from IPython.utils.traitlets import (
     HasTraits, Any, Bool, List, Dict, Set, Instance, CFloat, Integer
 )
@@ -38,7 +38,6 @@ from .asyncresult import AsyncResult, AsyncMapResult
 from .remotefunction import ParallelFunction, parallel, remote, getname
 import six
 from six.moves import map
-from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Decorators
@@ -726,11 +725,11 @@ class DirectView(View):
         block = block if block is not None else self.block
         targets = targets if targets is not None else self.targets
         applier = self.apply_sync if block else self.apply_async
-        if isinstance(names, basestring):
+        if isinstance(names, string_types):
             pass
         elif isinstance(names, (list,tuple,set)):
             for key in names:
-                if not isinstance(key, basestring):
+                if not isinstance(key, string_types):
                     raise TypeError("keys must be str, not type %r"%type(key))
         else:
             raise TypeError("names must be strs, not %r"%names)
@@ -878,11 +877,11 @@ class LoadBalancedView(View):
 
         For use in `set_flags`.
         """
-        if dep is None or isinstance(dep, (basestring, AsyncResult, Dependency)):
+        if dep is None or isinstance(dep, string_types + (AsyncResult, Dependency)):
             return True
         elif isinstance(dep, (list,set, tuple)):
             for d in dep:
-                if not isinstance(d, (basestring, AsyncResult)):
+                if not isinstance(d, string_types + (AsyncResult,)):
                     return False
         elif isinstance(dep, dict):
             if set(dep.keys()) != set(Dependency().as_dict().keys()):
@@ -890,7 +889,7 @@ class LoadBalancedView(View):
             if not isinstance(dep['msg_ids'], list):
                 return False
             for d in dep['msg_ids']:
-                if not isinstance(d, basestring):
+                if not isinstance(d, string_types):
                     return False
         else:
             return False
@@ -958,8 +957,9 @@ class LoadBalancedView(View):
                     raise ValueError("Invalid dependency: %r"%value)
         if 'timeout' in kwargs:
             t = kwargs['timeout']
-            if not isinstance(t, (int, long, float, type(None))):
-                raise TypeError("Invalid type for timeout: %r"%type(t))
+            if not isinstance(t, (int, float, type(None))):
+                if not (PY3 or isinstance(t, long)):
+                    raise TypeError("Invalid type for timeout: %r"%type(t))
             if t is not None:
                 if t < 0:
                     raise ValueError("Invalid timeout: %s"%t)
