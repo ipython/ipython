@@ -217,7 +217,7 @@ class InteractiveShellApp(Configurable):
         enable = False
         shell = self.shell
         if self.pylab:
-            enable = shell.enable_pylab
+            enable = lambda key: shell.enable_pylab(key, import_all=self.pylab_import_all)
             key = self.pylab
         elif self.matplotlib:
             enable = shell.enable_matplotlib
