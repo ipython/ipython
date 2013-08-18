@@ -73,10 +73,12 @@ class NotebookManager(LoggingConfigurable):
         return name, path
 
     def url_encode(self, path):
+        """Returns the path with all special characters URL encoded"""
         parts = os.path.split(path)
         return os.path.join(*[quote(p) for p in parts])
 
     def url_decode(self, path):
+        """Returns the URL with special characters decoded"""
         parts = os.path.split(path)
         return os.path.join(*[unquote(p) for p in parts])
 
@@ -156,7 +158,7 @@ class NotebookManager(LoggingConfigurable):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_new_notebook(self, data, notebook_path = None, name=None, format=u'json'):
+    def save_new_notebook(self, data, notebook_path=None, name=None, format=u'json'):
         """Save a new notebook and return its name.
 
         If a name is passed in, it overrides any values in the notebook data
@@ -216,7 +218,7 @@ class NotebookManager(LoggingConfigurable):
         """
         return name
 
-    def new_notebook(self, notebook_path=None):
+    def new_notebook(self, notebook_path='/'):
         """Create a new notebook and return its notebook_name."""
         name = self.increment_filename('Untitled', notebook_path)
         metadata = current.new_metadata(name=name)

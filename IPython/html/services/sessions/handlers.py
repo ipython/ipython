@@ -32,6 +32,7 @@ class SessionRootHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
+        # Return a list of running sessions
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
@@ -40,11 +41,14 @@ class SessionRootHandler(IPythonHandler):
 
     @web.authenticated
     def post(self):
+        # Creates a new session 
+        #(unless a session already exists for the named nb)
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
         notebook_path = self.get_argument('notebook_path', default=None)
         name, path = nbm.named_notebook_path(notebook_path)
+        # Check to see if session exists
         if sm.session_exists(name=name, path=path):
             model = sm.get_session(name=name, path=path)
             kernel_id = model['kernel']['id']
@@ -65,6 +69,7 @@ class SessionHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, session_id):
+        # Returns the JSON model for a single session
         sm = self.session_manager
         model = sm.get_session(id=session_id)
         self.finish(jsonapi.dumps(model))
@@ -77,12 +82,13 @@ class SessionHandler(IPythonHandler):
         km = self.kernel_manager
         notebook_path = self.request.body
         name, path = nbm.named_notebook_path(notebook_path)
-        sm.update_session(id=session_id, name=name)
+        sm.update_session(session_id, name=name)
         model = sm.get_session(id=session_id)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def delete(self, session_id):
+        # Deletes the session with given session_id
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
