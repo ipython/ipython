@@ -33,15 +33,26 @@ class NotebookRootHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
+        """get returns a list of notebooks from the location
+        where the server was started."""
         nbm = self.notebook_manager
         notebooks = nbm.list_notebooks("")
         self.finish(jsonapi.dumps(notebooks))
 
     @web.authenticated
     def post(self):
+        """post creates a notebooks in the directory where the
+        server was started"""
         nbm = self.notebook_manager
-        notebook_name = nbm.new_notebook()
-        model = nbm.notebook_model(notebook_name)
+        body = self.request.body.strip()
+        format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
+        if body:
+            fname = nbm.save_new_notebook(body, notebook_path=None, name=name, format=format)
+        else:
+            fname = nbm.new_notebook(notebook_path=None)
+        self.set_header('Location', nbm.notebook_dir + fname)
+        model = nbm.notebook_model(fname)
         self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, notebook_name))
         self.finish(jsonapi.dumps(model))
 
@@ -50,22 +61,29 @@ class NotebookRootRedirect(IPythonHandler):
 
     @web.authenticated
     def get(self):
+        """get redirects to not include trailing backslash"""
         self.redirect("/api/notebooks")
 
 
 class NotebookHandler(IPythonHandler):
 
-    SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH', 'DELETE')
+    SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH', 'POST','DELETE')
 
     @web.authenticated
     def get(self, notebook_path):
+        """get checks if a notebook is not named, an returns a list of notebooks
+        in the notebook path given. If a name is given, return 
+        the notebook representation"""
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         
-        if name == None:
+        # Check to see if a notebook name was given
+        if name is None:
+            # List notebooks in 'notebook_path'
             notebooks = nbm.list_notebooks(path)
             self.finish(jsonapi.dumps(notebooks))
         else:
+            # get and return notebook representation
             format = self.get_argument('format', default='json')
             download = self.get_argument('download', default='False')
             model = nbm.notebook_model(name,path)
@@ -86,6 +104,8 @@ class NotebookHandler(IPythonHandler):
 
     @web.authenticated
     def patch(self, notebook_path):
+        """patch is currently used strictly for notebook renaming.
+        Changes the notebook name to the name given in data."""
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         data = jsonapi.loads(self.request.body)
@@ -94,30 +114,35 @@ class NotebookHandler(IPythonHandler):
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
-    def put(self, notebook_path):
+    def post(self,notebook_path):
+        """Create a new notebook in the location given by 'notebook_path'."""
         nbm = self.notebook_manager
         fname, path = nbm.named_notebook_path(notebook_path)
-        if fname == None:
-            body = self.request.body.strip()
-            format = self.get_argument('format', default='json')
-            name = self.get_argument('name', default=None)
-            if body:
-                fname = nbm.save_new_notebook(body, notebook_path=path, name=name, format=format)
-            else:
-                fname = nbm.new_notebook(notebook_path=path)
-            self.set_header('Location', nbm.notebook_dir + path + fname)
-            model = nbm.notebook_model(fname, path)
-            self.finish(jsonapi.dumps(model))
-        else:            
-            format = self.get_argument('format', default='json')
-            name = self.get_argument('name', default=None)
-            nbm.save_notebook(self.request.body, notebook_path=path, name=name, format=format)
-            model = nbm.notebook_model(fname, path)
-            self.set_status(204)
-            self.finish(jsonapi.dumps(model))
+        body = self.request.body.strip()
+        format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
+        if body:
+            fname = nbm.save_new_notebook(body, notebook_path=path, name=name, format=format)
+        else:
+            fname = nbm.new_notebook(notebook_path=path)
+        self.set_header('Location', nbm.notebook_dir + path + fname)
+        model = nbm.notebook_model(fname, path)
+        self.finish(jsonapi.dumps(model))
+
+    @web.authenticated
+    def put(self, notebook_path):
+        """saves the notebook in the location given by 'notebook_path'."""
+        nbm = self.notebook_manager
+        name, path = nbm.named_notebook_path(notebook_path)
+        format = self.get_argument('format', default='json')
+        nbm.save_notebook(self.request.body, notebook_path=path, name=name, format=format)
+        model = nbm.notebook_model(name, path)
+        self.set_status(204)
+        self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def delete(self, notebook_path):
+        """delete rmoves the notebook in the given notebook path"""
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         nbm.delete_notebook(name, path)
