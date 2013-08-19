@@ -51,10 +51,6 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
 
-# On Python 3, we need distribute (new setuptools) to do the 2to3 conversion
-if PY3:
-    import setuptools
-
 # Our own imports
 from setupbase import target_update
 
@@ -266,7 +262,7 @@ if 'setuptools' in sys.modules:
     setup_args['cmdclass']['develop'] = require_submodules(develop)
     
     setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = find_scripts(True)
+    setuptools_extra_args['entry_points'] = find_scripts(True, suffix = '3' if PY3 else '')
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.11',
         qtconsole = ['pyzmq>=2.1.11', 'pygments'],
@@ -314,29 +310,12 @@ if 'setuptools' in sys.modules:
                                  {"install_script":
                                   "ipython_win_post_install.py"}}
 
-    if PY3:
-        setuptools_extra_args['use_2to3'] = True
-        # we try to make a 2.6, 2.7, and 3.1 to 3.3 python compatible code
-        # so we explicitly disable some 2to3 fixes to be sure we aren't forgetting
-        # anything.
-        setuptools_extra_args['use_2to3_exclude_fixers'] = [
-                'lib2to3.fixes.fix_apply',
-                'lib2to3.fixes.fix_except',
-                'lib2to3.fixes.fix_has_key',
-                'lib2to3.fixes.fix_next',
-                'lib2to3.fixes.fix_repr',
-                'lib2to3.fixes.fix_tuple_params',
-                ]
-        from setuptools.command.build_py import build_py
-        setup_args['cmdclass'] = {'build_py': git_prebuild('IPython', build_cmd=build_py)}
-        setuptools_extra_args['entry_points'] = find_scripts(True, suffix='3')
-        setuptools._dont_write_bytecode = True
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
     check_for_dependencies()
-    setup_args['scripts'] = find_scripts(False)
+    setup_args['scripts'] = find_scripts(False, suffix = '3' if PY3 else '')
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
