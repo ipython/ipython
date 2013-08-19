@@ -75,12 +75,12 @@ class DependencyTest(ClusterTestCase):
     def test_require_imports(self):
         """test that @require imports names"""
         @self.cancan
-        @pmod.require('urllib')
+        @pmod.require('base64')
         @interactive
-        def encode(dikt):
-            return urllib.urlencode(dikt)
+        def encode(arg):
+            return base64.b64encode(arg)
         # must pass through canning to properly connect namespaces
-        self.assertEqual(encode(dict(a=5)), 'a=5')
+        self.assertEqual(encode(b'foo'), b'Zm9v')
     
     def test_success_only(self):
         dep = pmod.Dependency(mixed, success=True, failure=False)
