@@ -323,7 +323,12 @@ var IPython = (function (IPython) {
             }
         }
         // fallback on default
-        var default_mode = this._options.cm_config.mode || 'text/plain';
+        var default_mode
+        try {
+            default_mode = this._options.cm_config.mode;
+        } catch(e) {
+            default_mode = 'text/plain';
+        }
         this.code_mirror.setOption('mode', default_mode);
     };
 
