@@ -11,6 +11,7 @@
 IPython.namespace('IPython.utils');
 
 IPython.utils = (function (IPython) {
+    "use strict";
 
     //============================================================================
     // Cross-browser RegEx Split
@@ -366,7 +367,7 @@ IPython.utils = (function (IPython) {
     };
 
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
-    browser = (function() {
+    var browser = (function() {
         var N= navigator.appName, ua= navigator.userAgent, tem;
         var M= ua.match(/(opera|chrome|safari|firefox|msie)\/?\s*(\.?\d+(\.\d+)*)/i);
         if (M && (tem= ua.match(/version\/([\.\d]+)/i))!= null) M[2]= tem[1];

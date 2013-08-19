@@ -4,6 +4,7 @@
 // to do, but at least the simple one for now.
 
 CodeMirror.requireMode('python',function(){
+    "use strict";
 
     CodeMirror.defineMode("ipython", function(conf, parserConf) {
 
