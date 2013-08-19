@@ -7,8 +7,8 @@ directory documenting this change as a part of your Pull Request.
 
 This will allow multiple Pull Requests to do the same without conflicting with
 one another. Periodically, IPython developers with commit rights will run a
-script and populate [developement.rst](../developement.rst)  with the contents
-of this directory, and clean it up.
+script and populate [development.rst](../development.rst)
+with the contents of this directory, and clean it up.
 
 Files which describe new features can have any name, such as
 `antigravity-feature.rst`, whereas backwards incompatible changes should have a
