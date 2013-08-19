@@ -86,7 +86,7 @@ class SphinxTransformer(Transformer):
             "Rejne"
             "Sonny"    (used for international documents)
         """)
-    
+   
     output_style = Unicode("notebook", config=True, help="""
         Nbconvert Ipython
         notebook input/output formatting style.
@@ -104,6 +104,17 @@ class SphinxTransformer(Transformer):
         Whether not a header should be added to the document.
         """)
     
+    papersize = Unicode("letterpaper", config=True, help="""
+        Set papersize for Sphinx and LaTeX documents.
+        Possible options are:
+           "letterpaper" (default)
+           "a4paper"
+           "a5paper"
+           "b5paper"
+           "executivepaper"
+           "legalpaper"
+        """)
+
     #Allow the user to override the title of the notebook (useful for
     #fancy document titles that the file system doesn't support.)
     overridetitle = Unicode("", config=True, help="")
@@ -137,9 +148,10 @@ class SphinxTransformer(Transformer):
             resources["sphinx"]["author"] = self._prompt_author()
             resources["sphinx"]["version"] = self._prompt_version()
             resources["sphinx"]["release"] = self._prompt_release()
-            resources["sphinx"]["date"] = self._prompt_date()
+            resources["sphinx"]["date"] = self._prompt_date(resources)
             
             # Prompt the user for the document style.
+            resources["sphinx"]["papersize"] = self._prompt_papersize()
             resources["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
             resources["sphinx"]["outputstyle"] = self._prompt_output_style()
             
@@ -162,6 +174,7 @@ class SphinxTransformer(Transformer):
                 resources["sphinx"]["date"] = resources['metadata']['modified_date']
             
             # Sphinx traitlets.
+            resources["sphinx"]["papersize"] = self.papersize
             resources["sphinx"]["chapterstyle"] = self.chapter_style
             resources["sphinx"]["outputstyle"] = self.output_style
             resources["sphinx"]["centeroutput"] = self.center_output
@@ -261,4 +274,22 @@ class SphinxTransformer(Transformer):
                     6: "(for international documents)"}
         
         return console.prompt_dictionary(styles, menu_comments=comments)
+
+    def _prompt_papersize(self):
+        """
+        Prompts the user to pick a Sphinx and LaTeX papersize
+        """
+        
+        # Dictionary of available Sphinx styles
+        sizes = {1: "letterpaper",
+                 2: "a4paper",
+                 3: "a5paper",
+                 4: "b5paper",
+                 5: "executivepaper",
+                 6: "legalpaper"}
+        
+        #Append comments to the menu when displaying it to the user.
+        comments = {1: "(default)"}
+        
+        return console.prompt_dictionary(sizes, menu_comments=comments)
 
