@@ -33,7 +33,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.text import dedent
 
 from .exporters.export import get_export_names, exporter_map
-from IPython.nbconvert import exporters, transformers, writers, post_processors
+from IPython.nbconvert import exporters, preprocessors, writers, post_processors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
 
@@ -88,7 +88,7 @@ class NbConvertApp(BaseIPythonApplication):
     
     def _classes_default(self):
         classes = [NbConvertBase]
-        for pkg in (exporters, transformers, writers):
+        for pkg in (exporters, preprocessors, writers):
             for name in dir(pkg):
                 cls = getattr(pkg, name)
                 if isinstance(cls, type) and issubclass(cls, Configurable):

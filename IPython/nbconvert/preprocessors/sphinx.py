@@ -30,8 +30,8 @@ from pygments.formatters import LatexFormatter
 # Configurable traitlets
 from IPython.utils.traitlets import Unicode, Bool
 
-# Needed to override transformer
-from .base import (Transformer)
+# Needed to override preprocessor
+from .base import (Preprocessor)
 
 from IPython.nbconvert.utils import console  
 
@@ -39,11 +39,11 @@ from IPython.nbconvert.utils import console
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class SphinxTransformer(Transformer):
+class SphinxPreprocessor(Preprocessor):
     """
-    Sphinx utility transformer.
+    Sphinx utility preprocessor.
 
-    This transformer is used to set variables needed by the latex to build
+    This preprocessor is used to set variables needed by the latex to build
     Sphinx stylized templates.
     """
     
@@ -109,9 +109,9 @@ class SphinxTransformer(Transformer):
     overridetitle = Unicode("", config=True, help="")
 
     
-    def call(self, nb, resources):
+    def preprocess(self, nb, resources):
         """
-        Sphinx transformation to apply on each notebook.
+        Sphinx preprocessing to apply on each notebook.
         
         Parameters
         ----------
@@ -119,7 +119,7 @@ class SphinxTransformer(Transformer):
             Notebook being converted
         resources : dictionary
             Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+            preprocessors to pass variables into the Jinja engine.
         """
         # import sphinx here, so that sphinx is not a dependency when it's not used
         import sphinx

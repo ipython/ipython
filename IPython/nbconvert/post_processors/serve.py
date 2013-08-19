@@ -34,7 +34,7 @@ class ServePostProcessor(PostProcessorBase):
                            help="""Set to False to deactivate
                            the opening of the browser""")
 
-    def call(self, input):
+    def postprocess(self, input):
         """
         Simple implementation to serve the build directory.
         """

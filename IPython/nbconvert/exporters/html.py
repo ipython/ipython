@@ -16,7 +16,7 @@ Exporter that exports Basic HTML.
 
 from IPython.utils.traitlets import Unicode, List
 
-from IPython.nbconvert import transformers
+from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
 from .exporter import Exporter
@@ -29,7 +29,7 @@ class HTMLExporter(Exporter):
     """
     Exports a basic HTML document.  This exporter assists with the export of
     HTML.  Inherit from it if you are writing your own HTML template and need
-    custom transformers/filters.  If you don't need custom transformers/
+    custom preprocessors/filters.  If you don't need custom preprocessors/
     filters, just change the 'template_file' config option.  
     """
     
@@ -44,7 +44,7 @@ class HTMLExporter(Exporter):
     @property
     def default_config(self):
         c = Config({
-            'CSSHTMLHeaderTransformer':{
+            'CSSHTMLHeaderPreprocessor':{
                 'enabled':True
                 }          
             })

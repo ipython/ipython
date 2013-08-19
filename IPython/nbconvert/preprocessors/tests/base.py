@@ -1,5 +1,5 @@
 """
-Module with utility functions for transformer tests
+Module with utility functions for preprocessor tests
 """
 
 #-----------------------------------------------------------------------------
@@ -23,12 +23,12 @@ from ...exporters.exporter import ResourcesDict
 # Class
 #-----------------------------------------------------------------------------
 
-class TransformerTestsBase(TestsBase):
-    """Contains test functions transformer tests"""
+class PreprocessorTestsBase(TestsBase):
+    """Contains test functions preprocessor tests"""
 
 
     def build_notebook(self):
-        """Build a notebook in memory for use with transformer tests"""
+        """Build a notebook in memory for use with preprocessor tests"""
 
         outputs = [nbformat.new_output(output_type="stream", stream="stdout", output_text="a"),
                    nbformat.new_output(output_type="text", output_text="b"),

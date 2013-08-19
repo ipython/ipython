@@ -1,5 +1,5 @@
 """
-Module with tests for the svg2pdf transformer
+Module with tests for the svg2pdf preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -17,15 +17,15 @@ Module with tests for the svg2pdf transformer
 from IPython.testing import decorators as dec
 from IPython.nbformat import current as nbformat
 
-from .base import TransformerTestsBase
-from ..svg2pdf import SVG2PDFTransformer
+from .base import PreprocessorTestsBase
+from ..svg2pdf import SVG2PDFPreprocessor
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class Testsvg2pdf(TransformerTestsBase):
+class Testsvg2pdf(PreprocessorTestsBase):
     """Contains test functions for svg2pdf.py"""
 
     simple_svg = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -55,7 +55,7 @@ class Testsvg2pdf(TransformerTestsBase):
 
     def build_notebook(self):
         """Build a reveal slides notebook in memory for use with tests.  
-        Overrides base in TransformerTestsBase"""
+        Overrides base in PreprocessorTestsBase"""
 
         outputs = [nbformat.new_output(output_type="svg", output_svg=self.simple_svg)]
         
@@ -68,23 +68,23 @@ class Testsvg2pdf(TransformerTestsBase):
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
 
 
-    def build_transformer(self):
-        """Make an instance of a transformer"""
-        transformer = SVG2PDFTransformer()
-        transformer.enabled = True
-        return transformer
+    def build_preprocessor(self):
+        """Make an instance of a preprocessor"""
+        preprocessor = SVG2PDFPreprocessor()
+        preprocessor.enabled = True
+        return preprocessor
 
 
     def test_constructor(self):
-        """Can a SVG2PDFTransformer be constructed?"""
-        self.build_transformer()
+        """Can a SVG2PDFPreprocessor be constructed?"""
+        self.build_preprocessor()
 
 
     @dec.onlyif_cmds_exist('inkscape')
     def test_output(self):
-        """Test the output of the SVG2PDFTransformer"""
+        """Test the output of the SVG2PDFPreprocessor"""
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
         assert 'svg' in nb.worksheets[0].cells[0].outputs[0]

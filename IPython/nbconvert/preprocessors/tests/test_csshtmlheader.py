@@ -1,5 +1,5 @@
 """
-Module with tests for the csshtmlheader transformer
+Module with tests for the csshtmlheader preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -14,34 +14,34 @@ Module with tests for the csshtmlheader transformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import TransformerTestsBase
-from ..csshtmlheader import CSSHTMLHeaderTransformer
+from .base import PreprocessorTestsBase
+from ..csshtmlheader import CSSHTMLHeaderPreprocessor
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestCSSHTMLHeader(TransformerTestsBase):
+class TestCSSHTMLHeader(PreprocessorTestsBase):
     """Contains test functions for csshtmlheader.py"""
 
 
-    def build_transformer(self):
-        """Make an instance of a transformer"""
-        transformer = CSSHTMLHeaderTransformer()
-        transformer.enabled = True
-        return transformer
+    def build_preprocessor(self):
+        """Make an instance of a preprocessor"""
+        preprocessor = CSSHTMLHeaderPreprocessor()
+        preprocessor.enabled = True
+        return preprocessor
 
 
     def test_constructor(self):
-        """Can a CSSHTMLHeaderTransformer be constructed?"""
-        self.build_transformer()
+        """Can a CSSHTMLHeaderPreprocessor be constructed?"""
+        self.build_preprocessor()
     
 
     def test_output(self):
-        """Test the output of the CSSHTMLHeaderTransformer"""
+        """Test the output of the CSSHTMLHeaderPreprocessor"""
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
         assert 'css' in res['inlining'] 

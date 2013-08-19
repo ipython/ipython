@@ -24,7 +24,7 @@ def cell_preprocessor(function):
         Notebook cell being processed
     resources : dictionary
         Additional resources used in the conversion process.  Allows
-        transformers to pass variables into the Jinja engine.
+        preprocessors to pass variables into the Jinja engine.
     index : int
         Index of the cell being processed
     """

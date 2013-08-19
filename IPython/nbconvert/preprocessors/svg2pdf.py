@@ -1,4 +1,4 @@
-"""Module containing a transformer that converts outputs in the notebook from 
+"""Module containing a preprocessor that converts outputs in the notebook from 
 one format to another.
 """
 #-----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ import subprocess
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import Unicode
 
-from .convertfigures import ConvertFiguresTransformer
+from .convertfigures import ConvertFiguresPreprocessor
 
 
 #-----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ INKSCAPE_APP = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
 # Classes
 #-----------------------------------------------------------------------------
 
-class SVG2PDFTransformer(ConvertFiguresTransformer):
+class SVG2PDFPreprocessor(ConvertFiguresPreprocessor):
     """
     Converts all of the outputs in a notebook from SVG to PDF.
     """

@@ -1,5 +1,5 @@
 """
-Module with tests for the extractoutput transformer
+Module with tests for the extractoutput preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -14,36 +14,36 @@ Module with tests for the extractoutput transformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import TransformerTestsBase
-from ..extractoutput import ExtractOutputTransformer
+from .base import PreprocessorTestsBase
+from ..extractoutput import ExtractOutputPreprocessor
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestExtractOutput(TransformerTestsBase):
+class TestExtractOutput(PreprocessorTestsBase):
     """Contains test functions for extractoutput.py"""
 
 
-    def build_transformer(self):
-        """Make an instance of a transformer"""
-        transformer = ExtractOutputTransformer()
-        transformer.enabled = True
-        return transformer
+    def build_preprocessor(self):
+        """Make an instance of a preprocessor"""
+        preprocessor = ExtractOutputPreprocessor()
+        preprocessor.enabled = True
+        return preprocessor
 
 
     def test_constructor(self):
-        """Can a ExtractOutputTransformer be constructed?"""
-        self.build_transformer()
+        """Can a ExtractOutputPreprocessor be constructed?"""
+        self.build_preprocessor()
     
 
     def test_output(self):
-        """Test the output of the ExtractOutputTransformer"""
+        """Test the output of the ExtractOutputPreprocessor"""
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
 
         # Check if text was extracted.
         assert 'text_filename' in nb.worksheets[0].cells[0].outputs[1]
