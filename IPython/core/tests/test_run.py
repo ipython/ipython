@@ -398,6 +398,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
         self.tempdir.cleanup()
 
     def check_run_submodule(self, submodule, opts=''):
+        _ip.user_ns.pop('x', None)
         _ip.magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
         self.assertEqual(_ip.user_ns['x'], self.value,
                          'Variable `x` is not loaded from module `{0}`.'
