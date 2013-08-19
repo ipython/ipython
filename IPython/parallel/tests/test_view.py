@@ -336,7 +336,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
             return x**2
         data = list(range(16))
         r = view.map_sync(f, data)
-        self.assertEqual(r, map(f, data))
+        self.assertEqual(r, list(map(f, data)))
     
     def test_map_iterable(self):
         """test map on iterables (direct)"""

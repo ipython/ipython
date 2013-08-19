@@ -550,7 +550,7 @@ class TaskScheduler(SessionFactory):
                 # check follow
                 return job.follow.check(self.completed[target], self.failed[target])
 
-            indices = filter(can_run, available)
+            indices = list(filter(can_run, available))
 
             if not indices:
                 # couldn't run

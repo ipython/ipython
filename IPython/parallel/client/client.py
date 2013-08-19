@@ -1128,7 +1128,7 @@ class Client(HasTraits):
         msg_ids = []
         if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, string_types + (AsyncResult,)), jobs)
+        bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
             raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
         for j in jobs:
@@ -1411,8 +1411,8 @@ class Client(HasTraits):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
-        local_ids = filter(lambda msg_id: msg_id in self.outstanding or msg_id in self.results, theids)
-        remote_ids = filter(lambda msg_id: msg_id not in local_ids, theids)
+        local_ids = [msg_id for msg_id in theids if (msg_id in self.outstanding or msg_id in self.results)]
+        remote_ids = [msg_id for msg_id in theids if msg_id not in local_ids]
         
         # given single msg_id initially, get_result shot get the result itself,
         # not a length-one list
@@ -1637,7 +1637,7 @@ class Client(HasTraits):
         if not targets: # needed as _build_targets otherwise uses all engines
             return []
         target_ids = self._build_targets(targets)[0] 
-        return filter(lambda md_id: self.metadata[md_id]["engine_uuid"] in target_ids, self.metadata)
+        return [md_id for md_id in self.metadata if self.metadata[md_id]["engine_uuid"] in target_ids]
     
     def _build_msgids_from_jobs(self, jobs=None):
         """Build a list of msg_ids from "jobs" """
@@ -1646,7 +1646,7 @@ class Client(HasTraits):
         msg_ids = []
         if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, string_types + (AsyncResult,)), jobs)
+        bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
             raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
         for j in jobs:

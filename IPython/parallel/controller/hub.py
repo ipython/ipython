@@ -1189,7 +1189,7 @@ class Hub(SessionFactory):
             except Exception:
                 reply = error.wrap_exception()
         else:
-            pending = filter(lambda m: m in self.pending, msg_ids)
+            pending = [m for m in msg_ids if m in self.pending]
             if pending:
                 try:
                     raise IndexError("msg pending: %r" % pending[0])

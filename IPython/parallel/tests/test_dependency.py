@@ -29,7 +29,6 @@ from IPython.parallel.util import interactive
 from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 from six.moves import map
-from six.moves import zip
 
 def setup():
     add_engines(1, total=True)
@@ -43,9 +42,9 @@ def wait(n):
 def func(x):
     return x*x
 
-mixed = map(str, list(range(10)))
-completed = map(str, list(range(0,10,2)))
-failed = map(str, list(range(1,10,2)))
+mixed = list(map(str, list(range(10))))
+completed = list(map(str, list(range(0,10,2))))
+failed = list(map(str, list(range(1,10,2))))
 
 class DependencyTest(ClusterTestCase):
     

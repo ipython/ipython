@@ -146,7 +146,7 @@ class AsyncResult(object):
         self._ready = self._client.wait(self.msg_ids, timeout)
         if self._ready:
             try:
-                results = map(self._client.results.get, self.msg_ids)
+                results = list(map(self._client.results.get, self.msg_ids))
                 self._result = results
                 if self._single_result:
                     r = results[0]
@@ -672,10 +672,10 @@ class AsyncHubResult(AsyncResult):
         start = time.time()
         if self._ready:
             return
-        local_ids = filter(lambda msg_id: msg_id in self._client.outstanding, self.msg_ids)
+        local_ids = [m for m in self.msg_ids if m in self._client.outstanding]
         local_ready = self._client.wait(local_ids, timeout)
         if local_ready:
-            remote_ids = filter(lambda msg_id: msg_id not in self._client.results, self.msg_ids)
+            remote_ids = [m for m in self.msg_ids if m not in self._client.results]
             if not remote_ids:
                 self._ready = True
             else:
@@ -690,7 +690,7 @@ class AsyncHubResult(AsyncResult):
                     self._ready = True
         if self._ready:
             try:
-                results = map(self._client.results.get, self.msg_ids)
+                results = list(map(self._client.results.get, self.msg_ids))
                 self._result = results
                 if self._single_result:
                     r = results[0]
