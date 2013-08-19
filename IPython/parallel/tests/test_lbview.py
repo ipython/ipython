@@ -29,8 +29,6 @@ from IPython.parallel import error
 from IPython.parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, crash, wait, skip_without
-from six.moves import map
-from six.moves import zip
 
 def setup():
     add_engines(3, total=True)
