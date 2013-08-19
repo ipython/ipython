@@ -456,7 +456,10 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         @interactive
         def check_unicode(a, check):
-            assert isinstance(a, unicode_type), "%r is not unicode"%a
+            try: unicode
+            except NameError:
+                unicode = str  # Python 3
+            assert isinstance(a, unicode), "%r is not unicode"%a
             assert isinstance(check, bytes), "%r is not bytes"%check
             assert a.encode('utf8') == check, "%s != %s"%(a,check)
         
