@@ -15,6 +15,7 @@
  */
 
 var IPython = (function (IPython) {
+    "use strict";
 
     /**
      * A generic toolbar on which one can add button

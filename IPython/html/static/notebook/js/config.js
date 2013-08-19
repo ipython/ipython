@@ -15,6 +15,7 @@
  **/
 
 var IPython = (function (IPython) {
+    "use strict";
         /**
          * A place where some stuff can be confugured.
          *

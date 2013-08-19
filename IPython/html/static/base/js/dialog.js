@@ -12,6 +12,7 @@
 IPython.namespace('IPython.dialog');
 
 IPython.dialog = (function (IPython) {
+    "use strict";
     
     var modal = function (options) {
         var dialog = $("<div/>").addClass("modal").attr("role", "dialog");
