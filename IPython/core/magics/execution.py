@@ -1166,13 +1166,17 @@ python-profiler package from non-free.""")
     @magic_arguments.argument('--no-stdout', action="store_true",
         help="""Don't capture stdout."""
     )
+    @magic_arguments.argument('--no-display', action="store_true",
+        help="""Don't capture IPython's rich display."""
+    )
     @cell_magic
     def capture(self, line, cell):
-        """run the cell, capturing stdout/err"""
+        """run the cell, capturing stdout, stderr, and IPython's rich display() calls."""
         args = magic_arguments.parse_argstring(self.capture, line)
         out = not args.no_stdout
         err = not args.no_stderr
-        with capture_output(out, err) as io:
+        disp = not args.no_display
+        with capture_output(out, err, disp) as io:
             self.shell.run_cell(cell)
         if args.output:
             self.shell.user_ns[args.output] = io

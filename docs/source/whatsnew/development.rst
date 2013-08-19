@@ -4,6 +4,9 @@
 
 This document describes in-flight development work.
 
+- `%%capture` cell magic now captures the rich display output, not just
+  stdout/stderr
+
 
 Backwards incompatible changes
 ------------------------------
