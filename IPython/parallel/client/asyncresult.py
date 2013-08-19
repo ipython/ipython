@@ -705,6 +705,6 @@ class AsyncHubResult(AsyncResult):
             else:
                 self._success = True
             finally:
-                self._metadata = map(self._client.metadata.get, self.msg_ids)
+                self._metadata = list(map(self._client.metadata.get, self.msg_ids))
 
 __all__ = ['AsyncResult', 'AsyncMapResult', 'AsyncHubResult']

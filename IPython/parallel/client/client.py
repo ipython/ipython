@@ -28,7 +28,6 @@ from pprint import pprint
 import six
 from six.moves import filter
 from six.moves import map
-from six.moves import zip
 
 pjoin = os.path.join
 
@@ -204,21 +203,21 @@ class Metadata(dict):
 
     def __getattr__(self, key):
         """getattr aliased to getitem"""
-        if key in six.iterkeys(self):
+        if key in self:
             return self[key]
         else:
             raise AttributeError(key)
 
     def __setattr__(self, key, value):
         """setattr aliased to setitem, with strict"""
-        if key in six.iterkeys(self):
+        if key in self:
             self[key] = value
         else:
             raise AttributeError(key)
 
     def __setitem__(self, key, value):
         """strict static key enforcement"""
-        if key in six.iterkeys(self):
+        if key in self:
             dict.__setitem__(self, key, value)
         else:
             raise KeyError(key)
