@@ -359,8 +359,17 @@ def cellmagic(end_on_blank_line=False):
         line = tpl % (magic_name, first, u'\n'.join(body))
 
 
-def _strip_prompts(prompt_re):
-    """Remove matching input prompts from a block of input."""
+def _strip_prompts(prompt_re, continuation_re=None):
+    """Remove matching input prompts from a block of input.
+    
+    prompt_re is stripped only once, on either the first or second line.
+    If prompt_re is found on one of the first two lines,
+    continuation_re is stripped from lines thereafter.
+    
+    If continuation_re is unspecified, prompt_re will be used for both.
+    """
+    if continuation_re is None:
+        continuation_re = prompt_re
     line = ''
     while True:
         line = (yield line)
@@ -375,14 +384,19 @@ def _strip_prompts(prompt_re):
         # first prompt, so we might not see it in the first line.
         if line is None:
             continue
-        out, n2 = prompt_re.subn('', line, count=1)
+        # check for first prompt if not found on first line, continuation otherwise
+        if n1:
+            pat = continuation_re
+        else:
+            pat = prompt_re
+        out, n2 = pat.subn('', line, count=1)
         line = (yield out)
         
         if n1 or n2:
             # Found the input prompt in the first two lines - check for it in
             # the rest of the cell as well.
             while line is not None:
-                line = (yield prompt_re.sub('', line, count=1))
+                line = (yield continuation_re.sub('', line, count=1))
         
         else:
             # Prompts not in input - wait for reset
@@ -393,16 +407,18 @@ def _strip_prompts(prompt_re):
 def classic_prompt():
     """Strip the >>>/... prompts of the Python interactive shell."""
     # FIXME: non-capturing version (?:...) usable?
-    prompt_re = re.compile(r'^(>>> ?|\.\.\. ?)')
-    return _strip_prompts(prompt_re)
+    prompt_re = re.compile(r'^(>>> ?)')
+    continuation_re = re.compile(r'^(>>> ?|\.\.\. ?)')
+    return _strip_prompts(prompt_re, continuation_re)
 
 @CoroutineInputTransformer.wrap
 def ipy_prompt():
     """Strip IPython's In [1]:/...: prompts."""
     # FIXME: non-capturing version (?:...) usable?
     # FIXME: r'^(In \[\d+\]: | {3}\.{3,}: )' clearer?
-    prompt_re = re.compile(r'^(In \[\d+\]: |\ \ \ \.\.\.+: )')
-    return _strip_prompts(prompt_re)
+    prompt_re = re.compile(r'^(In \[\d+\]: )')
+    continuation_re = re.compile(r'^(In \[\d+\]: |\ \ \ \.\.\.+: )')
+    return _strip_prompts(prompt_re, continuation_re)
 
 
 @CoroutineInputTransformer.wrap
