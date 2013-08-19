@@ -24,6 +24,7 @@ from tornado import web
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
 from IPython.utils.traitlets import List, Dict, Unicode, TraitError
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -92,10 +93,10 @@ class NotebookManager(LoggingConfigurable):
         # disabled and instead we use a random uuid4() call.  But we leave the
         # logic here so that we can later reactivate it, whhen the necessary
         # url redirection code is written.
-        #notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
+        #notebook_id = unicode_type(uuid.uuid5(uuid.NAMESPACE_URL,
         #                 'file://'+self.get_path_by_name(name).encode('utf-8')))
         
-        notebook_id = unicode(uuid.uuid4())
+        notebook_id = unicode_type(uuid.uuid4())
         self.mapping[notebook_id] = name
         return notebook_id
 
@@ -112,7 +113,7 @@ class NotebookManager(LoggingConfigurable):
 
     def get_notebook(self, notebook_id, format=u'json'):
         """Get the representation of a notebook in format by notebook_id."""
-        format = unicode(format)
+        format = unicode_type(format)
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
         last_modified, nb = self.read_notebook_object(notebook_id)
