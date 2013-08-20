@@ -24,7 +24,6 @@ import socket
 import sys
 from signal import signal, SIGINT, SIGABRT, SIGTERM
 import six
-from six.moves import map
 try:
     from signal import SIGKILL
 except ImportError:
@@ -61,7 +60,7 @@ class Namespace(dict):
     
     def __getattr__(self, key):
         """getattr aliased to getitem"""
-        if key in six.iterkeys(self):
+        if key in self:
             return self[key]
         else:
             raise NameError(key)

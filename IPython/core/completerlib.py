@@ -34,8 +34,6 @@ from IPython.utils._process_common import arg_split
 
 # FIXME: this should be pulled in with the right call via the component system
 from IPython import get_ipython
-import six
-from six.moves import filter
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -325,7 +323,7 @@ def cd_completer(self, event):
             return [compress_user(relpath, tilde_expand, tilde_val)]
 
         # if no completions so far, try bookmarks
-        bks = six.iterkeys(self.db.get('bookmarks',{}))
+        bks = self.db.get('bookmarks',{}).keys()
         bkmatches = [s for s in bks if s.startswith(event.symbol)]
         if bkmatches:
             return bkmatches
