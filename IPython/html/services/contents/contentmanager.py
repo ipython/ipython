@@ -40,12 +40,55 @@ class ContentManager(LoggingConfigurable):
     content_dir = Unicode(os.getcwdu(), config=True, help="""
             The directory to use for contents.
             """)
+
+    def get_os_path(self, fname=None, path='/'):
+        """Given a notebook name and a server URL path, return its file system
+        path.
+        
+        Parameters
+        ----------
+        fname : string
+            The name of a notebook file with the .ipynb extension
+        path : string
+            The relative URL path (with '/' as separator) to the named
+            notebook.
             
-    contents = List()
-    
-    def get_content_names(self, content_path):
-        """List of dicts of files in content_path"""
-        names = glob.glob(os.path.join(self.content_dir, content_path,'*'))
+        Returns
+        -------
+        path : string
+            A file system path that combines notebook_dir (location where
+            server started), the relative path, and the filename with the
+            current operating system's url.
+        """
+        parts = path.split('/')
+        parts = [p for p in parts if p != ''] # remove duplicate splits
+        if fname is not None:
+            parts += [fname]
+        path = os.path.join(self.content_dir, *parts)
+        return path
+
+    def get_content_names(self, content_path='/'):
+        """Returns list of names in the server's root + relative
+        location given by 'content_path'."""
+        names = os.listdir(self.get_os_path(None, content_path))
+        return names
+
+    def list_contents(self, content_path='/'):
+        """Returns a list of dictionaries including info for all
+        contents in the location given by 'content_path'.
+        
+        Parameters
+        ----------
+        content_path: str
+            the relative path/location of the desired files.
+        
+        Returns
+        -------
+        contents: list of dicts
+            a the contents of each dict includes information for each item 
+            in the named location given by 'content_path'.
+        """
+        names = self.get_content_names(content_path)
         contents = list()
         dirs = list()
         notebooks = list()

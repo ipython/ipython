@@ -35,7 +35,6 @@ class MappingKernelManager(MultiKernelManager):
         return "IPython.kernel.ioloop.IOLoopKernelManager"
 
     kernel_argv = List(Unicode)
-    kernels = []
 
     #-------------------------------------------------------------------------
     # Methods for managing kernels and sessions
@@ -68,25 +67,21 @@ class MappingKernelManager(MultiKernelManager):
             )
         else:
             self.log.info("Using existing kernel: %s" % kernel_id)
-
         return kernel_id
 
     def shutdown_kernel(self, kernel_id, now=False):
         """Shutdown a kernel by kernel_id"""
-        i = 0
-        for kernel in self.kernels:
-            if kernel['id'] == kernel_id:
-                del self.kernels[i]
-            i = i+1
         super(MappingKernelManager, self).shutdown_kernel(kernel_id, now=now)
 
     def kernel_model(self, kernel_id, ws_url):
+        """Return a dictionary of kernel information described in the
+        JSON standard model."""
         model = {"id":kernel_id, "ws_url": ws_url}
-        self.kernels.append(model)
         return model
 
     def list_kernels(self):
-        return self.kernels
+        """Returns a list of kernel_id's of kernels running."""
+        return super(MappingKernelManager, self).list_kernel_ids()
 
     # override _check_kernel_id to raise 404 instead of KeyError
     def _check_kernel_id(self, kernel_id):
