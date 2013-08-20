@@ -15,7 +15,7 @@ import math
 import re
 import types
 from datetime import datetime
-import s
+import six
 from six.moves import map
 
 try:
