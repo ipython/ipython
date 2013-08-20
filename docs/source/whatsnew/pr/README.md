@@ -12,6 +12,7 @@ with the contents of this directory, and clean it up.
 
 Files which describe new features can have any name, such as
 `antigravity-feature.rst`, whereas backwards incompatible changes should have a
-filename of `incompat-switching-to-perl.rst`. Our "What's new" files always have
-two sections,  and this prefix scheme will make sure that the backwards
-incompatible changes get routed to their proper section.
+filename starting with `incompat-`, such as `incompat-switching-to-perl.rst`.
+Our "What's new" files always have two sections,  and this prefix scheme will
+make sure that the backwards incompatible changes get routed to their proper
+section.
