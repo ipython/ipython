@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import functools
 import os
+from os.path import join as pjoin
 import random
 import sys
 import tempfile
@@ -359,6 +360,17 @@ tclass.py: deleting object: C-third
         self.mktmp(src)
         _ip.magic('run -t -N 1 %s' % self.fname)
         _ip.magic('run -t -N 10 %s' % self.fname)
+    
+    def test_ignore_sys_exit(self):
+        """Test the -e option to ignore sys.exit()"""
+        src = "import sys; sys.exit(1)"
+        self.mktmp(src)
+        with tt.AssertPrints('SystemExit'):
+            _ip.magic('run %s' % self.fname)
+        
+        with tt.AssertNotPrints('SystemExit'):
+            _ip.magic('run -e %s' % self.fname)
+        
 
 
 class TestMagicRunWithPackage(unittest.TestCase):
@@ -431,3 +443,16 @@ class TestMagicRunWithPackage(unittest.TestCase):
     @with_fake_debugger
     def test_debug_run_submodule_with_relative_import(self):
         self.check_run_submodule('relative', '-d')
+
+def test_run__name__():
+    with TemporaryDirectory() as td:
+        path = pjoin(td, 'foo.py')
+        with open(path, 'w') as f:
+            f.write("q = __name__")
+        
+        _ip.user_ns.pop('q', None)
+        _ip.magic('run {}'.format(path))
+        nt.assert_equal(_ip.user_ns.pop('q'), '__main__')
+        
+        _ip.magic('run -n {}'.format(path))
+        nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
