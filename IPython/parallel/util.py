@@ -169,7 +169,7 @@ def validate_url_container(container):
         url = container
         return validate_url(url)
     elif isinstance(container, dict):
-        container = six.itervalues(container)
+        container = container.values()
     
     for element in container:
         validate_url_container(element)

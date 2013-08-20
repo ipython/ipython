@@ -32,7 +32,6 @@ import time
 from signal import SIGINT, SIGTERM
 import six
 from six.moves import map
-from six.moves import zip
 try:
     from signal import SIGKILL
 except ImportError:
