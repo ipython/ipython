@@ -31,6 +31,7 @@ from __future__ import print_function
 
 from IPython.config.configurable import Configurable
 from IPython.utils import io, py3compat
+from IPython.utils.traitlets import List
 
 #-----------------------------------------------------------------------------
 # Main payload class
