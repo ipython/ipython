@@ -1,5 +1,5 @@
 """
-Module with tests for the coalescestreams transformer
+Module with tests for the coalescestreams preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -14,7 +14,7 @@ Module with tests for the coalescestreams transformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import TransformerTestsBase
+from .base import PreprocessorTestsBase
 from ..coalescestreams import coalesce_streams
 
 
@@ -22,11 +22,11 @@ from ..coalescestreams import coalesce_streams
 # Class
 #-----------------------------------------------------------------------------
 
-class TestCoalesceStreams(TransformerTestsBase):
+class TestCoalesceStreams(PreprocessorTestsBase):
     """Contains test functions for coalescestreams.py"""
 
     def test_coalesce_streams(self):
-        """coalesce_streams transformer output test"""
+        """coalesce_streams preprocessor output test"""
         nb = self.build_notebook()
         res = self.build_resources()
         nb, res = coalesce_streams(nb, res)

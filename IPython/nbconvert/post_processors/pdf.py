@@ -37,7 +37,7 @@ class PDFPostProcessor(PostProcessorBase):
         Whether or not to display the output of the compile call.
         """)
 
-    def call(self, input):
+    def postprocess(self, input):
             """
             Consume and write Jinja output a PDF.  
             See files.py for more...

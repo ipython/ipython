@@ -23,7 +23,7 @@ import os
 from IPython.utils.traitlets import Unicode, List
 from IPython.config import Config
 
-from IPython.nbconvert import filters, transformers
+from IPython.nbconvert import filters, preprocessors
 from .exporter import Exporter
 
 #-----------------------------------------------------------------------------
@@ -74,16 +74,16 @@ class LatexExporter(Exporter):
             'NbConvertBase': {
                 'display_data_priority' : ['latex', 'pdf', 'png', 'jpg', 'svg', 'jpeg', 'text']
                 },
-             'ExtractOutputTransformer': {
+             'ExtractOutputPreprocessor': {
                     'enabled':True
                  },
-             'SVG2PDFTransformer': {
+             'SVG2PDFPreprocessor': {
                     'enabled':True
                  },
-             'LatexTransformer': {
+             'LatexPreprocessor': {
                     'enabled':True
                  },
-             'SphinxTransformer': {
+             'SphinxPreprocessor': {
                     'enabled':True
                  }
          })

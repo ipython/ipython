@@ -16,20 +16,20 @@ they are converted.
 from __future__ import print_function, absolute_import
 
 # Our own imports
-# Needed to override transformer
-from .base import (Transformer)
+# Needed to override preprocessor
+from .base import (Preprocessor)
 from IPython.nbconvert import filters
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class LatexTransformer(Transformer):
+class LatexPreprocessor(Preprocessor):
     """
     Converter for latex destined documents.
     """
 
-    def transform_cell(self, cell, resources, index):
+    def preprocess_cell(self, cell, resources, index):
         """
         Apply a transformation on each cell,
         
@@ -39,7 +39,7 @@ class LatexTransformer(Transformer):
             Notebook cell being processed
         resources : dictionary
             Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+            preprocessors to pass variables into the Jinja engine.
         index : int
             Modified index of the cell being processed (see base.py)
         """

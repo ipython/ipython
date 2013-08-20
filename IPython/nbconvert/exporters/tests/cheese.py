@@ -1,5 +1,5 @@
 """
-Contains CheeseTransformer
+Contains CheesePreprocessor
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -13,13 +13,13 @@ Contains CheeseTransformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from ...transformers.base import Transformer
+from ...preprocessors.base import Preprocessor
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class CheeseTransformer(Transformer):
+class CheesePreprocessor(Preprocessor):
     """
     Adds a cheese tag to the resources object
     """
@@ -29,12 +29,12 @@ class CheeseTransformer(Transformer):
         """
         Public constructor
         """
-        super(CheeseTransformer, self).__init__(**kw)
+        super(CheesePreprocessor, self).__init__(**kw)
 
 
-    def call(self, nb, resources):
+    def preprocess(self, nb, resources):
         """
-        Sphinx transformation to apply on each notebook.
+        Sphinx preprocessing to apply on each notebook.
         
         Parameters
         ----------
@@ -42,7 +42,7 @@ class CheeseTransformer(Transformer):
             Notebook being converted
         resources : dictionary
             Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+            preprocessors to pass variables into the Jinja engine.
         """
         resources['cheese'] = 'real'
         return nb, resources

@@ -23,13 +23,13 @@ class PostProcessorBase(NbConvertBase):
 
     def __call__(self, input):
         """
-        See def call() ...
+        See def postprocess() ...
         """
-        self.call(input)
+        self.postprocess(input)
 
 
-    def call(self, input):
+    def postprocess(self, input):
         """
         Post-process output from a writer.
         """
-        raise NotImplementedError('call')
+        raise NotImplementedError('postprocess')

@@ -17,7 +17,7 @@ Module with tests for exporter.py
 from IPython.config import Config
 
 from .base import ExportersTestsBase
-from .cheese import CheeseTransformer
+from .cheese import CheesePreprocessor
 from ..exporter import Exporter
 
 
@@ -47,9 +47,9 @@ class TestExporter(ExportersTestsBase):
 
     def test_extract_outputs(self):
         """
-        If the ExtractOutputTransformer is enabled, are outputs extracted?
+        If the ExtractOutputPreprocessor is enabled, are outputs extracted?
         """
-        config = Config({'ExtractOutputTransformer': {'enabled': True}})
+        config = Config({'ExtractOutputPreprocessor': {'enabled': True}})
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
@@ -57,45 +57,45 @@ class TestExporter(ExportersTestsBase):
         assert len(resources['outputs']) > 0
 
 
-    def test_transformer_class(self):
+    def test_preprocessor_class(self):
         """
-        Can a transformer be added to the transformers list by class type?
+        Can a preprocessor be added to the preprocessors list by class type?
         """
-        config = Config({'Exporter': {'transformers': [CheeseTransformer]}})
+        config = Config({'Exporter': {'preprocessors': [CheesePreprocessor]}})
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
         assert resources['cheese'] == 'real'
 
 
-    def test_transformer_instance(self):
+    def test_preprocessor_instance(self):
         """
-        Can a transformer be added to the transformers list by instance?
+        Can a preprocessor be added to the preprocessors list by instance?
         """
-        config = Config({'Exporter': {'transformers': [CheeseTransformer()]}})
+        config = Config({'Exporter': {'preprocessors': [CheesePreprocessor()]}})
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
         assert resources['cheese'] == 'real'
 
 
-    def test_transformer_dottedobjectname(self):
+    def test_preprocessor_dottedobjectname(self):
         """
-        Can a transformer be added to the transformers list by dotted object name?
+        Can a preprocessor be added to the preprocessors list by dotted object name?
         """
-        config = Config({'Exporter': {'transformers': ['IPython.nbconvert.exporters.tests.cheese.CheeseTransformer']}})
+        config = Config({'Exporter': {'preprocessors': ['IPython.nbconvert.exporters.tests.cheese.CheesePreprocessor']}})
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
         assert resources['cheese'] == 'real'
 
 
-    def test_transformer_via_method(self):
+    def test_preprocessor_via_method(self):
         """
-        Can a transformer be added via the Exporter convenience method?
+        Can a preprocessor be added via the Exporter convenience method?
         """
         exporter = self._make_exporter()
-        exporter.register_transformer(CheeseTransformer, enabled=True)
+        exporter.register_preprocessor(CheesePreprocessor, enabled=True)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
         assert resources['cheese'] == 'real'

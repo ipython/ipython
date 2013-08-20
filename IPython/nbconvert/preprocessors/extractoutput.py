@@ -1,4 +1,4 @@
-"""Module containing a transformer that extracts all of the outputs from the
+"""Module containing a preprocessor that extracts all of the outputs from the
 notebook file.  The extracted outputs are returned in the 'resources' dictionary.
 """
 #-----------------------------------------------------------------------------
@@ -18,14 +18,14 @@ import sys
 import os
 
 from IPython.utils.traitlets import Unicode
-from .base import Transformer
+from .base import Preprocessor
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class ExtractOutputTransformer(Transformer):
+class ExtractOutputPreprocessor(Preprocessor):
     """
     Extracts all of the outputs from the notebook file.  The extracted 
     outputs are returned in the 'resources' dictionary.
@@ -35,7 +35,7 @@ class ExtractOutputTransformer(Transformer):
         "{unique_key}_{cell_index}_{index}.{extension}", config=True)
 
 
-    def transform_cell(self, cell, resources, cell_index):
+    def preprocess_cell(self, cell, resources, cell_index):
         """
         Apply a transformation on each cell,
         
@@ -45,7 +45,7 @@ class ExtractOutputTransformer(Transformer):
             Notebook cell being processed
         resources : dictionary
             Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+            preprocessors to pass variables into the Jinja engine.
         cell_index : int
             Index of the cell being processed (see base.py)
         """

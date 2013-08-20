@@ -1,5 +1,5 @@
 """
-Module with tests for the latex transformer
+Module with tests for the latex preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -14,35 +14,35 @@ Module with tests for the latex transformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import TransformerTestsBase
-from ..latex import LatexTransformer
+from .base import PreprocessorTestsBase
+from ..latex import LatexPreprocessor
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestLatex(TransformerTestsBase):
+class TestLatex(PreprocessorTestsBase):
     """Contains test functions for latex.py"""
 
 
-    def build_transformer(self):
-        """Make an instance of a transformer"""
-        transformer = LatexTransformer()
-        transformer.enabled = True
-        return transformer
+    def build_preprocessor(self):
+        """Make an instance of a preprocessor"""
+        preprocessor = LatexPreprocessor()
+        preprocessor.enabled = True
+        return preprocessor
 
     def test_constructor(self):
-        """Can a LatexTransformer be constructed?"""
-        self.build_transformer()
+        """Can a LatexPreprocessor be constructed?"""
+        self.build_preprocessor()
         
 
     def test_output(self):
-        """Test the output of the LatexTransformer"""
+        """Test the output of the LatexPreprocessor"""
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
 
         # Make sure the code cell wasn't modified.
         self.assertEqual(nb.worksheets[0].cells[0].input, '$ e $')

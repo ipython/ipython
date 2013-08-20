@@ -1,5 +1,5 @@
 """
-Module with tests for the sphinx transformer
+Module with tests for the sphinx preprocessor
 """
 
 #-----------------------------------------------------------------------------
@@ -14,37 +14,37 @@ Module with tests for the sphinx transformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import TransformerTestsBase
-from ..sphinx import SphinxTransformer
+from .base import PreprocessorTestsBase
+from ..sphinx import SphinxPreprocessor
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestSphinx(TransformerTestsBase):
+class TestSphinx(PreprocessorTestsBase):
     """Contains test functions for sphinx.py"""
 
 
-    def build_transformer(self):
-        """Make an instance of a transformer"""
-        transformer = SphinxTransformer()
-        transformer.enabled = True
-        return transformer
+    def build_preprocessor(self):
+        """Make an instance of a preprocessor"""
+        preprocessor = SphinxPreprocessor()
+        preprocessor.enabled = True
+        return preprocessor
 
 
     def test_constructor(self):
-        """Can a SphinxTransformer be constructed?"""
-        self.build_transformer()
+        """Can a SphinxPreprocessor be constructed?"""
+        self.build_preprocessor()
     
 
     def test_resources(self):
-        """Make sure the SphinxTransformer adds the appropriate resources to the
+        """Make sure the SphinxPreprocessor adds the appropriate resources to the
         resources dict."""
         nb = self.build_notebook()
         res = self.build_resources()
-        transformer = self.build_transformer()
-        nb, res = transformer(nb, res)
+        preprocessor = self.build_preprocessor()
+        nb, res = preprocessor(nb, res)
         assert "author" in res['sphinx']
         assert "version" in res['sphinx']
         assert "release" in res['sphinx']
