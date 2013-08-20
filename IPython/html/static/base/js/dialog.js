@@ -68,7 +68,7 @@ IPython.dialog = (function (IPython) {
         if (options.reselect_cell !== false) {
             dialog.on("hidden", function () {
                 if (IPython.notebook) {
-                    cell = IPython.notebook.get_selected_cell();
+                    var cell = IPython.notebook.get_selected_cell();
                     if (cell) cell.select();
                 }
             });
