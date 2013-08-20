@@ -495,7 +495,12 @@ class Client(HasTraits):
                                     }
         self._queue_handlers = {'execute_reply' : self._handle_execute_reply,
                                 'apply_reply' : self._handle_apply_reply}
-        self._connect(sshserver, ssh_kwargs, timeout)
+        
+        try:
+            self._connect(sshserver, ssh_kwargs, timeout)
+        except:
+            self.close(linger=0)
+            raise
         
         # last step: setup magics, if we are in IPython:
         
