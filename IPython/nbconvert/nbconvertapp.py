@@ -33,7 +33,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.text import dedent
 
 from .exporters.export import get_export_names, exporter_map
-from IPython.nbconvert import exporters, preprocessors, writers, post_processors
+from IPython.nbconvert import exporters, preprocessors, writers, postprocessors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
 
@@ -166,15 +166,15 @@ class NbConvertApp(BaseIPythonApplication):
         self.writer_factory = import_item(new)
 
     # Post-processor specific variables
-    post_processor = Instance('IPython.nbconvert.post_processors.base.PostProcessorBase',  
+    post_processor = Instance('IPython.nbconvert.postprocessors.base.PostProcessorBase',  
                       help="""Instance of the PostProcessor class used to write the 
                       results of the conversion.""")
 
     post_processor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    post_processor_aliases = {'pdf': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor',
-                              'serve': 'IPython.nbconvert.post_processors.serve.ServePostProcessor'}
+    post_processor_aliases = {'pdf': 'IPython.nbconvert.postprocessors.pdf.PDFPostProcessor',
+                              'serve': 'IPython.nbconvert.postprocessors.serve.ServePostProcessor'}
     post_processor_factory = Type()
 
     def _post_processor_class_changed(self, name, old, new):
