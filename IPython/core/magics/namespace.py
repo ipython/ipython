@@ -26,8 +26,6 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.openpy import read_py_file
 from IPython.utils.path import get_py_filename
-from six.moves import map
-from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

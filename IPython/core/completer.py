@@ -666,7 +666,7 @@ class IPCompleter(Completer):
                         # true if txt is _not_ a _ name, false otherwise:
                         no__name = (lambda txt:
                                     re.match(r'.*\._.*?',txt) is None)
-                    matches = filter(no__name, matches)
+                    matches = list(filter(no__name, matches))
             except NameError:
                 # catches <undefined attributes>.<tab>
                 matches = []

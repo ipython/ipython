@@ -32,8 +32,6 @@ from IPython.config.configurable import Configurable
 from IPython.core import release
 from IPython.utils import coloransi, py3compat
 from IPython.utils.traitlets import (Unicode, Instance, Dict, Bool, Int)
-from six.moves import map
-from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Color schemes for prompts
