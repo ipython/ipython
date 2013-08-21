@@ -1149,7 +1149,7 @@ class InteractiveShell(SingletonConfigurable):
         
         Note that this does not include the displayhook, which also caches
         objects from the output."""
-        return [self.user_ns, self.user_global_ns] + \
+        return [self.user_ns, self.user_global_ns, self.user_ns_hidden] + \
                [m.__dict__ for m in self._main_mod_cache.values()]
 
     def reset(self, new_session=True):
@@ -1321,7 +1321,7 @@ class InteractiveShell(SingletonConfigurable):
         for name, obj in variables.iteritems():
             if name in self.user_ns and self.user_ns[name] is obj:
                 del self.user_ns[name]
-                self.user_ns_hidden.discard(name)
+                self.user_ns_hidden.pop(name, None)
 
     #-------------------------------------------------------------------------
     # Things related to object introspection
