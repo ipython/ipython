@@ -1,0 +1,97 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="/_static/style.css">
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" >
+		<script src="/_static/mpl.js"></script>
+		<script>
+			"use strict";
+
+			$(document).ready(function() {
+				var figure_number = '{{ canvas.figure.number }}';
+				var default_extension = '{{ canvas.get_default_filetype() }}';
+				var websocket_url = document.location.href.replace("http", "ws") + '/ws';
+				var fig = new figure(figure_number, websocket_url);
+
+				// route rubberband canvas events 
+				$("#fig-rubberband-canvas").on({
+					mousedown: function() { fig.mouse_event(event, 'button_press'); },
+					mouseup: function() { fig.mouse_event(event, 'button_release'); },
+					mousemove: function() { fig.mouse_event(event, 'motion_notify'); },
+				});
+
+				// route canvas events
+				$("#fig-canvas").on({
+					keydown: function() { fig.key_event(event, 'key_press'); }, 
+					keyup: function() { fig.key_event(event, 'key_release'); }
+				}); 
+
+				$('body').on({
+					keydown: function() { fig.key_event(event, 'key_press'); },
+					keyup: function() { fig.key_event(event, 'key_release'); },
+				});
+
+				$('a').button({ icons: { primary: 'ui-icon-extlink' }, text: null });
+
+				// route toolbar events
+				var _icons = {
+					home: 'ui-icon-home',
+			        back: 'ui-icon-circle-arrow-w',
+			        forward: 'ui-icon-circle-arrow-e',
+			        zoom_to_rect: 'ui-icon-search',
+			        move: 'ui-icon-arrow-4',
+				};
+
+				$("button").each(function() {
+					$(this).button({
+						icons: { primary: _icons[$(this).data('icon')] },
+						text: false
+					});
+				});
+
+				$("#fig-toolbar button[data-method]").click(function (event) {
+					return fig.send_message({
+						type: "toolbar_button",
+						name: $(this).data('method')
+					});
+				});
+
+				$("#download-button").button({
+					icons: { primary: "ui-icon-disk" },
+					text: false
+				}).click(function (event) {
+					var format = $('#fig-toolbar-format-picker').val();
+					var download_link = document.location.href + '/download.' + format;
+					window.open(download_link, '_blank');
+				});
+
+				$("button").mouseover(function (event) {
+					$("#fig-message").text($(this).text());
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="mpl-warnings" class="mpl-warnings"></div>
+		<div>
+		<a href target="_blank">Open in a new window</a>
+		<span id='fig-message' class="mpl-message"></span>
+		</div>
+		<div id="fig-canvas-div">
+			<canvas id="fig-canvas"></canvas>
+			<canvas id="fig-rubberband-canvas"></canvas>
+		</div>
+		<div id="fig-toolbar" style="width: 600px;">
+			{% for name, tooltip, image, method in canvas.toolbar.toolitems %}{% if not name is None %}
+			<button data-method="{{method}}" data-icon="{{image}}">{{tooltip}}</button>
+			{% end %}{% end %}
+			<button id="download-button">Download</button>
+			<select id="fig-toolbar-format-picker" class="mpl-toolbar-option ui-widget ui-widget-content">
+				{% for extension in canvas.get_supported_filetypes().keys() %}
+				<option {% if extension == canvas.get_default_filetype() %}selected="selected"{% end %} value="{{extension}}">{{extension}}</option>
+				{% end %}
+			</select>
+		</div>
+	</body>
+</html>
