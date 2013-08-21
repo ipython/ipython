@@ -59,6 +59,7 @@ from setupbase import (
     find_packages,
     find_package_data,
     find_scripts,
+    build_scripts_rename,
     find_data_files,
     check_for_dependencies,
     git_prebuild,
@@ -315,7 +316,10 @@ else:
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
     check_for_dependencies()
-    setup_args['scripts'] = find_scripts(False, suffix = '3' if PY3 else '')
+    setup_args['scripts'] = find_scripts(False)
+    if PY3:
+        # Rename scripts with '3' suffix
+        setup_args['cmdclass']['build_scripts'] = build_scripts_rename
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
