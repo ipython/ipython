@@ -33,7 +33,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.text import dedent
 
 from .exporters.export import get_export_names, exporter_map
-from IPython.nbconvert import exporters, preprocessors, writers, post_processors
+from IPython.nbconvert import exporters, preprocessors, writers, postprocessors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
 
@@ -60,7 +60,7 @@ nbconvert_aliases.update({
     'to' : 'NbConvertApp.export_format',
     'template' : 'Exporter.template_file',
     'writer' : 'NbConvertApp.writer_class',
-    'post': 'NbConvertApp.post_processor_class',
+    'post': 'NbConvertApp.postprocessor_class',
     'output': 'NbConvertApp.output_base',
     'offline-slides': 'RevealHelpTransformer.url_prefix',
     'slide-notes': 'RevealHelpTransformer.speaker_notes'
@@ -166,22 +166,22 @@ class NbConvertApp(BaseIPythonApplication):
         self.writer_factory = import_item(new)
 
     # Post-processor specific variables
-    post_processor = Instance('IPython.nbconvert.post_processors.base.PostProcessorBase',  
+    postprocessor = Instance('IPython.nbconvert.postprocessors.base.PostProcessorBase',  
                       help="""Instance of the PostProcessor class used to write the 
                       results of the conversion.""")
 
-    post_processor_class = DottedOrNone(config=True, 
+    postprocessor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    post_processor_aliases = {'pdf': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor',
-                              'serve': 'IPython.nbconvert.post_processors.serve.ServePostProcessor'}
-    post_processor_factory = Type()
+    postprocessor_aliases = {'pdf': 'IPython.nbconvert.postprocessors.pdf.PDFPostProcessor',
+                              'serve': 'IPython.nbconvert.postprocessors.serve.ServePostProcessor'}
+    postprocessor_factory = Type()
 
-    def _post_processor_class_changed(self, name, old, new):
-        if new.lower() in self.post_processor_aliases:
-            new = self.post_processor_aliases[new.lower()]
+    def _postprocessor_class_changed(self, name, old, new):
+        if new.lower() in self.postprocessor_aliases:
+            new = self.postprocessor_aliases[new.lower()]
         if new:
-            self.post_processor_factory = import_item(new)
+            self.postprocessor_factory = import_item(new)
 
 
     # Other configurable variables
@@ -202,7 +202,7 @@ class NbConvertApp(BaseIPythonApplication):
         self.init_syspath()
         self.init_notebooks()
         self.init_writer()
-        self.init_post_processor()
+        self.init_postprocessor()
 
 
 
@@ -250,14 +250,14 @@ class NbConvertApp(BaseIPythonApplication):
         self._writer_class_changed(None, self.writer_class, self.writer_class)
         self.writer = self.writer_factory(parent=self)
 
-    def init_post_processor(self):
+    def init_postprocessor(self):
         """
-        Initialize the post_processor (which is stateless)
+        Initialize the postprocessor (which is stateless)
         """
-        self._post_processor_class_changed(None, self.post_processor_class, 
-            self.post_processor_class)
-        if self.post_processor_factory:
-            self.post_processor = self.post_processor_factory(parent=self)
+        self._postprocessor_class_changed(None, self.postprocessor_class, 
+            self.postprocessor_class)
+        if self.postprocessor_factory:
+            self.postprocessor = self.postprocessor_factory(parent=self)
 
     def start(self):
         """
@@ -306,8 +306,8 @@ class NbConvertApp(BaseIPythonApplication):
                 write_resultes = self.writer.write(output, resources, notebook_name=notebook_name)
 
                 #Post-process if post processor has been defined.
-                if hasattr(self, 'post_processor') and self.post_processor:
-                    self.post_processor(write_resultes)
+                if hasattr(self, 'postprocessor') and self.postprocessor:
+                    self.postprocessor(write_resultes)
                 conversion_success += 1
 
         # If nothing was converted successfully, help the user.
