@@ -305,7 +305,7 @@ if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
         @return:    True if need print more lines, False if quit
         """
         io.stdout.write('---Return to continue, q to quit--- ')
-        ans = msvcrt.getch()
+        ans = msvcrt.getwch()
         if ans in ("q", "Q"):
             result = False
         else:
