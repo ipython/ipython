@@ -15,7 +15,7 @@ Module with tests for stdout
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
+from IPython.utils.py3compat import StringIO
 
 from ...tests.base import TestsBase
 from ..stdout import StdoutWriter

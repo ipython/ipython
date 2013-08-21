@@ -114,6 +114,8 @@ if PY3:
     
     # Safe way to get a unicode extension, needed on Python 2
     safe_unicode = str
+    
+    from io import StringIO
 
 else:
     input = raw_input
@@ -213,3 +215,5 @@ else:
             pass
     
         return u'Unrecoverably corrupt evalue'
+    
+    from StringIO import StringIO

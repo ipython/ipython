@@ -13,7 +13,10 @@
 #-----------------------------------------------------------------------------
 
 import os
-import urllib2
+try:
+    from urllib.request import urlopen  # Python 3
+except ImportError:
+    from urllib2 import urlopen  # Python 2
 
 from .base import Preprocessor
 from IPython.utils.traitlets import Unicode, Bool
@@ -89,6 +92,6 @@ class RevealHelpPreprocessor(Preprocessor):
     def notes_helper(self, infile):
         """Helper function to get the content from an url."""
 
-        content = urllib2.urlopen(infile).read()
+        content = urlopen(infile).read()
 
         return content

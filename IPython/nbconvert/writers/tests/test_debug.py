@@ -15,7 +15,7 @@ Module with tests for debug
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
+from IPython.utils.py3compat import StringIO
 
 from ...tests.base import TestsBase
 from ..debug import DebugWriter

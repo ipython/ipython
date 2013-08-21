@@ -17,8 +17,14 @@ from __future__ import print_function
 import os
 import webbrowser
 
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+try:
+    # Python 3
+    from http.server import HTTPServer
+    from http.server import SimpleHTTPRequestHandler
+except ImportError:
+    # Python 2
+    from BaseHTTPServer import HTTPServer
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 from IPython.utils.traitlets import Bool
 

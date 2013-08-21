@@ -16,7 +16,7 @@ Module with tests for files
 
 import sys
 import os
-from StringIO import StringIO
+from IPython.utils.py3compat import StringIO
 
 from ...tests.base import TestsBase
 from ..files import FilesWriter
