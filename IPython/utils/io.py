@@ -21,11 +21,7 @@ from .capture import CapturedIO, capture_output
 
 from six.moves import filter
 
-from . import py3compat
-if py3compat.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from .py3compat import StringIO, string_types
 
 #-----------------------------------------------------------------------------
 # Code
@@ -64,7 +60,7 @@ class IOStream:
                       file=sys.stderr)
 
     def writelines(self, lines):
-        if isinstance(lines, py3compat.string_types):
+        if isinstance(lines, string_types):
             lines = [lines]
         for line in lines:
             self.write(line)

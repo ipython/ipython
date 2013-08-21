@@ -52,11 +52,7 @@ except AttributeError:
     generate_tokens = tokenize._tokenize
 
 from IPython.utils.coloransi import *
-from .py3compat import PY3
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from .py3compat import StringIO
 
 #############################################################################
 ### Python Source Parser (does Hilighting)

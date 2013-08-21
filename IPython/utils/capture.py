@@ -16,11 +16,7 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 import sys
-from .py3compat import PY3
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from .py3compat import StringIO
 
 #-----------------------------------------------------------------------------
 # Classes and functions

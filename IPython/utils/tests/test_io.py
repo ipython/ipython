@@ -21,11 +21,7 @@ import nose.tools as nt
 
 from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import Tee, capture_output
-from IPython.utils.py3compat import doctest_refactor_print, PY3
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO    
+from IPython.utils.py3compat import doctest_refactor_print, StringIO
 
 #-----------------------------------------------------------------------------
 # Tests
