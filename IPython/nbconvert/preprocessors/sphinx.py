@@ -157,7 +157,7 @@ class SphinxPreprocessor(Preprocessor):
             if self.publish_date:
                 resources["sphinx"]["date"] = self.publish_date
             elif len(resources['metadata']['modified_date'].strip()) == 0:
-                resources["sphinx"]["date"] = date.today().strftime("%B %-d, %Y")
+                resources["sphinx"]["date"] = date.today().strftime("%B %d, %Y")
             else:
                 resources["sphinx"]["date"] = resources['metadata']['modified_date']
             
