@@ -969,7 +969,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # A record of hidden variables we have added to the user namespace, so
         # we can list later only variables defined in actual interactive use.
-        self.user_ns_hidden = set()
+        self.user_ns_hidden = {}
 
         # Now that FakeModule produces a real module, we've run into a nasty
         # problem: after script execution (via %run), the module where the user
@@ -1300,7 +1300,8 @@ class InteractiveShell(SingletonConfigurable):
         # And configure interactive visibility
         user_ns_hidden = self.user_ns_hidden
         if interactive:
-            user_ns_hidden.difference_update(vdict)
+            for name in vdict:
+                user_ns_hidden.pop(name, None)
         else:
             user_ns_hidden.update(vdict)
     
