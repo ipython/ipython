@@ -96,7 +96,7 @@ class SQLiteDB(BaseDB):
     location = Unicode('', config=True,
         help="""The directory containing the sqlite task database.  The default
         is to use the cluster_dir location.""")
-    table = Unicode("", config=True,
+    table = Unicode("ipython-tasks", config=True,
         help="""The SQLite Table to use for storing tasks for this session. If unspecified,
         a new table will be created with the Hub's IDENT.  Specifying the table will result
         in tasks from previous sessions being available via Clients' db_query and
