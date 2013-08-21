@@ -129,7 +129,7 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def notebook_model(self, notebook_name, notebook_path=None, content=True):
+    def notebook_model(self, notebook_name, notebook_path='/', content=True):
         """ Creates the standard notebook model """
         last_modified, contents = self.read_notebook_object(notebook_name, notebook_path)
         model = {"name": notebook_name, 
@@ -139,7 +139,7 @@ class NotebookManager(LoggingConfigurable):
             model['content'] = contents
         return model
 
-    def get_notebook(self, notebook_name, notebook_path=None, format=u'json'):
+    def get_notebook(self, notebook_name, notebook_path='/', format=u'json'):
         """Get the representation of a notebook in format by notebook_name."""
         format = unicode(format)
         if format not in self.allowed_formats:
@@ -154,11 +154,11 @@ class NotebookManager(LoggingConfigurable):
         name = nb.metadata.get('name', 'notebook')
         return last_mod, representation, name
 
-    def read_notebook_object(self, notebook_name, notebook_path=None):
+    def read_notebook_object(self, notebook_name, notebook_path='/'):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_new_notebook(self, data, notebook_path=None, name=None, format=u'json'):
+    def save_new_notebook(self, data, notebook_path='/', name=None, format=u'json'):
         """Save a new notebook and return its name.
 
         If a name is passed in, it overrides any values in the notebook data
@@ -182,7 +182,7 @@ class NotebookManager(LoggingConfigurable):
         notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
         return notebook_name
 
-    def save_notebook(self, data, notebook_path=None, name=None, new_name=None, format=u'json'):
+    def save_notebook(self, data, notebook_path='/', name=None, new_name=None, format=u'json'):
         """Save an existing notebook by notebook_name."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
@@ -196,7 +196,7 @@ class NotebookManager(LoggingConfigurable):
             nb.metadata.name = name
         self.write_notebook_object(nb, name, notebook_path, new_name)
 
-    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None, new_name=None):
+    def write_notebook_object(self, nb, notebook_name=None, notebook_path='/', new_name=None):
         """Write a notebook object and return its notebook_name.
 
         If notebook_name is None, this method should create a new notebook_name.
@@ -226,7 +226,7 @@ class NotebookManager(LoggingConfigurable):
         notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
         return notebook_name
 
-    def copy_notebook(self, name, path=None):
+    def copy_notebook(self, name, path='/'):
         """Copy an existing notebook and return its new notebook_name."""
         last_mod, nb = self.read_notebook_object(name, path)
         name = nb.metadata.name + '-Copy'
@@ -237,22 +237,22 @@ class NotebookManager(LoggingConfigurable):
     
     # Checkpoint-related
     
-    def create_checkpoint(self, notebook_name, notebook_path=None):
+    def create_checkpoint(self, notebook_name, notebook_path='/'):
         """Create a checkpoint of the current state of a notebook
         
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
     
-    def list_checkpoints(self, notebook_name, notebook_path=None):
+    def list_checkpoints(self, notebook_name, notebook_path='/'):
         """Return a list of checkpoints for a given notebook"""
         return []
     
-    def restore_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
+    def restore_checkpoint(self, notebook_name, checkpoint_id, notebook_path='/'):
         """Restore a notebook from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
-    def delete_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
+    def delete_checkpoint(self, notebook_name, checkpoint_id, notebook_path='/'):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
     
