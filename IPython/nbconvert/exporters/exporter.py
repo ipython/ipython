@@ -68,6 +68,7 @@ default_filters = {
         'strip_math_space': filters.strip_math_space,
         'wrap_text': filters.wrap_text,
         'escape_latex': filters.escape_latex,
+        'parse_citation': filters.parse_citation
 }
 
 #-----------------------------------------------------------------------------
