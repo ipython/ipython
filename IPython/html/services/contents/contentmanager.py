@@ -21,14 +21,12 @@ import io
 import os
 import glob
 import shutil
-import ast
-import base64
+import errno
 
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.nbformat import current
-from IPython.utils.traitlets import List, Dict, Unicode, TraitError
+from IPython.utils.traitlets import Unicode, TraitError
 from IPython.utils import tz
 
 #-----------------------------------------------------------------------------
@@ -140,8 +138,66 @@ class ContentManager(LoggingConfigurable):
                     "last_modified (UTC)": last_modified.ctime(),
                     "size": size}
         return model
-
-    def delete_content(self, content_path):
-        """Delete a file"""
-        os.unlink(os.path.join(self.content_dir, content_path))
         
+    def create_folder(self, name, path):
+        """
+        Parameters
+        ----------
+        name : str
+            The name you want give to the folder thats created. 
+            If this is None, it will assign an incremented name
+            'new_folder'.
+        path : str
+            The relative location to put the created folder.
+            
+        Returns
+        -------
+            The name of the created folder.
+        """
+        if name is None:
+            name = self.increment_filename("new_folder", path)
+        new_path = self.get_os_path(name, path)
+        # Raise an error if the file exists
+        try:
+            os.makedirs(new_path)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                raise web.HTTPError(409, u'Directory already exists.')
+            elif e.errno == errno.EACCES:
+                raise web.HTTPError(403, u'Create dir: permission denied.')
+            else:
+                raise web.HTTPError(400, str(e))
+        return name
+
+    def increment_filename(self, basename, content_path='/'):
+        """Return a non-used filename of the form basename<int>.
+
+        This searches through the filenames (basename0, basename1, ...)
+        until is find one that is not already being used. It is used to
+        create Untitled and Copy names that are unique.
+        """
+        i = 0
+        while True:
+            name = u'%s%i' % (basename,i)
+            path = self.get_os_path(name, content_path)
+            if not os.path.isdir(path):
+                break
+            else:
+                i = i+1
+        return name
+
+    def delete_content(self, name=None, content_path='/'):
+        """Delete a file or folder in the named location. 
+        Raises an error if the named file/folder doesn't exist
+        """
+        path = self.get_os_path(name, content_path)
+        if path != self.content_dir:
+            try:
+                shutil.rmtree(path)
+            except OSError as e:
+                if e.errno == errno.ENOENT:
+                    raise web.HTTPError(404, u'Directory or file does not exist.')
+                else:
+                    raise web.HTTPError(400, str(e))
+        else:
+            raise web.HTTPError(403, "Cannot delete root directory where notebook server lives.")

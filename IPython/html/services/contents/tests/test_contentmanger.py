@@ -53,7 +53,7 @@ class TestContentManager(TestCase):
             
             # Raise an exception when trying to delete a 
             # folder that does not exist.
-            self.assertRaises(TraitError, cm.delete_content, name='non_existing_folder', content_path='/')
+            self.assertRaises(HTTPError, cm.delete_content, name='non_existing_folder', content_path='/')
             
             # Create a subfolder in the folder created above. 
             # *Recall 'name' = 'test_folder' (the new path for
@@ -61,7 +61,7 @@ class TestContentManager(TestCase):
             name01 = cm.new_folder(None, name)
             path01 = cm.get_os_path(name01, name)
             # Try to delete a subfolder that does not exist.
-            self.assertRaises(TraitError, cm.delete_content, name='non_existing_folder', content_path='/')
+            self.assertRaises(HTTPError, cm.delete_content, name='non_existing_folder', content_path='/')
             # Delete the created subfolder
             cm.delete_content(name01, name)
             self.assertFalse(os.path.isdir(path01))
@@ -69,6 +69,10 @@ class TestContentManager(TestCase):
             # Delete the created folder
             cm.delete_content(name, '/')
             self.assertFalse(os.path.isdir(path))
+            
+            self.assertRaises(HTTPError, cm.delete_content, name=None, content_path='/')
+            self.assertRaises(HTTPError, cm.delete_content, name='/', content_path='/')
+            
             
     def test_get_content_names(self):
         with TemporaryDirectory() as td:
