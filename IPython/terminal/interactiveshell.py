@@ -541,8 +541,13 @@ class TerminalInteractiveShell(InteractiveShell):
                 # asynchronously by signal handlers, for example.
                 self.showtraceback()
             else:
-                self.input_splitter.push(line)
-                more = self.input_splitter.push_accepts_more()
+                try:
+                    self.input_splitter.push(line)
+                    more = self.input_splitter.push_accepts_more()
+                except SyntaxError:
+                    self.showsyntaxerror()
+                    self.input_splitter.reset()
+                    more = False
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
