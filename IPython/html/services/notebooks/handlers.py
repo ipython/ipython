@@ -48,9 +48,9 @@ class NotebookRootHandler(IPythonHandler):
         format = self.get_argument('format', default='json')
         name = self.get_argument('name', default=None)
         if body:
-            fname = nbm.save_new_notebook(body, notebook_path=None, name=name, format=format)
+            fname = nbm.save_new_notebook(body, notebook_path='/', name=name, format=format)
         else:
-            fname = nbm.new_notebook(notebook_path=None)
+            fname = nbm.new_notebook(notebook_path='/')
         self.set_header('Location', nbm.notebook_dir + fname)
         model = nbm.notebook_model(fname)
         self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, notebook_name))
