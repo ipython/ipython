@@ -14,11 +14,7 @@ from unittest import TestCase
 import nose.tools as nt
 
 from IPython.testing import tools as tt
-from IPython.utils import py3compat
-if py3compat.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from IPython.utils.py3compat import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals

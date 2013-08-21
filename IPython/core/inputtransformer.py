@@ -6,11 +6,7 @@ from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
 from IPython.utils.openpy import cookie_comment_re
 from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
-from IPython.utils.py3compat import PY3
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from IPython.utils.py3compat import StringIO
 import six
 
 #-----------------------------------------------------------------------------

@@ -34,11 +34,7 @@ from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
-from IPython.utils.py3compat import unicode_to_str, PY3
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from IPython.utils.py3compat import unicode_to_str, StringIO
 import six
 
 
