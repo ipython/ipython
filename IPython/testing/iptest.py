@@ -37,12 +37,6 @@ import tempfile
 import time
 import warnings
 
-# Note: monkeypatch!
-# We need to monkeypatch a small problem in nose itself first, before importing
-# it for actual use.  This should get into nose upstream, but its release cycle
-# is slow and we need it for our parametric tests to work correctly.
-from IPython.testing import nosepatch
-
 # Now, proceed to import nose itself
 import nose.plugins.builtin
 from nose.plugins.xunit import Xunit
