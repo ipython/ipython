@@ -28,6 +28,7 @@ class NotebookTestBase(TestCase):
             '--ipython-dir=%s' % self.ipython_dir.name,
             '--notebook-dir=%s' % self.notebook_dir.name
         ]
+        #self.notebook = Popen(notebook_args)
         self.notebook = Popen(notebook_args, stdout=PIPE, stderr=PIPE)
         time.sleep(3.0)
 

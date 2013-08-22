@@ -109,7 +109,9 @@ class TestContentManager(TestCase):
             # and subdirectory.
             contents = cm.list_contents('/')
             contents1 = cm.list_contents('fold1')
-            self.assertEqual(type(contents), type(list()))
-            self.assertEqual(type(contents[0]), type(dict()))
+            assert isinstance(contents, list)
+            assert isinstance(contents[0], dict)
+            assert contents[0].has_key('path')
+            assert contents[0].has_key('path')
             self.assertEqual(contents[0]['path'], '/')
             self.assertEqual(contents1[0]['path'], 'fold1')
