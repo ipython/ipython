@@ -94,17 +94,16 @@ class FileNotebookManager(NotebookManager):
     def change_notebook(self, data, notebook_name, notebook_path='/'):
         """Changes notebook"""
         changes = data.keys()
-        response = 200
         for change in changes:
             full_path = self.get_os_path(notebook_name, notebook_path)
             if change == "name":
                 new_path = self.get_os_path(data['name'], notebook_path)
-                if not os.path.isfile(new_path):
+                try:
                     os.rename(full_path,
                         self.get_os_path(data['name'], notebook_path))
                     notebook_name = data['name']
-                else:
-                    response = 409
+                except OSError as e:
+                    raise web.HTTPError(409, u'Notebook name already exists.')
             if change == "path":
                 new_path = self.get_os_path(data['name'], data['path'])
                 stutil.move(full_path, new_path)
@@ -112,7 +111,7 @@ class FileNotebookManager(NotebookManager):
             if change == "content":
                 self.save_notebook(data, notebook_name, notebook_path)
         model = self.notebook_model(notebook_name, notebook_path)
-        return model, response
+        return model
 
     def notebook_exists(self, name, path):
         """Returns a True if the notebook exists. Else, returns False.
@@ -130,31 +129,6 @@ class FileNotebookManager(NotebookManager):
         """
         path = self.get_os_path(name, path)
         return os.path.isfile(path)
-
-    def get_os_path(self, fname, path='/'):
-        """Given a notebook name and a server URL path, return its file system
-        path.
-        
-        Parameters
-        ----------
-        fname : string
-            The name of a notebook file with the .ipynb extension
-        path : string
-            The relative URL path (with '/' as separator) to the named
-            notebook.
-            
-        Returns
-        -------
-        path : string
-            A file system path that combines notebook_dir (location where
-            server started), the relative path, and the filename with the
-            current operating system's url.
-        """
-        parts = path.split('/')
-        parts = [p for p in parts if p != ''] # remove duplicate splits
-        parts += [fname]
-        path = os.path.join(self.notebook_dir, *parts)
-        return path
 
     def read_notebook_object_from_path(self, path):
         """read a notebook object from a path"""

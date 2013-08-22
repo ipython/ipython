@@ -71,6 +71,32 @@ class NotebookManager(LoggingConfigurable):
             name = None
             path = "/".join(names) + '/'
         return name, path
+        
+    def get_os_path(self, fname=None, path='/'):
+        """Given a notebook name and a server URL path, return its file system
+        path.
+
+        Parameters
+        ----------
+        fname : string
+            The name of a notebook file with the .ipynb extension
+        path : string
+            The relative URL path (with '/' as separator) to the named
+            notebook.
+
+        Returns
+        -------
+        path : string
+            A file system path that combines notebook_dir (location where
+            server started), the relative path, and the filename with the
+            current operating system's url.
+        """
+        parts = path.split('/')
+        parts = [p for p in parts if p != ''] # remove duplicate splits
+        if fname is not None:
+            parts += [fname]
+        path = os.path.join(self.notebook_dir, *parts)
+        return path
 
     def url_encode(self, path):
         """Returns the path with all special characters URL encoded"""
@@ -135,7 +161,7 @@ class NotebookManager(LoggingConfigurable):
         model = {"name": notebook_name, 
                     "path": notebook_path,
                     "last_modified (UTC)": last_modified.ctime()}
-        if content == True:
+        if content is True:
             model['content'] = contents
         return model
 
@@ -196,7 +222,7 @@ class NotebookManager(LoggingConfigurable):
             nb.metadata.name = name
         self.write_notebook_object(nb, name, notebook_path, new_name)
 
-    def write_notebook_object(self, nb, notebook_name=None, notebook_path='/', new_name=None):
+    def write_notebook_object(self, nb, notebook_name='/', notebook_path='/', new_name=None):
         """Write a notebook object and return its notebook_name.
 
         If notebook_name is None, this method should create a new notebook_name.

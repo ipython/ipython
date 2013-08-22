@@ -36,7 +36,7 @@ class NotebookRootHandler(IPythonHandler):
         """get returns a list of notebooks from the location
         where the server was started."""
         nbm = self.notebook_manager
-        notebooks = nbm.list_notebooks("")
+        notebooks = nbm.list_notebooks("/")
         self.finish(jsonapi.dumps(notebooks))
 
     @web.authenticated
@@ -53,17 +53,8 @@ class NotebookRootHandler(IPythonHandler):
             fname = nbm.new_notebook(notebook_path='/')
         self.set_header('Location', nbm.notebook_dir + fname)
         model = nbm.notebook_model(fname)
-        self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, notebook_name))
+        self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, fname))
         self.finish(jsonapi.dumps(model))
-
-
-class NotebookRootRedirect(IPythonHandler):
-
-    @web.authenticated
-    def get(self):
-        """get redirects to not include trailing backslash"""
-        self.redirect("/api/notebooks")
-
 
 class NotebookHandler(IPythonHandler):
 
@@ -86,7 +77,7 @@ class NotebookHandler(IPythonHandler):
             # get and return notebook representation
             format = self.get_argument('format', default='json')
             download = self.get_argument('download', default='False')
-            model = nbm.notebook_model(name,path)
+            model = nbm.notebook_model(name, path)
             last_mod, representation, name = nbm.get_notebook(name, path, format)
             self.set_header('Last-Modified', last_mod)
             
@@ -109,8 +100,7 @@ class NotebookHandler(IPythonHandler):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         data = jsonapi.loads(self.request.body)
-        model, response = nbm.change_notebook(data, name, path)
-        self.set_status(response)
+        model = nbm.change_notebook(data, name, path)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
@@ -217,7 +207,7 @@ default_handlers = [
         ModifyNotebookCheckpointsHandler),
     (r"api/notebooks/%s/" % _notebook_path_regex, NotebookHandler), 
     (r"api/notebooks/%s" % _notebook_path_regex, NotebookHandler),
-    (r"api/notebooks/", NotebookRootRedirect),
+    (r"api/notebooks/", NotebookRootHandler),
     (r"api/notebooks", NotebookRootHandler),
 ]
 
