@@ -9,6 +9,7 @@ before_install:
     - sudo apt-get install pandoc
     - pip install pygments
     - pip install sphinx
+    - pip install six
 install:
     - python setup.py install -q 
 script:

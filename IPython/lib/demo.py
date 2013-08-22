@@ -186,6 +186,8 @@ import sys
 from IPython.utils import io
 from IPython.utils.text import marquee
 from IPython.utils import openpy
+from six.moves import map
+from six.moves import zip
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
 class DemoError(Exception): pass
@@ -421,7 +423,7 @@ class Demo(object):
     def run_cell(self,source):
         """Execute a string with one or more lines of code"""
 
-        exec source in self.user_ns
+        exec(source, self.user_ns)
 
     def __call__(self,index=None):
         """run a block of the demo.

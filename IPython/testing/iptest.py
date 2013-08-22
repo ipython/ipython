@@ -345,7 +345,6 @@ class IPTester(object):
 
     def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
-        p = os.path
         if runner == 'iptest':
             iptest_app = os.path.abspath(get_ipython_module_path('IPython.testing.iptest'))
             self.runner = pycmd2argv(iptest_app) + sys.argv[1:]

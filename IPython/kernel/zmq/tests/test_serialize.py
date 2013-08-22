@@ -21,6 +21,7 @@ from IPython.kernel.zmq.serialize import serialize_object, unserialize_object
 from IPython.testing import decorators as dec
 from IPython.utils.pickleutil import CannedArray, CannedClass
 from IPython.parallel import interactive
+import six
 
 #-------------------------------------------------------------------------------
 # Globals and Utilities
@@ -37,7 +38,7 @@ class C(object):
     """dummy class for """
     
     def __init__(self, **kwargs):
-        for key,value in kwargs.iteritems():
+        for key,value in six.iteritems(kwargs):
             setattr(self, key, value)
 
 SHAPES = ((100,), (1024,10), (10,8,6,5), (), (0,))
@@ -60,8 +61,8 @@ def test_roundtrip_simple():
 @dec.parametric
 def test_roundtrip_nested():
     for obj in [
-        dict(a=range(5), b={1:b'hello'}),
-        [range(5),[range(3),(1,[b'whoda'])]],
+        dict(a=list(range(5)), b={1:b'hello'}),
+        [list(range(5)),[list(range(3)),(1,[b'whoda'])]],
     ]:
         obj2 = roundtrip(obj)
         yield nt.assert_equals(obj, obj2)
@@ -157,7 +158,7 @@ def test_numpy_in_dict():
         for dtype in DTYPES:
             A = numpy.empty(shape, dtype=dtype)
             _scrub_nan(A)
-            bufs = serialize_object(dict(a=A,b=1,c=range(20)))
+            bufs = serialize_object(dict(a=A,b=1,c=list(range(20))))
             canned = pickle.loads(bufs[0])
             yield nt.assert_true(canned['a'], CannedArray)
             d, r = unserialize_object(bufs)

@@ -22,6 +22,7 @@ from IPython.kernel.multikernelmanager import MultiKernelManager
 from IPython.utils.traitlets import (
     Dict, List, Unicode,
 )
+import six
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -53,7 +54,7 @@ class MappingKernelManager(MultiKernelManager):
 
     def notebook_for_kernel(self, kernel_id):
         """Return the notebook_id for a kernel_id or None."""
-        for notebook_id, kid in self._notebook_mapping.iteritems():
+        for notebook_id, kid in six.iteritems(self._notebook_mapping):
             if kernel_id == kid:
                 return notebook_id
         return None

@@ -1,4 +1,5 @@
 """Magic functions for running cells in various scripts."""
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -187,7 +188,7 @@ class ScriptMagics(Magics, Configurable):
             p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
         except OSError as e:
             if e.errno == errno.ENOENT:
-                print "Couldn't find program: %r" % cmd[0]
+                print("Couldn't find program: %r" % cmd[0])
                 return
             else:
                 raise
@@ -212,20 +213,20 @@ class ScriptMagics(Magics, Configurable):
                 p.send_signal(signal.SIGINT)
                 time.sleep(0.1)
                 if p.poll() is not None:
-                    print "Process is interrupted."
+                    print("Process is interrupted.")
                     return
                 p.terminate()
                 time.sleep(0.1)
                 if p.poll() is not None:
-                    print "Process is terminated."
+                    print("Process is terminated.")
                     return
                 p.kill()
-                print "Process is killed."
+                print("Process is killed.")
             except OSError:
                 pass
             except Exception as e:
-                print "Error while terminating subprocess (pid=%i): %s" \
-                    % (p.pid, e)
+                print("Error while terminating subprocess (pid=%i): %s" \
+                    % (p.pid, e))
             return
         out = py3compat.bytes_to_str(out)
         err = py3compat.bytes_to_str(err)
@@ -250,7 +251,7 @@ class ScriptMagics(Magics, Configurable):
     def killbgscripts(self, _nouse_=''):
         """Kill all BG processes started by %%script and its family."""
         self.kill_bg_processes()
-        print "All background processes were killed."
+        print("All background processes were killed.")
 
     def kill_bg_processes(self):
         """Kill all BG processes which are still running."""

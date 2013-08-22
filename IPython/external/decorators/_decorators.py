@@ -20,9 +20,9 @@ import warnings
 #from numpy.testing.utils import \
 #        WarningManager, WarningMessage
 # Our version:
-from _numpy_testing_utils import WarningManager
+from ._numpy_testing_utils import WarningManager
 try:
-    from _numpy_testing_noseclasses import KnownFailureTest
+    from ._numpy_testing_noseclasses import KnownFailureTest
 except:
     pass
 

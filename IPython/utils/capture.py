@@ -16,7 +16,7 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
+from .py3compat import StringIO
 
 #-----------------------------------------------------------------------------
 # Classes and functions

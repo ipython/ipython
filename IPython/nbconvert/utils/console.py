@@ -13,6 +13,7 @@
 
 # Used to determine python version
 import sys
+import six
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -97,7 +98,7 @@ def prompt_dictionary(choices, default_style=1, menu_comments={}):
     # Build the menu that will be displayed to the user with
     # all of the options available. 
     prompt = ""
-    for key, value in choices.iteritems():
+    for key, value in six.iteritems(choices):
         prompt += "%d %s " % (key, value)
         if key in menu_comments:
             prompt += menu_comments[key]

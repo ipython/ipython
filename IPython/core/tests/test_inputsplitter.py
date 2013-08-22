@@ -6,6 +6,7 @@ Authors
 * Fernando Perez
 * Robert Kern
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
@@ -112,7 +113,7 @@ def test_remove_comments():
 
 def test_get_input_encoding():
     encoding = isp.get_input_encoding()
-    nt.assert_true(isinstance(encoding, basestring))
+    nt.assert_true(isinstance(encoding, py3compat.string_types))
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
     nt.assert_equal(u'test'.encode(encoding), b'test')
@@ -365,11 +366,11 @@ class InteractiveLoopTestCase(unittest.TestCase):
         """
         src = mini_interactive_loop(pseudo_input(lines))
         test_ns = {}
-        exec src in test_ns
+        exec(src, test_ns)
         # We can't check that the provided ns is identical to the test_ns,
         # because Python fills test_ns with extra keys (copyright, etc).  But
         # we can check that the given dict is *contained* in test_ns
-        for k,v in ns.iteritems():
+        for k,v in ns.items():
             self.assertEqual(test_ns[k], v)
 
     def test_simple(self):
@@ -404,7 +405,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
     def test_syntax(self):
         """Call all single-line syntax tests from the main object"""
         isp = self.isp
-        for example in syntax.itervalues():
+        for example in syntax.values():
             for raw, out_t in example:
                 if raw.startswith(' '):
                     continue
@@ -417,7 +418,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
 
     def test_syntax_multiline(self):
         isp = self.isp
-        for example in syntax_ml.itervalues():
+        for example in syntax_ml.values():
             for line_pairs in example:
                 out_t_parts = []
                 raw_parts = []
@@ -437,7 +438,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
 
     def test_syntax_multiline_cell(self):
         isp = self.isp
-        for example in syntax_ml.itervalues():
+        for example in syntax_ml.values():
 
             out_t_parts = []
             for line_pairs in example:
@@ -497,10 +498,10 @@ if __name__ == '__main__':
             # real interpreter would instead send it for execution somewhere.
             #src = isp.source; raise EOFError # dbg
             src, raw = isp.source_raw_reset()
-            print 'Input source was:\n', src
-            print 'Raw source was:\n', raw
+            print('Input source was:\n', src)
+            print('Raw source was:\n', raw)
     except EOFError:
-        print 'Bye'
+        print('Bye')
 
 # Tests for cell magics support
 

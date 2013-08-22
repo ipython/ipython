@@ -16,7 +16,11 @@ Things to do:
 from __future__ import print_function
 
 # Standard library imports
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import sys
 import time
 import traceback
@@ -44,9 +48,9 @@ from IPython.utils.traitlets import (
     Type
 )
 
-from serialize import serialize_object, unpack_apply_message
-from session import Session
-from zmqshell import ZMQInteractiveShell
+from .serialize import serialize_object, unpack_apply_message
+from .session import Session
+from .zmqshell import ZMQInteractiveShell
 
 
 #-----------------------------------------------------------------------------
@@ -98,7 +102,7 @@ class Kernel(Configurable):
     ident = Unicode()
 
     def _ident_default(self):
-        return unicode(uuid.uuid4())
+        return py3compat.unicode_type(uuid.uuid4())
 
 
     # Private interface
@@ -356,11 +360,11 @@ class Kernel(Configurable):
             raw_input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
-            self._sys_raw_input = __builtin__.input
-            __builtin__.input = raw_input
+            self._sys_raw_input = builtins.input
+            builtins.input = raw_input
         else:
-            self._sys_raw_input = __builtin__.raw_input
-            __builtin__.raw_input = raw_input
+            self._sys_raw_input = builtins.raw_input
+            builtins.raw_input = raw_input
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
@@ -400,9 +404,9 @@ class Kernel(Configurable):
         finally:
             # Restore raw_input.
              if py3compat.PY3:
-                 __builtin__.input = self._sys_raw_input
+                 builtins.input = self._sys_raw_input
              else:
-                 __builtin__.raw_input = self._sys_raw_input
+                 builtins.raw_input = self._sys_raw_input
 
         reply_content[u'status'] = status
 
@@ -613,10 +617,10 @@ class Kernel(Configurable):
             working.update(ns)
             code = "%s = %s(*%s,**%s)" % (resultname, fname, argname, kwargname)
             try:
-                exec code in shell.user_global_ns, shell.user_ns
+                exec(code, shell.user_global_ns, shell.user_ns)
                 result = working.get(resultname)
             finally:
-                for key in ns.iterkeys():
+                for key in ns:
                     working.pop(key)
 
             result_buf = serialize_object(result,
@@ -666,7 +670,7 @@ class Kernel(Configurable):
     def abort_request(self, stream, ident, parent):
         """abort a specifig msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
-        if isinstance(msg_ids, basestring):
+        if isinstance(msg_ids, py3compat.string_types):
             msg_ids = [msg_ids]
         if not msg_ids:
             self.abort_queues()

@@ -23,7 +23,11 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__ as builtin_mod
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import os
 import re
 import sys
@@ -32,6 +36,7 @@ from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
+import six
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -105,7 +110,7 @@ class Config(dict):
     def merge(self, other):
         """merge another config object into this one"""
         to_update = {}
-        for k, v in other.iteritems():
+        for k, v in six.iteritems(other):
             if k not in self:
                 to_update[k] = v
             else: # I have this key
@@ -146,7 +151,7 @@ class Config(dict):
 
     def __deepcopy__(self, memo):
         import copy
-        return type(self)(copy.deepcopy(self.items()))
+        return type(self)(copy.deepcopy(list(self.items())))
 
     def __getitem__(self, key):
         # We cannot use directly self._is_section_key, because it triggers
@@ -155,11 +160,11 @@ class Config(dict):
         is_section_key = self.__class__._is_section_key.__get__(self)
 
         # Because we use this for an exec namespace, we need to delegate
-        # the lookup of names in __builtin__ to itself.  This means
+        # the lookup of names in builtins to itself.  This means
         # that you can't have section or attribute names that are
         # builtins.
         try:
-            return getattr(builtin_mod, key)
+            return getattr(builtins, key)
         except AttributeError:
             pass
         if is_section_key(key):
@@ -375,14 +380,14 @@ class CommandLineConfigLoader(ConfigLoader):
             # This case happens if the rhs is a string.
             value = rhs
 
-        exec u'self.config.%s = value' % lhs
+        exec(u'self.config.%s = value' % lhs)
 
     def _load_flag(self, cfg):
         """update self.config from a flag, which can be a dict or Config"""
         if isinstance(cfg, (dict, Config)):
             # don't clobber whole config sections, update
             # each section from config:
-            for sec,c in cfg.iteritems():
+            for sec,c in six.iteritems(cfg):
                 self.config[sec].update(c)
         else:
             raise TypeError("Invalid flag: %r" % cfg)
@@ -464,7 +469,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         if enc is None:
             enc = DEFAULT_ENCODING
         for arg in argv:
-            if not isinstance(arg, unicode):
+            if not isinstance(arg, py3compat.unicode_type):
                 # only decode if not already decoded
                 arg = arg.decode(enc)
             uargv.append(arg)
@@ -630,8 +635,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
-        for k, v in vars(self.parsed_data).iteritems():
-            exec "self.config.%s = v"%k in locals(), globals()
+        for k, v in six.iteritems(vars(self.parsed_data)):
+            exec("self.config.%s = v"%k, locals(), globals())
 
 class KVArgParseConfigLoader(ArgParseConfigLoader):
     """A config loader that loads aliases and flags with argparse,
@@ -647,17 +652,17 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         if flags is None:
             flags = self.flags
         paa = self.parser.add_argument
-        for key,value in aliases.iteritems():
+        for key,value in six.iteritems(aliases):
             if key in flags:
                 # flags
                 nargs = '?'
             else:
                 nargs = None
             if len(key) is 1:
-                paa('-'+key, '--'+key, type=unicode, dest=value, nargs=nargs)
+                paa('-'+key, '--'+key, type=py3compat.unicode_type, dest=value, nargs=nargs)
             else:
-                paa('--'+key, type=unicode, dest=value, nargs=nargs)
-        for key, (value, help) in flags.iteritems():
+                paa('--'+key, type=py3compat.unicode_type, dest=value, nargs=nargs)
+        for key, (value, help) in six.iteritems(flags):
             if key in self.aliases:
                 #
                 self.alias_flags[self.aliases[key]] = value
@@ -676,7 +681,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         else:
             subcs = []
 
-        for k, v in vars(self.parsed_data).iteritems():
+        for k, v in six.iteritems(vars(self.parsed_data)):
             if v is None:
                 # it was a flag that shares the name of an alias
                 subcs.append(self.alias_flags[k])

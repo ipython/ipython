@@ -66,7 +66,11 @@ used, and this module (and the readline module) are silently inactive.
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import __main__
 import glob
 import inspect
@@ -83,7 +87,9 @@ from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
+from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import CBool, Enum
+from six.moves import filter
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -314,7 +320,7 @@ class Completer(Configurable):
         match_append = matches.append
         n = len(text)
         for lst in [keyword.kwlist,
-                    __builtin__.__dict__.keys(),
+                    builtins.__dict__.keys(),
                     self.namespace.keys(),
                     self.global_namespace.keys()]:
             for word in lst:
@@ -384,7 +390,7 @@ def get__all__entries(obj):
     except:
         return []
     
-    return [w for w in words if isinstance(w, basestring)]
+    return [w for w in words if isinstance(w, string_types)]
 
 
 class IPCompleter(Completer):
@@ -660,7 +666,7 @@ class IPCompleter(Completer):
                         # true if txt is _not_ a _ name, false otherwise:
                         no__name = (lambda txt:
                                     re.match(r'.*\._.*?',txt) is None)
-                    matches = filter(no__name, matches)
+                    matches = list(filter(no__name, matches))
             except NameError:
                 # catches <undefined attributes>.<tab>
                 matches = []

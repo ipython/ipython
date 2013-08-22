@@ -20,7 +20,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import keyword
 import os
 import re
@@ -28,9 +32,10 @@ import sys
 
 from IPython.config.configurable import Configurable
 from IPython.core.splitinput import split_user_input
-
+from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import List, Instance
 from IPython.utils.warn import warn, error
+import six
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -125,13 +130,13 @@ class AliasManager(Configurable):
 
     @property
     def aliases(self):
-        return [(item[0], item[1][1]) for item in self.alias_table.iteritems()]
+        return [(item[0], item[1][1]) for item in six.iteritems(self.alias_table)]
 
     def exclude_aliases(self):
         # set of things NOT to alias (keywords, builtins and some magics)
         no_alias = set(['cd','popd','pushd','dhist','alias','unalias'])
         no_alias.update(set(keyword.kwlist))
-        no_alias.update(set(__builtin__.__dict__.keys()))
+        no_alias.update(set(builtins.__dict__.keys()))
         self.no_alias = no_alias
 
     def init_aliases(self):
@@ -171,7 +176,7 @@ class AliasManager(Configurable):
         if name in self.no_alias:
             raise InvalidAliasError("The name %s can't be aliased "
                                     "because it is a keyword or builtin." % name)
-        if not (isinstance(cmd, basestring)):
+        if not (isinstance(cmd, string_types)):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % cmd)
         nargs = cmd.count('%s')

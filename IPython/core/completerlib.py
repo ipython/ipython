@@ -268,7 +268,7 @@ def magic_run_completer(self, event):
     # should complete on all files, since after the first one other files may
     # be arguments to the input script.
 
-    if filter(magic_run_re.match, comps):
+    if any(magic_run_re.match(c) for c in comps):
         pys =  [f.replace('\\','/') for f in lglob('*')]
     else:
         pys =  [f.replace('\\','/')
@@ -323,7 +323,7 @@ def cd_completer(self, event):
             return [compress_user(relpath, tilde_expand, tilde_val)]
 
         # if no completions so far, try bookmarks
-        bks = self.db.get('bookmarks',{}).iterkeys()
+        bks = self.db.get('bookmarks',{}).keys()
         bkmatches = [s for s in bks if s.startswith(event.symbol)]
         if bkmatches:
             return bkmatches

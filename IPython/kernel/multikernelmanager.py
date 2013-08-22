@@ -25,6 +25,7 @@ import zmq
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import unicode_type
 from IPython.utils.traitlets import (
     Instance, Dict, Unicode, Any, DottedObjectName
 )
@@ -102,7 +103,7 @@ class MultiKernelManager(LoggingConfigurable):
             km.start_kernel(stdout=PIPE, stderr=PIPE)
 
         """
-        kernel_id = kwargs.pop('kernel_id', unicode(uuid.uuid4()))
+        kernel_id = kwargs.pop('kernel_id', unicode_type(uuid.uuid4()))
         if kernel_id in self:
             raise DuplicateKernelError('Kernel already exists: %s' % kernel_id)
         # kernel_manager_factory is the constructor for the KernelManager

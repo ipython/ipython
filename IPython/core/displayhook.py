@@ -23,7 +23,11 @@ Authors:
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 
 import sys
 
@@ -87,10 +91,10 @@ class DisplayHook(Configurable):
 
     def check_for_underscore(self):
         """Check if the user has set the '_' variable by hand."""
-        # If something injected a '_' variable in __builtin__, delete
+        # If something injected a '_' variable in builtins, delete
         # ipython's automatic one so we don't clobber that.  gettext() in
         # particular uses _, so we need to stay away from it.
-        if '_' in __builtin__.__dict__:
+        if '_' in builtins.__dict__:
             try:
                 del self.shell.user_ns['_']
             except KeyError:
@@ -203,10 +207,10 @@ class DisplayHook(Configurable):
                      'with the current result.')
 
                 self.flush()
-            # Don't overwrite '_' and friends if '_' is in __builtin__ (otherwise
+            # Don't overwrite '_' and friends if '_' is in builtins (otherwise
             # we cause buggy behavior for things like gettext).
 
-            if '_' not in __builtin__.__dict__:
+            if '_' not in builtins.__dict__:
                 self.___ = self.__
                 self.__ = self._
                 self._ = result
@@ -270,7 +274,7 @@ class DisplayHook(Configurable):
         # Release our own references to objects:
         self._, self.__, self.___ = '', '', ''
 
-        if '_' not in __builtin__.__dict__:
+        if '_' not in builtins.__dict__:
             self.shell.user_ns.update({'_':None,'__':None, '___':None})
         import gc
         # TODO: Is this really needed?

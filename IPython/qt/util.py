@@ -9,6 +9,7 @@ from IPython.external.qt import QtCore, QtGui
 
 # IPython imports.
 from IPython.utils.traitlets import HasTraits, TraitType
+import six
 
 #-----------------------------------------------------------------------------
 # Metaclasses
@@ -27,7 +28,7 @@ class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
     def __new__(mcls, name, bases, classdict):
         # FIXME: this duplicates the code from MetaHasTraits.
         # I don't think a super() call will help me here.
-        for k,v in classdict.iteritems():
+        for k,v in six.iteritems(classdict):
             if isinstance(v, TraitType):
                 v.name = k
             elif inspect.isclass(v):

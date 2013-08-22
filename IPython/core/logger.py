@@ -1,5 +1,6 @@
 """Logger class for IPython's logging facilities.
 """
+from __future__ import print_function
 
 #*****************************************************************************
 #       Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -137,33 +138,33 @@ class Logger(object):
         label = {0:'OFF',1:'ON',False:'OFF',True:'ON'}
 
         if self.logfile is None:
-            print """
+            print("""
 Logging hasn't been started yet (use logstart for that).
 
 %logon/%logoff are for temporarily starting and stopping logging for a logfile
 which already exists. But you must first start the logging process with
-%logstart (optionally giving a logfile name)."""
+%logstart (optionally giving a logfile name).""")
 
         else:
             if self.log_active == val:
-                print 'Logging is already',label[val]
+                print('Logging is already',label[val])
             else:
-                print 'Switching logging',label[val]
+                print('Switching logging',label[val])
                 self.log_active = not self.log_active
                 self.log_active_out = self.log_active
 
     def logstate(self):
         """Print a status message about the logger."""
         if self.logfile is None:
-            print 'Logging has not been activated.'
+            print('Logging has not been activated.')
         else:
             state = self.log_active and 'active' or 'temporarily suspended'
-            print 'Filename       :',self.logfname
-            print 'Mode           :',self.logmode
-            print 'Output logging :',self.log_output
-            print 'Raw input log  :',self.log_raw_input
-            print 'Timestamping   :',self.timestamp
-            print 'State          :',state
+            print('Filename       :',self.logfname)
+            print('Mode           :',self.logmode)
+            print('Output logging :',self.log_output)
+            print('Raw input log  :',self.log_raw_input)
+            print('Timestamping   :',self.timestamp)
+            print('State          :',state)
 
     def log(self, line_mod, line_ori):
         """Write the sources to a log.
@@ -213,7 +214,7 @@ which already exists. But you must first start the logging process with
             self.logfile.close()
             self.logfile = None
         else:
-            print "Logging hadn't been started."
+            print("Logging hadn't been started.")
         self.log_active = False
 
     # For backwards compatibility, in case anyone was using this.

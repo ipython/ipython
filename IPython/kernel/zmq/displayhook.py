@@ -1,11 +1,15 @@
-import __builtin__
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import sys
 
 from IPython.core.displayhook import DisplayHook
 from IPython.kernel.inprocess.socket import SocketABC
 from IPython.utils.jsonutil import encode_images
 from IPython.utils.traitlets import Instance, Dict
-from session import extract_header, Session
+from .session import extract_header, Session
 
 class ZMQDisplayHook(object):
     """A simple displayhook that publishes the object's repr over a ZeroMQ
@@ -21,7 +25,7 @@ class ZMQDisplayHook(object):
         if obj is None:
             return
 
-        __builtin__._ = obj
+        builtins._ = obj
         sys.stdout.flush()
         sys.stderr.flush()
         msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},

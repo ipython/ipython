@@ -14,6 +14,7 @@ Tests for testing.tools
 # Imports
 #-----------------------------------------------------------------------------
 from __future__ import with_statement
+from __future__ import print_function
 
 import os
 import unittest
@@ -75,16 +76,16 @@ def test_temp_pyfile():
 class TestAssertPrints(unittest.TestCase):
     def test_passing(self):
         with tt.AssertPrints("abc"):
-            print "abcd"
-            print "def"
-            print b"ghi"
+            print("abcd")
+            print("def")
+            print(b"ghi")
     
     def test_failing(self):
         def func():
             with tt.AssertPrints("abc"):
-                print "acd"
-                print "def"
-                print b"ghi"
+                print("acd")
+                print("def")
+                print(b"ghi")
         
         self.assertRaises(AssertionError, func)
 

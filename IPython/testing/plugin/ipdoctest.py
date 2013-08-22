@@ -19,19 +19,24 @@ Limitations:
 # Module imports
 
 # From the standard library
-import __builtin__ as builtin_mod
-import commands
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import doctest
 import inspect
 import logging
 import os
 import re
 import sys
-import traceback
-import unittest
 
 from inspect import getmodule
-from StringIO import StringIO
+from IPython.utils import py3compat
+if py3compat.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 # We are overriding the default doctest runner, so we need to import a few
 # things from doctest directly
@@ -46,6 +51,7 @@ import nose.core
 
 from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
+from six.moves import map
 
 # Our own imports
 
@@ -96,7 +102,7 @@ class DocTestFinder(doctest.DocTestFinder):
         if module is None:
             return True
         elif inspect.isfunction(object):
-            return module.__dict__ is object.func_globals
+            return module.__dict__ is object.__globals__
         elif inspect.isbuiltin(object):
             return module.__name__ == object.__module__
         elif inspect.isclass(object):
@@ -106,7 +112,7 @@ class DocTestFinder(doctest.DocTestFinder):
             # __module__ attribute of methods, but since the same error is easy
             # to make by extension code writers, having this safety in place
             # isn't such a bad idea
-            return module.__name__ == object.im_class.__module__
+            return module.__name__ == object.__self__.__class__.__module__
         elif inspect.getmodule(object) is not None:
             return module is inspect.getmodule(object)
         elif hasattr(object, '__module__'):
@@ -154,7 +160,7 @@ class DocTestFinder(doctest.DocTestFinder):
                 if isinstance(val, staticmethod):
                     val = getattr(obj, valname)
                 if isinstance(val, classmethod):
-                    val = getattr(obj, valname).im_func
+                    val = getattr(obj, valname).__func__
 
                 # Recurse to methods, properties, and nested classes.
                 if ((inspect.isfunction(val) or inspect.isclass(val) or
@@ -279,7 +285,7 @@ class DocTestCase(doctests.DocTestCase):
             # We must remove the _ key in the namespace, so that Python's
             # doctest code sets it naturally
             _ip.user_ns.pop('_', None)
-            _ip.user_ns['__builtins__'] = builtin_mod
+            _ip.user_ns['__builtins__'] = builtins
             self._dt_test.globs = _ip.user_ns
 
         super(DocTestCase, self).setUp()
@@ -611,7 +617,7 @@ class ExtensionDoctest(doctests.Doctest):
 
         if exclude_patterns is None:
             exclude_patterns = []
-        self.exclude_patterns = map(re.compile,exclude_patterns)
+        self.exclude_patterns = list(map(re.compile,exclude_patterns))
         doctests.Doctest.__init__(self)
 
     def options(self, parser, env=os.environ):

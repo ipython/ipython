@@ -13,20 +13,19 @@
 
 # Standard library imports
 import abc
+import six
 
 #-----------------------------------------------------------------------------
 # Main kernel client class
 #-----------------------------------------------------------------------------
 
-class KernelClientABC(object):
+class KernelClientABC(six.with_metaclass(abc.ABCMeta, object)):
     """KernelManager ABC.
 
     The docstrings for this class can be found in the base implementation:
 
     `IPython.kernel.client.KernelClient`
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def kernel(self):

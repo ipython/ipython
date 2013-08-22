@@ -11,8 +11,8 @@ from io import TextIOWrapper, BytesIO
 import os.path
 import re
 
-cookie_re = re.compile(ur"coding[:=]\s*([-\w.]+)", re.UNICODE)
-cookie_comment_re = re.compile(ur"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
+cookie_re = re.compile(u"coding[:=]\\s*([-\\w.]+)", re.UNICODE)
+cookie_comment_re = re.compile(u"^\\s*#.*coding[:=]\\s*([-\\w.]+)", re.UNICODE)
 
 try:
     # Available in Python 3

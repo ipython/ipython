@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Release data for the IPython project."""
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2008, IPython Development Team.

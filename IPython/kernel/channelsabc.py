@@ -13,16 +13,15 @@
 
 # Standard library imports
 import abc
+import six
 
 #-----------------------------------------------------------------------------
 # Channels
 #-----------------------------------------------------------------------------
 
 
-class ChannelABC(object):
+class ChannelABC(six.with_metaclass(abc.ABCMeta, object)):
     """A base class for all channel ABCs."""
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def start(self):

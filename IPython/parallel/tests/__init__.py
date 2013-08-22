@@ -1,4 +1,5 @@
 """toplevel setup/teardown for parallel tests."""
+from __future__ import print_function
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
@@ -63,7 +64,7 @@ def setup():
     tic = time.time()
     while not os.path.exists(engine_json) or not os.path.exists(client_json):
         if cp.poll() is not None:
-            print cp.poll()
+            print(cp.poll())
             raise RuntimeError("The test controller failed to start.")
         elif time.time()-tic > 15:
             raise RuntimeError("Timeout waiting for the test controller to start.")
@@ -112,15 +113,15 @@ def teardown():
             try:
                 p.stop()
             except Exception as e:
-                print e
+                print(e)
                 pass
         if p.poll() is None:
             time.sleep(.25)
         if p.poll() is None:
             try:
-                print 'cleaning up test process...'
+                print('cleaning up test process...')
                 p.signal(SIGKILL)
             except:
-                print "couldn't shutdown process: ", p
+                print("couldn't shutdown process: ", p)
     blackhole.close()
     

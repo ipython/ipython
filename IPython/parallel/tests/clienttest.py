@@ -16,7 +16,6 @@ from __future__ import print_function
 import sys
 import tempfile
 import time
-from StringIO import StringIO
 
 from nose import SkipTest
 
@@ -29,6 +28,7 @@ from IPython.parallel import error
 from IPython.parallel import Client
 
 from IPython.parallel.tests import launchers, add_engines
+from six.moves import filter
 
 # simple tasks for use in apply tests
 

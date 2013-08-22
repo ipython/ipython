@@ -27,6 +27,9 @@ from string import Formatter
 from IPython.external.path import path
 from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Code
@@ -308,7 +311,7 @@ def list_strings(arg):
         Out[9]: ['A', 'list', 'of', 'strings']
     """
 
-    if isinstance(arg,basestring): return [arg]
+    if isinstance(arg, py3compat.string_types): return [arg]
     else: return arg
 
 
@@ -602,14 +605,14 @@ class DollarFormatter(FullEvalFormatter):
 
 def _chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i+n]
 
 
 def _find_optimal(rlist , separator_size=2 , displaywidth=80):
     """Calculate optimal info to columnize a list of string"""
     for nrow in range(1, len(rlist)+1) :
-        chk = map(max,_chunks(rlist, nrow))
+        chk = list(map(max,_chunks(rlist, nrow)))
         sumlength = sum(chk)
         ncols = len(chk)
         if sumlength+separator_size*(ncols-1) <= displaywidth :
@@ -682,7 +685,7 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
         'rows_numbers': 5})
 
     """
-    info = _find_optimal(map(len, items), *args, **kwargs)
+    info = _find_optimal(list(map(len, items)), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
     return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
 

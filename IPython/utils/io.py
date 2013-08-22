@@ -17,8 +17,11 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-from StringIO import StringIO
 from .capture import CapturedIO, capture_output
+
+from six.moves import filter
+
+from .py3compat import StringIO, string_types
 
 #-----------------------------------------------------------------------------
 # Code
@@ -57,7 +60,7 @@ class IOStream:
                       file=sys.stderr)
 
     def writelines(self, lines):
-        if isinstance(lines, basestring):
+        if isinstance(lines, string_types):
             lines = [lines]
         for line in lines:
             self.write(line)
@@ -170,7 +173,7 @@ def ask_yes_no(prompt,default=None):
     ans = None
     while ans not in answers.keys():
         try:
-            ans = raw_input(prompt+' ').lower()
+            ans = py3compat.input(prompt+' ').lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:

@@ -186,9 +186,9 @@ class ModuleReloader(object):
             return
 
         if check_all or self.check_all:
-            modules = sys.modules.keys()
+            modules = list(sys.modules.keys())
         else:
-            modules = self.modules.keys()
+            modules = list(self.modules.keys())
 
         for modname in modules:
             m = sys.modules.get(modname, None)
@@ -258,7 +258,7 @@ def update_function(old, new):
 def update_class(old, new):
     """Replace stuff in the __dict__ of a class, and upgrade
     method code objects"""
-    for key in old.__dict__.keys():
+    for key in list(old.__dict__.keys()):
         old_obj = getattr(old, key)
 
         try:
@@ -339,7 +339,7 @@ def superreload(module, reload=reload, old_objects={}):
     """
 
     # collect old objects in the module
-    for name, obj in module.__dict__.items():
+    for name, obj in list(module.__dict__.items()):
         if not hasattr(obj, '__module__') or obj.__module__ != module.__name__:
             continue
         key = (module.__name__, name)
@@ -348,7 +348,7 @@ def superreload(module, reload=reload, old_objects={}):
         except TypeError:
             # weakref doesn't work for all types;
             # create strong references for 'important' cases
-            if not PY3 and isinstance(obj, types.ClassType):
+            if not PY3 and isinstance(obj, type):
                 old_objects.setdefault(key, []).append(StrongRef(obj))
 
     # reload module
@@ -370,7 +370,7 @@ def superreload(module, reload=reload, old_objects={}):
         raise
 
     # iterate over all objects and update functions & classes
-    for name, new_obj in module.__dict__.items():
+    for name, new_obj in list(module.__dict__.items()):
         key = (module.__name__, name)
         if key not in old_objects: continue
 
@@ -473,10 +473,8 @@ class AutoreloadMagics(Magics):
         """
         modname = parameter_s
         if not modname:
-            to_reload = self._reloader.modules.keys()
-            to_reload.sort()
-            to_skip = self._reloader.skip_modules.keys()
-            to_skip.sort()
+            to_reload = sorted(self._reloader.modules.keys())
+            to_skip = sorted(self._reloader.skip_modules.keys())
             if stream is None:
                 stream = sys.stdout
             if self._reloader.check_all:

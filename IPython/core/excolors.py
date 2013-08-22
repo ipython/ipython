@@ -24,7 +24,7 @@ def exception_colors():
     >>> ec = exception_colors()
     >>> ec.active_scheme_name
     ''
-    >>> print ec.active_colors
+    >>> print(ec.active_colors)
     None
 
     Now we activate a color scheme:

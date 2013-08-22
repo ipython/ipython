@@ -26,6 +26,10 @@ from zmq import MessageTracker
 from IPython.core.display import clear_output, display, display_pretty
 from IPython.external.decorator import decorator
 from IPython.parallel import error
+from IPython.utils.py3compat import string_types
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -61,7 +65,7 @@ class AsyncResult(object):
     _single_result = False
 
     def __init__(self, client, msg_ids, fname='unknown', targets=None, tracker=None):
-        if isinstance(msg_ids, basestring):
+        if isinstance(msg_ids, string_types):
             # always a list
             msg_ids = [msg_ids]
             self._single_result = True
@@ -142,7 +146,7 @@ class AsyncResult(object):
         self._ready = self._client.wait(self.msg_ids, timeout)
         if self._ready:
             try:
-                results = map(self._client.results.get, self.msg_ids)
+                results = list(map(self._client.results.get, self.msg_ids))
                 self._result = results
                 if self._single_result:
                     r = results[0]
@@ -254,7 +258,7 @@ class AsyncResult(object):
         elif isinstance(key, slice):
             self._check_ready()
             return error.collect_exceptions(self._result[key], self._fname)
-        elif isinstance(key, basestring):
+        elif isinstance(key, string_types):
             # metadata proxy *does not* require that results are done
             self.wait(0)
             values = [ md[key] for md in self._metadata ]
@@ -668,10 +672,10 @@ class AsyncHubResult(AsyncResult):
         start = time.time()
         if self._ready:
             return
-        local_ids = filter(lambda msg_id: msg_id in self._client.outstanding, self.msg_ids)
+        local_ids = [m for m in self.msg_ids if m in self._client.outstanding]
         local_ready = self._client.wait(local_ids, timeout)
         if local_ready:
-            remote_ids = filter(lambda msg_id: msg_id not in self._client.results, self.msg_ids)
+            remote_ids = [m for m in self.msg_ids if m not in self._client.results]
             if not remote_ids:
                 self._ready = True
             else:
@@ -686,7 +690,7 @@ class AsyncHubResult(AsyncResult):
                     self._ready = True
         if self._ready:
             try:
-                results = map(self._client.results.get, self.msg_ids)
+                results = list(map(self._client.results.get, self.msg_ids))
                 self._result = results
                 if self._single_result:
                     r = results[0]
@@ -701,6 +705,6 @@ class AsyncHubResult(AsyncResult):
             else:
                 self._success = True
             finally:
-                self._metadata = map(self._client.metadata.get, self.msg_ids)
+                self._metadata = list(map(self._client.metadata.get, self.msg_ids))
 
 __all__ = ['AsyncResult', 'AsyncMapResult', 'AsyncHubResult']

@@ -22,7 +22,6 @@ import platform
 import time
 from collections import namedtuple
 from tempfile import mktemp
-from StringIO import StringIO
 
 import zmq
 from nose import SkipTest
@@ -31,6 +30,7 @@ from nose.plugins.attrib import attr
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
+from IPython.utils.py3compat import unicode_type
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -41,6 +41,8 @@ from IPython.parallel.util import interactive
 from IPython.parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, crash, wait, skip_without
+from six.moves import map
+from six.moves import zip
 
 def setup():
     add_engines(3, total=True)
@@ -72,7 +74,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     
     def test_push_pull(self):
         """test pushing and pulling"""
-        data = dict(a=10, b=1.05, c=range(10), d={'e':(1,2),'f':'hi'})
+        data = dict(a=10, b=1.05, c=list(range(10)), d={'e':(1,2),'f':'hi'})
         t = self.client.ids[-1]
         v = self.client[t]
         push = v.push
@@ -233,7 +235,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
 
     def test_scatter_gather(self):
         view = self.client[:]
-        seq1 = range(16)
+        seq1 = list(range(16))
         view.scatter('a', seq1)
         seq2 = view.gather('a', block=True)
         self.assertEqual(seq2, seq1)
@@ -252,7 +254,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_scatter_gather_lazy(self):
         """scatter/gather with targets='all'"""
         view = self.client.direct_view(targets='all')
-        x = range(64)
+        x = list(range(64))
         view.scatter('x', x)
         gathered = view.gather('x', block=True)
         self.assertEqual(gathered, x)
@@ -318,7 +320,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         """push/pull pandas.TimeSeries"""
         import pandas
         
-        ts = pandas.TimeSeries(range(10))
+        ts = pandas.TimeSeries(list(range(10)))
         
         view = self.client[-1]
         
@@ -332,15 +334,15 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view = self.client[:]
         def f(x):
             return x**2
-        data = range(16)
+        data = list(range(16))
         r = view.map_sync(f, data)
-        self.assertEqual(r, map(f, data))
+        self.assertEqual(r, list(map(f, data)))
     
     def test_map_iterable(self):
         """test map on iterables (direct)"""
         view = self.client[:]
         # 101 is prime, so it won't be evenly distributed
-        arr = range(101)
+        arr = list(range(101))
         # ensure it will be an iterator, even in Python 3
         it = iter(arr)
         r = view.map_sync(lambda x: x, it)
@@ -359,7 +361,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         assert_array_equal(r, arr)
     
     def test_scatter_gather_nonblocking(self):
-        data = range(16)
+        data = list(range(16))
         view = self.client[:]
         view.scatter('a', data, block=False)
         ar = view.gather('a', block=False)
@@ -454,7 +456,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         @interactive
         def check_unicode(a, check):
-            assert isinstance(a, unicode), "%r is not unicode"%a
+            assert not isinstance(a, bytes), "%r is bytes, not unicode"%a
             assert isinstance(check, bytes), "%r is not bytes"%check
             assert a.encode('utf8') == check, "%s != %s"%(a,check)
         
@@ -491,7 +493,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     
     def test_eval_reference(self):
         v = self.client[self.client.ids[0]]
-        v['g'] = range(5)
+        v['g'] = list(range(5))
         rg = pmod.Reference('g[0]')
         echo = lambda x:x
         self.assertEqual(v.apply_sync(echo, rg), 0)
@@ -504,7 +506,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
 
     def test_single_engine_map(self):
         e0 = self.client[self.client.ids[0]]
-        r = range(5)
+        r = list(range(5))
         check = [ -1*i for i in r ]
         result = e0.map_sync(lambda x: -1*x, r)
         self.assertEqual(result, check)
@@ -596,7 +598,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view.execute("from IPython.core.display import *")
         ar = view.execute("[ display(i) for i in range(5) ]", block=True)
         
-        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        expected = [ {u'text/plain' : unicode_type(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
             self.assertEqual(mimes, expected)
@@ -612,7 +614,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         ar = view.apply_async(publish)
         ar.get(5)
-        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        expected = [ {u'text/plain' : unicode_type(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
             self.assertEqual(mimes, expected)

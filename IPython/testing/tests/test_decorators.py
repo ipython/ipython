@@ -1,5 +1,6 @@
 """Tests for the decorators we've created for IPython.
 """
+from __future__ import print_function
 
 # Module imports
 # Std lib
@@ -33,11 +34,11 @@ def getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     else:
         raise TypeError('arg is not a Python function')
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
+    args, varargs, varkw = inspect.getargs(func_obj.__code__)
+    return args, varargs, varkw, func_obj.__defaults__
 
 #-----------------------------------------------------------------------------
 # Testing functions
@@ -86,9 +87,9 @@ def doctest_bad(x,y=1,**k):
     >>> 1+1
     3
     """
-    print 'x:',x
-    print 'y:',y
-    print 'k:',k
+    print('x:',x)
+    print('y:',y)
+    print('k:',k)
 
 
 def call_doctest_bad():
@@ -136,7 +137,7 @@ class FooClass(object):
         >>> f = FooClass(3)
         junk
         """
-        print 'Making a FooClass.'
+        print('Making a FooClass.')
         self.x = x
         
     @skip_doctest

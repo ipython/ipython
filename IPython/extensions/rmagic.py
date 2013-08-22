@@ -26,6 +26,7 @@ Usage
 {RGET_DOC}
 
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012 The IPython Development Team
@@ -63,7 +64,8 @@ from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
 from IPython.external.simplegeneric import generic
-from IPython.utils.py3compat import str_to_unicode, unicode_to_str, PY3
+from IPython.utils.py3compat import (str_to_unicode, unicode_to_str, PY3,
+                                     unicode_type)
 
 class RInterpreterError(ri.RRuntimeError):
     """An error when running R code in a %%R magic cell."""
@@ -381,7 +383,7 @@ class RMagics(Magics):
         help='Convert these objects to data.frames and return as structured arrays.'
         )
     @argument(
-        '-u', '--units', type=unicode, choices=["px", "in", "cm", "mm"],
+        '-u', '--units', type=unicode_type, choices=["px", "in", "cm", "mm"],
         help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
         )
     @argument(
@@ -607,9 +609,9 @@ class RMagics(Magics):
                     ri.set_writeconsole(old_writeconsole)
         
         except RInterpreterError as e:
-            print(e.stdout)
+            print((e.stdout))
             if not e.stdout.endswith(e.err):
-                print(e.err)
+                print((e.err))
             rmtree(tmpd)
             return
 

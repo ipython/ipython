@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from __future__ import division
+from __future__ import print_function
 
 import sys
 import warnings
@@ -26,6 +27,7 @@ from IPython.testing.skipdoctest import skip_doctest
 
 from . import map as Map
 from .asyncresult import AsyncMapResult
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # Functions and Decorators
@@ -89,7 +91,7 @@ def sync_view_results(f, self, *args, **kwargs):
     view = self.view
     if view._in_sync_results:
         return f(self, *args, **kwargs)
-    print 'in sync results', f
+    print('in sync results', f)
     view._in_sync_results = True
     try:
         ret = f(self, *args, **kwargs)

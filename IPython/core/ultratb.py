@@ -75,6 +75,7 @@ Inheritance diagram:
 #*****************************************************************************
 
 from __future__ import unicode_literals
+from __future__ import print_function
 
 import inspect
 import keyword
@@ -87,6 +88,8 @@ import time
 import tokenize
 import traceback
 import types
+from six.moves import map
+from six.moves import zip
 
 try:                           # Python 2
     generate_tokens = tokenize.generate_tokens
@@ -191,9 +194,9 @@ def findsource(object):
             raise IOError('could not find class definition')
 
     if ismethod(object):
-        object = object.im_func
+        object = object.__func__
     if isfunction(object):
-        object = object.func_code
+        object = object.__code__
     if istraceback(object):
         object = object.tb_frame
     if isframe(object):
@@ -254,7 +257,7 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 
     aux = traceback.extract_tb(etb)
     assert len(records) == len(aux)
-    for i, (file, lnum, _, _) in zip(range(len(records)), aux):
+    for i, (file, lnum, _, _) in zip(list(range(len(records))), aux):
         maybeStart = lnum-1 - context//2
         start =  max(maybeStart, 0)
         end   = start + context
@@ -1031,7 +1034,7 @@ class VerboseTB(TBTools):
         try:
             self.debugger()
         except KeyboardInterrupt:
-            print "\nKeyboardInterrupt"
+            print("\nKeyboardInterrupt")
 
 #----------------------------------------------------------------------------
 class FormattedTB(VerboseTB, ListTB):
@@ -1162,7 +1165,7 @@ class AutoFormattedTB(FormattedTB):
         try:
             self.debugger()
         except KeyboardInterrupt:
-            print "\nKeyboardInterrupt"
+            print("\nKeyboardInterrupt")
 
     def structured_traceback(self, etype=None, value=None, tb=None,
                              tb_offset=None, context=5):
@@ -1221,27 +1224,27 @@ if __name__ == "__main__":
         i = f - g
         return h / i
 
-    print ''
-    print '*** Before ***'
+    print('')
+    print('*** Before ***')
     try:
-        print spam(1, (2, 3))
+        print(spam(1, (2, 3)))
     except:
         traceback.print_exc()
-    print ''
+    print('')
 
     handler = ColorTB()
-    print '*** ColorTB ***'
+    print('*** ColorTB ***')
     try:
-        print spam(1, (2, 3))
+        print(spam(1, (2, 3)))
     except:
         handler(*sys.exc_info())
-    print ''
+    print('')
 
     handler = VerboseTB()
-    print '*** VerboseTB ***'
+    print('*** VerboseTB ***')
     try:
-        print spam(1, (2, 3))
+        print(spam(1, (2, 3)))
     except:
         handler(*sys.exc_info())
-    print ''
+    print('')
 

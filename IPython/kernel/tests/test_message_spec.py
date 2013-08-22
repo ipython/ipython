@@ -9,7 +9,10 @@
 
 import re
 from subprocess import PIPE
-from Queue import Empty
+try:
+    from queue import Empty  # Python 3
+except:
+    from Queue import Empty  # Python 2
 
 import nose.tools as nt
 
@@ -19,6 +22,7 @@ from IPython.testing import decorators as dec
 from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
+import six
 
 #-----------------------------------------------------------------------------
 # Global setup and utilities
@@ -238,7 +242,7 @@ class DisplayData(Reference):
     metadata = Dict()
     data = Dict()
     def _data_changed(self, name, old, new):
-        for k,v in new.iteritems():
+        for k,v in six.iteritems(new):
             nt.assert_true(mime_pat.match(k))
             nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
 
@@ -247,7 +251,7 @@ class PyOut(Reference):
     execution_count = Integer()
     data = Dict()
     def _data_changed(self, name, old, new):
-        for k,v in new.iteritems():
+        for k,v in six.iteritems(new):
             nt.assert_true(mime_pat.match(k))
             nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
 

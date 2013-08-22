@@ -6,6 +6,9 @@ from . import formattest
 
 from .. import nbpy
 from .nbexamples import nb0, nb0_py
+import six
+
+from IPython.utils.py3compat import string_types
 
 
 class TestPy(formattest.NBFormatTest, TestCase):
@@ -22,7 +25,7 @@ class TestPy(formattest.NBFormatTest, TestCase):
         elements.
         """
         if isinstance(da, dict):
-            for k,v in da.iteritems():
+            for k,v in six.iteritems(da):
                 if k in self.ignored_keys:
                     continue
                 self.assertTrue(k in db)
@@ -31,7 +34,7 @@ class TestPy(formattest.NBFormatTest, TestCase):
             for a,b in zip(da, db):
                 self.assertSubset(a,b)
         else:
-            if isinstance(da, basestring) and isinstance(db, basestring):
+            if isinstance(da, string_types) and isinstance(db, string_types):
                 # pyfile is not sensitive to preserving leading/trailing
                 # newlines in blocks through roundtrip
                 da = da.strip('\n')

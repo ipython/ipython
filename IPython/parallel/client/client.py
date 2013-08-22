@@ -4,6 +4,7 @@ Authors:
 
 * MinRK
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
@@ -24,6 +25,9 @@ import warnings
 from datetime import datetime
 from getpass import getpass
 from pprint import pprint
+import six
+from six.moves import filter
+from six.moves import map
 
 pjoin = os.path.join
 
@@ -39,7 +43,7 @@ from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.py3compat import cast_bytes
+from IPython.utils.py3compat import cast_bytes, string_types
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
@@ -199,21 +203,21 @@ class Metadata(dict):
 
     def __getattr__(self, key):
         """getattr aliased to getitem"""
-        if key in self.iterkeys():
+        if key in self:
             return self[key]
         else:
             raise AttributeError(key)
 
     def __setattr__(self, key, value):
         """setattr aliased to setitem, with strict"""
-        if key in self.iterkeys():
+        if key in self:
             self[key] = value
         else:
             raise AttributeError(key)
 
     def __setitem__(self, key, value):
         """strict static key enforcement"""
-        if key in self.iterkeys():
+        if key in self:
             dict.__setitem__(self, key, value)
         else:
             raise KeyError(key)
@@ -533,13 +537,13 @@ class Client(HasTraits):
 
     def _update_engines(self, engines):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
-        for k,v in engines.iteritems():
+        for k,v in six.iteritems(engines):
             eid = int(k)
             if eid not in self._engines:
                 self._ids.append(eid)
             self._engines[eid] = v
         self._ids = sorted(self._ids)
-        if sorted(self._engines.keys()) != range(len(self._engines)) and \
+        if sorted(self._engines.keys()) != list(range(len(self._engines))) and \
                         self._task_scheme == 'pure' and self._task_socket:
             self._stop_scheduling_tasks()
 
@@ -567,7 +571,7 @@ class Client(HasTraits):
 
         if targets is None:
             targets = self._ids
-        elif isinstance(targets, basestring):
+        elif isinstance(targets, string_types):
             if targets.lower() == 'all':
                 targets = self._ids
             else:
@@ -580,7 +584,7 @@ class Client(HasTraits):
             targets = [targets]
 
         if isinstance(targets, slice):
-            indices = range(len(self._ids))[targets]
+            indices = list(range(len(self._ids)))[targets]
             ids = self.ids
             targets = [ ids[i] for i in indices ]
 
@@ -734,9 +738,9 @@ class Client(HasTraits):
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
-                print ("got stale result: %s"%msg_id)
+                print(("got stale result: %s"%msg_id))
             else:
-                print ("got unknown result: %s"%msg_id)
+                print(("got unknown result: %s"%msg_id))
         else:
             self.outstanding.remove(msg_id)
 
@@ -770,11 +774,11 @@ class Client(HasTraits):
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
-                print ("got stale result: %s"%msg_id)
-                print self.results[msg_id]
-                print msg
+                print(("got stale result: %s"%msg_id))
+                print(self.results[msg_id])
+                print(msg)
             else:
-                print ("got unknown result: %s"%msg_id)
+                print(("got unknown result: %s"%msg_id))
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']
@@ -1053,7 +1057,7 @@ class Client(HasTraits):
         if jobs is None:
             theids = self.outstanding
         else:
-            if isinstance(jobs, (int, basestring, AsyncResult)):
+            if isinstance(jobs, string_types + (int, AsyncResult)):
                 jobs = [jobs]
             theids = set()
             for job in jobs:
@@ -1061,7 +1065,7 @@ class Client(HasTraits):
                     # index access
                     job = self.history[job]
                 elif isinstance(job, AsyncResult):
-                    map(theids.add, job.msg_ids)
+                    for id in job.msg_ids: theids.add(id)
                     continue
                 theids.add(job)
         if not theids.intersection(self.outstanding):
@@ -1121,9 +1125,9 @@ class Client(HasTraits):
         targets = self._build_targets(targets)[0]
         
         msg_ids = []
-        if isinstance(jobs, (basestring,AsyncResult)):
+        if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
+        bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
             raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
         for j in jobs:
@@ -1274,7 +1278,7 @@ class Client(HasTraits):
         metadata = metadata if metadata is not None else {}
 
         # validate arguments
-        if not isinstance(code, basestring):
+        if not isinstance(code, string_types):
             raise TypeError("code must be text, not %s" % type(code))
         if not isinstance(metadata, dict):
             raise TypeError("metadata must be dict, not %s" % type(metadata))
@@ -1402,12 +1406,12 @@ class Client(HasTraits):
         for id in indices_or_msg_ids:
             if isinstance(id, int):
                 id = self.history[id]
-            if not isinstance(id, basestring):
+            if not isinstance(id, string_types):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
-        local_ids = filter(lambda msg_id: msg_id in self.outstanding or msg_id in self.results, theids)
-        remote_ids = filter(lambda msg_id: msg_id not in local_ids, theids)
+        local_ids = [msg_id for msg_id in theids if (msg_id in self.outstanding or msg_id in self.results)]
+        remote_ids = [msg_id for msg_id in theids if msg_id not in local_ids]
         
         # given single msg_id initially, get_result shot get the result itself,
         # not a length-one list
@@ -1457,7 +1461,7 @@ class Client(HasTraits):
         for id in indices_or_msg_ids:
             if isinstance(id, int):
                 id = self.history[id]
-            if not isinstance(id, basestring):
+            if not isinstance(id, string_types):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
@@ -1514,7 +1518,7 @@ class Client(HasTraits):
         for msg_id in msg_ids:
             if isinstance(msg_id, int):
                 msg_id = self.history[msg_id]
-            if not isinstance(msg_id, basestring):
+            if not isinstance(msg_id, string_types):
                 raise TypeError("msg_ids must be str, not %r"%msg_id)
             theids.append(msg_id)
 
@@ -1632,16 +1636,16 @@ class Client(HasTraits):
         if not targets: # needed as _build_targets otherwise uses all engines
             return []
         target_ids = self._build_targets(targets)[0] 
-        return filter(lambda md_id: self.metadata[md_id]["engine_uuid"] in target_ids, self.metadata)
+        return [md_id for md_id in self.metadata if self.metadata[md_id]["engine_uuid"] in target_ids]
     
     def _build_msgids_from_jobs(self, jobs=None):
         """Build a list of msg_ids from "jobs" """
         if not jobs:
             return []
         msg_ids = []
-        if isinstance(jobs, (basestring,AsyncResult)):
+        if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
+        bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
             raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
         for j in jobs:
@@ -1692,8 +1696,9 @@ class Client(HasTraits):
             msg_ids = []
             msg_ids.extend(self._build_msgids_from_target(targets))
             msg_ids.extend(self._build_msgids_from_jobs(jobs))
-            map(self.results.pop, msg_ids)
-            map(self.metadata.pop, msg_ids)
+            for id in msg_ids:
+                self.results.pop(id)
+                self.metadata.pop(id)
 
 
     @spin_first
@@ -1813,7 +1818,7 @@ class Client(HasTraits):
             The subset of keys to be returned.  The default is to fetch everything but buffers.
             'msg_id' will *always* be included.
         """
-        if isinstance(keys, basestring):
+        if isinstance(keys, string_types):
             keys = [keys]
         content = dict(query=query, keys=keys)
         self.session.send(self._query_socket, "db_request", content=content)

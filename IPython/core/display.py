@@ -22,7 +22,8 @@ from __future__ import print_function
 import os
 import struct
 
-from IPython.utils.py3compat import string_types, cast_bytes_py2, cast_unicode
+from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
+                                    unicode_type)
 
 from .displaypub import publish_display_data
 
@@ -300,7 +301,7 @@ class DisplayObject(object):
 
         self.data = data
         self.url = url
-        self.filename = None if filename is None else unicode(filename)
+        self.filename = None if filename is None else unicode_type(filename)
 
         self.reload()
 
@@ -444,11 +445,11 @@ class Javascript(DisplayObject):
             The full URLs of the css files should be given. A single css URL
             can also be given as a string.
         """
-        if isinstance(lib, basestring):
+        if isinstance(lib, string_types):
             lib = [lib]
         elif lib is None:
             lib = []
-        if isinstance(css, basestring):
+        if isinstance(css, string_types):
             css = [css]
         elif css is None:
             css = []
@@ -590,7 +591,7 @@ class Image(DisplayObject):
             if data[:2] == _JPEG:
                 format = 'jpeg'
 
-        self.format = unicode(format).lower()
+        self.format = unicode_type(format).lower()
         self.embed = embed if embed is not None else (url is None)
 
         if self.embed and self.format not in self._ACCEPTABLE_EMBEDDINGS:
@@ -654,7 +655,7 @@ class Image(DisplayObject):
             return self._data_and_metadata()
 
     def _find_ext(self, s):
-        return unicode(s.split('.')[-1].lower())
+        return unicode_type(s.split('.')[-1].lower())
 
 
 def clear_output(stdout=True, stderr=True, other=True):

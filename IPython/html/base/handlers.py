@@ -37,6 +37,7 @@ except ImportError:
 from IPython.config import Application
 from IPython.external.decorator import decorator
 from IPython.utils.path import filefind
+from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
@@ -263,7 +264,7 @@ class FileFindHandler(web.StaticFileHandler):
     _lock = threading.Lock()  # protects _static_hashes
     
     def initialize(self, path, default_filename=None):
-        if isinstance(path, basestring):
+        if isinstance(path, string_types):
             path = [path]
         self.roots = tuple(
             os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in path
@@ -366,7 +367,7 @@ class FileFindHandler(web.StaticFileHandler):
         """
         # begin subclass override:
         static_paths = settings['static_path']
-        if isinstance(static_paths, basestring):
+        if isinstance(static_paths, string_types):
             static_paths = [static_paths]
         roots = tuple(
             os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in static_paths

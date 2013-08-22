@@ -3,7 +3,7 @@
 This file just contains doctests both using plain python and IPython prompts.
 All tests should be loaded by nose.
 """
-from IPython.utils.py3compat import doctest_refactor_print
+from __future__ import print_function
 
 def pyfunc():
     """Some pure python tests...
@@ -17,14 +17,14 @@ def pyfunc():
     5
 
     >>> for i in range(3):
-    ...     print i,
-    ...     print i+1,
+    ...     print(i, end=' ')
+    ...     print(i+1, end=' ')
     ...
-    0 1 1 2 2 3
+    0 1 1 2 2 3 
     """
     return 'pyfunc'
 
-@doctest_refactor_print
+
 def ipfunc():
     """Some ipython tests...
 
@@ -34,8 +34,8 @@ def ipfunc():
     Out[3]: 5
 
     In [26]: for i in range(3):
-       ....:     print i,
-       ....:     print i+1,
+       ....:     print(i, end=' ')
+       ....:     print(i+1, end=' ')
        ....:
     0 1 1 2 2 3
 
@@ -59,7 +59,7 @@ def ipfunc():
     In [7]: 'hi'
     Out[7]: 'hi'
 
-    In [8]: print repr(_)
+    In [8]: print(repr(_))
     'hi'
     
     In [7]: 3+4
@@ -128,14 +128,13 @@ def random_all():
     """
     pass
 
-@doctest_refactor_print
 def iprand():
     """Some ipython tests with random output.
 
     In [7]: 3+4
     Out[7]: 7
 
-    In [8]: print 'hello'
+    In [8]: print('hello')
     world  # random
 
     In [9]: iprand()
@@ -143,7 +142,6 @@ def iprand():
     """
     return 'iprand'
 
-@doctest_refactor_print
 def iprand_all():
     """Some ipython tests with fully random output.
 
@@ -152,7 +150,7 @@ def iprand_all():
     In [7]: 1
     Out[7]: 99
 
-    In [8]: print 'hello'
+    In [8]: print('hello')
     world
 
     In [9]: iprand_all()

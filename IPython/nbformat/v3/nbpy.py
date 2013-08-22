@@ -23,6 +23,8 @@ from .nbbase import (
     new_notebook, new_heading_cell, nbformat, nbformat_minor,
 )
 
+from IPython.utils.py3compat import unicode_type
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -190,7 +192,7 @@ class PyWriter(NotebookWriter):
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
         lines.append('')
-        return unicode('\n'.join(lines))
+        return unicode_type('\n'.join(lines))
 
 
 _reader = PyReader()

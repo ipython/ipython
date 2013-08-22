@@ -104,13 +104,21 @@ Inheritance diagram:
 :license: BSD License.
 """
 from __future__ import with_statement
+from __future__ import print_function
 from contextlib import contextmanager
 import sys
 import types
 import re
 import datetime
-from StringIO import StringIO
 from collections import deque
+from six.moves import map
+from six.moves import zip
+
+from IPython.utils.py3compat import builtin_mod_name, PY3
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
@@ -644,7 +652,7 @@ def _type_pprint(obj, p, cycle):
         # and others may set it to None.
         return p.text(obj.__name__)
 
-    if mod in ('__builtin__', 'exceptions'):
+    if mod in (builtin_mod_name, 'exceptions'):
         name = obj.__name__
     else:
         name = mod + '.' + obj.__name__
@@ -658,7 +666,7 @@ def _repr_pprint(obj, p, cycle):
 
 def _function_pprint(obj, p, cycle):
     """Base pprint for all functions and builtin functions."""
-    if obj.__module__ in ('__builtin__', 'exceptions') or not obj.__module__:
+    if obj.__module__ in (builtin_mod_name, 'exceptions') or not obj.__module__:
         name = obj.__name__
     else:
         name = obj.__module__ + '.' + obj.__name__
@@ -694,10 +702,8 @@ except NameError:
 #: printers for builtin types
 _type_pprinters = {
     int:                        _repr_pprint,
-    long:                       _repr_pprint,
     float:                      _repr_pprint,
     str:                        _repr_pprint,
-    unicode:                    _repr_pprint,
     tuple:                      _seq_pprinter_factory('(', ')', tuple),
     list:                       _seq_pprinter_factory('[', ']', list),
     dict:                       _dict_pprinter_factory('{', '}', dict),
@@ -709,7 +715,7 @@ _type_pprinters = {
     type:                       _type_pprint,
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
-    types.SliceType:            _repr_pprint,
+    slice:            _repr_pprint,
     types.MethodType:           _repr_pprint,
     
     datetime.datetime:          _repr_pprint,
@@ -719,13 +725,15 @@ _type_pprinters = {
 
 try:
     _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
-    _type_pprinters[types.ClassType] = _type_pprint
+    _type_pprinters[type] = _type_pprint
 except AttributeError: # Python 3
     pass
     
 try:
     _type_pprinters[xrange] = _repr_pprint
-except NameError:
+    _type_pprinters[long] = _repr_pprint
+    _type_pprinters[unicode] = _repr_pprint
+except NameError:  # Python 3
     _type_pprinters[range] = _repr_pprint
 
 #: printers for types specified by name
@@ -766,11 +774,11 @@ if __name__ == '__main__':
         def __init__(self):
             self.foo = 1
             self.bar = re.compile(r'\s+')
-            self.blub = dict.fromkeys(range(30), randrange(1, 40))
+            self.blub = dict.fromkeys(list(range(30)), randrange(1, 40))
             self.hehe = 23424.234234
             self.list = ["blub", "blah", self]
 
         def get_foo(self):
-            print "foo"
+            print("foo")
 
     pprint(Foo(), verbose=True)

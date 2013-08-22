@@ -22,6 +22,8 @@ except ImportError:
 from IPython.utils.traitlets import Dict, List, Unicode, Instance
 
 from .dictdb import BaseDB
+from six.moves import map
+from six.moves import zip
 
 #-----------------------------------------------------------------------------
 # MongoDB class
@@ -62,7 +64,7 @@ class MongoDB(BaseDB):
     def _binary_buffers(self, rec):
         for key in ('buffers', 'result_buffers'):
             if rec.get(key, None):
-                rec[key] = map(Binary, rec[key])
+                rec[key] = list(map(Binary, rec[key]))
         return rec
     
     def add_record(self, msg_id, rec):

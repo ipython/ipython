@@ -28,6 +28,7 @@ from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
+from six.moves import map
 
 def setup():
     add_engines(1, total=True)
@@ -41,9 +42,9 @@ def wait(n):
 def func(x):
     return x*x
 
-mixed = map(str, range(10))
-completed = map(str, range(0,10,2))
-failed = map(str, range(1,10,2))
+mixed = list(map(str, list(range(10))))
+completed = list(map(str, list(range(0,10,2))))
+failed = list(map(str, list(range(1,10,2))))
 
 class DependencyTest(ClusterTestCase):
     
@@ -52,8 +53,8 @@ class DependencyTest(ClusterTestCase):
         self.user_ns = {'__builtins__' : __builtins__}
         self.view = self.client.load_balanced_view()
         self.dview = self.client[-1]
-        self.succeeded = set(map(str, range(0,25,2)))
-        self.failed = set(map(str, range(1,25,2)))
+        self.succeeded = set(map(str, list(range(0,25,2))))
+        self.failed = set(map(str, list(range(1,25,2))))
     
     def assertMet(self, dep):
         self.assertTrue(dep.check(self.succeeded, self.failed), "Dependency should be met")
@@ -74,12 +75,12 @@ class DependencyTest(ClusterTestCase):
     def test_require_imports(self):
         """test that @require imports names"""
         @self.cancan
-        @pmod.require('urllib')
+        @pmod.require('base64')
         @interactive
-        def encode(dikt):
-            return urllib.urlencode(dikt)
+        def encode(arg):
+            return base64.b64encode(arg)
         # must pass through canning to properly connect namespaces
-        self.assertEqual(encode(dict(a=5)), 'a=5')
+        self.assertEqual(encode(b'foo'), b'Zm9v')
     
     def test_success_only(self):
         dep = pmod.Dependency(mixed, success=True, failure=False)

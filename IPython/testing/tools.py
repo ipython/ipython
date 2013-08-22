@@ -336,8 +336,8 @@ class AssertPrints(object):
     Examples
     --------
     >>> with AssertPrints("abc", suppress=False):
-    ...     print "abcd"
-    ...     print "def"
+    ...     print("abcd")
+    ...     print("def")
     ... 
     abcd
     def

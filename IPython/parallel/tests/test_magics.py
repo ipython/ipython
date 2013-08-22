@@ -113,7 +113,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         v['generate_output'] = generate_output
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.run_cell_magic('px', '--group-outputs=engine', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
@@ -147,7 +147,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         v['generate_output'] = generate_output
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.run_cell_magic('px', '--group-outputs=order', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
@@ -188,7 +188,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         v['generate_output'] = generate_output
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.run_cell_magic('px', '--group-outputs=type', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
@@ -246,7 +246,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         v.activate()
         v.block=True
 
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.magic('autopx')
             ip.run_cell('\n'.join(('a=5','b=12345','c=0')))
             ip.run_cell('b*=2')
@@ -304,7 +304,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
 
         for name in ('a', 'b'):
             ip.magic('px ' + name)
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 ip.magic('pxresult')
             output = io.stdout
             msg = "expected %s output to include %s, but got: %s" % \
@@ -324,7 +324,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         self.assertTrue("Populating the interactive namespace from numpy and matplotlib" in io.stdout, io.stdout)
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.magic("px plot(rand(100))")
         
         self.assertTrue('Out[' in io.stdout, io.stdout)

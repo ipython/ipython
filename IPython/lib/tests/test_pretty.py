@@ -62,7 +62,7 @@ NoModule.__module__ = None
 def test_indentation():
     """Test correct indentation in groups"""
     count = 40
-    gotoutput = pretty.pretty(MyList(range(count)))
+    gotoutput = pretty.pretty(MyList(list(range(count))))
     expectedoutput = "MyList(\n" + ",\n".join("   %d" % i for i in range(count)) + ")"
 
     nt.assert_equal(gotoutput, expectedoutput)

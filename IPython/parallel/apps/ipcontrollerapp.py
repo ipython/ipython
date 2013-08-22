@@ -482,7 +482,7 @@ class IPControllerApp(BaseParallelApplication):
         for s in statements:
             try:
                 self.log.msg("Executing statement: '%s'" % s)
-                exec s in globals(), locals()
+                exec(s, globals(), locals())
             except:
                 self.log.msg("Error running statement: %s" % s)
 

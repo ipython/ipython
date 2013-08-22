@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import readline
-from Queue import Empty
+
+try:
+    from queue import Empty  # Python 3
+except ImportError:
+    from Queue import Empty  # Python 2
 
 from IPython.config import Configurable
 from IPython.utils.traitlets import Float

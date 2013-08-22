@@ -17,6 +17,7 @@ Authors:
 #-------------------------------------------------------------------------------
 
 from __future__ import division
+from __future__ import print_function
 
 import time
 from datetime import datetime
@@ -30,7 +31,7 @@ from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult
 from IPython.parallel import LoadBalancedView, DirectView
 
-from clienttest import ClusterTestCase, segfault, wait, add_engines
+from .clienttest import ClusterTestCase, segfault, wait, add_engines
 
 def setup():
     add_engines(4, total=True)
@@ -95,7 +96,7 @@ class TestClient(ClusterTestCase):
         
         def double(x):
             return x*2
-        seq = range(100)
+        seq = list(range(100))
         ref = [ double(x) for x in seq ]
         
         # add some engines, which should be used
@@ -172,7 +173,7 @@ class TestClient(ClusterTestCase):
         # give the monitor time to notice the message
         time.sleep(.25)
         ahr = self.client.get_result(ar.msg_ids[0])
-        print ar.get(), ahr.get(), ar._single_result, ahr._single_result
+        print(ar.get(), ahr.get(), ar._single_result, ahr._single_result)
         self.assertTrue(isinstance(ahr, AsyncHubResult))
         self.assertEqual(ahr.get().pyout, ar.get().pyout)
         ar2 = self.client.get_result(ar.msg_ids[0])

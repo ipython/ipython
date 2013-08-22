@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of execution-related magic functions.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -14,13 +15,18 @@
 #-----------------------------------------------------------------------------
 
 # Stdlib
-import __builtin__ as builtin_mod
+try:
+    import builtins
+except ImportError:  
+    # Python 2
+    import __builtin__ as builtins
 import ast
 import bdb
 import os
 import sys
 import time
-from StringIO import StringIO
+import six
+from six.moves import map
 
 # cProfile was added in Python2.5
 try:
@@ -50,6 +56,7 @@ from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
+from IPython.utils.py3compat import StringIO
 
 
 #-----------------------------------------------------------------------------
@@ -237,22 +244,22 @@ python-profiler package from non-free.""")
 
         if 'q' not in opts:
             page.page(output)
-        print sys_exit,
+        print(sys_exit, end=' ')
 
         dump_file = opts.D[0]
         text_file = opts.T[0]
         if dump_file:
             dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
-            print '\n*** Profile stats marshalled to file',\
-                  repr(dump_file)+'.',sys_exit
+            print('\n*** Profile stats marshalled to file',\
+                  repr(dump_file)+'.',sys_exit)
         if text_file:
             text_file = unquote_filename(text_file)
             pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()
-            print '\n*** Profile printout saved to text file',\
-                  repr(text_file)+'.',sys_exit
+            print('\n*** Profile printout saved to text file',\
+                  repr(text_file)+'.',sys_exit)
 
         if 'r' in opts:
             return stats
@@ -292,7 +299,7 @@ python-profiler package from non-free.""")
 
         # set on the shell
         self.shell.call_pdb = new_pdb
-        print 'Automatic pdb calling has been turned',on_off(new_pdb)
+        print('Automatic pdb calling has been turned',on_off(new_pdb))
 
     @skip_doctest
     @magic_arguments.magic_arguments()
@@ -510,7 +517,7 @@ python-profiler package from non-free.""")
             filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
-            print '\n%run:\n', oinspect.getdoc(self.run)
+            print('\n%run:\n', oinspect.getdoc(self.run))
             return
         except IOError as e:
             try:
@@ -657,7 +664,7 @@ python-profiler package from non-free.""")
             # Since this seems to be done by the interpreter itself, the best
             # we can do is to at least restore __builtins__ for the user on
             # exit.
-            self.shell.user_ns['__builtins__'] = builtin_mod
+            self.shell.user_ns['__builtins__'] = builtins
 
             # Ensure key global structures are restored
             sys.argv = save_argv
@@ -727,7 +734,7 @@ python-profiler package from non-free.""")
             deb.mainpyfile = deb.canonic(filename)
 
         # Start file run
-        print "NOTE: Enter 'c' at the %s prompt to continue execution." % deb.prompt
+        print("NOTE: Enter 'c' at the %s prompt to continue execution." % deb.prompt)
         try:
             if filename:
                 # save filename so it can be used by methods on the deb object
@@ -761,24 +768,24 @@ python-profiler package from non-free.""")
             t1 = clock2()
             t_usr = t1[0] - t0[0]
             t_sys = t1[1] - t0[1]
-            print "\nIPython CPU timings (estimated):"
-            print "  User   : %10.2f s." % t_usr
-            print "  System : %10.2f s." % t_sys
+            print("\nIPython CPU timings (estimated):")
+            print("  User   : %10.2f s." % t_usr)
+            print("  System : %10.2f s." % t_sys)
         else:
-            runs = range(nruns)
+            runs = list(range(nruns))
             t0 = clock2()
             for nr in runs:
                 run()
             t1 = clock2()
             t_usr = t1[0] - t0[0]
             t_sys = t1[1] - t0[1]
-            print "\nIPython CPU timings (estimated):"
-            print "Total runs performed:", nruns
-            print "  Times  : %10s   %10s" % ('Total', 'Per run')
-            print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
-            print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
+            print("\nIPython CPU timings (estimated):")
+            print("Total runs performed:", nruns)
+            print("  Times  : %10s   %10s" % ('Total', 'Per run'))
+            print("  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns))
+            print("  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns))
         twall1 = time.time()
-        print "Wall time: %10.2f s." % (twall1 - twall0)
+        print("Wall time: %10.2f s." % (twall1 - twall0))
 
     @skip_doctest
     @line_cell_magic
@@ -921,7 +928,7 @@ python-profiler package from non-free.""")
         tc = clock()-t0
 
         ns = {}
-        exec code in self.shell.user_ns, ns
+        six.exec_(code, self.shell.user_ns, ns)
         timer.inner = ns["inner"]
 
         if number == 0:
@@ -934,10 +941,10 @@ python-profiler package from non-free.""")
 
         best = min(timer.repeat(repeat, number)) / number
 
-        print u"%d loops, best of %d: %s per loop" % (number, repeat,
-                                                          _format_time(best, precision))
+        print(u"%d loops, best of %d: %s per loop" % (number, repeat,
+                                                          _format_time(best, precision)))
         if tc > tc_min:
-            print "Compiler time: %.2f s" % tc
+            print("Compiler time: %.2f s" % tc)
 
     @skip_doctest
     @needs_local_scope
@@ -1042,7 +1049,7 @@ python-profiler package from non-free.""")
             end = clock2()
         else:
             st = clock2()
-            exec code in glob, local_ns
+            exec(code, glob, local_ns)
             end = clock2()
             out = None
         wall_end = wtime()
@@ -1053,13 +1060,13 @@ python-profiler package from non-free.""")
         cpu_tot = cpu_user+cpu_sys
         # On windows cpu_sys is always zero, so no new information to the next print 
         if sys.platform != 'win32':
-            print "CPU times: user %s, sys: %s, total: %s" % \
-                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot))
-        print "Wall time: %s" % _format_time(wall_time)
+            print("CPU times: user %s, sys: %s, total: %s" % \
+                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot)))
+        print("Wall time: %s" % _format_time(wall_time))
         if tc > tc_min:
-            print "Compiler : %s" % _format_time(tc)
+            print("Compiler : %s" % _format_time(tc))
         if tp > tp_min:
-            print "Parser   : %s" % _format_time(tp)
+            print("Parser   : %s" % _format_time(tp))
         return out
 
     @skip_doctest
@@ -1127,7 +1134,7 @@ python-profiler package from non-free.""")
         """
         opts,args = self.parse_options(parameter_s,'rq',mode='list')
         if not args:   # List existing macros
-            return sorted(k for k,v in self.shell.user_ns.iteritems() if\
+            return sorted(k for k,v in six.iteritems(self.shell.user_ns) if\
                                                         isinstance(v, Macro))
         if len(args) == 1:
             raise UsageError(
@@ -1138,14 +1145,14 @@ python-profiler package from non-free.""")
         try:
             lines = self.shell.find_user_code(codefrom, 'r' in opts)
         except (ValueError, TypeError) as e:
-            print e.args[0]
+            print(e.args[0])
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
         if not ( 'q' in opts) : 
-            print 'Macro `%s` created. To execute, type its name (without quotes).' % name
-            print '=== Macro contents: ==='
-            print macro,
+            print('Macro `%s` created. To execute, type its name (without quotes).' % name)
+            print('=== Macro contents: ===')
+            print(macro, end=' ')
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',

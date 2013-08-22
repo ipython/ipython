@@ -12,6 +12,8 @@
 import IPython.utils.text as text
 
 from IPython.external.qt import QtCore, QtGui
+from six.moves import map
+from six.moves import zip
 
 #--------------------------------------------------------------------------
 # Return an HTML table with selected item in a special class
@@ -315,7 +317,7 @@ class CompletionHtml(QtGui.QWidget):
         self._old_cursor = cursor
         self._index = (0, 0)
         sjoin = lambda x : [ y.ljust(w, ' ') for y, w in zip(x, ci['columns_width'])]
-        self._justified_items = map(sjoin, items_m)
+        self._justified_items = list(map(sjoin, items_m))
         self._update_list(hilight=False)
 
 

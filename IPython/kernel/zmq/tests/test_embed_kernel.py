@@ -179,11 +179,12 @@ def test_embed_kernel_reentrant():
     
     with setup_kernel(cmd) as client:
         for i in range(5):
+            print(i)
             msg_id = client.object_info('count')
             msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
             content = msg['content']
             nt.assert_true(content['found'])
-            nt.assert_equal(content['string_form'], unicode(i))
+            nt.assert_equal(content['string_form'], py3compat.unicode_type(i))
             
             # exit from embed_kernel
             client.execute("get_ipython().exit_now = True")
