@@ -26,14 +26,14 @@ from .base import PostProcessorBase
 class PDFPostProcessor(PostProcessorBase):
     """Writer designed to write to PDF files"""
 
-    iteration_count = Integer(3, config=True, help="""
+    latex_count = Integer(3, config=True, help="""
         How many times pdflatex will be called.
         """)
 
-    pdflatex_command = List(["pdflatex", "{filename}"], config=True, help="""
+    latex_command = List(["pdflatex", "{filename}"], config=True, help="""
         Shell command used to compile PDF.""")
 
-    bibtex_command = List(["bibtex", "{filename}"], config=True, help="""
+    bib_command = List(["bibtex", "{filename}"], config=True, help="""
         Shell command used to run bibtex.""")
 
     verbose = Bool(False, config=True, help="""
@@ -42,7 +42,7 @@ class PDFPostProcessor(PostProcessorBase):
 
     temp_file_exts = List(['.aux', '.bbl', '.blg', '.idx', '.log', '.out'], 
         config=True, help="""
-        Filename extensions of temp files to remove after running
+        Filename extensions of temp files to remove after running.
         """)
 
     def run_command(self, command_list, filename, count, log_function):
@@ -83,48 +83,50 @@ class PDFPostProcessor(PostProcessorBase):
                     return False # failure
         return True # success
 
-    def run_pdflatex(self, filename):
-        """Run pdflatex self.iteration_count times."""
+    def run_latex(self, filename):
+        """Run pdflatex self.latex_count times."""
 
         def log_error(command, out):
-            self.log.critical(u"pdflatex failed: %s\n%s", command, out)
+            self.log.critical(u"%s failed: %s\n%s", command[0], command, out)
 
-        return self.run_command(self.pdflatex_command, filename, 
-            self.iteration_count, log_error)
+        return self.run_command(self.latex_command, filename, 
+            self.latex_count, log_error)
 
-    def run_bibtex(self, filename):
-        """Run bibtex self.iteration_count times."""
-        filename = filename.rstrip('.tex')
-        
+    def run_bib(self, filename):
+        """Run bibtex self.latex_count times."""
+        filename = os.path.splitext(filename)[0]
+
         def log_error(command, out):
-            self.log.warn('bibtex had problems, most likely because there were no citations')
-            self.log.debug(u"bibtex output: %s\n%s", command, out)
+            self.log.warn('%s had problems, most likely because there were no citations',
+                command[0])
+            self.log.debug(u"%s output: %s\n%s", command[0], command, out)
 
-        return self.run_command(self.bibtex_command, filename, 1, log_error)
+        return self.run_command(self.bib_command, filename, 1, log_error)
 
     def clean_temp_files(self, filename):
         """Remove temporary files created by pdflatex/bibtext."""
         self.log.info("Removing temporary LaTeX files")
-        filename = filename.strip('.tex')
+        filename = os.path.splitext(filename)[0]
         for ext in self.temp_file_exts:
             try:
                 os.remove(filename+ext)
             except OSError:
                 pass
-        
+
     def postprocess(self, filename):
         """Build a PDF by running pdflatex and bibtex"""
         self.log.info("Building PDF")
-        cont = self.run_pdflatex(filename)
+        cont = self.run_latex(filename)
         if cont:
-            cont = self.run_bibtex(filename)
+            cont = self.run_bib(filename)
         else:
             self.clean_temp_files(filename)
             return
         if cont:
-            cont = self.run_pdflatex(filename)
+            cont = self.run_latex(filename)
         self.clean_temp_files(filename)
-        if os.path.isfile(filename.rstrip('.tex')+'.pdf'):
+        filename = os.path.splitext(filename)[0]
+        if os.path.isfile(filename+'.pdf'):
             self.log.info('PDF successfully created')
         return
 
