@@ -37,6 +37,7 @@ def backport_pr(branch, num, project='ipython/ipython'):
     current_branch = get_current_branch()
     if branch != current_branch:
         check_call(['git', 'checkout', branch])
+    check_call(['git', 'pull'])
     pr = get_pull_request(project, num, auth=True)
     files = get_pull_request_files(project, num, auth=True)
     patch_url = pr['patch_url']
