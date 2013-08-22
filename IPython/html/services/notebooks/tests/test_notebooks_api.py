@@ -20,15 +20,6 @@ class APITest(NotebookTestBase):
     def notebooks_url(self):
         return self.base_url() + 'api/notebooks'
 
-    def kernels_url(self):
-        return self.base_url() + 'api/kernels'
-
-    def sessions_url(self):
-        return self.base_url() + 'api/sessions'
-
-    def contents_url(self):
-        return self.contents_url() + 'api/contents'
-
     def mknb(self, name='', path='/'):
         url = self.notebooks_url() + path
         return url, requests.post(url)
@@ -43,7 +34,7 @@ class APITest(NotebookTestBase):
         r = requests.get(url)
         self.assertEqual(r.json(), [])
 
-    def test_root_notebook_handler(self):
+    def test_notebook_root_handler(self):
         # POST a notebook and test the dict thats returned.
         url, nb = self.mknb()
         data = nb.json()
@@ -58,7 +49,10 @@ class APITest(NotebookTestBase):
         assert isinstance(r.json(), list)
         assert isinstance(r.json()[0], dict)
 
+    def test_notebook_handler(self):
         # GET with a notebook name.
+        url, nb = self.mknb()
+        data = nb.json()
         url = self.notebooks_url() + '/Untitled0.ipynb'
         r = requests.get(url)
         assert isinstance(data, dict)
