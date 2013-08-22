@@ -343,7 +343,8 @@ class FileLinks(FileLink):
         return '\n'.join(result_lines)
 
 
-def xkcdify(borders=True, code=True, html=True, prompts=True, output=True):
+def xkcdify(borders=True, code=True, html=True, prompts=True, output=True,
+    font_url='https://github.com/shreyankg/xkcd-desktop/raw/master/Humor-Sans.ttf'):
     """Turn on xkcd mode for the notebook.
     
     Run this in your notebook and it will enable the xkcd inspired font
@@ -352,18 +353,26 @@ def xkcdify(borders=True, code=True, html=True, prompts=True, output=True):
 
     This mode can be used with Matplotlib's new xkcd mode to great effect. However,
     you will have to enable that separately by calling matplotlibs xkcd function.
+
+    The long term plan is to add CSS themes to the Notebook and we would implement
+    this mode using those themes eventually.
     """
     from IPython.display import display, HTML
     s = """
     <style>
     @font-face {
         font-family: "xkcd";
-        src: url('http://antiyawn.com/uploads/Humor-Sans.ttf');
+        src: url('%s');
     }
-    """
+    """ % font_url
     if borders:
         s += """
         div.cell {
+            border: 2px solid black;
+            margin-top: 10px;
+            margin-bottom: 10 px;
+        }
+        div.cell.selected {
             border: 2px solid black;
             margin-top: 10px;
             margin-bottom: 10 px;
