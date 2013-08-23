@@ -41,8 +41,7 @@ class MainKernelHandler(IPythonHandler):
     @web.authenticated
     def post(self):
         km = self.kernel_manager
-        nbm = self.notebook_manager
-        kernel_id = km.start_kernel(cwd=nbm.notebook_dir)
+        kernel_id = km.start_kernel()
         model = km.kernel_model(kernel_id, self.ws_url)
         self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
         self.finish(jsonapi.dumps(model))

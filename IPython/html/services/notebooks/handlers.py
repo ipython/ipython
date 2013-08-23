@@ -44,6 +44,7 @@ class NotebookRootHandler(IPythonHandler):
         """post creates a notebooks in the directory where the
         server was started"""
         nbm = self.notebook_manager
+        self.log.info(nbm.notebook_dir)
         body = self.request.body.strip()
         format = self.get_argument('format', default='json')
         name = self.get_argument('name', default=None)

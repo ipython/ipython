@@ -80,8 +80,8 @@ class SessionHandler(IPythonHandler):
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
-        notebook_path = self.request.body
-        name, path = nbm.named_notebook_path(notebook_path)
+        data = jsonapi.loads(self.request.body)
+        name, path = nbm.named_notebook_path(data['notebook_path'])
         sm.update_session(session_id, name=name)
         model = sm.get_session(id=session_id)
         self.finish(jsonapi.dumps(model))
@@ -106,7 +106,9 @@ class SessionHandler(IPythonHandler):
 _session_id_regex = r"(?P<session_id>\w+-\w+-\w+-\w+-\w+)"
 
 default_handlers = [
+    (r"api/sessions/%s/" % _session_id_regex, SessionHandler),
     (r"api/sessions/%s" % _session_id_regex, SessionHandler),
+    (r"api/sessions/",  SessionRootHandler),
     (r"api/sessions",  SessionRootHandler)
 ]
 
