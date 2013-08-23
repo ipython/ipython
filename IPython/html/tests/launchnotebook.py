@@ -15,7 +15,7 @@ class NotebookTestBase(TestCase):
     and then starts the notebook server with a separate temp notebook_dir.
     """
 
-    port = 12342
+    port = 1234
 
     def setUp(self):
         self.ipython_dir = TemporaryDirectory()
@@ -27,8 +27,7 @@ class NotebookTestBase(TestCase):
             '--no-browser',
             '--ipython-dir=%s' % self.ipython_dir.name,
             '--notebook-dir=%s' % self.notebook_dir.name
-        ]
-        #self.notebook = Popen(notebook_args)
+        ]        
         self.notebook = Popen(notebook_args, stdout=PIPE, stderr=PIPE)
         time.sleep(3.0)
 
@@ -36,6 +35,7 @@ class NotebookTestBase(TestCase):
         self.notebook.terminate()
         self.ipython_dir.cleanup()
         self.notebook_dir.cleanup()
+        time.sleep(3.0)
 
     def base_url(self):
         return 'http://localhost:%i/' % self.port
