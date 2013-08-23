@@ -98,11 +98,11 @@ class FileNotebookManager(NotebookManager):
             full_path = self.get_os_path(notebook_name, notebook_path)
             if change == "name":
                 new_path = self.get_os_path(data['name'], notebook_path)
-                try:
+                if not os.path.isfile(new_path):
                     os.rename(full_path,
                         self.get_os_path(data['name'], notebook_path))
                     notebook_name = data['name']
-                except OSError as e:
+                else:
                     raise web.HTTPError(409, u'Notebook name already exists.')
             if change == "path":
                 new_path = self.get_os_path(data['name'], data['path'])

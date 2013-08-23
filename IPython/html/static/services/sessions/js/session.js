@@ -32,11 +32,12 @@ var IPython = (function (IPython) {
     
     Session.prototype.notebook_rename = function (notebook_path) {
         this.notebook_path = notebook_path;
+        name = {'notebook_path': notebook_path}
         var settings = {
             processData : false,
             cache : false,
             type : "PATCH",
-            data: notebook_path,
+            data: JSON.stringify(name),
             dataType : "json",
         };
         var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;

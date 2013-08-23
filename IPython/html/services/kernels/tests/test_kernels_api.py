@@ -21,3 +21,16 @@ class KernelAPITest(NotebookTestBase):
         url = self.base_url()
         r = requests.get(url)
         assert r.json() == []
+
+    def test_main_kernel_handler(self):
+        # POST request
+        r = requests.post(self.base_url())
+        data = r.json()
+        assert isinstance(data, dict)
+
+        # GET request
+        r = requests.get(self.base_url())
+        assert isinstance(r.json(), list)
+        self.assertEqual(r.json()[0], data['id'])
+
+        
