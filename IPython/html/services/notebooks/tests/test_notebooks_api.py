@@ -25,15 +25,15 @@ class APITest(NotebookTestBase):
         r = requests.delete(url)
         return r.status_code
 
-    def test_notebook_root_handler(self):
+    def test_notebook_handler(self):
         # POST a notebook and test the dict thats returned.
         #url, nb = self.mknb()
         url = self.notebook_url()
         nb = requests.post(url)
         data = nb.json()
         assert isinstance(data, dict)
-        assert data.has_key("name")
-        assert data.has_key("path")
+        self.assertIn('name', data)
+        self.assertIn('path', data)
         self.assertEqual(data['name'], u'Untitled0.ipynb')
         self.assertEqual(data['path'], u'/')
 
@@ -43,8 +43,7 @@ class APITest(NotebookTestBase):
         assert isinstance(r.json()[0], dict)
         
         self.delnb('Untitled0.ipynb')
-
-    def test_notebook_handler(self):
+        
         # GET with a notebook name.
         url, nb = self.mknb()
         data = nb.json()
@@ -79,18 +78,18 @@ class APITest(NotebookTestBase):
         data2 = nb2.json()
         assert isinstance(data, dict)
         assert isinstance(data2, dict)
-        assert data.has_key("name")
-        assert data.has_key("path")
+        self.assertIn('name', data)
+        self.assertIn('path', data)
         self.assertEqual(data['name'], u'Untitled0.ipynb')
         self.assertEqual(data['path'], u'/foo/')
-        assert data2.has_key("name")
-        assert data2.has_key("path")
+        self.assertIn('name', data2)
+        self.assertIn('path', data2)
         self.assertEqual(data2['name'], u'Untitled0.ipynb')
         self.assertEqual(data2['path'], u'/foo/bar/')
 
         # GET request on notebooks one and two levels down.
-        r = requests.get(url+'Untitled0.ipynb')
-        r2 = requests.get(url2+'Untitled0.ipynb')
+        r = requests.get(url+'/Untitled0.ipynb')
+        r2 = requests.get(url2+'/Untitled0.ipynb')
         assert isinstance(r.json(), dict)
         self.assertEqual(r.json(), data)
         assert isinstance(r2.json(), dict)
@@ -98,13 +97,13 @@ class APITest(NotebookTestBase):
 
         # PATCH notebooks that are one and two levels down.
         new_name = {'name': 'testfoo.ipynb'}
-        r = requests.patch(url+'Untitled0.ipynb', data=jsonapi.dumps(new_name))
-        r = requests.get(url+'testfoo.ipynb')
+        r = requests.patch(url+'/Untitled0.ipynb', data=jsonapi.dumps(new_name))
+        r = requests.get(url+'/testfoo.ipynb')
         data = r.json()
         assert isinstance(data, dict)
-        assert data.has_key('name')
+        self.assertIn('name', data)
         self.assertEqual(data['name'], 'testfoo.ipynb')
-        r = requests.get(url+'Untitled0.ipynb')
+        r = requests.get(url+'/Untitled0.ipynb')
         self.assertEqual(r.status_code, 404)
         
         # DELETE notebooks

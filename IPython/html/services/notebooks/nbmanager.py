@@ -155,12 +155,12 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def notebook_model(self, notebook_name, notebook_path='/', content=True):
+    def notebook_model(self, name, path='/', content=True):
         """ Creates the standard notebook model """
-        last_modified, contents = self.read_notebook_object(notebook_name, notebook_path)
-        model = {"name": notebook_name, 
-                    "path": notebook_path,
-                    "last_modified (UTC)": last_modified.ctime()}
+        last_modified, contents = self.read_notebook_model(name, path)
+        model = {"name": name, 
+                    "path": path,
+                    "last_modified": last_modified.ctime()}
         if content is True:
             model['content'] = contents
         return model
@@ -180,9 +180,21 @@ class NotebookManager(LoggingConfigurable):
         name = nb.metadata.get('name', 'notebook')
         return last_mod, representation, name
 
-    def read_notebook_object(self, notebook_name, notebook_path='/'):
+    def read_notebook_model(self, notebook_name, notebook_path='/'):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
+
+    def save_notebook(self, model, name=None, path='/'):
+        """Save the Notebook"""
+        if name is None:
+            name = self.increment_filename('Untitled', path)
+        if 'content' not in model:
+            metadata = current.new_metadata(name=name)
+            nb = current.new_notebook(metadata=metadata)
+        else:
+            nb = model['content']
+        self.write_notebook_object()
+            
 
     def save_new_notebook(self, data, notebook_path='/', name=None, format=u'json'):
         """Save a new notebook and return its name.
@@ -208,7 +220,7 @@ class NotebookManager(LoggingConfigurable):
         notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
         return notebook_name
 
-    def save_notebook(self, data, notebook_path='/', name=None, new_name=None, format=u'json'):
+    def save_notebook(self, data, notebook_path='/', name=None, format=u'json'):
         """Save an existing notebook by notebook_name."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
@@ -222,7 +234,7 @@ class NotebookManager(LoggingConfigurable):
             nb.metadata.name = name
         self.write_notebook_object(nb, name, notebook_path, new_name)
 
-    def write_notebook_object(self, nb, notebook_name='/', notebook_path='/', new_name=None):
+    def write_notebook_model(self, model):
         """Write a notebook object and return its notebook_name.
 
         If notebook_name is None, this method should create a new notebook_name.

@@ -43,7 +43,7 @@ class SessionAPITest(NotebookTestBase):
         r = requests.post(self.session_url(), params=param)
         data = r.json()
         assert isinstance(data, dict)
-        assert data.has_key('name')
+        self.assertIn('name', data)
         self.assertEqual(data['name'], notebook['name'])
 
         # GET sessions
@@ -79,8 +79,8 @@ class SessionAPITest(NotebookTestBase):
         requests.patch(self.notebook_url() + '/Untitled0.ipynb', 
             data=jsonapi.dumps({'name':'test.ipynb'}))
         assert isinstance(r.json(), dict)
-        assert r.json().has_key('name')
-        assert r.json().has_key('id')
+        self.assertIn('name', r.json())
+        self.assertIn('id', r.json())
         self.assertEqual(r.json()['name'], 'test.ipynb')
         self.assertEqual(r.json()['id'], session['id'])
 
@@ -88,8 +88,8 @@ class SessionAPITest(NotebookTestBase):
         r = requests.delete(sess_url)
         self.assertEqual(r.status_code, 204)
         r = requests.get(self.session_url())
-        assert r.json() == []
+        self.assertEqual(r.json(), [])
         
         # Clean up
         r = self.delnb('test.ipynb')
-        assert r == 204
+        self.assertEqual(r, 204)
