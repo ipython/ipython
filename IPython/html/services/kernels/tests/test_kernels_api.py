@@ -21,7 +21,7 @@ class KernelAPITest(NotebookTestBase):
         r = requests.post(self.base_url())
         return r.json()
 
-    def test_no_kernels(self):
+    def test__no_kernels(self):
         """Make sure there are no kernels running at the start"""
         url = self.base_url()
         r = requests.get(url)
