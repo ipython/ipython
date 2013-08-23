@@ -91,7 +91,7 @@ class FileNotebookManager(NotebookManager):
             notebooks.append(model)
         return notebooks
 
-    def change_notebook(self, data, notebook_name, notebook_path='/'):
+    def update_notebook(self, data, notebook_name, notebook_path='/'):
         """Changes notebook"""
         changes = data.keys()
         for change in changes:

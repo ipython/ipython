@@ -16,11 +16,15 @@ class KernelAPITest(NotebookTestBase):
     def base_url(self):
         return super(KernelAPITest,self).base_url() + 'api/kernels'
 
+    def mkkernel(self):
+        r = requests.post(self.base_url())
+        return r.json()
+
     def test_no_kernels(self):
         """Make sure there are no kernels running at the start"""
         url = self.base_url()
         r = requests.get(url)
-        assert r.json() == []
+        self.assertEqual(r.json(), [])
 
     def test_main_kernel_handler(self):
         # POST request
@@ -33,4 +37,17 @@ class KernelAPITest(NotebookTestBase):
         assert isinstance(r.json(), list)
         self.assertEqual(r.json()[0], data['id'])
 
+    def test_kernel_handler(self):
+        # GET kernel with id
+        data = self.mkkernel()
+        url = self.base_url() +'/' + data['id']
+        r = requests.get(url)
+        assert isinstance(r.json(), dict)
+        self.assertIn('id', r.json())
+        self.assertEqual(r.json()['id'], data['id'])
         
+        # DELETE kernel with id
+        r = requests.delete(url)
+        self.assertEqual(r.status_code, 204)
+        r = requests.get(self.base_url())
+        self.assertEqual(r.json(), [])
