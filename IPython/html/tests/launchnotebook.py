@@ -18,45 +18,52 @@ class NotebookTestBase(TestCase):
 
     port = 12341
 
-    def wait_till_alive(self):
-        url = 'http://localhost:%i/' % self.port
+    @classmethod
+    def wait_until_alive(cls):
+        """Wait for the server to be alive"""
+        url = 'http://localhost:%i/api/notebooks' % cls.port
         while True:
-            time.sleep(.1)
             try:
-                r = requests.get(url + 'api/notebooks')
-                break
+                requests.get(url)
             except requests.exceptions.ConnectionError:
-                pass
-        
-    def wait_till_dead(self):
-        url = 'http://localhost:%i/' % self.port
+                time.sleep(.1)
+            else:
+                break
+    
+    @classmethod
+    def wait_until_dead(cls):
+        """Wait for the server to stop getting requests after shutdown"""
+        url = 'http://localhost:%i/api/notebooks' % cls.port
         while True:
-            time.sleep(.1)
             try:
-                r = requests.get(url + 'api/notebooks')
-                continue
+                requests.get(url)
             except requests.exceptions.ConnectionError:
                 break
-
-    def setUp(self):
-        self.ipython_dir = TemporaryDirectory()
-        self.notebook_dir = TemporaryDirectory()
+            else:
+                time.sleep(.1)
+    
+    @classmethod
+    def setup_class(cls):
+        cls.ipython_dir = TemporaryDirectory()
+        cls.notebook_dir = TemporaryDirectory()
         notebook_args = [
             sys.executable, '-c',
             'from IPython.html.notebookapp import launch_new_instance; launch_new_instance()',
-            '--port=%d' % self.port,
+            '--port=%d' % cls.port,
             '--no-browser',
-            '--ipython-dir=%s' % self.ipython_dir.name,
-            '--notebook-dir=%s' % self.notebook_dir.name
-        ]
-        self.notebook = Popen(notebook_args, stdout=PIPE, stderr=PIPE)
-        self.wait_till_alive()
+            '--ipython-dir=%s' % cls.ipython_dir.name,
+            '--notebook-dir=%s' % cls.notebook_dir.name
+        ]        
+        cls.notebook = Popen(notebook_args, stdout=PIPE, stderr=PIPE)
+        cls.wait_until_alive()
 
-    def tearDown(self):
-        self.notebook.terminate()
-        self.ipython_dir.cleanup()
-        self.notebook_dir.cleanup()
-        self.wait_till_dead()
-        
-    def base_url(self):
-        return 'http://localhost:%i/' % self.port
+    @classmethod
+    def teardown_class(cls):
+        cls.notebook.terminate()
+        cls.ipython_dir.cleanup()
+        cls.notebook_dir.cleanup()
+        cls.wait_until_dead()
+
+    @classmethod
+    def base_url(cls):
+        return 'http://localhost:%i/' % cls.port
