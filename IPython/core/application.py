@@ -53,6 +53,7 @@ from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instan
 # aliases and flags
 
 base_aliases = {
+    'profile-dir' : 'ProfileDir.location',
     'profile' : 'BaseIPythonApplication.profile',
     'ipython-dir' : 'BaseIPythonApplication.ipython_dir',
     'log-level' : 'Application.log_level',
