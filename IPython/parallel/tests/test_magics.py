@@ -57,10 +57,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.magic(
                 'px import sys,time;print(a);sys.stdout.flush();time.sleep(0.2)'
             )
-        out = io.stdout
-        self.assertTrue('[stdout:' in out, out)
-        self.assertFalse('\n\n' in out)
-        self.assertTrue(out.rstrip().endswith('10'))
+        self.assertIn('[stdout:', io.stdout)
+        self.assertNotIn('\n\n', io.stdout)
+        assert io.stdout.rstrip().endswith('10')
         self.assertRaisesRemote(ZeroDivisionError, ip.magic, 'px 1/0')
     
     def _check_generated_stderr(self, stderr, n):
@@ -89,20 +88,20 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         for block in (True, False):
             v.block = block
             ip.magic("pxconfig --verbose")
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 ip.run_cell_magic("px", "", "1")
             if block:
-                self.assertTrue(io.stdout.startswith("Parallel"), io.stdout)
+                assert io.stdout.startswith("Parallel"), io.stdout
             else:
-                self.assertTrue(io.stdout.startswith("Async"), io.stdout)
+                assert io.stdout.startswith("Async"), io.stdout
             
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 ip.run_cell_magic("px", "--block", "1")
-            self.assertTrue(io.stdout.startswith("Parallel"), io.stdout)
+            assert io.stdout.startswith("Parallel"), io.stdout
 
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 ip.run_cell_magic("px", "--noblock", "1")
-            self.assertTrue(io.stdout.startswith("Async"), io.stdout)
+            assert io.stdout.startswith("Async"), io.stdout
     
     def test_cellpx_groupby_engine(self):
         """%%px --group-outputs=engine"""
@@ -113,10 +112,10 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         v['generate_output'] = generate_output
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.run_cell_magic('px', '--group-outputs=engine', 'generate_output()')
         
-        self.assertFalse('\n\n' in io.stdout)
+        self.assertNotIn('\n\n', io.stdout)
         lines = io.stdout.splitlines()
         expected = [
             r'\[stdout:\d+\]',
@@ -147,10 +146,10 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         v['generate_output'] = generate_output
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.run_cell_magic('px', '--group-outputs=order', 'generate_output()')
         
-        self.assertFalse('\n\n' in io.stdout)
+        self.assertNotIn('\n\n', io.stdout)
         lines = io.stdout.splitlines()
         expected = []
         expected.extend([
@@ -188,10 +187,10 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         v['generate_output'] = generate_output
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.run_cell_magic('px', '--group-outputs=type', 'generate_output()')
         
-        self.assertFalse('\n\n' in io.stdout)
+        self.assertNotIn('\n\n', io.stdout)
         lines = io.stdout.splitlines()
         
         expected = []
@@ -246,7 +245,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         v.activate()
         v.block=True
 
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.magic('autopx')
             ip.run_cell('\n'.join(('a=5','b=12345','c=0')))
             ip.run_cell('b*=2')
@@ -304,12 +303,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
 
         for name in ('a', 'b'):
             ip.magic('px ' + name)
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 ip.magic('pxresult')
-            output = io.stdout
-            msg = "expected %s output to include %s, but got: %s" % \
-                ('%pxresult', str(data[name]), output)
-            self.assertTrue(str(data[name]) in output, msg)
+            self.assertIn(str(data[name]), io.stdout)
         
     @dec.skipif_not_matplotlib
     def test_px_pylab(self):
@@ -322,13 +318,12 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         with capture_output() as io:
             ip.magic("px %pylab inline")
         
-        self.assertTrue("Populating the interactive namespace from numpy and matplotlib" in io.stdout, io.stdout)
+        self.assertIn("Populating the interactive namespace from numpy and matplotlib", io.stdout)
         
-        with capture_output() as io:
+        with capture_output(display=False) as io:
             ip.magic("px plot(rand(100))")
-        
-        self.assertTrue('Out[' in io.stdout, io.stdout)
-        self.assertTrue('matplotlib.lines' in io.stdout, io.stdout)
+        self.assertIn('Out[', io.stdout)
+        self.assertIn('matplotlib.lines', io.stdout)
     
     def test_pxconfig(self):
         ip = get_ipython()
@@ -356,12 +351,12 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertEqual(view.targets, rc.ids)
         ip.magic('pxconfig --verbose')
         for cell in ("pass", "1/0"):
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 try:
                     ip.run_cell_magic("px", "--targets all", cell)
                 except pmod.RemoteError:
                     pass
-            self.assertTrue('engine(s): all' in io.stdout)
+            self.assertIn('engine(s): all', io.stdout)
             self.assertEqual(view.targets, rc.ids)
 
 
@@ -374,12 +369,12 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertEqual(view.targets, rc.ids)
         ip.magic('pxconfig --verbose')
         for cell in ("pass", "1/0"):
-            with capture_output() as io:
+            with capture_output(display=False) as io:
                 try:
                     ip.run_cell_magic("px", "--block", cell)
                 except pmod.RemoteError:
                     pass
-            self.assertFalse('Async' in io.stdout)
-            self.assertFalse(view.block)
+            self.assertNotIn('Async', io.stdout)
+            self.assertEqual(view.block, False)
 
 
