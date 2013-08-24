@@ -202,7 +202,6 @@ def main() :
     parser.add_argument(
             '-p',
             '--profile',
-            default='default',
             help='profile to install MathJax to. Takes precedence over install-dir option')
 
     parser.add_argument(
@@ -210,6 +209,7 @@ def main() :
             '--install-dir',
             default=default_dest,
             help='installation directory (by default : %s)' % (default_dest))
+
     parser.add_argument(
             '-d',
             '--dest',
