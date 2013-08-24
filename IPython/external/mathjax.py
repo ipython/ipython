@@ -200,6 +200,12 @@ def main() :
             )
 
     parser.add_argument(
+            '-p',
+            '--profile',
+            default='default',
+            help='profile to install MathJax to. Takes precedence over install-dir option')
+
+    parser.add_argument(
             '-i',
             '--install-dir',
             default=default_dest,
@@ -208,12 +214,12 @@ def main() :
             '-d',
             '--dest',
             action='store_true',
-            help='print where is current mathjax would be installed and exit')
+            help='print where current mathjax would be installed and exit')
     parser.add_argument(
             '-r',
             '--replace',
             action='store_true',
-            help='Wether to replace current mathjax if already exist')
+            help='Whether to replace current mathjax if it already exists')
     parser.add_argument(
             '-t',
             '--test',
@@ -225,7 +231,14 @@ def main() :
 
     pargs = parser.parse_args()
 
-    dest = pargs.install_dir
+    if(pargs.profile):
+        profile = pargs.profile
+        static = os.path.join(locate_profile(profile), 'static')
+        dest = os.path.join(static, 'mathjax')
+    else:
+        dest = pargs.install_dir
+
+
     if pargs.dest :
         print dest
         return
