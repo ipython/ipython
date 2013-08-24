@@ -436,7 +436,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
         var element = $("<div/>").addClass("output_subarea");
-        container.append(element);
+        container.css('display','flex').append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
         container.hide();
         // If the Javascript appends content to `element` that should be drawn, then
