@@ -69,14 +69,14 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             '^stderr2$',
         ] * n
         
-        self.assertFalse('\n\n' in stderr, stderr)
+        self.assertNotIn('\n\n', stderr)
         lines = stderr.splitlines()
         self.assertEqual(len(lines), len(expected), stderr)
         for line,expect in zip(lines, expected):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
+                assert re.search(ex, line) is not None, "Expected %r in %r" % (ex, line)
         
     def test_cellpx_block_args(self):
         """%%px --[no]block flags work"""
@@ -132,7 +132,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
+                assert re.search(ex, line) is not None, "Expected %r in %r" % (ex, line)
         
         self._check_generated_stderr(io.stderr, len(v))
 
@@ -174,7 +174,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
+                assert re.search(ex, line) is not None, "Expected %r in %r" % (ex, line)
         
         self._check_generated_stderr(io.stderr, len(v))
 
@@ -213,7 +213,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
+                assert re.search(ex, line) is not None, "Expected %r in %r" % (ex, line)
         
         self._check_generated_stderr(io.stderr, len(v))
 
@@ -231,10 +231,10 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         ip.magic('pxconfig --verbose')
         with capture_output() as io:
             ar = ip.magic('px print (a)')
-        self.assertTrue(isinstance(ar, AsyncResult))
-        self.assertTrue('Async' in io.stdout)
-        self.assertFalse('[stdout:' in io.stdout)
-        self.assertFalse('\n\n' in io.stdout)
+        self.assertIsInstance(ar, AsyncResult)
+        self.assertIn('Async', io.stdout)
+        self.assertNotIn('[stdout:', io.stdout)
+        self.assertNotIn('\n\n', io.stdout)
         
         ar = ip.magic('px 1/0')
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
@@ -256,11 +256,11 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         output = io.stdout
         
-        self.assertTrue(output.startswith('%autopx enabled'), output)
-        self.assertTrue(output.rstrip().endswith('%autopx disabled'), output)
-        self.assertTrue('ZeroDivisionError' in output, output)
-        self.assertTrue('\nOut[' in output, output)
-        self.assertTrue(': 24690' in output, output)
+        assert output.startswith('%autopx enabled'), output
+        assert output.rstrip().endswith('%autopx disabled'), output
+        self.assertIn('ZeroDivisionError', output)
+        self.assertIn('\nOut[', output)
+        self.assertIn(': 24690', output)
         ar = v.get_result(-1)
         self.assertEqual(v['a'], 5)
         self.assertEqual(v['b'], 24690)
@@ -283,9 +283,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         output = io.stdout.rstrip()
         
-        self.assertTrue(output.startswith('%autopx enabled'))
-        self.assertTrue(output.endswith('%autopx disabled'))
-        self.assertFalse('ZeroDivisionError' in output)
+        assert output.startswith('%autopx enabled'), output
+        assert output.endswith('%autopx disabled'), output
+        self.assertNotIn('ZeroDivisionError', output)
         ar = v.get_result(-2)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
         # prevent TaskAborted on pulls, due to ZeroDivisionError
