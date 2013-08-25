@@ -256,7 +256,7 @@ class RichIPythonWidget(IPythonWidget):
                 if not self._svg_warning_displayed:
                     QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
                         'Cannot convert PNG images to SVG, export with PNG figures instead. '
-                        'If you want to export with SVG figures, add '
+                        'If you want to export matplotlib figures as SVG, add '
                         'to your ipython config:\n\n'
                         '\tc.InlineBackend.figure_format = \'svg\'\n\n'
                         'And regenerate the figures.',
@@ -264,7 +264,7 @@ class RichIPythonWidget(IPythonWidget):
                     self._svg_warning_displayed = True
                 return ("<b>Cannot convert  PNG images to SVG.</b>  "
                         "You must export this session with PNG images. "
-                        "If you want to export with SVG figures, add to your config "
+                        "If you want to export matplotlib figures as SVG, add to your config "
                         "<span>c.InlineBackend.figure_format = 'svg'</span> "
                         "and regenerate the figures.")
 
