@@ -43,6 +43,9 @@ class IPythonError(Exception):
 class KernelError(IPythonError):
     pass
 
+class EngineError(KernelError):
+    pass
+
 class NoEnginesRegistered(KernelError):
     pass
 
