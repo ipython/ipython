@@ -13,7 +13,6 @@
 data-project={{project}}
 data-base-project-url={{base_project_url}}
 data-notebook-path={{notebook_path}}
-data-notebook-name={{notebook_name}}
 data-base-kernel-url={{base_kernel_url}}
 
 {% endblock %}
@@ -48,7 +47,7 @@ data-base-kernel-url={{base_kernel_url}}
           <div id="notebook_list_header" class="row-fluid list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
-                    {% for component in project_component %}
+                    {% for component in tree_url_path.strip('/').split('/') %}
                         <li>{{component}} <span>/</span></li>
                     {% endfor %}
                 </ul>
