@@ -78,14 +78,6 @@ This template does not define a docclass, the inheriting class must define this.
 % Support blocks
 %===============================================================================
 
-% Default output style -code cell style  %Use filters ot do cell latex formating
-((* block header scoped *))
-((( super() )))
-((* block output_style scoped *))
-    ((* include 'simple_style.tplx' with context *))
-((* endblock output_style *))
-((* endblock header *))
-
 % Displaying simple data text
 ((* block data_text *))
     \begin{verbatim}

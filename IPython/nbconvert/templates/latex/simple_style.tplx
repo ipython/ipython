@@ -1,4 +1,5 @@
 ((= Simple input/output style =))
 
-!!!outputstyle!!!
-((*- block in_prompt scoped -*))!!!prompt!!!((*- endblock in_prompt -*))
+((*- extends 'latex_base.tplx' -*))
+
+((*- block input_group scoped -*))!!!prompt!!!((*- endblock input_group -*))

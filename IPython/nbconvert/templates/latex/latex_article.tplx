@@ -1,0 +1,7 @@
+((= Complex input/output style =))
+
+((*- if not cell_style is defined -*))
+    ((*- set cell_style = 'simple_style.tplx' -*))
+((*- endif -*))
+
+((*- extends cell_style -*))
