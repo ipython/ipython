@@ -321,7 +321,12 @@ var IPython = (function (IPython) {
                 // Split cell = -
                 that.split_cell();
                 that.control_key_active = false;
-                return false;                                               
+                return false;
+            } else if (event.which === 82 && that.control_key_active) {
+                // Run all cells = r
+                that.execute_all_cells();
+                that.control_key_active = false;
+                return false;
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
