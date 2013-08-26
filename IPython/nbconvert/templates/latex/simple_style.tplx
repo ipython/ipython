@@ -1,0 +1,4 @@
+((= Simple input/output style =))
+
+!!!outputstyle!!!
+((*- block in_prompt scoped -*))!!!prompt!!!((*- endblock in_prompt -*))
