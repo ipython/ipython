@@ -80,6 +80,7 @@ class SessionHandler(IPythonHandler):
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
+        data = self.request.body
         data = jsonapi.loads(self.request.body)
         name, path = nbm.named_notebook_path(data['notebook_path'])
         sm.update_session(session_id, name=name)

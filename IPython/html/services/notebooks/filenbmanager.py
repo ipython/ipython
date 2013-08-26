@@ -3,6 +3,7 @@
 Authors:
 
 * Brian Granger
+* Zach Sailer
 """
 
 #-----------------------------------------------------------------------------
@@ -74,173 +75,14 @@ class FileNotebookManager(NotebookManager):
     
     filename_ext = Unicode(u'.ipynb')
 
-    
     def get_notebook_names(self, path):
         """List all notebook names in the notebook dir."""
         names = glob.glob(self.get_os_path('*'+self.filename_ext, path))
         names = [os.path.basename(name)
                  for name in names]
         return names
-        
-    def list_notebooks(self, path):
-        """List all notebooks in the notebook dir."""
-        notebook_names = self.get_notebook_names(path)
-        notebooks = []
-        for name in notebook_names:
-            model = self.notebook_model(name, path, content=False)
-            notebooks.append(model)
-        return notebooks
 
-    def update_notebook(self, data, notebook_name, notebook_path='/'):
-        """Changes notebook"""
-        changes = data.keys()
-        for change in changes:
-            full_path = self.get_os_path(notebook_name, notebook_path)
-            if change == "name":
-                new_path = self.get_os_path(data['name'], notebook_path)
-                if not os.path.isfile(new_path):
-                    os.rename(full_path,
-                        self.get_os_path(data['name'], notebook_path))
-                    notebook_name = data['name']
-                else:
-                    raise web.HTTPError(409, u'Notebook name already exists.')
-            if change == "path":
-                new_path = self.get_os_path(data['name'], data['path'])
-                stutil.move(full_path, new_path)
-                notebook_path = data['path']
-            if change == "content":
-                self.save_notebook(data, notebook_name, notebook_path)
-        model = self.notebook_model(notebook_name, notebook_path)
-        return model
-
-    def notebook_exists(self, name, path):
-        """Returns a True if the notebook exists. Else, returns False.
-        
-        Parameters
-        ----------
-        name : string
-            The name of the notebook you are checking.
-        path : string
-            The relative path to the notebook (with '/' as separator)
-        
-        Returns
-        -------
-        bool
-        """
-        path = self.get_os_path(name, path)
-        return os.path.isfile(path)
-
-    def read_notebook_object_from_path(self, path):
-        """read a notebook object from a path"""
-        info = os.stat(path)
-        last_modified = tz.utcfromtimestamp(info.st_mtime)
-        with open(path,'r') as f:
-            s = f.read()
-            try:
-                # v1 and v2 and json in the .ipynb files.
-                nb = current.reads(s, u'json')
-            except ValueError as e:
-                msg = u"Unreadable Notebook: %s" % e
-                raise web.HTTPError(400, msg, reason=msg)
-        return last_modified, nb
-    
-    def read_notebook_object(self, notebook_name, notebook_path='/'):
-        """Get the Notebook representation of a notebook by notebook_name."""
-        path = self.get_os_path(notebook_name, notebook_path)
-        if not os.path.isfile(path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_name)
-        last_modified, nb = self.read_notebook_object_from_path(path)
-        # Always use the filename as the notebook name.
-        # Eventually we will get rid of the notebook name in the metadata
-        # but for now, that name is just an empty string. Until the notebooks
-        # web service knows about names in URLs we still pass the name
-        # back to the web app using the metadata though.
-        nb.metadata.name = os.path.splitext(os.path.basename(path))[0]
-        return last_modified, nb
-    
-    def write_notebook_object(self, nb, notebook_name=None, notebook_path='/', new_name= None):
-        """Save an existing notebook object by notebook_name."""
-        if new_name == None:
-            try:
-                new_name = normalize('NFC', nb.metadata.name)
-            except AttributeError:
-                raise web.HTTPError(400, u'Missing notebook name')
-
-        new_path = notebook_path
-        old_name = notebook_name
-        old_checkpoints = self.list_checkpoints(old_name)
-        
-        path = self.get_os_path(new_name, new_path)
-        
-        # Right before we save the notebook, we write an empty string as the
-        # notebook name in the metadata. This is to prepare for removing
-        # this attribute entirely post 1.0. The web app still uses the metadata
-        # name for now.
-        nb.metadata.name = u''
-
-        try:
-            self.log.debug("Autosaving notebook %s", path)
-            with open(path,'w') as f:
-                current.write(nb, f, u'json')
-        except Exception as e:
-            raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s' % e)
-
-        # save .py script as well
-        if self.save_script:
-            pypath = os.path.splitext(path)[0] + '.py'
-            self.log.debug("Writing script %s", pypath)
-            try:
-                with io.open(pypath,'w', encoding='utf-8') as f:
-                    current.write(nb, f, u'py')
-            except Exception as e:
-                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
-        
-        if old_name != None:
-            # remove old files if the name changed
-            if old_name != new_name:            
-                # remove renamed original, if it exists
-                old_path = self.get_os_path(old_name, notebook_path)
-                if os.path.isfile(old_path):
-                    self.log.debug("unlinking notebook %s", old_path)
-                    os.unlink(old_path)
-            
-                # cleanup old script, if it exists
-                if self.save_script:
-                    old_pypath = os.path.splitext(old_path)[0] + '.py'
-                    if os.path.isfile(old_pypath):
-                        self.log.debug("unlinking script %s", old_pypath)
-                        os.unlink(old_pypath)
-                
-                # rename checkpoints to follow file
-                for cp in old_checkpoints:
-                    checkpoint_id = cp['checkpoint_id']
-                    old_cp_path = self.get_checkpoint_path_by_name(old_name, checkpoint_id)
-                    new_cp_path = self.get_checkpoint_path_by_name(new_name, checkpoint_id)
-                    if os.path.isfile(old_cp_path):
-                        self.log.debug("renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
-                        os.rename(old_cp_path, new_cp_path)
-            
-        return new_name
-            
-    def delete_notebook(self, notebook_name, notebook_path):
-        """Delete notebook by notebook_name."""
-        nb_path = self.get_os_path(notebook_name, notebook_path)
-        if not os.path.isfile(nb_path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_name)
-        
-        # clear checkpoints
-        for checkpoint in self.list_checkpoints(notebook_name):
-            checkpoint_id = checkpoint['checkpoint_id']
-            path = self.get_checkpoint_path(notebook_name, checkpoint_id)
-            self.log.debug(path)
-            if os.path.isfile(path):
-                self.log.debug("unlinking checkpoint %s", path)
-                os.unlink(path)
-        
-        self.log.debug("unlinking notebook %s", nb_path)
-        os.unlink(nb_path)
-
-    def increment_filename(self, basename, notebook_path='/'):
+    def increment_filename(self, basename, path='/'):
         """Return a non-used filename of the form basename<int>.
         
         This searches through the filenames (basename0, basename1, ...)
@@ -250,98 +92,242 @@ class FileNotebookManager(NotebookManager):
         i = 0
         while True:
             name = u'%s%i.ipynb' % (basename,i)
-            path = self.get_os_path(name, notebook_path)
-            if not os.path.isfile(path):
+            os_path = self.get_os_path(name, path)
+            if not os.path.isfile(os_path):
                 break
             else:
                 i = i+1
         return name
-    
+
+    def notebook_exists(self, name, path):
+        """Returns a True if the notebook exists. Else, returns False.
+
+        Parameters
+        ----------
+        name : string
+            The name of the notebook you are checking.
+        path : string
+            The relative path to the notebook (with '/' as separator)
+
+        Returns
+        -------
+        bool
+        """
+        path = self.get_os_path(name, path)
+        return os.path.isfile(path)
+
+    def list_notebooks(self, path):
+        """List all notebooks in the notebook dir."""
+        notebook_names = self.get_notebook_names(path)
+        notebooks = []
+        for name in notebook_names:
+            model = self.get_notebook_model(name, path, content=False)
+            notebooks.append(model)
+        notebooks = sorted(notebooks, key=lambda item: item['name'])
+        return notebooks
+
+    def get_notebook_model(self, name, path='/', content=True):
+        """read a notebook object from a path"""
+        os_path = self.get_os_path(name, path)
+        if not os.path.isfile(os_path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
+        info = os.stat(os_path)
+        last_modified = tz.utcfromtimestamp(info.st_mtime)
+        # Create the notebook model.
+        model ={}
+        model['name'] = name
+        model['path'] = path
+        model['last_modified'] = last_modified.ctime()
+        if content is True:
+            with open(os_path,'r') as f:
+                s = f.read()
+                try:
+                    # v1 and v2 and json in the .ipynb files.
+                    nb = current.reads(s, u'json')
+                except ValueError as e:
+                    raise web.HTTPError(400, u"Unreadable Notebook: %s" % e)
+            model['content'] = nb
+        return model
+
+    def save_notebook_model(self, model, name, path='/'):
+        """Save the notebook model and return the model with no content."""
+
+        if 'content' not in model:
+            raise web.HTTPError(400, u'No notebook JSON data provided')
+
+        new_path = model.get('path', path)
+        new_name = model.get('name', name)
+
+        if path != new_path or name != new_name:
+            self.rename_notebook(name, path, new_name, new_path)
+
+        # Save the notebook file
+        ospath = self.get_os_path(new_name, new_path)
+        nb = model['content']
+        if 'name' in nb['metadata']:
+            nb['metadata']['name'] = u''
+        try:
+            self.log.debug("Autosaving notebook %s", ospath)
+            with open(ospath,'w') as f:
+                current.write(nb, f, u'json')
+        except Exception as e:
+            #raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s' % ospath)
+            raise e
+
+        # Save .py script as well
+        if self.save_script:
+            pypath = os.path.splitext(path)[0] + '.py'
+            self.log.debug("Writing script %s", pypath)
+            try:
+                with io.open(pypath, 'w', encoding='utf-8') as f:
+                    current.write(model, f, u'py')
+            except Exception as e:
+                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % pypath)
+
+        model = self.get_notebook_model(name, path, content=False)
+        return model
+
+    def update_notebook_model(self, model, name, path='/'):
+        """Update the notebook's path and/or name"""
+        new_name = model.get('name', name)
+        new_path = model.get('path', path)
+        if path != new_path or name != new_name:
+            self.rename_notebook(name, path, new_name, new_path)
+        model = self.get_notebook_model(new_name, new_path, content=False)
+        return model
+
+    def delete_notebook_model(self, name, path='/'):
+        """Delete notebook by name and path."""
+        nb_path = self.get_os_path(name, path)
+        if not os.path.isfile(nb_path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % nb_path)
+        
+        # clear checkpoints
+        for checkpoint in self.list_checkpoints(name):
+            checkpoint_id = checkpoint['checkpoint_id']
+            cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+            self.log.debug(cp_path)
+            if os.path.isfile(cp_path):
+                self.log.debug("Unlinking checkpoint %s", cp_path)
+                os.unlink(cp_path)
+        
+        self.log.debug("Unlinking notebook %s", nb_path)
+        os.unlink(nb_path)
+
+    def rename_notebook(self, old_name, old_path, new_name, new_path):
+        """Rename a notebook."""
+        if new_name == old_name and new_path == old_path:
+            return
+        
+        new_full_path = self.get_os_path(new_name, new_path)
+        old_full_path = self.get_os_path(old_name, old_path)
+
+        # Should we proceed with the move?
+        if os.path.isfile(new_full_path):
+            raise web.HTTPError(409, u'Notebook with name already exists: ' % new_full_path)
+        if self.save_script:
+            old_pypath = os.path.splitext(old_full_path)[0] + '.py'
+            new_pypath = os.path.splitext(new_full_path)[0] + '.py'
+            if os.path.isfile(new_pypath):
+                raise web.HTTPError(409, u'Python script with name already exists: %s' % new_pypath)
+
+        # Move the notebook file
+        try:
+            os.rename(old_full_path, new_full_path)
+        except:
+            raise web.HTTPError(400, u'Unknown error renaming notebook: %s' % old_full_path)
+
+        # Move the checkpoints
+        old_checkpoints = self.list_checkpoints(old_name, old_path)
+        for cp in old_checkpoints:
+            checkpoint_id = cp['checkpoint_id']
+            old_cp_path = self.get_checkpoint_path(checkpoint_id, old_name, path)
+            new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, path)
+            if os.path.isfile(old_cp_path):
+                self.log.debug("Renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
+                os.rename(old_cp_path, new_cp_path)
+
+        # Move the .py script
+        if self.save_script:
+            os.rename(old_pypath, new_pypath)
+  
     # Checkpoint-related utilities
     
-    def get_checkpoint_path_by_name(self, name, checkpoint_id, notebook_path='/'):
-        """Return a full path to a notebook checkpoint, given its name and checkpoint id."""
+    def get_checkpoint_path(self, checkpoint_id, name, path='/'):
+        """find the path to a checkpoint"""
         filename = u"{name}-{checkpoint_id}{ext}".format(
             name=name,
             checkpoint_id=checkpoint_id,
             ext=self.filename_ext,
         )
-        if notebook_path ==None:
-            path = os.path.join(self.checkpoint_dir, filename)
-        else:
-            path = os.path.join(notebook_path, self.checkpoint_dir, filename)
-        return path
-    
-    def get_checkpoint_path(self, notebook_name, checkpoint_id, notebook_path='/'):
-        """find the path to a checkpoint"""
-        name = notebook_name
-        return self.get_checkpoint_path_by_name(name, checkpoint_id, notebook_path)
-    
-    def get_checkpoint_info(self, notebook_name, checkpoint_id, notebook_path='/'):
+        cp_path = os.path.join(path, self.checkpoint_dir, filename)
+        return cp_path
+
+    def get_checkpoint_model(self, checkpoint_id, name, path='/'):
         """construct the info dict for a given checkpoint"""
-        path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
-        stats = os.stat(path)
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        stats = os.stat(cp_path)
         last_modified = tz.utcfromtimestamp(stats.st_mtime)
         info = dict(
             checkpoint_id = checkpoint_id,
             last_modified = last_modified,
         )
-        
         return info
         
     # public checkpoint API
     
-    def create_checkpoint(self, notebook_name, notebook_path='/'):
+    def create_checkpoint(self, name, path='/'):
         """Create a checkpoint from the current state of a notebook"""
-        nb_path = self.get_os_path(notebook_name, notebook_path)
+        nb_path = self.get_os_path(name, path)
         # only the one checkpoint ID:
         checkpoint_id = u"checkpoint"
-        cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
-        self.log.debug("creating checkpoint for notebook %s", notebook_name)
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        self.log.debug("creating checkpoint for notebook %s", name)
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
         shutil.copy2(nb_path, cp_path)
         
         # return the checkpoint info
-        return self.get_checkpoint_info(notebook_name, checkpoint_id, notebook_path)
+        return self.get_checkpoint_model(checkpoint_id, name, path)
     
-    def list_checkpoints(self, notebook_name, notebook_path='/'):
+    def list_checkpoints(self, name, path='/'):
         """list the checkpoints for a given notebook
         
         This notebook manager currently only supports one checkpoint per notebook.
         """
         checkpoint_id = "checkpoint"
-        path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
+        path = self.get_checkpoint_path(checkpoint_id, name, path)
         if not os.path.exists(path):
             return []
         else:
-            return [self.get_checkpoint_info(notebook_name, checkpoint_id, notebook_path)]
+            return [self.get_checkpoint_model(checkpoint_id, name, path)]
         
     
-    def restore_checkpoint(self, notebook_name, checkpoint_id, notebook_path='/'):
+    def restore_checkpoint(self, checkpoint_id, name, path='/'):
         """restore a notebook to a checkpointed state"""
-        self.log.info("restoring Notebook %s from checkpoint %s", notebook_name, checkpoint_id)
-        nb_path = self.get_os_path(notebook_name, notebook_path)
-        cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
+        self.log.info("restoring Notebook %s from checkpoint %s", name, checkpoint_id)
+        nb_path = self.get_os_path(name, path)
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         if not os.path.isfile(cp_path):
             self.log.debug("checkpoint file does not exist: %s", cp_path)
             raise web.HTTPError(404,
-                u'Notebook checkpoint does not exist: %s-%s' % (notebook_name, checkpoint_id)
+                u'Notebook checkpoint does not exist: %s-%s' % (name, checkpoint_id)
             )
         # ensure notebook is readable (never restore from an unreadable notebook)
-        last_modified, nb = self.read_notebook_object_from_path(cp_path)
+        with file(cp_path, 'r') as f:
+            nb = current.read(f, u'json')
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
     
-    def delete_checkpoint(self, notebook_name, checkpoint_id, notebook_path='/'):
+    def delete_checkpoint(self, checkpoint_id, name, path='/'):
         """delete a notebook's checkpoint"""
-        path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
-        if not os.path.isfile(path):
+        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        if not os.path.isfile(cp_path):
             raise web.HTTPError(404,
-                u'Notebook checkpoint does not exist: %s-%s' % (notebook_name, checkpoint_id)
+                u'Notebook checkpoint does not exist: %s-%s' % (name, checkpoint_id)
             )
-        self.log.debug("unlinking %s", path)
-        os.unlink(path)
+        self.log.debug("unlinking %s", cp_path)
+        os.unlink(cp_path)
     
     def info_string(self):
         return "Serving notebooks from local directory: %s" % self.notebook_dir

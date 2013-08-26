@@ -16,7 +16,7 @@ class NotebookTestBase(TestCase):
     and then starts the notebook server with a separate temp notebook_dir.
     """
 
-    port = 1234
+    port = 12341
 
     def wait_till_alive(self):
         url = 'http://localhost:%i/' % self.port
@@ -48,10 +48,9 @@ class NotebookTestBase(TestCase):
             '--no-browser',
             '--ipython-dir=%s' % self.ipython_dir.name,
             '--notebook-dir=%s' % self.notebook_dir.name
-        ]  
+        ]
         self.notebook = Popen(notebook_args, stdout=PIPE, stderr=PIPE)
         self.wait_till_alive()
-        #time.sleep(3.0)
 
     def tearDown(self):
         self.notebook.terminate()

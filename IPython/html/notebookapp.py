@@ -529,7 +529,6 @@ class NotebookApp(BaseIPythonApplication):
         )
         kls = import_item(self.notebook_manager_class)
         self.notebook_manager = kls(parent=self, log=self.log)
-        self.notebook_manager.load_notebook_names('')
         self.session_manager = SessionManager(parent=self, log=self.log)
         self.cluster_manager = ClusterManager(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
