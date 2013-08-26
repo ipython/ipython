@@ -15,8 +15,10 @@ they are converted.
 
 from __future__ import print_function, absolute_import
 
-# Our own imports
-# Needed to override preprocessor
+# Third-party import, needed for Pygments latex definitions.
+from pygments.formatters import LatexFormatter
+
+# ipy imports
 from .base import (Preprocessor)
 from IPython.nbconvert import filters
 
@@ -28,6 +30,23 @@ class LatexPreprocessor(Preprocessor):
     """
     Converter for latex destined documents.
     """
+
+    def preprocess(self, nb, resources):
+        """
+        Preprocessing to apply on each notebook.
+        
+        Parameters
+        ----------
+        nb : NotebookNode
+            Notebook being converted
+        resources : dictionary
+            Additional resources used in the conversion process.  Allows
+            preprocessors to pass variables into the Jinja engine.
+        """
+        # Generate Pygments definitions for Latex 
+        resources["pygment_definitions"] = LatexFormatter().get_style_defs()
+        return super(LatexPreprocessor, self).preprocess(nb, resources)
+
 
     def preprocess_cell(self, cell, resources, index):
         """
