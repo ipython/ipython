@@ -343,7 +343,7 @@ var IPython = (function (IPython) {
                 window.open(this.baseProjectUrl() +'notebooks' + this.notebookPath()+ notebook_name, '_blank');
             }, this)
         };
-        var url = this.baseProjectUrl() + 'notebooks' + path;
+        var url = this.baseProjectUrl() + 'api/notebooks' + path;
         $.ajax(url,settings);
     };
 

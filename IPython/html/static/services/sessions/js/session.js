@@ -32,7 +32,7 @@ var IPython = (function (IPython) {
     
     Session.prototype.notebook_rename = function (notebook_path) {
         this.notebook_path = notebook_path;
-        name = {'notebook_path': notebook_path}
+        var name = {'notebook_path': notebook_path}
         var settings = {
             processData : false,
             cache : false,
@@ -43,7 +43,6 @@ var IPython = (function (IPython) {
         var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;
         $.ajax(url, settings);
     }
-    
     
     Session.prototype.delete_session = function() {
         var settings = {
