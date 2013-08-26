@@ -1,0 +1,6 @@
+((= Auto-generated template file, DO NOT edit directly!
+    To edit this file, please refer to ../../skeleton/README.md =))
+
+
+((*- block in_prompt -*))((*- endblock in_prompt -*))
+((*- block input -*))((*- endblock input -*))
