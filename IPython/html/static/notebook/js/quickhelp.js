@@ -50,6 +50,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m n', help: 'select next'},
             {key: 'Ctrl-m i', help: 'interrupt kernel'},
             {key: 'Ctrl-m .', help: 'restart kernel'},
+            {key: 'Ctrl-m r', help: 'run all cells'},
             {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
