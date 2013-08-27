@@ -57,7 +57,7 @@ IPython at that point.
 the extension again. It is up to the extension author to add code to manage
 that.
 
-Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.define_magic`, 
+Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.register_magic_function`, 
 :meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and 
 :meth:`~IPython.core.interactiveshell.InteractiveShell.drop_by_id` (to remove variables on unloading).
 
