@@ -58,6 +58,7 @@ currently active contributors:
 * Robert Kern
 * Thomas Kluyver
 * Brian E. Granger
+* Paul Ivanov
 * Evan Patterson
 * Fernando Perez (project leader)
 * Benjamin Ragan-Kelley
