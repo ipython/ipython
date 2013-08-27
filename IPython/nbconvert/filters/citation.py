@@ -13,10 +13,10 @@
 #-----------------------------------------------------------------------------
 
 
-__all__ = ['parse_citation']
+__all__ = ['citation2latex']
 
 
-def parse_citation(s):
+def citation2latex(s):
     """Parse citations in Markdown cells.
     
     This looks for HTML tags having a data attribute names `data-cite`

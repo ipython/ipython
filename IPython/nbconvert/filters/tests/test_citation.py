@@ -10,7 +10,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..citation import parse_citation
+from ..citation import citation2latex
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -24,6 +24,8 @@ porttitor scelerisque ac id diam <cite data-cite="granger">Granger</cite>. Mauri
 velit, lobortis sed interdum at, vestibulum vitae libero <strong data-cite="fperez">Perez</strong>.
 Lorem ipsum dolor sit amet, consectetur adipiscing elit
 <em data-cite="takluyver">Thomas</em>. Quisque iaculis ligula ut ipsum mattis viverra.
+
+<p>Here is a plain paragraph that should be unaffected.</p>
 
 * One <cite data-cite="jdfreder">Jonathan</cite>.
 * Two <cite data-cite="carreau">Matthias</cite>.
@@ -39,16 +41,18 @@ velit, lobortis sed interdum at, vestibulum vitae libero \cite{fperez}.
 Lorem ipsum dolor sit amet, consectetur adipiscing elit
 \cite{takluyver}. Quisque iaculis ligula ut ipsum mattis viverra.
 
+<p>Here is a plain paragraph that should be unaffected.</p>
+
 * One \cite{jdfreder}.
 * Two \cite{carreau}.
 * Three \cite{ivanov}.
 """
 
-def test_parse_citation():
+def test_citation2latex():
     """Are citations parsed properly?"""
     try:
         import lxml
     except ImportError:
-        assert test_md == parse_citation(test_md) 
+        assert test_md == citation2latex(test_md) 
     else:
-        assert test_md_parsed == parse_citation(test_md)
+        assert test_md_parsed == citation2latex(test_md)

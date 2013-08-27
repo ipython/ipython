@@ -103,11 +103,11 @@ it introduces a new line
 ((* endblock stream *))
 
 ((* block markdowncell scoped *))
-((( cell.source | parse_citation | markdown2latex )))
+((( cell.source | citation2latex | markdown2latex )))
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped -*))
-((( ('#' * cell.level + cell.source) | replace('\n', ' ') | parse_citation | markdown2latex )))
+((( ('#' * cell.level + cell.source) | replace('\n', ' ') | citation2latex | markdown2latex )))
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))
