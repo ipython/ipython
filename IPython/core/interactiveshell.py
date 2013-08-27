@@ -22,6 +22,7 @@ import __future__
 import abc
 import ast
 import atexit
+import functools
 import os
 import re
 import runpy
@@ -2028,7 +2029,6 @@ class InteractiveShell(SingletonConfigurable):
 
         # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
-        self.register_magic_function = self.magics_manager.register_function
         self.define_magic = self.magics_manager.define_magic
 
         self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
@@ -2052,6 +2052,12 @@ class InteractiveShell(SingletonConfigurable):
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
         self.magic('colors %s' % self.colors)
+
+    # Defined here so that it's included in the documentation
+    @functools.wraps(magic.MagicsManager.register_function)
+    def register_magic_function(self, func, magic_kind='line', magic_name=None):
+        self.magics_manager.register_function(func,
+                                  magic_kind=magic_kind, magic_name=magic_name)
 
     def run_line_magic(self, magic_name, line):
         """Execute the given line magic.
