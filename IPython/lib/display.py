@@ -344,12 +344,12 @@ class FileLinks(FileLink):
 
 
 def xkcdify(borders=True, code=True, html=True, prompts=True, output=True,
-    font_url='https://github.com/shreyankg/xkcd-desktop/raw/master/Humor-Sans.ttf'):
+    font_url='http://xkcd.com/fonts/xkcd-Regular.otf'):
     """Turn on xkcd mode for the notebook.
     
-    Run this in your notebook and it will enable the xkcd inspired font
-    Humor Sans from http://antiyawn.com/uploads/Humor-Sans.ttf. Your browser
-    will load this font from the internet so this only works if you are online.
+    Run this in your notebook and it will enable the xkcd regular font
+    from the xkcd website. Your browser will load this font from the internet
+    so this only works if you are online.
 
     This mode can be used with Matplotlib's new xkcd mode to great effect. However,
     you will have to enable that separately by calling matplotlibs xkcd function.
