@@ -12,6 +12,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import errno
 import os
 import socket
 from threading import Thread
@@ -52,5 +53,13 @@ class Heartbeat(Thread):
         self.socket = self.context.socket(zmq.REP)
         c = ':' if self.transport == 'tcp' else '-'
         self.socket.bind('%s://%s' % (self.transport, self.ip) + c + str(self.port))
-        zmq.device(zmq.FORWARDER, self.socket, self.socket)
-
+        while True:
+            try:
+                zmq.device(zmq.FORWARDER, self.socket, self.socket)
+            except zmq.ZMQError as e:
+                if e.errno == errno.EINTR:
+                    continue
+                else:
+                    raise
+            else:
+                break
