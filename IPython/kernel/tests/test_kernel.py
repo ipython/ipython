@@ -16,20 +16,22 @@ import shutil
 import sys
 import tempfile
 
-from Queue import Empty
 from contextlib import contextmanager
 from subprocess import PIPE
 
 import nose.tools as nt
 
-from IPython.zmq.blockingkernelmanager import BlockingKernelManager
-from IPython.zmq.tests.test_message_spec import execute, flush_channels
+from IPython.kernel import KernelManager
+from IPython.kernel.tests.test_message_spec import execute, flush_channels
 from IPython.testing import decorators as dec
-from IPython.utils import path, py3compat
+from IPython.utils import path
 
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
+IPYTHONDIR = None
+save_env = None
+save_get_ipython_dir = None
 
 def setup():
     """setup temporary IPYTHONDIR for tests"""
@@ -65,19 +67,20 @@ def new_kernel():
     -------
     kernel_manager: connected KernelManager instance
     """
-    KM = BlockingKernelManager()
+    KM = KernelManager()
 
     KM.start_kernel(stdout=PIPE, stderr=PIPE)
-    KM.start_channels()
+    KC = KM.client()
+    KC.start_channels()
     
     # wait for kernel to be ready
-    KM.shell_channel.execute("import sys")
-    KM.shell_channel.get_msg(block=True, timeout=5)
-    flush_channels(KM)
+    KC.shell_channel.execute("import sys")
+    KC.shell_channel.get_msg(block=True, timeout=5)
+    flush_channels(KC)
     try:
-        yield KM
+        yield KC
     finally:
-        KM.stop_channels()
+        KC.stop_channels()
         KM.shutdown_kernel()
 
 
@@ -105,34 +108,34 @@ def assemble_output(iopub):
     return stdout, stderr
 
 
-def _check_mp_mode(km, expected=False, stream="stdout"):
-    execute(km=km, code="import sys")
-    flush_channels(km)
-    msg_id, content = execute(km=km, code="print (sys.%s._check_mp_mode())" % stream)
-    stdout, stderr = assemble_output(km.iopub_channel)
+def _check_mp_mode(kc, expected=False, stream="stdout"):
+    execute(kc=kc, code="import sys")
+    flush_channels(kc)
+    msg_id, content = execute(kc=kc, code="print (sys.%s._check_mp_mode())" % stream)
+    stdout, stderr = assemble_output(kc.iopub_channel)
     nt.assert_equal(eval(stdout.strip()), expected)
 
 
 def test_simple_print():
     """simple print statement in kernel"""
-    with new_kernel() as km:
-        iopub = km.iopub_channel
-        msg_id, content = execute(km=km, code="print ('hi')")
+    with new_kernel() as kc:
+        iopub = kc.iopub_channel
+        msg_id, content = execute(kc=kc, code="print ('hi')")
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout, 'hi\n')
         nt.assert_equal(stderr, '')
-        _check_mp_mode(km, expected=False)
+        _check_mp_mode(kc, expected=False)
     print ('hello')
 
 
 @dec.knownfailureif(sys.platform == 'win32', "subprocess prints fail on Windows")
 def test_subprocess_print():
     """printing from forked mp.Process"""
-    with new_kernel() as km:
-        iopub = km.iopub_channel
+    with new_kernel() as kc:
+        iopub = kc.iopub_channel
         
-        _check_mp_mode(km, expected=False)
-        flush_channels(km)
+        _check_mp_mode(kc, expected=False)
+        flush_channels(kc)
         np = 5
         code = '\n'.join([
             "from __future__ import print_function",
@@ -146,20 +149,20 @@ def test_subprocess_print():
             "hello %s" % i for i in range(np)
         ]) + '\n'
         
-        msg_id, content = execute(km=km, code=code)
+        msg_id, content = execute(kc=kc, code=code)
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout.count("hello"), np, stdout)
         for n in range(np):
             nt.assert_equal(stdout.count(str(n)), 1, stdout)
         nt.assert_equal(stderr, '')
-        _check_mp_mode(km, expected=False)
-        _check_mp_mode(km, expected=False, stream="stderr")
+        _check_mp_mode(kc, expected=False)
+        _check_mp_mode(kc, expected=False, stream="stderr")
 
 
 def test_subprocess_noprint():
     """mp.Process without print doesn't trigger iostream mp_mode"""
-    with new_kernel() as km:
-        iopub = km.iopub_channel
+    with new_kernel() as kc:
+        iopub = kc.iopub_channel
         
         np = 5
         code = '\n'.join([
@@ -169,20 +172,20 @@ def test_subprocess_noprint():
             "for p in pool: p.join()"
         ])
         
-        msg_id, content = execute(km=km, code=code)
+        msg_id, content = execute(kc=kc, code=code)
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout, '')
         nt.assert_equal(stderr, '')
 
-        _check_mp_mode(km, expected=False)
-        _check_mp_mode(km, expected=False, stream="stderr")
+        _check_mp_mode(kc, expected=False)
+        _check_mp_mode(kc, expected=False, stream="stderr")
 
 
 @dec.knownfailureif(sys.platform == 'win32', "subprocess prints fail on Windows")
 def test_subprocess_error():
     """error in mp.Process doesn't crash"""
-    with new_kernel() as km:
-        iopub = km.iopub_channel
+    with new_kernel() as kc:
+        iopub = kc.iopub_channel
         
         code = '\n'.join([
             "import multiprocessing as mp",
@@ -191,11 +194,11 @@ def test_subprocess_error():
             "p.join()",
         ])
         
-        msg_id, content = execute(km=km, code=code)
+        msg_id, content = execute(kc=kc, code=code)
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout, '')
         nt.assert_true("ValueError" in stderr, stderr)
 
-        _check_mp_mode(km, expected=False)
-        _check_mp_mode(km, expected=False, stream="stderr")
+        _check_mp_mode(kc, expected=False)
+        _check_mp_mode(kc, expected=False, stream="stderr")
 
