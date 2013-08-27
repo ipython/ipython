@@ -35,6 +35,7 @@ from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
 from IPython.utils import coloransi, io, py3compat
 from IPython.core.excolors import exception_colors
+from IPython.testing.skipdoctest import skip_doctest
 
 # See if we can use pydb.
 has_pydb = False
@@ -91,6 +92,7 @@ class Tracer(object):
     while functioning acceptably (though with limitations) if outside of it.
     """
 
+    @skip_doctest
     def __init__(self,colors=None):
         """Create a local debugger instance.
 

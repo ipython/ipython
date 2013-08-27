@@ -85,6 +85,8 @@ def test_ipdb_magics():
     ...     """Docstring for example_function."""
     ...     pass
 
+    >>> old_trace = sys.gettrace()
+
     Create a function which triggers ipdb.
 
     >>> def trigger_ipdb():
@@ -120,10 +122,16 @@ def test_ipdb_magics():
     Docstring:  Docstring for ExampleClass.
     Constructor Docstring:Docstring for ExampleClass.__init__
     ipdb> continue
+    
+    Restore previous trace function, e.g. for coverage.py    
+    
+    >>> sys.settrace(old_trace)
     '''
 
 def test_ipdb_magics2():
     '''Test ipdb with a very short function.
+    
+    >>> old_trace = sys.gettrace()
 
     >>> def bar():
     ...     pass
@@ -139,4 +147,8 @@ def test_ipdb_magics2():
     ----> 2    pass
     <BLANKLINE>
     ipdb> continue
+    
+    Restore previous trace function, e.g. for coverage.py    
+    
+    >>> sys.settrace(old_trace)
     '''
