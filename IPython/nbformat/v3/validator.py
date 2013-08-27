@@ -1,63 +1,85 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
-import IPython.external.jsonpointer as jsonpointer
+"""
+methods to validate json notebook agains a schema.
+
+Instead of having a deep schema, top level of the schema contain subscheme
+that describe individually each type of cell and can be referenced with
+json references.
+
+Thus when asking to validate a json object agains a schema you need
+to specify the key
+
+"""
+
+from jsonschema import  Draft3Validator, validate, ValidationError
+import jsonpointer
 from IPython.external import argparse
 import traceback
+import jsonref
 import json
+import os.path
+import IPython.nbformat.v3 as v3
 
-def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
-    v3schema = resolve_ref(json.load(open(schema,'r')))
+class IPynValidator(object):
+    """A class which hold different methods linked to the validation of 
+    IPython notebook."""
+
+    def __init__(self, schema):
+        self.nbvalidator = Draft3Validator(jsonpointer.resolve_pointer(schema,'/notebook'));
+
+    def json_validate(self, notebook_json):
+        return self.nbvalidator.is_valid(notebook_json)
+
+    def node_validate(self, notebook_node):
+        return self.nbvalidator.is_valid(notebook_node)
+
+def nbvalidate(nbjson, schema, key='/notebook', verbose=False):
+    """validate notebook versus a json schema
+    
+    key: json pointer to a subkey of the schema
+    use if you only want to validate a sub-part of a notebook
+    like a code_cell or worksheet.
+    """
     if key :
-        v3schema = jsonpointer.resolve_pointer(v3schema,key)
+        schema = jsonpointer.resolve_pointer(schema,key)
     errors = 0
-    v = Draft3Validator(v3schema);
+    v = Draft3Validator(schema);
     for error in v.iter_errors(nbjson):
         errors = errors + 1
         if verbose:
             print(error)
     return errors
 
-def resolve_ref(json, base=None):
-    """return a json with resolved internal references
+def detailed_error(nbjson):
+    """try to describe errors as much as possible"""
+    try :
+        # loop through each cell and if code cell check
+        # for prompt number
+        for cell in nbjson['worksheets'][0]['cells']:
+            if cell['cell_type'] == 'code':
+                if "prompt_number" not in cell.keys():
+                    print "          - code cell has no prompt number...."
+                else :
+                    if type(cell["prompt_number"]) is not int:
+                        print "          - prompt number is not int"
+    except Exception as e:
+        print " "*8,"unknown error",e
 
-    only support local reference to the same json
+
+def v3schema():
+    """schema to validate v3 notebook
     """
-    if not base :
-        base = json
-
-    temp = None
-    if type(json) is list:
-        temp = [];
-        for item in json:
-            temp.append(resolve_ref(item, base=base))
-    elif type(json) is dict:
-        temp = {};
-        for key,value in json.iteritems():
-            if key == '$ref':
-                return resolve_ref(jsonpointer.resolve_pointer(base,value), base=base)
-            else :
-                temp[key]=resolve_ref(value, base=base)
-    else :
-        return json
-    return temp
-
-def convert(namein, nameout, indent=2):
-    """resolve the references of namein, save the result in nameout"""
-    jsn = None
-    with open(namein) as file :
-        jsn = json.load(file)
-    v = resolve_ref(jsn, base=jsn)
-    x = jsonpointer.resolve_pointer(v, '/notebook')
-    with open(nameout,'w') as file:
-        json.dump(x,file,indent=indent)
-
+    with open(os.path.join(os.path.dirname(__file__),'v3.withref.json')) as f:
+        ## JSon schema seem to support references, but wasn't able to have it work
+        schema=jsonref.load(f)
+    return schema
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--schema',
-                    type=str, default='v3.withref.json')
+                    type=str, default='')
 
     parser.add_argument('-k', '--key',
                     type=str, default='/notebook',
@@ -73,15 +95,34 @@ if __name__ == '__main__':
             metavar='names')
 
     args = parser.parse_args()
+
+    if args.schema :
+        with open(args.schema) as f:
+            schema=jsonref.load(f)
+    else:
+        schema = v3schema()
+
+    val = IPynValidator(schema)
     for name in args.filename :
-        nerror = nbvalidate(json.load(open(name,'r')),
-                            schema=args.schema,
-                            key=args.key,
-                            verbose=args.verbose)
+        with open(name) as notebook:
+            nb = json.load(notebook)
+            nerror = nbvalidate(nb,
+                                schema,
+                                key=args.key,
+                                verbose=args.verbose)
+        node = v3.to_dict(v3.nbjson.to_notebook(nb))
+        print type(node),node
+        print type(nb),nb
         if nerror is 0:
             print u"[Pass]",name
         else :
             print u"[    ]",name,'(%d)'%(nerror)
+            detailed_error(nb)
+        print "and validator json:", val.json_validate(nb), type(nb)
+        print "and validator node:", val.json_validate(node), type(node)
+        print node == nb
+        detailed_error(node)
+        #val.nbvalidator.validate(node)
         if args.verbose :
             print '=================================================='
 

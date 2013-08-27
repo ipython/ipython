@@ -50,6 +50,21 @@ class JSONReader(NotebookReader):
 
 
 class JSONWriter(NotebookWriter):
+    
+    def _pre_write(self, nb, kwargs):
+        """prepare the notebook structure to be json-ifyed
+
+        In memory and json structure have some differences,
+        this make the in-memory -> json transform.
+
+        """
+        kwargs['cls'] = BytesEncoder
+        kwargs['indent'] = 1
+        kwargs['sort_keys'] = True
+        kwargs['separators'] = (',',': ')
+        if kwargs.pop('split_lines', True):
+            nb = split_lines(copy.deepcopy(nb))
+        return nb,kwargs
 
     def writes(self, nb, **kwargs):
         kwargs['cls'] = BytesEncoder
@@ -59,6 +74,19 @@ class JSONWriter(NotebookWriter):
         if kwargs.pop('split_lines', True):
             nb = split_lines(copy.deepcopy(nb))
         return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
+
+    def to_json_stream(self, nb, **kwargs):
+        nb,kwargs = self._pre_write(nb, kwargs)
+        return json.dump(nb, **kwargs)
+
+def to_dict(nb):
+    """ return a clean dict copy of the notebook
+
+    reverse changes done by files-> in memory loading
+    and promote the NotebookNode back to dict
+    """
+
+    return dict(split_lines(copy.deepcopy(nb)))
     
 
 _reader = JSONReader()
@@ -69,4 +97,6 @@ read = _reader.read
 to_notebook = _reader.to_notebook
 write = _writer.write
 writes = _writer.writes
+to_json_stream = _writer.to_json_stream
+to_dict = to_dict
 

@@ -36,10 +36,20 @@ from .exporters.export import get_export_names, exporter_map
 from IPython.nbconvert import exporters, preprocessors, writers, postprocessors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
+from IPython.nbformat.current import NotJSONError
+
 
 #-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
+
+class Bunch(object):
+    pass
+EXIT = Bunch()
+EXIT.UNKNOWN_ERROR=1
+EXIT.UNKNOWN_FORMAT=2
+EXIT.USAGE_ERROR=3
+EXIT.NOTHING_CONVERTED=-1
 
 class DottedOrNone(DottedObjectName):
     """
@@ -278,7 +288,7 @@ class NbConvertApp(BaseIPythonApplication):
             """UsageError: --output flag or `NbConvertApp.output_base` config option
             cannot be used when converting multiple notebooks.
             """)
-            self.exit(1)
+            self.exit(EXIT.USAGE_ERROR)
         
         exporter = exporter_map[self.export_format](config=self.config)
 
@@ -299,9 +309,14 @@ class NbConvertApp(BaseIPythonApplication):
             try:
                 output, resources = exporter.from_filename(notebook_filename, resources=resources)
             except ConversionException as e:
-                self.log.error("Error while converting '%s'", notebook_filename,
+                self.log.error("Error while converting '%s', aborting.", notebook_filename,
                       exc_info=True)
-                self.exit(1)
+                self.exit(EXIT.UNKNOWN_ERROR)
+            except NotJSONError:
+                self.log.error("The file '%s' does not seem to be a valid notebook file (Not JSON). Aborting.", notebook_filename,
+                      )
+                self.exit(EXIT.UNKNOWN_FORMAT)
+
             else:
                 write_resultes = self.writer.write(output, resources, notebook_name=notebook_name)
 
@@ -313,7 +328,7 @@ class NbConvertApp(BaseIPythonApplication):
         # If nothing was converted successfully, help the user.
         if conversion_success == 0:
             self.print_help()
-            sys.exit(-1)
+            sys.exit(EXIT.NOTHING_CONVERTED)
             
 #-----------------------------------------------------------------------------
 # Main entry point

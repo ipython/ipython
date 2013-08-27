@@ -43,7 +43,7 @@
           "type": "array",
           "id": "worksheets",
           "required": true,
-          "items": {"$ref": "/worksheet"}
+          "items": {"$ref": "#/worksheet"}
         }
       }
     },
@@ -57,7 +57,7 @@
           "description": "array of cells of the current worksheet",
           "id": "#cells",
           "required": true,
-          "items": {"$ref": "/any_cell"}
+          "items": {"$ref": "#/any_cell"}
 
         },
         "metadata": {
@@ -113,7 +113,7 @@
 
     "any_cell": {
         "description": "Meta cell type that match any cell type",
-        "type": [{"$ref": "/text_cell"},{"$ref":"/code_cell"}],
+        "type": [{"$ref": "#/text_cell"},{"$ref":"#/code_cell"}],
         "$schema": "http://json-schema.org/draft-03/schema"
     },
 
