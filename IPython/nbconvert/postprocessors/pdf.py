@@ -46,7 +46,7 @@ class PDFPostProcessor(PostProcessorBase):
         """)
 
     def run_command(self, command_list, filename, count, log_function):
-        """Run pdflatex or bibtext count times.
+        """Run command_list count times.
         
         Parameters
         ----------
