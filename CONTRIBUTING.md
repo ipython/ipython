@@ -28,6 +28,9 @@ Some guidelines on contributing to IPython:
 * Pull Requests should be tested, if feasible:
     - bugfixes should include regression tests
     - new behavior should at least get minimal exercise
+* New features and backwards-incompatible changes should be documented by adding
+  a new file to the [pr](docs/source/whatsnew/pr) directory, see [the README.md
+  there](docs/source/whatsnew/pr/README.md) for details.
 
 [Travis](http://travis-ci.org/#!/ipython/ipython) does a pretty good job testing IPython and Pull Requests,
 but it may make sense to manually perform tests (possibly with our `test_pr` script),
