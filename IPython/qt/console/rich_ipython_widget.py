@@ -255,15 +255,17 @@ class RichIPythonWidget(IPythonWidget):
             except KeyError:
                 if not self._svg_warning_displayed:
                     QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
-                        'Cannot convert a PNG to SVG.  To fix this, add this '
+                        'Cannot convert PNG images to SVG, export with PNG figures instead. '
+                        'If you want to export matplotlib figures as SVG, add '
                         'to your ipython config:\n\n'
-                        '\tc.InlineBackendConfig.figure_format = \'svg\'\n\n'
+                        '\tc.InlineBackend.figure_format = \'svg\'\n\n'
                         'And regenerate the figures.',
                                               QtGui.QMessageBox.Ok)
                     self._svg_warning_displayed = True
-                return ("<b>Cannot convert a PNG to SVG.</b>  "
-                        "To fix this, add this to your config: "
-                        "<span>c.InlineBackendConfig.figure_format = 'svg'</span> "
+                return ("<b>Cannot convert  PNG images to SVG.</b>  "
+                        "You must export this session with PNG images. "
+                        "If you want to export matplotlib figures as SVG, add to your config "
+                        "<span>c.InlineBackend.figure_format = 'svg'</span> "
                         "and regenerate the figures.")
 
             # Not currently checking path, because it's tricky to find a
