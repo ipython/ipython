@@ -19,11 +19,14 @@ Authors:
 
 import datetime
 import email.utils
+import functools
 import hashlib
+import json
 import logging
 import mimetypes
 import os
 import stat
+import sys
 import threading
 
 from tornado import web
@@ -37,6 +40,7 @@ except ImportError:
 from IPython.config import Application
 from IPython.external.decorator import decorator
 from IPython.utils.path import filefind
+from IPython.utils.jsonutil import date_default
 
 #-----------------------------------------------------------------------------
 # Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
@@ -244,12 +248,46 @@ class IPythonHandler(AuthenticatedHandler):
             use_less=self.use_less,
         )
 
+
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
 
     @web.authenticated
     def get(self, path):
         return web.StaticFileHandler.get(self, path)
+
+
+def json_errors(method):
+    """Decorate methods with this to return GitHub style JSON errors.
+    
+    This should be used on any handler method that can raise HTTPErrors.
+    
+    This will grab the latest HTTPError exception using sys.exc_info
+    and then:
+    
+    1. Set the HTTP status code based on the HTTPError
+    2. Create and return a JSON body with a message field describing
+       the error in a human readable form.
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        try:
+            result = method(self, *args, **kwargs)
+        except:
+            t, value, tb = sys.exc_info()
+            if isinstance(value, web.HTTPError):
+                status = value.status_code
+                message = value.log_message
+            else:
+                status = 400
+                message = u"Unknown server error"
+            self.set_status(status)
+            reply = dict(message=message)
+            self.finish(json.dumps(reply, default=date_default))
+        else:
+            return result
+    return wrapper
+
 
 
 #-----------------------------------------------------------------------------
