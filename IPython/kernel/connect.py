@@ -34,14 +34,13 @@ import zmq
 from IPython.external.ssh import tunnel
 
 # IPython imports
-# from IPython.config import Configurable
+from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import str_to_bytes, bytes_to_str
 from IPython.utils.traitlets import (
     Bool, Integer, Unicode, CaselessStrEnum,
-    HasTraits,
 )
 
 
@@ -383,7 +382,7 @@ channel_socket_types = {
 
 port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
 
-class ConnectionFileMixin(HasTraits):
+class ConnectionFileMixin(Configurable):
     """Mixin for configurable classes that work with connection files"""
 
     # The addresses for the communication channels
