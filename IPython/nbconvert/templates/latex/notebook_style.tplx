@@ -87,7 +87,7 @@
     % Add contents below.
     
     \begin{ColorVerbatim}
-    ((( cell.input | highlight2latex )))
+    \smaller{\leavevmode\hspace*{-0.1\linewidth}((( super() )))
     \end{ColorVerbatim}
 ((* endblock input *))
 

@@ -10,11 +10,6 @@
     ((( write_prompt('Input') )))
 ((*- endblock in_prompt -*))
 
-((*- block input scoped -*))
-    % Add contents below.
-    ((( cell.input | highlight2latex )))
-((*- endblock input -*))
-
 ((*- block input_group scoped -*))
     (((- super() )))
     \vspace{-2em}
