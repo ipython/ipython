@@ -240,8 +240,7 @@ def main() :
         dest = pargs.install_dir
     else:
         profile = pargs.profile
-        static = os.path.join(locate_profile(profile), 'static')
-        dest = os.path.join(static, 'mathjax')
+        dest = os.path.join(locate_profile(profile), 'static', 'mathjax')
 
     if pargs.dest :
         print dest
