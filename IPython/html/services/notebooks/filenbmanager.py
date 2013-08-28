@@ -228,8 +228,8 @@ class FileNotebookManager(NotebookManager):
                 self.log.debug("Unlinking checkpoint %s", cp_path)
                 os.unlink(cp_path)
         
-        self.log.debug("Unlinking notebook %s", nb_path)
-        os.unlink(nb_path)
+        self.log.debug("Unlinking notebook %s", os_path)
+        os.unlink(os_path)
 
     def rename_notebook(self, old_name, old_path, new_name, new_path):
         """Rename a notebook."""
