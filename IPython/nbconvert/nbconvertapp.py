@@ -62,8 +62,8 @@ nbconvert_aliases.update({
     'writer' : 'NbConvertApp.writer_class',
     'post': 'NbConvertApp.postprocessor_class',
     'output': 'NbConvertApp.output_base',
-    'offline-slides': 'RevealHelpTransformer.url_prefix',
-    'slide-notes': 'RevealHelpTransformer.speaker_notes'
+    'offline-slides': 'RevealHelpPreprocessor.url_prefix',
+    'slide-notes': 'RevealHelpPreprocessor.speaker_notes'
 })
 
 nbconvert_flags = {}
