@@ -68,6 +68,8 @@ class TestNotebookManager(TestCase):
             print "Directory already exists."
 
     def test_named_notebook_path(self):
+        """the `named_notebook_path` method takes a URL path to
+        a notebook and returns a url path split into nb and path"""
         nm = NotebookManager()
 
         # doesn't end with ipynb, should just be path
@@ -75,25 +77,37 @@ class TestNotebookManager(TestCase):
         self.assertEqual(name, None)
         self.assertEqual(path, '/hello/')
 
+        # Root path returns just the root slash
         name, path = nm.named_notebook_path('/')
         self.assertEqual(name, None)
         self.assertEqual(path, '/')
 
-        name, path = nm.named_notebook_path('hello.ipynb')
-        self.assertEqual(name, 'hello.ipynb')
+        # get notebook, and return the path as '/'
+        name, path = nm.named_notebook_path('notebook.ipynb')
+        self.assertEqual(name, 'notebook.ipynb')
         self.assertEqual(path, '/')
 
-        name, path = nm.named_notebook_path('/hello.ipynb')
-        self.assertEqual(name, 'hello.ipynb')
+        # Test a notebook name with leading slash returns
+        # the same as above
+        name, path = nm.named_notebook_path('/notebook.ipynb')
+        self.assertEqual(name, 'notebook.ipynb')
         self.assertEqual(path, '/')
 
-        name, path = nm.named_notebook_path('/this/is/a/path/hello.ipynb')
-        self.assertEqual(name, 'hello.ipynb')
+        # Multiple path arguments splits the notebook name
+        # and returns path with leading and trailing '/'
+        name, path = nm.named_notebook_path('/this/is/a/path/notebook.ipynb')
+        self.assertEqual(name, 'notebook.ipynb')
         self.assertEqual(path, '/this/is/a/path/')
 
-        name, path = nm.named_notebook_path('path/without/leading/slash/hello.ipynb')
-        self.assertEqual(name, 'hello.ipynb')
+        # path without leading slash is returned with leading slash
+        name, path = nm.named_notebook_path('path/without/leading/slash/notebook.ipynb')
+        self.assertEqual(name, 'notebook.ipynb')
         self.assertEqual(path, '/path/without/leading/slash/')
+
+        # path with spaces and no leading or trailing '/'
+        name, path = nm.named_notebook_path('foo / bar% path& to# @/ notebook name.ipynb')
+        self.assertEqual(name, ' notebook name.ipynb')
+        self.assertEqual(path, '/foo / bar% path& to# @/')
 
     def test_url_encode(self):
         nm = NotebookManager()
@@ -108,6 +122,10 @@ class TestNotebookManager(TestCase):
 
         path = nm.url_encode('/path with a/notebook and space.ipynb')
         self.assertEqual(path, '/path%20with%20a/notebook%20and%20space.ipynb')
+        
+        path = nm.url_encode('/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
+        self.assertEqual(path,
+            '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
 
     def test_url_decode(self):
         nm = NotebookManager()
@@ -122,6 +140,10 @@ class TestNotebookManager(TestCase):
 
         path = nm.url_decode('/path%20with%20a/notebook%20and%20space.ipynb')
         self.assertEqual(path, '/path with a/notebook and space.ipynb')
+
+        path = nm.url_decode(
+            '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
+        self.assertEqual(path, '/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
 
     def test_create_notebook_model(self):
         with TemporaryDirectory() as td:
