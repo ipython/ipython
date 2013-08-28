@@ -8,13 +8,14 @@ from zmq.utils import jsonapi
 
 import requests
 
+from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
 
 class APITest(NotebookTestBase):
     """Test the kernels web service API"""
 
     def notebook_url(self):
-        return super(APITest,self).base_url() + 'api/notebooks'
+        return url_path_join(super(APITest,self).base_url(), 'api/notebooks')
 
     def mknb(self, name='', path='/'):
         url = self.notebook_url() + path

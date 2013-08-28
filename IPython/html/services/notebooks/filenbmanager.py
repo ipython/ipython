@@ -117,7 +117,20 @@ class FileNotebookManager(NotebookManager):
         return os.path.isfile(path)
 
     def list_notebooks(self, path):
-        """List all notebooks in the notebook dir."""
+        """Returns a list of dictionaries that are the standard model
+        for all notebooks in the relative 'path'.
+        
+        Parameters
+        ----------
+        path : str
+            the URL path that describes the relative path for the
+            listed notebooks
+        
+        Returns
+        -------
+        notebooks : list of dicts
+            a list of the notebook models without 'content'
+        """
         notebook_names = self.get_notebook_names(path)
         notebooks = []
         for name in notebook_names:
@@ -127,7 +140,22 @@ class FileNotebookManager(NotebookManager):
         return notebooks
 
     def get_notebook_model(self, name, path='/', content=True):
-        """read a notebook object from a path"""
+        """ Takes a path and name for a notebook and returns it's model
+        
+        Parameters
+        ----------
+        name : str
+            the name of the notebook
+        path : str
+            the URL path that describes the relative path for
+            the notebook
+            
+        Returns
+        -------
+        model : dict
+            the notebook model. If contents=True, returns the 'contents' 
+            dict in the model as well.
+        """
         os_path = self.get_os_path(name, path)
         if not os.path.isfile(os_path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
