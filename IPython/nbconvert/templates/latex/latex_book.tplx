@@ -5,7 +5,7 @@
 
 % Default to the simple output style
 ((* if not cell_style is defined *))
-    ((* set cell_style = 'notebook_style.tplx' *))
+    ((* set cell_style = 'simple_style.tplx' *))
 ((* endif *))
 
 % Inherit from the specified cell style.
@@ -17,5 +17,12 @@
 %===============================================================================
 
 ((* block docclass *))
-\documentclass{article}
+\documentclass{book}
 ((* endblock docclass *))
+
+((* block h1 -*))\part((* endblock h1 -*))
+((* block h2 -*))\chapter((* endblock h2 -*))
+((* block h3 -*))\section((* endblock h3 -*))
+((* block h4 -*))\subsection((* endblock h4 -*))
+((* block h5 -*))\subsubsection((* endblock h5 -*))
+((* block h6 -*))\paragraph((* endblock h6 -*))
