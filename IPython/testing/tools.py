@@ -433,33 +433,3 @@ def help_all_output_test(subcommand=''):
     nt.assert_in("Class parameters", out)
     return out, err
 
-
-def help(cmd=''):
-    """decorator for making a test for `ipython cmd -h`"""
-    def wrap_help_test(f):
-        def test_help_output():
-            out, err = help_output_test(cmd)
-            if inspect.getargspec(f).args:
-                return f(out, err)
-            else:
-                return f()
-        cmds = cmd + ' ' if cmd else ''
-        test_help_output.__doc__ = "ipython {cmds}--help-all works".format(cmds=cmds)
-
-        return test_help_output
-    return wrap_help_test
-
-
-def help_all(cmd=''):
-    """decorator for making a test for `ipython [cmd] --help-all`"""
-    def wrap_help_test(f):
-        def test_help_output():
-            out, err = help_all_output_test(cmd)
-            if inspect.getargspec(f).args:
-                return f(out, err)
-            else:
-                return f()
-        cmds = cmd + ' ' if cmd else ''
-        test_help_output.__doc__ = "ipython {cmds}--help-all works".format(cmds=cmds)
-        return test_help_output
-    return wrap_help_test

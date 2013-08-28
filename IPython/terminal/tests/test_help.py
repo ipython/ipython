@@ -11,57 +11,45 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.testing.tools import help, help_all
+import IPython.testing.tools as tt
 
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
 
 
-@help()
 def test_ipython_help():
-    pass
+    tt.help_output_test()
 
-@help_all()
 def test_ipython_help_all():
-    pass
+    tt.help_all_output_test()
 
-@help("profile")
 def test_profile_help():
-    pass
+    tt.help_output_test("profile")
 
-@help_all("profile")
 def test_profile_help_all():
-    pass
+    tt.help_all_output_test("profile")
 
-@help("profile list")
 def test_profile_list_help():
-    pass
+    tt.help_output_test("profile list")
 
-@help_all("profile list")
 def test_profile_list_help_all():
-    pass
+    tt.help_all_output_test("profile list")
 
-@help("profile create")
 def test_profile_create_help():
-    pass
+    tt.help_output_test("profile create")
 
-@help_all("profile create")
 def test_profile_create_help_all():
-    pass
+    tt.help_all_output_test("profile create")
 
-@help("locate")
 def test_locate_help():
-    pass
+    tt.help_output_test("locate")
 
-@help_all("locate")
 def test_locate_help_all():
-    pass
+    tt.help_all_output_test("locate")
 
-@help("locate profile")
 def test_locate_profile_help():
-    pass
+    tt.help_output_test("locate profile")
 
-@help_all("locate profile")
 def test_locate_profile_all():
-    pass
+    tt.help_all_output_test("locate profile")
