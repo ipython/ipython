@@ -344,7 +344,7 @@ class FileLinks(FileLink):
 
 
 def xkcdify(borders=True, code=True, html=True, prompts=True, output=True,
-    font_url='http://xkcd.com/fonts/xkcd-Regular.otf'):
+    font_url='https://github.com/ipython/xkcd-font/raw/master/build/xkcd.otf'):
     """Turn on xkcd mode for the notebook.
     
     Run this in your notebook and it will enable the xkcd regular font
