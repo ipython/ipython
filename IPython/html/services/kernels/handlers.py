@@ -23,7 +23,7 @@ from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
 
-from ...base.handlers import IPythonHandler
+from ...base.handlers import IPythonHandler, json_errors
 from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
 
 #-----------------------------------------------------------------------------
@@ -34,11 +34,13 @@ from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
 class MainKernelHandler(IPythonHandler):
 
     @web.authenticated
+    @json_errors
     def get(self):
         km = self.kernel_manager
-        self.finish(jsonapi.dumps(km.list_kernels()))
+        self.finish(jsonapi.dumps(km.list_kernels(self.ws_url)))
 
     @web.authenticated
+    @json_errors
     def post(self):
         km = self.kernel_manager
         kernel_id = km.start_kernel()
@@ -52,12 +54,14 @@ class KernelHandler(IPythonHandler):
     SUPPORTED_METHODS = ('DELETE', 'GET')
 
     @web.authenticated
+    @json_errors
     def get(self, kernel_id):
         km = self.kernel_manager
         model = km.kernel_model(kernel_id, self.ws_url)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
+    @json_errors
     def delete(self, kernel_id):
         km = self.kernel_manager
         km.shutdown_kernel(kernel_id)
@@ -68,6 +72,7 @@ class KernelHandler(IPythonHandler):
 class KernelActionHandler(IPythonHandler):
 
     @web.authenticated
+    @json_errors
     def post(self, kernel_id, action):
         km = self.kernel_manager
         if action == 'interrupt':

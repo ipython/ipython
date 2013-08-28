@@ -36,7 +36,7 @@ class KernelAPITest(NotebookTestBase):
         # GET request
         r = requests.get(self.base_url())
         assert isinstance(r.json(), list)
-        self.assertEqual(r.json()[0], data['id'])
+        self.assertEqual(r.json()[0]['id'], data['id'])
 
     def test_kernel_handler(self):
         # GET kernel with id
