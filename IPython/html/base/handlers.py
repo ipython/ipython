@@ -28,6 +28,7 @@ import os
 import stat
 import sys
 import threading
+import traceback
 
 from tornado import web
 from tornado import websocket
@@ -248,6 +249,17 @@ class IPythonHandler(AuthenticatedHandler):
             use_less=self.use_less,
         )
 
+    def get_json_body(self):
+        """Return the body of the request as JSON data."""
+        if not self.request.body:
+            return None
+        # Do we need to call body.decode('utf-8') here?
+        body = self.request.body.strip().decode(u'utf-8')
+        try:
+            model = json.loads(body)
+        except:
+            raise web.HTTPError(400, u'Invalid JSON in body of request')
+        return model
 
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
@@ -282,7 +294,8 @@ def json_errors(method):
                 status = 400
                 message = u"Unknown server error"
             self.set_status(status)
-            reply = dict(message=message)
+            tb_text = ''.join(traceback.format_exception(t, value, tb))
+            reply = dict(message=message, traceback=tb_text)
             self.finish(json.dumps(reply, default=date_default))
         else:
             return result
@@ -381,6 +394,12 @@ class FileFindHandler(web.StaticFileHandler):
             if if_since >= modified:
                 self.set_status(304)
                 return
+        
+        if os.path.splitext(path)[1] == '.ipynb':
+            raise HTTPError(404, 'HAHA')
+            name = os.path.splitext(os.path.split(path))[0]
+            self.set_header('Content-Type', 'application/json')
+            self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
 
         with open(abspath, "rb") as file:
             data = file.read()
