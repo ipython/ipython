@@ -79,9 +79,14 @@ class MappingKernelManager(MultiKernelManager):
         model = {"id":kernel_id, "ws_url": ws_url}
         return model
 
-    def list_kernels(self):
+    def list_kernels(self, ws_url):
         """Returns a list of kernel_id's of kernels running."""
-        return super(MappingKernelManager, self).list_kernel_ids()
+        kernels = []
+        kernel_ids = super(MappingKernelManager, self).list_kernel_ids()
+        for kernel_id in kernel_ids:
+            model = self.kernel_model(kernel_id, ws_url)
+            kernels.append(model)
+        return kernels
 
     # override _check_kernel_id to raise 404 instead of KeyError
     def _check_kernel_id(self, kernel_id):
