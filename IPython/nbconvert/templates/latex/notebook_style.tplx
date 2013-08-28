@@ -1,0 +1,138 @@
+((= Notebook input/output style =))
+
+((* extends 'latex_base.tplx' *))
+
+% Custom packages
+((* block packages *))
+    ((( super() )))
+
+    % Needed to box output/input
+    \usepackage{tikz}
+        \usetikzlibrary{calc,arrows,shadows}
+    \usepackage[framemethod=tikz]{mdframed}
+((* endblock packages *))
+
+% Custom definitions
+((* block definitions *))
+    ((( super() )))
+
+    \listfiles
+
+    \def\smaller{\fontsize{9.5pt}{9.5pt}\selectfont}
+
+    \definecolor{nbframe-border}{rgb}{0.867,0.867,0.867}
+    \definecolor{nbframe-bg}{rgb}{0.969,0.969,0.969}
+    \definecolor{nbframe-in-prompt}{rgb}{0.0,0.0,0.502}
+    \definecolor{nbframe-out-prompt}{rgb}{0.545,0.0,0.0}
+
+    \newenvironment{ColorVerbatim}
+    {\vspace{-2\baselineskip}
+    \leavevmode\begin{mdframed}[%
+        roundcorner=1.0pt, %
+        backgroundcolor=nbframe-bg, %
+        userdefinedwidth=1\linewidth, %
+        leftmargin=0.1\linewidth, %
+        innerleftmargin=0pt, %
+        innerrightmargin=0pt, %
+        linecolor=nbframe-border, %
+        linewidth=1pt, %
+        usetwoside=false, %
+        everyline=true, %
+        innerlinewidth=3pt, %
+        innerlinecolor=nbframe-bg, %
+        middlelinewidth=1pt, %
+        middlelinecolor=nbframe-bg, %
+        outerlinewidth=0.5pt, %
+        outerlinecolor=nbframe-border, %
+        needspace=0pt
+    ]}
+    {\end{mdframed}\vspace{-2\baselineskip}}
+
+    \newenvironment{WhiteVerbatim}
+    {\vspace{-2\baselineskip}
+    \leavevmode\begin{mdframed}[%
+        roundcorner=1.0pt, %
+        backgroundcolor=white, %
+        userdefinedwidth=1\linewidth, %
+        leftmargin=0.1\linewidth, %
+        innerleftmargin=0pt, %
+        innerrightmargin=0pt, %
+        linecolor=white, %
+        linewidth=1pt, %
+        usetwoside=false, %
+        everyline=true, %
+        innerlinewidth=3pt, %
+        innerlinecolor=white, %
+        middlelinewidth=1pt, %
+        middlelinecolor=white, %
+        outerlinewidth=0.5pt, %
+        outerlinecolor=white, %
+        needspace=0pt
+    ]}
+    {\end{mdframed}\vspace{-2\baselineskip}}
+
+((* endblock definitions *))
+
+%===============================================================================
+% Input
+%===============================================================================
+
+
+((* block in_prompt scoped *))
+    \br
+    ((( draw_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
+((* endblock in_prompt *))
+
+((* block input scoped *))
+    % Add contents below.
+    
+    \begin{ColorVerbatim}
+    ((( cell.input | highlight2latex )))
+    \end{ColorVerbatim}
+((* endblock input *))
+
+((* block input_group scoped *))
+    ((( super() )))
+((* endblock input_group *))
+
+
+%===============================================================================
+% Output
+%===============================================================================
+
+((* block output *))
+    \br
+
+    % Only render the prompt if the cell is pyout.  Note, the outputs prompt 
+    % block isn't used since we need to check each indiviual output and only
+    % add prompts to the pyout ones.
+    ((* if output.output_type in ['pyout'] *))
+        ((( draw_prompt("Out", cell.prompt_number, "nbframe-out-prompt") )))
+    ((* endif *))
+
+    \begin{WhiteVerbatim}
+    ((( super() )))
+    \end{WhiteVerbatim}
+((* endblock output *))
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+
+% Name: draw_prompt
+% Purpose: Renders an output/input prompt for notebook style pdfs.  Prompt is
+%          rendered at the current location, the cursor position is left 
+%          unmodified.
+((* macro draw_prompt(prompt, number, color) *))
+    
+    {
+    \smaller
+    \tt
+    \color{((( color )))}
+    \noindent
+    ((( prompt )))
+    {[}((( number ))){]}:
+    }
+    
+    \vspace{-1\baselineskip}
+((* endmacro *))
