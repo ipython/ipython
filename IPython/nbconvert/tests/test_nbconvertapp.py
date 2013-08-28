@@ -1,12 +1,10 @@
-"""
-Contains tests for the nbconvertapp
-"""
+"""Test NbConvertApp"""
+
 #-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
+#  Copyright (C) 2013 The IPython Development Team
 #
-#Distributed under the terms of the Modified BSD License.
-#
-#The full license is in the file COPYING.txt, distributed with this software.
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -18,9 +16,10 @@ import glob
 
 from .base import TestsBase
 
+import IPython.testing.tools as tt
 from IPython.testing import decorators as dec
 
-    
+
 #-----------------------------------------------------------------------------
 # Constants
 #-----------------------------------------------------------------------------
@@ -35,13 +34,18 @@ class TestNbConvertApp(TestsBase):
 
 
     def test_notebook_help(self):
-        """
-        Will help show if no notebooks are specified?
-        """
+        """Will help show if no notebooks are specified?"""
         with self.create_temp_cwd():
             out, err = self.call('nbconvert --log-level 0', ignore_return_code=True)
-            assert "see '--help-all'" in out
+            self.assertIn("see '--help-all'", out)
+    
+    def test_help_output(self):
+        """ipython nbconvert -h works"""
+        tt.help_output_test('nbconvert')
 
+    def test_help_all_output(self):
+        """ipython nbconvert --help-all works"""
+        tt.help_all_output_test('nbconvert')
 
     def test_glob(self):
         """
