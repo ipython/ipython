@@ -2,4 +2,49 @@
 
 ((*- extends 'latex_base.tplx' -*))
 
-((*- block input_group scoped -*))!!!prompt!!!((*- endblock input_group -*))
+%===============================================================================
+% Input
+%===============================================================================
+
+((*- block in_prompt scoped -*))
+    ((( write_prompt('Input') )))
+((*- endblock in_prompt -*))
+
+((*- block input scoped -*))
+    % Add contents below.
+    ((( cell.input | highlight2latex )))
+((*- endblock input -*))
+
+((*- block input_group scoped -*))
+    (((- super() )))
+    \vspace{-2em}
+((* endblock input_group -*))
+
+
+%===============================================================================
+% Output
+%===============================================================================
+
+((*- block output_prompt scoped -*))
+    ((( write_prompt('Output') )))
+((*- endblock output_prompt -*))
+
+((*- block output_group scoped -*))
+    (((- super() )))
+    \vspace{-2em}
+((* endblock output_group -*))
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+
+% Name: write_prompt
+% Purpose: Renders an output/input prompt for notebook style pdfs
+((* macro write_prompt(prompt) *))
+    % Add a horizantal break, along with break title.
+    \br\br
+    {\scriptsize ((( prompt )))}
+    \br
+    \rule[10pt]{\linewidth}{0.5pt}
+    \vspace{-2.5em}
+((* endmacro *))
