@@ -1,5 +1,0 @@
-((*- if not cell_style is defined -*))
-    ((*- set cell_style = 'complex_style.tplx' -*))
-((*- endif -*))
-
-((*- extends 'latex_article.tplx' -*))

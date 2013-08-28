@@ -1,5 +1,0 @@
-((= Complex input/output style =))
-
-((*- extends 'latex_base.tplx' -*))
-
-((*- block input_group scoped -*))+++prompt+++((*- endblock input_group -*))
