@@ -241,7 +241,7 @@ class FileNotebookManager(NotebookManager):
 
         # Should we proceed with the move?
         if os.path.isfile(new_os_path):
-            raise web.HTTPError(409, u'Notebook with name already exists: ' % new_os_path)
+            raise web.HTTPError(409, u'Notebook with name already exists: %s' % new_os_path)
         if self.save_script:
             old_py_path = os.path.splitext(old_os_path)[0] + '.py'
             new_py_path = os.path.splitext(new_os_path)[0] + '.py'
@@ -258,8 +258,8 @@ class FileNotebookManager(NotebookManager):
         old_checkpoints = self.list_checkpoints(old_name, old_path)
         for cp in old_checkpoints:
             checkpoint_id = cp['checkpoint_id']
-            old_cp_path = self.get_checkpoint_path(checkpoint_id, old_name, path)
-            new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, path)
+            old_cp_path = self.get_checkpoint_path(checkpoint_id, old_name, old_path)
+            new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, new_path)
             if os.path.isfile(old_cp_path):
                 self.log.debug("Renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
                 os.rename(old_cp_path, new_cp_path)

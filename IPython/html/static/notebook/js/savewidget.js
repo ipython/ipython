@@ -129,7 +129,7 @@ var IPython = (function (IPython) {
         var nbname = IPython.notebook.notebook_name;
         var path = IPython.notebook.notebookPath();
         var state = {"path": path+nbname}
-        window.history.replaceState(state, "", "/notebooks/" + path+nbname);
+        window.history.replaceState(state, "", "/notebooks" + path+nbname);
     }
 
 
