@@ -20,6 +20,8 @@ This template does not define a docclass, the inheriting class must define this.
     \usepackage{amssymb} % Equations
     \usepackage[utf8]{inputenc} % Allow utf-8 characters in the tex document
     \usepackage{ucs} % Extended unicode (utf-8) support
+    \usepackage{alltt} % Verbatim replacement that allows latex
+
     \usepackage{grffile} % extends the file name processing of package graphics 
                          %to support a larger range 
 
@@ -54,6 +56,14 @@ This template does not define a docclass, the inheriting class must define this.
     \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
     \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
 
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+
+    % Define a custom verbatim that allows latex
+    \renewenvironment{Verbatim}[1][\unskip]
+    {\begin{alltt}\smaller\noindent}
+    {\end{alltt}}
 ((* endblock definitions *))
 
 ((* block commands *))
@@ -83,16 +93,16 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Displaying simple data text
 ((* block data_text *))
-    \begin{verbatim}
-    ((( output.text | escape_latex )))
-    \end{verbatim}
+    \begin{Verbatim}
+((( output.text | escape_latex )))
+    \end{Verbatim}
 ((* endblock data_text *))
 
 % Display python error text as-is
 ((* block pyerr *))
-    \begin{verbatim}
-    ((( super() )))
-    \end{verbatim}
+    \begin{Verbatim}
+((( super() )))
+    \end{Verbatim}
 ((* endblock pyerr *))
 ((* block traceback_line *))
     ((( line | indent | strip_ansi | escape_latex )))
@@ -101,7 +111,7 @@ This template does not define a docclass, the inheriting class must define this.
 % Display stream ouput with coloring
 ((* block stream *))
     \begin{Verbatim}[commandchars=\\\{\}]
-    ((( output.text | ansi2latex )))
+((( output.text | ansi2latex )))
     \end{Verbatim}
 ((* endblock stream *))
 
@@ -128,9 +138,9 @@ This template does not define a docclass, the inheriting class must define this.
 ((* set filename = filename | posix_path *))
 ((*- block figure scoped -*))
     \begin{center}
-    \adjustimage{max size={0.9\linewidth}{..}}{((( filename )))}
-    \par
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{((( filename )))}
     \end{center}
+    { \hspace*{\fill} \\}
 ((*- endblock figure -*))
 ((*- endmacro *))
 
