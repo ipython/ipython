@@ -44,7 +44,8 @@ class LatexPreprocessor(Preprocessor):
             preprocessors to pass variables into the Jinja engine.
         """
         # Generate Pygments definitions for Latex 
-        resources["pygment_definitions"] = LatexFormatter().get_style_defs()
+        resources["latex"] = {}
+        resources["latex"]["pygment_definitions"] = LatexFormatter().get_style_defs()
         return super(LatexPreprocessor, self).preprocess(nb, resources)
 
 

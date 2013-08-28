@@ -27,6 +27,9 @@ This template does not define a docclass, the inheriting class must define this.
     % internal navigation ('pdf bookmarks' for the table of contents,
     % internal cross-reference links, web links for URLs, etc.)
     \usepackage{hyperref}
+
+    % Pygments definitions
+    ((( resources.latex.pygment_definitions )))
 ((* endblock packages *))
 
 ((* block definitions *))
