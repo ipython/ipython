@@ -4,10 +4,9 @@
 import os
 import sys
 import json
-from zmq.utils import jsonapi
-
 import requests
 
+from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
 
@@ -39,12 +38,12 @@ class SessionAPITest(NotebookTestBase):
         # POST a session
         url, nb = self.mknb()
         notebook = nb.json()
-        param = {'notebook_path': notebook['path'] + notebook['name']}
-        r = requests.post(self.session_url(), params=param)
+        model = {'notebook': {'name':notebook['name'], 'path': notebook['path']}}
+        r = requests.post(self.session_url(), data=json.dumps(model, default=date_default))
         data = r.json()
         assert isinstance(data, dict)
-        self.assertIn('name', data)
-        self.assertEqual(data['name'], notebook['name'])
+        self.assertIn('name', data['notebook'])
+        self.assertEqual(data['notebook']['name'], notebook['name'])
 
         # GET sessions
         r = requests.get(self.session_url())
@@ -62,8 +61,8 @@ class SessionAPITest(NotebookTestBase):
         # Create a session
         url, nb = self.mknb()
         notebook = nb.json()
-        param = {'notebook_path': notebook['path'] + notebook['name']}
-        r = requests.post(self.session_url(), params=param)
+        model = {'notebook': {'name':notebook['name'], 'path': notebook['path']}}
+        r = requests.post(self.session_url(), data=json.dumps(model, default=date_default))
         session = r.json()
 
         # GET a session
@@ -73,15 +72,17 @@ class SessionAPITest(NotebookTestBase):
         self.assertEqual(r.json(), session)
 
         # PATCH a session
-        data = {'notebook_path': 'test.ipynb'}
-        r = requests.patch(sess_url, data=jsonapi.dumps(data))
+        model = {'notebook': {'name':'test.ipynb', 'path': '/'}}
+        r = requests.patch(sess_url, data=json.dumps(model, default=date_default))
+        
         # Patching the notebook webservice too (just for consistency)
         requests.patch(self.notebook_url() + '/Untitled0.ipynb', 
-            data=jsonapi.dumps({'name':'test.ipynb'}))
+            data=json.dumps({'name':'test.ipynb'}))
+        print r.json()
         assert isinstance(r.json(), dict)
-        self.assertIn('name', r.json())
+        self.assertIn('name', r.json()['notebook'])
         self.assertIn('id', r.json())
-        self.assertEqual(r.json()['name'], 'test.ipynb')
+        self.assertEqual(r.json()['notebook']['name'], 'test.ipynb')
         self.assertEqual(r.json()['id'], session['id'])
 
         # DELETE a session

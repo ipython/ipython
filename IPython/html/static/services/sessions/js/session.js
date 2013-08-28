@@ -11,33 +11,39 @@
 
 var IPython = (function (IPython) {
     
-    var Session = function(notebook_path, Notebook){
+    var Session = function(notebook_name, notebook_path, Notebook){
         this.kernel = null;
         this.kernel_id = null;
         this.session_id = null;
+        this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
         this.notebook = Notebook;
         this._baseProjectUrl = Notebook.baseProjectUrl() 
     };
     
-    Session.prototype.start = function(){
+    Session.prototype.start = function() {
         var that = this
-        var qs = $.param({notebook_path:this.notebook_path});
-        var url = '/api/sessions' + '?' + qs;
-        $.post(url, 
-            $.proxy(this.start_kernel, that),
-            'json'
-        );
+        var notebook = {'notebook':{'name': this.notebook_name, 'path': this.notebook_path}}
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            data: JSON.stringify(notebook),
+            dataType : "json",
+        };
+        var url = this._baseProjectUrl + 'api/sessions';
+        $.ajax(url, settings);
     };
     
-    Session.prototype.notebook_rename = function (notebook_path) {
-        this.notebook_path = notebook_path;
-        var name = {'notebook_path': notebook_path}
+    Session.prototype.notebook_rename = function (name, path) {
+        this.notebook_name = name;
+        this.notebook_path = path;
+        var notebook = {'notebook':{'name':name, 'path': path}};
         var settings = {
             processData : false,
             cache : false,
             type : "PATCH",
-            data: JSON.stringify(name),
+            data: JSON.stringify(notebook),
             dataType : "json",
         };
         var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;
