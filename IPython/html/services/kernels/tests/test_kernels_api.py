@@ -7,6 +7,7 @@ import json
 
 import requests
 
+from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
 
 
@@ -14,7 +15,7 @@ class KernelAPITest(NotebookTestBase):
     """Test the kernels web service API"""
 
     def base_url(self):
-        return super(KernelAPITest,self).base_url() + 'api/kernels'
+        return url_path_join(super(KernelAPITest,self).base_url(), 'api/kernels')
 
     def mkkernel(self):
         r = requests.post(self.base_url())
