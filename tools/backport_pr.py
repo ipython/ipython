@@ -70,7 +70,13 @@ def backport_pr(branch, num, project='ipython/ipython'):
     
     filenames = [ f['filename'] for f in files ]
 
-    commit = Popen(['git', 'commit', '-m', msg] + filenames)
+    add = Popen(['git', 'add'] + filenames)
+    add.wait()
+    if add.returncode:
+        print("add failed!")
+        return 1
+
+    commit = Popen(['git', 'commit', '-m', msg])
     commit.wait()
     if commit.returncode:
         print("commit failed!")
