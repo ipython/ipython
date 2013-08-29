@@ -60,8 +60,7 @@ the command::
     the following command will create a certificate valid for 365 days with 
     both the key and certificate data written to the same file::
 
-        $ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.
-        pem -out mycert.pem
+        $ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
 
 Your browser will warn you of a dangerous certificate because it is
 self-signed.  If you want to have a fully compliant certificate that will not
