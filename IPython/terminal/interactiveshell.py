@@ -74,7 +74,7 @@ class TerminalMagics(Magics):
     def __init__(self, shell):
         super(TerminalMagics, self).__init__(shell)
         self.input_splitter = IPythonInputSplitter()
-        
+
     def store_or_execute(self, block, name):
         """ Execute a block, or store it in a variable, per the user's request.
         """
@@ -90,7 +90,7 @@ class TerminalMagics(Magics):
                 self.shell.run_cell(b)
             finally:
                 self.shell.using_paste_magics = False
-    
+
     def preclean_input(self, block):
         lines = block.splitlines()
         while lines and not lines[0].strip():
@@ -285,7 +285,7 @@ class TerminalInteractiveShell(InteractiveShell):
     term_title = CBool(False, config=True,
         help="Enable auto setting the terminal title."
     )
-    
+
     # This `using_paste_magics` is used to detect whether the code is being
     # executed via paste magics functions
     using_paste_magics = CBool(False)
@@ -301,7 +301,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return real_enable_gui(gui, app)
         except ValueError as e:
             raise UsageError("%s" % e)
-    
+
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
                  user_ns=None, user_module=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None, display_banner=None,
@@ -422,19 +422,19 @@ class TerminalInteractiveShell(InteractiveShell):
         internally created default banner.
         """
 
-        with self.builtin_trap, self.display_trap:
-
-            while 1:
-                try:
-                    self.interact(display_banner=display_banner)
-                    #self.interact_with_readline()
-                    # XXX for testing of a readline-decoupled repl loop, call
-                    # interact_with_readline above
-                    break
-                except KeyboardInterrupt:
-                    # this should not be necessary, but KeyboardInterrupt
-                    # handling seems rather unpredictable...
-                    self.write("\nKeyboardInterrupt in interact()\n")
+        with self.builtin_trap:
+            with self.display_trap:
+                while 1:
+                    try:
+                        self.interact(display_banner=display_banner)
+                        #self.interact_with_readline()
+                        # XXX for testing of a readline-decoupled repl loop, call
+                        # interact_with_readline above
+                        break
+                    except KeyboardInterrupt:
+                        # this should not be necessary, but KeyboardInterrupt
+                        # handling seems rather unpredictable...
+                        self.write("\nKeyboardInterrupt in interact()\n")
 
     def _replace_rlhist_multiline(self, source_raw, hlen_before_cell):
         """Store multiple lines as a single entry in history"""
@@ -570,7 +570,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         if self.has_readline:
             self.set_readline_completer()
-        
+
         # raw_input expects str, but we pass it unicode sometimes
         prompt = py3compat.cast_bytes_py2(prompt)
 

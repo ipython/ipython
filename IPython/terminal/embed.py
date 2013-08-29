@@ -26,7 +26,6 @@ from __future__ import with_statement
 
 import sys
 import warnings
-import contextlib
 
 from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
@@ -245,11 +244,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # actually completes using the frame's locals/globals
         self.set_completer_frame()
 
-        try:
-            with contextlib.nested(self.builtin_trap, self.display_trap):
-                self.interact(display_banner=display_banner)
-        except AttributeError:
-            with self.builtin_trap, self.display_trap:
+        with self.builtin_trap:
+            with self.display_trap:
                 self.interact(display_banner=display_banner)
 
         # now, purge out the local namespace of IPython's hidden variables.
