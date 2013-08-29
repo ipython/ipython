@@ -10,6 +10,7 @@
     \usepackage{tikz}
         \usetikzlibrary{calc,arrows,shadows}
     \usepackage[framemethod=tikz]{mdframed}
+    \usepackage{scrextend} % Used to indent output
 ((* endblock packages *))
 
 % Custom definitions
@@ -46,30 +47,6 @@
         outerlinecolor=nbframe-border, %
         needspace=0pt
     ]}
-    {\end{mdframed}\vspace{-2\baselineskip}}
-
-    \newenvironment{WhiteVerbatim}
-    {\vspace{-2\baselineskip}
-    \leavevmode\begin{mdframed}[%
-        roundcorner=1.0pt, %
-        backgroundcolor=white, %
-        userdefinedwidth=1\linewidth, %
-        leftmargin=0.1\linewidth, %
-        innerleftmargin=0pt, %
-        innerrightmargin=0pt, %
-        linecolor=white, %
-        linewidth=1pt, %
-        usetwoside=false, %
-        everyline=true, %
-        innerlinewidth=3pt, %
-        innerlinecolor=white, %
-        middlelinewidth=1pt, %
-        middlelinecolor=white, %
-        outerlinewidth=0.5pt, %
-        outerlinecolor=white, %
-        needspace=0pt
-    ]}
-    {\end{mdframed}\vspace{-2\baselineskip}}
 
 ((* endblock definitions *))
 
@@ -110,9 +87,9 @@
         ((( draw_prompt("Out", cell.prompt_number, "nbframe-out-prompt") )))
     ((* endif *))
 
-    \begin{WhiteVerbatim}
-    ((( super() )))
-    \end{WhiteVerbatim}
+    \begin{addmargin}[0.1\linewidth]{0em} % left, right
+    \smaller{((( super() )))}
+    \end{addmargin}
 ((* endblock output *))
 
 %==============================================================================
