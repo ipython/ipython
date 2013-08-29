@@ -22,7 +22,6 @@ Notes
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import with_statement
 
 import sys
 import warnings
