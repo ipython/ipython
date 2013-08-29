@@ -359,8 +359,26 @@ def cellmagic(end_on_blank_line=False):
         line = tpl % (magic_name, first, u'\n'.join(body))
 
 
-def _strip_prompts(prompt_re):
-    """Remove matching input prompts from a block of input."""
+def _strip_prompts(prompt_re, initial_re=None):
+    """Remove matching input prompts from a block of input.
+    
+    Parameters
+    ----------
+    prompt_re : regular expression
+        A regular expression matching any input prompt (including continuation)
+    initial_re : regular expression, optional
+        A regular expression matching only the initial prompt, but not continuation.
+        If no initial expression is given, prompt_re will be used everywhere.
+        Used mainly for plain Python prompts, where the continuation prompt
+        ``...`` is a valid Python expression in Python 3, so shouldn't be stripped.
+    
+    If initial_re and prompt_re differ,
+    only initial_re will be tested against the first line.
+    If any prompt is found on the first two lines,
+    prompts will be stripped from the rest of the block.
+    """
+    if initial_re is None:
+        initial_re = prompt_re
     line = ''
     while True:
         line = (yield line)
@@ -368,18 +386,19 @@ def _strip_prompts(prompt_re):
         # First line of cell
         if line is None:
             continue
-        out, n1 = prompt_re.subn('', line, count=1)
+        out, n1 = initial_re.subn('', line, count=1)
         line = (yield out)
         
-        # Second line of cell, because people often copy from just after the
-        # first prompt, so we might not see it in the first line.
         if line is None:
             continue
+        # check for any prompt on the second line of the cell,
+        # because people often copy from just after the first prompt,
+        # so we might not see it in the first line.
         out, n2 = prompt_re.subn('', line, count=1)
         line = (yield out)
         
         if n1 or n2:
-            # Found the input prompt in the first two lines - check for it in
+            # Found a prompt in the first two lines - check for it in
             # the rest of the cell as well.
             while line is not None:
                 line = (yield prompt_re.sub('', line, count=1))
@@ -394,7 +413,8 @@ def classic_prompt():
     """Strip the >>>/... prompts of the Python interactive shell."""
     # FIXME: non-capturing version (?:...) usable?
     prompt_re = re.compile(r'^(>>> ?|\.\.\. ?)')
-    return _strip_prompts(prompt_re)
+    initial_re = re.compile(r'^(>>> ?)')
+    return _strip_prompts(prompt_re, initial_re)
 
 @CoroutineInputTransformer.wrap
 def ipy_prompt():
