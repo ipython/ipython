@@ -47,6 +47,7 @@
         outerlinecolor=nbframe-border, %
         needspace=0pt
     ]}
+    {\end{mdframed}\vspace{-1\baselineskip}}
 
 ((* endblock definitions *))
 
