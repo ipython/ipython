@@ -2,6 +2,19 @@
 
 ((*- extends 'latex_base.tplx' -*))
 
+
+% Custom packages
+((* block packages *))
+    ((( super() )))
+    \usepackage{needspace} % Make prompts follow contents
+((* endblock packages *))
+
+% Custom definitions
+((* block definitions *))
+    \newlength{\promptspace}
+    \setlength{\promptspace}{4\baselineskip} % Space needed to start a new
+                                             % input/output
+((* endblock definitions *))
 %===============================================================================
 % Input
 %===============================================================================
@@ -37,6 +50,7 @@
 % Purpose: Renders an output/input prompt for notebook style pdfs
 ((* macro write_prompt(prompt) *))
     % Add a horizantal break, along with break title.
+    \needspace{\promptspace}
     \br\br
     {\scriptsize ((( prompt )))}
     \br
