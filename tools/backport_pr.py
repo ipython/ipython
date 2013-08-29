@@ -70,22 +70,14 @@ def backport_pr(branch, num, project='ipython/ipython'):
     
     filenames = [ f['filename'] for f in files ]
 
-    add = Popen(['git', 'add'] + filenames)
-    add.wait()
-    if add.returncode:
-        print("add failed!")
-        return 1
-
-    commit = Popen(['git', 'commit', '-m', msg])
-    commit.wait()
-    if commit.returncode:
-        print("commit failed!")
-        return 1
-    else:
-        print("PR #%i applied, with msg:" % num)
-        print()
-        print(msg)
-        print()
+    check_call(['git', 'add'] + filenames)
+    
+    check_call(['git', 'commit', '-m', msg])
+    
+    print("PR #%i applied, with msg:" % num)
+    print()
+    print(msg)
+    print()
     
     if branch != current_branch:
         check_call(['git', 'checkout', current_branch])
