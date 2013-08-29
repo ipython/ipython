@@ -25,10 +25,12 @@ To automatically restore stored variables at startup, add this to your
 import inspect, os, sys, textwrap
 
 # Our own
+from IPython.config.configurable import Configurable
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -68,10 +70,23 @@ def restore_data(ip):
 
 
 @magics_class
-class StoreMagics(Magics):
+class StoreMagics(Magics, Configurable):
     """Lightweight persistence for python variables.
 
     Provides the %store magic."""
+    
+    autorestore = Bool(False, config=True, help=
+        """If True, any %store-d variables will be automatically restored
+        when IPython starts.
+        """
+    )
+    
+    def __init__(self, shell):
+        Configurable.__init__(self, config=shell.config)
+        Magics.__init__(self, shell=shell)
+        self.shell.configurables.append(self)
+        if self.autorestore:
+            restore_data(self.shell)
 
     @skip_doctest
     @line_magic
@@ -225,3 +240,4 @@ class StoreMagics(Magics):
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     ip.register_magics(StoreMagics)
+    
