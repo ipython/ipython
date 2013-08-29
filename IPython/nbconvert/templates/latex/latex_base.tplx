@@ -64,6 +64,8 @@ This template does not define a docclass, the inheriting class must define this.
     \renewenvironment{Verbatim}[1][\unskip]
     {\begin{alltt}\smaller\noindent}
     {\end{alltt}}
+    % Document title
+    \title{((( resources.metadata.name | escape_latex )))}
 ((* endblock definitions *))
 
 ((* block commands *))
@@ -86,6 +88,10 @@ This template does not define a docclass, the inheriting class must define this.
     \g@addto@macro\@verbatim\small\topsep=0.5em\partopsep=0pt
     \makeatother 
 ((* endblock commands *))
+
+((* block predoc *))
+    ((* block maketitle *))\maketitle((* endblock maketitle *))
+((* endblock predoc *))
 
 %===============================================================================
 % Support blocks
