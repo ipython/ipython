@@ -147,7 +147,7 @@ class CythonMagics(Magics):
              "multiple times)."
     )
     @magic_arguments.argument(
-        '-n', '--module_name', action='append', default=[],
+        '-n', '--name', action='append', default=[],
         help="Specify a name for the Cython module."
     )
     @magic_arguments.argument(
@@ -208,8 +208,8 @@ class CythonMagics(Magics):
             # key which is hashed to determine the module name.
             key += time.time(),
 
-        if args.module_name:
-            module_name = str(args.module_name[0])
+        if args.name:
+            module_name = str(args.name[0])
         else:
             module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
         module_path = os.path.join(lib_dir, module_name + self.so_ext)
