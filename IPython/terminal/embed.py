@@ -22,7 +22,6 @@ Notes
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import with_statement
 
 import sys
 import warnings
@@ -78,7 +77,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                  user_module=None, custom_exceptions=((),None),
                  usage=None, banner1=None, banner2=None,
                  display_banner=None, exit_msg=u'', user_global_ns=None):
-    
+
         if user_global_ns is not None:
             warnings.warn("user_global_ns has been replaced by user_module. The\
                            parameter will be ignored.", DeprecationWarning)
@@ -183,7 +182,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         IPython itself (via %run), but some funny things will happen (a few
         globals get overwritten). In the future this will be cleaned up, as
         there is no fundamental reason why it can't work perfectly."""
-        
+
         if (global_ns is not None) and (module is None):
             class DummyMod(object):
                 """A dummy module object for embedded IPython."""
@@ -205,15 +204,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             if compile_flags is None:
                 compile_flags = (call_frame.f_code.co_flags &
                                  compilerop.PyCF_MASK)
-        
-        # Save original namespace and module so we can restore them after 
+
+        # Save original namespace and module so we can restore them after
         # embedding; otherwise the shell doesn't shut down correctly.
         orig_user_module = self.user_module
         orig_user_ns = self.user_ns
         orig_compile_flags = self.compile.flags
-        
+
         # Update namespaces and fire up interpreter
-        
+
         # The global one is easy, we can just throw it in
         if module is not None:
             self.user_module = module
@@ -244,14 +243,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # actually completes using the frame's locals/globals
         self.set_completer_frame()
 
-        with self.builtin_trap, self.display_trap:
-            self.interact(display_banner=display_banner)
-        
+        with self.builtin_trap:
+            with self.display_trap:
+                self.interact(display_banner=display_banner)
+
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
             for name in self.user_ns_hidden:
                 local_ns.pop(name, None)
-        
+
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
         self.user_ns = orig_user_ns
