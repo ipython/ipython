@@ -17,12 +17,14 @@
  * Create a custom button in toolbar that execute `%qtconsole` in kernel
  * and hence open a qtconsole attached to the same kernel as the current notebook
  *
- *    $([IPython.events]).on('notebook_loaded.Notebook', function(){
+ *    $([IPython.events]).on('app_initialized.NotebookApp', function(){
  *        IPython.toolbar.add_buttons_group([
  *            {
  *                 'label'   : 'run qtconsole',
- *                 'icon'    : 'ui-icon-calculator', // select your icon from http://jqueryui.com/themeroller/
- *                 'callback': function(){IPython.notebook.kernel.execute('%qtconsole')}
+ *                 'icon'    : 'icon-terminal', // select your icon from http://fortawesome.github.io/Font-Awesome/icons
+ *                 'callback': function () {
+ *                     IPython.notebook.kernel.execute('%qtconsole')
+ *                 }
  *            }
  *            // add more button here if needed.
  *            ]);
