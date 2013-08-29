@@ -65,15 +65,17 @@ def flush_channels(kc=None):
 
 def execute(code='', kc=None, **kwargs):
     """wrapper for doing common steps for validating an execution request"""
-    msg_id = KC.execute(code=code, **kwargs)
-    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    if kc is None:
+        kc = KC
+    msg_id = kc.execute(code=code, **kwargs)
+    reply = kc.get_shell_msg(timeout=TIMEOUT)
     list(validate_message(reply, 'execute_reply', msg_id))
-    busy = KC.get_iopub_msg(timeout=TIMEOUT)
+    busy = kc.get_iopub_msg(timeout=TIMEOUT)
     list(validate_message(busy, 'status', msg_id))
     nt.assert_equal(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
-        pyin = KC.get_iopub_msg(timeout=TIMEOUT)
+        pyin = kc.get_iopub_msg(timeout=TIMEOUT)
         list(validate_message(pyin, 'pyin', msg_id))
         nt.assert_equal(pyin['content']['code'], code)
     
