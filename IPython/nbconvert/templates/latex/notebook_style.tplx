@@ -38,7 +38,7 @@
         linecolor=nbframe-border, %
         linewidth=1pt, %
         usetwoside=false, %
-        everyline=true, %
+        everyline=false, %
         innerlinewidth=3pt, %
         innerlinecolor=nbframe-bg, %
         middlelinewidth=1pt, %
