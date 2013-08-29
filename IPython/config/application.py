@@ -145,6 +145,9 @@ class Application(SingletonConfigurable):
 
     # The version string of this application.
     version = Unicode(u'0.0')
+    
+    # the argv used to initialize the application
+    argv = List(Unicode)
 
     # The log level for the application
     log_level = Enum((0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'),
@@ -457,6 +460,7 @@ class Application(SingletonConfigurable):
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
+        self.argv = list(argv)
         
         if argv and argv[0] == 'help':
             # turn `ipython help notebook` into `ipython notebook -h`
