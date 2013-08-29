@@ -10,7 +10,9 @@
     \usepackage{tikz}
         \usetikzlibrary{calc,arrows,shadows}
     \usepackage[framemethod=tikz]{mdframed}
+
     \usepackage{scrextend} % Used to indent output
+    \usepackage{needspace} % Make prompts follow contents
 ((* endblock packages *))
 
 % Custom definitions
@@ -45,10 +47,14 @@
         middlelinecolor=nbframe-bg, %
         outerlinewidth=0.5pt, %
         outerlinecolor=nbframe-border, %
-        needspace=0pt
+        needspace=3em, %
+        nobreak=false
     ]}
     {\end{mdframed}\vspace{-1\baselineskip}}
 
+    % Space needed to start a new input/output
+    \newlength{\promptspace}
+    \setlength{\promptspace}{4\baselineskip} 
 ((* endblock definitions *))
 
 %===============================================================================
@@ -78,8 +84,11 @@
 % Output
 %===============================================================================
 
+((* block output_group *))
+    {\br}((( super() )))
+((* endblock output_group *))
+
 ((* block output *))
-    \br
 
     % Only render the prompt if the cell is pyout.  Note, the outputs prompt 
     % block isn't used since we need to check each indiviual output and only
@@ -102,7 +111,8 @@
 %          rendered at the current location, the cursor position is left 
 %          unmodified.
 ((* macro draw_prompt(prompt, number, color) *))
-    
+    \needspace{\promptspace}
+
     {
     \smaller
     \tt
