@@ -253,7 +253,7 @@ aliases.update({
 aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir']
+                    u'notebook-dir', u'profile', u'profile-dir']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -471,17 +471,10 @@ class NotebookApp(BaseIPythonApplication):
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
               "sent by the upstream reverse proxy. Neccesary if the proxy handles SSL")
     )
-
+    
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
-        if argv is None:
-            argv = sys.argv[1:]
-
-        # Scrub frontend-specific flags
-        self.kernel_argv = swallow_argv(argv, notebook_aliases, notebook_flags)
-        # Kernel should inherit default config file from frontend
-        self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
-
+        
         if self.extra_args:
             f = os.path.abspath(self.extra_args[0])
             if os.path.isdir(f):
@@ -490,6 +483,15 @@ class NotebookApp(BaseIPythonApplication):
                 self.file_to_run = f
                 nbdir = os.path.dirname(f)
             self.config.NotebookManager.notebook_dir = nbdir
+
+    def init_kernel_argv(self):
+        """construct the kernel arguments"""
+        # Scrub frontend-specific flags
+        self.kernel_argv = swallow_argv(self.argv, notebook_aliases, notebook_flags)
+        # Kernel should inherit default config file from frontend
+        self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
+        # Kernel should get *absolute* path to profile directory
+        self.kernel_argv.extend(["--profile-dir", self.profile_dir.location])
 
     def init_configurables(self):
         # force Session default to be secure
@@ -657,6 +659,7 @@ class NotebookApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         self.init_logging()
         super(NotebookApp, self).initialize(argv)
+        self.init_kernel_argv()
         self.init_configurables()
         self.init_components()
         self.init_webapp()
