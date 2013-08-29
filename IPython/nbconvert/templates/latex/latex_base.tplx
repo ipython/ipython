@@ -21,7 +21,6 @@ This template does not define a docclass, the inheriting class must define this.
     \usepackage[utf8]{inputenc} % Allow utf-8 characters in the tex document
     \usepackage{ucs} % Extended unicode (utf-8) support
     \usepackage{alltt} % Verbatim replacement that allows latex
-
     \usepackage{grffile} % extends the file name processing of package graphics 
                          %to support a larger range 
 
@@ -62,8 +61,9 @@ This template does not define a docclass, the inheriting class must define this.
 
     % Define a custom verbatim that allows latex
     \renewenvironment{Verbatim}[1][\unskip]
-    {\begin{alltt}\smaller\noindent}
+    {\begin{alltt}}
     {\end{alltt}}
+
     % Document title
     \title{((( resources.metadata.name | escape_latex )))}
 ((* endblock definitions *))
