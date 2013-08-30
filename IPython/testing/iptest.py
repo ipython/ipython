@@ -36,6 +36,7 @@ import subprocess
 import tempfile
 import time
 import warnings
+import multiprocessing.pool
 
 # Now, proceed to import nose itself
 import nose.plugins.builtin
@@ -382,19 +383,25 @@ class IPTester(object):
             env = os.environ.copy()
             env['IPYTHONDIR'] = IPYTHONDIR
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-            subp = subprocess.Popen(self.call_args, env=env)
+            subp = subprocess.Popen(self.call_args, stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE, env=env)
             self.processes.append(subp)
             # If this fails, the process will be left in self.processes and
             # cleaned up later, but if the wait call succeeds, then we can
             # clear the stored process.
             retcode = subp.wait()
             self.processes.pop()
+            self.stdout = subp.stdout
+            self.stderr = subp.stderr
             return retcode
 
     def run(self):
         """Run the stored commands"""
         try:
             retcode = self._run_cmd()
+            #print(self.stdout.read())
+            #print("std err")
+            #print(self.stderr.read())
         except KeyboardInterrupt:
             return -signal.SIGINT
         except:
@@ -450,8 +457,8 @@ def make_runners(inc_slow=False):
         nose_pkg_names.append('html')
         
     if have['zmq']:
-        nose_pkg_names.append('kernel')
-        nose_pkg_names.append('kernel.inprocess')
+        nose_pkg_names.insert(0, 'kernel')
+        nose_pkg_names.insert(1, 'kernel.inprocess')
         if inc_slow:
             nose_pkg_names.append('parallel')
 
@@ -538,6 +545,15 @@ def run_iptest():
     # Now nose can run
     TestProgram(argv=argv, addplugins=plugins)
 
+def do_run(x):
+    print('IPython test group:',x[0])
+    #if x[0] == 'IPython.kernel':
+    #    import os
+    #    os.environ['NOSE_PROCESS_TIMEOUT'] = '20'
+    #    os.environ['NOSE_PROCESSES'] = '2'
+    ret = x[1].run()
+    print('finished test group:',x[0])
+    return ret
 
 def run_iptestall(inc_slow=False):
     """Run the entire IPython test suite by calling nose and trial.
@@ -554,6 +570,7 @@ def run_iptestall(inc_slow=False):
       Include slow tests, like IPython.parallel. By default, these tests aren't
       run.
     """
+    p = multiprocessing.pool.ThreadPool()
 
     runners = make_runners(inc_slow=inc_slow)
 
@@ -568,11 +585,18 @@ def run_iptestall(inc_slow=False):
     # Run all test runners, tracking execution time
     failed = []
     t_start = time.time()
+
+    #runners = runners[::-1]
+
+    print([r[0] for r in runners])
+
     try:
-        for (name, runner) in runners:
+
+        print(len(runners))
+        all_res = p.map(do_run, runners)
+        for ((name, runner), res) in zip(runners, all_res):
             print('*'*70)
             print('IPython test group:',name)
-            res = runner.run()
             if res:
                 failed.append( (name, runner) )
                 if res == -signal.SIGINT:
