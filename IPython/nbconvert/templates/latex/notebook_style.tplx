@@ -71,7 +71,7 @@
     % Add contents below.
     
     \begin{ColorVerbatim}
-    \smaller{\leavevmode\hspace*{-0.1\linewidth}((( super() )))
+    \smaller{\leavevmode\hspace*{-0.1\linewidth}((( super() )))}
     \end{ColorVerbatim}
 ((* endblock input *))
 
