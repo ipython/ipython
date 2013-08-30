@@ -33,7 +33,6 @@
     \leavevmode\begin{mdframed}[%
         roundcorner=1.0pt, %
         backgroundcolor=nbframe-bg, %
-        userdefinedwidth=1\linewidth, %
         leftmargin=0.1\linewidth, %
         innerleftmargin=0pt, %
         innerrightmargin=0pt, %
@@ -52,9 +51,6 @@
     ]}
     {\end{mdframed}\vspace{-1\baselineskip}}
 
-    % Space needed to start a new input/output
-    \newlength{\promptspace}
-    \setlength{\promptspace}{4\baselineskip} 
 ((* endblock definitions *))
 
 %===============================================================================
@@ -71,7 +67,7 @@
     % Add contents below.
     
     \begin{ColorVerbatim}
-    \smaller{\leavevmode\hspace*{-0.1\linewidth}((( super() )))}
+    In [0]: \vspace{-1\baselineskip}\smaller{((( super() )))}
     \end{ColorVerbatim}
 ((* endblock input *))
 
@@ -111,13 +107,12 @@
 %          rendered at the current location, the cursor position is left 
 %          unmodified.
 ((* macro draw_prompt(prompt, number, color) *))
-    \needspace{\promptspace}
-
+    
     {
     \smaller
     \tt
     \color{((( color )))}
-    \noindent
+    \noindent\relax
     ((( prompt )))
     {[}((( number ))){]}:
     }
