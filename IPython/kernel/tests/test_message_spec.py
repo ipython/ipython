@@ -1,7 +1,7 @@
-"""Test suite for our zeromq-based messaging specification.
+"""Test suite for our zeromq-based message specification.
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
+#  Copyright (C) 2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING.txt, distributed as part of this software.
@@ -19,71 +19,20 @@ from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
 
-#-----------------------------------------------------------------------------
-# Global setup and utilities
-#-----------------------------------------------------------------------------
+from .utils import TIMEOUT, start_global_kernel, flush_channels, execute
 
-STARTUP_TIMEOUT = 60
-TIMEOUT = 15
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+KC = None
 
 def setup():
-    global KM, KC
-    KM = KernelManager()
-    KM.start_kernel(stdout=PIPE, stderr=PIPE)
-    KC = KM.client()
-    KC.start_channels()
-    
-    # wait for kernel to be ready
-    try:
-        msg = KC.iopub_channel.get_msg(block=True, timeout=STARTUP_TIMEOUT)
-    except Empty:
-        pass
-    msg_id = KC.kernel_info()
-    KC.get_shell_msg(block=True, timeout=STARTUP_TIMEOUT)
-    flush_channels()
-
-
-def teardown():
-    KC.stop_channels()
-    KM.shutdown_kernel()
-
-
-def flush_channels(kc=None):
-    """flush any messages waiting on the queue"""
-    if kc is None:
-        kc = KC
-    for channel in (kc.shell_channel, kc.iopub_channel):
-        while True:
-            try:
-                msg = channel.get_msg(block=True, timeout=0.1)
-            except Empty:
-                break
-            else:
-                validate_message(msg)
-
-
-def execute(code='', kc=None, **kwargs):
-    """wrapper for doing common steps for validating an execution request"""
-    if kc is None:
-        kc = KC
-    msg_id = kc.execute(code=code, **kwargs)
-    reply = kc.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'execute_reply', msg_id)
-    busy = kc.get_iopub_msg(timeout=TIMEOUT)
-    validate_message(busy, 'status', msg_id)
-    nt.assert_equal(busy['content']['execution_state'], 'busy')
-    
-    if not kwargs.get('silent'):
-        pyin = kc.get_iopub_msg(timeout=TIMEOUT)
-        validate_message(pyin, 'pyin', msg_id)
-        nt.assert_equal(pyin['content']['code'], code)
-    
-    return msg_id, reply['content']
+    global KC
+    KC = start_global_kernel()
 
 #-----------------------------------------------------------------------------
-# MSG Spec References
+# Message Spec References
 #-----------------------------------------------------------------------------
-
 
 class Reference(HasTraits):
 
