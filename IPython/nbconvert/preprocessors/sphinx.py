@@ -87,12 +87,12 @@ class SphinxPreprocessor(Preprocessor):
             "Sonny"    (used for international documents)
         """)
     
-    output_style = Unicode("notebook", config=True, help="""
-        Nbconvert Ipython
-        notebook input/output formatting style.
-        You may choose one of the following:
-            "simple     (recommended for long code segments)"
-            "notebook"  (default)
+    cell_style = Unicode("notebook", config=True, help="""
+        The code cell style to use. You may choose one of the following:
+        
+            "notebook"  (default, notebook-like style)
+            "simple"    (recommended for long code segments)
+            "python"    (plain Python prompts)
         """)
     
     center_output = Bool(False, config=True, help="""
@@ -141,7 +141,7 @@ class SphinxPreprocessor(Preprocessor):
             
             # Prompt the user for the document style.
             resources["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
-            resources["sphinx"]["outputstyle"] = self._prompt_output_style()
+            resources["sphinx"]["cellstyle"] = self._prompt_cell_style()
             
             # Small options
             resources["sphinx"]["centeroutput"] = console.prompt_boolean("Do you want to center the output? (false)", False)
@@ -163,7 +163,7 @@ class SphinxPreprocessor(Preprocessor):
             
             # Sphinx traitlets.
             resources["sphinx"]["chapterstyle"] = self.chapter_style
-            resources["sphinx"]["outputstyle"] = self.output_style
+            resources["sphinx"]["cellstyle"] = self.cell_style
             resources["sphinx"]["centeroutput"] = self.center_output
             resources["sphinx"]["header"] = self.use_headers
             
@@ -227,18 +227,20 @@ class SphinxPreprocessor(Preprocessor):
         return user_date
     
     
-    def _prompt_output_style(self):
+    def _prompt_cell_style(self):
         """
         Prompts the user to pick an IPython output style.
         """
         
         # Dictionary of available output styles
-        styles = {1: "simple",
-                  2: "notebook"}
+        styles = {1: "notebook",
+                  2: "simple",
+                  3: "python"}
         
         #Append comments to the menu when displaying it to the user.
-        comments = {1: "(recommended for long code segments)",
-                    2: "(default)"}
+        comments = {1: "(default, notebook-like style)",
+                    2: "(recommended for long code segments)",
+                    3: "(plain Python prompts)"}
         
         return console.prompt_dictionary(styles, default_style=2, menu_comments=comments)
     

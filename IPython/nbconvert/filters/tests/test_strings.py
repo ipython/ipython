@@ -19,6 +19,7 @@ from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..strings import (wrap_text, html2text, add_anchor, strip_dollars, 
     strip_files_prefix, get_lines, comment_lines, ipython2python, posix_path,
+    add_prompts
 )
 
 
@@ -121,8 +122,15 @@ class TestStrings(TestsBase):
             ignore_spaces=True, ignore_newlines=True)
     
     def test_posix_path(self):
+        """posix_path test"""
         path_list = ['foo', 'bar']
         expected = '/'.join(path_list)
         native = os.path.join(*path_list)
         filtered = posix_path(native)
         self.assertEqual(filtered, expected)
+    
+    def test_add_prompts(self):
+        """add_prompts test"""
+        text1 = """for i in range(10):\n  i += 1\n  print i"""
+        text2 = """>>> for i in range(10):\n...   i += 1\n...   print i"""
+        self.assertEqual(text2, add_prompts(text1))

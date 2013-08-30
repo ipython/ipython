@@ -50,7 +50,7 @@ class TestSphinx(PreprocessorTestsBase):
         assert "release" in res['sphinx']
         assert "date" in res['sphinx']
         assert "chapterstyle" in res['sphinx']
-        assert "outputstyle" in res['sphinx']
+        assert "cellstyle" in res['sphinx']
         assert "centeroutput" in res['sphinx']
         assert "header" in res['sphinx']
         assert "texinputs" in res['sphinx']

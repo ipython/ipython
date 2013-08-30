@@ -38,6 +38,7 @@ __all__ = [
     'get_lines',
     'ipython2python',
     'posix_path',
+    'add_prompts'
 ]
 
 
@@ -181,3 +182,13 @@ def posix_path(path):
     if os.path.sep != '/':
         return path.replace(os.path.sep, '/')
     return path
+
+
+def add_prompts(code, first='>>> ', cont='... '):
+    """Add prompts to code blocks."""
+    new_code = []
+    code_list = code.split('\n')
+    new_code.append(first + code_list[0])
+    for line in code_list[1:]:
+        new_code.append(cont + line)
+    return '\n'.join(new_code)
