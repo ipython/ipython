@@ -39,7 +39,7 @@ import warnings
 
 # Monkeypatch for nose, see nose issue 728:
 # https://github.com/nose-devs/nose/issues/728
-from . import nosepatch2  # analysis:ignore (activated by import)
+from IPython.testing import nosepatch2  # analysis:ignore (activated by import)
 
 # Now, proceed to import nose itself
 import nose.plugins.builtin
