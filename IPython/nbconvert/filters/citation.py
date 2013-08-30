@@ -51,7 +51,7 @@ def _process_node_cite(node):
     """Do the citation replacement as we walk the lxml tree."""
     
     def _get(o, name):
-        value = getattr(o, name)
+        value = getattr(o, name, None)
         return '' if value is None else value
     
     if 'data-cite' in node.attrib:
