@@ -58,10 +58,6 @@ def test_console_starts():
         p.terminate()
 
 def test_help_output():
-    """ipython console -h works"""
-    tt.help_output_test('console')
-    
-def test_help_all_output():
     """ipython console --help-all works"""
     tt.help_all_output_test('console')
 

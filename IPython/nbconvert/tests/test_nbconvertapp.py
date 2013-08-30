@@ -40,10 +40,6 @@ class TestNbConvertApp(TestsBase):
             self.assertIn("see '--help-all'", out)
     
     def test_help_output(self):
-        """ipython nbconvert -h works"""
-        tt.help_output_test('nbconvert')
-
-    def test_help_all_output(self):
         """ipython nbconvert --help-all works"""
         tt.help_all_output_test('nbconvert')
 

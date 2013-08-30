@@ -20,10 +20,6 @@ import IPython.testing.tools as tt
 #-----------------------------------------------------------------------------
 
 def test_help_output():
-    """ipython qtconsole -h works"""
-    tt.help_output_test('qtconsole')
-
-def test_help_all_output():
     """ipython qtconsole --help-all works"""
     tt.help_all_output_test('qtconsole')
 

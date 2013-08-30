@@ -20,10 +20,6 @@ import IPython.testing.tools as tt
 #-----------------------------------------------------------------------------
 
 def test_help_output():
-    """ipython notebook -h works"""
-    tt.help_output_test('notebook')
-
-def test_help_all_output():
     """ipython notebook --help-all works"""
     tt.help_all_output_test('notebook')
 

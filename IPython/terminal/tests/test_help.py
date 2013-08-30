@@ -19,37 +19,19 @@ import IPython.testing.tools as tt
 
 
 def test_ipython_help():
-    tt.help_output_test()
-
-def test_ipython_help_all():
     tt.help_all_output_test()
 
 def test_profile_help():
-    tt.help_output_test("profile")
-
-def test_profile_help_all():
     tt.help_all_output_test("profile")
 
 def test_profile_list_help():
-    tt.help_output_test("profile list")
-
-def test_profile_list_help_all():
     tt.help_all_output_test("profile list")
 
 def test_profile_create_help():
-    tt.help_output_test("profile create")
-
-def test_profile_create_help_all():
     tt.help_all_output_test("profile create")
 
 def test_locate_help():
-    tt.help_output_test("locate")
-
-def test_locate_help_all():
     tt.help_all_output_test("locate")
 
 def test_locate_profile_help():
-    tt.help_output_test("locate profile")
-
-def test_locate_profile_all():
     tt.help_all_output_test("locate profile")
