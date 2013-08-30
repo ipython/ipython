@@ -9,7 +9,7 @@
     % Needed to box output/input
     \usepackage{tikz}
         \usetikzlibrary{calc,arrows,shadows}
-    \usepackage[framemethod=tikz]{mdframed}
+    \usepackage[framemethod=tikz]{((( resources.latex.mdframed_path | posix_path )))/mdframed}
 
     \usepackage{scrextend} % Used to indent output
     \usepackage{needspace} % Make prompts follow contents

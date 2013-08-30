@@ -14,6 +14,7 @@ they are converted.
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
+import os
 
 # Third-party import, needed for Pygments latex definitions.
 from pygments.formatters import LatexFormatter
@@ -46,6 +47,7 @@ class LatexPreprocessor(Preprocessor):
         # Generate Pygments definitions for Latex 
         resources["latex"] = {}
         resources["latex"]["pygment_definitions"] = LatexFormatter().get_style_defs()
+        resources["latex"]["mdframed_path"] = os.path.join(os.path.dirname(__file__), '..', 'templates', 'latex', 'mdframed')
         return super(LatexPreprocessor, self).preprocess(nb, resources)
 
 
