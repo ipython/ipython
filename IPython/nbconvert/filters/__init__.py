@@ -4,3 +4,4 @@ from .highlight import *
 from .latex import *
 from .markdown import *
 from .strings import *
+from .citation import *
