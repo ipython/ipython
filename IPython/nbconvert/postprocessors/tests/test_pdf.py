@@ -62,3 +62,7 @@ class TestPDF(TestsBase):
 
             # Check that the PDF was created.
             assert os.path.isfile('a.pdf')
+            
+            # Make sure that temp files are cleaned up
+            for ext in processor.temp_file_exts:
+                assert not os.path.isfile('a'+ext)
