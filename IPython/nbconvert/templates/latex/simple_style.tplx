@@ -11,6 +11,8 @@
 
 % Custom definitions
 ((* block definitions *))
+    ((( super() )))
+    
     \newlength{\promptspace}
     \setlength{\promptspace}{4\baselineskip} % Space needed to start a new
                                              % input/output

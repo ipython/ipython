@@ -67,8 +67,13 @@
     % Add contents below.
     
     \begin{ColorVerbatim}
-    In [0]: \vspace{-1\baselineskip}\smaller{((( super() )))}
+    \smaller{((( super() )))}
     \end{ColorVerbatim}
+
+    % \begin{addmargin}[0.1\linewidth]{0em} % left, right
+    % \smaller{}
+    % \end{addmargin}
+
 ((* endblock input *))
 
 ((* block input_group scoped *))
@@ -115,7 +120,7 @@
     \noindent\relax
     ((( prompt )))
     {[}((( number ))){]}:
+    \vspace{-1\baselineskip}
     }
     
-    \vspace{-1\baselineskip}
 ((* endmacro *))
