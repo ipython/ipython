@@ -1363,9 +1363,7 @@ class InteractiveShell(SingletonConfigurable):
             namespaces = [ ('Interactive', self.user_ns),
                            ('Interactive (global)', self.user_global_ns),
                            ('Python builtin', builtin_mod.__dict__),
-                           ('Alias', self.alias_manager.alias_table),
                            ]
-            alias_ns = self.alias_manager.alias_table
 
         # initialize results to 'null'
         found = False; obj = None;  ospace = None;  ds = None;
@@ -1404,8 +1402,6 @@ class InteractiveShell(SingletonConfigurable):
                     # If we finish the for loop (no break), we got all members
                     found = True
                     ospace = nsname
-                    if ns == alias_ns:
-                        isalias = True
                     break  # namespace loop
 
         # Try to see if it's magic
@@ -2305,7 +2301,6 @@ class InteractiveShell(SingletonConfigurable):
     def init_alias(self):
         self.alias_manager = AliasManager(shell=self, parent=self)
         self.configurables.append(self.alias_manager)
-        self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
     # Things related to extensions

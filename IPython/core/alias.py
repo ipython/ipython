@@ -150,7 +150,6 @@ class AliasManager(Configurable):
 
     def __init__(self, shell=None, **kwargs):
         super(AliasManager, self).__init__(shell=shell, **kwargs)
-        self.alias_table = {}
         self.init_exclusions()
         self.init_aliases()
 
@@ -211,6 +210,14 @@ class AliasManager(Configurable):
         if name in self.no_alias:
             raise InvalidAliasError("The name %s can't be aliased "
                                     "because it is a keyword or builtin." % name)
+        try:
+            caller = self.shell.magics_manager.magics['line'][name]
+        except KeyError:
+            pass
+        else:
+            if not isinstance(caller, AliasCaller):
+                raise InvalidAliasError("The name %s can't be aliased "
+                                        "because it is another magic command." % name)
         if not (isinstance(cmd, basestring)):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % cmd)
@@ -223,3 +230,8 @@ class AliasManager(Configurable):
             return caller.cmd
         else:
             raise ValueError('%s is not an alias' % name)
+    
+    def is_alias(self, name):
+        """Return whether or not a given name has been defined as an alias"""
+        caller = self.shell.magics_manager.magics['line'].get(name, None)
+        return isinstance(caller, AliasCaller)

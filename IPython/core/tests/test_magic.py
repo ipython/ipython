@@ -48,16 +48,16 @@ class DummyMagics(magic.Magics): pass
 def test_rehashx():
     # clear up everything
     _ip = get_ipython()
-    _ip.alias_manager.alias_table.clear()
+    _ip.alias_manager.clear_aliases()
     del _ip.db['syscmdlist']
     
     _ip.magic('rehashx')
     # Practically ALL ipython development systems will have more than 10 aliases
 
-    nt.assert_true(len(_ip.alias_manager.alias_table) > 10)
-    for key, val in _ip.alias_manager.alias_table.iteritems():
+    nt.assert_true(len(_ip.alias_manager.aliases) > 10)
+    for name, cmd in _ip.alias_manager.aliases:
         # we must strip dots from alias names
-        nt.assert_not_in('.', key)
+        nt.assert_not_in('.', name)
 
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
