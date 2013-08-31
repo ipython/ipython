@@ -27,6 +27,7 @@ import re
 import sys
 
 from IPython.config.configurable import Configurable
+from IPython.core.error import UsageError
 from IPython.core.splitinput import split_user_input
 
 from IPython.utils.traitlets import List, Instance
@@ -105,13 +106,17 @@ class InvalidAliasError(AliasError):
     pass
 
 class AliasCaller(object):
-    def __init__(self, shell, cmd):
+    def __init__(self, shell, name, cmd):
         self.shell = shell
+        self.name = name
         self.cmd = cmd
         self.nargs = cmd.count('%s')
         if (self.nargs > 0) and (cmd.find('%l') >= 0):
             raise InvalidAliasError('The %s and %l specifiers are mutually '
                                     'exclusive in alias definitions.')        
+    
+    def __repr__(self):
+        return "<alias {} for {!r}>".format(self.name, self.cmd)
         
     def __call__(self, rest=''):
         cmd = self.cmd
@@ -127,8 +132,8 @@ class AliasCaller(object):
             # Handle aliases with positional arguments
             args = rest.split(None, nargs)
             if len(args) < nargs:
-                raise AliasError('Alias <%s> requires %s arguments, %s given.' %
-                      (alias, nargs, len(args)))
+                raise UsageError('Alias <%s> requires %s arguments, %s given.' %
+                      (self.name, nargs, len(args)))
             cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
         
         self.shell.system(cmd)
@@ -189,7 +194,7 @@ class AliasManager(Configurable):
         problems.
         """
         self.validate_alias(name, cmd)
-        caller = AliasCaller(shell=self.shell, cmd=cmd)
+        caller = AliasCaller(shell=self.shell, name=name, cmd=cmd)
         self.shell.magics_manager.register_function(caller, magic_kind='line',
                                                     magic_name=name)
 
