@@ -45,28 +45,6 @@ def run(tests):
 
 
 def test_handlers():
-    # alias expansion
-
-    # We're using 'true' as our syscall of choice because it doesn't
-    # write anything to stdout.
-
-    # Turn off actual execution of aliases, because it's noisy
-    old_system_cmd = ip.system
-    ip.system = lambda cmd: None
-
-
-    ip.alias_manager.alias_table['an_alias'] = (0, 'true')
-    # These are useful for checking a particular recursive alias issue
-    ip.alias_manager.alias_table['top'] = (0, 'd:/cygwin/top')
-    ip.alias_manager.alias_table['d'] =   (0, 'true')
-    run([(i,py3compat.u_format(o)) for i,o in \
-        [("an_alias",    "get_ipython().system({u}'true ')"),     # alias
-         # Below: recursive aliases should expand whitespace-surrounded
-         # chars, *not* initial chars which happen to be aliases:
-         ("top",         "get_ipython().system({u}'d:/cygwin/top ')"),
-         ]])
-    ip.system = old_system_cmd
-
     call_idx = CallableIndexable()
     ip.user_ns['call_idx'] = call_idx
 
