@@ -211,16 +211,17 @@ class StoreMagics(Magics, Configurable):
             except KeyError:
                 # it might be an alias
                 # This needs to be refactored to use the new AliasManager stuff.
-                if args[0] in ip.alias_manager:
-                    name = args[0]
-                    nargs, cmd = ip.alias_manager.alias_table[ name ]
-                    staliases = db.get('stored_aliases',{})
-                    staliases[ name ] = cmd
-                    db['stored_aliases'] = staliases
-                    print "Alias stored: %s (%s)" % (name, cmd)
-                    return
-                else:
-                    raise UsageError("Unknown variable '%s'" % args[0])
+                name = args[0]
+                try:
+                    cmd = ip.alias_manager.retrieve_alias(name)
+                except ValueError:
+                    raise UsageError("Unknown variable '%s'" % name)
+                
+                staliases = db.get('stored_aliases',{})
+                staliases[name] = cmd
+                db['stored_aliases'] = staliases
+                print "Alias stored: %s (%s)" % (name, cmd)
+                return
 
             else:
                 modname = getattr(inspect.getmodule(obj), '__name__', '')

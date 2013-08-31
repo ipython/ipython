@@ -210,6 +210,14 @@ class AliasManager(Configurable):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % cmd)
         return True
+    
+    def retrieve_alias(self, name):
+        """Retrieve the command to which an alias expands."""
+        caller = self.shell.magics_manager.magics['line'].get(name, None)
+        if isinstance(caller, AliasCaller):
+            return caller.cmd
+        else:
+            raise ValueError('%s is not an alias' % name)
 
     def call_alias(self, alias, rest=''):
         """Call an alias given its name and the rest of the line."""
