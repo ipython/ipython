@@ -56,6 +56,37 @@ from IPython.utils.warn import warn, error
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
+
+class TimeitResult(object):
+    """
+    Object returned by the timeit magic with info about the run.
+
+    Contain the following attributes :
+
+    loops: (int) number of loop done per measurement
+    repeat: (int) number of time the mesurement has been repeated
+    best: (float) best execusion time / number
+    all_runs: (list of float) execusion time of each run (in s)
+    compile_time: (float) time of statement compilation (s)
+
+    """
+
+    def __init__(self, loops, repeat, best, all_runs, compile_time, precision):
+        self.loops = loops
+        self.repeat = repeat
+        self.best = best
+        self.all_runs = all_runs
+        self.compile_time = compile_time
+        self._precision = precision
+
+    def _repr_pretty_(self, p , cycle):
+         unic =  u"%d loops, best of %d: %s per loop" % (self.loops, self.repeat,
+                                            _format_time(self.best, self._precision))
+         p.text(u'<TimeitResult : '+unic+u'>')
+
+
+
+
 @magics_class
 class ExecutionMagics(Magics):
     """Magics related to code execution, debugging, profiling, etc.
@@ -803,9 +834,9 @@ python-profiler package from non-free.""")
         """Time execution of a Python statement or expression
 
         Usage, in line mode:
-          %timeit [-n<N> -r<R> [-t|-c]] statement
+          %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
         or in cell mode:
-          %%timeit [-n<N> -r<R> [-t|-c]] setup_code
+          %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
           code
           code...
 
@@ -835,6 +866,11 @@ python-profiler package from non-free.""")
 
         -p<P>: use a precision of <P> digits to display the timing result.
         Default: 3
+
+        -q: Quiet, do not print result.
+
+        -o: return a TimeitResult that can be stored in a variable to inspect
+            the result in more details.
 
 
         Examples
@@ -868,7 +904,7 @@ python-profiler package from non-free.""")
 
         import timeit
 
-        opts, stmt = self.parse_options(line,'n:r:tcp:',
+        opts, stmt = self.parse_options(line,'n:r:tcp:qo',
                                         posix=False, strict=False)
         if stmt == "" and cell is None:
             return
@@ -877,6 +913,8 @@ python-profiler package from non-free.""")
         number = int(getattr(opts, "n", 0))
         repeat = int(getattr(opts, "r", timeit.default_repeat))
         precision = int(getattr(opts, "p", 3))
+        quiet = 'q' in opts
+        return_result = 'o' in opts
         if hasattr(opts, "t"):
             timefunc = time.time
         if hasattr(opts, "c"):
@@ -948,13 +986,15 @@ python-profiler package from non-free.""")
                 if timer.timeit(number) >= 0.2:
                     break
                 number *= 10
-
-        best = min(timer.repeat(repeat, number)) / number
-
-        print u"%d loops, best of %d: %s per loop" % (number, repeat,
-                                                          _format_time(best, precision))
-        if tc > tc_min:
-            print "Compiler time: %.2f s" % tc
+        all_runs = timer.repeat(repeat, number)
+        best = min(all_runs) / number
+        if not quiet :
+            print u"%d loops, best of %d: %s per loop" % (number, repeat,
+                                                              _format_time(best, precision))
+            if tc > tc_min:
+                print "Compiler time: %.2f s" % tc
+        if return_result:
+            return TimeitResult(number, repeat, best, all_runs, tc, precision)
 
     @skip_doctest
     @needs_local_scope
