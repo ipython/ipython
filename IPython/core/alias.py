@@ -149,12 +149,11 @@ class AliasManager(Configurable):
         self.init_exclusions()
         self.init_aliases()
 
-    def __contains__(self, name):
-        return name in self.alias_table
-
     @property
     def aliases(self):
-        return [(item[0], item[1][1]) for item in self.alias_table.iteritems()]
+        linemagics = self.shell.magics_manager.magics['line']
+        return [(n, func.cmd) for (n, func) in linemagics.items()
+                            if isinstance(func, AliasCaller)]
 
     def init_exclusions(self):
         # set of things NOT to alias (keywords, builtins and some magics)
@@ -171,9 +170,10 @@ class AliasManager(Configurable):
         # Load user aliases
         for name, cmd in self.user_aliases:
             self.soft_define_alias(name, cmd)
-
+    
     def clear_aliases(self):
-        self.alias_table.clear()
+        for name, cmd in self.aliases:
+            self.undefine_alias(name)
 
     def soft_define_alias(self, name, cmd):
         """Define an alias, but don't raise on an AliasError."""
@@ -218,84 +218,3 @@ class AliasManager(Configurable):
             return caller.cmd
         else:
             raise ValueError('%s is not an alias' % name)
-
-    def call_alias(self, alias, rest=''):
-        """Call an alias given its name and the rest of the line."""
-        cmd = self.transform_alias(alias, rest)
-        try:
-            self.shell.system(cmd)
-        except:
-            self.shell.showtraceback()
-
-    def transform_alias(self, alias,rest=''):
-        """Transform alias to system command string."""
-        nargs, cmd = self.alias_table[alias]
-
-        if ' ' in cmd and os.path.isfile(cmd):
-            cmd = '"%s"' % cmd
-
-        # Expand the %l special to be the user's input line
-        if cmd.find('%l') >= 0:
-            cmd = cmd.replace('%l', rest)
-            rest = ''
-        if nargs==0:
-            # Simple, argument-less aliases
-            cmd = '%s %s' % (cmd, rest)
-        else:
-            # Handle aliases with positional arguments
-            args = rest.split(None, nargs)
-            if len(args) < nargs:
-                raise AliasError('Alias <%s> requires %s arguments, %s given.' %
-                      (alias, nargs, len(args)))
-            cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
-        return cmd
-
-    def expand_alias(self, line):
-        """ Expand an alias in the command line
-
-        Returns the provided command line, possibly with the first word
-        (command) translated according to alias expansion rules.
-
-        [ipython]|16> _ip.expand_aliases("np myfile.txt")
-                 <16> 'q:/opt/np/notepad++.exe myfile.txt'
-        """
-
-        pre,_,fn,rest = split_user_input(line)
-        res = pre + self.expand_aliases(fn, rest)
-        return res
-
-    def expand_aliases(self, fn, rest):
-        """Expand multiple levels of aliases:
-
-        if:
-
-        alias foo bar /tmp
-        alias baz foo
-
-        then:
-
-        baz huhhahhei -> bar /tmp huhhahhei
-        """
-        line = fn + " " + rest
-
-        done = set()
-        while 1:
-            pre,_,fn,rest = split_user_input(line, shell_line_split)
-            if fn in self.alias_table:
-                if fn in done:
-                    warn("Cyclic alias definition, repeated '%s'" % fn)
-                    return ""
-                done.add(fn)
-
-                l2 = self.transform_alias(fn, rest)
-                if l2 == line:
-                    break
-                # ls -> ls -F should not recurse forever
-                if l2.split(None,1)[0] == line.split(None,1)[0]:
-                    line = l2
-                    break
-                line = l2
-            else:
-                break
-
-        return line

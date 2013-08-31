@@ -700,14 +700,12 @@ _default_checkers = [
     IPyAutocallChecker,
     AssignmentChecker,
     AutoMagicChecker,
-    AliasChecker,
     PythonOpsChecker,
     AutocallChecker
 ]
 
 _default_handlers = [
     PrefilterHandler,
-    AliasHandler,
     MacroHandler,
     MagicHandler,
     AutoHandler,
