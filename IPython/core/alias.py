@@ -104,6 +104,35 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
+class AliasCaller(object):
+    def __init__(self, shell, cmd):
+        self.shell = shell
+        self.cmd = cmd
+        self.nargs = cmd.count('%s')
+        if (self.nargs > 0) and (cmd.find('%l') >= 0):
+            raise InvalidAliasError('The %s and %l specifiers are mutually '
+                                    'exclusive in alias definitions.')        
+        
+    def __call__(self, rest=''):
+        cmd = self.cmd
+        nargs = self.nargs
+        # Expand the %l special to be the user's input line
+        if cmd.find('%l') >= 0:
+            cmd = cmd.replace('%l', rest)
+            rest = ''
+        if nargs==0:
+            # Simple, argument-less aliases
+            cmd = '%s %s' % (cmd, rest)
+        else:
+            # Handle aliases with positional arguments
+            args = rest.split(None, nargs)
+            if len(args) < nargs:
+                raise AliasError('Alias <%s> requires %s arguments, %s given.' %
+                      (alias, nargs, len(args)))
+            cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
+        
+        self.shell.system(cmd)
+
 #-----------------------------------------------------------------------------
 # Main AliasManager class
 #-----------------------------------------------------------------------------
@@ -117,7 +146,7 @@ class AliasManager(Configurable):
     def __init__(self, shell=None, **kwargs):
         super(AliasManager, self).__init__(shell=shell, **kwargs)
         self.alias_table = {}
-        self.exclude_aliases()
+        self.init_exclusions()
         self.init_aliases()
 
     def __contains__(self, name):
@@ -127,9 +156,9 @@ class AliasManager(Configurable):
     def aliases(self):
         return [(item[0], item[1][1]) for item in self.alias_table.iteritems()]
 
-    def exclude_aliases(self):
+    def init_exclusions(self):
         # set of things NOT to alias (keywords, builtins and some magics)
-        no_alias = set(['cd','popd','pushd','dhist','alias','unalias'])
+        no_alias = {'cd','popd','pushd','dhist','alias','unalias'}
         no_alias.update(set(keyword.kwlist))
         no_alias.update(set(__builtin__.__dict__.keys()))
         self.no_alias = no_alias
@@ -159,12 +188,18 @@ class AliasManager(Configurable):
         This will raise an :exc:`AliasError` if there are validation
         problems.
         """
-        nargs = self.validate_alias(name, cmd)
-        self.alias_table[name] = (nargs, cmd)
+        self.validate_alias(name, cmd)
+        caller = AliasCaller(shell=self.shell, cmd=cmd)
+        self.shell.magics_manager.register_function(caller, magic_kind='line',
+                                                    magic_name=name)
 
     def undefine_alias(self, name):
-        if name in self.alias_table:
-            del self.alias_table[name]
+        linemagics = self.shell.magics_manager.magics['line']
+        caller = linemagics.get(name, None)
+        if isinstance(caller, AliasCaller):
+            del linemagics[name]
+        else:
+            raise ValueError('%s is not an alias' % name)
 
     def validate_alias(self, name, cmd):
         """Validate an alias and return the its number of arguments."""
@@ -174,11 +209,7 @@ class AliasManager(Configurable):
         if not (isinstance(cmd, basestring)):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % cmd)
-        nargs = cmd.count('%s')
-        if nargs>0 and cmd.find('%l')>=0:
-            raise InvalidAliasError('The %s and %l specifiers are mutually '
-                                    'exclusive in alias definitions.')
-        return nargs
+        return True
 
     def call_alias(self, alias, rest=''):
         """Call an alias given its name and the rest of the line."""

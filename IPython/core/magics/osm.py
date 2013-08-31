@@ -26,6 +26,7 @@ from pprint import pformat
 from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
+from IPython.core.alias import AliasError
 from IPython.core.error import UsageError
 from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
@@ -113,10 +114,14 @@ class OSMagics(Magics):
         # Now try to define a new one
         try:
             alias,cmd = par.split(None, 1)
-        except:
-            print oinspect.getdoc(self.alias)
-        else:
-            self.shell.alias_manager.soft_define_alias(alias, cmd)
+        except TypeError:
+            print(oinspect.getdoc(self.alias))
+            return
+        
+        try:
+            self.shell.alias_manager.define_alias(alias, cmd)
+        except AliasError as e:
+            print(e)
     # end magic_alias
 
     @line_magic
@@ -124,7 +129,12 @@ class OSMagics(Magics):
         """Remove an alias"""
 
         aname = parameter_s.strip()
-        self.shell.alias_manager.undefine_alias(aname)
+        try:
+            self.shell.alias_manager.undefine_alias(aname)
+        except ValueError as e:
+            print(e)
+            return
+        
         stored = self.shell.db.get('stored_aliases', {} )
         if aname in stored:
             print "Removing %stored alias",aname

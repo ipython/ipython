@@ -470,7 +470,6 @@ class InteractiveShell(SingletonConfigurable):
         # because it and init_io have to come after init_readline.
         self.init_user_ns()
         self.init_logger()
-        self.init_alias()
         self.init_builtins()
 
         # The following was in post_config_initialization
@@ -502,6 +501,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_displayhook()
         self.init_latextool()
         self.init_magics()
+        self.init_alias()
         self.init_logstart()
         self.init_pdb()
         self.init_extension_manager()
@@ -1940,7 +1940,7 @@ class InteractiveShell(SingletonConfigurable):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     alias_table=self.alias_manager.alias_table,
+                                     #alias_table=self.alias_manager.alias_table,
                                      use_readline=self.has_readline,
                                      parent=self,
                                      )
