@@ -28,11 +28,25 @@ def isgenerator(func):
 
 
 class IterCallableSuite(TestSuite):
-   def __init__(self, iterator, adapter):
+   def __init__(self, iterator, adapter, stopbox):
        self._iter = iterator
        self._adapter = adapter
+       self._stopbox = stopbox
+
    def __iter__(self):
-       yield self._adapter(self._iter.__next__)
+       while not self._stopbox:
+           yield self._adapter(self._iter.__next__)
+
+class StepTestCase(unittest.FunctionTestCase):
+    def __init__(self, stopbox, *args, **kwargs):
+        self._stopbox=stopbox
+        super(StepTestCase, self).__init__(*args, **kwargs)
+    
+    def runTest(self):
+        try:
+            self._testFunc()
+        except StopIteration:
+            self._stopbox.append(True)
 
 class ParametricTestCase(unittest.TestCase):
    """Write parametric tests in normal unittest testcase form.
@@ -45,14 +59,13 @@ class ParametricTestCase(unittest.TestCase):
        testMethod = getattr(self, self._testMethodName)
        # For normal tests, we just call the base class and return that
        if isgenerator(testMethod):
+           stopbox = []
            def adapter(next_test):
-               ftc = unittest.FunctionTestCase(next_test,
-                                               self.setUp,
-                                               self.tearDown)
+               ftc = StepTestCase(stopbox, next_test, self.setUp, self.tearDown)
                self._nose_case = ftc   # Nose 1.0 rejects the test without this
                return ftc
 
-           return IterCallableSuite(testMethod(),adapter).run(result)
+           return IterCallableSuite(testMethod(), adapter, stopbox).run(result)
        else:
            return super(ParametricTestCase, self).run(result)
 
