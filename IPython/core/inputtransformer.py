@@ -43,6 +43,9 @@ class InputTransformer(object):
         input or None if the transformer is waiting for more input.
         
         Must be overridden by subclasses.
+
+        Implementations may raise ``SyntaxError`` if the input is invalid. No
+        other exceptions may be raised.
         """
         pass
     
