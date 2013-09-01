@@ -1556,6 +1556,7 @@ div.quickhelp{float:left;width:50%;}
 .rendered_html th{font-weight:bold;}
 .rendered_html p{text-align:justify;}
 .rendered_html p+p{margin-top:1em;}
+.rendered_html .MathJax_Display{margin-left:12ex;}
 span#save_widget{padding:0px 5px;margin-top:12px;}
 span#checkpoint_status,span#autosave_status{font-size:small;}
 @media (max-width:767px){span#save_widget{font-size:small;} span#checkpoint_status,span#autosave_status{font-size:x-small;}}@media (max-width:767px){span#checkpoint_status,span#autosave_status{display:none;}}@media (min-width:768px) and (max-width:979px){span#checkpoint_status{display:none;} span#autosave_status{font-size:x-small;}}div.text_cell{padding:5px 5px 5px 5px;}
