@@ -2632,7 +2632,12 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
-        self.input_transformer_manager.push(raw_cell)
+        prefilter_failed = False
+        try:
+            self.input_transformer_manager.push(raw_cell)
+        except SyntaxError:
+            self.showtraceback()
+            prefilter_failed = True
         cell = self.input_transformer_manager.source_reset()
 
         # Our own compiler remembers the __future__ environment. If we want to
@@ -2641,8 +2646,7 @@ class InteractiveShell(SingletonConfigurable):
         compiler = self.compile if shell_futures else CachingCompiler()
 
         with self.builtin_trap:
-            prefilter_failed = False
-            if len(cell.splitlines()) == 1:
+            if not prefilter_failed and len(cell.splitlines()) == 1:
                 try:
                     # use prefilter_lines to handle trailing newlines
                     # restore trailing newline for ast.parse
