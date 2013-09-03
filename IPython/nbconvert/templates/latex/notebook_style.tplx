@@ -19,9 +19,6 @@
     % Pygments definitions
     ((( resources.latex.pygment_definitions )))
 
-    % NB prompt font size
-    \def\smaller{\fontsize{9.5pt}{9.5pt}\selectfont}
-
     % NB prompt colors
     \definecolor{nbframe-border}{rgb}{0.867,0.867,0.867}
     \definecolor{nbframe-bg}{rgb}{0.969,0.969,0.969}
@@ -35,6 +32,11 @@
     \setlength{\cellleftmargin}{0.15\linewidth}
     \newlength{\borderthickness}
     \setlength{\borderthickness}{0.4pt}
+    \newlength{\smallerfontscale}
+    \setlength{\smallerfontscale}{9.5pt}
+
+    % NB prompt font size
+    \def\smaller{\fontsize{\smallerfontscale}{\smallerfontscale}\selectfont}
 
     % Define a background layer, in which the nb prompt shape is drawn
     \pgfdeclarelayer{background}
@@ -110,11 +112,11 @@
       \def\FirstFrameCommand{\notebookcellframetop}%
       \def\LastFrameCommand{\notebookcellframebottom}%
       \def\MidFrameCommand{\notebookcellframemiddle}%
-      \vskip\baselineskip%
+      \par\vspace{1\baselineskip}%
       \MakeFramed {\FrameRestore}%
       \noindent\tikz\node[inner sep=0em] at ($(A.north west)-(0,0)$) {%
       ((( draw_prompt("In ", "#1", "nbframe-in-prompt", "2pt") )))%
-      }; }%
+      }; \par}%
     {\endMakeFramed}
 
 ((* endblock definitions *))
@@ -127,16 +129,18 @@
 ((* block input scoped *))
     % Add contents below.
 
+{\par%
 \vspace{-1\baselineskip}%
-\needspace{4\baselineskip}%    
+\needspace{4\baselineskip}}%
 \begin{notebookcell}[((( cell.prompt_number )))]%
 \begin{addmargin}[\cellleftmargin]{0em}% left, right
-((* block notebook_input_extra_space *))%((* endblock notebook_input_extra_space *))
-\smaller%
-\vspace{-1\baselineskip}%
-\vspace{-1\borderthickness}%
+{\smaller%
+\par%
+((* block extra_input_spacing *))((* endblock extra_input_spacing *))%
+\vspace{-1\smallerfontscale}%
 ((( cell.input | highlight2latex )))%
-\vspace{-1\baselineskip}%
+\par%
+\vspace{-1\smallerfontscale}}%
 \end{addmargin}
 \end{notebookcell}
 
@@ -146,24 +150,25 @@
 % Output
 %===============================================================================
 
-((* block output *))
-    \vspace{1\baselineskip}%
+((* block output -*))
+    \par\vspace{1\smallerfontscale}%
     % Only render the prompt if the cell is pyout.  Note, the outputs prompt 
     % block isn't used since we need to check each indiviual output and only
     % add prompts to the pyout ones.
     ((* if output.output_type in ['pyout'] *))
-        \vspace{-1\baselineskip}%
+        {\par%
+        \vspace{-1\smallerfontscale}%
         \noindent%
         ((( draw_prompt("Out", cell.prompt_number, "nbframe-out-prompt", "0em") )))%
+        ((* block extra_output_spacing *))((* endblock extra_output_spacing *))}%
     ((* endif *))%
     %
     \begin{addmargin}[\cellleftmargin]{0em}% left, right
-    \smaller%
-    ((* block notebook_output_extra_space *))%((* endblock notebook_output_extra_space *))
-    \vspace{-1\baselineskip}%
-    ((( super() )))
-    \end{addmargin}
-((* endblock output *))
+    {\smaller%
+    \vspace{-1\smallerfontscale}%
+    ((( super() )))}%
+    \end{addmargin}%
+((*- endblock output *))
 
 %==============================================================================
 % Support Macros
@@ -172,14 +177,15 @@
 % Name: draw_prompt
 % Purpose: Renders an output/input prompt for notebook style pdfs
 ((* macro draw_prompt(prompt, number, color, space) -*))
-    \begin{minipage}{\cellleftmargin}
-    \smaller%
+    \begin{minipage}{\cellleftmargin}%
+    \hfill%
+    {\smaller%
     \tt%
     \color{(((color)))}%
-    \hfill%
-    (((prompt)))[(((number)))]:%
+    (((prompt)))[(((number)))]:}%
     \hspace{\inputpadding}%
     \hspace{(((space)))}%
     \hspace{3pt}%
-    \end{minipage}
+    \end{minipage}%
 ((*- endmacro *))
+
