@@ -41,12 +41,6 @@ import sys
 import unittest
 from doctest import DocTestFinder, DocTestRunner, TestResults
 
-# We already have python3-compliant code for parametric tests
-if sys.version[0]=='2':
-    from ._paramtestpy2 import ParametricTestCase
-else:
-    from ._paramtestpy3 import ParametricTestCase
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
