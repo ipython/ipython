@@ -92,14 +92,14 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Displaying simple data text
 ((* block data_text *))
-    \begin{Verbatim}
-((( output.text | escape_latex )))
-    \end{Verbatim}
+    \begin{verbatim}
+((( output.text )))
+    \end{verbatim}
 ((* endblock data_text *))
 
 % Display python error text as-is
 ((* block pyerr *))
-    \begin{Verbatim}
+    \begin{Verbatim}[commandchars=\\\{\}]
 ((( super() )))
     \end{Verbatim}
 ((* endblock pyerr *))
