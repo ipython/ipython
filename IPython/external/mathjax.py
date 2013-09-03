@@ -19,6 +19,10 @@ From the command line:
 
     $ python -m IPython.external.mathjax
 
+To a specific profile:
+
+    $ python -m IPython.external.mathjax --profile=research
+
 To install MathJax from a file you have already downloaded:
 
     $ python -m IPython.external.mathjax mathjax-xxx.tar.gz
@@ -200,20 +204,26 @@ def main() :
             )
 
     parser.add_argument(
+            '-p',
+            '--profile',
+            default='default',
+            help='profile to install MathJax to (default is default)')
+
+    parser.add_argument(
             '-i',
             '--install-dir',
-            default=default_dest,
-            help='installation directory (by default : %s)' % (default_dest))
+            help='custom installation directory')
+
     parser.add_argument(
             '-d',
             '--dest',
             action='store_true',
-            help='print where is current mathjax would be installed and exit')
+            help='print where current mathjax would be installed and exit')
     parser.add_argument(
             '-r',
             '--replace',
             action='store_true',
-            help='Wether to replace current mathjax if already exist')
+            help='Whether to replace current mathjax if it already exists')
     parser.add_argument(
             '-t',
             '--test',
@@ -225,7 +235,13 @@ def main() :
 
     pargs = parser.parse_args()
 
-    dest = pargs.install_dir
+    if pargs.install_dir:
+        # Explicit install_dir overrides profile
+        dest = pargs.install_dir
+    else:
+        profile = pargs.profile
+        dest = os.path.join(locate_profile(profile), 'static', 'mathjax')
+
     if pargs.dest :
         print dest
         return
