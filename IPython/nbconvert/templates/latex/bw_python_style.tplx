@@ -1,0 +1,13 @@
+((= Black&white Python input/output style =))
+
+((*- extends 'latex_base.tplx' -*))
+
+%===============================================================================
+% Input
+%===============================================================================
+
+((* block input scoped *))
+\begin{verbatim}
+((( cell.input | add_prompts )))
+\end{verbatim}
+((* endblock input *))
