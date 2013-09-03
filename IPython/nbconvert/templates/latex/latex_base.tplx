@@ -55,11 +55,6 @@ This template does not define a docclass, the inheriting class must define this.
     % exist.
     \def\br{\hspace*{\fill} \\* }
 
-    % Define a custom verbatim that allows latex
-    \renewenvironment{Verbatim}[1][\unskip]
-    {\begin{alltt}}
-    {\end{alltt}}
-
     % Document parameters
     ((* block title *))\title{((( resources.metadata.name | escape_latex )))}((* endblock title *))
     ((* block date *))((* endblock date *))
