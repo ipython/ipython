@@ -336,12 +336,17 @@ class IPTester(object):
     processes = None
     #: str, coverage xml output file
     coverage_xml = None
+    #: string, path to the ipython directory
+    ipython_path = None
 
     def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
         p = os.path
         if runner == 'iptest':
             iptest_app = os.path.abspath(get_ipython_module_path('IPython.testing.iptest'))
+            self.ipython_path = iptest_app
+            for i in range(3): # The ipython directory is 3 levels up.
+                self.ipython_path = os.path.dirname(self.ipython_path)
             self.runner = pycmd2argv(iptest_app) + sys.argv[1:]
         else:
             raise Exception('Not a valid test runner: %s' % repr(runner))
@@ -381,6 +386,12 @@ class IPTester(object):
         with TemporaryDirectory() as IPYTHONDIR:
             env = os.environ.copy()
             env['IPYTHONDIR'] = IPYTHONDIR
+            pythonpath = env.get('PYTHONPATH')
+            if pythonpath is None:
+                pythonpath = self.ipython_path
+            else:
+                pythonpath += os.pathsep + self.ipython_path
+            env['PYTHONPATH'] = pythonpath
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
             subp = subprocess.Popen(self.call_args, env=env)
             self.processes.append(subp)
