@@ -462,7 +462,7 @@ def make_runners(inc_slow=False):
         nose_pkg_names.insert(0, 'kernel')
         nose_pkg_names.insert(1, 'kernel.inprocess')
         if inc_slow:
-            nose_pkg_names.append('parallel')
+            nose_pkg_names.insert(0, 'parallel')
 
     if all((have['pygments'], have['jinja2'], have['sphinx'])):
         nose_pkg_names.append('nbconvert')
