@@ -15,6 +15,7 @@ Utilities for dealing with text encodings
 #-----------------------------------------------------------------------------
 import sys
 import locale
+import warnings
 
 # to deal with the possibility of sys.std* not being a stream at all
 def get_stream_enc(stream, default=None):
@@ -51,6 +52,16 @@ def getdefaultencoding():
             enc = locale.getpreferredencoding()
         except Exception:
             pass
-    return enc or sys.getdefaultencoding()
+    enc = enc or sys.getdefaultencoding()
+    # On windows `cp0` can be returned to indicate that there is no code page.
+    # Since cp0 is an invalid encoding return instead cp1252 which is the
+    # Western European default.
+    if enc == 'cp0':
+        warnings.warn(
+            "Invalid code page cp0 detected - using cp1252 instead."
+            "If cp1252 is incorrect please ensure a valid code page "
+            "is defined for the process.", RuntimeWarning)
+        return 'cp1252'
+    return enc
 
 DEFAULT_ENCODING = getdefaultencoding()
