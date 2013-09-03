@@ -22,7 +22,7 @@
 %===============================================================================
 
 ((*- block in_prompt scoped -*))
-    ((( write_prompt('Input') )))
+    ((( draw_prompt('Input') )))
 ((*- endblock in_prompt -*))
 
 ((*- block input_group scoped -*))
@@ -36,7 +36,7 @@
 %===============================================================================
 
 ((*- block output_prompt scoped -*))
-    ((( write_prompt('Output') )))
+    ((( draw_prompt('Output') )))
 ((*- endblock output_prompt -*))
 
 ((*- block output_group scoped -*))
@@ -48,9 +48,9 @@
 % Support Macros
 %==============================================================================
 
-% Name: write_prompt
+% Name: draw_prompt
 % Purpose: Renders an output/input prompt for notebook style pdfs
-((* macro write_prompt(prompt) *))
+((* macro draw_prompt(prompt) *))
     % Add a horizantal break, along with break title.
     \needspace{\promptspace}
     \br\br
