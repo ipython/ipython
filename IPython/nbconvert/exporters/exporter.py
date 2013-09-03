@@ -33,7 +33,7 @@ from IPython.config import Config
 from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
-from IPython.utils.text import indent
+from IPython.utils.text import indent, format_date
 from IPython.utils import py3compat
 
 from IPython.nbconvert import preprocessors as nbpreprocessors
@@ -282,7 +282,7 @@ class Exporter(LoggingConfigurable):
         resources['metadata']['name'] = notebook_name
 
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
-        resources['metadata']['modified_date'] = modified_date.strftime("%B %d, %Y")
+        resources['metadata']['modified_date'] = format_date(modified_date)
         
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)

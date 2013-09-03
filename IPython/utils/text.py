@@ -21,6 +21,7 @@ Inheritance diagram:
 
 import os
 import re
+import sys
 import textwrap
 from string import Formatter
 
@@ -711,3 +712,21 @@ def columnize(items, separator='  ', displaywidth=80):
     fmatrix = [filter(None, x) for x in matrix]
     sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['columns_width'])])
     return '\n'.join(map(sjoin, fmatrix))+'\n'
+
+
+def format_date(date):
+    """ Format a datetime object as a string.
+
+    Parameters
+    ----------
+    date : datetime object
+        Date to be formatted.
+
+    Returns
+    -------
+    The formatted date string (ie "July 1, 1990")
+    """
+    if sys.platform == 'win32':
+        return date.strftime("%B {0}, %Y").format(date.day)
+    else:
+        return date.strftime("%B %-d, %Y")
