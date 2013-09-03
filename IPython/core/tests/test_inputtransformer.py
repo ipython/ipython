@@ -250,6 +250,12 @@ syntax_ml = \
          ],
        ],
        
+       multiline_string =
+       [ [("'''foo?", None),
+          ("bar'''", "'''foo?\nbar'''"),
+         ],
+       ],
+       
        leading_indent =
        [ [('    print "hi"','print "hi"'),
           ],
