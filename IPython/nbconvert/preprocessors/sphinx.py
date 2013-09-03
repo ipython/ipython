@@ -18,6 +18,7 @@ from __future__ import print_function, absolute_import
 
 # Stdlib imports
 import os.path
+import sys
 
 # Used to set the default date to today's date 
 from datetime import date 
@@ -157,7 +158,10 @@ class SphinxPreprocessor(Preprocessor):
             if self.publish_date:
                 resources["sphinx"]["date"] = self.publish_date
             elif len(resources['metadata']['modified_date'].strip()) == 0:
-                resources["sphinx"]["date"] = date.today().strftime("%B %d, %Y")
+                if sys.platform == 'win32':
+                    resources["sphinx"]["date"] = date.today().strftime("%B %d, %Y")
+                else:
+                    resources["sphinx"]["date"] = date.today().strftime("%B %-d, %Y")
             else:
                 resources["sphinx"]["date"] = resources['metadata']['modified_date']
             
@@ -219,7 +223,10 @@ class SphinxPreprocessor(Preprocessor):
         if resources['metadata']['modified_date']:
             default_date = resources['metadata']['modified_date']
         else:
-            default_date = date.today().strftime("%B %-d, %Y")
+            if sys.platform == 'win32':
+                default_date = date.today().strftime("%B %d, %Y")
+            else:
+                default_date = date.today().strftime("%B %-d, %Y")
             
         user_date = console.input("Date (deafults to \"" + default_date + "\"): ")
         if len(user_date.strip()) == 0:
@@ -261,4 +268,3 @@ class SphinxPreprocessor(Preprocessor):
                     6: "(for international documents)"}
         
         return console.prompt_dictionary(styles, menu_comments=comments)
-
