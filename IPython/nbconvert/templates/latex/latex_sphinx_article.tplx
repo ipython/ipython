@@ -20,7 +20,10 @@
 ((* endblock docclass *))
 
 ((* block packages *))
-    \usepackage[((( resources.sphinx.chapterstyle )))]{((( resources.sphinx.texinputs | posix_path )))/fncychap}
+    ((* block chstyle *))
+    \usepackage[Bjarne]{((( resources.sphinx.texinputs | posix_path )))/fncychap}
+    ((* endblock chstyle *))
+
     \usepackage{((( resources.sphinx.texinputs | posix_path )))/sphinx}
 
     ((( super() )))
