@@ -115,7 +115,7 @@
       \par\vspace{1\baselineskip}%
       \MakeFramed {\FrameRestore}%
       \noindent\tikz\node[inner sep=0em] at ($(A.north west)-(0,0)$) {%
-      ((( draw_prompt("In ", "#1", "nbframe-in-prompt", "2pt") )))%
+      ((( draw_prompt("In", "#1", "nbframe-in-prompt", "2pt") )))%
       }; \par}%
     {\endMakeFramed}
 
