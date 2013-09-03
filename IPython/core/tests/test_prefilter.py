@@ -14,7 +14,6 @@ from IPython.testing.globalipapp import get_ipython
 #-----------------------------------------------------------------------------
 ip = get_ipython()
 
-@dec.parametric
 def test_prefilter():
     """Test user input conversions"""
 
@@ -23,19 +22,18 @@ def test_prefilter():
              ]
 
     for raw, correct in pairs:
-        yield nt.assert_equal(ip.prefilter(raw), correct)
+        nt.assert_equal(ip.prefilter(raw), correct)
 
 
-@dec.parametric
 def test_autocall_binops():
     """See https://github.com/ipython/ipython/issues/81"""
     ip.magic('autocall 2')
     f = lambda x: x
     ip.user_ns['f'] = f
     try:
-        yield nt.assert_equal(ip.prefilter('f 1'),'f(1)')
+        nt.assert_equal(ip.prefilter('f 1'),'f(1)')
         for t in ['f +1', 'f -1']:
-            yield nt.assert_equal(ip.prefilter(t), t)
+            nt.assert_equal(ip.prefilter(t), t)
 
         # Run tests again with a more permissive exclude_regexp, which will
         # allow transformation of binary operations ('f -1' -> 'f(-1)').
@@ -47,8 +45,8 @@ def test_autocall_binops():
             ac.exclude_regexp = r'^[,&^\|\*/]|^is |^not |^in |^and |^or '
             pm.sort_checkers()
 
-            yield nt.assert_equal(ip.prefilter('f -1'), 'f(-1)')
-            yield nt.assert_equal(ip.prefilter('f +1'), 'f(+1)')
+            nt.assert_equal(ip.prefilter('f -1'), 'f(-1)')
+            nt.assert_equal(ip.prefilter('f +1'), 'f(+1)')
         finally:
             pm.unregister_checker(ac)
     finally:
@@ -56,7 +54,6 @@ def test_autocall_binops():
         del ip.user_ns['f']
 
 
-@dec.parametric
 def test_issue_114():
     """Check that multiline string literals don't expand as magic
     see http://github.com/ipython/ipython/issues/114"""
@@ -70,7 +67,7 @@ def test_issue_114():
     try:
         for mgk in ip.magics_manager.lsmagic()['line']:
             raw = template % mgk
-            yield nt.assert_equal(ip.prefilter(raw), raw)
+            nt.assert_equal(ip.prefilter(raw), raw)
     finally:
         ip.prefilter_manager.multi_line_specials = msp
 

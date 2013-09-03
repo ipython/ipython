@@ -46,7 +46,6 @@ DTYPES = ('uint8', 'float64', 'int32', [('g', 'float32')], '|S10')
 # Tests
 #-------------------------------------------------------------------------------
 
-@dec.parametric
 def test_roundtrip_simple():
     for obj in [
         'hello',
@@ -55,18 +54,16 @@ def test_roundtrip_simple():
         (b'123', 'hello'),
     ]:
         obj2 = roundtrip(obj)
-        yield nt.assert_equals(obj, obj2)
+        nt.assert_equal(obj, obj2)
 
-@dec.parametric
 def test_roundtrip_nested():
     for obj in [
         dict(a=range(5), b={1:b'hello'}),
         [range(5),[range(3),(1,[b'whoda'])]],
     ]:
         obj2 = roundtrip(obj)
-        yield nt.assert_equals(obj, obj2)
+        nt.assert_equal(obj, obj2)
 
-@dec.parametric
 def test_roundtrip_buffered():
     for obj in [
         dict(a=b"x"*1025),
@@ -74,10 +71,10 @@ def test_roundtrip_buffered():
         [b"hello"*501, 1,2,3]
     ]:
         bufs = serialize_object(obj)
-        yield nt.assert_equals(len(bufs), 2)
+        nt.assert_equal(len(bufs), 2)
         obj2, remainder = unserialize_object(bufs)
-        yield nt.assert_equals(remainder, [])
-        yield nt.assert_equals(obj, obj2)
+        nt.assert_equal(remainder, [])
+        nt.assert_equal(obj, obj2)
 
 def _scrub_nan(A):
     """scrub nans out of empty arrays
@@ -93,7 +90,6 @@ def _scrub_nan(A):
                 # e.g. str dtype
                 pass
 
-@dec.parametric
 @dec.skip_without('numpy')
 def test_numpy():
     import numpy
@@ -104,12 +100,11 @@ def test_numpy():
             _scrub_nan(A)
             bufs = serialize_object(A)
             B, r = unserialize_object(bufs)
-            yield nt.assert_equals(r, [])
-            yield nt.assert_equals(A.shape, B.shape)
-            yield nt.assert_equals(A.dtype, B.dtype)
-            yield assert_array_equal(A,B)
+            nt.assert_equal(r, [])
+            nt.assert_equal(A.shape, B.shape)
+            nt.assert_equal(A.dtype, B.dtype)
+            assert_array_equal(A,B)
 
-@dec.parametric
 @dec.skip_without('numpy')
 def test_recarray():
     import numpy
@@ -124,12 +119,11 @@ def test_recarray():
             
             bufs = serialize_object(A)
             B, r = unserialize_object(bufs)
-            yield nt.assert_equals(r, [])
-            yield nt.assert_equals(A.shape, B.shape)
-            yield nt.assert_equals(A.dtype, B.dtype)
-            yield assert_array_equal(A,B)
+            nt.assert_equal(r, [])
+            nt.assert_equal(A.shape, B.shape)
+            nt.assert_equal(A.dtype, B.dtype)
+            assert_array_equal(A,B)
 
-@dec.parametric
 @dec.skip_without('numpy')
 def test_numpy_in_seq():
     import numpy
@@ -140,15 +134,14 @@ def test_numpy_in_seq():
             _scrub_nan(A)
             bufs = serialize_object((A,1,2,b'hello'))
             canned = pickle.loads(bufs[0])
-            yield nt.assert_true(canned[0], CannedArray)
+            nt.assert_is_instance(canned[0], CannedArray)
             tup, r = unserialize_object(bufs)
             B = tup[0]
-            yield nt.assert_equals(r, [])
-            yield nt.assert_equals(A.shape, B.shape)
-            yield nt.assert_equals(A.dtype, B.dtype)
-            yield assert_array_equal(A,B)
+            nt.assert_equal(r, [])
+            nt.assert_equal(A.shape, B.shape)
+            nt.assert_equal(A.dtype, B.dtype)
+            assert_array_equal(A,B)
 
-@dec.parametric
 @dec.skip_without('numpy')
 def test_numpy_in_dict():
     import numpy
@@ -159,27 +152,25 @@ def test_numpy_in_dict():
             _scrub_nan(A)
             bufs = serialize_object(dict(a=A,b=1,c=range(20)))
             canned = pickle.loads(bufs[0])
-            yield nt.assert_true(canned['a'], CannedArray)
+            nt.assert_is_instance(canned['a'], CannedArray)
             d, r = unserialize_object(bufs)
             B = d['a']
-            yield nt.assert_equals(r, [])
-            yield nt.assert_equals(A.shape, B.shape)
-            yield nt.assert_equals(A.dtype, B.dtype)
-            yield assert_array_equal(A,B)
+            nt.assert_equal(r, [])
+            nt.assert_equal(A.shape, B.shape)
+            nt.assert_equal(A.dtype, B.dtype)
+            assert_array_equal(A,B)
 
-@dec.parametric
 def test_class():
     @interactive
     class C(object):
         a=5
     bufs = serialize_object(dict(C=C))
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(canned['C'], CannedClass)
+    nt.assert_is_instance(canned['C'], CannedClass)
     d, r = unserialize_object(bufs)
     C2 = d['C']
-    yield nt.assert_equal(C2.a, C.a)
+    nt.assert_equal(C2.a, C.a)
 
-@dec.parametric
 def test_class_oldstyle():
     @interactive
     class C:
@@ -187,42 +178,38 @@ def test_class_oldstyle():
     
     bufs = serialize_object(dict(C=C))
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(isinstance(canned['C'], CannedClass))
+    nt.assert_is_instance(canned['C'], CannedClass)
     d, r = unserialize_object(bufs)
     C2 = d['C']
-    yield nt.assert_equal(C2.a, C.a)
+    nt.assert_equal(C2.a, C.a)
 
-@dec.parametric
 def test_tuple():
     tup = (lambda x:x, 1)
     bufs = serialize_object(tup)
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(isinstance(canned, tuple))
+    nt.assert_is_instance(canned, tuple)
     t2, r = unserialize_object(bufs)
-    yield nt.assert_equal(t2[0](t2[1]), tup[0](tup[1]))
+    nt.assert_equal(t2[0](t2[1]), tup[0](tup[1]))
 
 point = namedtuple('point', 'x y')
 
-@dec.parametric
 def test_namedtuple():
     p = point(1,2)
     bufs = serialize_object(p)
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(isinstance(canned, point))
+    nt.assert_is_instance(canned, point)
     p2, r = unserialize_object(bufs, globals())
-    yield nt.assert_equal(p2.x, p.x)
-    yield nt.assert_equal(p2.y, p.y)
+    nt.assert_equal(p2.x, p.x)
+    nt.assert_equal(p2.y, p.y)
 
-@dec.parametric
 def test_list():
     lis = [lambda x:x, 1]
     bufs = serialize_object(lis)
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(isinstance(canned, list))
+    nt.assert_is_instance(canned, list)
     l2, r = unserialize_object(bufs)
-    yield nt.assert_equal(l2[0](l2[1]), lis[0](lis[1]))
+    nt.assert_equal(l2[0](l2[1]), lis[0](lis[1]))
 
-@dec.parametric
 def test_class_inheritance():
     @interactive
     class C(object):
@@ -234,8 +221,8 @@ def test_class_inheritance():
     
     bufs = serialize_object(dict(D=D))
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(canned['D'], CannedClass)
+    nt.assert_is_instance(canned['D'], CannedClass)
     d, r = unserialize_object(bufs)
     D2 = d['D']
-    yield nt.assert_equal(D2.a, D.a)
-    yield nt.assert_equal(D2.b, D.b)
+    nt.assert_equal(D2.a, D.a)
+    nt.assert_equal(D2.b, D.b)
