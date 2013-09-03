@@ -74,8 +74,9 @@ This template does not define a docclass, the inheriting class must define this.
       }
     
     % Slightly bigger margins than the latex defaults
-    \geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=2.5cm,rmargin=2.5cm}
-
+    ((* block margins *))
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    ((* endblock margins *))
 ((* endblock commands *))
 
 ((* block predoc *))
