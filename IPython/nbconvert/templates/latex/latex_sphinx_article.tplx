@@ -6,7 +6,6 @@
 % Inherit from the specified cell style.
 ((* extends 'latex_article.tplx' *))
 
-
 %===============================================================================
 % Latex Sphinx Article
 %===============================================================================
@@ -32,16 +31,8 @@
 ((* block commands *))
     ((( super() )))
 
-    \graphicspath{ {figs/} }
-
-    % Document level variables
-    \date{((( resources.sphinx.date | escape_latex )))}
-    \release{((( resources.sphinx.version | escape_latex )))}
-    \author{((( resources.sphinx.author | escape_latex )))}
-    \renewcommand{\releasename}{((( resources.sphinx.release | escape_latex )))}
-
-    % TODO: Add option for the user to specify a logo for his/her export.
-    \newcommand{\sphinxlogo}{}
+    % Override to specify your own logo
+    ((* block logo *))\newcommand{\sphinxlogo}{}((* endblock logo *))
 
     % Make the index page of the document.
     \makeindex

@@ -64,8 +64,10 @@ This template does not define a docclass, the inheriting class must define this.
     {\begin{alltt}}
     {\end{alltt}}
 
-    % Document title
-    \title{((( resources.metadata.name | escape_latex )))}
+    % Document parameters
+    ((* block title *))\title{((( resources.metadata.name | escape_latex )))}((* endblock title *))
+    ((* block date *))((* endblock date *))
+    ((* block author *))((* endblock author *))
 ((* endblock definitions *))
 
 ((* block commands *))
