@@ -80,7 +80,7 @@ def add_anchor(html):
     
     For use in heading cells
     """
-    h = ElementTree.fromstring(py3compat.cast_bytes_py2(html))
+    h = ElementTree.fromstring(py3compat.cast_bytes_py2(html, encoding='utf-8'))
     link = html2text(h).replace(' ', '-')
     h.set('id', link)
     a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
