@@ -38,3 +38,11 @@
     \makeindex
 
 ((* endblock commands *))
+
+((* block notebook_input_extra_space -*))
+\vspace{-0.9\baselineskip}%
+((*- endblock notebook_input_extra_space *))
+
+((* block notebook_output_extra_space -*))
+\vspace{-0.6\baselineskip}%
+((*- endblock notebook_output_extra_space *))
