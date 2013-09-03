@@ -65,7 +65,6 @@ var IPython = (function (IPython) {
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.collapsed = false;
-        this.default_mode = 'ipython';
         this.cell_type = "code";
 
 
