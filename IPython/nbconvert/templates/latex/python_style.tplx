@@ -1,0 +1,22 @@
+((= Python input/output style =))
+
+((*- extends 'latex_base.tplx' -*))
+
+% Custom definitions
+((* block definitions *))
+    ((( super() )))
+
+    % Pygments definitions
+    ((( resources.latex.pygment_definitions )))
+
+
+((* endblock definitions *))
+%===============================================================================
+% Input
+%===============================================================================
+
+((* block input scoped *))
+    \begin{Verbatim}[commandchars=\\\{\}]
+((( cell.input | highlight2latex | replace('\\begin{Verbatim}[commandchars=\\\\\\{\\}]\n', '') | replace('\n\\end{Verbatim}\n', '') | add_prompts )))
+    \end{Verbatim}
+((* endblock input *))
