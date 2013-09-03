@@ -1,0 +1,22 @@
+((============================================================================
+  NBConvert Sphinx-Latex Manual Template
+
+  Purpose: Allow export of PDF friendly Latex inspired by Sphinx Manual 
+           document style.  Most of the is derived directly from Sphinx source.
+
+  Inheritance: null>display_priority>sphinx 
+
+  ==========================================================================))
+
+((*- extends 'sphinx.tplx' -*))
+
+
+((* set parentdocumentclass = 'report' *))
+((* set documentclass = 'manual' *))
+
+((* block h1 -*))part((* endblock h1 -*))
+((* block h2 -*))chapter((* endblock h2 -*))
+((* block h3 -*))section((* endblock h3 -*))
+((* block h4 -*))subsection((* endblock h4 -*))
+((* block h5 -*))subsubsection((* endblock h5 -*))
+((* block h6 -*))paragraph((* endblock h6 -*))
