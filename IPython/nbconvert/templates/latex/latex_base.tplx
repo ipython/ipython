@@ -30,6 +30,7 @@ This template does not define a docclass, the inheriting class must define this.
 ((* endblock packages *))
 
 ((* block definitions *))
+
     \definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
     \definecolor{darkorange}{rgb}{.71,0.21,0.01}
     \definecolor{darkgreen}{rgb}{.12,.54,.11}
