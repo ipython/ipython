@@ -522,8 +522,6 @@ class TestView(ClusterTestCase):
         self.assertEqual(len(v), 1)
         v = self.client.load_balanced_view()
         self.assertEqual(len(v), len(self.client.ids))
-        # parametric tests seem to require manual closing?
-        self.client.close()
 
     
     # begin execute tests
