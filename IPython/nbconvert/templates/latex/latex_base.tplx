@@ -142,22 +142,24 @@ This template does not define a docclass, the inheriting class must define this.
 ((*- endmacro *))
 
 % Draw heading cell.  Explicitly map different cell levels.
-((* block headingcell scoped -*))
-    ((*- if cell.level == 1 -*))
+((* block headingcell scoped *))
+
+    ((* if cell.level == 1 -*))
         ((* block h1 -*))\section((* endblock h1 -*))
-    ((*- elif cell.level == 2 -*))
+    ((* elif cell.level == 2 -*))
         ((* block h2 -*))\subsection((* endblock h2 -*))
-    ((*- elif cell.level == 3 -*))
+    ((* elif cell.level == 3 -*))
         ((* block h3 -*))\subsubsection((* endblock h3 -*))
-    ((*- elif cell.level == 4 -*))
+    ((* elif cell.level == 4 -*))
         ((* block h4 -*))\paragraph((* endblock h4 -*))
-    ((*- elif cell.level == 5 -*))
+    ((* elif cell.level == 5 -*))
         ((* block h5 -*))\subparagraph((* endblock h5 -*))
-    ((*- elif cell.level == 6 -*))
+    ((* elif cell.level == 6 -*))
         ((* block h6 -*))\\*\textit((* endblock h6 -*))
     ((*- endif -*))
     {((( cell.source | escape_latex )))}
-((*- endblock headingcell *))
+
+((* endblock headingcell *))
 
 % Redirect pyout to display data priority.
 ((* block pyout scoped *))
