@@ -61,14 +61,14 @@ class TestMarkdown(TestsBase):
     def test_markdown2latex(self):
         """markdown2latex test"""
         for index, test in enumerate(self.tests):
-            yield self._try_markdown(markdown2latex, test, self.tokens[index])
+            self._try_markdown(markdown2latex, test, self.tokens[index])
 
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2html(self):
         """markdown2html test"""
         for index, test in enumerate(self.tests):
-            yield self._try_markdown(markdown2html, test, self.tokens[index])
+            self._try_markdown(markdown2html, test, self.tokens[index])
 
 
     @dec.onlyif_cmds_exist('pandoc')
@@ -81,7 +81,7 @@ class TestMarkdown(TestsBase):
         tokens[1] = r'\*\*test'
 
         for index, test in enumerate(self.tests):
-            yield self._try_markdown(markdown2rst, test, tokens[index])
+            self._try_markdown(markdown2rst, test, tokens[index])
 
 
     def _try_markdown(self, method, test, tokens):

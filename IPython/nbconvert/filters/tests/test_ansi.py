@@ -39,7 +39,7 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_strip_ansi(inval, outval)
+            self._try_strip_ansi(inval, outval)
 
 
     def _try_strip_ansi(self, inval, outval):
@@ -58,7 +58,7 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_ansi2html(inval, outval)
+            self._try_ansi2html(inval, outval)
 
 
     def _try_ansi2html(self, inval, outval):
@@ -77,7 +77,7 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_ansi2latex(inval, outval)
+            self._try_ansi2latex(inval, outval)
 
 
     def _try_ansi2latex(self, inval, outval):
