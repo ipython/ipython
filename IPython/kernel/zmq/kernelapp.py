@@ -39,7 +39,7 @@ from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.utils import io
-from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
@@ -156,7 +156,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
             else:
                 return 'kernel-ipc'
         else:
-            return LOCALHOST
+            return localhost()
+    
     hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
     shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
     iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
