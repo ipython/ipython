@@ -59,7 +59,7 @@ def flush_channels(kc=None):
             except Empty:
                 break
             else:
-                list(validate_message(msg))
+                validate_message(msg)
 
 
 def execute(code='', kc=None, **kwargs):
@@ -68,14 +68,14 @@ def execute(code='', kc=None, **kwargs):
         kc = KC
     msg_id = kc.execute(code=code, **kwargs)
     reply = kc.get_shell_msg(timeout=TIMEOUT)
-    list(validate_message(reply, 'execute_reply', msg_id))
+    validate_message(reply, 'execute_reply', msg_id)
     busy = kc.get_iopub_msg(timeout=TIMEOUT)
-    list(validate_message(busy, 'status', msg_id))
+    validate_message(busy, 'status', msg_id)
     nt.assert_equal(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
         pyin = kc.get_iopub_msg(timeout=TIMEOUT)
-        list(validate_message(pyin, 'pyin', msg_id))
+        validate_message(pyin, 'pyin', msg_id)
         nt.assert_equal(pyin['content']['code'], code)
     
     return msg_id, reply['content']
