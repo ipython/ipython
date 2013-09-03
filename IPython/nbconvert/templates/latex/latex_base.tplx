@@ -181,8 +181,3 @@ This template does not define a docclass, the inheriting class must define this.
 % Don't display unknown types
 ((* block unknowncell scoped *))
 ((* endblock unknowncell *))
-
-% Render code using pygments
-((* block input scoped *))
-    ((( cell.input | highlight2latex )))
-((* endblock input *))
