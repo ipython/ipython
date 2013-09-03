@@ -401,9 +401,6 @@ class IPTester(object):
         """Run the stored commands"""
         try:
             retcode = self._run_cmd()
-            #print(self.stdout.read())
-            #print("std err")
-            #print(self.stderr.read())
         except KeyboardInterrupt:
             return -signal.SIGINT
         except:
@@ -590,13 +587,7 @@ def run_iptestall(inc_slow=False, fast=False):
     failed = []
     t_start = time.time()
 
-    #runners = runners[::-1]
-
-    print([r[0] for r in runners])
-
     try:
-
-        print(len(runners))
         all_res = p.map(do_run, runners)
         print('*'*70)
         for ((name, runner), res) in zip(runners, all_res):
