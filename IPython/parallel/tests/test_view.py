@@ -29,7 +29,6 @@ from nose import SkipTest
 from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
-from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
@@ -47,7 +46,7 @@ def setup():
 
 point = namedtuple("point", "x y")
 
-class TestView(ClusterTestCase, ParametricTestCase):
+class TestView(ClusterTestCase):
     
     def setUp(self):
         # On Win XP, wait for resource cleanup, else parallel test group fails
@@ -512,17 +511,17 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_len(self):
         """len(view) makes sense"""
         e0 = self.client[self.client.ids[0]]
-        yield self.assertEqual(len(e0), 1)
+        self.assertEqual(len(e0), 1)
         v = self.client[:]
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         v = self.client.direct_view('all')
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         v = self.client[:2]
-        yield self.assertEqual(len(v), 2)
+        self.assertEqual(len(v), 2)
         v = self.client[:1]
-        yield self.assertEqual(len(v), 1)
+        self.assertEqual(len(v), 1)
         v = self.client.load_balanced_view()
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         # parametric tests seem to require manual closing?
         self.client.close()
 

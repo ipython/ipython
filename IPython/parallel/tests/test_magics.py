@@ -24,7 +24,6 @@ import zmq
 from nose import SkipTest
 
 from IPython.testing import decorators as dec
-from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
@@ -39,7 +38,7 @@ from .clienttest import ClusterTestCase, generate_output
 def setup():
     add_engines(3, total=True)
 
-class TestParallelMagics(ClusterTestCase, ParametricTestCase):
+class TestParallelMagics(ClusterTestCase):
     
     def test_px_blocking(self):
         ip = get_ipython()
