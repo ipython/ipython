@@ -3,100 +3,165 @@
 ((* extends 'latex_base.tplx' *))
 
 % Custom packages
-((* block packages *))
+((* block packages *))    
     ((( super() )))
 
-    % Needed to box output/input
-    \usepackage{tikz}
-        \usetikzlibrary{calc,arrows,shadows}
-    \usepackage[framemethod=tikz]{((( resources.latex.mdframed_path | posix_path )))/mdframed}
-
+    \usepackage{tikz} % Needed to box output/input
     \usepackage{scrextend} % Used to indent output
     \usepackage{needspace} % Make prompts follow contents
+    \usepackage{framed} % Used to draw output that spans multiple pages
 ((* endblock packages *))
 
 % Custom definitions
 ((* block definitions *))
     ((( super() )))
 
-    \listfiles
     % Pygments definitions
     ((( resources.latex.pygment_definitions )))
 
+    % NB prompt font size
     \def\smaller{\fontsize{9.5pt}{9.5pt}\selectfont}
 
+    % NB prompt colors
     \definecolor{nbframe-border}{rgb}{0.867,0.867,0.867}
     \definecolor{nbframe-bg}{rgb}{0.969,0.969,0.969}
     \definecolor{nbframe-in-prompt}{rgb}{0.0,0.0,0.502}
     \definecolor{nbframe-out-prompt}{rgb}{0.545,0.0,0.0}
 
-    \newenvironment{ColorVerbatim}
-    {\vspace{-2\baselineskip}
-    \leavevmode\begin{mdframed}[%
-        roundcorner=1.0pt, %
-        backgroundcolor=nbframe-bg, %
-        leftmargin=0.1\linewidth, %
-        innerleftmargin=0pt, %
-        innerrightmargin=0pt, %
-        linecolor=nbframe-border, %
-        linewidth=1pt, %
-        usetwoside=false, %
-        everyline=false, %
-        innerlinewidth=3pt, %
-        innerlinecolor=nbframe-bg, %
-        middlelinewidth=1pt, %
-        middlelinecolor=nbframe-bg, %
-        outerlinewidth=0.5pt, %
-        outerlinecolor=nbframe-border, %
-        needspace=3em, %
-        nobreak=false
-    ]}
-    {\end{mdframed}\vspace{-1\baselineskip}}
+    % NB prompt lengths
+    \newlength{\inputpadding}
+    \setlength{\inputpadding}{0.5em}
+    \newlength{\cellleftmargin}
+    \setlength{\cellleftmargin}{0.15\linewidth}
+    \newlength{\borderthickness}
+    \setlength{\borderthickness}{0.4pt}
+
+    % Define a background layer, in which the nb prompt shape is drawn
+    \pgfdeclarelayer{background}
+    \pgfsetlayers{background,main}
+    \usetikzlibrary{calc}
+
+    % define styles for the normal border and the torn border
+    \tikzset{
+      normal border/.style={draw=nbframe-border, fill=nbframe-bg,
+        rectangle, rounded corners=2.5pt, line width=\borderthickness},
+      torn border/.style={draw=white, fill=white, line width=\borderthickness}}
+
+    % Macro to draw the shape behind the text, when it fits completly in the
+    % page
+    \def\notebookcellframe#1{%
+    \tikz{%
+      \node[inner sep=\inputpadding] (A) {#1};% Draw the text of the node
+      \begin{pgfonlayer}{background}% Draw the shape behind
+      \fill[normal border]%
+            (A.south east) -- ($(A.south west)+(\cellleftmargin,0)$) -- 
+            ($(A.north west)+(\cellleftmargin,0)$) -- (A.north east) -- cycle;
+      \end{pgfonlayer}}}%
+
+    % Macro to draw the shape, when the text will continue in next page
+    \def\notebookcellframetop#1{%
+    \tikz{%
+      \node[inner sep=\inputpadding] (A) {#1};    % Draw the text of the node
+      \begin{pgfonlayer}{background}    
+      \fill[normal border]              % Draw the ``complete shape'' behind
+            (A.south east) -- ($(A.south west)+(\cellleftmargin,0)$) -- 
+            ($(A.north west)+(\cellleftmargin,0)$) -- (A.north east) -- cycle;
+      \fill[torn border]                % Add the torn lower border
+            ($(A.south east)-(0,.1)$) -- ($(A.south west)+(\cellleftmargin,-.1)$) -- 
+            ($(A.south west)+(\cellleftmargin,.1)$) -- ($(A.south east)+(0,.1)$) -- cycle;
+      \end{pgfonlayer}}}
+
+    % Macro to draw the shape, when the text continues from previous page
+    \def\notebookcellframebottom#1{%
+    \tikz{%
+      \node[inner sep=\inputpadding] (A) {#1};   % Draw the text of the node
+      \begin{pgfonlayer}{background}   
+      \fill[normal border]             % Draw the ``complete shape'' behind
+            (A.south east) -- ($(A.south west)+(\cellleftmargin,0)$) -- 
+            ($(A.north west)+(\cellleftmargin,0)$) -- (A.north east) -- cycle;
+      \fill[torn border]               % Add the torn upper border
+            ($(A.north east)-(0,.1)$) -- ($(A.north west)+(\cellleftmargin,-.1)$) -- 
+            ($(A.north west)+(\cellleftmargin,.1)$) -- ($(A.north east)+(0,.1)$) -- cycle;
+      \end{pgfonlayer}}}
+
+    % Macro to draw the shape, when both the text continues from previous page
+    % and it will continue in next page
+    \def\notebookcellframemiddle#1{%
+    \tikz{%
+      \node[inner sep=\inputpadding] (A) {#1};   % Draw the text of the node
+      \begin{pgfonlayer}{background}   
+      \fill[normal border]             % Draw the ``complete shape'' behind
+            (A.south east) -- ($(A.south west)+(\cellleftmargin,0)$) -- 
+            ($(A.north west)+(\cellleftmargin,0)$) -- (A.north east) -- cycle;
+      \fill[torn border]               % Add the torn lower border
+            ($(A.south east)-(0,.1)$) -- ($(A.south west)+(\cellleftmargin,-.1)$) -- 
+            ($(A.south west)+(\cellleftmargin,.1)$) -- ($(A.south east)+(0,.1)$) -- cycle;
+      \fill[torn border]               % Add the torn upper border
+            ($(A.north east)-(0,.1)$) -- ($(A.north west)+(\cellleftmargin,-.1)$) -- 
+            ($(A.north west)+(\cellleftmargin,.1)$) -- ($(A.north east)+(0,.1)$) -- cycle;
+      \end{pgfonlayer}}}
+
+    % Define the environment which puts the frame
+    % In this case, the environment also accepts an argument with an optional
+    % title (which defaults to ``Example'', which is typeset in a box overlaid
+    % on the top border
+    \newenvironment{notebookcell}[1][0]{%
+      \def\FrameCommand{\notebookcellframe}%
+      \def\FirstFrameCommand{\notebookcellframetop}%
+      \def\LastFrameCommand{\notebookcellframebottom}%
+      \def\MidFrameCommand{\notebookcellframemiddle}%
+      \vskip\baselineskip%
+      \MakeFramed {\FrameRestore}%
+      \noindent\tikz\node[inner sep=0em] at ($(A.north west)-(0,0)$) {%
+      ((( draw_prompt("In ", "#1", "nbframe-in-prompt", "2pt") )))%
+      }; }%
+    {\endMakeFramed}
 
 ((* endblock definitions *))
+
 
 %===============================================================================
 % Input
 %===============================================================================
 
-
-((* block in_prompt scoped *))
-    \br
-    ((( draw_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
-((* endblock in_prompt *))
-
 ((* block input scoped *))
     % Add contents below.
 
+\vspace{-1\baselineskip}%
+\needspace{4\baselineskip}%    
+\begin{notebookcell}[((( cell.prompt_number )))]%
+\begin{addmargin}[\cellleftmargin]{0em}% left, right
+((* block notebook_input_extra_space *))%((* endblock notebook_input_extra_space *))
 \smaller%
+\vspace{-1\baselineskip}%
+\vspace{-1\borderthickness}%
 ((( cell.input | highlight2latex )))%
+\vspace{-1\baselineskip}%
+\end{addmargin}
+\end{notebookcell}
 
 ((* endblock input *))
-
-((* block input_group scoped *))
-    ((( super() )))
-((* endblock input_group *))
-
 
 %===============================================================================
 % Output
 %===============================================================================
 
-((* block output_group *))
-    {\br}((( super() )))
-((* endblock output_group *))
-
 ((* block output *))
-
+    \vspace{1\baselineskip}%
     % Only render the prompt if the cell is pyout.  Note, the outputs prompt 
     % block isn't used since we need to check each indiviual output and only
     % add prompts to the pyout ones.
     ((* if output.output_type in ['pyout'] *))
-        ((( draw_prompt("Out", cell.prompt_number, "nbframe-out-prompt") )))
-    ((* endif *))
-
-    \begin{addmargin}[0.1\linewidth]{0em} % left, right
-    \smaller{((( super() )))}
+        \vspace{-1\baselineskip}%
+        \noindent%
+        ((( draw_prompt("Out", cell.prompt_number, "nbframe-out-prompt", "0em") )))%
+    ((* endif *))%
+    %
+    \begin{addmargin}[\cellleftmargin]{0em}% left, right
+    \smaller%
+    ((* block notebook_output_extra_space *))%((* endblock notebook_output_extra_space *))
+    \vspace{-1\baselineskip}%
+    ((( super() )))
     \end{addmargin}
 ((* endblock output *))
 
@@ -105,19 +170,16 @@
 %==============================================================================
 
 % Name: draw_prompt
-% Purpose: Renders an output/input prompt for notebook style pdfs.  Prompt is
-%          rendered at the current location, the cursor position is left 
-%          unmodified.
-((* macro draw_prompt(prompt, number, color) *))
-    
-    {
-    \smaller
-    \tt
-    \color{((( color )))}
-    \noindent\relax
-    ((( prompt )))
-    {[}((( number ))){]}:
-    \vspace{-1\baselineskip}
-    }
-    
-((* endmacro *))
+% Purpose: Renders an output/input prompt for notebook style pdfs
+((* macro draw_prompt(prompt, number, color, space) -*))
+    \begin{minipage}{\cellleftmargin}
+    \smaller%
+    \tt%
+    \color{(((color)))}%
+    \hfill%
+    (((prompt)))[(((number)))]:%
+    \hspace{\inputpadding}%
+    \hspace{(((space)))}%
+    \hspace{3pt}%
+    \end{minipage}
+((*- endmacro *))

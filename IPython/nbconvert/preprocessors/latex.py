@@ -47,7 +47,6 @@ class LatexPreprocessor(Preprocessor):
         # Generate Pygments definitions for Latex 
         resources["latex"] = {}
         resources["latex"]["pygment_definitions"] = LatexFormatter().get_style_defs()
-        resources["latex"]["mdframed_path"] = os.path.join(os.path.dirname(__file__), '..', 'templates', 'latex', 'mdframed')
         return super(LatexPreprocessor, self).preprocess(nb, resources)
 
 
