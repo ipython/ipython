@@ -495,7 +495,12 @@ class Client(HasTraits):
                                     }
         self._queue_handlers = {'execute_reply' : self._handle_execute_reply,
                                 'apply_reply' : self._handle_apply_reply}
-        self._connect(sshserver, ssh_kwargs, timeout)
+        
+        try:
+            self._connect(sshserver, ssh_kwargs, timeout)
+        except:
+            self.close(linger=0)
+            raise
         
         # last step: setup magics, if we are in IPython:
         
@@ -599,7 +604,6 @@ class Client(HasTraits):
         self._connected=True
 
         def connect_socket(s, url):
-            # url = util.disambiguate_url(url, self._config['location'])
             if self._ssh:
                 return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
@@ -956,14 +960,23 @@ class Client(HasTraits):
         view.activate(suffix)
         return view
 
-    def close(self):
+    def close(self, linger=None):
+        """Close my zmq Sockets
+        
+        If `linger`, set the zmq LINGER socket option,
+        which allows discarding of messages.
+        """
         if self._closed:
             return
         self.stop_spin_thread()
-        snames = filter(lambda n: n.endswith('socket'), dir(self))
-        for socket in map(lambda name: getattr(self, name), snames):
-            if isinstance(socket, zmq.Socket) and not socket.closed:
-                socket.close()
+        snames = [ trait for trait in self.trait_names() if trait.endswith("socket") ]
+        for name in snames:
+            socket = getattr(self, name)
+            if socket is not None and not socket.closed:
+                if linger is not None:
+                    socket.close(linger=linger)
+                else:
+                    socket.close()
         self._closed = True
 
     def _spin_every(self, interval=1):
