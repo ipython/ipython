@@ -337,6 +337,7 @@ class IPTester(object):
     processes = None
     #: str, coverage xml output file
     coverage_xml = None
+    buffer_output = False
 
     def __init__(self, runner='iptest', params=None):
         """Create new test runner."""
@@ -383,8 +384,9 @@ class IPTester(object):
             env = os.environ.copy()
             env['IPYTHONDIR'] = IPYTHONDIR
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-            subp = subprocess.Popen(self.call_args, stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE, env=env)
+            output = subprocess.PIPE if self.buffer_output else None
+            subp = subprocess.Popen(self.call_args, stdout=output,
+                    stderr=output, env=env)
             self.processes.append(subp)
             # If this fails, the process will be left in self.processes and
             # cleaned up later, but if the wait call succeeds, then we can
@@ -547,15 +549,10 @@ def run_iptest():
 
 def do_run(x):
     print('IPython test group:',x[0])
-    #if x[0] == 'IPython.kernel':
-    #    import os
-    #    os.environ['NOSE_PROCESS_TIMEOUT'] = '20'
-    #    os.environ['NOSE_PROCESSES'] = '2'
     ret = x[1].run()
-    print('finished test group:',x[0])
     return ret
 
-def run_iptestall(inc_slow=False):
+def run_iptestall(inc_slow=False, fast=False):
     """Run the entire IPython test suite by calling nose and trial.
 
     This function constructs :class:`IPTester` instances for all IPython
@@ -569,8 +566,15 @@ def run_iptestall(inc_slow=False):
     inc_slow : bool, optional
       Include slow tests, like IPython.parallel. By default, these tests aren't
       run.
+
+    fast : bool, option
+      Run the test suite in parallel, if True, using as many threads as there
+      are processors
     """
-    p = multiprocessing.pool.ThreadPool()
+    if fast:
+        p = multiprocessing.pool.ThreadPool()
+    else:
+        p = multiprocessing.pool.ThreadPool(1)
 
     runners = make_runners(inc_slow=inc_slow)
 
@@ -594,9 +598,13 @@ def run_iptestall(inc_slow=False):
 
         print(len(runners))
         all_res = p.map(do_run, runners)
+        print('*'*70)
         for ((name, runner), res) in zip(runners, all_res):
-            print('*'*70)
-            print('IPython test group:',name)
+            print(' '*70)
+            tgroup = 'IPython test group: ' + name
+            res_string = 'OK' if res == 0 else 'FAILED'
+            res_string = res_string.rjust(70 - len(tgroup), '.')
+            print(tgroup + res_string)
             if res:
                 failed.append( (name, runner) )
                 if res == -signal.SIGINT:
@@ -639,13 +647,17 @@ def main():
             # This is in-process
             run_iptest()
     else:
-        if "--all" in sys.argv:
+        inc_slow =  "--all" in sys.argv
+        if inc_slow:
             sys.argv.remove("--all")
-            inc_slow = True
-        else:
-            inc_slow = False
+
+        fast =  "--fast" in sys.argv
+        if fast:
+            sys.argv.remove("--fast")
+            IPTester.buffer_output = True
+
         # This starts subprocesses
-        run_iptestall(inc_slow=inc_slow)
+        run_iptestall(inc_slow=inc_slow, fast=fast)
 
 
 if __name__ == '__main__':
