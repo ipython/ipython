@@ -38,7 +38,7 @@ If you want to hack on certain parts, e.g. the IPython notebook, in a clean
 environment (such as a virtualenv) you can use ``pip`` to grab the necessary
 dependencies quickly::
 
-   $ pip install -e .[notebook]
+   $ pip install -e ".[notebook]"
 
 This installs the necessary packages and symlinks IPython into your current
 environment so that you can work on your local repo copy and run it from anywhere::
