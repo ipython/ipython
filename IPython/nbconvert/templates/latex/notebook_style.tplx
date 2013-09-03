@@ -20,6 +20,8 @@
     ((( super() )))
 
     \listfiles
+    % Pygments definitions
+    ((( resources.latex.pygment_definitions )))
 
     \def\smaller{\fontsize{9.5pt}{9.5pt}\selectfont}
 
@@ -65,14 +67,9 @@
 
 ((* block input scoped *))
     % Add contents below.
-    
-    \begin{ColorVerbatim}
-    \smaller{((( super() )))}
-    \end{ColorVerbatim}
 
-    % \begin{addmargin}[0.1\linewidth]{0em} % left, right
-    % \smaller{}
-    % \end{addmargin}
+\smaller%
+((( cell.input | highlight2latex )))%
 
 ((* endblock input *))
 

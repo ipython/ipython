@@ -6,13 +6,17 @@
 % Custom packages
 ((* block packages *))
     ((( super() )))
+
     \usepackage{needspace} % Make prompts follow contents
 ((* endblock packages *))
 
 % Custom definitions
 ((* block definitions *))
     ((( super() )))
-    
+
+    % Pygments definitions
+    ((( resources.latex.pygment_definitions )))
+
     \newlength{\promptspace}
     \setlength{\promptspace}{4\baselineskip} % Space needed to start a new
                                              % input/output
@@ -30,6 +34,9 @@
     \vspace{-2em}
 ((* endblock input_group -*))
 
+((* block input scoped *))
+    ((( cell.input | highlight2latex )))
+((* endblock input *))
 
 %===============================================================================
 % Output
