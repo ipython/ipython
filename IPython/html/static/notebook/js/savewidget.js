@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
         $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
             that.set_last_checkpoint(data[0]);
         });
-        
+
         $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
             that.set_last_checkpoint(data);
         });
@@ -104,7 +104,7 @@ var IPython = (function (IPython) {
                         return false;
                     }
                 });
-                that.find('input[type="text"]').focus();
+                that.find('input[type="text"]').focus().select();
             }
         });
     }
