@@ -119,12 +119,13 @@ def get_pull_request_files(project, num, auth=False):
 element_pat = re.compile(r'<(.+?)>')
 rel_pat = re.compile(r'rel=[\'"](\w+)[\'"]')
 
-def get_paged_request(url, headers=None):
+def get_paged_request(url, headers=None, **params):
     """get a full list, handling APIv3's paging"""
     results = []
+    params.setdefault("per_page", 100)
     while True:
-        print("fetching %s" % url, file=sys.stderr)
-        response = requests.get(url, headers=headers)
+        print("fetching %s with %s" % (url, params), file=sys.stderr)
+        response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         results.extend(response.json())
         if 'next' in response.links:
@@ -133,27 +134,31 @@ def get_paged_request(url, headers=None):
             break
     return results
 
-def get_pulls_list(project, state="closed", auth=False):
-    """get pull request list
-    """
-    url = "https://api.github.com/repos/{project}/pulls?state={state}&per_page=100".format(project=project, state=state)
+def get_pulls_list(project, auth=False, **params):
+    """get pull request list"""
+    params.setdefault("state", "closed")
+    url = "https://api.github.com/repos/{project}/pulls".format(project=project)
     if auth:
         headers = make_auth_header()
     else:
         headers = None
-    pages = get_paged_request(url, headers=headers)
+    pages = get_paged_request(url, headers=headers, params=params)
     return pages
 
-def get_issues_list(project, state="closed", auth=False):
-    """get pull request list
-    """
-    url = "https://api.github.com/repos/{project}/pulls?state={state}&per_page=100".format(project=project, state=state)
+def get_issues_list(project, auth=False, **params):
+    """get issues list"""
+    params.setdefault("state", "closed")
+    url = "https://api.github.com/repos/{project}/issues".format(project=project)
     if auth:
         headers = make_auth_header()
     else:
         headers = None
-    pages = get_paged_request(url, headers=headers)
+    pages = get_paged_request(url, headers=headers, **params)
     return pages
+
+def is_pull_request(issue):
+    """Return True if the given issue is a pull request."""
+    return bool(issue.get('pull_request', {}).get('html_url', None))
 
 # encode_multipart_formdata is from urllib3.filepost
 # The only change is to iter_fields, to enforce S3's required key ordering
