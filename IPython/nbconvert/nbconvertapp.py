@@ -25,6 +25,7 @@ import glob
 
 # From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
+from IPython.core.profiledir import ProfileDir
 from IPython.config import catch_config_error, Configurable
 from IPython.utils.traitlets import (
     Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
@@ -85,12 +86,13 @@ class NbConvertApp(BaseIPythonApplication):
         return logging.INFO
     
     def _classes_default(self):
-        classes = [NbConvertBase]
+        classes = [NbConvertBase, ProfileDir]
         for pkg in (exporters, transformers, writers):
             for name in dir(pkg):
                 cls = getattr(pkg, name)
                 if isinstance(cls, type) and issubclass(cls, Configurable):
                     classes.append(cls)
+
         return classes
 
     description = Unicode(
