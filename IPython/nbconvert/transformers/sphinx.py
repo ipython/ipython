@@ -29,6 +29,7 @@ from pygments.formatters import LatexFormatter
 # Our own imports
 # Configurable traitlets
 from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils import text
 
 # Needed to override transformer
 from .base import (Transformer)
@@ -157,7 +158,7 @@ class SphinxTransformer(Transformer):
             if self.publish_date:
                 resources["sphinx"]["date"] = self.publish_date
             elif len(resources['metadata']['modified_date'].strip()) == 0:
-                resources["sphinx"]["date"] = date.today().strftime("%B %-d, %Y")
+                resources["sphinx"]["date"] = date.today().strftime(text.date_format)
             else:
                 resources["sphinx"]["date"] = resources['metadata']['modified_date']
             
@@ -219,7 +220,7 @@ class SphinxTransformer(Transformer):
         if resources['metadata']['modified_date']:
             default_date = resources['metadata']['modified_date']
         else:
-            default_date = date.today().strftime("%B %-d, %Y")
+            default_date = date.today().strftime(text.date_format)
             
         user_date = console.input("Date (deafults to \"" + default_date + "\"): ")
         if len(user_date.strip()) == 0:
