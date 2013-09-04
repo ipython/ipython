@@ -15,7 +15,6 @@ Module with tests for Strings
 #-----------------------------------------------------------------------------
 import os
 
-from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..strings import (wrap_text, html2text, add_anchor, strip_dollars, 
     strip_files_prefix, get_lines, comment_lines, ipython2python, posix_path,

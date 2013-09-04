@@ -17,19 +17,14 @@ Authors:
 #-------------------------------------------------------------------------------
 
 import re
-import sys
 import time
 
-import zmq
-from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
-from IPython.parallel import error
 from IPython.parallel import AsyncResult
-from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
 

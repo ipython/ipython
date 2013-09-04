@@ -37,7 +37,6 @@ from __future__ import absolute_import
 
 # Stdlib
 import re
-import sys
 import unittest
 from doctest import DocTestFinder, DocTestRunner, TestResults
 
