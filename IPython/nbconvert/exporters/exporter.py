@@ -33,7 +33,7 @@ from IPython.config import Config
 from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
-from IPython.utils.text import indent
+from IPython.utils import text
 from IPython.utils import py3compat
 
 from IPython.nbconvert import preprocessors as nbpreprocessors
@@ -47,7 +47,7 @@ from IPython.nbconvert import filters
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 
 default_filters = {
-        'indent': indent,
+        'indent': text.indent,
         'markdown2html': filters.markdown2html,
         'ansi2html': filters.ansi2html,
         'filter_data_type': filters.DataTypeFilter,
@@ -283,7 +283,7 @@ class Exporter(LoggingConfigurable):
         resources['metadata']['name'] = notebook_name
 
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
-        resources['metadata']['modified_date'] = modified_date.strftime("%B %d, %Y")
+        resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
         
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
