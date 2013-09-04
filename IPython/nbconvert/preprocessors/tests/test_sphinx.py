@@ -45,13 +45,4 @@ class TestSphinx(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-        assert "author" in res['sphinx']
-        assert "version" in res['sphinx']
-        assert "release" in res['sphinx']
-        assert "date" in res['sphinx']
-        assert "chapterstyle" in res['sphinx']
-        assert "outputstyle" in res['sphinx']
-        assert "centeroutput" in res['sphinx']
-        assert "header" in res['sphinx']
         assert "texinputs" in res['sphinx']
-        assert "pygment_definitions" in res['sphinx']
