@@ -20,14 +20,12 @@ Authors
 import nose.tools as nt
 
 # Our own imports
-from IPython.testing import decorators as dec
 from IPython.kernel.launcher import swallow_argv
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-@dec.parametric
 def test_swallow_argv():
     tests = [
         # expected  , argv       , aliases, flags
@@ -56,5 +54,5 @@ def test_swallow_argv():
             "expected : %r" % expected,
             "returned : %r" % stripped,
         ])
-        yield nt.assert_equal(expected, stripped, message)
+        nt.assert_equal(expected, stripped, message)
 

@@ -17,10 +17,10 @@ import sys
 
 from StringIO import StringIO
 from subprocess import Popen, PIPE
+import unittest
 
 import nose.tools as nt
 
-from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import Tee, capture_output
 from IPython.utils.py3compat import doctest_refactor_print
 
@@ -38,7 +38,7 @@ def test_tee_simple():
     nt.assert_equal(chan.getvalue(), text+"\n")
 
 
-class TeeTestCase(ParametricTestCase):
+class TeeTestCase(unittest.TestCase):
 
     def tchan(self, channel, check='close'):
         trap = StringIO()
@@ -61,7 +61,7 @@ class TeeTestCase(ParametricTestCase):
     def test(self):
         for chan in ['stdout', 'stderr']:
             for check in ['close', 'del']:
-                yield self.tchan(chan, check)
+                self.tchan(chan, check)
 
 def test_io_init():
     """Test that io.stdin/out/err exist at startup"""

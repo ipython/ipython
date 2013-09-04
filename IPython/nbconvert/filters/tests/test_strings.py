@@ -15,7 +15,6 @@ Module with tests for Strings
 #-----------------------------------------------------------------------------
 import os
 
-from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..strings import (wrap_text, html2text, add_anchor, strip_dollars, 
     strip_files_prefix, get_lines, comment_lines, ipython2python, posix_path,
@@ -36,7 +35,7 @@ class TestStrings(TestsBase):
         As if the strings were thine, shouldst know of this.
         """
         for length in [30,5,1]:
-            yield self._confirm_wrap_text(test_text, length)
+            self._confirm_wrap_text(test_text, length)
     
 
     def _confirm_wrap_text(self, text, length):
@@ -73,7 +72,7 @@ class TestStrings(TestsBase):
             ('Hello', 'Hello'),
             ('W$o$rld', 'W$o$rld')]
         for test in tests:
-            yield self._try_strip_dollars(test[0], test[1])
+            self._try_strip_dollars(test[0], test[1])
 
 
     def _try_strip_dollars(self, test, result):
@@ -89,7 +88,7 @@ class TestStrings(TestsBase):
             ('My files are in `files/`', 'My files are in `files/`'),
             ('<a href="files/test.html">files/test.html</a>', '<a href="test.html">files/test.html</a>')]
         for test in tests:
-            yield self._try_files_prefix(test[0], test[1])
+            self._try_files_prefix(test[0], test[1])
 
 
     def _try_files_prefix(self, test, result):
