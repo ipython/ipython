@@ -36,10 +36,13 @@ from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
     Unicode, Instance, List, Bool, CaselessStrEnum, Dict
 )
+from IPython.lib.inputhook import guis
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
 #-----------------------------------------------------------------------------
+
+gui_keys = tuple(sorted([ key for key in guis if key is not None ]))
 
 backend_keys = sorted(pylabtools.backends.keys())
 backend_keys.insert(0, 'auto')
@@ -175,8 +178,8 @@ class InteractiveShellApp(Configurable):
     module_to_run = Unicode('', config=True,
         help="Run the module as a script."
     )
-    gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet', 'osx'), config=True,
-        help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet', 'osx')."
+    gui = CaselessStrEnum(gui_keys, config=True,
+        help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
     )
     matplotlib = CaselessStrEnum(backend_keys,
         config=True,
