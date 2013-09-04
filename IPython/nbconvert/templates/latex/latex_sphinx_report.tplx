@@ -1,9 +1,3 @@
-
-% Default to the python output style
-((* if not cell_style is defined *))
-    ((* set cell_style = 'python_style.tplx' *))
-((* endif *))
-
 ((* extends 'latex_book.tplx' *))
 
 %===============================================================================
