@@ -1,4 +1,4 @@
-((= Black&white ipython input/output style =))
+((= IPython input/output style =))
 
 ((*- extends 'latex_base.tplx' -*))
 
