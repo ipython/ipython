@@ -1,4 +1,4 @@
-((* extends 'latex_book.tplx' *))
+((* extends 'latex_report.tplx' *))
 
 %===============================================================================
 % Latex Sphinx Book
