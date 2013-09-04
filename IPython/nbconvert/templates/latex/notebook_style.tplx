@@ -151,6 +151,7 @@
 
 ((* block output -*))
     \par\vspace{1\smallerfontscale}%
+    \needspace{4\baselineskip}%
     % Only render the prompt if the cell is pyout.  Note, the outputs prompt 
     % block isn't used since we need to check each indiviual output and only
     % add prompts to the pyout ones.
