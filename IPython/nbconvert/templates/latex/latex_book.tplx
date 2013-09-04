@@ -1,7 +1,7 @@
 
-% Default to the simple output style
+% Default to the notebook output style
 ((* if not cell_style is defined *))
-    ((* set cell_style = 'simple_style.tplx' *))
+    ((* set cell_style = 'notebook_style.tplx' *))
 ((* endif *))
 
 % Inherit from the specified cell style.
