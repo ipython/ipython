@@ -22,10 +22,8 @@ import platform
 import time
 from collections import namedtuple
 from tempfile import mktemp
-from StringIO import StringIO
 
 import zmq
-from nose import SkipTest
 from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
@@ -34,7 +32,6 @@ from IPython.utils.io import capture_output
 from IPython import parallel  as pmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.parallel import DirectView
 from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
@@ -241,7 +238,7 @@ class TestView(ClusterTestCase):
     @skip_without('numpy')
     def test_scatter_gather_numpy(self):
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         view = self.client[:]
         a = numpy.arange(64)
         view.scatter('a', a, block=True)
@@ -279,7 +276,7 @@ class TestView(ClusterTestCase):
     def test_apply_numpy(self):
         """view.apply(f, ndarray)"""
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         
         A = numpy.random.random((100,100))
         view = self.client[-1]
@@ -367,7 +364,7 @@ class TestView(ClusterTestCase):
     @skip_without('numpy')
     def test_scatter_gather_numpy_nonblocking(self):
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         a = numpy.arange(64)
         view = self.client[:]
         ar = view.scatter('a', a, block=False)
