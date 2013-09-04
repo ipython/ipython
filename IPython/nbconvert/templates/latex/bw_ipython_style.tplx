@@ -7,7 +7,7 @@
 %===============================================================================
 
 ((* block input scoped *))
-    \begin{verbatim}((( add_prompt(cell.input, cell, 'In ') )))\end{verbatim}
+((( add_prompt(cell.input, cell, 'In ') )))
 ((* endblock input *))
 
 
@@ -18,7 +18,7 @@
 ((* block pyout scoped *))
     ((*- for type in output | filter_data_type -*))
         ((*- if type in ['text']*))
-            \begin{verbatim}((( add_prompt(output.text, cell, 'Out') )))\end{verbatim}
+((( add_prompt(output.text, cell, 'Out') )))
         ((*- else -*))
     \verb+Out[((( cell.prompt_number )))]:+((( super() )))
         ((*- endif -*))
@@ -35,5 +35,7 @@
 ((* macro add_prompt(text, cell, prompt) -*))
     ((*- set prompt_number = "" ~ cell.prompt_number -*))
     ((*- set prompt_number_replacement = "." * (prompt_number | length + 2) -*))
-    (((- text | add_prompts(first=prompt ~ '[' ~ prompt_number ~ ']: ', cont='   ' ~ prompt_number_replacement ~ ': ') -)))
+\begin{verbatim}
+(((- text | add_prompts(first=prompt ~ '[' ~ prompt_number ~ ']: ', cont='   ' ~ prompt_number_replacement ~ ': ') -)))
+\end{verbatim}
 ((*- endmacro *))
