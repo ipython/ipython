@@ -36,9 +36,9 @@ from IPython.utils import py3compat
 
 # datetime.strftime date format for ipython
 if sys.platform == 'win32':
-    date_format = date.strftime("%B %d, %Y")
+    date_format = "%B %d, %Y"
 else:
-    date_format = date.strftime("%B %-d, %Y")
+    date_format = "%B %-d, %Y"
 
 
 #-----------------------------------------------------------------------------
