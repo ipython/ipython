@@ -13,7 +13,7 @@ import sys
 
 from datetime import datetime, timedelta
 from subprocess import check_output
-from gh_api import get_paged_request, make_auth_header, get_pull_request
+from gh_api import get_paged_request, make_auth_header, get_pull_request, is_pull_request
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -49,12 +49,6 @@ def issues2dict(issues):
     for i in issues:
         idict[i['number']] = i
     return idict
-
-
-def is_pull_request(issue):
-    """Return True if the given issue is a pull request."""
-    return bool(issue.get('pull_request', {}).get('html_url', None))
-
 
 def split_pulls(all_issues, project="ipython/ipython"):
     """split a list of closed issues into non-PR Issues and Pull Requests"""
