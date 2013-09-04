@@ -36,6 +36,6 @@
     ((*- set prompt_number = "" ~ cell.prompt_number -*))
     ((*- set prompt_number_replacement = "." * (prompt_number | length + 2) -*))
 \begin{verbatim}
-(((- text | add_prompts(first=prompt ~ '[' ~ prompt_number ~ ']: ', cont='   ' ~ prompt_number_replacement ~ ': ') -)))
+(((- text | add_prompts(first=prompt ~ '[' ~ prompt_number ~ ']: ', cont='') -)))
 \end{verbatim}
 ((*- endmacro *))

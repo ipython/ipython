@@ -82,6 +82,7 @@ This template does not define a docclass, the inheriting class must define this.
 
 ((* block predoc *))
     ((* block maketitle *))\maketitle((* endblock maketitle *))
+    ((* block abstract *))((* endblock abstract *))
 ((* endblock predoc *))
 
 %===============================================================================

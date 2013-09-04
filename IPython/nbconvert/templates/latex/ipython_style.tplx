@@ -9,16 +9,10 @@
     % Pygments definitions
     ((( resources.latex.pygment_definitions )))
 
-    % % Exact colors from ipy
-    % \definecolor{incolor}{rgb}{0.094, 0.698, 0.094}
-    % \definecolor{lightincolor}{rgb}{0.329, 1.000, 0.329}
-    % \definecolor{outcolor}{rgb}{0.698, 0.094, 0.094}
-    % \definecolor{lightoutcolor}{rgb}{1.000, 0.329, 0.329}
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
 
-    \definecolor{incolor}{rgb}{0.1, 0.5, 0.1}
-    \definecolor{lightincolor}{rgb}{0.1, 0.7, 0.1}
-    \definecolor{outcolor}{rgb}{0.5, 0.1, 0.1}
-    \definecolor{lightoutcolor}{rgb}{0.7, 0.1, 0.1}
 ((* endblock definitions *))
 
 %===============================================================================
@@ -39,7 +33,7 @@
         ((*- if type in ['text']*))
             ((( add_prompt(output.text | escape_latex, cell, 'Out', 'outcolor') )))
         ((* else -*))
-\texttt{\color{outcolor}Out[{\color{lightoutcolor}((( cell.prompt_number )))}]:}((( super() )))
+\texttt{\color{outcolor}Out[{\color{outcolor}((( cell.prompt_number )))}]:}((( super() )))
         ((*- endif -*))
     ((*- endfor -*))
 ((* endblock pyout *))
@@ -55,6 +49,6 @@
     ((*- set prompt_number = "" ~ cell.prompt_number -*))
     ((*- set prompt_number_replacement = "." * (prompt_number | length + 2) -*))
 \begin{Verbatim}[commandchars=\\\{\}]
-((( text | add_prompts(first='{\color{' ~ prompt_color ~ '}' ~ prompt ~ '[{\\color{light' ~ prompt_color ~ '}' ~ prompt_number ~ '}]:} ', cont='   {\color{' ~ prompt_color ~ '}' ~ prompt_number_replacement ~ ':} ') )))
+((( text | add_prompts(first='{\color{' ~ prompt_color ~ '}' ~ prompt ~ '[{\\color{' ~ prompt_color ~ '}' ~ prompt_number ~ '}]:} ', cont='') )))
 \end{Verbatim}
 ((*- endmacro *))
