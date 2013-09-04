@@ -18,20 +18,6 @@
 .start{-webkit-box-pack:start;-moz-box-pack:start;box-pack:start;}
 .end{-webkit-box-pack:end;-moz-box-pack:end;box-pack:end;}
 .center{-webkit-box-pack:center;-moz-box-pack:center;box-pack:center;}
-body{background-color:white;position:absolute;left:0px;right:0px;top:0px;bottom:0px;overflow:visible;}
-div#header{display:none;}
-#ipython_notebook{padding-left:16px;}
-#noscript{width:auto;padding-top:16px;padding-bottom:16px;text-align:center;font-size:22px;color:red;font-weight:bold;}
-#ipython_notebook img{font-family:Verdana,"Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;height:24px;text-decoration:none;color:black;}
-#site{width:100%;display:none;}
-.ui-button .ui-button-text{padding:0.2em 0.8em;font-size:77%;}
-input.ui-button{padding:0.3em 0.9em;}
-.navbar span{margin-top:3px;}
-span#login_widget{float:right;}
-.nav-header{text-transform:none;}
-.navbar-nobg{background-color:transparent;background-image:none;}
-#header>span{margin-top:10px;}
-.modal-body{max-height:500px;}
 .center-nav{display:inline-block;margin-bottom:-4px;}
 .alternate_upload{background-color:none;display:inline;}
 .alternate_upload.form{padding:0;margin:0;}
