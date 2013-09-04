@@ -1,0 +1,60 @@
+((= Black&white ipython input/output style =))
+
+((*- extends 'latex_base.tplx' -*))
+
+% Custom definitions
+((* block definitions *))
+    ((( super() )))
+
+    % Pygments definitions
+    ((( resources.latex.pygment_definitions )))
+
+    % % Exact colors from ipy
+    % \definecolor{incolor}{rgb}{0.094, 0.698, 0.094}
+    % \definecolor{lightincolor}{rgb}{0.329, 1.000, 0.329}
+    % \definecolor{outcolor}{rgb}{0.698, 0.094, 0.094}
+    % \definecolor{lightoutcolor}{rgb}{1.000, 0.329, 0.329}
+
+    \definecolor{incolor}{rgb}{0.1, 0.5, 0.1}
+    \definecolor{lightincolor}{rgb}{0.1, 0.7, 0.1}
+    \definecolor{outcolor}{rgb}{0.5, 0.1, 0.1}
+    \definecolor{lightoutcolor}{rgb}{0.7, 0.1, 0.1}
+((* endblock definitions *))
+
+%===============================================================================
+% Input
+%===============================================================================
+
+((* block input scoped *))
+    ((( add_prompt(cell.input | highlight2latex(strip_verbatim=True), cell, 'In ', 'incolor') )))
+((* endblock input *))
+
+
+%===============================================================================
+% Output
+%===============================================================================
+
+((* block pyout scoped *))
+    ((*- for type in output | filter_data_type -*))
+        ((*- if type in ['text']*))
+            ((( add_prompt(output.text | escape_latex, cell, 'Out', 'outcolor') )))
+        ((* else -*))
+\texttt{\color{outcolor}Out[{\color{lightoutcolor}((( cell.prompt_number )))}]:}((( super() )))
+        ((*- endif -*))
+    ((*- endfor -*))
+((* endblock pyout *))
+
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+
+% Name: draw_prompt
+% Purpose: Renders an output/input prompt
+((* macro add_prompt(text, cell, prompt, prompt_color) -*))
+    ((*- set prompt_number = "" ~ cell.prompt_number -*))
+    ((*- set prompt_number_replacement = "." * (prompt_number | length + 2) -*))
+\begin{Verbatim}[commandchars=\\\{\}]
+((( text | add_prompts(first='{\color{' ~ prompt_color ~ '}' ~ prompt ~ '[{\\color{light' ~ prompt_color ~ '}' ~ prompt_number ~ '}]:} ', cont='   {\color{' ~ prompt_color ~ '}' ~ prompt_number_replacement ~ ':} ') )))
+\end{Verbatim}
+((*- endmacro *))
