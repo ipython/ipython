@@ -20,7 +20,7 @@
         ((*- if type in ['text']*))
 ((( add_prompt(output.text, cell, 'Out') )))
         ((*- else -*))
-    \verb+Out[((( cell.prompt_number )))]:+((( super() )))
+\verb+Out[((( cell.prompt_number )))]:+((( super() )))
         ((*- endif -*))
     ((*- endfor -*))
 ((* endblock pyout *))
