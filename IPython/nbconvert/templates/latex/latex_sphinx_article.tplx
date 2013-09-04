@@ -38,3 +38,7 @@
     \makeindex
 
 ((* endblock commands *))
+
+% Work around to fix vertical spacing issues with the notebook style.
+((* block extra_input_spacing *))\vspace{-1\baselineskip}((* endblock extra_input_spacing *))
+((* block extra_output_spacing *))\vspace{-0.6\baselineskip}((* endblock extra_output_spacing *))
