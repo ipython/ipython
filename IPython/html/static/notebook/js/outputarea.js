@@ -312,6 +312,33 @@ var IPython = (function (IPython) {
         }
         return oa;
     };
+    
+    OutputArea.prototype._append_javascript_error = function (err, container) {
+        // display a message when a javascript error occurs in display output
+        var msg = "Javascript error adding output!"
+        console.log(msg, err);
+        if ( container === undefined ) return;
+        container.append(
+            $('<div/>').html(msg + "<br/>" +
+                err.toString() +
+                '<br/>See your browser Javascript console for more details.'
+            ).addClass('js-error')
+        );
+        container.show();
+    };
+    
+    OutputArea.prototype._safe_append = function (toinsert) {
+        // safely append an item to the document
+        // this is an object created by user code,
+        // and may have errors, which should not be raised
+        // under any circumstances.
+        try {
+            this.element.append(toinsert);
+        } catch(err) {
+            console.log(err);
+            this._append_javascript_error(err, this.element);
+        }
+    };
 
 
     OutputArea.prototype.append_pyout = function (json, dynamic) {
@@ -321,19 +348,7 @@ var IPython = (function (IPython) {
             toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         }
         this.append_mime_type(json, toinsert, dynamic);
-        try {
-            this.element.append(toinsert);
-        } catch(err) {
-            console.log("Error attaching output!");
-            console.log(err);
-            this.element.show();
-            toinsert.html($('<div/>')
-                .html("Javascript error adding output!<br/>" +
-                    err.toString() +
-                    '<br/>See your browser Javascript console for more details.')
-                .addClass('js-error')
-            );
-        }
+        this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
             this.typeset();
@@ -352,7 +367,7 @@ var IPython = (function (IPython) {
             s = s + '\n';
             var toinsert = this.create_output_area();
             this.append_text(s, {}, toinsert);
-            this.element.append(toinsert);
+            this._safe_append(toinsert);
         }
     };
 
@@ -389,14 +404,14 @@ var IPython = (function (IPython) {
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
         this.append_text(text, {}, toinsert, "output_stream "+subclass);
-        this.element.append(toinsert);
+        this._safe_append(toinsert);
     };
 
 
     OutputArea.prototype.append_display_data = function (json, dynamic) {
         var toinsert = this.create_output_area();
         this.append_mime_type(json, toinsert, dynamic);
-        this.element.append(toinsert);
+        this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
             this.typeset();
@@ -444,15 +459,7 @@ var IPython = (function (IPython) {
         try {
             eval(js);
         } catch(err) {
-            console.log('Error in Javascript!');
-            console.log(err);
-            container.show();
-            element.append($('<div/>')
-                .html("Error in Javascript !<br/>"+
-                    err.toString()+
-                    '<br/>See your browser Javascript console for more details.')
-                .addClass('js-error')
-                );
+            this._append_javascript_error(err, container);
         }
     };
 
