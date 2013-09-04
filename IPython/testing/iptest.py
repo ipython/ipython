@@ -591,7 +591,6 @@ def run_iptestall(inc_slow=False, fast=False):
         all_res = p.map(do_run, runners)
         print('*'*70)
         for ((name, runner), res) in zip(runners, all_res):
-            print(' '*70)
             tgroup = 'IPython test group: ' + name
             res_string = 'OK' if res == 0 else 'FAILED'
             res_string = res_string.rjust(70 - len(tgroup), '.')
