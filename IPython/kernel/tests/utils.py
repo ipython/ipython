@@ -86,7 +86,6 @@ def execute(code='', kc=None, **kwargs):
 def start_global_kernel():
     """start the global kernel (if it isn't running) and return its client"""
     global KM, KC
-    print KM, KC
     if KM is None:
         KM, KC = start_new_kernel()
         atexit.register(stop_global_kernel)
@@ -138,7 +137,7 @@ def new_kernel():
         yield kc
     finally:
         kc.stop_channels()
-        km.shutdown_kernel()
+        km.shutdown_kernel(now=True)
 
 
 def assemble_output(iopub):
@@ -154,9 +153,9 @@ def assemble_output(iopub):
             break
         elif msg['msg_type'] == 'stream':
             if content['name'] == 'stdout':
-                stdout = stdout + content['data']
+                stdout += content['data']
             elif content['name'] == 'stderr':
-                stderr = stderr + content['data']
+                stderr += content['data']
             else:
                 raise KeyError("bad stream: %r" % content['name'])
         else:
