@@ -182,3 +182,7 @@ This template does not define a docclass, the inheriting class must define this.
 % Don't display unknown types
 ((* block unknowncell scoped *))
 ((* endblock unknowncell *))
+
+((* block postdoc *))
+    ((* block bibliography *))((* endblock bibliography *))
+((* endblock postdoc *))
