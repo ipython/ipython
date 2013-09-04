@@ -25,12 +25,13 @@
 %===============================================================================
 
 ((*- block in_prompt scoped -*))
+    \par\vspace{-1\baselineskip}
     ((( draw_prompt('Input') )))
 ((*- endblock in_prompt -*))
 
 ((*- block input_group scoped -*))
     (((- super() )))
-    \vspace{-2em}
+    \par\vspace{-2\baselineskip}
 ((* endblock input_group -*))
 
 ((* block input scoped *))
@@ -47,7 +48,7 @@
 
 ((*- block output_group scoped -*))
     (((- super() )))
-    \vspace{-2em}
+    \par\vspace{-1\baselineskip}
 ((* endblock output_group -*))
 
 %==============================================================================
