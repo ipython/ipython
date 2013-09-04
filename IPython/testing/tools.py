@@ -8,7 +8,7 @@ Authors
 from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
+#  Copyright (C) 2009 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -18,6 +18,7 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
+import inspect
 import os
 import re
 import sys
@@ -37,6 +38,7 @@ except ImportError:
     has_nose = False
 
 from IPython.config.loader import Config
+from IPython.utils.process import get_output_error_code
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
@@ -408,3 +410,26 @@ def monkeypatch(obj, name, attr):
     setattr(obj, name, attr)
     yield
     setattr(obj, name, orig)
+
+
+def help_output_test(subcommand=''):
+    """test that `ipython [subcommand] -h` works"""
+    cmd = ' '.join(get_ipython_cmd() + [subcommand, '-h'])
+    out, err, rc = get_output_error_code(cmd)
+    nt.assert_equal(rc, 0, err)
+    nt.assert_not_in("Traceback", err)
+    nt.assert_in("Options", out)
+    nt.assert_in("--help-all", out)
+    return out, err
+
+
+def help_all_output_test(subcommand=''):
+    """test that `ipython [subcommand] --help-all` works"""
+    cmd = ' '.join(get_ipython_cmd() + [subcommand, '--help-all'])
+    out, err, rc = get_output_error_code(cmd)
+    nt.assert_equal(rc, 0, err)
+    nt.assert_not_in("Traceback", err)
+    nt.assert_in("Options", out)
+    nt.assert_in("Class parameters", out)
+    return out, err
+

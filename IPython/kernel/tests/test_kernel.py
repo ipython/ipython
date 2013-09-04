@@ -23,7 +23,7 @@ import nose.tools as nt
 
 from IPython.kernel import KernelManager
 from IPython.kernel.tests.test_message_spec import execute, flush_channels
-from IPython.testing import decorators as dec
+from IPython.testing import decorators as dec, tools as tt
 from IPython.utils import path, py3compat
 
 #-------------------------------------------------------------------------------
@@ -206,7 +206,6 @@ def test_subprocess_error():
         _check_mp_mode(kc, expected=False)
         _check_mp_mode(kc, expected=False, stream="stderr")
 
-
 # raw_input tests
 
 def test_raw_input():
@@ -249,4 +248,9 @@ def test_eval_input():
         nt.assert_equal(reply['content']['status'], 'ok')
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout, "2\n")
+
+
+def test_help_output():
+    """ipython kernel --help-all works"""
+    tt.help_all_output_test('kernel')
 
