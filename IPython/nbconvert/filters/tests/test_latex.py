@@ -35,7 +35,7 @@ class TestLatex(TestsBase):
             ('','')]
 
         for test in tests:
-            yield self._try_escape_latex(test[0], test[1])
+            self._try_escape_latex(test[0], test[1])
 
 
     def _try_escape_latex(self, test, result):
@@ -56,7 +56,7 @@ class TestLatex(TestsBase):
             ('','')]
 
         for test in tests:
-            yield self._try_strip_math_space(test[0], test[1])
+            self._try_strip_math_space(test[0], test[1])
 
 
     def _try_strip_math_space(self, test, result):

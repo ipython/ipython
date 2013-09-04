@@ -16,12 +16,12 @@ Contains base test class for nbconvert
 import os
 import glob
 import shutil
+import unittest
 
 import IPython
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
 from IPython.testing.tools import get_ipython_cmd
-from IPython.testing.ipunittest import ParametricTestCase
 
 # a trailing space allows for simpler concatenation with the other arguments
 ipy_cmd = get_ipython_cmd(as_string=True) + " "
@@ -31,7 +31,7 @@ ipy_cmd = get_ipython_cmd(as_string=True) + " "
 #-----------------------------------------------------------------------------
 
 
-class TestsBase(ParametricTestCase):
+class TestsBase(unittest.TestCase):
     """Base tests class.  Contains useful fuzzy comparison and nbconvert
     functions."""
 
@@ -86,7 +86,7 @@ class TestsBase(ParametricTestCase):
 
         For example:
            Replace "ii" with "i" in the string "Hiiii" yields "Hii"
-           Another replacement yields "Hi" (the desired output)
+           Another replacement cds "Hi" (the desired output)
 
         Parameters:
         -----------

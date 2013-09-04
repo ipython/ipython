@@ -275,7 +275,7 @@ def main() :
 if __name__ == '__main__' :
     sys.exit(main())
 
-__all__ = ['install_mathjax', 'main', 'dest']
+__all__ = ['install_mathjax', 'main', 'default_dest']
 
 """
 Test notes:
