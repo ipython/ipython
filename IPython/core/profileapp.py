@@ -207,6 +207,8 @@ class ProfileCreate(BaseIPythonApplication):
     description = create_help
     examples = _create_examples
     auto_create = Bool(True, config=False)
+    def _log_format_default(self):
+        return "[%(name)s] %(message)s"
 
     def _copy_config_files_default(self):
         return True
