@@ -18,7 +18,6 @@ from __future__ import print_function, absolute_import
 
 # Stdlib imports
 import os.path
-import sys
 
 # Used to set the default date to today's date 
 from datetime import date 
