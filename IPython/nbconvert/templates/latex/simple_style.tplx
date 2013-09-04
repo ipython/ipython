@@ -2,7 +2,6 @@
 
 ((*- extends 'latex_base.tplx' -*))
 
-
 % Custom packages
 ((* block packages *))
     ((( super() )))
