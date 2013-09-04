@@ -278,6 +278,25 @@ _help_end_re = re.compile(r"""(%{0,2}
                               """,
                               re.VERBOSE)
 
+# Extra pseudotokens for multiline strings and data structures
+_MULTILINE_STRING = object()
+_MULTILINE_STRUCTURE = object()
+
+def _line_tokens(line):
+    """Helper for has_comment and ends_in_comment_or_string."""
+    readline = StringIO(line).readline
+    toktypes = set()
+    try:
+        for t in generate_tokens(readline):
+            toktypes.add(t[0])
+    except TokenError as e:
+        # There are only two cases where a TokenError is raised.
+        if 'multi-line string' in e.args[0]:
+            toktypes.add(_MULTILINE_STRING)
+        else:
+            toktypes.add(_MULTILINE_STRUCTURE)
+    return toktypes
+
 def has_comment(src):
     """Indicate whether an input line has (i.e. ends in, or is) a comment.
 
@@ -293,21 +312,31 @@ def has_comment(src):
     comment : bool
         True if source has a comment.
     """
-    readline = StringIO(src).readline
-    toktypes = set()
-    try:
-        for t in generate_tokens(readline):
-            toktypes.add(t[0])
-    except TokenError:
-        pass
-    return(tokenize2.COMMENT in toktypes)
+    return (tokenize2.COMMENT in _line_tokens(src))
+
+def ends_in_comment_or_string(src):
+    """Indicates whether or not an input line ends in a comment or within
+    a multiline string.
+
+    Parameters
+    ----------
+    src : string
+      A single line input string.
+
+    Returns
+    -------
+    comment : bool
+        True if source ends in a comment or multiline string.
+    """
+    toktypes = _line_tokens(src)
+    return (tokenize2.COMMENT in toktypes) or (_MULTILINE_STRING in toktypes)
 
 
 @StatelessInputTransformer.wrap
 def help_end(line):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
-    if m is None or has_comment(line):
+    if m is None or ends_in_comment_or_string(line):
         return line
     target = m.group(1)
     esc = m.group(3)
