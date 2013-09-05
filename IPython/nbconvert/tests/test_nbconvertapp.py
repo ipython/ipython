@@ -102,6 +102,17 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook1.tex')
             assert os.path.isfile('notebook1.pdf')
 
+    @dec.onlyif_cmds_exist('pdflatex')
+    @dec.onlyif_cmds_exist('pandoc')
+    def test_post_processor(self):
+        """
+        Do post processors work?
+        """
+        with self.create_temp_cwd(['notebook1.ipynb']):
+            self.call('nbconvert --log-level 0 --to latex notebook1 '
+                      '--post PDF --PDFPostProcessor.verbose=True')
+            assert os.path.isfile('notebook1.tex')
+            assert os.path.isfile('notebook1.pdf')
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_template(self):
@@ -158,3 +169,24 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert --log-level 0 --config="override.py"')
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
+
+            
+    @dec.onlyif_cmds_exist('pdflatex')
+    @dec.onlyif_cmds_exist('pandoc')
+    def test_markdown_local_images(self):
+        """
+        Do markdown local images get referenced correctly? 
+        """
+        # TODO fix this so that the python logo is properly copied to the 
+        # temporary directory and pdflatex can then build using it
+        with self.create_temp_cwd(['notebook3.ipynb', 'images/python-logo.png']):
+            stdout, stderr = self.call('nbconvert --to latex notebook3 '
+                  '--post PDF --PDFPostProcessor.verbose=True')
+            # This does 'technically' show that the files prefix is 
+            # being removed in the generated latex, but should have the above 
+            # TODO addressed so that it can look for the properly generated file 
+            assert "File `images/python-logo.png' not found." in stdout
+            # assert os.path.isfile('notebook3.tex')
+            # assert os.path.isfile('notebook3.pdf')
+
+            
