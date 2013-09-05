@@ -18,6 +18,7 @@ from functools import wraps
 from IPython.nbformat.v3.nbbase import NotebookNode
 from IPython.config import Config
 
+from .exporter import Exporter
 from .templateexporter import TemplateExporter
 from .html import HTMLExporter
 from .slides import SlidesExporter
