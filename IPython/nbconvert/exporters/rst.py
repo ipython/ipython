@@ -16,7 +16,7 @@ Exporter for exporting notebooks to restructured text.
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
-from .exporter import TemplateExporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes

@@ -1,4 +1,4 @@
-"""This module defines BaseExporter, a highly configurable converter
+"""This module defines Exporter, a highly configurable converter
 that uses Jinja2 to export notebook files into different formats.
 """
 
@@ -30,9 +30,9 @@ from IPython.config import Config
 from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, Unicode, List
 from IPython.utils.importstring import import_item
-from IPython.utils import py3compat
+from IPython.utils import text, py3compat
 
-from IPython.nbconvert import transformers as nbtransformers
+from IPython.nbconvert import preprocessors as nbpreprocessors
 
 
 #-----------------------------------------------------------------------------
@@ -44,12 +44,11 @@ class ResourcesDict(collections.defaultdict):
         return ''
 
 
-class BaseExporter(LoggingConfigurable):
+class Exporter(LoggingConfigurable):
     """
-    Base Exporter Class that only conver notebook to notebook
-    and apply the transformers and provide basic methods for
+    Exporter class that only converts from notebook to notebook
+    by applying the preprocessors and providing basic methods for
     reading a notebook from different sources.
-
     """
 
     # finish the docstring
@@ -59,21 +58,21 @@ class BaseExporter(LoggingConfigurable):
         help="Extension of the file that should be written to disk"
         )
 
-    #Configurability, allows the user to easily add transformers.
-    transformers = List(config=True,
-        help="""List of transformers, by name or namespace, to enable.""")
+    #Configurability, allows the user to easily add filters and preprocessors.
+    preprocessors = List(config=True,
+        help="""List of preprocessors, by name or namespace, to enable.""")
 
-    _transformers = None
+    _preprocessors = None
 
-    default_transformers = List([nbtransformers.coalesce_streams,
-                                 nbtransformers.SVG2PDFTransformer,
-                                 nbtransformers.ExtractOutputTransformer,
-                                 nbtransformers.CSSHTMLHeaderTransformer,
-                                 nbtransformers.RevealHelpTransformer,
-                                 nbtransformers.LatexTransformer,
-                                 nbtransformers.SphinxTransformer],
+    default_preprocessors = List([nbpreprocessors.coalesce_streams,
+                                 nbpreprocessors.SVG2PDFPreprocessor,
+                                 nbpreprocessors.ExtractOutputPreprocessor,
+                                 nbpreprocessors.CSSHTMLHeaderPreprocessor,
+                                 nbpreprocessors.RevealHelpPreprocessor,
+                                 nbpreprocessors.LatexPreprocessor,
+                                 nbpreprocessors.SphinxPreprocessor],
         config=True,
-        help="""List of transformers available by default, by name, namespace,
+        help="""List of preprocessors available by default, by name, namespace, 
         instance, or type.""")
 
 
@@ -89,10 +88,10 @@ class BaseExporter(LoggingConfigurable):
         if not config:
             config = self.default_config
 
-        super(BaseExporter, self).__init__(config=config, **kw)
+        super(Exporter, self).__init__(config=config, **kw)
 
         #Init
-        self._init_transformers()
+        self._init_preprocessors()
 
 
     @property
@@ -106,7 +105,7 @@ class BaseExporter(LoggingConfigurable):
             c.merge(new)
         if c != old:
             self.config = c
-        super(BaseExporter, self)._config_changed(name, old, c)
+        super(Exporter, self)._config_changed(name, old, c)
 
 
     def from_notebook_node(self, nb, resources=None):
@@ -118,7 +117,7 @@ class BaseExporter(LoggingConfigurable):
         nb : Notebook node
         resources : dict (**kw)
             of additional resources that can be accessed read/write by
-            transformers.
+            preprocessors.
         """
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)
@@ -139,7 +138,7 @@ class BaseExporter(LoggingConfigurable):
             Full filename of the notebook file to open and convert.
         """
 
-        #Pull the metadata from the filesystem.
+        # Pull the metadata from the filesystem.
         if resources is None:
             resources = ResourcesDict()
         if not 'metadata' in resources or resources['metadata'] == '':
@@ -149,7 +148,7 @@ class BaseExporter(LoggingConfigurable):
         resources['metadata']['name'] = notebook_name
 
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
-        resources['metadata']['modified_date'] = modified_date.strftime("%B %d, %Y")
+        resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
 
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources, **kw)
@@ -167,70 +166,70 @@ class BaseExporter(LoggingConfigurable):
         return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
 
 
-    def register_transformer(self, transformer, enabled=False):
+    def register_preprocessor(self, preprocessor, enabled=False):
         """
-        Register a transformer.
-        Transformers are classes that act upon the notebook before it is
-        passed into the Jinja templating engine.  Transformers are also
+        Register a preprocessor.
+        preprocessors are classes that act upon the notebook before it is
+        passed into the Jinja templating engine.  preprocessors are also
         capable of passing additional information to the Jinja
         templating engine.
 
         Parameters
         ----------
-        transformer : transformer
+        preprocessor : preprocessor
         """
-        if transformer is None:
-            raise TypeError('transformer')
-        isclass = isinstance(transformer, type)
+        if preprocessor is None:
+            raise TypeError('preprocessor')
+        isclass = isinstance(preprocessor, type)
         constructed = not isclass
 
-        #Handle transformer's registration based on it's type
-        if constructed and isinstance(transformer, py3compat.string_types):
-            #Transformer is a string, import the namespace and recursively call
-            #this register_transformer method
-            transformer_cls = import_item(transformer)
-            return self.register_transformer(transformer_cls, enabled)
+        #Handle preprocessor's registration based on it's type
+        if constructed and isinstance(preprocessor, py3compat.string_types):
+            #preprocessor is a string, import the namespace and recursively call
+            #this register_preprocessor method
+            preprocessor_cls = import_item(preprocessor)
+            return self.register_preprocessor(preprocessor_cls, enabled)
 
-        if constructed and hasattr(transformer, '__call__'):
-            #Transformer is a function, no need to construct it.
-            #Register and return the transformer.
+        if constructed and hasattr(preprocessor, '__call__'):
+            #preprocessor is a function, no need to construct it.
+            #Register and return the preprocessor.
             if enabled:
-                transformer.enabled = True
-            self._transformers.append(transformer)
-            return transformer
+                preprocessor.enabled = True
+            self._preprocessors.append(preprocessor)
+            return preprocessor
 
-        elif isclass and isinstance(transformer, MetaHasTraits):
-            #Transformer is configurable.  Make sure to pass in new default for
+        elif isclass and isinstance(preprocessor, MetaHasTraits):
+            #preprocessor is configurable.  Make sure to pass in new default for
             #the enabled flag if one was specified.
-            self.register_transformer(transformer(parent=self), enabled)
+            self.register_preprocessor(preprocessor(parent=self), enabled)
 
         elif isclass:
-            #Transformer is not configurable, construct it
-            self.register_transformer(transformer(), enabled)
+            #preprocessor is not configurable, construct it
+            self.register_preprocessor(preprocessor(), enabled)
 
         else:
-            #Transformer is an instance of something without a __call__
+            #preprocessor is an instance of something without a __call__
             #attribute.
-            raise TypeError('transformer')
+            raise TypeError('preprocessor')
 
 
-    def _init_transformers(self):
+    def _init_preprocessors(self):
         """
-        Register all of the transformers needed for this exporter, disabled
+        Register all of the preprocessors needed for this exporter, disabled
         unless specified explicitly.
         """
-        if self._transformers is None:
-            self._transformers = []
+        if self._preprocessors is None:
+            self._preprocessors = []
 
-        #Load default transformers (not necessarly enabled by default).
-        if self.default_transformers:
-            for transformer in self.default_transformers:
-                self.register_transformer(transformer)
+        #Load default preprocessors (not necessarly enabled by default).
+        if self.default_preprocessors:
+            for preprocessor in self.default_preprocessors:
+                self.register_preprocessor(preprocessor)
 
-        #Load user transformers.  Enable by default.
-        if self.transformers:
-            for transformer in self.transformers:
-                self.register_transformer(transformer, enabled=True)
+        #Load user preprocessors.  Enable by default.
+        if self.preprocessors:
+            for preprocessor in self.preprocessors:
+                self.register_preprocessor(preprocessor, enabled=True)
 
 
     def _init_resources(self, resources):
@@ -267,16 +266,16 @@ class BaseExporter(LoggingConfigurable):
         nb : notebook node
             notebook that is being exported.
         resources : a dict of additional resources that
-            can be accessed read/write by transformers
+            can be accessed read/write by preprocessors
         """
 
         # Do a copy.deepcopy first,
-        # we are never safe enough with what the transformers could do.
+        # we are never safe enough with what the preprocessors could do.
         nbc =  copy.deepcopy(nb)
         resc = copy.deepcopy(resources)
 
-        #Run each transformer on the notebook.  Carry the output along
-        #to each transformer
-        for transformer in self._transformers:
-            nbc, resc = transformer(nbc, resc)
+        #Run each preprocessor on the notebook.  Carry the output along
+        #to each preprocessor
+        for preprocessor in self._preprocessors:
+            nbc, resc = preprocessor(nbc, resc)
         return nbc, resc

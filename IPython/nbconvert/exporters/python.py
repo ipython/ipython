@@ -15,7 +15,7 @@ Python exporter which exports Notebook code into a PY file.
 
 from IPython.utils.traitlets import Unicode
 
-from .exporter import TemplateExporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes
