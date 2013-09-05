@@ -47,8 +47,8 @@
 % Purpose: Renders an output/input prompt
 ((* macro add_prompt(text, cell, prompt, prompt_color) -*))
     ((*- set prompt_number = "" ~ cell.prompt_number -*))
-    ((*- set prompt_number_replacement = "." * (prompt_number | length + 2) -*))
+    ((*- set indention =  " " * (prompt_number | length + 7) -*))
 \begin{Verbatim}[commandchars=\\\{\}]
-((( text | add_prompts(first='{\color{' ~ prompt_color ~ '}' ~ prompt ~ '[{\\color{' ~ prompt_color ~ '}' ~ prompt_number ~ '}]:} ', cont='') )))
+((( text | add_prompts(first='{\color{' ~ prompt_color ~ '}' ~ prompt ~ '[{\\color{' ~ prompt_color ~ '}' ~ prompt_number ~ '}]:} ', cont=indention) )))
 \end{Verbatim}
 ((*- endmacro *))
