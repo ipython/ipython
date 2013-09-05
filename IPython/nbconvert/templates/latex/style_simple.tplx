@@ -14,7 +14,7 @@
     ((( super() )))
 
     % Pygments definitions
-    ((( resources.latex.pygment_definitions )))
+    ((( resources.latex.pygments_definitions )))
 
     \newlength{\promptspace}
     \setlength{\promptspace}{4\baselineskip} % Space needed to start a new

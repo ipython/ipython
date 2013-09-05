@@ -7,7 +7,7 @@
     ((( super() )))
 
     % Pygments definitions
-    ((( resources.latex.pygment_definitions )))
+    ((( resources.latex.pygments_definitions )))
 ((* endblock definitions *))
 
 %===============================================================================

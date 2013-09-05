@@ -46,7 +46,7 @@ class LatexPreprocessor(Preprocessor):
         """
         # Generate Pygments definitions for Latex 
         resources["latex"] = {}
-        resources["latex"]["pygment_definitions"] = LatexFormatter().get_style_defs()
+        resources["latex"]["pygments_definitions"] = LatexFormatter().get_style_defs()
         return super(LatexPreprocessor, self).preprocess(nb, resources)
 
 
