@@ -158,7 +158,7 @@ This template does not define a docclass, the inheriting class must define this.
     ((* elif cell.level == 6 -*))
         ((* block h6 -*))\\*\textit((* endblock h6 -*))
     ((*- endif -*))
-    {((( cell.source | escape_latex )))}
+    {((( cell.source | parse_citation | escape_latex )))}
 
 ((* endblock headingcell *))
 
@@ -171,7 +171,7 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Render markdown
 ((* block markdowncell scoped *))
-    ((( cell.source | markdown2latex )))
+    ((( cell.source | parse_citation | markdown2latex )))
 ((* endblock markdowncell *))
 
 % Spit out the contents of raw cells unmodified
@@ -183,6 +183,7 @@ This template does not define a docclass, the inheriting class must define this.
 ((* block unknowncell scoped *))
 ((* endblock unknowncell *))
 
+% Add a bibliography block to the postdoc
 ((* block postdoc *))
     ((* block bibliography *))((* endblock bibliography *))
 ((* endblock postdoc *))
