@@ -218,7 +218,7 @@ class UploadWindowsInstallers(upload):
 
     description = "Upload Windows installers to PyPI (only used from tools/release_windows.py)"
     user_options = upload.user_options + [
-        ('files=', 'f', 'exe file (or glob) to upload')
+        ('files=', 'f', 'msi file (or glob) to upload')
     ]
     def initialize_options(self):
         upload.initialize_options(self)
@@ -227,16 +227,16 @@ class UploadWindowsInstallers(upload):
             name=meta.get_name(),
             version=meta.get_version()
         )
-        self.files = os.path.join('dist', '%s.*.exe' % base)
+        self.files = os.path.join('dist', '%s.*.msi' % base)
 
     def run(self):
         for dist_file in glob(self.files):
-            self.upload_file('bdist_wininst', 'any', dist_file)
+            self.upload_file('bdist_msi', 'any', dist_file)
 
 setup_args['cmdclass'] = {
     'build_py': git_prebuild('IPython'),
     'sdist' : git_prebuild('IPython', sdist),
-    'upload_wininst' : UploadWindowsInstallers,
+    'upload_msi' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
 }
 
