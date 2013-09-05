@@ -109,7 +109,7 @@ This template does not define a docclass, the inheriting class must define this.
 % Display stream ouput with coloring
 ((* block stream *))
     \begin{Verbatim}[commandchars=\\\{\}]
-((( output.text | ansi2latex )))
+((( output.text | escape_latex | ansi2latex )))
     \end{Verbatim}
 ((* endblock stream *))
 
