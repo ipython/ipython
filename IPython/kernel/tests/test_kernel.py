@@ -11,104 +11,18 @@
 # Imports
 #-------------------------------------------------------------------------------
 
-import os
-import shutil
 import sys
-import tempfile
-
-from contextlib import contextmanager
-from subprocess import PIPE
 
 import nose.tools as nt
 
-from IPython.kernel import KernelManager
-from IPython.kernel.tests.test_message_spec import execute, flush_channels
 from IPython.testing import decorators as dec, tools as tt
-from IPython.utils import path, py3compat
+from IPython.utils import py3compat
+
+from .utils import new_kernel, kernel, TIMEOUT, assemble_output, execute, flush_channels
 
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
-IPYTHONDIR = None
-save_env = None
-save_get_ipython_dir = None
-
-STARTUP_TIMEOUT = 60
-TIMEOUT = 15
-
-def setup():
-    """setup temporary IPYTHONDIR for tests"""
-    global IPYTHONDIR
-    global save_env
-    global save_get_ipython_dir
-    
-    IPYTHONDIR = tempfile.mkdtemp()
-
-    save_env = os.environ.copy()
-    os.environ["IPYTHONDIR"] = IPYTHONDIR
-
-    save_get_ipython_dir = path.get_ipython_dir
-    path.get_ipython_dir = lambda : IPYTHONDIR
-
-
-def teardown():
-    path.get_ipython_dir = save_get_ipython_dir
-    os.environ = save_env
-    
-    try:
-        shutil.rmtree(IPYTHONDIR)
-    except (OSError, IOError):
-        # no such file
-        pass
-
-
-@contextmanager
-def new_kernel():
-    """start a kernel in a subprocess, and wait for it to be ready
-    
-    Returns
-    -------
-    kernel_manager: connected KernelManager instance
-    """
-    KM = KernelManager()
-
-    KM.start_kernel(stdout=PIPE, stderr=PIPE)
-    KC = KM.client()
-    KC.start_channels()
-    
-    # wait for kernel to be ready
-    KC.shell_channel.execute("import sys")
-    KC.shell_channel.get_msg(block=True, timeout=STARTUP_TIMEOUT)
-    flush_channels(KC)
-    try:
-        yield KC
-    finally:
-        KC.stop_channels()
-        KM.shutdown_kernel()
-
-
-def assemble_output(iopub):
-    """assemble stdout/err from an execution"""
-    stdout = ''
-    stderr = ''
-    while True:
-        msg = iopub.get_msg(block=True, timeout=1)
-        msg_type = msg['msg_type']
-        content = msg['content']
-        if msg_type == 'status' and content['execution_state'] == 'idle':
-            # idle message signals end of output
-            break
-        elif msg['msg_type'] == 'stream':
-            if content['name'] == 'stdout':
-                stdout = stdout + content['data']
-            elif content['name'] == 'stderr':
-                stderr = stderr + content['data']
-            else:
-                raise KeyError("bad stream: %r" % content['name'])
-        else:
-            # other output, ignored
-            pass
-    return stdout, stderr
 
 
 def _check_mp_mode(kc, expected=False, stream="stdout"):
@@ -123,7 +37,7 @@ def _check_mp_mode(kc, expected=False, stream="stdout"):
 
 def test_simple_print():
     """simple print statement in kernel"""
-    with new_kernel() as kc:
+    with kernel() as kc:
         iopub = kc.iopub_channel
         msg_id, content = execute(kc=kc, code="print ('hi')")
         stdout, stderr = assemble_output(iopub)
@@ -165,7 +79,7 @@ def test_subprocess_print():
 
 def test_subprocess_noprint():
     """mp.Process without print doesn't trigger iostream mp_mode"""
-    with new_kernel() as kc:
+    with kernel() as kc:
         iopub = kc.iopub_channel
         
         np = 5
@@ -210,7 +124,7 @@ def test_subprocess_error():
 
 def test_raw_input():
     """test [raw_]input"""
-    with new_kernel() as kc:
+    with kernel() as kc:
         iopub = kc.iopub_channel
         
         input_f = "input" if py3compat.PY3 else "raw_input"
@@ -232,7 +146,7 @@ def test_raw_input():
 @dec.skipif(py3compat.PY3)
 def test_eval_input():
     """test input() on Python 2"""
-    with new_kernel() as kc:
+    with kernel() as kc:
         iopub = kc.iopub_channel
         
         input_f = "input" if py3compat.PY3 else "raw_input"
