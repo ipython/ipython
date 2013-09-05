@@ -77,23 +77,13 @@ class IPTestController(object):
         env = os.environ.copy()
         env.update(self.env)
         output = subprocess.PIPE if self.buffer_output else None
+        stdout = subprocess.STDOUT if self.buffer_output else None
         self.process = subprocess.Popen(self.cmd, stdout=output,
-                stderr=output, env=env)
+                stderr=stdout, env=env)
 
-    def run(self):
-        """Run the stored commands"""
-        try:
-            retcode = self._run_cmd()
-        except KeyboardInterrupt:
-            return -signal.SIGINT
-        except:
-            import traceback
-            traceback.print_exc()
-            return 1  # signal failure
-        
-        if self.coverage_xml:
-            subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
-        return retcode
+    def wait(self):
+        self.stdout, _ = self.process.communicate()
+        return self.process.returncode
 
     def cleanup_process(self):
         """Cleanup on exit by killing any leftover processes."""
@@ -132,6 +122,7 @@ def test_controllers_to_run(inc_slow=False):
     res = []
     if not inc_slow:
         test_sections['parallel'].enabled = False
+
     for name in test_group_names:
         if test_sections[name].will_run:
             res.append(IPTestController(name))
@@ -146,13 +137,13 @@ def do_run(controller):
             traceback.print_exc()
             return controller, 1  # signal failure
     
-        exitcode = controller.process.wait()
-        controller.cleanup()
+        exitcode = controller.wait()
         return controller, exitcode
     
     except KeyboardInterrupt:
-        controller.cleanup()
         return controller, -signal.SIGINT
+    finally:
+        controller.cleanup()
 
 def report():
     """Return a string with a summary report of test-related variables."""
@@ -199,7 +190,6 @@ def run_iptestall(inc_slow=False, jobs=1, xunit=False, coverage=False):
       Run the test suite in parallel, if True, using as many threads as there
       are processors
     """
-    pool = multiprocessing.pool.ThreadPool(jobs)
     if jobs != 1:
         IPTestController.buffer_output = True
 
@@ -210,23 +200,39 @@ def run_iptestall(inc_slow=False, jobs=1, xunit=False, coverage=False):
     t_start = time.time()
 
     print('*'*70)
-    for (controller, res) in pool.imap_unordered(do_run, controllers):
-        tgroup = 'IPython test group: ' + controller.section
-        res_string = 'OK' if res == 0 else 'FAILED'
-        res_string = res_string.rjust(70 - len(tgroup), '.')
-        print(tgroup + res_string)
-        if res:
-            failed.append(controller)
-            if res == -signal.SIGINT:
-                print("Interrupted")
-                break
+    if jobs == 1:
+        for controller in controllers:
+            print('IPython test group:', controller.section)
+            controller, res = do_run(controller)
+            if res:
+                failed.append(controller)
+                if res == -signal.SIGINT:
+                    print("Interrupted")
+                    break
+            print()
+
+    else:
+        try:
+            pool = multiprocessing.pool.ThreadPool(jobs)
+            for (controller, res) in pool.imap_unordered(do_run, controllers):
+                tgroup = 'IPython test group: ' + controller.section + ' '
+                res_string = ' OK' if res == 0 else ' FAILED'
+                res_string = res_string.rjust(70 - len(tgroup), '.')
+                print(tgroup + res_string)
+                if res:
+                    print(controller.stdout)
+                    failed.append(controller)
+                    if res == -signal.SIGINT:
+                        print("Interrupted")
+                        break
+        except KeyboardInterrupt:
+            return
     
     t_end = time.time()
     t_tests = t_end - t_start
     nrunners = len(controllers)
     nfail = len(failed)
     # summarize results
-    print()
     print('*'*70)
     print('Test suite completed for system with the following information:')
     print(report())
