@@ -95,7 +95,7 @@ class IPTestController(object):
             subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
 
-    def cleanup(self):
+    def cleanup_process(self):
         """Cleanup on exit by killing any leftover processes."""
         subp = self.process
         if subp is None or (subp.poll() is not None):
@@ -118,7 +118,10 @@ class IPTestController(object):
         if subp.poll() is None:
             # The process did not die...
             print('... failed. Manual cleanup may be required.')
-        
+    
+    def cleanup(self):
+        "Kill process if it's still alive, and clean up temporary directories"
+        self.cleanup_process()
         for td in self.dirs:
             td.cleanup()
     
