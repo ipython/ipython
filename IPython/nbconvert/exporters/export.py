@@ -100,14 +100,14 @@ def export(exporter, nb, **kw):
     #Check arguments
     if exporter is None:
         raise TypeError("Exporter is None")
-    elif not isinstance(exporter, TemplateExporter) and not issubclass(exporter, TemplateExporter):
+    elif not isinstance(exporter, Exporter) and not issubclass(exporter, Exporter):
         raise TypeError("exporter does not inherit from Exporter (base)")
     if nb is None:
         raise TypeError("nb is None")
     
     #Create the exporter
     resources = kw.pop('resources', None)
-    if isinstance(exporter, TemplateExporter):
+    if isinstance(exporter, Exporter):
         exporter_instance = exporter
     else:
         exporter_instance = exporter(**kw)
