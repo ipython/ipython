@@ -29,9 +29,12 @@
             {%- block data_text -%}
             {%- endblock -%}
         {%- endif -%}
-
         {%- if type in ['latex']%}
             {%- block data_latex -%}
+            {%- endblock -%}
+        {%- endif -%}
+        {%- if type in ['javascript']%}
+            {%- block data_javascript -%}
             {%- endblock -%}
         {%- endif -%}
     {%- endfor -%}
