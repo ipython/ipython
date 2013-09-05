@@ -24,13 +24,13 @@ from IPython.utils.traitlets import Unicode, List
 from IPython.config import Config
 
 from IPython.nbconvert import filters, preprocessors
-from .exporter import Exporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class LatexExporter(Exporter):
+class LatexExporter(TemplateExporter):
     """
     Exports to a Latex template.  Inherit from this class if your template is
     LaTeX based and you need custom tranformers/filters.  Inherit from it if 

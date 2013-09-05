@@ -17,27 +17,18 @@ that uses Jinja2 to export notebook files into different formats.
 from __future__ import print_function, absolute_import
 
 # Stdlib imports
-import io
 import os
-import inspect
-import copy
-import collections
-import datetime
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader, ChoiceLoader, TemplateNotFound
 
 # IPython imports
-from IPython.config.configurable import LoggingConfigurable
-from IPython.config import Config
-from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict, Any
+from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
-from IPython.utils import text
-from IPython.utils import py3compat
+from IPython.utils import py3compat, text
 
-from IPython.nbconvert import preprocessors as nbpreprocessors
 from IPython.nbconvert import filters
+from .exporter import Exporter
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -76,12 +67,7 @@ default_filters = {
 # Class
 #-----------------------------------------------------------------------------
 
-class ResourcesDict(collections.defaultdict):
-    def __missing__(self, key):
-        return ''
-
-
-class Exporter(LoggingConfigurable):
+class TemplateExporter(Exporter):
     """
     Exports notebooks into other file formats.  Uses Jinja 2 templating engine
     to output new formats.  Inherit from this class if you are creating a new
@@ -101,7 +87,7 @@ class Exporter(LoggingConfigurable):
             config=True,
             help="Name of the template file to use")
     def _template_file_changed(self, name, old, new):
-        if new=='default':
+        if new == 'default':
             self.template_file = self.default_template
         else:
             self.template_file = new
@@ -111,11 +97,6 @@ class Exporter(LoggingConfigurable):
     default_template = Unicode(u'')
     template = Any()
     environment = Any()
-
-    file_extension = Unicode(
-        'txt', config=True, 
-        help="Extension of the file that should be written to disk"
-        )
 
     template_path = List(['.'], config=True)
     def _template_path_changed(self, name, old, new):
@@ -140,24 +121,9 @@ class Exporter(LoggingConfigurable):
     #Extension that the template files use.    
     template_extension = Unicode(".tpl", config=True)
 
-    #Configurability, allows the user to easily add filters and preprocessors.
-    preprocessors = List(config=True,
-        help="""List of preprocessors, by name or namespace, to enable.""")
-
     filters = Dict(config=True,
         help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
-
-    default_preprocessors = List([nbpreprocessors.coalesce_streams,
-                                 nbpreprocessors.SVG2PDFPreprocessor,
-                                 nbpreprocessors.ExtractOutputPreprocessor,
-                                 nbpreprocessors.CSSHTMLHeaderPreprocessor,
-                                 nbpreprocessors.RevealHelpPreprocessor,
-                                 nbpreprocessors.LatexPreprocessor,
-                                 nbpreprocessors.SphinxPreprocessor],
-        config=True,
-        help="""List of preprocessors available by default, by name, namespace, 
-        instance, or type.""")
 
 
     def __init__(self, config=None, extra_loaders=None, **kw):
@@ -185,20 +151,6 @@ class Exporter(LoggingConfigurable):
         self._init_preprocessors()
         self._init_filters()
 
-
-    @property
-    def default_config(self):
-        return Config()
-    
-    def _config_changed(self, name, old, new):
-        """When setting config, make sure to start with our default_config"""
-        c = self.default_config
-        if new:
-            c.merge(new)
-        if c != old:
-            self.config = c
-        super(Exporter, self)._config_changed(name, old, c)
-        
 
     def _load_template(self):
         """Load the Jinja template object from the template file
@@ -249,11 +201,7 @@ class Exporter(LoggingConfigurable):
             of additional resources that can be accessed read/write by 
             preprocessors and filters.
         """
-        nb_copy = copy.deepcopy(nb)
-        resources = self._init_resources(resources)
-
-        # Preprocess
-        nb_copy, resources = self._preprocess(nb_copy, resources)
+        nb_copy, resources = super(TemplateExporter, self).from_notebook_node(nb, resources, **kw)
 
         self._load_template()
 
@@ -262,91 +210,6 @@ class Exporter(LoggingConfigurable):
         else:
             raise IOError('template file "%s" could not be found' % self.template_file)
         return output, resources
-
-
-    def from_filename(self, filename, resources=None, **kw):
-        """
-        Convert a notebook from a notebook file.
-    
-        Parameters
-        ----------
-        filename : str
-            Full filename of the notebook file to open and convert.
-        """
-
-        #Pull the metadata from the filesystem.
-        if resources is None:
-            resources = ResourcesDict()
-        if not 'metadata' in resources or resources['metadata'] == '':
-            resources['metadata'] = ResourcesDict()
-        basename = os.path.basename(filename)
-        notebook_name = basename[:basename.rfind('.')]
-        resources['metadata']['name'] = notebook_name
-
-        modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
-        resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
-        
-        with io.open(filename) as f:
-            return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
-
-
-    def from_file(self, file_stream, resources=None, **kw):
-        """
-        Convert a notebook from a notebook file.
-    
-        Parameters
-        ----------
-        file_stream : file-like object
-            Notebook file-like object to convert.
-        """
-        return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
-
-
-    def register_preprocessor(self, preprocessor, enabled=False):
-        """
-        Register a preprocessor.
-        Preprocessors are classes that act upon the notebook before it is
-        passed into the Jinja templating engine.  Preprocessors are also
-        capable of passing additional information to the Jinja
-        templating engine.
-    
-        Parameters
-        ----------
-        preprocessor : preprocessor
-        """
-        if preprocessor is None:
-            raise TypeError('preprocessor')
-        isclass = isinstance(preprocessor, type)
-        constructed = not isclass
-
-        #Handle preprocessor's registration based on it's type
-        if constructed and isinstance(preprocessor, py3compat.string_types):
-            #Preprocessor is a string, import the namespace and recursively call
-            #this register_preprocessor method
-            preprocessor_cls = import_item(preprocessor)
-            return self.register_preprocessor(preprocessor_cls, enabled)
-        
-        if constructed and hasattr(preprocessor, '__call__'):
-            #Preprocessor is a function, no need to construct it.
-            #Register and return the preprocessor.
-            if enabled:
-                preprocessor.enabled = True
-            self._preprocessors.append(preprocessor)
-            return preprocessor
-
-        elif isclass and isinstance(preprocessor, MetaHasTraits):
-            #Preprocessor is configurable.  Make sure to pass in new default for 
-            #the enabled flag if one was specified.
-            self.register_preprocessor(preprocessor(parent=self), enabled)
-
-        elif isclass:
-            #Preprocessor is not configurable, construct it
-            self.register_preprocessor(preprocessor(), enabled)
-
-        else:
-            #Preprocessor is an instance of something without a __call__ 
-            #attribute.  
-            raise TypeError('preprocessor')
 
 
     def register_filter(self, name, jinja_filter):
@@ -437,24 +300,6 @@ class Exporter(LoggingConfigurable):
             self.environment.comment_end_string = self.jinja_comment_block_end
 
     
-    def _init_preprocessors(self):
-        """
-        Register all of the preprocessors needed for this exporter, disabled
-        unless specified explicitly.
-        """
-        self._preprocessors = []
-
-        #Load default preprocessors (not necessarly enabled by default).
-        if self.default_preprocessors:
-            for preprocessor in self.default_preprocessors:
-                self.register_preprocessor(preprocessor)
-
-        #Load user preprocessors.  Enable by default.
-        if self.preprocessors:
-            for preprocessor in self.preprocessors:
-                self.register_preprocessor(preprocessor, enabled=True)
- 
-
     def _init_filters(self):
         """
         Register all of the filters required for the exporter.
@@ -468,53 +313,3 @@ class Exporter(LoggingConfigurable):
         if self.filters:
             for key, user_filter in self.filters.items():
                 self.register_filter(key, user_filter)
-
-
-    def _init_resources(self, resources):
-
-        #Make sure the resources dict is of ResourcesDict type.
-        if resources is None:
-            resources = ResourcesDict()
-        if not isinstance(resources, ResourcesDict):
-            new_resources = ResourcesDict()
-            new_resources.update(resources)
-            resources = new_resources 
-
-        #Make sure the metadata extension exists in resources
-        if 'metadata' in resources:
-            if not isinstance(resources['metadata'], ResourcesDict):
-                resources['metadata'] = ResourcesDict(resources['metadata'])
-        else:
-            resources['metadata'] = ResourcesDict()
-            if not resources['metadata']['name']: 
-                resources['metadata']['name'] = 'Notebook'
-
-        #Set the output extension
-        resources['output_extension'] = self.file_extension
-        return resources
-        
-
-    def _preprocess(self, nb, resources):
-        """
-        Preprocess the notebook before passing it into the Jinja engine.
-        To preprocess the notebook is to apply all of the 
-    
-        Parameters
-        ----------
-        nb : notebook node
-            notebook that is being exported.
-        resources : a dict of additional resources that
-            can be accessed read/write by preprocessors
-            and filters.
-        """
-        
-        # Do a copy.deepcopy first, 
-        # we are never safe enough with what the preprocessors could do.
-        nbc =  copy.deepcopy(nb)
-        resc = copy.deepcopy(resources)
-
-        #Run each preprocessor on the notebook.  Carry the output along
-        #to each preprocessor
-        for preprocessor in self._preprocessors:
-            nbc, resc = preprocessor(nbc, resc)
-        return nbc, resc

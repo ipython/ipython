@@ -18,7 +18,7 @@ from IPython.config import Config
 
 from .base import ExportersTestsBase
 from .cheese import CheesePreprocessor
-from ..exporter import Exporter
+from ..templateexporter import TemplateExporter
 
 
 #-----------------------------------------------------------------------------
@@ -31,9 +31,9 @@ class TestExporter(ExportersTestsBase):
 
     def test_constructor(self):
         """
-        Can an Exporter be constructed?
+        Can an TemplateExporter be constructed?
         """
-        Exporter()
+        TemplateExporter()
 
 
     def test_export(self):
@@ -104,5 +104,5 @@ class TestExporter(ExportersTestsBase):
     def _make_exporter(self, config=None):
         #Create the exporter instance, make sure to set a template name since
         #the base Exporter doesn't have a template associated with it.
-        exporter = Exporter(config=config, template_file='python')
+        exporter = TemplateExporter(config=config, template_file='python')
         return exporter        
