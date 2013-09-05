@@ -30,6 +30,7 @@ from __future__ import print_function
 import glob
 import os
 import os.path as path
+import re
 import sys
 import warnings
 
@@ -38,6 +39,7 @@ import nose.plugins.builtin
 from nose.plugins.xunit import Xunit
 from nose import SkipTest
 from nose.core import TestProgram
+from nose.plugins import Plugin
 
 # Our own imports
 from IPython.utils.importstring import import_item
@@ -91,7 +93,7 @@ def monkeypatch_xunit():
     Xunit.addError = addError
 
 #-----------------------------------------------------------------------------
-# Logic for skipping doctests
+# Check which dependencies are installed and greater than minimum version.
 #-----------------------------------------------------------------------------
 def extract_version(mod):
     return mod.__version__
@@ -155,144 +157,203 @@ min_zmq = (2,1,11)
 have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x())
 
 #-----------------------------------------------------------------------------
+# Test suite definitions
+#-----------------------------------------------------------------------------
+
+test_group_names = ['parallel', 'kernel', 'kernel.inprocess', 'config', 'core',
+                    'extensions', 'lib', 'terminal', 'testing', 'utils',
+                    'nbformat', 'qt', 'html', 'nbconvert'
+                   ]
+
+class TestSection(object):
+    def __init__(self, name, includes):
+        self.name = name
+        self.includes = includes
+        self.excludes = []
+        self.dependencies = []
+        self.enabled = True
+    
+    def exclude(self, module):
+        if not module.startswith('IPython'):
+            module = self.includes[0] + "." + module
+        self.excludes.append(module.replace('.', os.sep))
+    
+    def requires(self, *packages):
+        self.dependencies.extend(packages)
+    
+    @property
+    def will_run(self):
+        return self.enabled and all(have[p] for p in self.dependencies)
+
+# Name -> (include, exclude, dependencies_met)
+test_sections = {n:TestSection(n, ['IPython.%s' % n]) for n in test_group_names}
+
+# Exclusions and dependencies
+# ---------------------------
+
+# core:
+sec = test_sections['core']
+if not have['sqlite3']:
+    sec.exclude('tests.test_history')
+    sec.exclude('history')
+if not have['matplotlib']:
+    sec.exclude('pylabtools'),
+    sec.exclude('tests.test_pylabtools')
+
+# lib:
+sec = test_sections['lib']
+if not have['wx']:
+    sec.exclude('inputhookwx')
+if not have['pexpect']:
+    sec.exclude('irunner')
+    sec.exclude('tests.test_irunner')
+if not have['zmq']:
+    sec.exclude('kernel')
+# We do this unconditionally, so that the test suite doesn't import
+# gtk, changing the default encoding and masking some unicode bugs.
+sec.exclude('inputhookgtk')
+# Testing inputhook will need a lot of thought, to figure out
+# how to have tests that don't lock up with the gui event
+# loops in the picture
+sec.exclude('inputhook')
+
+# testing:
+sec = test_sections['lib']
+# This guy is probably attic material
+sec.exclude('mkdoctests')
+# These have to be skipped on win32 because the use echo, rm, cd, etc.
+# See ticket https://github.com/ipython/ipython/issues/87
+if sys.platform == 'win32':
+    sec.exclude('plugin.test_exampleip')
+    sec.exclude('plugin.dtexample')
+
+# terminal:
+if (not have['pexpect']) or (not have['zmq']):
+    test_sections['terminal'].exclude('console')
+
+# parallel
+sec = test_sections['parallel']
+sec.requires('zmq')
+if not have['pymongo']:
+    sec.exclude('controller.mongodb')
+    sec.exclude('tests.test_mongodb')
+
+# kernel:
+sec = test_sections['kernel']
+sec.requires('zmq')
+# The in-process kernel tests are done in a separate section
+sec.exclude('inprocess')
+# importing gtk sets the default encoding, which we want to avoid
+sec.exclude('zmq.gui.gtkembed')
+if not have['matplotlib']:
+    sec.exclude('zmq.pylab')
+
+# kernel.inprocess:
+test_sections['kernel.inprocess'].requires('zmq')
+
+# extensions:
+sec = test_sections['extensions']
+if not have['cython']:
+    sec.exclude('cythonmagic')
+    sec.exclude('tests.test_cythonmagic')
+if not have['oct2py']:
+    sec.exclude('octavemagic')
+    sec.exclude('tests.test_octavemagic')
+if not have['rpy2'] or not have['numpy']:
+    sec.exclude('rmagic')
+    sec.exclude('tests.test_rmagic')
+# autoreload does some strange stuff, so move it to its own test section
+sec.exclude('autoreload')
+sec.exclude('tests.test_autoreload')
+test_sections['autoreload'] = TestSection('autoreload',
+        ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'])
+test_group_names.append('autoreload')
+
+# qt:
+test_sections['qt'].requires('zmq', 'qt', 'pygments')
+
+# html:
+sec = test_sections['html']
+sec.requires('zmq', 'tornado')
+# The notebook 'static' directory contains JS, css and other
+# files for web serving.  Occasionally projects may put a .py
+# file in there (MathJax ships a conf.py), so we might as
+# well play it safe and skip the whole thing.
+sec.exclude('static')
+sec.exclude('fabfile')
+if not have['jinja2']:
+    sec.exclude('notebookapp')
+if not have['azure']:
+    sec.exclude('services.notebooks.azurenbmanager')
+
+# config:
+# Config files aren't really importable stand-alone
+test_sections['config'].exclude('profile')
+
+# nbconvert:
+sec = test_sections['nbconvert']
+sec.requires('pygments', 'jinja2', 'sphinx')
+# Exclude nbconvert directories containing config files used to test.
+# Executing the config files with iptest would cause an exception.
+sec.exclude('tests.files')
+sec.exclude('exporters.tests.files')
+
+#-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+def check_exclusions_exist():
+    parent = os.path.dirname(get_ipython_package_dir())
+    for sec in test_sections:
+        for pattern in sec.exclusions:
+            fullpath = pjoin(parent, pattern)
+            if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
+                warn("Excluding nonexistent file: %r" % pattern)
 
-def make_exclude():
-    """Make patterns of modules and packages to exclude from testing.
 
-    For the IPythonDoctest plugin, we need to exclude certain patterns that
-    cause testing problems.  We should strive to minimize the number of
-    skipped modules, since this means untested code.
-
-    These modules and packages will NOT get scanned by nose at all for tests.
+class ExclusionPlugin(Plugin):
+    """A nose plugin to effect our exclusions of files and directories.
     """
-    # Simple utility to make IPython paths more readably, we need a lot of
-    # these below
-    ipjoin = lambda *paths: pjoin('IPython', *paths)
-
-    exclusions = [ipjoin('external'),
-                  ipjoin('quarantine'),
-                  ipjoin('deathrow'),
-                  # This guy is probably attic material
-                  ipjoin('testing', 'mkdoctests'),
-                  # Testing inputhook will need a lot of thought, to figure out
-                  # how to have tests that don't lock up with the gui event
-                  # loops in the picture
-                  ipjoin('lib', 'inputhook'),
-                  # Config files aren't really importable stand-alone
-                  ipjoin('config', 'profile'),
-                  # The notebook 'static' directory contains JS, css and other
-                  # files for web serving.  Occasionally projects may put a .py
-                  # file in there (MathJax ships a conf.py), so we might as
-                  # well play it safe and skip the whole thing.
-                  ipjoin('html', 'static'),
-                  ipjoin('html', 'fabfile'),
-                  ]
-    if not have['sqlite3']:
-        exclusions.append(ipjoin('core', 'tests', 'test_history'))
-        exclusions.append(ipjoin('core', 'history'))
-    if not have['wx']:
-        exclusions.append(ipjoin('lib', 'inputhookwx'))
+    name = 'exclusions'
+    score = 3000  # Should come before any other plugins
     
-    if 'IPython.kernel.inprocess' not in sys.argv:
-        exclusions.append(ipjoin('kernel', 'inprocess'))
+    def __init__(self, exclude_patterns=None):
+        """
+        Parameters
+        ----------
+
+        exclude_patterns : sequence of strings, optional
+          These patterns are compiled as regular expressions, subsequently used
+          to exclude any filename which matches them from inclusion in the test
+          suite (using pattern.search(), NOT pattern.match() ).
+        """
+
+        if exclude_patterns is None:
+            exclude_patterns = []
+        self.exclude_patterns = [re.compile(p) for p in exclude_patterns]
+        super(ExclusionPlugin, self).__init__()
+
+    def options(self, parser, env=os.environ):
+        Plugin.options(self, parser, env)
     
-    # FIXME: temporarily disable autoreload tests, as they can produce
-    # spurious failures in subsequent tests (cythonmagic).
-    exclusions.append(ipjoin('extensions', 'autoreload'))
-    exclusions.append(ipjoin('extensions', 'tests', 'test_autoreload'))
+    def configure(self, options, config):
+        Plugin.configure(self, options, config)
+        # Override nose trying to disable plugin.
+        self.enabled = True
+        
+    def wantFile(self, filename):
+        """Return whether the given filename should be scanned for tests.
+        """
+        if any(pat.search(filename) for pat in self.exclude_patterns):
+            return False
+        return None
 
-    # We do this unconditionally, so that the test suite doesn't import
-    # gtk, changing the default encoding and masking some unicode bugs.
-    exclusions.append(ipjoin('lib', 'inputhookgtk'))
-    exclusions.append(ipjoin('kernel', 'zmq', 'gui', 'gtkembed'))
-
-    #Also done unconditionally, exclude nbconvert directories containing
-    #config files used to test.  Executing the config files with iptest would
-    #cause an exception.
-    exclusions.append(ipjoin('nbconvert', 'tests', 'files'))
-    exclusions.append(ipjoin('nbconvert', 'exporters', 'tests', 'files'))
-
-    # These have to be skipped on win32 because the use echo, rm, cd, etc.
-    # See ticket https://github.com/ipython/ipython/issues/87
-    if sys.platform == 'win32':
-        exclusions.append(ipjoin('testing', 'plugin', 'test_exampleip'))
-        exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
-
-    if not have['pexpect']:
-        exclusions.extend([ipjoin('lib', 'irunner'),
-                           ipjoin('lib', 'tests', 'test_irunner'),
-                           ipjoin('terminal', 'console'),
-                           ])
-
-    if not have['zmq']:
-        exclusions.append(ipjoin('lib', 'kernel'))
-        exclusions.append(ipjoin('kernel'))
-        exclusions.append(ipjoin('qt'))
-        exclusions.append(ipjoin('html'))
-        exclusions.append(ipjoin('consoleapp.py'))
-        exclusions.append(ipjoin('terminal', 'console'))
-        exclusions.append(ipjoin('parallel'))
-    elif not have['qt'] or not have['pygments']:
-        exclusions.append(ipjoin('qt'))
-
-    if not have['pymongo']:
-        exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
-        exclusions.append(ipjoin('parallel', 'tests', 'test_mongodb'))
-
-    if not have['matplotlib']:
-        exclusions.extend([ipjoin('core', 'pylabtools'),
-                           ipjoin('core', 'tests', 'test_pylabtools'),
-                           ipjoin('kernel', 'zmq', 'pylab'),
-        ])
-
-    if not have['cython']:
-        exclusions.extend([ipjoin('extensions', 'cythonmagic')])
-        exclusions.extend([ipjoin('extensions', 'tests', 'test_cythonmagic')])
-
-    if not have['oct2py']:
-        exclusions.extend([ipjoin('extensions', 'octavemagic')])
-        exclusions.extend([ipjoin('extensions', 'tests', 'test_octavemagic')])
-
-    if not have['tornado']:
-        exclusions.append(ipjoin('html'))
-        exclusions.append(ipjoin('nbconvert', 'post_processors', 'serve'))
-        exclusions.append(ipjoin('nbconvert', 'post_processors', 'tests', 'test_serve'))
-
-    if not have['jinja2']:
-        exclusions.append(ipjoin('html', 'notebookapp'))
-
-    if not have['rpy2'] or not have['numpy']:
-        exclusions.append(ipjoin('extensions', 'rmagic'))
-        exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
-
-    if not have['azure']:
-        exclusions.append(ipjoin('html', 'services', 'notebooks', 'azurenbmanager'))
-
-    if not all((have['pygments'], have['jinja2'], have['sphinx'])):
-        exclusions.append(ipjoin('nbconvert'))
-
-    # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
-    if sys.platform == 'win32':
-        exclusions = [s.replace('\\','\\\\') for s in exclusions]
-    
-    # check for any exclusions that don't seem to exist:
-    parent, _ = os.path.split(get_ipython_package_dir())
-    for exclusion in exclusions:
-        if exclusion.endswith(('deathrow', 'quarantine')):
-            # ignore deathrow/quarantine, which exist in dev, but not install
-            continue
-        fullpath = pjoin(parent, exclusion)
-        if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
-            warn("Excluding nonexistent file: %r" % exclusion)
-
-    return exclusions
-
-special_test_suites = {
-    'autoreload': ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'],
-}
+    def wantDirectory(self, directory):
+        """Return whether the given directory should be scanned for tests.
+        """
+        if any(pat.search(directory) for pat in self.exclude_patterns):
+            return False
+        return None
 
 
 def run_iptest():
@@ -309,11 +370,8 @@ def run_iptest():
     warnings.filterwarnings('ignore',
         'This will be removed soon.  Use IPython.testing.util instead')
     
-    if sys.argv[1] in special_test_suites:
-        sys.argv[1:2] = special_test_suites[sys.argv[1]]
-        special_suite = True
-    else:
-        special_suite = False
+    section = test_sections[sys.argv[1]]
+    sys.argv[1:2] = section.includes
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
 
@@ -344,8 +402,11 @@ def run_iptest():
 
     # use our plugin for doctesting.  It will remove the standard doctest plugin
     # if it finds it enabled
-    ipdt = IPythonDoctest() if special_suite else IPythonDoctest(make_exclude())
-    plugins = [ipdt, KnownFailure()]
+    plugins = [ExclusionPlugin(section.excludes), IPythonDoctest(), KnownFailure()]
+    
+    # Use working directory set by parent process (see iptestcontroller)
+    if 'IPTEST_WORKING_DIR' in os.environ:
+        os.chdir(os.environ['IPTEST_WORKING_DIR'])
     
     # We need a global ipython running in this process, but the special
     # in-process group spawns its own IPython kernels, so for *that* group we
@@ -354,7 +415,7 @@ def run_iptest():
     # assumptions about what needs to be a singleton and what doesn't (app
     # objects should, individual shells shouldn't).  But for now, this
     # workaround allows the test suite for the inprocess module to complete.
-    if not 'IPython.kernel.inprocess' in sys.argv:
+    if section.name != 'kernel.inprocess':
         globalipapp.start_ipython()
 
     # Now nose can run
