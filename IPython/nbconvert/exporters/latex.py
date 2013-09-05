@@ -45,7 +45,7 @@ class LatexExporter(TemplateExporter):
         help="Extension of the file that should be written to disk")
 
     default_template = Unicode('article', config=True, help="""Template of the 
-        data format to use.  I.E. 'article' or 'book'""")
+        data format to use.  I.E. 'article' or 'report'""")
 
     #Latex constants
     default_template_path = Unicode(
