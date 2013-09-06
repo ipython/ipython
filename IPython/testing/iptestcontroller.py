@@ -65,7 +65,9 @@ class IPTestController(object):
         self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
     
     def add_coverage(self, xml=True):
-        self.cmd.extend(['--with-coverage', '--cover-package', self.section])
+        self.cmd.append('--with-coverage')
+        for include in test_sections[self.section].includes:
+            self.cmd.extend(['--cover-package', include])
         if xml:
             coverage_xml = os.path.abspath(self.section + ".coverage.xml")
             self.cmd.extend(['--cover-xml', '--cover-xml-file', coverage_xml])
@@ -117,7 +119,7 @@ class IPTestController(object):
     
     __del__ = cleanup
 
-def test_controllers_to_run(inc_slow=False):
+def test_controllers_to_run(inc_slow=False, xunit=False, coverage=False):
     """Returns an ordered list of IPTestController instances to be run."""
     res = []
     if not inc_slow:
@@ -125,7 +127,12 @@ def test_controllers_to_run(inc_slow=False):
 
     for name in test_group_names:
         if test_sections[name].will_run:
-            res.append(IPTestController(name))
+            controller = IPTestController(name)
+            if xunit:
+                controller.add_xunit()
+            if coverage:
+                controller.add_coverage(xml=True)
+            res.append(controller)
     return res
 
 def do_run(controller):
@@ -193,7 +200,8 @@ def run_iptestall(inc_slow=False, jobs=1, xunit=False, coverage=False):
     if jobs != 1:
         IPTestController.buffer_output = True
 
-    controllers = test_controllers_to_run(inc_slow=inc_slow)
+    controllers = test_controllers_to_run(inc_slow=inc_slow, xunit=xunit,
+                                          coverage=coverage)
 
     # Run all test runners, tracking execution time
     failed = []
