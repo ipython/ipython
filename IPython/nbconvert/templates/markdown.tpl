@@ -31,15 +31,15 @@
 {% endblock stream %}
 
 {% block data_svg %}
-[!image]({{ output.svg_filename }})
+![svg]({{ output.svg_filename | path2url }})
 {% endblock data_svg %}
 
 {% block data_png %}
-[!image]({{ output.png_filename }})
+![png]({{ output.png_filename | path2url }})
 {% endblock data_png %}
 
 {% block data_jpg %}
-[!image]({{ output.jpg_filename }})
+![jpeg]({{ output.jpeg_filename | path2url }})
 {% endblock data_jpg %}
 
 {% block data_latex %}
