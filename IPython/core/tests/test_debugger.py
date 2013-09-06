@@ -118,7 +118,6 @@ def test_ipdb_magics():
     Type:       ExampleClass
     String Form:ExampleClass()
     Namespace:  Locals
-    File:       ...
     Docstring:  Docstring for ExampleClass.
     Constructor Docstring:Docstring for ExampleClass.__init__
     ipdb> continue
