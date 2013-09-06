@@ -28,6 +28,7 @@ import subprocess
 import time
 
 from .iptest import have, test_group_names, test_sections
+from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -269,7 +270,7 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
                 res_string = 'OK' if res == 0 else 'FAILED'
                 print(justify('IPython test group: ' + controller.section, res_string))
                 if res:
-                    print(controller.stdout)
+                    print(bytes_to_str(controller.stdout))
                     failed.append(controller)
                     if res == -signal.SIGINT:
                         print("Interrupted")
