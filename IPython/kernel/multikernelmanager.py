@@ -171,7 +171,7 @@ class MultiKernelManager(LoggingConfigurable):
         self.log.info("Signaled Kernel %s with %s" % (kernel_id, signum))
 
     @kernel_method
-    def restart_kernel(self, kernel_id):
+    def restart_kernel(self, kernel_id, now=False):
         """Restart a kernel by its uuid, keeping the same ports.
 
         Parameters
