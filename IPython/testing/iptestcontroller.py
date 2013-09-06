@@ -21,6 +21,7 @@ from __future__ import print_function
 import argparse
 import multiprocessing.pool
 import os
+import shutil
 import signal
 import sys
 import subprocess
@@ -39,6 +40,8 @@ class IPTestController(object):
     section = None
     #: list, command line arguments to be executed
     cmd = None
+    #: str, Python command to execute in subprocess
+    pycmd = None
     #: dict, extra environment variables to set for the subprocess
     env = None
     #: list, TemporaryDirectory instances to clear up when the process finishes
@@ -50,28 +53,38 @@ class IPTestController(object):
     def __init__(self, section):
         """Create new test runner."""
         self.section = section
-        self.cmd = [sys.executable, '-m', 'IPython.testing.iptest', section]
+        # pycmd is put into cmd[2] in IPTestController.launch()
+        self.cmd = [sys.executable, '-c', None, section]
+        self.pycmd = "from IPython.testing.iptest import run_iptest; run_iptest()"
         self.env = {}
         self.dirs = []
         ipydir = TemporaryDirectory()
         self.dirs.append(ipydir)
         self.env['IPYTHONDIR'] = ipydir.name
-        workingdir = TemporaryDirectory()
+        self.workingdir = workingdir = TemporaryDirectory()
         self.dirs.append(workingdir)
         self.env['IPTEST_WORKING_DIR'] = workingdir.name
+        # This means we won't get odd effects from our own matplotlib config
+        self.env['MPLCONFIGDIR'] = workingdir.name
     
     def add_xunit(self):
         xunit_file = os.path.abspath(self.section + '.xunit.xml')
         self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
     
-    def add_coverage(self, xml=True):
-        self.cmd.append('--with-coverage')
-        for include in test_sections[self.section].includes:
-            self.cmd.extend(['--cover-package', include])
-        if xml:
-            coverage_xml = os.path.abspath(self.section + ".coverage.xml")
-            self.cmd.extend(['--cover-xml', '--cover-xml-file', coverage_xml])
+    def add_coverage(self):
+        coverage_rc = ("[run]\n"
+                       "data_file = {data_file}\n"
+                       "source =\n"
+                       "  {source}\n"
+                      ).format(data_file=os.path.abspath('.coverage.'+self.section),
+                               source="\n  ".join(test_sections[self.section].includes))
         
+        config_file = os.path.join(self.workingdir.name, '.coveragerc')
+        with open(config_file, 'w') as f:
+            f.write(coverage_rc)
+        
+        self.env['COVERAGE_PROCESS_START'] = config_file
+        self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
 
     def launch(self):
         # print('*** ENV:', self.env)  # dbg
@@ -80,6 +93,7 @@ class IPTestController(object):
         env.update(self.env)
         output = subprocess.PIPE if self.buffer_output else None
         stdout = subprocess.STDOUT if self.buffer_output else None
+        self.cmd[2] = self.pycmd
         self.process = subprocess.Popen(self.cmd, stdout=output,
                 stderr=stdout, env=env)
 
@@ -131,7 +145,7 @@ def test_controllers_to_run(inc_slow=False, xunit=False, coverage=False):
             if xunit:
                 controller.add_xunit()
             if coverage:
-                controller.add_coverage(xml=True)
+                controller.add_coverage()
             res.append(controller)
     return res
 
@@ -178,7 +192,7 @@ def report():
 
     return ''.join(out)
 
-def run_iptestall(inc_slow=False, jobs=1, xunit=False, coverage=False):
+def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
     """Run the entire IPython test suite by calling nose and trial.
 
     This function constructs :class:`IPTester` instances for all IPython
@@ -200,8 +214,8 @@ def run_iptestall(inc_slow=False, jobs=1, xunit=False, coverage=False):
     if jobs != 1:
         IPTestController.buffer_output = True
 
-    controllers = test_controllers_to_run(inc_slow=inc_slow, xunit=xunit,
-                                          coverage=coverage)
+    controllers = test_controllers_to_run(inc_slow=inc_slow, xunit=xunit_out,
+                                          coverage=coverage_out)
 
     # Run all test runners, tracking execution time
     failed = []
@@ -257,9 +271,48 @@ def run_iptestall(inc_slow=False, jobs=1, xunit=False, coverage=False):
             print('-'*40)
             print('Runner failed:', controller.section)
             print('You may wish to rerun this one individually, with:')
-            failed_call_args = [py3compat.cast_unicode(x) for x in controller.cmd]
-            print(u' '.join(failed_call_args))
+            print('  iptest', *controller.cmd[3:])
             print()
+
+    if coverage_out:
+        from coverage import coverage
+        cov = coverage(data_file='.coverage')
+        cov.combine()
+        cov.save()
+
+        # Coverage HTML report
+        if coverage_out == 'html':
+            html_dir = 'ipy_htmlcov'
+            shutil.rmtree(html_dir, ignore_errors=True)
+            print("Writing HTML coverage report to %s/ ... " % html_dir, end="")
+            sys.stdout.flush()
+
+            # Custom HTML reporter to clean up module names.
+            from coverage.html import HtmlReporter
+            class CustomHtmlReporter(HtmlReporter):
+                def find_code_units(self, morfs):
+                    super(CustomHtmlReporter, self).find_code_units(morfs)
+                    for cu in self.code_units:
+                        nameparts = cu.name.split(os.sep)
+                        if 'IPython' not in nameparts:
+                            continue
+                        ix = nameparts.index('IPython')
+                        cu.name = '.'.join(nameparts[ix:])
+
+            # Reimplement the html_report method with our custom reporter
+            cov._harvest_data()
+            cov.config.from_args(omit='*%stests' % os.sep, html_dir=html_dir,
+                                 html_title='IPython test coverage',
+                                )
+            reporter = CustomHtmlReporter(cov, cov.config)
+            reporter.report(None)
+            print('done.')
+
+        # Coverage XML report
+        elif coverage_out == 'xml':
+            cov.xml_report(outfile='ipy_coverage.xml')
+
+    if failed:
         # Ensure that our exit code indicates failure
         sys.exit(1)
 
@@ -278,14 +331,20 @@ def main():
                         help='Run test sections in parallel.')
     parser.add_argument('--xunit', action='store_true',
                         help='Produce Xunit XML results')
-    parser.add_argument('--coverage', action='store_true',
-                        help='Measure test coverage.')
+    parser.add_argument('--coverage', nargs='?', const=True, default=False,
+                        help="Measure test coverage. Specify 'html' or "
+                        "'xml' to get reports.")
 
     options = parser.parse_args()
 
+    try:
+        jobs = int(options.fast)
+    except TypeError:
+        jobs = options.fast
+
     # This starts subprocesses
-    run_iptestall(inc_slow=options.all, jobs=options.fast,
-                  xunit=options.xunit, coverage=options.coverage)
+    run_iptestall(inc_slow=options.all, jobs=jobs,
+                  xunit_out=options.xunit, coverage_out=options.coverage)
 
 
 if __name__ == '__main__':

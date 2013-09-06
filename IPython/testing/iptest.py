@@ -43,10 +43,6 @@ from nose.plugins import Plugin
 
 # Our own imports
 from IPython.utils.importstring import import_item
-from IPython.utils.path import get_ipython_package_dir
-from IPython.utils.warn import warn
-
-from IPython.testing import globalipapp
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 from IPython.external.decorators import KnownFailure, knownfailureif
 
@@ -303,6 +299,8 @@ sec.exclude('exporters.tests.files')
 #-----------------------------------------------------------------------------
 
 def check_exclusions_exist():
+    from IPython.utils.path import get_ipython_package_dir
+    from IPython.utils.warn import warn
     parent = os.path.dirname(get_ipython_package_dir())
     for sec in test_sections:
         for pattern in sec.exclusions:
@@ -416,11 +414,12 @@ def run_iptest():
     # objects should, individual shells shouldn't).  But for now, this
     # workaround allows the test suite for the inprocess module to complete.
     if section.name != 'kernel.inprocess':
+        from IPython.testing import globalipapp
         globalipapp.start_ipython()
 
     # Now nose can run
     TestProgram(argv=argv, addplugins=plugins)
 
-
 if __name__ == '__main__':
     run_iptest()
+
