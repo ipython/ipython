@@ -28,7 +28,6 @@ import subprocess
 import time
 
 from .iptest import have, test_group_names, test_sections
-from IPython.utils import py3compat
 from IPython.utils.sysinfo import sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -67,6 +66,10 @@ class IPTestController(object):
         # This means we won't get odd effects from our own matplotlib config
         self.env['MPLCONFIGDIR'] = workingdir.name
     
+    @property
+    def will_run(self):
+        return test_sections[self.section].will_run
+
     def add_xunit(self):
         xunit_file = os.path.abspath(self.section + '.xunit.xml')
         self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
@@ -133,21 +136,23 @@ class IPTestController(object):
     
     __del__ = cleanup
 
-def test_controllers_to_run(inc_slow=False, xunit=False, coverage=False):
+def prepare_test_controllers(inc_slow=False, xunit=False, coverage=False):
     """Returns an ordered list of IPTestController instances to be run."""
-    res = []
+    to_run, not_run = [], []
     if not inc_slow:
         test_sections['parallel'].enabled = False
 
     for name in test_group_names:
-        if test_sections[name].will_run:
-            controller = IPTestController(name)
-            if xunit:
-                controller.add_xunit()
-            if coverage:
-                controller.add_coverage()
-            res.append(controller)
-    return res
+        controller = IPTestController(name)
+        if xunit:
+            controller.add_xunit()
+        if coverage:
+            controller.add_coverage()
+        if controller.will_run:
+            to_run.append(controller)
+        else:
+            not_run.append(controller)
+    return to_run, not_run
 
 def do_run(controller):
     try:
@@ -214,8 +219,13 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
     if jobs != 1:
         IPTestController.buffer_output = True
 
-    controllers = test_controllers_to_run(inc_slow=inc_slow, xunit=xunit_out,
+    to_run, not_run = prepare_test_controllers(inc_slow=inc_slow, xunit=xunit_out,
                                           coverage=coverage_out)
+
+    def justify(ltext, rtext, width=70, fill='-'):
+        ltext += ' '
+        rtext = (' ' + rtext).rjust(width - len(ltext), fill)
+        return ltext + rtext
 
     # Run all test runners, tracking execution time
     failed = []
@@ -223,7 +233,7 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
 
     print('*'*70)
     if jobs == 1:
-        for controller in controllers:
+        for controller in to_run:
             print('IPython test group:', controller.section)
             controller, res = do_run(controller)
             if res:
@@ -236,11 +246,9 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
     else:
         try:
             pool = multiprocessing.pool.ThreadPool(jobs)
-            for (controller, res) in pool.imap_unordered(do_run, controllers):
-                tgroup = 'IPython test group: ' + controller.section + ' '
-                res_string = ' OK' if res == 0 else ' FAILED'
-                res_string = res_string.rjust(70 - len(tgroup), '.')
-                print(tgroup + res_string)
+            for (controller, res) in pool.imap_unordered(do_run, to_run):
+                res_string = 'OK' if res == 0 else 'FAILED'
+                print(justify('IPython test group: ' + controller.section, res_string))
                 if res:
                     print(controller.stdout)
                     failed.append(controller)
@@ -250,9 +258,12 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
         except KeyboardInterrupt:
             return
     
+    for controller in not_run:
+        print(justify('IPython test group: ' + controller.section, 'NOT RUN'))
+
     t_end = time.time()
     t_tests = t_end - t_start
-    nrunners = len(controllers)
+    nrunners = len(to_run)
     nfail = len(failed)
     # summarize results
     print('*'*70)
