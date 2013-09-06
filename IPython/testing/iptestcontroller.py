@@ -32,62 +32,33 @@ from IPython.utils.sysinfo import sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
 
-class IPTestController(object):
-    """Run iptest in a subprocess
+class TestController(object):
+    """Run tests in a subprocess
     """
     #: str, IPython test suite to be executed.
     section = None
     #: list, command line arguments to be executed
     cmd = None
-    #: str, Python command to execute in subprocess
-    pycmd = None
     #: dict, extra environment variables to set for the subprocess
     env = None
     #: list, TemporaryDirectory instances to clear up when the process finishes
     dirs = None
     #: subprocess.Popen instance
     process = None
+    #: str, process stdout+stderr
+    stdout = None
+    #: bool, whether to capture process stdout & stderr
     buffer_output = False
 
-    def __init__(self, section):
-        """Create new test runner."""
-        self.section = section
-        # pycmd is put into cmd[2] in IPTestController.launch()
-        self.cmd = [sys.executable, '-c', None, section]
-        self.pycmd = "from IPython.testing.iptest import run_iptest; run_iptest()"
+    def __init__(self):
+        self.cmd = []
         self.env = {}
         self.dirs = []
-        ipydir = TemporaryDirectory()
-        self.dirs.append(ipydir)
-        self.env['IPYTHONDIR'] = ipydir.name
-        self.workingdir = workingdir = TemporaryDirectory()
-        self.dirs.append(workingdir)
-        self.env['IPTEST_WORKING_DIR'] = workingdir.name
-        # This means we won't get odd effects from our own matplotlib config
-        self.env['MPLCONFIGDIR'] = workingdir.name
     
     @property
     def will_run(self):
-        return test_sections[self.section].will_run
-
-    def add_xunit(self):
-        xunit_file = os.path.abspath(self.section + '.xunit.xml')
-        self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
-    
-    def add_coverage(self):
-        coverage_rc = ("[run]\n"
-                       "data_file = {data_file}\n"
-                       "source =\n"
-                       "  {source}\n"
-                      ).format(data_file=os.path.abspath('.coverage.'+self.section),
-                               source="\n  ".join(test_sections[self.section].includes))
-        
-        config_file = os.path.join(self.workingdir.name, '.coveragerc')
-        with open(config_file, 'w') as f:
-            f.write(coverage_rc)
-        
-        self.env['COVERAGE_PROCESS_START'] = config_file
-        self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
+        """Override in subclasses to check for dependencies."""
+        return False
 
     def launch(self):
         # print('*** ENV:', self.env)  # dbg
@@ -96,7 +67,6 @@ class IPTestController(object):
         env.update(self.env)
         output = subprocess.PIPE if self.buffer_output else None
         stdout = subprocess.STDOUT if self.buffer_output else None
-        self.cmd[2] = self.pycmd
         self.process = subprocess.Popen(self.cmd, stdout=output,
                 stderr=stdout, env=env)
 
@@ -136,14 +106,63 @@ class IPTestController(object):
     
     __del__ = cleanup
 
-def prepare_test_controllers(inc_slow=False, xunit=False, coverage=False):
-    """Returns an ordered list of IPTestController instances to be run."""
+class PyTestController(TestController):
+    """Run Python tests using IPython.testing.iptest"""
+    #: str, Python command to execute in subprocess
+    pycmd = None
+
+    def __init__(self, section):
+        """Create new test runner."""
+        TestController.__init__(self)
+        self.section = section
+        # pycmd is put into cmd[2] in PyTestController.launch()
+        self.cmd = [sys.executable, '-c', None, section]
+        self.pycmd = "from IPython.testing.iptest import run_iptest; run_iptest()"
+        ipydir = TemporaryDirectory()
+        self.dirs.append(ipydir)
+        self.env['IPYTHONDIR'] = ipydir.name
+        self.workingdir = workingdir = TemporaryDirectory()
+        self.dirs.append(workingdir)
+        self.env['IPTEST_WORKING_DIR'] = workingdir.name
+        # This means we won't get odd effects from our own matplotlib config
+        self.env['MPLCONFIGDIR'] = workingdir.name
+
+    @property
+    def will_run(self):
+        return test_sections[self.section].will_run
+
+    def add_xunit(self):
+        xunit_file = os.path.abspath(self.section + '.xunit.xml')
+        self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
+
+    def add_coverage(self):
+        coverage_rc = ("[run]\n"
+                       "data_file = {data_file}\n"
+                       "source =\n"
+                       "  {source}\n"
+                      ).format(data_file=os.path.abspath('.coverage.'+self.section),
+                               source="\n  ".join(test_sections[self.section].includes))
+
+        config_file = os.path.join(self.workingdir.name, '.coveragerc')
+        with open(config_file, 'w') as f:
+            f.write(coverage_rc)
+
+        self.env['COVERAGE_PROCESS_START'] = config_file
+        self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
+
+    def launch(self):
+        self.cmd[2] = self.pycmd
+        super(PyTestController, self).launch()
+
+
+def prepare_py_test_controllers(inc_slow=False, xunit=False, coverage=False):
+    """Returns an ordered list of PyTestController instances to be run."""
     to_run, not_run = [], []
     if not inc_slow:
         test_sections['parallel'].enabled = False
 
     for name in test_group_names:
-        controller = IPTestController(name)
+        controller = PyTestController(name)
         if xunit:
             controller.add_xunit()
         if coverage:
@@ -217,9 +236,9 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
       are processors
     """
     if jobs != 1:
-        IPTestController.buffer_output = True
+        TestController.buffer_output = True
 
-    to_run, not_run = prepare_test_controllers(inc_slow=inc_slow, xunit=xunit_out,
+    to_run, not_run = prepare_py_test_controllers(inc_slow=inc_slow, xunit=xunit_out,
                                           coverage=coverage_out)
 
     def justify(ltext, rtext, width=70, fill='-'):
