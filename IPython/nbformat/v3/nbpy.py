@@ -190,7 +190,7 @@ class PyWriter(NotebookWriter):
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
         lines.append('')
-        return unicode('\n'.join(lines))
+        return u'\n'.join(lines)
 
 
 _reader = PyReader()

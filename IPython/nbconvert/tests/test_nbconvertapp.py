@@ -13,6 +13,7 @@
 
 import os
 import glob
+import sys
 
 from .base import TestsBase
 
@@ -101,6 +102,17 @@ class TestNbConvertApp(TestsBase):
                       '--post PDF --PDFPostProcessor.verbose=True')
             assert os.path.isfile('notebook1.tex')
             assert os.path.isfile('notebook1.pdf')
+
+
+    @dec.onlyif_cmds_exist('pandoc')
+    def test_png_base64_html_ok(self):
+        """Is embedded png data well formed in HTML?"""
+        with self.create_temp_cwd(['notebook2.ipynb']):
+            self.call('nbconvert --log-level 0 --to HTML '
+                      'notebook2.ipynb --template full')
+            assert os.path.isfile('notebook2.html')
+            with open('notebook2.html') as f:
+                assert "data:image/png;base64,b'" not in f.read()
 
 
     @dec.onlyif_cmds_exist('pandoc')
