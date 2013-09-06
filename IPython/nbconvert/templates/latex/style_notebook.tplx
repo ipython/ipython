@@ -104,9 +104,6 @@
       \end{pgfonlayer}}}
 
     % Define the environment which puts the frame
-    % In this case, the environment also accepts an argument with an optional
-    % title (which defaults to ``Example'', which is typeset in a box overlaid
-    % on the top border
     \newenvironment{notebookcell}[1][0]{%
       \def\FrameCommand{\notebookcellframe}%
       \def\FirstFrameCommand{\notebookcellframetop}%
