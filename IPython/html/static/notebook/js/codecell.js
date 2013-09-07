@@ -166,7 +166,7 @@ var IPython = (function (IPython) {
             // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
-            // The second argument says to hide the tooltip if the docstring 
+            // The second argument says to hide the tooltip if the docstring
             // is actually empty
             IPython.tooltip.pending(that, true);
         } else if (event.which === key.UPARROW && event.type === 'keydown') {
@@ -179,8 +179,12 @@ var IPython = (function (IPython) {
                 return true;
             };
         } else if (event.which === key.ESC) {
-            IPython.tooltip.remove_and_cancel_tooltip(true);
-            return true;
+            if (!IPython.tooltip._hidden) {
+              IPython.tooltip.remove_and_cancel_tooltip(true);
+              return true;
+            } else {
+              return false;
+            }
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
@@ -272,7 +276,7 @@ var IPython = (function (IPython) {
         var data = {'cell': this, 'text': text}
         $([IPython.events]).trigger('set_next_input.Notebook', data);
     }
-    
+
     /**
      * @method _handle_input_request
      * @private
