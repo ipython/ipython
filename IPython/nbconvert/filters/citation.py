@@ -39,7 +39,7 @@ def citation2latex(s):
 
     tree = html.fragment_fromstring(s, create_parent='div')
     _process_node_cite(tree)
-    s = html.tostring(tree)
+    s = html.tostring(tree, encoding='unicode')
     if s.endswith('</div>'):
         s = s[:-6]
     if s.startswith('<div>'):
