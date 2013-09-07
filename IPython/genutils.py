@@ -918,6 +918,11 @@ def get_home_dir():
     isdir = os.path.isdir
     env = os.environ
 
+    host_os = 'posix';
+    if (os.name == 'java'):
+        from java.lang import System as System
+        if 'Windows' in System.getProperty('os.name'):
+            host_os = 'nt'
     # first, check py2exe distribution root directory for _ipython.
     # This overrides all. Normally does not exist.
 
@@ -938,7 +943,7 @@ def get_home_dir():
             raise KeyError
         return homedir.decode(sys.getfilesystemencoding())
     except KeyError:
-        if os.name == 'posix':
+        if os.name == 'posix' or host_os == 'posix':
             # Last-ditch attempt at finding a suitable $HOME, on systems where
             # it may not be defined in the environment but the system shell
             # still knows it - reported once as:
@@ -950,7 +955,7 @@ def get_home_dir():
                 return homedir.decode(sys.getfilesystemencoding())
             else:
                 raise HomeDirError('Undefined $HOME, IPython cannot proceed.')
-        elif os.name == 'nt':
+        elif os.name == 'nt' or host_os == 'nt':
             # For some strange reason, win9x returns 'nt' for os.name.
             try:
                 homedir = os.path.join(env['HOMEDRIVE'],env['HOMEPATH'])
@@ -1529,11 +1534,19 @@ def get_pager_cmd(pager_cmd = None):
 
     Makes some attempts at finding an OS-correct one."""
 
+    default_pager_cmd = None
     if os.name == 'posix':
         default_pager_cmd = 'less -r'  # -r for color control sequences
     elif os.name in ['nt','dos']:
         default_pager_cmd = 'type'
+    elif os.name == 'java':
+        from java.lang import System as System
+        if ('Windows' in System.getProperty('os.name')):
+            default_pager_cmd = 'type'
+        else:
+            default_pager_cmd = 'less -r'
 
+    
     if pager_cmd is None:
         try:
             pager_cmd = os.environ['PAGER']

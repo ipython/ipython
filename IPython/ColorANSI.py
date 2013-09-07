@@ -87,7 +87,7 @@ class InputTermColors:
     
     NoColor = ''  # for color schemes in color-less terminals.
 
-    if os.name == 'nt' and os.environ.get('TERM','dumb') == 'emacs':
+    if os.name == 'java' or os.name == 'nt' and os.environ.get('TERM','dumb') == 'emacs':
         # (X)emacs on W32 gets confused with \001 and \002 so we remove them
         Normal = '\033[0m'   # Reset normal coloring
         _base  = '\033[%sm'  # Template for all other colors

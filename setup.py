@@ -51,6 +51,8 @@ if os.name == 'posix':
     os_name = 'posix'
 elif os.name in ['nt','dos']:
     os_name = 'windows'
+elif os.name == 'java':
+    os_name = 'posix'
 else:
     print 'Unsupported operating system:',os.name
     sys.exit(1)
