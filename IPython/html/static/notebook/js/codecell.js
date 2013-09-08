@@ -179,12 +179,7 @@ var IPython = (function (IPython) {
                 return true;
             };
         } else if (event.which === key.ESC) {
-            if (!IPython.tooltip._hidden) {
-              IPython.tooltip.remove_and_cancel_tooltip(true);
-              return true;
-            } else {
-              return false;
-            }
+            return IPython.tooltip.remove_and_cancel_tooltip(true);
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
