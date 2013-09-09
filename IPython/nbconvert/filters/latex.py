@@ -23,6 +23,8 @@ LATEX_RE_SUBS = (
     (re.compile(r'\.\.\.+'), r'\\ldots'),
 )
 
+MARKDOWN_IMAGE_RE = re.compile(r'!\[(?P<caption>.*?)\]\(files/(?P<location>.*?)\)')
+
 # Latex substitutions for escaping latex.
 # see: http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
 
@@ -45,7 +47,8 @@ LATEX_SUBS = {
 #-----------------------------------------------------------------------------
 
 __all__ = ['escape_latex',
-           'strip_math_space']
+           'strip_math_space',
+           'strip_url_static_file_prefix']
 
 def escape_latex(text):
     """
@@ -121,3 +124,10 @@ def strip_math_space(text):
         if skip:
             skip = False
     return ptext
+    
+    
+def strip_url_static_file_prefix(text):
+    text = MARKDOWN_IMAGE_RE.sub(r'![\1](\2)', text)
+    return text
+    
+    

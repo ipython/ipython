@@ -44,10 +44,15 @@ class LatexPreprocessor(Preprocessor):
             Modified index of the cell being processed (see base.py)
         """
         
-        #If the cell is a markdown cell, preprocess the ampersands used to
-        #remove the space between them and their contents.  Latex will complain
-        #if spaces exist between the ampersands and the math content.  
-        #See filters.latex.rm_math_space for more information.
         if hasattr(cell, "source") and cell.cell_type == "markdown":
+            #If the cell is a markdown cell, preprocess the ampersands used to
+            #remove the space between them and their contents.  Latex will complain
+            #if spaces exist between the ampersands and the math content.  
+            #See filters.latex.rm_math_space for more information.
             cell.source = filters.strip_math_space(cell.source)
+            
+            # Remove 'files' url prefix on locally referenced images
+            cell.source = filters.strip_url_static_file_prefix(cell.source)
+
+            
         return cell, resources
