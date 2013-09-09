@@ -32,6 +32,8 @@ def restore_bytes(nb):
     
     Base64 encoding is handled elsewhere.  Bytes objects in the notebook are
     always b64-encoded. We DO NOT encode/decode around file formats.
+
+    Note: this is never used
     """
     for ws in nb.worksheets:
         for cell in ws.cells:
