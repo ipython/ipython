@@ -43,7 +43,7 @@ try:
         PUBLIC_IPS = socket.gethostbyname_ex(socket.gethostname() + '.local')[2]
 except socket.error:
     pass
-else:
+finally:
     PUBLIC_IPS = uniq_stable(PUBLIC_IPS)
     LOCAL_IPS.extend(PUBLIC_IPS)
 
