@@ -28,8 +28,8 @@ import sys
 #-----------------------------------------------------------------------------
 
 # Don't forget to also update setup.py when this changes!
-if sys.version[0:3] < '2.6':
-    raise ImportError('Python Version 2.6 or above is required for IPython.')
+if sys.version_info[:2] < (2,7):
+    raise ImportError('IPython requires Python Version 2.7 or above.')
 
 # Make it easy to import extensions - they are always directly on pythonpath.
 # Therefore, non-IPython modules can be added to extensions directory.
