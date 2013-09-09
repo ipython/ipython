@@ -229,7 +229,7 @@ Note: For best display, use latex syntax highlighting. =))
     in IPYNB file titles) do not make their way into latex.  Sometimes this
     causes latex to barf. =))
     ((*- endif -*))
-    {((( cell.source | markdown2latex )))}
+    {((( cell.source | replace('\n', ' ') | markdown2latex )))}
 ((*- endblock headingcell *))
 
 %==============================================================================
