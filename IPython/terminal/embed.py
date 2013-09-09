@@ -29,6 +29,7 @@ import warnings
 
 from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.interactiveshell import DummyMod
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.terminal.ipapp import load_default_config
 
@@ -185,9 +186,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         there is no fundamental reason why it can't work perfectly."""
         
         if (global_ns is not None) and (module is None):
-            class DummyMod(object):
-                """A dummy module object for embedded IPython."""
-                pass
             warnings.warn("global_ns is deprecated, use module instead.", DeprecationWarning)
             module = DummyMod()
             module.__dict__ = global_ns

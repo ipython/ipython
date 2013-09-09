@@ -186,6 +186,11 @@ class ReadlineNoRecord(object):
         ghi = self.shell.readline.get_history_item
         return [ghi(x) for x in range(start, end)]
 
+
+class DummyMod(object):
+    "A dummy module used for IPython's interactive namespace."
+    pass
+
 #-----------------------------------------------------------------------------
 # Main IPython class
 #-----------------------------------------------------------------------------
@@ -1035,9 +1040,6 @@ class InteractiveShell(SingletonConfigurable):
         """
         if user_module is None and user_ns is not None:
             user_ns.setdefault("__name__", "__main__")
-            class DummyMod(object):
-                "A dummy module used for IPython's interactive namespace."
-                pass
             user_module = DummyMod()
             user_module.__dict__ = user_ns
             
