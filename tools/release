@@ -55,6 +55,8 @@ cd(distdir)
 print( 'Uploading distribution files...')
 
 for fname in os.listdir('.'):
+    # GitHub doesn't have an API for uploads at the moment
+    continue
     print('uploading %s to GitHub' % fname)
     desc = "IPython %s source distribution" % version
     post_download("ipython/ipython", fname, description=desc)
