@@ -135,6 +135,12 @@ unknown type  {{ cell.type }}
 </pre>
 {%- endblock -%}
 
+{%- block data_javascript %}
+<script type="text/javascript">
+{{ output.javascript }}
+</script>
+{%- endblock -%}
+
 {%- block display_data scoped -%}
 <div class="box-flex1 output_subarea output_display_data">
 {{ super() }}
