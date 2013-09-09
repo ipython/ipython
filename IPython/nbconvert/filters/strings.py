@@ -19,6 +19,7 @@ templates.
 import os
 import re
 import textwrap
+from urllib2 import quote
 from xml.etree import ElementTree
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -38,6 +39,7 @@ __all__ = [
     'get_lines',
     'ipython2python',
     'posix_path',
+    'path2url',
 ]
 
 
@@ -181,3 +183,8 @@ def posix_path(path):
     if os.path.sep != '/':
         return path.replace(os.path.sep, '/')
     return path
+
+def path2url(path):
+    """Turn a file path into a URL"""
+    parts = path.split(os.path.sep)
+    return '/'.join(quote(part) for part in parts)

@@ -13,6 +13,7 @@ Exporter that will export your ipynb to Markdown.
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.config import Config
 from IPython.utils.traitlets import Unicode
 
 from .exporter import Exporter
@@ -29,3 +30,9 @@ class MarkdownExporter(Exporter):
     file_extension = Unicode(
         'md', config=True, 
         help="Extension of the file that should be written to disk")
+
+    @property
+    def default_config(self):
+        c = Config({'ExtractOutputTransformer':{'enabled':True}})
+        c.merge(super(MarkdownExporter,self).default_config)
+        return c
