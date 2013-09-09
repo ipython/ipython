@@ -349,7 +349,8 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
 
 
 def main():
-    if len(sys.argv) > 1 and (sys.argv[1] in test_sections):
+    if len(sys.argv) > 1 and \
+            ((sys.argv[1] in test_sections) or sys.argv[1].startswith('IPython')):
         from .iptest import run_iptest
         # This is in-process
         run_iptest()

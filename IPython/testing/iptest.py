@@ -368,8 +368,13 @@ def run_iptest():
     warnings.filterwarnings('ignore',
         'This will be removed soon.  Use IPython.testing.util instead')
     
-    section = test_sections[sys.argv[1]]
-    sys.argv[1:2] = section.includes
+    if sys.argv[1] in test_sections:
+        section = test_sections[sys.argv[1]]
+        sys.argv[1:2] = section.includes
+    else:
+        arg1 = sys.argv[1]
+        section = TestSection(arg1, includes=[arg1])
+        
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
 
@@ -413,7 +418,7 @@ def run_iptest():
     # assumptions about what needs to be a singleton and what doesn't (app
     # objects should, individual shells shouldn't).  But for now, this
     # workaround allows the test suite for the inprocess module to complete.
-    if section.name != 'kernel.inprocess':
+    if 'kernel.inprocess' not in section.name:
         from IPython.testing import globalipapp
         globalipapp.start_ipython()
 
