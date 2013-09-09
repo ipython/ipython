@@ -362,7 +362,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
-((( conditionally_center_output(insert_graphics(output.jpg_filename | posix_path)) )))
+((( conditionally_center_output(insert_graphics(output.jpeg_filename | posix_path)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
