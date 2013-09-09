@@ -3,6 +3,127 @@
 Issues closed in the 1.0 development cycle
 ==========================================
 
+Issues closed in 1.1
+--------------------
+
+GitHub stats for 2013/08/08 - 2013/09/09 (since 1.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 25 authors contributed 337 commits.
+
+* Benjamin Ragan-Kelley
+* Bing Xia
+* Bradley M. Froehle
+* Brian E. Granger
+* Damián Avila
+* dhirschfeld
+* Dražen Lučanin
+* gmbecker
+* Jake Vanderplas
+* Jason Grout
+* Jonathan Frederic
+* Kevin Burke
+* Kyle Kelley
+* Matt Henderson
+* Matthew Brett
+* Matthias Bussonnier
+* Pankaj Pandey
+* Paul Ivanov
+* rossant
+* Samuel Ainsworth
+* Stephan Rave
+* stonebig
+* Thomas Kluyver
+* Yaroslav Halchenko
+* Zachary Sailer
+
+
+We closed a total of 76 issues, 58 pull requests and 18 regular issues;
+this is the full list (generated with the script :file:`tools/github_stats.py`):
+
+Pull Requests (58):
+
+* :ghpull:`4188`: Allow user_ns trait to be None
+* :ghpull:`4189`: always fire LOCAL_IPS.extend(PUBLIC_IPS)
+* :ghpull:`4174`: various issues in markdown and rst templates
+* :ghpull:`4178`: add missing data_javascript
+* :ghpull:`4181`: nbconvert: Fix, sphinx template not removing new lines from headers
+* :ghpull:`4043`: don't 'restore_bytes' in from_JSON
+* :ghpull:`4163`: Fix for incorrect default encoding on Windows.
+* :ghpull:`4136`: catch javascript errors in any output
+* :ghpull:`4171`: add nbconvert config file when creating profiles
+* :ghpull:`4125`: Basic exercise of `ipython [subcommand] -h` and help-all
+* :ghpull:`4085`: nbconvert: Fix sphinx preprocessor date format string for Windows
+* :ghpull:`4159`: don't split `.cell` and `div.cell` CSS
+* :ghpull:`4158`: generate choices for `--gui` configurable from real mapping
+* :ghpull:`4065`: do not include specific css in embedable one
+* :ghpull:`4092`: nbconvert: Fix for unicode html headers, Windows + Python 2.x
+* :ghpull:`4074`: close Client sockets if connection fails
+* :ghpull:`4064`: Store default codemirror mode in only 1 place
+* :ghpull:`4104`: Add way to install MathJax to a particular profile
+* :ghpull:`4144`: help_end transformer shouldn't pick up ? in multiline string
+* :ghpull:`4143`: update example custom.js
+* :ghpull:`4142`: DOC: unwrap openssl line in public_server doc
+* :ghpull:`4141`: add files with a separate `add` call in backport_pr
+* :ghpull:`4137`: Restore autorestore option for storemagic
+* :ghpull:`4098`: pass profile-dir instead of profile name to Kernel
+* :ghpull:`4120`: support `input` in Python 2 kernels
+* :ghpull:`4088`: nbconvert: Fix coalescestreams line with incorrect nesting causing strange behavior
+* :ghpull:`4060`: only strip continuation prompts if regular prompts seen first
+* :ghpull:`4132`: Fixed name error bug in function safe_unicode in module py3compat.
+* :ghpull:`4121`: move test_kernel from IPython.zmq to IPython.kernel
+* :ghpull:`4118`: ZMQ heartbeat channel: catch EINTR exceptions and continue.
+* :ghpull:`4054`: use unicode for HTML export
+* :ghpull:`4106`: fix a couple of default block values
+* :ghpull:`4115`: Update docs on declaring a magic function
+* :ghpull:`4101`: restore accidentally removed EngineError
+* :ghpull:`4096`: minor docs changes
+* :ghpull:`4056`: respect `pylab_import_all` when `--pylab` specified at the command-line
+* :ghpull:`4091`: Make Qt console banner configurable
+* :ghpull:`4086`: fix missing errno import
+* :ghpull:`4030`: exclude `.git` in MANIFEST.in
+* :ghpull:`4047`: Use istype() when checking if canned object is a dict
+* :ghpull:`4031`: don't close_fds on Windows
+* :ghpull:`4029`: bson.Binary moved
+* :ghpull:`4035`: Fixed custom jinja2 templates being ignored when setting template_path
+* :ghpull:`4026`: small doc fix in nbconvert
+* :ghpull:`4016`: Fix IPython.start_* functions
+* :ghpull:`4021`: Fix parallel.client.View map() on numpy arrays
+* :ghpull:`4022`: DOC: fix links to matplotlib, notebook docs
+* :ghpull:`4018`: Fix warning when running IPython.kernel tests
+* :ghpull:`4019`: Test skipping without unicode paths
+* :ghpull:`4008`: Transform code before %prun/%%prun runs
+* :ghpull:`4014`: Fix typo in ipapp
+* :ghpull:`3987`: get files list in backport_pr
+* :ghpull:`3974`: nbconvert: Fix app tests on Window7 w/ Python 3.3
+* :ghpull:`3978`: fix `--existing` with non-localhost IP
+* :ghpull:`3939`: minor checkpoint cleanup
+* :ghpull:`3981`: BF: fix nbconvert rst input prompt spacing
+* :ghpull:`3960`: Don't make sphinx a dependency for importing nbconvert
+* :ghpull:`3973`: logging.Formatter is not new-style in 2.6
+
+Issues (18):
+
+* :ghissue:`4024`: nbconvert markdown issues
+* :ghissue:`4095`: Catch js error in append html in stream/pyerr
+* :ghissue:`4156`: Specifying --gui=tk at the command line
+* :ghissue:`3818`: nbconvert can't handle Heading with Chinese characters on Japanese Windows OS.
+* :ghissue:`4134`: multi-line parser fails on ''' in comment, qtconsole and notebook.
+* :ghissue:`3998`: sample custom.js needs to be updated
+* :ghissue:`4078`: StoreMagic.autorestore not working in 1.0.0
+* :ghissue:`3990`: Buitlin `input` doesn't work over zmq
+* :ghissue:`4015`: nbconvert fails to convert all the content of a notebook
+* :ghissue:`4059`: Issues with Ellipsis literal in Python 3
+* :ghissue:`4103`: Wrong default argument of DirectView.clear
+* :ghissue:`4100`: parallel.client.client references undefined error.EngineError
+* :ghissue:`4005`: IPython.start_kernel doesn't work.
+* :ghissue:`4020`: IPython parallel map fails on numpy arrays
+* :ghissue:`3945`: nbconvert: commandline tests fail Win7x64 Py3.3
+* :ghissue:`3977`: unable to complete remote connections for two-process 
+* :ghissue:`3980`: nbconvert rst output lacks needed blank lines
+* :ghissue:`3968`: TypeError: super() argument 1 must be type, not classobj (Python 2.6.6)
+
 Issues closed in 1.0
 --------------------
 
