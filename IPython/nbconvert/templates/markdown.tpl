@@ -2,19 +2,13 @@
 
 
 {% block in_prompt %}
-In[{{ cell.prompt_number if cell.prompt_number else ' ' }}]:
 {% endblock in_prompt %}
 
 {% block output_prompt %}
-{% if cell.haspyout %}
-Out[{{ cell.prompt_number }}]:
-{%- endif %}
 {%- endblock output_prompt %}
 
 {% block input %}
-```
-{{ cell.input }}
-```
+{{ cell.input | indent(4)}}
 {% endblock input %}
 
 {% block pyerr %}
@@ -26,6 +20,7 @@ Out[{{ cell.prompt_number }}]:
 {% endblock traceback_line %}
 
 {% block pyout %}
+
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
@@ -36,22 +31,24 @@ Out[{{ cell.prompt_number }}]:
 {% endblock stream %}
 
 {% block data_svg %}
-[!image]({{ output.svg_filename }})
+![svg]({{ output.svg_filename | path2url }})
 {% endblock data_svg %}
 
 {% block data_png %}
-[!image]({{ output.png_filename }})
+![png]({{ output.png_filename | path2url }})
 {% endblock data_png %}
 
 {% block data_jpg %}
-[!image]({{ output.jpg_filename }})
+![jpeg]({{ output.jpeg_filename | path2url }})
 {% endblock data_jpg %}
 
 {% block data_latex %}
-$$
 {{ output.latex }}
-$$
 {% endblock data_latex %}
+
+{% block data_html scoped %}
+{{ output.html }}
+{% endblock data_html %}
 
 {% block data_text scoped %}
 {{ output.text | indent }}
@@ -60,6 +57,7 @@ $$
 {% block markdowncell scoped %}
 {{ cell.source | wrap_text(80) }}
 {% endblock markdowncell %}
+
 
 {% block headingcell scoped %}
 {{ '#' * cell.level }} {{ cell.source | replace('\n', ' ') }}

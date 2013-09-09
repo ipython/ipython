@@ -2,25 +2,22 @@
 
 
 {% block in_prompt %}
-
-In[{{ cell.prompt_number if cell.prompt_number else ' ' }}]:
-
-.. code:: python
-
 {% endblock in_prompt %}
 
 {% block output_prompt %}
-{% if cell.haspyout -%}
-    Out[{{ cell.prompt_number }}]:
-{% endif %}
 {% endblock output_prompt %}
 
 {% block input %}
+{%- if not cell.input.isspace() -%}
+.. code:: python
+
 {{ cell.input | indent}}
+{%- endif -%}
 {% endblock input %}
 
 {% block pyerr %}
 ::
+
 {{ super() }}
 {% endblock pyerr %}
 
@@ -49,18 +46,26 @@ In[{{ cell.prompt_number if cell.prompt_number else ' ' }}]:
 {% endblock data_png %}
 
 {% block data_jpg %}
-..jpg image:: {{ output.jpg_filename }}
+.. image:: {{ output.jpeg_filename }}
 {% endblock data_jpg %}
 
 {% block data_latex %}
 .. math::
-{{ output.latex | indent }}
+
+{{ output.latex | strip_dollars | indent }}
 {% endblock data_latex %}
 
 {% block data_text scoped %}
 .. parsed-literal::
+
 {{ output.text | indent }}
 {% endblock data_text %}
+
+{% block data_html scoped %}
+.. raw:: html
+
+{{ output.html | indent }}
+{% endblock data_html %}
 
 {% block markdowncell scoped %}
 {{ cell.source | markdown2rst }}
