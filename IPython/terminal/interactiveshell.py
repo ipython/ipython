@@ -422,19 +422,20 @@ class TerminalInteractiveShell(InteractiveShell):
         internally created default banner.
         """
 
-        with self.builtin_trap, self.display_trap:
+        with self.builtin_trap:
+            with self.display_trap:
 
-            while 1:
-                try:
-                    self.interact(display_banner=display_banner)
-                    #self.interact_with_readline()
-                    # XXX for testing of a readline-decoupled repl loop, call
-                    # interact_with_readline above
-                    break
-                except KeyboardInterrupt:
-                    # this should not be necessary, but KeyboardInterrupt
-                    # handling seems rather unpredictable...
-                    self.write("\nKeyboardInterrupt in interact()\n")
+                while 1:
+                    try:
+                        self.interact(display_banner=display_banner)
+                        #self.interact_with_readline()
+                        #XXX for testing of a readline-decoupled repl loop, call
+                        # interact_with_readline above
+                        break
+                    except KeyboardInterrupt:
+                        # this should not be necessary, but KeyboardInterrupt
+                        # handling seems rather unpredictable...
+                        self.write("\nKeyboardInterrupt in interact()\n")
 
     def _replace_rlhist_multiline(self, source_raw, hlen_before_cell):
         """Store multiple lines as a single entry in history"""

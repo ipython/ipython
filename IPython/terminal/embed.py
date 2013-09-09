@@ -244,8 +244,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # actually completes using the frame's locals/globals
         self.set_completer_frame()
 
-        with self.builtin_trap, self.display_trap:
-            self.interact(display_banner=display_banner)
+        with self.builtin_trap:
+            with self.display_trap:
+                self.interact(display_banner=display_banner)
         
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
