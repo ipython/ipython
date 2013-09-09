@@ -201,7 +201,7 @@ class InteractiveShellApp(Configurable):
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     
-    user_ns = Dict(default_value=None)
+    user_ns = Instance(dict, args=None, allow_none=True)
     def _user_ns_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_ns = new
