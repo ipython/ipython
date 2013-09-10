@@ -15,7 +15,7 @@ Module with tests for Latex
 #-----------------------------------------------------------------------------
 
 from ...tests.base import TestsBase
-from ..latex import escape_latex, strip_math_space
+from ..latex import escape_latex, strip_math_space, strip_url_static_file_prefix
 
 
 #-----------------------------------------------------------------------------
@@ -64,3 +64,22 @@ class TestLatex(TestsBase):
         Try to remove spaces between dollar symbols and contents correctly
         """
         self.assertEqual(strip_math_space(test), result)
+        
+        
+    def test_strip_url_static_file_prefix(self):
+        tests = [
+            ('hello!', 'hello!'),
+            ('hello![caption]', 'hello![caption]'),
+            ('hello![caption](/url/location.gif)', 'hello![caption](/url/location.gif)'),
+            ('hello![caption](url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](files/url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](/files/url/location.gif)', 'hello![caption](url/location.gif)'),
+        ]
+        
+        for test in tests:
+            yield self._test_strip_url_static_file_prefix(test[0], test[1])
+
+    def _test_strip_url_static_file_prefix(self, test, result):
+        self.assertEqual(strip_url_static_file_prefix(test), result)
+        
