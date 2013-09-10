@@ -23,7 +23,7 @@ LATEX_RE_SUBS = (
     (re.compile(r'\.\.\.+'), r'\\ldots'),
 )
 
-MARKDOWN_IMAGE_RE = re.compile(r'!\[(?P<caption>.*?)\]\(files/(?P<location>.*?)\)')
+MARKDOWN_IMAGE_RE = re.compile(r'!\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
 
 # Latex substitutions for escaping latex.
 # see: http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
