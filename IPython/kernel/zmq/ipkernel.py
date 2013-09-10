@@ -168,10 +168,16 @@ class Kernel(Configurable):
         for msg_type in msg_types:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
         
+        widget_msg_types = [ 'widget_update', 'widget_destroy' ]
+        widget_manager = self.shell.widget_manager
+        for msg_type in widget_msg_types:
+            self.shell_handlers[msg_type] = getattr(widget_manager, msg_type)
+        
         control_msg_types = msg_types + [ 'clear_request', 'abort_request' ]
         self.control_handlers = {}
         for msg_type in control_msg_types:
             self.control_handlers[msg_type] = getattr(self, msg_type)
+
 
     def dispatch_control(self, msg):
         """dispatch control requests"""

@@ -507,6 +507,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_pdb()
         self.init_extension_manager()
         self.init_payload()
+        self.init_widgets()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
 
@@ -2317,7 +2318,15 @@ class InteractiveShell(SingletonConfigurable):
     def init_payload(self):
         self.payload_manager = PayloadManager(parent=self)
         self.configurables.append(self.payload_manager)
-
+    
+    #-------------------------------------------------------------------------
+    # Things related to widgets
+    #-------------------------------------------------------------------------
+    
+    def init_widgets(self):
+        # not implemented in the base class
+        pass
+    
     #-------------------------------------------------------------------------
     # Things related to the prefilter
     #-------------------------------------------------------------------------
