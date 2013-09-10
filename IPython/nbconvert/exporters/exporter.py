@@ -66,9 +66,10 @@ default_filters = {
         'add_anchor': filters.add_anchor,
         'ansi2latex': filters.ansi2latex,
         'strip_math_space': filters.strip_math_space,
+        'strip_url_static_file_prefix': filters.strip_url_static_file_prefix,
         'wrap_text': filters.wrap_text,
         'escape_latex': filters.escape_latex,
-        'citation2latex': filters.citation2latex
+        'citation2latex': filters.citation2latex,
 }
 
 #-----------------------------------------------------------------------------
