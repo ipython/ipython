@@ -1058,6 +1058,61 @@ where the first part is the zmq.IDENTITY of the heart's DEALER on the engine, an
 the rest is the message sent by the monitor.  No Python code ever has any
 access to the message between the monitor's send, and the monitor's recv.
 
+Widget Messages
+===============
+
+IPython 2.0 adds interactive widgets, and a few messages associated with their management.
+
+.. versionadded:: 2.0
+
+Widget Creation
+---------------
+
+Creating a widget is always done on the Kernel side.
+Creating a widget produces a ``widget_create`` message on the IOPub channel::
+
+    {
+      'widget_id' : 'u-u-i-d',
+      'widget_type' : 'my_widget',
+      'data' : {}
+    }
+
+Every widget has an ID and a type identifier (class).
+The ``data`` key can be any extra JSON information used in initialization of the widget.
+
+Updating Widgets
+----------------
+
+Widget updates are one-way communications to update widget state,
+either on the Kernel or the frontend side. Both sides can send these messages.
+
+Essentially, widgets define their own message specification implemented inside the ``data`` key.
+
+The kernel sends these messages on the IOPub channel,
+and the frontend sends them on the Shell channel.
+There are no expected replies (of course, one side can send another ``widget_update`` in reply).
+
+Message type: ``widget_update``::
+
+    {
+      'widget_id' : 'u-u-i-d',
+      'data' : {}
+    }
+
+Tearing Down Widgets
+--------------------
+
+Since widgets live on both sides, when a widget is destroyed the other side must be notified.
+This is done with a ``widget_destroy`` message,
+which can come from either side via IOPub or Shell.
+
+Message type: ``widget_destroy``::
+
+    {
+      'widget_id' : 'u-u-i-d',
+      'data' : {}
+    }
+
 
 ToDo
 ====
@@ -1069,10 +1124,5 @@ Missing things include:
 * Important: ensure that we have a good solution for magics like %edit.  It's
   likely that with the payload concept we can build a full solution, but not
   100% clear yet.
-
-* Finishing the details of the heartbeat protocol.
-
-* Signal handling: specify what kind of information kernel should broadcast (or
-  not) when it receives signals.
 
 .. include:: ../links.txt
