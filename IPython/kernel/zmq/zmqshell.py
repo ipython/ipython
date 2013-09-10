@@ -49,6 +49,7 @@ from IPython.utils.warn import error
 from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
+from IPython.kernel.widgets import WidgetManager
 from session import Session
 
 #-----------------------------------------------------------------------------
@@ -593,7 +594,10 @@ class ZMQInteractiveShell(InteractiveShell):
         super(ZMQInteractiveShell, self).init_magics()
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias('ed', 'edit')
-
+    
+    def init_widgets(self):
+        self.widget_manager = WidgetManager(shell=self, parent=self)
+        self.configurables.append(self.widget_manager)
 
 
 InteractiveShellABC.register(ZMQInteractiveShell)
