@@ -16,7 +16,8 @@
  */
 
 var IPython = (function (IPython) {
-
+    "use strict";
+    
     var utils = IPython.utils;
 
     // Initialization and connection.
@@ -41,8 +42,10 @@ var IPython = (function (IPython) {
             this.WebSocket = MozWebSocket;
         } else {
             alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox ≥ 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
-        };
+        }
+        
         this.bind_events();
+        this.init_iopub_handlers();
     };
 
 
@@ -61,12 +64,25 @@ var IPython = (function (IPython) {
         return msg;
     };
     
-    Kernel.prototype.bind_events = function() {
+    Kernel.prototype.bind_events = function () {
         var that = this;
         $([IPython.events]).on('send_input_reply.Kernel', function(evt, data) { 
             that.send_input_reply(data);
         });
-    }
+    };
+    
+    // Initialize the iopub handlers
+    
+    Kernel.prototype.init_iopub_handlers = function () {
+        var output_types = ['stream', 'display_data', 'pyout', 'pyerr'];
+        this._iopub_handlers = {};
+        this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
+        this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
+        
+        for (var i=0; i < output_types.length; i++) {
+            this.register_iopub_handler(output_types[i], $.proxy(this._handle_output_message, this));
+        }
+    };
 
     /**
      * Start the Python kernel
@@ -81,7 +97,7 @@ var IPython = (function (IPython) {
                 $.proxy(this._kernel_started, this),
                 'json'
             );
-        };
+        }
     };
 
     /**
@@ -101,7 +117,7 @@ var IPython = (function (IPython) {
                 $.proxy(this._kernel_started, this),
                 'json'
             );
-        };
+        }
     };
 
 
@@ -110,11 +126,11 @@ var IPython = (function (IPython) {
         this.running = true;
         this.kernel_id = json.id;
         var ws_url = json.ws_url;
-        if (ws_url.match(/wss?:\/\//) == null) {
+        if (ws_url.match(/wss?:\/\//) === null) {
             // trailing 's' in https will become wss for secure web sockets
-            prot = location.protocol.replace('http', 'ws') + "//";
+            var prot = location.protocol.replace('http', 'ws') + "//";
             ws_url = prot + location.host + ws_url;
-        };
+        }
         this.ws_url = ws_url;
         this.kernel_url = utils.url_path_join(this.base_url, this.kernel_id);
         this.start_channels();
@@ -176,7 +192,7 @@ var IPython = (function (IPython) {
             }
         }, 1000);
         this.shell_channel.onmessage = $.proxy(this._handle_shell_reply, this);
-        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply, this);
+        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_message, this);
         this.stdin_channel.onmessage = $.proxy(this._handle_input_request, this);
     };
 
@@ -208,14 +224,22 @@ var IPython = (function (IPython) {
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
             if ( channels[i] !== null ) {
-                channels[i].onclose = function (evt) {};
+                channels[i].onclose = null;
                 channels[i].close();
             }
-        };
+        }
         this.shell_channel = this.iopub_channel = this.stdin_channel = null;
     };
 
     // Main public methods.
+    
+    // send a message on the Kernel's shell channel
+    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks) {
+        var msg = this._get_msg(msg_type, content);
+        this.shell_channel.send(JSON.stringify(msg));
+        this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
+        return msg.header.msg_id;
+    }
 
     /**
      * Get info on object asynchronoulsy
@@ -239,19 +263,15 @@ var IPython = (function (IPython) {
      * [IPython dev documentation](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
      */
     Kernel.prototype.object_info_request = function (objname, callbacks) {
-        if(typeof(objname)!=null && objname!=null)
-        {
+        if (typeof(objname) !== null && objname !== null) {
             var content = {
                 oname : objname.toString(),
                 detail_level : 0,
             };
-            var msg = this._get_msg("object_info_request", content);
-            this.shell_channel.send(JSON.stringify(msg));
-            this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
-            return msg.header.msg_id;
+            return this.send_shell_message("object_info_request", content, callbacks);
         }
         return;
-    }
+    };
 
     /**
      * Execute given code into kernel, and pass result to callback.
@@ -323,12 +343,9 @@ var IPython = (function (IPython) {
         if (callbacks.input_request !== undefined) {
             content.allow_stdin = true;
         }
-        $.extend(true, content, options)
+        $.extend(true, content, options);
         $([IPython.events]).trigger('execution_request.Kernel', {kernel: this, content:content});
-        var msg = this._get_msg("execute_request", content);
-        this.shell_channel.send(JSON.stringify(msg));
-        this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
-        return msg.header.msg_id;
+        return this.send_shell_message("execute_request", content, callbacks);
     };
 
     /**
@@ -357,10 +374,7 @@ var IPython = (function (IPython) {
             block : null,
             cursor_pos : cursor_pos
         };
-        var msg = this._get_msg("complete_request", content);
-        this.shell_channel.send(JSON.stringify(msg));
-        this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
-        return msg.header.msg_id;
+        return this.send_shell_message("complete_request", content, callbacks);
     };
 
 
@@ -368,7 +382,7 @@ var IPython = (function (IPython) {
         if (this.running) {
             $([IPython.events]).trigger('status_interrupting.Kernel', {kernel: this});
             $.post(this.kernel_url + "/interrupt");
-        };
+        }
     };
 
 
@@ -380,7 +394,7 @@ var IPython = (function (IPython) {
                 type : "DELETE"
             };
             $.ajax(this.kernel_url, settings);
-        };
+        }
     };
 
     Kernel.prototype.send_input_reply = function (input) {
@@ -396,9 +410,19 @@ var IPython = (function (IPython) {
 
     // Reply handlers
 
+    Kernel.prototype.register_iopub_handler = function (msg_type, callback) {
+        this._iopub_handlers[msg_type] = callback;
+    };
+
+    Kernel.prototype.get_iopub_handler = function (msg_type) {
+        // get iopub handler for a specific message type
+        return this._iopub_handlers[msg_type];
+    };
+
+
     Kernel.prototype.get_callbacks_for_msg = function (msg_id) {
-        var callbacks = this._msg_callbacks[msg_id];
-        return callbacks;
+        // get callbacks for a specific message
+        return this._msg_callbacks[msg_id];
     };
 
 
@@ -410,7 +434,9 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
-        this._msg_callbacks[msg_id] = callbacks || {};
+        if (callbacks) {
+            this._msg_callbacks[msg_id] = callbacks;
+        }
     };
 
 
@@ -427,7 +453,7 @@ var IPython = (function (IPython) {
             if (cb !== undefined) {
                 cb(content, metadata);
             }
-        };
+        }
 
         if (content.payload !== undefined) {
             var payload = content.payload || [];
@@ -442,56 +468,70 @@ var IPython = (function (IPython) {
         // to depend on the Notebook or Pager classes.
         for (var i=0; i<l; i++) {
             if (payload[i].source === 'page') {
-                var data = {'text':payload[i].text}
+                var data = {'text':payload[i].text};
                 $([IPython.events]).trigger('open_with_text.Pager', data);
             } else if (payload[i].source === 'set_next_input') {
                 if (callbacks.set_next_input !== undefined) {
-                    callbacks.set_next_input(payload[i].text)
+                    callbacks.set_next_input(payload[i].text);
                 }
             }
-        };
+        }
+    };
+
+    Kernel.prototype._handle_status_message = function (msg) {
+        var execution_state = msg.content.execution_state;
+        if (execution_state === 'busy') {
+            $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
+        } else if (execution_state === 'idle') {
+            $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
+        } else if (execution_state === 'restarting') {
+            // autorestarting is distinct from restarting,
+            // in that it means the kernel died and the server is restarting it.
+            // status_restarting sets the notification widget,
+            // autorestart shows the more prominent dialog.
+            $([IPython.events]).trigger('status_autorestarting.Kernel', {kernel: this});
+            $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
+        } else if (execution_state === 'dead') {
+            this.stop_channels();
+            $([IPython.events]).trigger('status_dead.Kernel', {kernel: this});
+        }
+    };
+    
+    
+    // handle clear_output message
+    Kernel.prototype._handle_clear_output = function (msg) {
+        var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
+        if (callbacks === undefined) {
+            return;
+        }
+        var callback = callbacks['clear_output'];
+        if (callback !== undefined) {
+            callback(msg.content, msg.metadata);
+        }
     };
 
 
-    Kernel.prototype._handle_iopub_reply = function (e) {
-        var reply = $.parseJSON(e.data);
-        var content = reply.content;
-        var msg_type = reply.header.msg_type;
-        var metadata = reply.metadata;
-        var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
-        if (msg_type !== 'status' && callbacks === undefined) {
-            // Message not from one of this notebook's cells and there are no
-            // callbacks to handle it.
+    // handle an output message (pyout, display_data, etc.)
+    Kernel.prototype._handle_output_message = function (msg) {
+        var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
+        if (callbacks === undefined) {
             return;
         }
-        var output_types = ['stream','display_data','pyout','pyerr'];
-        if (output_types.indexOf(msg_type) >= 0) {
-            var cb = callbacks['output'];
-            if (cb !== undefined) {
-                cb(msg_type, content, metadata);
-            }
-        } else if (msg_type === 'status') {
-            if (content.execution_state === 'busy') {
-                $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
-            } else if (content.execution_state === 'idle') {
-                $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
-            } else if (content.execution_state === 'restarting') {
-                // autorestarting is distinct from restarting,
-                // in that it means the kernel died and the server is restarting it.
-                // status_restarting sets the notification widget,
-                // autorestart shows the more prominent dialog.
-                $([IPython.events]).trigger('status_autorestarting.Kernel', {kernel: this});
-                $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
-            } else if (content.execution_state === 'dead') {
-                this.stop_channels();
-                $([IPython.events]).trigger('status_dead.Kernel', {kernel: this});
-            };
-        } else if (msg_type === 'clear_output') {
-            var cb = callbacks['clear_output'];
-            if (cb !== undefined) {
-                cb(content, metadata);
-            }
-        };
+        var callback = callbacks['output'];
+        if (callback !== undefined) {
+            callback(msg.header.msg_type, msg.content, msg.metadata);
+        }
+    };
+
+    // dispatch IOPub messages to respective handlers.
+    // each message type should have a handler.
+    Kernel.prototype._handle_iopub_message = function (e) {
+        var msg = $.parseJSON(e.data);
+
+        var handler = this.get_iopub_handler(msg.header.msg_type);
+        if (handler !== undefined) {
+            handler(msg);
+        }
     };
 
 
@@ -511,7 +551,7 @@ var IPython = (function (IPython) {
             if (cb !== undefined) {
                 cb(content, metadata);
             }
-        };
+        }
     };
 
 
