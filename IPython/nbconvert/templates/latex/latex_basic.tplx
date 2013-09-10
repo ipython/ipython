@@ -103,7 +103,7 @@ it introduces a new line
 ((* endblock stream *))
 
 ((* block markdowncell scoped *))
-((( cell.source | citation2latex | markdown2latex )))
+((( cell.source | citation2latex | strip_math_space | strip_url_static_file_prefix | markdown2latex )))
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped -*))
