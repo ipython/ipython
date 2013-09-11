@@ -36,7 +36,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 
 {% block input %}
 <div class="input_area box-flex1">
-{{ cell.input | highlight2html }}
+{{ cell | highlight2html }}
 </div>
 {%- endblock input %}
 
