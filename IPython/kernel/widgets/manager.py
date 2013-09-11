@@ -11,11 +11,11 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from weakref import ref
-
 from IPython.config import LoggingConfigurable
 from IPython.core.prompts import LazyEvaluate
 from IPython.core.getipython import get_ipython
+
+from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Instance, Unicode, Dict, Any
 
 #-----------------------------------------------------------------------------
@@ -29,6 +29,7 @@ def lazy_keys(dikt):
     Used for debug-logging.
     """
     return LazyEvaluate(lambda d: list(d.keys()))
+
 
 class WidgetManager(LoggingConfigurable):
     """Manager for Widgets in the Kernel"""
@@ -46,25 +47,32 @@ class WidgetManager(LoggingConfigurable):
         return self.shell.parent.session
     
     widgets = Dict()
+    widget_types = Dict()
     
     # Public APIs
     
+    def register_widget_type(self, widget_type, constructor):
+        """Register a constructor for a given widget_type
+        
+        constructor can be a Widget class or an importstring for a Widget class.
+        """
+        if isinstance(constructor, basestring):
+            constructor = import_item(constructor)
+        
+        self.widget_types[widget_type] = constructor
+    
     def register_widget(self, widget):
         """Register a new widget"""
-        self.widgets[widget.widget_id] = ref(widget)
+        widget_id = widget.widget_id
         widget.shell = self.shell
         widget.iopub_socket = self.iopub_socket
-        widget.create()
-        return widget.widget_id
+        self.widgets[widget_id] = widget
+        return widget_id
     
     def unregister_widget(self, widget_id):
         """Unregister a widget, and destroy its counterpart"""
         # unlike get_widget, this should raise a KeyError
-        widget_ref = self.widgets.pop(widget_id)
-        widget = widget_ref()
-        if widget is None:
-            # already destroyed, nothing to do
-            return
+        widget = self.widgets.pop(widget_id)
         widget.destroy()
     
     def get_widget(self, widget_id):
@@ -80,15 +88,26 @@ class WidgetManager(LoggingConfigurable):
             self.log.debug("Current widgets: %s", lazy_keys(self.widgets))
             return
         # call, because we store weakrefs
-        widget = self.widgets[widget_id]()
-        if widget is None:
-            self.log.error("Widget %s has been removed", widget_id)
-            del self.widgets[widget_id]
-            self.log.debug("Current widgets: %s", lazy_keys(self.widgets))
-            return
+        widget = self.widgets[widget_id]
         return widget
     
     # Message handlers
+    
+    def widget_create(self, stream, ident, msg):
+        """Handler for widget_update messages"""
+        content = msg['content']
+        widget_id = content['widget_id']
+        widget_type = content['widget_type']
+        constructor = self.widget_types.get(widget_type, None)
+        if constructor is None:
+            self.log.error("No such widget_type registered: %s", widget_type)
+            return
+        widget = constructor(widget_id=widget_id,
+                    shell=self.shell,
+                    iopub_socket=self.iopub_socket,
+                    _create_data=content['data'],
+        )
+        self.register_widget(widget)
     
     def widget_update(self, stream, ident, msg):
         """Handler for widget_update messages"""
@@ -110,6 +129,6 @@ class WidgetManager(LoggingConfigurable):
             return
         widget.handle_destroy(content['data'])
         del self.widgets[widget_id]
-    
+
 
 __all__ = ['WidgetManager']

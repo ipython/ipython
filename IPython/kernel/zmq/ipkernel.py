@@ -168,7 +168,7 @@ class Kernel(Configurable):
         for msg_type in msg_types:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
         
-        widget_msg_types = [ 'widget_update', 'widget_destroy' ]
+        widget_msg_types = [ 'widget_create', 'widget_update', 'widget_destroy' ]
         widget_manager = self.shell.widget_manager
         for msg_type in widget_msg_types:
             self.shell_handlers[msg_type] = getattr(widget_manager, msg_type)

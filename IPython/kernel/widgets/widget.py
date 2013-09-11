@@ -13,6 +13,7 @@
 
 import uuid
 
+from IPython.core.getipython import get_ipython
 from IPython.config import LoggingConfigurable
 from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
 
@@ -47,6 +48,18 @@ class Widget(LoggingConfigurable):
     def _widget_id_default(self):
         return uuid.uuid4().hex
     
+    primary = Bool(False, help="Am I the primary or secondary Widget?")
+    
+    def __init__(self, **kwargs):
+        super(Widget, self).__init__(**kwargs)
+        get_ipython().widget_manager.register_widget(self)
+        if self.primary:
+            # I am primary, create my peer
+            self.create()
+        else:
+            # I am secondary, handle creation
+            self.handle_create(self._create_data)
+    
     def _publish_msg(self, msg_type, data=None, **keys):
         """Helper for sending a widget message on IOPub"""
         data = {} if data is None else data
@@ -61,16 +74,20 @@ class Widget(LoggingConfigurable):
     
     # publishing messages
     
-    def create(self):
+    def create(self, data=None):
         """Create the frontend-side version of this widget"""
-        self._publish_msg('widget_create', self._create_data, widget_type = self.widget_type)
+        if data is None:
+            data = self._create_data
+        self._publish_msg('widget_create', data, widget_type=self.widget_type)
     
-    def destroy(self):
+    def destroy(self, data=None):
         """Destroy the frontend-side version of this widget"""
         if self._destroyed:
             # only destroy once
             return
-        self._publish_msg('widget_destroy', self._destroy_data)
+        if data is None:
+            data = self._destroy_data
+        self._publish_msg('widget_destroy', data)
         self._destroyed = True
     
     def update(self, data=None):
@@ -78,6 +95,10 @@ class Widget(LoggingConfigurable):
         self._publish_msg('widget_update', data)
     
     # handling of incoming messages
+    
+    def handle_create(self, data):
+        """Handle a widget_create message"""
+        self.log.debug("handle_create %s", data)
     
     def handle_destroy(self, data):
         """Handle a widget_destroy message"""
