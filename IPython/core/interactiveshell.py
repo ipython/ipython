@@ -187,8 +187,10 @@ class ReadlineNoRecord(object):
         return [ghi(x) for x in range(start, end)]
 
 
+@undoc
 class DummyMod(object):
-    "A dummy module used for IPython's interactive namespace."
+    """A dummy module used for IPython's interactive module when
+    a namespace must be assigned to the module's __dict__."""
     pass
 
 #-----------------------------------------------------------------------------
