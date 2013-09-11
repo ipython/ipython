@@ -39,45 +39,51 @@ __all__ = [
     'highlight2latex'
 ]
 
-def highlight2html(cell, language='ipython'):
+def highlight2html(source, metadata=None, language='ipython'):
     """
     Return a syntax-highlighted version of the input source as html output.
 
     Parameters
     ----------
-    cell : NotebookNode cell
-        cell to highlight
+    source : str
+        source of the cell to highlight.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     language : str
         Language to highlight the syntax of.
     """
 
-    return _pygment_highlight(cell, HtmlFormatter(), language)
+    return _pygment_highlight(source, HtmlFormatter(), metadata, language)
 
 
-def highlight2latex(cell, language='ipython'):
+def highlight2latex(source, metadata=None, language='ipython'):
     """
     Return a syntax-highlighted version of the input source as latex output.
 
     Parameters
     ----------
-    cell : NotebookNode cell
-        cell to highlight
+    source : str
+        source of the cell to highlight.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     language : str
         Language to highlight the syntax of.
     """
-    return _pygment_highlight(cell, LatexFormatter(), language)
+    return _pygment_highlight(source, LatexFormatter(), metadata, language)
 
 
 
-def _pygment_highlight(cell, output_formatter, language='ipython'):
+def _pygment_highlight(source, output_formatter, metadata=None, language='ipython'):
     """
     Return a syntax-highlighted version of the input source
 
     Parameters
     ----------
-    cell : NotebookNode cell
-        cell to highlight
+    source : str
+        source of the cell to highlight.
     output_formatter : Pygments formatter
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     language : str
         Language to highlight the syntax of.
     """
@@ -85,14 +91,14 @@ def _pygment_highlight(cell, output_formatter, language='ipython'):
     # If the cell uses a magic extension language,
     # use the magic language instead.
     if language == 'ipython' \
-        and 'metadata' in cell \
-        and 'magics_language' in cell['metadata']:
+        and metadata \
+        and 'magics_language' in metadata:
 
-        language = cell['metadata']['magics_language']
+        language = metadata['magics_language']
 
     if language == 'ipython':
         lexer = IPythonLexer()
     else:
         lexer = get_lexer_by_name(language, stripall=True)
 
-    return pygements_highlight(cell['input'], lexer, output_formatter)
+    return pygements_highlight(source, lexer, output_formatter)

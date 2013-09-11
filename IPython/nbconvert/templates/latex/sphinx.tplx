@@ -284,7 +284,7 @@ Note: For best display, use latex syntax highlighting. =))
         \vspace{-25pt}
 
         % Add contents below.
-        ((( cell | highlight2latex )))
+        ((( cell.input | highlight2latex(metadata=cell.metadata) )))
 
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
         \vspace{6pt}
@@ -292,7 +292,7 @@ Note: For best display, use latex syntax highlighting. =))
         \vspace{-2.65\baselineskip}
         \begin{ColorVerbatim}
             \vspace{-0.7\baselineskip}
-            ((( cell | highlight2latex )))
+            ((( cell.input | highlight2latex(metadata=cell.metadata) )))
             ((* if cell.input == None or cell.input == '' *))
                 \vspace{0.3\baselineskip}
             ((* else *))

@@ -60,6 +60,6 @@ class TestHighlight(TestsBase):
 
     def _try_highlight(self, method, test, tokens):
         """Try highlighting source, look for key tokens"""
-        results = method({'input': test})
+        results = method(test)
         for token in tokens:
             assert token in results
