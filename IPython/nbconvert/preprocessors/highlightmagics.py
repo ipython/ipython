@@ -36,13 +36,17 @@ class HighlightMagicsPreprocessor(Preprocessor):
     """
 
     # list of magic language extensions and their associated pygment lexers
-    languages = Dict(
+    default_languages = Dict(
         default_value={
             '%%R': 'r',
             '%%bash': 'bash',
             '%%octave': 'octave',
             '%%perl': 'perl',
             '%%ruby': 'ruby'},
+        config=False)
+
+    # user defined language extensions
+    languages = Dict(
         config=True,
         help=("Syntax highlighting for magic's extension languages. "
          "Each item associates a language magic extension such as %%R, "
@@ -53,9 +57,12 @@ class HighlightMagicsPreprocessor(Preprocessor):
 
         super(HighlightMagicsPreprocessor, self).__init__(config=config, **kw)
 
+        # Update the default languages dict with the user configured ones
+        self.default_languages.update(self.languages)
+
         # build a regular expression to catch language extensions and choose
         # an adequate pygments lexer
-        any_language = "|".join(self.languages.keys())
+        any_language = "|".join(self.default_languages.keys())
         self.re_magic_language = re.compile(
             r'^\s*({0})\s+'.format(any_language))
 
@@ -76,8 +83,8 @@ class HighlightMagicsPreprocessor(Preprocessor):
         if m:
             # By construction of the re, the matched language must be in the
             # languages dictionnary
-            assert(m.group(1) in self.languages)
-            return self.languages[m.group(1)]
+            assert(m.group(1) in self.default_languages)
+            return self.default_languages[m.group(1)]
         else:
             return None
 
