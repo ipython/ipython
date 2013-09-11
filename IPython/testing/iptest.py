@@ -368,11 +368,14 @@ def run_iptest():
     warnings.filterwarnings('ignore',
         'This will be removed soon.  Use IPython.testing.util instead')
     
-    if sys.argv[1] in test_sections:
-        section = test_sections[sys.argv[1]]
+    arg1 = sys.argv[1]
+    if arg1 in test_sections:
+        section = test_sections[arg1]
+        sys.argv[1:2] = section.includes
+    elif arg1.startswith('IPython.') and arg1[8:] in test_sections:
+        section = test_sections[arg1[8:]]
         sys.argv[1:2] = section.includes
     else:
-        arg1 = sys.argv[1]
         section = TestSection(arg1, includes=[arg1])
         
 
