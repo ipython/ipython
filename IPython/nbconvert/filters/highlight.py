@@ -95,4 +95,4 @@ def _pygment_highlight(cell, output_formatter, language='ipython'):
     else:
         lexer = get_lexer_by_name(language, stripall=True)
 
-    return pygements_highlight(cell, lexer, output_formatter)
+    return pygements_highlight(cell['input'], lexer, output_formatter)
