@@ -31,6 +31,7 @@ var IPython = (function (IPython) {
     };
     
     WidgetManager.prototype.init_kernel = function (kernel) {
+        // connect the kernel, and register message handlers
         this.kernel = kernel;
         var msg_types = ['widget_create', 'widget_destroy', 'widget_update'];
         for (var i = 0; i < msg_types.length; i++) {
@@ -44,6 +45,20 @@ var IPython = (function (IPython) {
         this.widget_types[widget_type] = constructor;
     };
     
+    WidgetManager.prototype.register_widget = function (widget) {
+        // Register a widget in the mapping
+        this.widgets[widget.widget_id] = widget;
+        widget.kernel = this.kernel;
+        return widget.widget_id;
+    };
+    
+    WidgetManager.prototype.unregister_widget = function (widget_id) {
+        // Remove a widget from the mapping
+        delete this.widgets[widget_id];
+    };
+    
+    // widget message handlers
+    
     WidgetManager.prototype.widget_create = function (msg) {
         var content = msg.content;
         var constructor = this.widget_types[content.widget_type];
@@ -52,7 +67,10 @@ var IPython = (function (IPython) {
             console.log("Available widget types are: ", this.widget_types);
             return;
         }
-        var widget = new constructor(this.kernel, content);
+        var widget = new constructor(content.widget_id);
+        this.register_widget(widget);
+        widget.handle_create(content.data);
+        
         this.widgets[content.widget_id] = widget;
     };
     
@@ -79,12 +97,38 @@ var IPython = (function (IPython) {
     // Widget base class
     //-----------------------------------------------------------------------
     
-    var Widget = function (kernel, content) {
-        this.kernel = kernel;
-        if (!content) return;
-        this.widget_id = content.widget_id;
-        this.handle_create(content.data);
+    var Widget = function (widget_id) {
+        this.widget_id = widget_id;
+        this.widget_type = 'widget';
     };
+    
+    // methods for sending messages
+    Widget.prototype.create = function (data) {
+        var content = {
+            widget_id : this.widget_id,
+            widget_type : this.widget_type,
+            data : data || {},
+        };
+        this.kernel.send_shell_message("widget_create", content);
+    };
+    
+    Widget.prototype.update = function (data) {
+        var content = {
+            widget_id : this.widget_id,
+            data : data || {},
+        };
+        this.kernel.send_shell_message("widget_update", content);
+    };
+    
+    Widget.prototype.destroy = function (data) {
+        var content = {
+            widget_id : this.widget_id,
+            data : data || {},
+        };
+        this.kernel.send_shell_message("widget_destroy", content);
+    };
+    
+    // methods for handling incoming messages
     
     Widget.prototype.handle_create = function (data) {
     };
@@ -93,23 +137,6 @@ var IPython = (function (IPython) {
     };
     
     Widget.prototype.handle_destroy = function (data) {
-    };
-    
-    Widget.prototype.update = function (data) {
-        var content = {
-            widget_id : this.widget_id,
-            data : data,
-        };
-        this.kernel.send_shell_message("widget_update", content);
-    };
-    
-    
-    Widget.prototype.destroy = function (data) {
-        var content = {
-            widget_id : this.widget_id,
-            data : data,
-        };
-        this.kernel.send_shell_message("widget_destroy", content);
     };
     
     IPython.WidgetManager = WidgetManager;
