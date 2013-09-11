@@ -40,9 +40,14 @@ class HighlightMagicsPreprocessor(Preprocessor):
         default_value={
             '%%R': 'r',
             '%%bash': 'bash',
+            '%%cython': 'cython',
+            '%%javascript': 'javascript',
+            '%%julia': 'julia',
+            '%%latex': 'latex',
             '%%octave': 'octave',
             '%%perl': 'perl',
-            '%%ruby': 'ruby'},
+            '%%ruby': 'ruby',
+            '%%sh': 'sh'},
         config=False)
 
     # user defined language extensions
