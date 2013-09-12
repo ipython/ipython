@@ -49,7 +49,7 @@ from IPython.utils.warn import error
 from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
-from IPython.kernel.widgets import WidgetManager
+from IPython.kernel.comm import CommManager
 from session import Session
 
 #-----------------------------------------------------------------------------
@@ -596,8 +596,8 @@ class ZMQInteractiveShell(InteractiveShell):
         self.magics_manager.register_alias('ed', 'edit')
     
     def init_widgets(self):
-        self.widget_manager = WidgetManager(shell=self, parent=self)
-        self.configurables.append(self.widget_manager)
+        self.comm_manager = CommManager(shell=self, parent=self)
+        self.configurables.append(self.comm_manager)
 
 
 InteractiveShellABC.register(ZMQInteractiveShell)

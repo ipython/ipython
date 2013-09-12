@@ -68,7 +68,7 @@ function (marked) {
     IPython.tooltip = new IPython.Tooltip()
     IPython.notification_area = new IPython.NotificationArea('#notification_area')
     IPython.notification_area.init_notification_widgets();
-    IPython.widget_manager = new IPython.WidgetManager();
+    IPython.comm_manager = new IPython.CommManager();
 
     IPython.layout_manager.do_resize();
 
@@ -95,7 +95,7 @@ function (marked) {
         }
         IPython.notebook.set_autosave_interval(IPython.notebook.minimum_autosave_interval);
         // only do this once
-        IPython.widget_manager.init_kernel(IPython.notebook.kernel);
+        IPython.comm_manager.init_kernel(IPython.notebook.kernel);
         $([IPython.events]).off('notebook_loaded.Notebook', first_load);
     };
     

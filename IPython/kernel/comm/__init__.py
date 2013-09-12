@@ -1,2 +1,2 @@
 from .manager import *
-from .widget import *
+from .comm import *
