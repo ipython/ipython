@@ -29,7 +29,7 @@ from IPython.nbformat.v3 import (
     nbformat_minor,
 )
 
-import .reader
+import reader
 from .convert import convert
 
 #-----------------------------------------------------------------------------
