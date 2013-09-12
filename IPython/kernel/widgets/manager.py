@@ -106,6 +106,7 @@ class WidgetManager(LoggingConfigurable):
                     shell=self.shell,
                     iopub_socket=self.iopub_socket,
                     _create_data=content['data'],
+                    primary=False,
         )
         self.register_widget(widget)
     

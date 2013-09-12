@@ -48,7 +48,7 @@ class Widget(LoggingConfigurable):
     def _widget_id_default(self):
         return uuid.uuid4().hex
     
-    primary = Bool(False, help="Am I the primary or secondary Widget?")
+    primary = Bool(True, help="Am I the primary or secondary Widget?")
     
     def __init__(self, **kwargs):
         super(Widget, self).__init__(**kwargs)
