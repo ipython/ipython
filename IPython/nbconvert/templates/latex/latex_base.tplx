@@ -162,7 +162,7 @@ This template does not define a docclass, the inheriting class must define this.
     ((* elif cell.level == 6 -*))
         ((* block h6 -*))\\*\textit((* endblock h6 -*))
     ((*- endif -*))
-    {((( cell.source | replace('\n', ' ') | citation2latex )))}
+    {((( cell.source | replace('\n', ' ') | citation2latex | markdown2latex )))}
 
 ((* endblock headingcell *))
 
