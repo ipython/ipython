@@ -86,8 +86,7 @@ class HighlightMagicsPreprocessor(Preprocessor):
 
         if m:
             # By construction of the re, the matched language must be in the
-            # languages dictionnary
-            assert(m.group(1) in self.default_languages)
+            # languages dictionary
             return self.default_languages[m.group(1)]
         else:
             return None
