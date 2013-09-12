@@ -20,4 +20,4 @@ from .nbjson import reads as reads_json, writes as writes_json
 from .nbjson import reads as read_json, writes as write_json
 from .nbjson import to_notebook as to_notebook_json
 
-from .convert import downgrade, upgrade
+from .convert import upgrade

@@ -18,9 +18,15 @@ Authors:
 
 import json
 
-versions = {}
-for i in range(3):
-    versions[i+1] = __import__('v{0}'.format(i+1))
+import v1
+import v2
+import v3
+
+versions = {
+    1: v1,
+    2: v2,
+    3: v3,
+    }
 
 #-----------------------------------------------------------------------------
 # Code
@@ -76,7 +82,7 @@ def reads(s, format='ipynb', **kwargs):
     nb_dict = parse_json(s, **kwargs)
     (major, minor) = get_version(nb_dict)
     if major in versions:
-        return versions[major].to_notebook_json(nb, minor=minor)
+        return versions[major].to_notebook_json(nb_dict, minor=minor)
     else:
         raise NBFormatError('Unsupported nbformat version %s' % major)
 

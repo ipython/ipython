@@ -62,7 +62,7 @@ def parse_py(s, **kwargs):
 
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
-    return convert(reader.reads(nb), current_nbformat)
+    return convert(reader.reads(s), current_nbformat)
 
 
 def writes_json(nb, **kwargs):
