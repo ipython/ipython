@@ -39,7 +39,7 @@ __all__ = [
     'highlight2latex'
 ]
 
-def highlight2html(source, metadata=None, language='ipython'):
+def highlight2html(source, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source as html output.
 
@@ -47,16 +47,16 @@ def highlight2html(source, metadata=None, language='ipython'):
     ----------
     source : str
         source of the cell to highlight.
-    metadata : NotebookNode cell metadata
-        metadata of the cell to highlight.
     language : str
         Language to highlight the syntax of.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     """
 
-    return _pygment_highlight(source, HtmlFormatter(), metadata, language)
+    return _pygment_highlight(source, HtmlFormatter(), language, metadata)
 
 
-def highlight2latex(source, metadata=None, language='ipython'):
+def highlight2latex(source, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source as latex output.
 
@@ -64,16 +64,16 @@ def highlight2latex(source, metadata=None, language='ipython'):
     ----------
     source : str
         source of the cell to highlight.
-    metadata : NotebookNode cell metadata
-        metadata of the cell to highlight.
     language : str
         Language to highlight the syntax of.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     """
-    return _pygment_highlight(source, LatexFormatter(), metadata, language)
+    return _pygment_highlight(source, LatexFormatter(), language, metadata)
 
 
 
-def _pygment_highlight(source, output_formatter, metadata=None, language='ipython'):
+def _pygment_highlight(source, output_formatter, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source
 
@@ -82,10 +82,10 @@ def _pygment_highlight(source, output_formatter, metadata=None, language='ipytho
     source : str
         source of the cell to highlight.
     output_formatter : Pygments formatter
-    metadata : NotebookNode cell metadata
-        metadata of the cell to highlight.
     language : str
         Language to highlight the syntax of.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     """
 
     # If the cell uses a magic extension language,
