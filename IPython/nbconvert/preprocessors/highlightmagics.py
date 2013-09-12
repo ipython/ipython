@@ -47,8 +47,7 @@ class HighlightMagicsPreprocessor(Preprocessor):
             '%%octave': 'octave',
             '%%perl': 'perl',
             '%%ruby': 'ruby',
-            '%%sh': 'sh'},
-        config=False)
+            '%%sh': 'sh'})
 
     # user defined language extensions
     languages = Dict(
