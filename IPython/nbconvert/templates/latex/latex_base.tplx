@@ -56,6 +56,10 @@ This template does not define a docclass, the inheriting class must define this.
     % exist.
     \def\br{\hspace*{\fill} \\* }
 
+    % Math Jax compatability definitions
+    \def\gt{<}
+    \def\lt{<}
+
     % Document parameters
     ((* block title *))\title{((( resources.metadata.name | escape_latex )))}((* endblock title *))
     ((* block date *))((* endblock date *))
