@@ -1062,14 +1062,17 @@ Widget Messages
 ===============
 
 IPython 2.0 adds interactive widgets, and a few messages associated with their management.
+Widget messages are fully symmetrical - both the Kernel and the Frontend can send each message,
+and no messages expect a reply.
+The Kernel listens for these messages on the Shell channel,
+and the Frontend listens for them on the IOPub channel.
 
 .. versionadded:: 2.0
 
 Widget Creation
 ---------------
 
-Creating a widget is always done on the Kernel side.
-Creating a widget produces a ``widget_create`` message on the IOPub channel::
+Creating a widget produces a ``widget_create`` message, to be sent to the other side::
 
     {
       'widget_id' : 'u-u-i-d',
@@ -1077,19 +1080,21 @@ Creating a widget produces a ``widget_create`` message on the IOPub channel::
       'data' : {}
     }
 
-Every widget has an ID and a type identifier (class).
-The ``data`` key can be any extra JSON information used in initialization of the widget.
+Every widget has an ID and a type identifier.
+The code handling the message on the receiving side is responsible for maintaining a mapping
+of widget_type keys to constructors.
+After a ``widget_create`` message has been sent,
+there should be a corresponding Widget instance on both sides.
+The ``data`` key is always a dict and can be any extra JSON information used in initialization of the widget.
 
 Updating Widgets
 ----------------
 
 Widget updates are one-way communications to update widget state,
-either on the Kernel or the frontend side. Both sides can send these messages.
+used for synchronizing state, or simply requesting actions of a widget's counterpart.
 
-Essentially, widgets define their own message specification implemented inside the ``data`` key.
+Essentially, each widget pair defines their own message specification implemented inside the ``data`` dict.
 
-The kernel sends these messages on the IOPub channel,
-and the frontend sends them on the Shell channel.
 There are no expected replies (of course, one side can send another ``widget_update`` in reply).
 
 Message type: ``widget_update``::
@@ -1103,8 +1108,7 @@ Tearing Down Widgets
 --------------------
 
 Since widgets live on both sides, when a widget is destroyed the other side must be notified.
-This is done with a ``widget_destroy`` message,
-which can come from either side via IOPub or Shell.
+This is done with a ``widget_destroy`` message.
 
 Message type: ``widget_destroy``::
 
