@@ -3,6 +3,7 @@
 Authors:
 
 * Brian Granger
+* Jonathan Frederic
 """
 
 #-----------------------------------------------------------------------------
@@ -17,13 +18,9 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function
-import json
+
 from xml.etree import ElementTree as ET
 import re
-
-from IPython.nbformat import v3
-from IPython.nbformat import v2
-from IPython.nbformat import v1
 
 from IPython.nbformat.v3 import (
     NotebookNode,
@@ -31,6 +28,9 @@ from IPython.nbformat.v3 import (
     parse_filename, new_metadata, new_author, new_heading_cell, nbformat,
     nbformat_minor,
 )
+
+import reader
+from .convert import convert
 
 #-----------------------------------------------------------------------------
 # Code
@@ -42,20 +42,6 @@ current_nbformat_minor = nbformat_minor
 
 class NBFormatError(ValueError):
     pass
-
-class NotJSONError(ValueError):
-    pass
-
-
-def parse_json(s, **kwargs):
-    """Parse a string into a (nbformat, dict) tuple."""
-    try:
-        d = json.loads(s, **kwargs)
-    except ValueError:
-        raise NotJSONError("Notebook does not appear to be JSON: %r" % s[:16])
-    nbf = d.get('nbformat', 1)
-    nbm = d.get('nbformat_minor', 0)
-    return nbf, nbm, d
 
 
 def parse_py(s, **kwargs):
@@ -76,39 +62,26 @@ def parse_py(s, **kwargs):
 
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
-    nbf, minor, d = parse_json(s, **kwargs)
-    if nbf == 1:
-        nb = v1.to_notebook_json(d, **kwargs)
-        nb = v3.convert_to_this_nbformat(nb, orig_version=1)
-    elif nbf == 2:
-        nb = v2.to_notebook_json(d, **kwargs)
-        nb = v3.convert_to_this_nbformat(nb, orig_version=2)
-    elif nbf == 3:
-        nb = v3.to_notebook_json(d, **kwargs)
-        nb = v3.convert_to_this_nbformat(nb, orig_version=3, orig_minor=minor)
-    else:
-        raise NBFormatError('Unsupported JSON nbformat version %s (supported version: %i)' % (nbf, 3))
-    return nb
+    return convert(reader.reads(nb), current_nbformat)
 
 
 def writes_json(nb, **kwargs):
-    return v3.writes_json(nb, **kwargs)
+    return reader.versions[current_nbformat].writes_json(nb, **kwargs)
 
 
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
     nbf, nbm, s = parse_py(s, **kwargs)
-    if nbf == 2:
-        nb = v2.to_notebook_py(s, **kwargs)
-    elif nbf == 3:
-        nb = v3.to_notebook_py(s, **kwargs)
+    if nbf == 2 or nbf == 3:
+        nb = reader.versions[nbf].to_notebook_py(s, **kwargs)
     else:
         raise NBFormatError('Unsupported PY nbformat version: %i' % nbf)
     return nb
 
 
 def writes_py(nb, **kwargs):
-    return v3.writes_py(nb, **kwargs)
+    # nbformat 3 is the latest format that supports py
+    return reader.versions[3].writes_py(nb, **kwargs)
 
 
 # High level API

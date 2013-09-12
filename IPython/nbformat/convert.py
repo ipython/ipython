@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2013  The IPython Development Team
+#  Copyright (C) 2013  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -18,51 +18,56 @@ Authors:
 
 import re
 
-import IPython.nbformat as nbformat
-
-#-----------------------------------------------------------------------------
-# Constants
-#-----------------------------------------------------------------------------
-
-# Get the convert modules for each major revision.
-VERSION_REGEX = re.compile("v[0-9]+")
-version_modules = {}
-for module in dir(nbformat):
-    if VERSION_REGEX.match(module):
-        version_modules[int(module[1:])] = eval('nbformat.' + module + '.convert')
-
-# Get the number of minor versions in each major version and create an ordered
-# list.
-versions = []
-for major in version_modules.keys().sort():
-    current_minor = 0
-    if hasattr(version_modules[major], 'nbformat_minor'):
-        current_minor = version_modules[major].nbformat_minor
-
-    for minor in range(0, current_minor + 1):
-        versions.append((major, minor))
+from .reader import get_version, versions
 
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
 
-def convert(nb, to_major, to_minor=0):
-    """Convert a notebook node object to a specific version"""
+def convert(nb, to_version):
+    """Convert a notebook node object to a specific version.  Assumes that
+    all the versions starting from 1 to the latest major X are implemented.
+    In other words, there should never be a case where v1 v2 v3 v5 exist without
+    a v4.  Also assumes that all conversions can be made in one step increments
+    between major versions and ignores minor revisions.
+
+    PARAMETERS:
+    -----------
+    nb : NotebookNode
+    to_version : int
+        Major revision to convert the notebook to.  Can either be an upgrade or
+        a downgrade.
+    """
 
     # Get input notebook version.
-    major = nb.get('nbformat', 1)
-    minor = nb.get('nbformat_minor', 0) # v3+
+    (version, version_minor) = get_version(nb)
+    version_numbers = versions.keys()
 
     # Check if destination is current version, if so return contents
-    if to_major == major and to_minor == minor:
+    if version == to_version:
         return nb
-    elif (to_major, to_minor) in versions:
-        index = versions.indexof((major, minor))
 
-        if to_major > major or (to_major == major and to_minor > minor):
-            to_index = index + 1
+    # If the version exist, try to convert to it one step at a time.
+    elif to_version in version_numbers:
+
+        # Get the the version that this recursion will convert to as a step 
+        # closer to the final revision.  Make sure the newer of the conversion
+        # functions is used to perform the conversion.
+        if to_version > version:
+            step_version = version + 1
+            convert_function = versions[step_version].upgrade
         else:
-            to_index = index - 1
+            step_version = version - 1
+            convert_function = versions[version].downgrade
 
+        # Convert and make sure version changed during conversion.
+        converted = convert_function(nb) #todo
+        if converted.get('nbformat', 1) == version:
+            raise Exception("Cannot convert notebook from v%d to v%d.  Operation" \
+                "failed silently." % (major, step_version))
+
+        # Recuresively convert until target version is reached.
+        return convert(converted, to_version)
     else:
-        raise Exception("Cannot convert notebook to v%d.%d because that version doesn't exist" % (to_major, to_minor))
+        raise Exception("Cannot convert notebook to v%d because that " \
+                        "version doesn't exist" % (to_version))
