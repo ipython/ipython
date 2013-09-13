@@ -293,6 +293,8 @@ def make_exclude():
 
     if not have['tornado']:
         exclusions.append(ipjoin('html'))
+        exclusions.append(ipjoin('nbconvert', 'post_processors', 'serve'))
+        exclusions.append(ipjoin('nbconvert', 'post_processors', 'tests', 'test_serve'))
 
     if not have['jinja2']:
         exclusions.append(ipjoin('html', 'notebookapp'))
