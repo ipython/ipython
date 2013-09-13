@@ -52,7 +52,7 @@ def markdown2latex(source):
 
 def markdown2html(source):
     """Convert a markdown string to HTML via pandoc"""
-    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax --no-wrap'])
+    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax', '--no-wrap'])
 
 def markdown2rst(source):
     """Convert a markdown string to LaTeX via pandoc.
