@@ -482,6 +482,22 @@ var IPython = (function (IPython) {
         return data;
     };
 
+    /**
+     * can the cell be split into two cells
+     * @method is_splittable
+     **/
+    HeadingCell.prototype.is_splittable = function () {
+        return false;
+    };
+
+
+    /**
+     * can the cell be merged with other cells
+     * @method is_mergeable
+     **/
+    HeadingCell.prototype.is_mergeable = function () {
+        return false;
+    };
 
     /**
      * Change heading level of cell, and re-render

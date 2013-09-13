@@ -207,10 +207,19 @@ var IPython = (function (IPython) {
 
 
     /**
-     * can the cell be splitted in 2 cells.
+     * can the cell be split into two cells
      * @method is_splittable
      **/
     Cell.prototype.is_splittable = function () {
+        return true;
+    };
+
+
+    /**
+     * can the cell be merged with other cells
+     * @method is_mergeable
+     **/
+    Cell.prototype.is_mergeable = function () {
         return true;
     };
 
