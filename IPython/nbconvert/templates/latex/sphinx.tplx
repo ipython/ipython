@@ -278,20 +278,18 @@ Note: For best display, use latex syntax highlighting. =))
     ((* if resources.sphinx.outputstyle == 'simple' *))
 
         % Add a horizantal break, along with break title.
-        \vspace{10pt}
+        \vspace{1em}
         {\scriptsize Input}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
+        \rule[1em]{\linewidth}{0.5em}
+        %\vspace{-25pt}
 
         % Add contents below.
         ((( cell.input | highlight2latex )))
 
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        \vspace{6pt}
         ((( write_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
-        \vspace{-2.65\baselineskip}
+        \vspace{-2.6em}
         \begin{ColorVerbatim}
-            \vspace{-0.7\baselineskip}
             ((( cell.input | highlight2latex )))
             ((* if cell.input == None or cell.input == '' *))
                 \vspace{0.3\baselineskip}
@@ -318,10 +316,10 @@ Note: For best display, use latex syntax highlighting. =))
         ((* if resources.sphinx.outputstyle == 'simple' *))
 
             % Add a horizantal break, along with break title.
-            \vspace{10pt}
+            \vspace{1em}
             {\scriptsize Output}\\*
             \rule[10pt]{\linewidth}{0.5pt}
-            \vspace{-20pt}
+            \vspace{-2em}
 
             % Add the contents of the first block.
             ((( render_output(cell.outputs[0]) )))
@@ -405,7 +403,9 @@ Note: For best display, use latex syntax highlighting. =))
         ((* if resources.sphinx.outputstyle == 'notebook' *))
             ((*- if output.output_type == 'pyout' -*))
                 ((( write_prompt("Out", prompt_number, "nbframe-out-prompt") )))
-                \vspace{-2.55\baselineskip}
+                \vspace{-1.6em}
+            ((*- elif output.output_type == 'stream' -*))
+                \vspace{0.5em}
             ((*- endif -*))
 
             \begin{InvisibleVerbatim}
