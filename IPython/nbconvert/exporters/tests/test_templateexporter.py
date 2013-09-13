@@ -1,5 +1,5 @@
 """
-Module with tests for exporter.py
+Module with tests for templateexporter.py
 """
 
 #-----------------------------------------------------------------------------
@@ -31,14 +31,14 @@ class TestExporter(ExportersTestsBase):
 
     def test_constructor(self):
         """
-        Can an TemplateExporter be constructed?
+        Can a TemplateExporter be constructed?
         """
         TemplateExporter()
 
 
     def test_export(self):
         """
-        Can an Exporter export something?
+        Can a TemplateExporter export something?
         """
         exporter = self._make_exporter()
         (output, resources) = exporter.from_filename(self._get_notebook())
@@ -102,7 +102,7 @@ class TestExporter(ExportersTestsBase):
 
 
     def _make_exporter(self, config=None):
-        #Create the exporter instance, make sure to set a template name since
-        #the base Exporter doesn't have a template associated with it.
+        # Create the exporter instance, make sure to set a template name since
+        # the base TemplateExporter doesn't have a template associated with it.
         exporter = TemplateExporter(config=config, template_file='python')
         return exporter        
