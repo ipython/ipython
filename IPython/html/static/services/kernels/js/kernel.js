@@ -119,7 +119,6 @@ var IPython = (function (IPython) {
         this.ws_url = ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
-        $([IPython.events]).trigger('status_started.Kernel', {kernel: this});
     };
 
 
@@ -144,11 +143,7 @@ var IPython = (function (IPython) {
         this.shell_channel = new this.WebSocket(ws_url + "/shell");
         this.stdin_channel = new this.WebSocket(ws_url + "/stdin");
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
-        send_cookie = function(){
-            // send the session id so the Session object Python-side
-            // has the same identity
-            this.send(that.session_id + ':' + document.cookie);
-        };
+        
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
             if (already_called_onclose){
@@ -170,7 +165,7 @@ var IPython = (function (IPython) {
         };
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
-            channels[i].onopen = send_cookie;
+            channels[i].onopen = $.proxy(this._ws_opened, this);
             channels[i].onclose = ws_closed_early;
         }
         // switch from early-close to late-close message after 1s
@@ -187,7 +182,27 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Stop the `shell`and `iopub` channels.
+     * Handle a websocket entering the open state
+     * sends session and cookie authentication info as first message.
+     * Once all sockets are open, signal the Kernel.status_started event.
+     * @method _ws_opened
+     */
+    Kernel.prototype._ws_opened = function (evt) {
+        // send the session id so the Session object Python-side
+        // has the same identity
+        evt.target.send(this.session_id + ':' + document.cookie);
+        
+        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
+        for (var i=0; i < channels.length; i++) {
+            // if any channel is not ready, don't trigger event.
+            if ( !channels[i].readyState ) return;
+        }
+        // all events ready, trigger started event.
+        $([IPython.events]).trigger('status_started.Kernel', {kernel: this});
+    };
+    
+    /**
+     * Stop the websocket channels.
      * @method stop_channels
      */
     Kernel.prototype.stop_channels = function () {
