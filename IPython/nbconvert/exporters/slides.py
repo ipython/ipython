@@ -47,6 +47,9 @@ class SlidesExporter(TemplateExporter):
             'RevealHelpPreprocessor':{
                 'enabled':True,
                 },                
+            'HighlightMagicsPreprocessor': {
+                'enabled':True
+                }
             })
         c.merge(super(SlidesExporter,self).default_config)
         return c
