@@ -112,7 +112,7 @@ class CommManager(LoggingConfigurable):
         )
         if callback is None:
             self.log.error("No such comm target registered: %s", target)
-            comm.destroy()
+            comm.close()
             return
         callback(comm)
         self.register_comm(comm)
