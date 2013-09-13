@@ -1175,8 +1175,14 @@ var IPython = (function (IPython) {
     Notebook.prototype.merge_cell_above = function () {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
+        if (!cell.is_mergeable()) {
+            return;
+        }
         if (index > 0) {
             var upper_cell = this.get_cell(index-1);
+            if (!upper_cell.is_mergeable()) {
+                return;
+            }
             var upper_text = upper_cell.get_text();
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
@@ -1199,8 +1205,14 @@ var IPython = (function (IPython) {
     Notebook.prototype.merge_cell_below = function () {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
+        if (!cell.is_mergeable()) {
+            return;
+        }
         if (index < this.ncells()-1) {
             var lower_cell = this.get_cell(index+1);
+            if (!lower_cell.is_mergeable()) {
+                return;
+            }
             var lower_text = lower_cell.get_text();
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
