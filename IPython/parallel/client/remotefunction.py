@@ -89,7 +89,6 @@ def sync_view_results(f, self, *args, **kwargs):
     view = self.view
     if view._in_sync_results:
         return f(self, *args, **kwargs)
-    print 'in sync results', f
     view._in_sync_results = True
     try:
         ret = f(self, *args, **kwargs)

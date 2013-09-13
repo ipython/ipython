@@ -172,7 +172,6 @@ class TestClient(ClusterTestCase):
         # give the monitor time to notice the message
         time.sleep(.25)
         ahr = self.client.get_result(ar.msg_ids[0])
-        print ar.get(), ahr.get(), ar._single_result, ahr._single_result
         self.assertTrue(isinstance(ahr, AsyncHubResult))
         self.assertEqual(ahr.get().pyout, ar.get().pyout)
         ar2 = self.client.get_result(ar.msg_ids[0])
