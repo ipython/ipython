@@ -1936,7 +1936,6 @@ class InteractiveShell(SingletonConfigurable):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     #alias_table=self.alias_manager.alias_table,
                                      use_readline=self.has_readline,
                                      parent=self,
                                      )
