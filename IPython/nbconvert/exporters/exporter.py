@@ -46,12 +46,10 @@ class ResourcesDict(collections.defaultdict):
 
 class Exporter(LoggingConfigurable):
     """
-    Exporter class that only converts from notebook to notebook
-    by applying the preprocessors and providing basic methods for
-    reading a notebook from different sources.
+    Class containing methods that sequentially run a list of preprocessors on a 
+    NotebookNode object and then return the modified NotebookNode object and 
+    accompanying resources dict.
     """
-
-    # finish the docstring
 
     file_extension = Unicode(
         'txt', config=True,
@@ -108,7 +106,7 @@ class Exporter(LoggingConfigurable):
         super(Exporter, self)._config_changed(name, old, c)
 
 
-    def from_notebook_node(self, nb, resources=None):
+    def from_notebook_node(self, nb, resources=None, **kw):
         """
         Convert a notebook from a notebook node instance.
 
@@ -123,7 +121,7 @@ class Exporter(LoggingConfigurable):
         resources = self._init_resources(resources)
 
         # Preprocess
-        nb_copy, resources = self._transform(nb_copy, resources)
+        nb_copy, resources = self._preprocess(nb_copy, resources)
 
         return nb_copy, resources
 
@@ -169,7 +167,7 @@ class Exporter(LoggingConfigurable):
     def register_preprocessor(self, preprocessor, enabled=False):
         """
         Register a preprocessor.
-        preprocessors are classes that act upon the notebook before it is
+        Preprocessors are classes that act upon the notebook before it is
         passed into the Jinja templating engine.  preprocessors are also
         capable of passing additional information to the Jinja
         templating engine.
@@ -256,7 +254,7 @@ class Exporter(LoggingConfigurable):
         return resources
 
 
-    def _transform(self, nb, resources):
+    def _preprocess(self, nb, resources):
         """
         Preprocess the notebook before passing it into the Jinja engine.
         To preprocess the notebook is to apply all of the
