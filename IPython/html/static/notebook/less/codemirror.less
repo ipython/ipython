@@ -22,7 +22,7 @@
     overflow-x: auto;
 }
 
-@-moz-document {
+@-moz-document url-prefix() {
   /* Firefox does weird and terrible things (#3549) when overflow-x is auto */
   /* It doesn't respect the overflow setting anyway, so we can workaround it with this */
   .CodeMirror-scroll {
