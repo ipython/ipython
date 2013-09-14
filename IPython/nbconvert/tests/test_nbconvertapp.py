@@ -103,6 +103,20 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook1.tex')
             assert os.path.isfile('notebook1.pdf')
 
+    @dec.onlyif_cmds_exist('pandoc')
+    def test_spurious_cr(self):
+        """Check for extra CR characters"""
+        with self.create_temp_cwd(['notebook2.ipynb']):
+            self.call('nbconvert --log-level 0 --to latex notebook2')
+            assert os.path.isfile('notebook2.tex')
+            with open('notebook2.tex') as f:
+                tex = f.read()
+            self.call('nbconvert --log-level 0 --to html notebook2')
+            assert os.path.isfile('notebook2.html')
+            with open('notebook2.html') as f:
+                html = f.read()
+        self.assertEqual(tex.count('\r'), tex.count('\r\n'))
+        self.assertEqual(html.count('\r'), html.count('\r\n'))
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_png_base64_html_ok(self):
@@ -113,7 +127,6 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook2.html')
             with open('notebook2.html') as f:
                 assert "data:image/png;base64,b'" not in f.read()
-
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_template(self):
