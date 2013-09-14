@@ -70,6 +70,7 @@ from setupbase import (
     update_submodules,
     require_submodules,
     UpdateSubmodules,
+    CompileCSS,
 )
 from setupext import setupext
 
@@ -236,6 +237,7 @@ setup_args['cmdclass'] = {
     'sdist' : git_prebuild('IPython', sdist),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
+    'css' : CompileCSS,
 }
 
 #---------------------------------------------------------------------------
