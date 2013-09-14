@@ -167,8 +167,8 @@ var IPython = (function (IPython) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-        if (this._hidden === false) {
-          if (this._sticky == false || force == true) {
+        if (!this._hidden) {
+          if (force || !this._sticky) {
               this.cancel_stick();
               this._hide();
           }
