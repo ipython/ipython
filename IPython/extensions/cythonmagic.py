@@ -4,8 +4,17 @@
 Cython related magics
 =====================
 
+Magic command interface for interactive work with Cython
+
+.. note::
+
+  The ``Cython`` package needs to be installed separately. It
+  can be obtained using ``easy_install`` or ``pip``.
+
 Usage
 =====
+
+To enable the magics below, execute ``%load_ext cythonmagic``.
 
 ``%%cython``
 

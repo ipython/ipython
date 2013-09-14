@@ -6,8 +6,17 @@ Rmagic
 
 Magic command interface for interactive work with R via rpy2
 
+.. note::
+
+  The ``rpy2`` package needs to be installed separately. It
+  can be obtained using ``easy_install`` or ``pip``.
+
+  You will also need a working copy of R.
+
 Usage
 =====
+
+To enable the magics below, execute ``%load_ext rmagic``.
 
 ``%R``
 
