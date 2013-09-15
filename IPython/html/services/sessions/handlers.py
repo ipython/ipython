@@ -47,15 +47,15 @@ class SessionRootHandler(IPythonHandler):
         km = self.kernel_manager
         model = self.get_json_body()
         if model is None:
-            raise HTTPError(400, "No JSON data provided")
+            raise web.HTTPError(400, "No JSON data provided")
         try:
             name = model['notebook']['name']
         except KeyError:
-            raise HTTPError(400, "Missing field in JSON data: name")
+            raise web.HTTPError(400, "Missing field in JSON data: name")
         try:
             path = model['notebook']['path']
         except KeyError:
-            raise HTTPError(400, "Missing field in JSON data: path")
+            raise web.HTTPError(400, "Missing field in JSON data: path")
         # Check to see if session exists
         if sm.session_exists(name=name, path=path):
             model = sm.get_session(name=name, path=path)

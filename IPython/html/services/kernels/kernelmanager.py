@@ -66,16 +66,19 @@ class MappingKernelManager(MultiKernelManager):
                 'dead',
             )
         else:
+            self._check_kernel_id(kernel_id)
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
 
     def shutdown_kernel(self, kernel_id, now=False):
         """Shutdown a kernel by kernel_id"""
+        self._check_kernel_id(kernel_id)
         super(MappingKernelManager, self).shutdown_kernel(kernel_id, now=now)
 
     def kernel_model(self, kernel_id, ws_url):
         """Return a dictionary of kernel information described in the
         JSON standard model."""
+        self._check_kernel_id(kernel_id)
         model = {"id":kernel_id, "ws_url": ws_url}
         return model
 
