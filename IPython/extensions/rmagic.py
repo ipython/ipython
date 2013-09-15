@@ -434,12 +434,12 @@ class RMagics(Magics):
         is printed if it would printed be when evaluating the same code 
         within a standard R REPL.
         
-        Nothing is returned to python by default in cell mode.
+        Nothing is returned to python by default in cell mode::
 
             In [10]: %%R
                ....: Y = c(2,4,3,9)
                ....: summary(lm(Y~X))
-       
+
             Call:
             lm(formula = Y ~ X)
 
@@ -456,9 +456,9 @@ class RMagics(Magics):
             Multiple R-squared: 0.6993,Adjusted R-squared: 0.549
             F-statistic: 4.651 on 1 and 2 DF,  p-value: 0.1638
 
-        In the notebook, plots are published as the output of the cell.
+        In the notebook, plots are published as the output of the cell::
 
-        %R plot(X, Y)
+            %R plot(X, Y)
 
         will create a scatter plot of X bs Y.
 
@@ -484,19 +484,19 @@ class RMagics(Magics):
         * If the cell is not None, the magic returns None.
 
         * If the cell evaluates as False, the resulting value is returned
-        unless the final line prints something to the console, in
-        which case None is returned.
+          unless the final line prints something to the console, in
+          which case None is returned.
 
         * If the final line results in a NULL value when evaluated
-        by rpy2, then None is returned.
+          by rpy2, then None is returned.
 
         * No attempt is made to convert the final value to a structured array.
-        Use the --dataframe flag or %Rget to push / return a structured array.
+          Use the --dataframe flag or %Rget to push / return a structured array.
 
         * If the -n flag is present, there is no return value.
 
         * A trailing ';' will also result in no return value as the last
-        value in the line is an empty string.
+          value in the line is an empty string.
 
         The --dataframe argument will attempt to return structured arrays. 
         This is useful for dataframes with
