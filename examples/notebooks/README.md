@@ -23,7 +23,7 @@ programming to advanced topics in scientific computing.
 * [Octave Magic](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Octave%20Magic.ipynb)
 * [Part 1 - Running Code](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Part%201%20-%20Running%20Code.ipynb)
 * [Part 2 - Basic Output](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Part%202%20-%20Basic%20Output.ipynb)
-* [Part 3 - Pylab and Matplotlib](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Part%203%20-%20Pylab%20and%20Matplotlib.ipynb)
+* [Part 3 - Matplotlib](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Part%203%20-%20Plotting%20with%20Matplotlib.ipynb)
 * [Part 4 - Markdown Cells](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Part%204%20-%20Markdown%20Cells.ipynb)
 * [Part 5 - Rich Display System](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Part%205%20-%20Rich%20Display%20System.ipynb)
 * [Progress Bars](http://nbviewer.ipython.org/url/github.com/ipython/ipython/raw/master/examples/notebooks/Progress%20Bars.ipynb)
