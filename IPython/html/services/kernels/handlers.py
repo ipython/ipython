@@ -45,7 +45,8 @@ class MainKernelHandler(IPythonHandler):
         km = self.kernel_manager
         kernel_id = km.start_kernel()
         model = km.kernel_model(kernel_id, self.ws_url)
-        self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
+        self.set_header('Location', '{0}api/kernels/{1}'.format(self.base_kernel_url, kernel_id))
+        self.set_status(201)
         self.finish(jsonapi.dumps(model))
 
 
@@ -57,6 +58,7 @@ class KernelHandler(IPythonHandler):
     @json_errors
     def get(self, kernel_id):
         km = self.kernel_manager
+        km._check_kernel_id(kernel_id)
         model = km.kernel_model(kernel_id, self.ws_url)
         self.finish(jsonapi.dumps(model))
 
