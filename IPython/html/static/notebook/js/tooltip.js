@@ -161,16 +161,23 @@ var IPython = (function (IPython) {
         this.code_mirror = null;
     }
 
+    // return true on successfully removing a visible tooltip; otherwise return
+    // false.
     Tooltip.prototype.remove_and_cancel_tooltip = function (force) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-        if (this._sticky == false || force == true) {
-            this.cancel_stick();
-            this._hide();
+        if (!this._hidden) {
+          if (force || !this._sticky) {
+              this.cancel_stick();
+              this._hide();
+          }
+          this.cancel_pending();
+          this.reset_tabs_function();
+          return true;
+        } else {
+          return false;
         }
-        this.cancel_pending();
-        this.reset_tabs_function();
     }
 
     // cancel autocall done after '(' for example.
@@ -335,7 +342,7 @@ var IPython = (function (IPython) {
         if (docstring == null) {
             docstring = reply.docstring;
         }
-        
+
         if (docstring == null) {
             // For reals this time, no docstring
             if (this._hide_if_no_docstring) {
