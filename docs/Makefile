@@ -52,9 +52,9 @@ dist: html
 	cp -al build/html .
 	@echo "Build finished.  Final docs are in html/"
 
-html: core api
+html: api htmlcore
 
-core:
+htmlcore:
 	mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
