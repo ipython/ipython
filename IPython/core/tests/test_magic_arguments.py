@@ -6,9 +6,9 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+import argparse
 from nose.tools import assert_equal
 
-from IPython.external import argparse
 from IPython.core.magic_arguments import (argument, argument_group, kwds,
     magic_arguments, parse_argstring, real_name)
 
