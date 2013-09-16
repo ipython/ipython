@@ -11,8 +11,12 @@ Magics for interacting with Octave via oct2py.
   The ``oct2py`` module needs to be installed separately and
   can be obtained using ``easy_install`` or ``pip``.
 
+  You will also need a working copy of GNU Octave.
+
 Usage
 =====
+
+To enable the magics below, execute ``%load_ext octavemagic``.
 
 ``%octave``
 
