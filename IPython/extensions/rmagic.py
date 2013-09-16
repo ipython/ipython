@@ -6,8 +6,17 @@ Rmagic
 
 Magic command interface for interactive work with R via rpy2
 
+.. note::
+
+  The ``rpy2`` package needs to be installed separately. It
+  can be obtained using ``easy_install`` or ``pip``.
+
+  You will also need a working copy of R.
+
 Usage
 =====
+
+To enable the magics below, execute ``%load_ext rmagic``.
 
 ``%R``
 
@@ -464,19 +473,19 @@ class RMagics(Magics):
         * If the cell is not None, the magic returns None.
 
         * If the cell evaluates as False, the resulting value is returned
-        unless the final line prints something to the console, in
-        which case None is returned.
+          unless the final line prints something to the console, in
+          which case None is returned.
 
         * If the final line results in a NULL value when evaluated
-        by rpy2, then None is returned.
+          by rpy2, then None is returned.
 
         * No attempt is made to convert the final value to a structured array.
-        Use the --dataframe flag or %Rget to push / return a structured array.
+          Use the --dataframe flag or %Rget to push / return a structured array.
 
         * If the -n flag is present, there is no return value.
 
         * A trailing ';' will also result in no return value as the last
-        value in the line is an empty string.
+          value in the line is an empty string.
 
         The --dataframe argument will attempt to return structured arrays. 
         This is useful for dataframes with
