@@ -1193,6 +1193,19 @@ class SyntaxTB(ListTB):
         self.last_syntax_error = value
         ListTB.__call__(self,etype,value,elist)
 
+    def structured_traceback(self, etype, value, elist, tb_offset=None,
+                             context=5):
+        # If the source file has been edited, the line in the syntax error can
+        # be wrong (retrieved from an outdated cache). This replaces it with
+        # the current value.
+        if isinstance(value.filename, str) and isinstance(value.lineno, int):
+            linecache.checkcache(value.filename)
+            newtext = ulinecache.getline(value.filename, value.lineno)
+            if newtext:
+                value.text = newtext
+        return super(SyntaxTB, self).structured_traceback(etype, value, elist,
+                             tb_offset=tb_offset, context=context)
+
     def clear_err_state(self):
         """Return the current error state and clear it"""
         e = self.last_syntax_error
