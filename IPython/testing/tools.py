@@ -18,7 +18,6 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
-import inspect
 import os
 import re
 import sys
@@ -346,7 +345,7 @@ class AssertPrints(object):
     """
     def __init__(self, s, channel='stdout', suppress=True):
         self.s = s
-        if isinstance(self.s, str):
+        if isinstance(self.s, py3compat.string_types):
             self.s = [self.s]
         self.channel = channel
         self.suppress = suppress
