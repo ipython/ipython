@@ -1198,7 +1198,8 @@ class SyntaxTB(ListTB):
         # If the source file has been edited, the line in the syntax error can
         # be wrong (retrieved from an outdated cache). This replaces it with
         # the current value.
-        if isinstance(value.filename, str) and isinstance(value.lineno, int):
+        if isinstance(value.filename, py3compat.string_types) \
+                and isinstance(value.lineno, int):
             linecache.checkcache(value.filename)
             newtext = ulinecache.getline(value.filename, value.lineno)
             if newtext:
