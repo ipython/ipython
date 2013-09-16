@@ -346,6 +346,8 @@ class AssertPrints(object):
     """
     def __init__(self, s, channel='stdout', suppress=True):
         self.s = s
+        if isinstance(self.s, str):
+            self.s = [self.s]
         self.channel = channel
         self.suppress = suppress
     
@@ -359,7 +361,8 @@ class AssertPrints(object):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
-        assert self.s in printed, notprinted_msg.format(self.s, self.channel, printed)
+        for s in self.s:
+            assert s in printed, notprinted_msg.format(s, self.channel, printed)
         return False
 
 printed_msg = """Found {0!r} in printed output (on {1}):
@@ -376,7 +379,8 @@ class AssertNotPrints(AssertPrints):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
-        assert self.s not in printed, printed_msg.format(self.s, self.channel, printed)
+        for s in self.s:
+            assert s not in printed, printed_msg.format(s, self.channel, printed)
         return False
 
 @contextmanager
