@@ -360,7 +360,7 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
     if tunnel.try_passwordless_ssh(sshserver, sshkey):
         password=False
     else:
-        password = getpass("SSH Password for %s: "%sshserver)
+        password = getpass("SSH Password for %s: "%str(sshserver))
     
     for lp,rp in zip(lports, rports):
         tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password)
