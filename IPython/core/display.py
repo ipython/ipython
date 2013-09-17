@@ -508,9 +508,9 @@ class Image(DisplayObject):
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG]
 
     def __init__(self, data=None, url=None, filename=None, format=u'png', embed=None, width=None, height=None, retina=False):
-        """Create a display an PNG/JPEG image given raw data.
+        """Create a PNG/JPEG image object given raw data.
 
-        When this object is returned by an expression or passed to the
+        When this object is returned by an input cell or passed to the
         display function, it will result in the image being displayed
         in the frontend.
 
