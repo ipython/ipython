@@ -14,8 +14,6 @@ from within Jinja templates.
 # Imports
 #-----------------------------------------------------------------------------
 
-import re
-
 from pygments import highlight as pygements_highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
