@@ -14,3 +14,4 @@ build
 *.bak
 .ipynb_checkpoints
 .tox
+*.class

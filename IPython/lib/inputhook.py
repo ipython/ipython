@@ -107,7 +107,11 @@ class InputHookManager(object):
         if ctypes is None:
             warn("IPython GUI event loop requires ctypes, %gui will not be available")
             return
-        self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
+        if os.name == 'java':
+            #temporarily ignore this
+            self.PYFUNC = None
+        else:
+            self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
         self._apps = {}
         self._reset()
 
