@@ -92,6 +92,11 @@ class FileNotebookManager(NotebookManager):
                 i = i+1
         return name
 
+    def os_path_exists(self, path):
+        """Check that the given file system path is valid on this machine."""
+        if os.path.exists(path) is False:
+            raise web.HTTPError(404, "No file or directory found.")
+        
     def notebook_exists(self, name, path='/'):
         """Returns a True if the notebook exists. Else, returns False.
 

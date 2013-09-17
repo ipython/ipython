@@ -119,7 +119,7 @@ class SessionHandler(IPythonHandler):
 _session_id_regex = r"(?P<session_id>\w+-\w+-\w+-\w+-\w+)"
 
 default_handlers = [
-    (r"api/sessions/%s" % _session_id_regex, SessionHandler),
-    (r"api/sessions",  SessionRootHandler)
+    (r"/api/sessions/%s" % _session_id_regex, SessionHandler),
+    (r"/api/sessions",  SessionRootHandler)
 ]
 

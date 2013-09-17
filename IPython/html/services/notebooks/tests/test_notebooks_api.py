@@ -31,8 +31,8 @@ class APITest(NotebookTestBase):
         #url, nb = self.mknb()
         url = self.notebook_url()
         nb = requests.post(url+'/')
-        print nb.text
         data = nb.json()
+        status = nb.status_code
         assert isinstance(data, dict)
         self.assertIn('name', data)
         self.assertIn('path', data)
