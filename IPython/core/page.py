@@ -267,7 +267,15 @@ def get_pager_cmd(pager_cmd=None):
 
     Makes some attempts at finding an OS-correct one.
     """
-    if os.name == 'posix':
+    
+    if os.name == 'java':
+        from java.lang import System
+        java_host_os = System.getProperty('os.name')
+        if 'Windows' in java_host_os:
+            aliases = nt_aliases
+        else:
+            default_pager_cmd = 'type'
+    elif os.name == 'posix':
         default_pager_cmd = 'less -r'  # -r for color control sequences
     elif os.name in ['nt','dos']:
         default_pager_cmd = 'type'
