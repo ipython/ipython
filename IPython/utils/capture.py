@@ -69,12 +69,12 @@ class CapturedIO(object):
 
     Each instance `c` has three attributes:
 
-        c.stdout : standard output as a string
-        c.stderr : standard error as a string
-        c.outputs: a list of rich display outputs
+    - ``c.stdout`` : standard output as a string
+    - ``c.stderr`` : standard error as a string
+    - ``c.outputs``: a list of rich display outputs
 
-    Additionally, there's a `c.show()` method which will print all of the
-    above in the same order, and can be invoked simply via `c()`.
+    Additionally, there's a ``c.show()`` method which will print all of the
+    above in the same order, and can be invoked simply via ``c()``.
     """
     
     def __init__(self, stdout, stderr, outputs=None):
@@ -105,8 +105,8 @@ class CapturedIO(object):
     def outputs(self):
         """A list of the captured rich display outputs, if any.
         
-        If you have a CapturedIO object `c`, these can be displayed in IPython
-        using:
+        If you have a CapturedIO object ``c``, these can be displayed in IPython
+        using::
 
             from IPython.display import display
             for o in c.outputs:

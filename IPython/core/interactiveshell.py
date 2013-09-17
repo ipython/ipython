@@ -907,9 +907,9 @@ class InteractiveShell(SingletonConfigurable):
         Keywords:
 
           - force(False): by default, this routine checks the instance call_pdb
-          flag and does not actually invoke the debugger if the flag is false.
-          The 'force' option forces the debugger to activate even if the flag
-          is false.
+            flag and does not actually invoke the debugger if the flag is false.
+            The 'force' option forces the debugger to activate even if the flag
+            is false.
         """
 
         if not (force or self.call_pdb):
@@ -2978,7 +2978,7 @@ class InteractiveShell(SingletonConfigurable):
         Optional inputs:
 
           - data(None): if data is given, it gets written out to the temp file
-          immediately, and the file is closed again."""
+            immediately, and the file is closed again."""
 
         filename = tempfile.mktemp('.py', prefix)
         self.tempfiles.append(filename)
@@ -3021,13 +3021,14 @@ class InteractiveShell(SingletonConfigurable):
 
         Optional Parameters:
           - raw(False): by default, the processed input is used.  If this is
-          true, the raw input history is used instead.
+            true, the raw input history is used instead.
 
         Note that slices can be called with two notations:
 
         N:M -> standard python form, means including items N...(M-1).
 
-        N-M -> include items N..M (closed endpoint)."""
+        N-M -> include items N..M (closed endpoint).
+        """
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
 

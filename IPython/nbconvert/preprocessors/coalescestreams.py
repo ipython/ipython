@@ -19,7 +19,8 @@ def cell_preprocessor(function):
     Wrap a function to be executed on all cells of a notebook
     
     Wrapped Parameters
-    ----------
+    ------------------
+    
     cell : NotebookNode cell
         Notebook cell being processed
     resources : dictionary

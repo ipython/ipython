@@ -354,10 +354,10 @@ class NamespaceMagics(Magics):
           - For {},[],(): their length.
 
           - For numpy arrays, a summary with shape, number of
-          elements, typecode and size in memory.
+            elements, typecode and size in memory.
 
           - Everything else: a string representation, snipping their middle if
-          too long.
+            too long.
 
         Examples
         --------

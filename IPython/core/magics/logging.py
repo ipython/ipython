@@ -42,34 +42,48 @@ class LoggingMagics(Magics):
         history up to that point and then continues logging.
 
         %logstart takes a second optional parameter: logging mode. This can be one
-        of (note that the modes are given unquoted):\\
-          append: well, that says it.\\
-          backup: rename (if exists) to name~ and start name.\\
-          global: single logfile in your home dir, appended to.\\
-          over  : overwrite existing log.\\
-          rotate: create rotating logs name.1~, name.2~, etc.
+        of (note that the modes are given unquoted):
+
+        append
+            Keep logging at the end of any existing file.
+
+        backup
+            Rename any existing file to name~ and start name.
+
+        global
+            Append to  a single logfile in your home directory.
+
+        over
+            Overwrite any existing log.
+
+        rotate
+            Create rotating logs: name.1~, name.2~, etc.
 
         Options:
 
-          -o: log also IPython's output.  In this mode, all commands which
-          generate an Out[NN] prompt are recorded to the logfile, right after
-          their corresponding input line.  The output lines are always
-          prepended with a '#[Out]# ' marker, so that the log remains valid
-          Python code.
+          -o
+            log also IPython's output. In this mode, all commands which
+            generate an Out[NN] prompt are recorded to the logfile, right after
+            their corresponding input line. The output lines are always
+            prepended with a '#[Out]# ' marker, so that the log remains valid
+            Python code.
 
           Since this marker is always the same, filtering only the output from
           a log is very easy, using for example a simple awk call::
 
             awk -F'#\\[Out\\]# ' '{if($2) {print $2}}' ipython_log.py
 
-          -r: log 'raw' input.  Normally, IPython's logs contain the processed
-          input, so that user lines are logged in their final form, converted
-          into valid Python.  For example, %Exit is logged as
-          _ip.magic("Exit").  If the -r flag is given, all input is logged
-          exactly as typed, with no transformations applied.
+          -r
+            log 'raw' input.  Normally, IPython's logs contain the processed
+            input, so that user lines are logged in their final form, converted
+            into valid Python.  For example, %Exit is logged as
+            _ip.magic("Exit").  If the -r flag is given, all input is logged
+            exactly as typed, with no transformations applied.
 
-          -t: put timestamps before each input line logged (these are put in
-          comments)."""
+          -t
+            put timestamps before each input line logged (these are put in
+            comments).
+        """
 
         opts,par = self.parse_options(parameter_s,'ort')
         log_output = 'o' in opts
