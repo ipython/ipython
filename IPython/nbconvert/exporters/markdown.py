@@ -16,13 +16,13 @@ Exporter that will export your ipynb to Markdown.
 from IPython.config import Config
 from IPython.utils.traitlets import Unicode
 
-from .exporter import Exporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class MarkdownExporter(Exporter):
+class MarkdownExporter(TemplateExporter):
     """
     Exports to a markdown document (.md)
     """

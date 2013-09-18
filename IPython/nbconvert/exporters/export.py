@@ -19,6 +19,7 @@ from IPython.nbformat.v3.nbbase import NotebookNode
 from IPython.config import Config
 
 from .exporter import Exporter
+from .templateexporter import TemplateExporter
 from .html import HTMLExporter
 from .slides import SlidesExporter
 from .latex import LatexExporter
@@ -122,7 +123,7 @@ def export(exporter, nb, **kw):
     return output, resources
 
 exporter_map = dict(
-    custom=Exporter,
+    custom=TemplateExporter,
     html=HTMLExporter,
     slides=SlidesExporter,
     latex=LatexExporter,

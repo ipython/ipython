@@ -17,7 +17,7 @@ Module with tests for exporter.py
 from IPython.config import Config
 
 from .base import ExportersTestsBase
-from .cheese import CheesePreprocessor
+from ...preprocessors.base import Preprocessor
 from ..exporter import Exporter
 
 
@@ -25,84 +25,35 @@ from ..exporter import Exporter
 # Class
 #-----------------------------------------------------------------------------
 
+class PizzaPreprocessor(Preprocessor):
+    """Simple preprocessor that adds a 'pizza' entry to the NotebookNode.  Used 
+    to test Exporter.
+    """
+
+    def preprocess(self, nb, resources):
+        nb['pizza'] = 'cheese'
+        return nb, resources
+
+
 class TestExporter(ExportersTestsBase):
     """Contains test functions for exporter.py"""
 
 
     def test_constructor(self):
-        """
-        Can an Exporter be constructed?
-        """
+        """Can an Exporter be constructed?"""
         Exporter()
 
 
     def test_export(self):
-        """
-        Can an Exporter export something?
-        """
-        exporter = self._make_exporter()
-        (output, resources) = exporter.from_filename(self._get_notebook())
-        assert len(output) > 0
+        """Can an Exporter export something?"""
+        exporter = Exporter()
+        (notebook, resources) = exporter.from_filename(self._get_notebook())
+        assert isinstance(notebook, dict)
 
 
-    def test_extract_outputs(self):
-        """
-        If the ExtractOutputPreprocessor is enabled, are outputs extracted?
-        """
-        config = Config({'ExtractOutputPreprocessor': {'enabled': True}})
-        exporter = self._make_exporter(config=config)
-        (output, resources) = exporter.from_filename(self._get_notebook())
-        assert resources is not None
-        assert isinstance(resources['outputs'], dict)
-        assert len(resources['outputs']) > 0
-
-
-    def test_preprocessor_class(self):
-        """
-        Can a preprocessor be added to the preprocessors list by class type?
-        """
-        config = Config({'Exporter': {'preprocessors': [CheesePreprocessor]}})
-        exporter = self._make_exporter(config=config)
-        (output, resources) = exporter.from_filename(self._get_notebook())
-        assert resources is not None
-        assert resources['cheese'] == 'real'
-
-
-    def test_preprocessor_instance(self):
-        """
-        Can a preprocessor be added to the preprocessors list by instance?
-        """
-        config = Config({'Exporter': {'preprocessors': [CheesePreprocessor()]}})
-        exporter = self._make_exporter(config=config)
-        (output, resources) = exporter.from_filename(self._get_notebook())
-        assert resources is not None
-        assert resources['cheese'] == 'real'
-
-
-    def test_preprocessor_dottedobjectname(self):
-        """
-        Can a preprocessor be added to the preprocessors list by dotted object name?
-        """
-        config = Config({'Exporter': {'preprocessors': ['IPython.nbconvert.exporters.tests.cheese.CheesePreprocessor']}})
-        exporter = self._make_exporter(config=config)
-        (output, resources) = exporter.from_filename(self._get_notebook())
-        assert resources is not None
-        assert resources['cheese'] == 'real'
-
-
-    def test_preprocessor_via_method(self):
-        """
-        Can a preprocessor be added via the Exporter convenience method?
-        """
-        exporter = self._make_exporter()
-        exporter.register_preprocessor(CheesePreprocessor, enabled=True)
-        (output, resources) = exporter.from_filename(self._get_notebook())
-        assert resources is not None
-        assert resources['cheese'] == 'real'
-
-
-    def _make_exporter(self, config=None):
-        #Create the exporter instance, make sure to set a template name since
-        #the base Exporter doesn't have a template associated with it.
-        exporter = Exporter(config=config, template_file='python')
-        return exporter        
+    def test_preprocessor(self):
+        """Do preprocessors work?"""
+        config = Config({'Exporter': {'preprocessors': [PizzaPreprocessor()]}})
+        exporter = Exporter(config=config)
+        (notebook, resources) = exporter.from_filename(self._get_notebook())
+        self.assertEqual(notebook['pizza'], 'cheese')
