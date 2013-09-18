@@ -325,9 +325,11 @@ def snip_print(str,width = 75,print_full = 0,header = ''):
     """Print a string snipping the midsection to fit in width.
 
     print_full: mode control:
+    
       - 0: only snip long strings
       - 1: send to page() directly.
       - 2: snip long strings and ask for full length viewing with page()
+    
     Return 1 if snipping was necessary, 0 otherwise."""
 
     if print_full == 1:

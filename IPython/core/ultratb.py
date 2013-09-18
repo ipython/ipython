@@ -8,7 +8,8 @@ ColorTB class is a solution to that problem.  It colors the different parts of a
 traceback in a manner similar to what you would expect from a syntax-highlighting
 text editor.
 
-Installation instructions for ColorTB:
+Installation instructions for ColorTB::
+
     import sys,ultratb
     sys.excepthook = ultratb.ColorTB()
 
@@ -21,7 +22,7 @@ but kind of neat, and maybe useful for long-running programs that you believe
 are bug-free.  If a crash *does* occur in that type of program you want details.
 Give it a shot--you'll love it or you'll hate it.
 
-Note:
+.. note::
 
   The Verbose mode prints the variables currently visible where the exception
   happened (shortening their strings if too long). This can potentially be
@@ -36,25 +37,28 @@ Note:
   Verbose).
 
 
-Installation instructions for ColorTB:
+Installation instructions for ColorTB::
+
     import sys,ultratb
     sys.excepthook = ultratb.VerboseTB()
 
 Note:  Much of the code in this module was lifted verbatim from the standard
 library module 'traceback.py' and Ka-Ping Yee's 'cgitb.py'.
 
-* Color schemes
+Color schemes
+-------------
+
 The colors are defined in the class TBTools through the use of the
 ColorSchemeTable class. Currently the following exist:
 
   - NoColor: allows all of this module to be used in any terminal (the color
-  escapes are just dummy blank strings).
+    escapes are just dummy blank strings).
 
   - Linux: is meant to look good in a terminal like the Linux console (black
-  or very dark background).
+    or very dark background).
 
   - LightBG: similar to Linux but swaps dark/light colors to be more readable
-  in light background terminals.
+    in light background terminals.
 
 You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
@@ -359,8 +363,8 @@ class TBTools(object):
         Valid values are:
 
         - None: the default, which means that IPython will dynamically resolve
-        to io.stdout.  This ensures compatibility with most tools, including
-        Windows (where plain stdout doesn't recognize ANSI escapes).
+          to io.stdout.  This ensures compatibility with most tools, including
+          Windows (where plain stdout doesn't recognize ANSI escapes).
 
         - Any object with 'write' and 'flush' attributes.
         """
@@ -974,9 +978,9 @@ class VerboseTB(TBTools):
         Keywords:
 
           - force(False): by default, this routine checks the instance call_pdb
-          flag and does not actually invoke the debugger if the flag is false.
-          The 'force' option forces the debugger to activate even if the flag
-          is false.
+            flag and does not actually invoke the debugger if the flag is false.
+            The 'force' option forces the debugger to activate even if the flag
+            is false.
 
         If the call_pdb flag is set, the pdb interactive debugger is
         invoked. In all cases, the self.tb reference to the current traceback

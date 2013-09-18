@@ -27,8 +27,8 @@ class preserve_keys(object):
     which did not exist when entering the context manager will be
     deleted.
 
-    Example
-    -------
+    Examples
+    --------
 
     >>> d = {'a': 1, 'b': 2, 'c': 3}
     >>> with preserve_keys(d, 'b', 'c', 'd'):
