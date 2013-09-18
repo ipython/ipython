@@ -605,52 +605,21 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.handle_clear_output = function (content) {
-        this.clear_output(content.stdout, content.stderr, content.other);
+        this.clear_output();
     };
 
 
-    OutputArea.prototype.clear_output = function (stdout, stderr, other) {
-        var output_div = this.element;
-
-        // Fix the output div's height
-        var height = output_div.height();
-        output_div.height(height);
-
-        if (stdout && stderr && other){
-            // clear all, no need for logic
-            output_div.html("");
-            this.outputs = [];
-            this.unscroll_area();
-            return;
-        }
-        // remove html output
-        // each output_subarea that has an identifying class is in an output_area
-        // which is the element to be removed.
-        if (stdout) {
-            output_div.find("div.output_stdout").parent().remove();
-        }
-        if (stderr) {
-            output_div.find("div.output_stderr").parent().remove();
-        }
-        if (other) {
-            output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
-        }
-        this.unscroll_area();
+    OutputArea.prototype.clear_output = function() {
         
-        // remove cleared outputs from JSON list:
-        for (var i = this.outputs.length - 1; i >= 0; i--) {
-            var out = this.outputs[i];
-            var output_type = out.output_type;
-            if (output_type == "display_data" && other) {
-                this.outputs.splice(i,1);
-            } else if (output_type == "stream") {
-                if (stdout && out.stream == "stdout") {
-                    this.outputs.splice(i,1);
-                } else if (stderr && out.stream == "stderr") {
-                    this.outputs.splice(i,1);
-                }
-            }
-        }
+        // Fix the output div's height
+        var height = this.element.height();
+        this.element.height(height);
+
+        // clear all, no need for logic
+        this.element.html("");
+        this.outputs = [];
+        this.unscroll_area();
+        return;
     };
 
 

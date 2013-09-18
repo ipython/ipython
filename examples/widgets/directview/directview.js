@@ -108,7 +108,7 @@ DirectViewWidget.prototype.set_kernel = function (kernel) {
 
 
 DirectViewWidget.prototype.execute = function () {
-    this.output_area.clear_output(true, true, true);
+    this.output_area.clear_output();
     this.element.addClass("running");
     var callbacks = {
         'execute_reply': $.proxy(this._handle_execute_reply, this),
