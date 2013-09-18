@@ -156,8 +156,8 @@ def getsource(obj,is_binary=False):
     Optional inputs:
 
     - is_binary: whether the object is known to come from a binary source.
-    This implementation will skip returning any output for binary objects, but
-    custom extractors may know how to meaningfully process them."""
+      This implementation will skip returning any output for binary objects, but
+      custom extractors may know how to meaningfully process them."""
 
     if is_binary:
         return None
@@ -545,7 +545,7 @@ class Inspector:
         - formatter: special formatter for docstrings (see pdoc)
 
         - info: a structure with some information fields which may have been
-        precomputed already.
+          precomputed already.
 
         - detail_level: if set to 1, more information is given.
         """
@@ -609,7 +609,7 @@ class Inspector:
         - formatter: special formatter for docstrings (see pdoc)
 
         - info: a structure with some information fields which may have been
-        precomputed already.
+          precomputed already.
 
         - detail_level: if set to 1, more information is given.
         """
@@ -829,8 +829,8 @@ class Inspector:
         Arguments:
 
         - pattern: string containing shell-like wildcards to use in namespace
-        searches and optionally a type specification to narrow the search to
-        objects of that type.
+          searches and optionally a type specification to narrow the search to
+          objects of that type.
 
         - ns_table: dict of name->namespaces for search.
 
@@ -841,7 +841,7 @@ class Inspector:
           - ignore_case(False): make the search case-insensitive.
 
           - show_all(False): show all names, including those starting with
-          underscores.
+            underscores.
         """
         #print 'ps pattern:<%r>' % pattern # dbg
 

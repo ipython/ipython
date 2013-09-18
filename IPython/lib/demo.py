@@ -14,14 +14,14 @@ The classes are (see their docstrings for further details):
  - Demo: pure python demos
 
  - IPythonDemo: demos with input to be processed by IPython as if it had been
- typed interactively (so magics work, as well as any other special syntax you
- may have added via input prefilters).
+   typed interactively (so magics work, as well as any other special syntax you
+   may have added via input prefilters).
 
  - LineDemo: single-line version of the Demo class.  These demos are executed
- one line at a time, and require no markup.
+   one line at a time, and require no markup.
 
  - IPythonLineDemo: IPython version of the LineDemo class (the demo is
- executed a line at a time, but processed via IPython).
+   executed a line at a time, but processed via IPython).
 
  - ClearMixin: mixin to make Demo classes with less visual clutter.  It
    declares an empty marquee and a pre_cmd that clears the screen before each
@@ -214,18 +214,18 @@ class Demo(object):
         Optional inputs:
 
           - title: a string to use as the demo name.  Of most use when the demo
-          you are making comes from an object that has no filename, or if you
-          want an alternate denotation distinct from the filename.
+            you are making comes from an object that has no filename, or if you
+            want an alternate denotation distinct from the filename.
 
           - arg_str(''): a string of arguments, internally converted to a list
-          just like sys.argv, so the demo script can see a similar
-          environment.
+            just like sys.argv, so the demo script can see a similar
+            environment.
 
           - auto_all(None): global flag to run all blocks automatically without
-          confirmation.  This attribute overrides the block-level tags and
-          applies to the whole demo.  It is an attribute of the object, and
-          can be changed at runtime simply by reassigning it to a boolean
-          value.
+            confirmation.  This attribute overrides the block-level tags and
+            applies to the whole demo.  It is an attribute of the object, and
+            can be changed at runtime simply by reassigning it to a boolean
+            value.
           """
         if hasattr(src, "read"):
              # It seems to be a file or a file-like object

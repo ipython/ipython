@@ -93,9 +93,9 @@ class InteractiveRunner(object):
           - program: command to execute the given program.
 
           - prompts: a list of patterns to match as valid prompts, in the
-          format used by pexpect.  This basically means that it can be either
-          a string (to be compiled as a regular expression) or a list of such
-          (it must be a true list, as pexpect does type checks).
+            format used by pexpect.  This basically means that it can be either
+            a string (to be compiled as a regular expression) or a list of such
+            (it must be a true list, as pexpect does type checks).
 
           If more than one prompt is given, the first is treated as the main
           program prompt and the others as 'continuation' prompts, like
@@ -107,19 +107,19 @@ class InteractiveRunner(object):
         Optional inputs:
 
           - args(None): optional list of strings to pass as arguments to the
-          child program.
+            child program.
 
           - out(sys.stdout): if given, an output stream to be used when writing
-          output.  The only requirement is that it must have a .write() method.
+            output.  The only requirement is that it must have a .write() method.
 
         Public members not parameterized in the constructor:
 
           - delaybeforesend(0): Newer versions of pexpect have a delay before
-          sending each new input.  For our purposes here, it's typically best
-          to just set this to zero, but if you encounter reliability problems
-          or want an interactive run to pause briefly at each prompt, just
-          increase this value (it is measured in seconds).  Note that this
-          variable is not honored at all by older versions of pexpect.
+            sending each new input.  For our purposes here, it's typically best
+            to just set this to zero, but if you encounter reliability problems
+            or want an interactive run to pause briefly at each prompt, just
+            increase this value (it is measured in seconds).  Note that this
+            variable is not honored at all by older versions of pexpect.
         """
 
         self.program = program
@@ -154,7 +154,7 @@ class InteractiveRunner(object):
 
         Inputs:
 
-          -fname: name of the file to execute.
+          - fname: name of the file to execute.
 
         See the run_source docstring for the meaning of the optional
         arguments."""
@@ -173,15 +173,15 @@ class InteractiveRunner(object):
         Inputs:
 
           - source: a string of code to be executed, or an open file object we
-          can iterate over.
+            can iterate over.
 
         Optional inputs:
 
           - interact(False): if true, start to interact with the running
-          program at the end of the script.  Otherwise, just exit.
+            program at the end of the script.  Otherwise, just exit.
 
           - get_output(False): if true, capture the output of the child process
-          (filtering the input commands out) and return it as a string.
+            (filtering the input commands out) and return it as a string.
 
         Returns:
           A string containing the process output, but only if requested.

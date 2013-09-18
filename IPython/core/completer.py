@@ -24,26 +24,26 @@ Tip: to use the tab key as the completion key, call
 Notes:
 
 - Exceptions raised by the completer function are *ignored* (and
-generally cause the completion to fail).  This is a feature -- since
-readline sets the tty device in raw (or cbreak) mode, printing a
-traceback wouldn't work well without some complicated hoopla to save,
-reset and restore the tty state.
+  generally cause the completion to fail).  This is a feature -- since
+  readline sets the tty device in raw (or cbreak) mode, printing a
+  traceback wouldn't work well without some complicated hoopla to save,
+  reset and restore the tty state.
 
 - The evaluation of the NAME.NAME... form may cause arbitrary
-application defined code to be executed if an object with a
-__getattr__ hook is found.  Since it is the responsibility of the
-application (or the user) to enable this feature, I consider this an
-acceptable risk.  More complicated expressions (e.g. function calls or
-indexing operations) are *not* evaluated.
+  application defined code to be executed if an object with a
+  ``__getattr__`` hook is found.  Since it is the responsibility of the
+  application (or the user) to enable this feature, I consider this an
+  acceptable risk.  More complicated expressions (e.g. function calls or
+  indexing operations) are *not* evaluated.
 
 - GNU readline is also used by the built-in functions input() and
-raw_input(), and thus these also benefit/suffer from the completer
-features.  Clearly an interactive application can benefit by
-specifying its own completer function and using raw_input() for all
-its input.
+  raw_input(), and thus these also benefit/suffer from the completer
+  features.  Clearly an interactive application can benefit by
+  specifying its own completer function and using raw_input() for all
+  its input.
 
 - When the original stdin is not a tty device, GNU readline is never
-used, and this module (and the readline module) are silently inactive.
+  used, and this module (and the readline module) are silently inactive.
 """
 
 #*****************************************************************************
@@ -441,17 +441,17 @@ class IPCompleter(Completer):
         Inputs:
 
         - shell: a pointer to the ipython shell itself.  This is needed
-        because this completer knows about magic functions, and those can
-        only be accessed via the ipython instance.
+          because this completer knows about magic functions, and those can
+          only be accessed via the ipython instance.
 
         - namespace: an optional dict where completions are performed.
 
         - global_namespace: secondary optional dict for completions, to
-        handle cases (such as IPython embedded inside functions) where
-        both Python scopes are visible.
+          handle cases (such as IPython embedded inside functions) where
+          both Python scopes are visible.
 
         - If alias_table is supplied, it should be a dictionary of aliases
-        to complete.
+          to complete.
 
         use_readline : bool, optional
           If true, use the readline library.  This completer can still function
