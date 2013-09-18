@@ -14,7 +14,7 @@ from within Jinja templates.
 # Imports
 #-----------------------------------------------------------------------------
 
-from  pygments import highlight as pygements_highlight
+from pygments import highlight as pygements_highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from pygments.formatters import LatexFormatter
@@ -37,52 +37,66 @@ __all__ = [
     'highlight2latex'
 ]
 
-
-def highlight2html(source, language='ipython'):
+def highlight2html(source, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source as html output.
-    
+
     Parameters
     ----------
     source : str
-        Source code to highlight the syntax of.
+        source of the cell to highlight.
     language : str
         Language to highlight the syntax of.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     """
-    
-    return _pygment_highlight(source, HtmlFormatter(), language)
+
+    return _pygment_highlight(source, HtmlFormatter(), language, metadata)
 
 
-def highlight2latex(source, language='ipython'):
+def highlight2latex(source, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source as latex output.
-    
+
     Parameters
     ----------
     source : str
-        Source code to highlight the syntax of.
+        source of the cell to highlight.
     language : str
         Language to highlight the syntax of.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     """
-    return _pygment_highlight(source, LatexFormatter(), language)
+    return _pygment_highlight(source, LatexFormatter(), language, metadata)
 
 
-def _pygment_highlight(source, output_formatter, language='ipython'):
+
+def _pygment_highlight(source, output_formatter, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source
-    
+
     Parameters
     ----------
     source : str
-        Source code to highlight the syntax of.
+        source of the cell to highlight.
     output_formatter : Pygments formatter
     language : str
         Language to highlight the syntax of.
+    metadata : NotebookNode cell metadata
+        metadata of the cell to highlight.
     """
-    
+
+    # If the cell uses a magic extension language,
+    # use the magic language instead.
+    if language == 'ipython' \
+        and metadata \
+        and 'magics_language' in metadata:
+
+        language = metadata['magics_language']
+
     if language == 'ipython':
         lexer = IPythonLexer()
     else:
         lexer = get_lexer_by_name(language, stripall=True)
 
-    return pygements_highlight(source, lexer, output_formatter) 
+    return pygements_highlight(source, lexer, output_formatter)
