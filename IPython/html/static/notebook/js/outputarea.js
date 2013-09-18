@@ -289,7 +289,6 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
         this.expand();
-        this.flush_clear_timeout();
         if (json.output_type === 'pyout') {
             this.append_pyout(json, dynamic);
         } else if (json.output_type === 'pyerr') {
@@ -300,6 +299,7 @@ var IPython = (function (IPython) {
             this.append_stream(json);
         }
         this.outputs.push(json);
+        this.element.height('auto');
         var that = this;
         setTimeout(function(){that.element.trigger('resize');}, 100);
     };
@@ -553,7 +553,6 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_raw_input = function (content) {
         var that = this;
         this.expand();
-        this.flush_clear_timeout();
         var area = this.create_output_area();
         
         // disable any other raw_inputs, if they are left around
@@ -611,30 +610,11 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.clear_output = function (stdout, stderr, other) {
-        var that = this;
-        if (this.clear_out_timeout != null){
-            // fire previous pending clear *immediately*
-            clearTimeout(this.clear_out_timeout);
-            this.clear_out_timeout = null;
-            this.clear_output_callback(this._clear_stdout, this._clear_stderr, this._clear_other);
-        }
-        // store flags for flushing the timeout
-        this._clear_stdout = stdout;
-        this._clear_stderr = stderr;
-        this._clear_other = other;
-        this.clear_out_timeout = setTimeout(function() {
-            // really clear timeout only after a short delay
-            // this reduces flicker in 'clear_output; print' cases
-            that.clear_out_timeout = null;
-            that._clear_stdout = that._clear_stderr = that._clear_other = null;
-            that.clear_output_callback(stdout, stderr, other);
-        }, 500
-        );
-    };
-
-
-    OutputArea.prototype.clear_output_callback = function (stdout, stderr, other) {
         var output_div = this.element;
+
+        // Fix the output div's height
+        var height = output_div.height();
+        output_div.height(height);
 
         if (stdout && stderr && other){
             // clear all, no need for logic
@@ -670,16 +650,6 @@ var IPython = (function (IPython) {
                     this.outputs.splice(i,1);
                 }
             }
-        }
-    };
-
-
-    OutputArea.prototype.flush_clear_timeout = function() {
-        var output_div = this.element;
-        if (this.clear_out_timeout){
-            clearTimeout(this.clear_out_timeout);
-            this.clear_out_timeout = null;
-            this.clear_output_callback(this._clear_stdout, this._clear_stderr, this._clear_other);
         }
     };
 
