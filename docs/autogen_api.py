@@ -35,7 +35,7 @@ if __name__ == '__main__':
                                         r'\.zmq',
                                         ]
 
-    docwriter.module_skip_patterns += [ r'\.core\.fakemodule',
+    docwriter.module_skip_patterns += [
                                         r'\.testing\.iptest',
                                         # Keeping these disabled is OK
                                         r'\.parallel\.controller\.mongodb',
