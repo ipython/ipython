@@ -50,9 +50,9 @@ Inheritance diagram:
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
+import argparse
 
 # Our own imports
-from IPython.external import argparse
 from IPython.core.error import UsageError
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent

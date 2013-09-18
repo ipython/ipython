@@ -50,6 +50,7 @@ To find the directory where IPython would like MathJax installed:
 # Imports
 #-----------------------------------------------------------------------------
 
+import argparse
 import os
 import shutil
 import sys
@@ -59,7 +60,6 @@ import zipfile
 
 
 from IPython.utils.path import locate_profile
-from IPython.external import argparse
 #-----------------------------------------------------------------------------
 #
 #-----------------------------------------------------------------------------
