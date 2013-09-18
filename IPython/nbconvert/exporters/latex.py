@@ -85,6 +85,9 @@ class LatexExporter(TemplateExporter):
                  },
              'SphinxPreprocessor': {
                     'enabled':True
+                 },
+             'HighlightMagicsPreprocessor': {
+                    'enabled':True
                  }
          })
         c.merge(super(LatexExporter,self).default_config)

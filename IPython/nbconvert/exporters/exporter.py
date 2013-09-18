@@ -68,7 +68,8 @@ class Exporter(LoggingConfigurable):
                                  nbpreprocessors.CSSHTMLHeaderPreprocessor,
                                  nbpreprocessors.RevealHelpPreprocessor,
                                  nbpreprocessors.LatexPreprocessor,
-                                 nbpreprocessors.SphinxPreprocessor],
+                                 nbpreprocessors.SphinxPreprocessor,
+                                 nbpreprocessors.HighlightMagicsPreprocessor],
         config=True,
         help="""List of preprocessors available by default, by name, namespace, 
         instance, or type.""")

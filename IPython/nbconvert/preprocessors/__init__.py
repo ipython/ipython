@@ -7,6 +7,7 @@ from .revealhelp import RevealHelpPreprocessor
 from .latex import LatexPreprocessor
 from .sphinx import SphinxPreprocessor
 from .csshtmlheader import CSSHTMLHeaderPreprocessor
+from .highlightmagics import HighlightMagicsPreprocessor
 
 # decorated function Preprocessors
 from .coalescestreams import coalesce_streams
