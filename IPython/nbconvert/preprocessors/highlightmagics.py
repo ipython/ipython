@@ -21,8 +21,7 @@ from __future__ import print_function, absolute_import
 import re
 
 # Our own imports
-# Needed to override preprocessor
-from .base import (Preprocessor)
+from .base import Preprocessor
 from IPython.utils.traitlets import Dict
 
 #-----------------------------------------------------------------------------
