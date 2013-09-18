@@ -24,11 +24,11 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__ as builtin_mod
+import argparse
 import os
 import re
 import sys
 
-from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
