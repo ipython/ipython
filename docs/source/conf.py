@@ -71,7 +71,7 @@ if iprelease['_version_extra']:
     .. note::
 
         This documentation is for a development version of IPython. There may be
-        significant differences from the latest stable release (0.13.2).
+        significant differences from the latest stable release (1.1.0).
 
     """
 
