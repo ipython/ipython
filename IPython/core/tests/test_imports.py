@@ -9,9 +9,6 @@ def test_import_crashhandler():
 def test_import_debugger():
     from IPython.core import debugger
 
-def test_import_fakemodule():
-    from IPython.core import fakemodule
-
 def test_import_excolors():
     from IPython.core import excolors
 

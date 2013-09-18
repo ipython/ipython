@@ -47,7 +47,6 @@ from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import UsageError
 from IPython.core.extensions import ExtensionManager
-from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGIC2
@@ -826,15 +825,18 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to the "main" module
     #-------------------------------------------------------------------------
 
-    def new_main_mod(self, filename):
+    def new_main_mod(self, filename, modname):
         """Return a new 'main' module object for user code execution.
         
         ``filename`` should be the path of the script which will be run in the
         module. Requests with the same filename will get the same module, with
         its namespace cleared.
         
+        ``modname`` should be the module name - normally either '__main__' or
+        the basename of the file without the extension.
+        
         When scripts are executed via %run, we must keep a reference to their
-        __main__ module (a FakeModule instance) around so that Python doesn't
+        __main__ module around so that Python doesn't
         clear it, rendering references to module globals useless.
 
         This method keeps said reference in a private dict, keyed by the
@@ -847,9 +849,16 @@ class InteractiveShell(SingletonConfigurable):
         try:
             main_mod = self._main_mod_cache[filename]
         except KeyError:
-            main_mod = self._main_mod_cache[filename] = FakeModule()
+            main_mod = self._main_mod_cache[filename] = types.ModuleType(modname,
+                        doc="Module created for script run in IPython")
         else:
-            init_fakemod_dict(main_mod)
+            main_mod.__dict__.clear()
+            main_mod.__name__ = modname
+        
+        main_mod.__file__ = filename
+        # It seems pydoc (and perhaps others) needs any module instance to
+        # implement a __nonzero__ method
+        main_mod.__nonzero__ = lambda : True
         
         return main_mod
 
@@ -863,7 +872,7 @@ class InteractiveShell(SingletonConfigurable):
 
         In [15]: import IPython
 
-        In [16]: m = _ip.new_main_mod(IPython.__file__)
+        In [16]: m = _ip.new_main_mod(IPython.__file__, 'IPython')
 
         In [17]: len(_ip._main_mod_cache) > 0
         Out[17]: True
