@@ -10,7 +10,7 @@ from session import extract_header, Session
 class ZMQDisplayHook(object):
     """A simple displayhook that publishes the object's repr over a ZeroMQ
     socket."""
-    topic=None
+    topic=b'pyout'
 
     def __init__(self, session, pub_socket):
         self.session = session
@@ -52,8 +52,9 @@ class ZMQShellDisplayHook(DisplayHook):
         """Write the output prompt."""
         self.msg['content']['execution_count'] = self.prompt_count
 
-    def write_format_data(self, format_dict):
+    def write_format_data(self, format_dict, md_dict=None):
         self.msg['content']['data'] = encode_images(format_dict)
+        self.msg['content']['metadata'] = md_dict
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""

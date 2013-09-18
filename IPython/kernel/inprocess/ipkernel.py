@@ -37,7 +37,8 @@ class InProcessKernel(Kernel):
 
     # The frontends connected to this kernel.
     frontends = List(
-        Instance('IPython.kernel.inprocess.kernelmanager.InProcessKernelManager'))
+        Instance('IPython.kernel.inprocess.client.InProcessKernelClient')
+    )
 
     # The GUI environment that the kernel is running under. This need not be
     # specified for the normal operation for the kernel, but is required for
@@ -133,18 +134,18 @@ class InProcessKernel(Kernel):
 
     def _session_default(self):
         from IPython.kernel.zmq.session import Session
-        return Session(config=self.config)
+        return Session(parent=self)
 
     def _shell_class_default(self):
         return InProcessInteractiveShell
 
     def _stdout_default(self):
         from IPython.kernel.zmq.iostream import OutStream
-        return OutStream(self.session, self.iopub_socket, u'stdout')
+        return OutStream(self.session, self.iopub_socket, u'stdout', pipe=False)
 
     def _stderr_default(self):
         from IPython.kernel.zmq.iostream import OutStream
-        return OutStream(self.session, self.iopub_socket, u'stderr')
+        return OutStream(self.session, self.iopub_socket, u'stderr', pipe=False)
 
 #-----------------------------------------------------------------------------
 # Interactive shell subclass
@@ -159,19 +160,23 @@ class InProcessInteractiveShell(ZMQInteractiveShell):
     #-------------------------------------------------------------------------
 
     def enable_gui(self, gui=None):
-        """ Enable GUI integration for the kernel.
-        """
+        """Enable GUI integration for the kernel."""
         from IPython.kernel.zmq.eventloops import enable_gui
         if not gui:
             gui = self.kernel.gui
-        enable_gui(gui, kernel=self.kernel)
+        return enable_gui(gui, kernel=self.kernel)
 
-    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
-        """ Activate pylab support at runtime.
-        """
+    def enable_matplotlib(self, gui=None):
+        """Enable matplotlib integration for the kernel."""
         if not gui:
             gui = self.kernel.gui
-        super(InProcessInteractiveShell, self).enable_pylab(gui, import_all,
+        return super(InProcessInteractiveShell, self).enable_matplotlib(gui)
+
+    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
+        """Activate pylab support at runtime."""
+        if not gui:
+            gui = self.kernel.gui
+        return super(InProcessInteractiveShell, self).enable_pylab(gui, import_all,
                                                             welcome_message)
 
 InteractiveShellABC.register(InProcessInteractiveShell)

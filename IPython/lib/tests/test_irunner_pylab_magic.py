@@ -66,6 +66,7 @@ class RunnerTestCase(unittest.TestCase):
         self.assertTrue(mismatch==0,'Number of mismatched lines: %s' %
                         mismatch)
 
+    @decorators.skip_if_no_x11
     @decorators.skipif_not_matplotlib
     @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     def test_pylab_import_all_enabled(self):
@@ -83,8 +84,8 @@ In \[1\]: from IPython\.config\.application import Application
 In \[2\]: app = Application\.instance\(\)
 In \[3\]: app\.pylab_import_all = True
 In \[4\]: pylab
-^Welcome to pylab, a matplotlib-based Python environment
-For more information, type 'help\(pylab\)'\.
+^Using matplotlib backend:
+Populating the interactive namespace from numpy and matplotlib
 In \[5\]: ip=get_ipython\(\)
 In \[6\]: \'plot\' in ip\.user_ns
 Out\[6\]: True
@@ -92,6 +93,7 @@ Out\[6\]: True
         runner = irunner.IPythonRunner(out=self.out)
         self._test_runner(runner,source,output)
 
+    @decorators.skip_if_no_x11
     @decorators.skipif_not_matplotlib
     @decorators.skipif(pylab_not_importable, "Likely a run without X.")
     def test_pylab_import_all_disabled(self):
@@ -109,8 +111,8 @@ In \[1\]: from IPython\.config\.application import Application
 In \[2\]: app = Application\.instance\(\)
 In \[3\]: app\.pylab_import_all = False
 In \[4\]: pylab
-^Welcome to pylab, a matplotlib-based Python environment
-For more information, type 'help\(pylab\)'\.
+^Using matplotlib backend:
+Populating the interactive namespace from numpy and matplotlib
 In \[5\]: ip=get_ipython\(\)
 In \[6\]: \'plot\' in ip\.user_ns
 Out\[6\]: False

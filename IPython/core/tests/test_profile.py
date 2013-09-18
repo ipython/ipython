@@ -29,7 +29,6 @@ import tempfile
 from unittest import TestCase
 
 import nose.tools as nt
-from nose import SkipTest
 
 from IPython.core.profileapp import list_profiles_in, list_bundled_profiles
 from IPython.core.profiledir import ProfileDir
@@ -123,9 +122,11 @@ def test_list_profiles_in():
     # the module-level teardown.
     td = tempfile.mkdtemp(dir=TMP_TEST_DIR)
     td = py3compat.str_to_unicode(td)
-    for name in ('profile_foo', u'profile_ünicode', 'profile_hello', 
-                 'not_a_profile'):
+    for name in ('profile_foo', 'profile_hello', 'not_a_profile'):
         os.mkdir(os.path.join(td, name))
+    if dec.unicode_paths:
+        os.mkdir(os.path.join(td, u'profile_ünicode'))
+    
     with open(os.path.join(td, 'profile_file'), 'w') as f:
         f.write("I am not a profile directory")
     profiles = list_profiles_in(td)
@@ -140,7 +141,8 @@ def test_list_profiles_in():
             profiles.remove(p)
             found_unicode = True
             break
-    nt.assert_true(found_unicode)
+    if dec.unicode_paths:
+        nt.assert_true(found_unicode)
     nt.assert_equal(set(profiles), set(['foo', 'hello']))
 
 

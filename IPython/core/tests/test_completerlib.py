@@ -15,12 +15,9 @@ import tempfile
 import unittest
 from os.path import join
 
-import nose.tools as nt
-from nose import SkipTest
-
 from IPython.core.completerlib import magic_run_completer, module_completion
-from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.testing.decorators import onlyif_unicode_paths
 
 
 class MockEvent(object):
@@ -33,7 +30,7 @@ class MockEvent(object):
 class Test_magic_run_completer(unittest.TestCase):
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
-        for fil in [u"aaø.py", u"a.py", u"b.py"]:
+        for fil in [u"aao.py", u"a.py", u"b.py"]:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
         self.oldpath = os.getcwdu()
@@ -49,7 +46,7 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u"%run a")
         mockself = None
         match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, set([u"a.py", u"aaø.py"]))
+        self.assertEqual(match, set([u"a.py", u"aao.py"]))
 
     def test_2(self):
         """Test magic_run_completer, should match one alterntive
@@ -57,14 +54,14 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u"%run aa")
         mockself = None
         match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, set([u"aaø.py"]))
+        self.assertEqual(match, set([u"aao.py"]))
 
     def test_3(self):
         """Test magic_run_completer with unterminated " """
         event = MockEvent(u'%run "a')
         mockself = None
         match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, set([u"a.py", u"aaø.py"]))
+        self.assertEqual(match, set([u"a.py", u"aao.py"]))
 
     def test_import_invalid_module(self):
         """Testing of issue https://github.com/ipython/ipython/issues/1107"""
@@ -81,3 +78,43 @@ class Test_magic_run_completer(unittest.TestCase):
             self.assertFalse(intersection, intersection)
             
             assert valid_module_names.issubset(s), valid_module_names.intersection(s)
+
+class Test_magic_run_completer_nonascii(unittest.TestCase):
+    @onlyif_unicode_paths
+    def setUp(self):
+        self.BASETESTDIR = tempfile.mkdtemp()
+        for fil in [u"aaø.py", u"a.py", u"b.py"]:
+            with open(join(self.BASETESTDIR, fil), "w") as sfile:
+                sfile.write("pass\n")
+        self.oldpath = os.getcwdu()
+        os.chdir(self.BASETESTDIR)
+
+    def tearDown(self):
+        os.chdir(self.oldpath)
+        shutil.rmtree(self.BASETESTDIR)
+
+    @onlyif_unicode_paths
+    def test_1(self):
+        """Test magic_run_completer, should match two alterntives
+        """
+        event = MockEvent(u"%run a")
+        mockself = None
+        match = set(magic_run_completer(mockself, event))
+        self.assertEqual(match, set([u"a.py", u"aaø.py"]))
+
+    @onlyif_unicode_paths
+    def test_2(self):
+        """Test magic_run_completer, should match one alterntive
+        """
+        event = MockEvent(u"%run aa")
+        mockself = None
+        match = set(magic_run_completer(mockself, event))
+        self.assertEqual(match, set([u"aaø.py"]))
+
+    @onlyif_unicode_paths
+    def test_3(self):
+        """Test magic_run_completer with unterminated " """
+        event = MockEvent(u'%run "a')
+        mockself = None
+        match = set(magic_run_completer(mockself, event))
+        self.assertEqual(match, set([u"a.py", u"aaø.py"]))

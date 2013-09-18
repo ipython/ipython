@@ -56,10 +56,14 @@ def save_ids(f, self, *args, **kwargs):
 @decorator
 def sync_results(f, self, *args, **kwargs):
     """sync relevant results from self.client to our results attribute."""
-    ret = f(self, *args, **kwargs)
-    delta = self.outstanding.difference(self.client.outstanding)
-    completed = self.outstanding.intersection(delta)
-    self.outstanding = self.outstanding.difference(completed)
+    if self._in_sync_results:
+        return f(self, *args, **kwargs)
+    self._in_sync_results = True
+    try:
+        ret = f(self, *args, **kwargs)
+    finally:
+        self._in_sync_results = False
+        self._sync_results()
     return ret
 
 @decorator
@@ -115,6 +119,7 @@ class View(HasTraits):
 
     _socket = Instance('zmq.Socket')
     _flag_names = List(['targets', 'block', 'track'])
+    _in_sync_results = Bool(False)
     _targets = Any()
     _idents = Any()
 
@@ -198,6 +203,15 @@ class View(HasTraits):
     # apply
     #----------------------------------------------------------------
 
+    def _sync_results(self):
+        """to be called by @sync_results decorator
+        
+        after submitting any tasks.
+        """
+        delta = self.outstanding.difference(self.client.outstanding)
+        completed = self.outstanding.intersection(delta)
+        self.outstanding = self.outstanding.difference(completed)
+        
     @sync_results
     @save_ids
     def _really_apply(self, f, args, kwargs, block=None, **options):
@@ -323,6 +337,7 @@ class View(HasTraits):
     # Map
     #-------------------------------------------------------------------
 
+    @sync_results
     def map(self, f, *sequences, **kwargs):
         """override in subclasses"""
         raise NotImplementedError
@@ -364,7 +379,7 @@ class View(HasTraits):
     # Decorators
     #-------------------------------------------------------------------
 
-    def remote(self, block=True, **flags):
+    def remote(self, block=None, **flags):
         """Decorator for making a RemoteFunction"""
         block = self.block if block is None else block
         return remote(self, block=block, **flags)
@@ -534,8 +549,8 @@ class DirectView(View):
         block = self.block if block is None else block
         track = self.track if track is None else track
         targets = self.targets if targets is None else targets
-
-        _idents = self.client._build_targets(targets)[0]
+        
+        _idents, _targets = self.client._build_targets(targets)
         msg_ids = []
         trackers = []
         for ident in _idents:
@@ -544,8 +559,10 @@ class DirectView(View):
             if track:
                 trackers.append(msg['tracker'])
             msg_ids.append(msg['header']['msg_id'])
+        if isinstance(targets, int):
+            msg_ids = msg_ids[0]
         tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=targets, tracker=tracker)
+        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=_targets, tracker=tracker)
         if block:
             try:
                 return ar.get()
@@ -554,7 +571,7 @@ class DirectView(View):
         return ar
 
 
-    @spin_after
+    @sync_results
     def map(self, f, *sequences, **kwargs):
         """view.map(f, *sequences, block=self.block) => list|AsyncMapResult
 
@@ -616,13 +633,15 @@ class DirectView(View):
         block = self.block if block is None else block
         targets = self.targets if targets is None else targets
 
-        _idents = self.client._build_targets(targets)[0]
+        _idents, _targets = self.client._build_targets(targets)
         msg_ids = []
         trackers = []
         for ident in _idents:
             msg = self.client.send_execute_request(self._socket, code, silent=silent, ident=ident)
             msg_ids.append(msg['header']['msg_id'])
-        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=targets)
+        if isinstance(targets, int):
+            msg_ids = msg_ids[0]
+        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=_targets)
         if block:
             try:
                 ar.get()
@@ -778,7 +797,7 @@ class DirectView(View):
     def __setitem__(self,key, value):
         self.update({key:value})
 
-    def clear(self, targets=None, block=False):
+    def clear(self, targets=None, block=None):
         """Clear the remote namespaces on my engines."""
         block = block if block is not None else self.block
         targets = targets if targets is not None else self.targets
@@ -1031,7 +1050,7 @@ class LoadBalancedView(View):
                 pass
         return ar
 
-    @spin_after
+    @sync_results
     @save_ids
     def map(self, f, *sequences, **kwargs):
         """view.map(f, *sequences, block=self.block, chunksize=1, ordered=True) => list|AsyncMapResult

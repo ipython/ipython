@@ -25,15 +25,16 @@ To automatically restore stored variables at startup, add this to your
 import inspect, os, sys, textwrap
 
 # Our own
+from IPython.config.configurable import Configurable
 from IPython.core.error import UsageError
-from IPython.core.fakemodule import FakeModule
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
-    
+
 def restore_aliases(ip):
     staliases = ip.db.get('stored_aliases', {})
     for k,v in staliases.items():
@@ -68,10 +69,23 @@ def restore_data(ip):
 
 
 @magics_class
-class StoreMagics(Magics):
+class StoreMagics(Magics, Configurable):
     """Lightweight persistence for python variables.
 
     Provides the %store magic."""
+    
+    autorestore = Bool(False, config=True, help=
+        """If True, any %store-d variables will be automatically restored
+        when IPython starts.
+        """
+    )
+    
+    def __init__(self, shell):
+        Configurable.__init__(self, config=shell.config)
+        Magics.__init__(self, shell=shell)
+        self.shell.configurables.append(self)
+        if self.autorestore:
+            restore_data(self.shell)
 
     @skip_doctest
     @line_magic
@@ -88,7 +102,10 @@ class StoreMagics(Magics):
 
           ville@badger:~$ ipython
           In [1]: l
-          Out[1]: ['hello', 10, 'world']
+          NameError: name 'l' is not defined
+          In [2]: %store -r
+          In [3]: l
+          Out[3]: ['hello', 10, 'world']
 
         Usage:
 
@@ -98,8 +115,10 @@ class StoreMagics(Magics):
                                 to disk
         * ``%store -d spam``  - Remove the variable and its value from storage
         * ``%store -z``       - Remove all variables from storage
-        * ``%store -r``       - Refresh all variables from store (delete
+        * ``%store -r``       - Refresh all variables from store (overwrite
                                 current vals)
+        * ``%store -r spam bar`` - Refresh specified variables from store
+                                   (delete current val)
         * ``%store foo >a.txt``  - Store value of foo to new file a.txt
         * ``%store foo >>a.txt`` - Append value of foo to file a.txt
 
@@ -133,8 +152,16 @@ class StoreMagics(Magics):
                 del db[k]
 
         elif 'r' in opts:
-            refresh_variables(ip)
-
+            if args:
+                for arg in args:
+                    try:
+                        obj = db['autorestore/' + arg]
+                    except KeyError:
+                        print "no stored variable %s" % arg
+                    else:
+                        ip.user_ns[arg] = obj
+            else:
+                restore_data(ip)
 
         # run without arguments -> list variables & values
         elif not args:
@@ -196,7 +223,8 @@ class StoreMagics(Magics):
                     raise UsageError("Unknown variable '%s'" % args[0])
 
             else:
-                if isinstance(inspect.getmodule(obj), FakeModule):
+                modname = getattr(inspect.getmodule(obj), '__name__', '')
+                if modname == '__main__':
                     print textwrap.dedent("""\
                     Warning:%s is %s
                     Proper storage of interactively declared classes (or instances
@@ -212,3 +240,4 @@ class StoreMagics(Magics):
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     ip.register_magics(StoreMagics)
+    

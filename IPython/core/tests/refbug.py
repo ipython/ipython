@@ -18,7 +18,7 @@ test_run.py calls it.
 #-----------------------------------------------------------------------------
 import sys
 
-from IPython.core import ipapi
+from IPython import get_ipython
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -29,7 +29,7 @@ from IPython.core import ipapi
 # want to prevent.
 if __name__ == '__main__':
 
-    ip = ipapi.get()
+    ip = get_ipython()
 
     if not '_refbug_cache' in ip.user_ns:
         ip.user_ns['_refbug_cache'] = []

@@ -72,17 +72,17 @@ def default_aliases():
                           ]
         else:
             # BSD, OSX, etc.
-            ls_aliases = [('ls', 'ls -F'),
+            ls_aliases = [('ls', 'ls -F -G'),
                           # long ls
-                          ('ll', 'ls -F -l'),
+                          ('ll', 'ls -F -l -G'),
                           # ls normal files only
-                          ('lf', 'ls -F -l %l | grep ^-'),
+                          ('lf', 'ls -F -l -G %l | grep ^-'),
                           # ls symbolic links
-                          ('lk', 'ls -F -l %l | grep ^l'),
+                          ('lk', 'ls -F -l -G %l | grep ^l'),
                           # directories or links to directories,
-                          ('ldir', 'ls -F -l %l | grep /$'),
+                          ('ldir', 'ls -F -G -l %l | grep /$'),
                           # things which are executable
-                          ('lx', 'ls -F -l %l | grep ^-..x'),
+                          ('lx', 'ls -F -l -G %l | grep ^-..x'),
                           ]
         default_aliases = default_aliases + ls_aliases
     elif os.name in ['nt', 'dos']:
@@ -114,8 +114,8 @@ class AliasManager(Configurable):
     user_aliases = List(default_value=[], config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    def __init__(self, shell=None, config=None):
-        super(AliasManager, self).__init__(shell=shell, config=config)
+    def __init__(self, shell=None, **kwargs):
+        super(AliasManager, self).__init__(shell=shell, **kwargs)
         self.alias_table = {}
         self.exclude_aliases()
         self.init_aliases()
@@ -255,7 +255,7 @@ class AliasManager(Configurable):
                 if l2.split(None,1)[0] == line.split(None,1)[0]:
                     line = l2
                     break
-                line=l2
+                line = l2
             else:
                 break
 

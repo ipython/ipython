@@ -24,13 +24,13 @@ Authors
 #-----------------------------------------------------------------------------
 
 import __builtin__ as builtin_mod
+import argparse
 import os
 import re
 import sys
 
-from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils import py3compat, text, warn
+from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
@@ -83,16 +83,35 @@ class Config(dict):
         # This sets self.__dict__ = self, but it has to be done this way
         # because we are also overriding __setattr__.
         dict.__setattr__(self, '__dict__', self)
-
+        self._ensure_subconfig()
+    
+    def _ensure_subconfig(self):
+        """ensure that sub-dicts that should be Config objects are
+        
+        casts dicts that are under section keys to Config objects,
+        which is necessary for constructing Config objects from dict literals.
+        """
+        for key in self:
+            obj = self[key]
+            if self._is_section_key(key) \
+                    and isinstance(obj, dict) \
+                    and not isinstance(obj, Config):
+                dict.__setattr__(self, key, Config(obj))
+    
     def _merge(self, other):
+        """deprecated alias, use Config.merge()"""
+        self.merge(other)
+    
+    def merge(self, other):
+        """merge another config object into this one"""
         to_update = {}
         for k, v in other.iteritems():
             if k not in self:
                 to_update[k] = v
             else: # I have this key
-                if isinstance(v, Config):
+                if isinstance(v, Config) and isinstance(self[k], Config):
                     # Recursively merge common sub Configs
-                    self[k]._merge(v)
+                    self[k].merge(v)
                 else:
                     # Plain updates for non-Configs
                     to_update[k] = v
@@ -154,10 +173,6 @@ class Config(dict):
             return dict.__getitem__(self, key)
 
     def __setitem__(self, key, value):
-        # Don't allow names in __builtin__ to be modified.
-        if hasattr(builtin_mod, key):
-            raise ConfigError('Config variable names cannot have the same name '
-                              'as a Python builtin: %s' % key)
         if self._is_section_key(key):
             if not isinstance(value, Config):
                 raise ValueError('values whose keys begin with an uppercase '
@@ -314,14 +329,18 @@ class PyFileConfigLoader(FileConfigLoader):
                 # when a user s using a profile, but not the default config.
                 pass
             else:
-                self.config._merge(sub_config)
+                self.config.merge(sub_config)
 
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
         def get_config():
             return self.config
 
-        namespace = dict(load_subconfig=load_subconfig, get_config=get_config)
+        namespace = dict(
+            load_subconfig=load_subconfig,
+            get_config=get_config,
+            __file__=self.full_filename,
+        )
         fs_encoding = sys.getfilesystemencoding() or 'ascii'
         conf_filename = self.full_filename.encode(fs_encoding)
         py3compat.execfile(conf_filename, namespace)
@@ -475,8 +494,6 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             or dicts.  When the flag is triggered, The config is loaded as
             `self.config.update(cfg)`.
         """
-        from IPython.config.configurable import Configurable
-
         self.clear()
         if argv is None:
             argv = self.argv
@@ -494,7 +511,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             if raw == '--':
                 # don't parse arguments after '--'
                 # this is useful for relaying arguments to scripts, e.g.
-                # ipython -i foo.py --pylab=qt -- args after '--' go-to-foo.py
+                # ipython -i foo.py --matplotlib=qt -- args after '--' go-to-foo.py
                 self.extra_args.extend(uargv[idx+1:])
                 break
 
@@ -673,7 +690,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         if self.extra_args:
             sub_parser = KeyValueConfigLoader()
             sub_parser.load_config(self.extra_args)
-            self.config._merge(sub_parser.config)
+            self.config.merge(sub_parser.config)
             self.extra_args = sub_parser.extra_args
 
 
@@ -697,5 +714,5 @@ def load_pyconfig_files(config_files, path):
         except:
             raise
         else:
-            config._merge(next_config)
+            config.merge(next_config)
     return config

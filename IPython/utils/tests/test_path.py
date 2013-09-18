@@ -18,7 +18,6 @@ import os
 import shutil
 import sys
 import tempfile
-from io import StringIO
 from contextlib import contextmanager
 
 from os.path import join, abspath, split
@@ -29,9 +28,10 @@ from nose import with_setup
 
 import IPython
 from IPython.testing import decorators as dec
-from IPython.testing.decorators import skip_if_not_win32, skip_win32
+from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
+                                        onlyif_unicode_paths,)
 from IPython.testing.tools import make_tempfile, AssertPrints
-from IPython.utils import path, io
+from IPython.utils import path
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -60,6 +60,7 @@ TEST_FILE_PATH = split(abspath(__file__))[0]
 TMP_TEST_DIR = tempfile.mkdtemp()
 HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
 XDG_TEST_DIR = join(HOME_TEST_DIR, "xdg_test_dir")
+XDG_CACHE_DIR = join(HOME_TEST_DIR, "xdg_cache_dir")
 IP_TEST_DIR = join(HOME_TEST_DIR,'.ipython')
 #
 # Setup/teardown functions/decorators
@@ -74,6 +75,7 @@ def setup():
     # problem because that exception is only defined on Windows...
     os.makedirs(IP_TEST_DIR)
     os.makedirs(os.path.join(XDG_TEST_DIR, 'ipython'))
+    os.makedirs(os.path.join(XDG_CACHE_DIR, 'ipython'))
 
 
 def teardown():
@@ -102,7 +104,7 @@ def setup_environment():
 
 
 def teardown_environment():
-    """Restore things that were remebered by the setup_environment function
+    """Restore things that were remembered by the setup_environment function
     """
     (oldenv, os.name, sys.platform, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
     os.chdir(old_wd)
@@ -125,13 +127,14 @@ with_environment = with_setup(setup_environment, teardown_environment)
 def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
     """
+    unfrozen = path.get_home_dir()
     sys.frozen = True
 
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
 
     home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+    nt.assert_equal(home_dir, unfrozen)
 
 
 @skip_if_not_win32
@@ -139,12 +142,13 @@ def test_get_home_dir_1():
 def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
+    unfrozen = path.get_home_dir()
     sys.frozen = True
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
 
     home_dir = path.get_home_dir(True)
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
+    nt.assert_equal(home_dir, unfrozen)
 
 
 @with_environment
@@ -293,6 +297,20 @@ def test_get_ipython_dir_7():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
 
+@skip_win32
+@with_environment
+def test_get_ipython_dir_8():
+    """test_get_ipython_dir_8, test / home directory"""
+    old = path._writable_dir, path.get_xdg_dir
+    try:
+        path._writable_dir = lambda path: bool(path)
+        path.get_xdg_dir = lambda: None
+        env.pop('IPYTHON_DIR', None)
+        env.pop('IPYTHONDIR', None)
+        env['HOME'] = '/'
+        nt.assert_equal(path.get_ipython_dir(), '/.ipython')
+    finally:
+        path._writable_dir, path.get_xdg_dir = old
 
 @with_environment
 def test_get_xdg_dir_0():
@@ -361,6 +379,26 @@ def test_filefind():
     t = path.filefind(f.name, alt_dirs)
     # print 'found:',t
 
+@with_environment
+def test_get_ipython_cache_dir():
+    os.environ["HOME"] = HOME_TEST_DIR
+    if os.name == 'posix' and sys.platform != 'darwin':
+        # test default
+        os.makedirs(os.path.join(HOME_TEST_DIR, ".cache"))
+        os.environ.pop("XDG_CACHE_HOME", None)
+        ipdir = path.get_ipython_cache_dir()
+        nt.assert_equal(os.path.join(HOME_TEST_DIR, ".cache", "ipython"),
+                        ipdir)
+        nt.assert_true(os.path.isdir(ipdir))
+
+        # test env override
+        os.environ["XDG_CACHE_HOME"] = XDG_CACHE_DIR
+        ipdir = path.get_ipython_cache_dir()
+        nt.assert_true(os.path.isdir(ipdir))
+        nt.assert_equal(ipdir, os.path.join(XDG_CACHE_DIR, "ipython"))
+    else:
+        nt.assert_equal(path.get_ipython_cache_dir(),
+                        path.get_ipython_dir())
 
 def test_get_ipython_package_dir():
     ipdir = path.get_ipython_package_dir()
@@ -368,14 +406,22 @@ def test_get_ipython_package_dir():
 
 
 def test_get_ipython_module_path():
-    ipapp_path = path.get_ipython_module_path('IPython.frontend.terminal.ipapp')
+    ipapp_path = path.get_ipython_module_path('IPython.terminal.ipapp')
     nt.assert_true(os.path.isfile(ipapp_path))
 
 
 @dec.skip_if_not_win32
 def test_get_long_path_name_win32():
-    p = path.get_long_path_name('c:\\docume~1')
-    nt.assert_equal(p,u'c:\\Documents and Settings')
+    with TemporaryDirectory() as tmpdir:
+
+        # Make a long path.
+        long_path = os.path.join(tmpdir, u'this is my long path name')
+        os.makedirs(long_path)
+
+        # Test to see if the short path evaluates correctly.
+        short_path = os.path.join(tmpdir, u'THISIS~1')
+        evaluated_path = path.get_long_path_name(short_path)
+        nt.assert_equal(evaluated_path.lower(), long_path.lower())
 
 
 @dec.skip_win32
@@ -434,7 +480,8 @@ def test_get_py_filename():
             else:
                 nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
                 nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)
-                
+
+@onlyif_unicode_paths
 def test_unicode_in_filename():
     """When a file doesn't exist, the exception raised should be safe to call
     str() on - i.e. in Python 2 it must only have ASCII characters.
@@ -522,3 +569,69 @@ def test_unescape_glob():
     nt.assert_equals(path.unescape_glob(r'\\\*'), r'\*')
     nt.assert_equals(path.unescape_glob(r'\\a'), r'\a')
     nt.assert_equals(path.unescape_glob(r'\a'), r'\a')
+
+
+class TestLinkOrCopy(object):
+    def setUp(self):
+        self.tempdir = TemporaryDirectory()
+        self.src = self.dst("src")
+        with open(self.src, "w") as f:
+            f.write("Hello, world!")
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def dst(self, *args):
+        return os.path.join(self.tempdir.name, *args)
+
+    def assert_inode_not_equal(self, a, b):
+        nt.assert_not_equals(os.stat(a).st_ino, os.stat(b).st_ino,
+                             "%r and %r do reference the same indoes" %(a, b))
+
+    def assert_inode_equal(self, a, b):
+        nt.assert_equals(os.stat(a).st_ino, os.stat(b).st_ino,
+                         "%r and %r do not reference the same indoes" %(a, b))
+
+    def assert_content_equal(self, a, b):
+        with open(a) as a_f:
+            with open(b) as b_f:
+                nt.assert_equals(a_f.read(), b_f.read())
+
+    @skip_win32
+    def test_link_successful(self):
+        dst = self.dst("target")
+        path.link_or_copy(self.src, dst)
+        self.assert_inode_equal(self.src, dst)
+
+    @skip_win32
+    def test_link_into_dir(self):
+        dst = self.dst("some_dir")
+        os.mkdir(dst)
+        path.link_or_copy(self.src, dst)
+        expected_dst = self.dst("some_dir", os.path.basename(self.src))
+        self.assert_inode_equal(self.src, expected_dst)
+
+    @skip_win32
+    def test_target_exists(self):
+        dst = self.dst("target")
+        open(dst, "w").close()
+        path.link_or_copy(self.src, dst)
+        self.assert_inode_equal(self.src, dst)
+
+    @skip_win32
+    def test_no_link(self):
+        real_link = os.link
+        try:
+            del os.link
+            dst = self.dst("target")
+            path.link_or_copy(self.src, dst)
+            self.assert_content_equal(self.src, dst)
+            self.assert_inode_not_equal(self.src, dst)
+        finally:
+            os.link = real_link
+
+    @skip_if_not_win32
+    def test_windows(self):
+        dst = self.dst("target")
+        path.link_or_copy(self.src, dst)
+        self.assert_content_equal(self.src, dst)

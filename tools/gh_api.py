@@ -1,4 +1,4 @@
-"""Functions for Github authorisation."""
+"""Functions for Github API requests."""
 from __future__ import print_function
 
 try:
@@ -7,10 +7,19 @@ except NameError:
     pass
 
 import os
+import re
+import sys
 
 import requests
 import getpass
 import json
+
+try:
+    import requests_cache
+except ImportError:
+    print("no cache")
+else:
+    requests_cache.install_cache("gh_api")
 
 # Keyring stores passwords by a 'username', but we're not storing a username and
 # password
@@ -86,21 +95,70 @@ def post_gist(content, description='', filename='file', auth=False):
     response_data = json.loads(response.text)
     return response_data['html_url']
     
-def get_pull_request(project, num):
+def get_pull_request(project, num, auth=False):
     """get pull request info  by number
     """
     url = "https://api.github.com/repos/{project}/pulls/{num}".format(project=project, num=num)
-    response = requests.get(url)
+    if auth:
+        header = make_auth_header()
+    else:
+        header = None
+    response = requests.get(url, headers=header)
     response.raise_for_status()
     return json.loads(response.text, object_hook=Obj)
 
-def get_pulls_list(project):
-    """get pull request list
-    """
+def get_pull_request_files(project, num, auth=False):
+    """get list of files in a pull request"""
+    url = "https://api.github.com/repos/{project}/pulls/{num}/files".format(project=project, num=num)
+    if auth:
+        header = make_auth_header()
+    else:
+        header = None
+    return get_paged_request(url, headers=header)
+
+element_pat = re.compile(r'<(.+?)>')
+rel_pat = re.compile(r'rel=[\'"](\w+)[\'"]')
+
+def get_paged_request(url, headers=None, **params):
+    """get a full list, handling APIv3's paging"""
+    results = []
+    params.setdefault("per_page", 100)
+    while True:
+        print("fetching %s with %s" % (url, params), file=sys.stderr)
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        results.extend(response.json())
+        if 'next' in response.links:
+            url = response.links['next']['url']
+        else:
+            break
+    return results
+
+def get_pulls_list(project, auth=False, **params):
+    """get pull request list"""
+    params.setdefault("state", "closed")
     url = "https://api.github.com/repos/{project}/pulls".format(project=project)
-    response = requests.get(url)
-    response.raise_for_status()
-    return json.loads(response.text)
+    if auth:
+        headers = make_auth_header()
+    else:
+        headers = None
+    pages = get_paged_request(url, headers=headers, params=params)
+    return pages
+
+def get_issues_list(project, auth=False, **params):
+    """get issues list"""
+    params.setdefault("state", "closed")
+    url = "https://api.github.com/repos/{project}/issues".format(project=project)
+    if auth:
+        headers = make_auth_header()
+    else:
+        headers = None
+    pages = get_paged_request(url, headers=headers, **params)
+    return pages
+
+def is_pull_request(issue):
+    """Return True if the given issue is a pull request."""
+    return bool(issue.get('pull_request', {}).get('html_url', None))
 
 # encode_multipart_formdata is from urllib3.filepost
 # The only change is to iter_fields, to enforce S3's required key ordering

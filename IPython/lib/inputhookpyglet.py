@@ -21,7 +21,6 @@ Authors
 #-----------------------------------------------------------------------------
 
 import os
-import signal
 import sys
 import time
 from timeit import default_timer as clock

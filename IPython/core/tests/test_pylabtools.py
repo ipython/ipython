@@ -23,7 +23,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 # Our own imports
-from IPython.testing import decorators as dec
+from IPython.core.interactiveshell import InteractiveShell
 from .. import pylabtools as pt
 
 #-----------------------------------------------------------------------------
@@ -38,11 +38,10 @@ from .. import pylabtools as pt
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-@dec.parametric
 def test_figure_to_svg():
     # simple empty-figure test
     fig = plt.figure()
-    yield nt.assert_equal(pt.print_figure(fig, 'svg'), None)
+    nt.assert_equal(pt.print_figure(fig, 'svg'), None)
 
     plt.close('all')
 
@@ -52,7 +51,7 @@ def test_figure_to_svg():
     ax.plot([1,2,3])
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
-    yield nt.assert_true('doctype svg' in svg)
+    nt.assert_in(b'doctype svg', svg)
 
 
 def test_import_pylab():
@@ -62,11 +61,11 @@ def test_import_pylab():
     nt.assert_true('plt' in ns)
     nt.assert_equal(ns['np'], np)
 
-
 class TestPylabSwitch(object):
-    class Shell(object):
-        pylab_gui_select = None
-
+    class Shell(InteractiveShell):
+        def enable_gui(self, gui):
+            pass
+    
     def setup(self):
         import matplotlib
         def act_mpl(backend):
@@ -93,47 +92,47 @@ class TestPylabSwitch(object):
 
     def test_qt(self):
         s = self.Shell()
-        gui = pt.pylab_activate(dict(), None, False, s)
+        gui, backend = s.enable_matplotlib(None)
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
-        gui = pt.pylab_activate(dict(), 'inline', False, s)
+        gui, backend = s.enable_matplotlib('inline')
         nt.assert_equal(gui, 'inline')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
-        gui = pt.pylab_activate(dict(), 'qt', False, s)
+        gui, backend = s.enable_matplotlib('qt')
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
-        gui = pt.pylab_activate(dict(), 'inline', False, s)
+        gui, backend = s.enable_matplotlib('inline')
         nt.assert_equal(gui, 'inline')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
-        gui = pt.pylab_activate(dict(), None, False, s)
+        gui, backend = s.enable_matplotlib()
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
     def test_inline(self):
         s = self.Shell()
-        gui = pt.pylab_activate(dict(), 'inline', False, s)
+        gui, backend = s.enable_matplotlib('inline')
         nt.assert_equal(gui, 'inline')
         nt.assert_equal(s.pylab_gui_select, None)
 
-        gui = pt.pylab_activate(dict(), 'inline', False, s)
+        gui, backend = s.enable_matplotlib('inline')
         nt.assert_equal(gui, 'inline')
         nt.assert_equal(s.pylab_gui_select, None)
 
-        gui = pt.pylab_activate(dict(), 'qt', False, s)
+        gui, backend = s.enable_matplotlib('qt')
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
     def test_qt_gtk(self):
         s = self.Shell()
-        gui = pt.pylab_activate(dict(), 'qt', False, s)
+        gui, backend = s.enable_matplotlib('qt')
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
-        gui = pt.pylab_activate(dict(), 'gtk', False, s)
+        gui, backend = s.enable_matplotlib('gtk')
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 

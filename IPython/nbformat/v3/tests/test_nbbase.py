@@ -29,11 +29,11 @@ class TestCell(TestCase):
         self.assertEqual(cc.collapsed, True)
 
     def test_pyerr(self):
-        o = new_output(output_type=u'pyerr', etype=u'NameError',
+        o = new_output(output_type=u'pyerr', ename=u'NameError',
             evalue=u'Name not found', traceback=[u'frame 0', u'frame 1', u'frame 2']
         )
         self.assertEqual(o.output_type, u'pyerr')
-        self.assertEqual(o.etype, u'NameError')
+        self.assertEqual(o.ename, u'NameError')
         self.assertEqual(o.evalue, u'Name not found')
         self.assertEqual(o.traceback, [u'frame 0', u'frame 1', u'frame 2'])
 
@@ -140,4 +140,18 @@ class TestMetadata(TestCase):
         self.assertEqual(md.modified, u'now')
         self.assertEqual(md.gistid, u'21341231')
         self.assertEqual(md.authors, authors)
+
+class TestOutputs(TestCase):
+    def test_binary_png(self):
+        out = new_output(output_png=b'\x89PNG\r\n\x1a\n')
+
+    def test_b64b6tes_png(self):
+        out = new_output(output_png=b'iVBORw0KG')
+    
+    def test_binary_jpeg(self):
+        out = new_output(output_jpeg=b'\xff\xd8')
+
+    def test_b64b6tes_jpeg(self):
+        out = new_output(output_jpeg=b'/9')
+        
 

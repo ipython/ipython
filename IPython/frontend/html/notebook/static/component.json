@@ -1,8 +1,0 @@
-{
-  "name": "ipython-notebook",
-  "version": "0.0.1",
-  "dependencies": {
-    "bootstrap": "~2.2.2",
-    "less.js": "~1.3.3"
-  }
-}

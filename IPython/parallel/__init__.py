@@ -21,7 +21,7 @@ import warnings
 import zmq
 
 from IPython.config.configurable import MultipleInstanceError
-from IPython.kernel.zmq import check_for_zmq
+from IPython.utils.zmqrelated import check_for_zmq
 
 min_pyzmq = '2.1.11'
 

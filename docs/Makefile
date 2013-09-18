@@ -23,6 +23,8 @@ help:
 	@echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "  texinfo   to make Texinfo files"
+	@echo "  info      to make Texinfo files and run them through makeinfo"
 	@echo "  changes   to make an overview over all changed/added/deprecated items"
 	@echo "  linkcheck to check all external links for integrity"
 	@echo
@@ -50,7 +52,10 @@ dist: html
 	cp -al build/html .
 	@echo "Build finished.  Final docs are in html/"
 
-html: api
+html: api 
+html_noapi: clean
+
+html html_noapi:
 	mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
@@ -108,14 +113,28 @@ linkcheck:
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
-	      "or in build/linkcheck/output.txt."
+	      "or in build/linkcheck/output.rst."
 
 gitwash-update:
 	python ../tools/gitwash_dumper.py source/development ipython
-	cd source/development/gitwash && rename 's/.rst/.txt/' *.rst
 
 nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly
 
 gh-pages: clean html
 	python gh-pages.py
+
+texinfo:
+	mkdir -p $(BUILDDIR)/texinfo
+	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
+	@echo
+	@echo "Build finished. The Texinfo files are in $(BUILDDIR)/texinfo."
+	@echo "Run \`make' in that directory to run these through makeinfo" \
+	      "(use \`make info' here to do that automatically)."
+
+info:
+	mkdir -p $(BUILDDIR)/texinfo
+	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
+	@echo "Running Texinfo files through makeinfo..."
+	make -C $(BUILDDIR)/texinfo info
+	@echo "makeinfo finished; the Info files are in $(BUILDDIR)/texinfo."

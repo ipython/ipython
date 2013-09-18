@@ -1,0 +1,67 @@
+div.code_cell {
+}
+
+/* any special styling for code cells that are currently running goes here */
+div.code_cell.running {
+}
+
+div.input {
+    page-break-inside: avoid;
+    .hbox();
+}
+
+/* input_area and input_prompt must match in top border and margin for alignment */
+div.input_area {
+    border: 1px solid @light_border_color;
+    .corner-all;
+    background: @cell_background;
+}
+
+div.input_prompt {
+    color: navy;
+    border-top: 1px solid transparent;
+}
+
+div.output_wrapper {
+    /* This is a spacer between the input and output of each cell */
+    margin-top: 5px;
+    /* this position must be relative to enable descendents to be absolute within it */
+    position: relative;
+    .vbox()
+}
+
+/* class for the output area when it should be height-limited */
+div.output_scroll {
+  /* ideally, this would be max-height, but FF barfs all over that */
+  height: 24em;
+  /* FF needs this *and the wrapper* to specify full width, or it will shrinkwrap */
+  width: 100%;
+
+  overflow: auto;
+  .corner-all;
+  .box-shadow(inset 0 2px 8px rgba(0, 0, 0, .8));
+}
+
+/* output div while it is collapsed */
+div.output_collapsed {
+  margin: 0px;
+  padding: 0px;
+  .vbox();
+}
+
+div.out_prompt_overlay {
+  height: 100%;
+  padding: 0px 0.4em;
+  position: absolute;
+  .corner-all;
+}
+
+div.out_prompt_overlay:hover {
+  /* use inner shadow to get border that is computed the same on WebKit/FF */
+  .box-shadow(inset 0 0 1px #000);
+  background: rgba(240, 240, 240, 0.5);
+}
+
+div.output_prompt {
+    color: darkred;
+}

@@ -22,12 +22,15 @@ from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
-from IPython.kernel.blockingkernelmanager import BlockingKernelManager
+from IPython.kernel import BlockingKernelClient
 from IPython.utils import path, py3compat
 
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
+
+SETUP_TIMEOUT = 60
+TIMEOUT = 15
 
 def setup():
     """setup temporary IPYTHONDIR for tests"""
@@ -70,7 +73,9 @@ def setup_kernel(cmd):
     )
     # wait for connection file to exist, timeout after 5s
     tic = time.time()
-    while not os.path.exists(connection_file) and kernel.poll() is None and time.time() < tic + 10:
+    while not os.path.exists(connection_file) \
+        and kernel.poll() is None \
+        and time.time() < tic + SETUP_TIMEOUT:
         time.sleep(0.1)
     
     if kernel.poll() is not None:
@@ -83,14 +88,14 @@ def setup_kernel(cmd):
             kernel.terminate()
         raise IOError("Connection file %r never arrived" % connection_file)
     
-    km = BlockingKernelManager(connection_file=connection_file)
-    km.load_connection_file()
-    km.start_channels()
+    client = BlockingKernelClient(connection_file=connection_file)
+    client.load_connection_file()
+    client.start_channels()
     
     try:
-        yield km
+        yield client
     finally:
-        km.stop_channels()
+        client.stop_channels()
         kernel.terminate()
 
 def test_embed_kernel_basic():
@@ -105,23 +110,21 @@ def test_embed_kernel_basic():
         '',
     ])
     
-    with setup_kernel(cmd) as km:
-        shell = km.shell_channel
-    
+    with setup_kernel(cmd) as client:
         # oinfo a (int)
-        msg_id = shell.object_info('a')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('a')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
     
-        msg_id = shell.execute("c=a*2")
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.execute("c=a*2")
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_equal(content['status'], u'ok')
 
         # oinfo c (should be 10)
-        msg_id = shell.object_info('c')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('c')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
         nt.assert_equal(content['string_form'], u'10')
@@ -138,26 +141,24 @@ def test_embed_kernel_namespace():
         '',
     ])
     
-    with setup_kernel(cmd) as km:
-        shell = km.shell_channel
-    
+    with setup_kernel(cmd) as client:
         # oinfo a (int)
-        msg_id = shell.object_info('a')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('a')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
         nt.assert_equal(content['string_form'], u'5')
 
         # oinfo b (str)
-        msg_id = shell.object_info('b')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('b')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
         nt.assert_equal(content['string_form'], u'hi there')
 
         # oinfo c (undefined)
-        msg_id = shell.object_info('c')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('c')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_false(content['found'])
 
@@ -176,18 +177,17 @@ def test_embed_kernel_reentrant():
         '',
     ])
     
-    with setup_kernel(cmd) as km:
-        shell = km.shell_channel
+    with setup_kernel(cmd) as client:
         for i in range(5):
-            msg_id = shell.object_info('count')
-            msg = shell.get_msg(block=True, timeout=2)
+            msg_id = client.object_info('count')
+            msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
             content = msg['content']
             nt.assert_true(content['found'])
             nt.assert_equal(content['string_form'], unicode(i))
             
             # exit from embed_kernel
-            shell.execute("get_ipython().exit_now = True")
-            msg = shell.get_msg(block=True, timeout=2)
+            client.execute("get_ipython().exit_now = True")
+            msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
             time.sleep(0.2)
 
 

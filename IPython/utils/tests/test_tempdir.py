@@ -8,6 +8,7 @@
 import os
 
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
+from IPython.utils.tempdir import TemporaryWorkingDirectory
 
 
 def test_named_file_in_temporary_directory():
@@ -18,3 +19,10 @@ def test_named_file_in_temporary_directory():
         file.write(b'test')
     assert file.closed
     assert not os.path.exists(name)
+
+def test_temporary_working_directory():
+    with TemporaryWorkingDirectory() as dir:
+        assert os.path.exists(dir)
+        assert os.path.realpath(os.curdir) == os.path.realpath(dir)
+    assert not os.path.exists(dir)
+    assert os.path.abspath(os.curdir) != dir

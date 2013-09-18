@@ -33,6 +33,10 @@ def flag_calls(func):
 
     Testing for truth in wrapper.called allows you to determine if a call to
     func() was attempted and succeeded."""
+    
+    # don't wrap twice
+    if hasattr(func, 'called'):
+        return func
 
     def wrapper(*args,**kw):
         wrapper.called = False

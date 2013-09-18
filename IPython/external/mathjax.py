@@ -19,6 +19,10 @@ From the command line:
 
     $ python -m IPython.external.mathjax
 
+To a specific profile:
+
+    $ python -m IPython.external.mathjax --profile=research
+
 To install MathJax from a file you have already downloaded:
 
     $ python -m IPython.external.mathjax mathjax-xxx.tar.gz
@@ -46,6 +50,7 @@ To find the directory where IPython would like MathJax installed:
 # Imports
 #-----------------------------------------------------------------------------
 
+import argparse
 import os
 import shutil
 import sys
@@ -55,7 +60,6 @@ import zipfile
 
 
 from IPython.utils.path import locate_profile
-from IPython.external import argparse
 #-----------------------------------------------------------------------------
 #
 #-----------------------------------------------------------------------------
@@ -200,33 +204,44 @@ def main() :
             )
 
     parser.add_argument(
+            '-p',
+            '--profile',
+            default='default',
+            help='profile to install MathJax to (default is default)')
+
+    parser.add_argument(
             '-i',
             '--install-dir',
-            default=default_dest,
-            help='installation directory (by default : %s)' % (default_dest))
+            help='custom installation directory')
+
     parser.add_argument(
             '-d',
             '--dest',
             action='store_true',
-            help='print where is current mathjax would be installed and exit')
+            help='print where current mathjax would be installed and exit')
     parser.add_argument(
             '-r',
             '--replace',
             action='store_true',
-            help='Wether to replace current mathjax if already exist')
+            help='Whether to replace current mathjax if it already exists')
     parser.add_argument(
             '-t',
             '--test',
             action='store_true')
     parser.add_argument('tarball',
-            type=int,
             help="the local tar/zip-ball containing mathjax",
             nargs='?',
             metavar='tarball')
 
     pargs = parser.parse_args()
 
-    dest = pargs.install_dir
+    if pargs.install_dir:
+        # Explicit install_dir overrides profile
+        dest = pargs.install_dir
+    else:
+        profile = pargs.profile
+        dest = os.path.join(locate_profile(profile), 'static', 'mathjax')
+
     if pargs.dest :
         print dest
         return
@@ -260,7 +275,7 @@ def main() :
 if __name__ == '__main__' :
     sys.exit(main())
 
-__all__ = ['install_mathjax', 'main', 'dest']
+__all__ = ['install_mathjax', 'main', 'default_dest']
 
 """
 Test notes:

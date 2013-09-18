@@ -3,4 +3,4 @@
 [HKEY_CLASSES_ROOT\Directory\shell\IPython here]
 
 [HKEY_CLASSES_ROOT\Directory\shell\IPython here\Command]
-@="cmd.exe /C ipython.py -p sh -i -c \"%cd %1\""
+@="cmd.exe /C python -m IPython -i -c \"%cd %1\""

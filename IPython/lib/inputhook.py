@@ -417,7 +417,6 @@ class InputHookManager(object):
         IPython.
 
         """
-        import pyglet
         from IPython.lib.inputhookpyglet import inputhook_pyglet
         self.set_inputhook(inputhook_pyglet)
         self._current_gui = GUI_PYGLET
@@ -482,6 +481,19 @@ set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
 clear_app_refs = inputhook_manager.clear_app_refs
 
+guis = {None: clear_inputhook,
+        GUI_NONE: clear_inputhook,
+        GUI_OSX: lambda app=False: None,
+        GUI_TK: enable_tk,
+        GUI_GTK: enable_gtk,
+        GUI_WX: enable_wx,
+        GUI_QT: enable_qt4, # qt3 not supported
+        GUI_QT4: enable_qt4,
+        GUI_GLUT: enable_glut,
+        GUI_PYGLET: enable_pyglet,
+        GUI_GTK3: enable_gtk3,
+}
+
 
 # Convenience function to switch amongst them
 def enable_gui(gui=None, app=None):
@@ -508,18 +520,6 @@ def enable_gui(gui=None, app=None):
     PyOS_InputHook wrapper object or the GUI toolkit app created, if there was
     one.
     """
-    guis = {None: clear_inputhook,
-            GUI_NONE: clear_inputhook,
-            GUI_OSX: lambda app=False: None,
-            GUI_TK: enable_tk,
-            GUI_GTK: enable_gtk,
-            GUI_WX: enable_wx,
-            GUI_QT: enable_qt4, # qt3 not supported
-            GUI_QT4: enable_qt4,
-            GUI_GLUT: enable_glut,
-            GUI_PYGLET: enable_pyglet,
-            GUI_GTK3: enable_gtk3,
-            }
     try:
         gui_hook = guis[gui]
     except KeyError:

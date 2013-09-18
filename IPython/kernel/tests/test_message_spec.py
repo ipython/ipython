@@ -1,86 +1,38 @@
-"""Test suite for our zeromq-based messaging specification.
+"""Test suite for our zeromq-based message specification.
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
+#  Copyright (C) 2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING.txt, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
 import re
-import sys
-import time
 from subprocess import PIPE
 from Queue import Empty
 
 import nose.tools as nt
 
-from ..blockingkernelmanager import BlockingKernelManager
+from IPython.kernel import KernelManager
 
-
-from IPython.testing import decorators as dec
-from IPython.utils import io
 from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
 
+from .utils import TIMEOUT, start_global_kernel, flush_channels, execute
+
 #-----------------------------------------------------------------------------
-# Global setup and utilities
+# Globals
 #-----------------------------------------------------------------------------
+KC = None
 
 def setup():
-    global KM
-    KM = BlockingKernelManager()
-
-    KM.start_kernel(stdout=PIPE, stderr=PIPE)
-    KM.start_channels()
-    
-    # wait for kernel to be ready
-    KM.shell_channel.execute("pass")
-    KM.shell_channel.get_msg(block=True, timeout=5)
-    flush_channels()
-
-
-def teardown():
-    KM.stop_channels()
-    KM.shutdown_kernel()
-
-
-def flush_channels():
-    """flush any messages waiting on the queue"""
-    for channel in (KM.shell_channel, KM.iopub_channel):
-        while True:
-            try:
-                msg = channel.get_msg(block=True, timeout=0.1)
-            except Empty:
-                break
-            else:
-                list(validate_message(msg))
-
-
-def execute(code='', **kwargs):
-    """wrapper for doing common steps for validating an execution request"""
-    shell = KM.shell_channel
-    sub = KM.iopub_channel
-    
-    msg_id = shell.execute(code=code, **kwargs)
-    reply = shell.get_msg(timeout=2)
-    list(validate_message(reply, 'execute_reply', msg_id))
-    busy = sub.get_msg(timeout=2)
-    list(validate_message(busy, 'status', msg_id))
-    nt.assert_equal(busy['content']['execution_state'], 'busy')
-    
-    if not kwargs.get('silent'):
-        pyin = sub.get_msg(timeout=2)
-        list(validate_message(pyin, 'pyin', msg_id))
-        nt.assert_equal(pyin['content']['code'], code)
-    
-    return msg_id, reply['content']
+    global KC
+    KC = start_global_kernel()
 
 #-----------------------------------------------------------------------------
-# MSG Spec References
+# Message Spec References
 #-----------------------------------------------------------------------------
-
 
 class Reference(HasTraits):
 
@@ -97,14 +49,14 @@ class Reference(HasTraits):
     def check(self, d):
         """validate a dict against our traits"""
         for key in self.trait_names():
-            yield nt.assert_true(key in d, "Missing key: %r, should be found in %s" % (key, d))
+            nt.assert_in(key, d)
             # FIXME: always allow None, probably not a good idea
             if d[key] is None:
                 continue
             try:
                 setattr(self, key, d[key])
             except TraitError as e:
-                yield nt.assert_true(False, str(e))
+                nt.assert_true(False, str(e))
 
 
 class RMessage(Reference):
@@ -129,14 +81,11 @@ class ExecuteReply(Reference):
     status = Enum((u'ok', u'error'))
     
     def check(self, d):
-        for tst in Reference.check(self, d):
-            yield tst
+        Reference.check(self, d)
         if d['status'] == 'ok':
-            for tst in ExecuteReplyOkay().check(d):
-                yield tst
+            ExecuteReplyOkay().check(d)
         elif d['status'] == 'error':
-            for tst in ExecuteReplyError().check(d):
-                yield tst
+            ExecuteReplyError().check(d)
 
 
 class ExecuteReplyOkay(Reference):
@@ -173,11 +122,9 @@ class OInfoReply(Reference):
     source = Unicode()
     
     def check(self, d):
-        for tst in Reference.check(self, d):
-            yield tst
+        Reference.check(self, d)
         if d['argspec'] is not None:
-            for tst in ArgSpec().check(d['argspec']):
-                yield tst
+            ArgSpec().check(d['argspec'])
 
 
 class ArgSpec(Reference):
@@ -188,7 +135,7 @@ class ArgSpec(Reference):
 
 
 class Status(Reference):
-    execution_state = Enum((u'busy', u'idle'))
+    execution_state = Enum((u'busy', u'idle', u'starting'))
 
 
 class CompleteReply(Reference):
@@ -208,10 +155,8 @@ class KernelInfoReply(Reference):
 
     def _ipython_version_changed(self, name, old, new):
         for v in new:
-            nt.assert_true(
-                isinstance(v, int) or isinstance(v, basestring),
-                'expected int or string as version component, got {0!r}'
-                .format(v))
+            assert isinstance(v, int) or isinstance(v, basestring), \
+            'expected int or string as version component, got {0!r}'.format(v)
 
 
 # IOPub messages
@@ -237,8 +182,8 @@ class DisplayData(Reference):
     data = Dict()
     def _data_changed(self, name, old, new):
         for k,v in new.iteritems():
-            nt.assert_true(mime_pat.match(k))
-            nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
+            assert mime_pat.match(k)
+            nt.assert_is_instance(v, basestring)
 
 
 class PyOut(Reference):
@@ -246,8 +191,8 @@ class PyOut(Reference):
     data = Dict()
     def _data_changed(self, name, old, new):
         for k,v in new.iteritems():
-            nt.assert_true(mime_pat.match(k))
-            nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
+            assert mime_pat.match(k)
+            nt.assert_is_instance(v, basestring)
 
 
 references = {
@@ -278,13 +223,12 @@ def validate_message(msg, msg_type=None, parent=None):
     """
     RMessage().check(msg)
     if msg_type:
-        yield nt.assert_equal(msg['msg_type'], msg_type)
+        nt.assert_equal(msg['msg_type'], msg_type)
     if parent:
-        yield nt.assert_equal(msg['parent_header']['msg_id'], parent)
+        nt.assert_equal(msg['parent_header']['msg_id'], parent)
     content = msg['content']
     ref = references[msg['msg_type']]
-    for tst in ref.check(content):
-        yield tst
+    ref.check(content)
 
 
 #-----------------------------------------------------------------------------
@@ -293,55 +237,47 @@ def validate_message(msg, msg_type=None, parent=None):
 
 # Shell channel
 
-@dec.parametric
 def test_execute():
     flush_channels()
     
-    shell = KM.shell_channel
-    msg_id = shell.execute(code='x=1')
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'execute_reply', msg_id):
-        yield tst
+    msg_id = KC.execute(code='x=1')
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'execute_reply', msg_id)
 
 
-@dec.parametric
 def test_execute_silent():
     flush_channels()
     msg_id, reply = execute(code='x=1', silent=True)
     
     # flush status=idle
-    status = KM.iopub_channel.get_msg(timeout=2)
-    for tst in validate_message(status, 'status', msg_id):
-        yield tst
+    status = KC.iopub_channel.get_msg(timeout=TIMEOUT)
+    validate_message(status, 'status', msg_id)
     nt.assert_equal(status['content']['execution_state'], 'idle')
 
-    yield nt.assert_raises(Empty, KM.iopub_channel.get_msg, timeout=0.1)
+    nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
     count = reply['execution_count']
     
     msg_id, reply = execute(code='x=2', silent=True)
     
     # flush status=idle
-    status = KM.iopub_channel.get_msg(timeout=2)
-    for tst in validate_message(status, 'status', msg_id):
-        yield tst
-    yield nt.assert_equal(status['content']['execution_state'], 'idle')
+    status = KC.iopub_channel.get_msg(timeout=TIMEOUT)
+    validate_message(status, 'status', msg_id)
+    nt.assert_equal(status['content']['execution_state'], 'idle')
     
-    yield nt.assert_raises(Empty, KM.iopub_channel.get_msg, timeout=0.1)
+    nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
     count_2 = reply['execution_count']
-    yield nt.assert_equal(count_2, count)
+    nt.assert_equal(count_2, count)
 
 
-@dec.parametric
 def test_execute_error():
     flush_channels()
     
     msg_id, reply = execute(code='1/0')
-    yield nt.assert_equal(reply['status'], 'error')
-    yield nt.assert_equal(reply['ename'], 'ZeroDivisionError')
+    nt.assert_equal(reply['status'], 'error')
+    nt.assert_equal(reply['ename'], 'ZeroDivisionError')
     
-    pyerr = KM.iopub_channel.get_msg(timeout=2)
-    for tst in validate_message(pyerr, 'pyerr', msg_id):
-        yield tst
+    pyerr = KC.iopub_channel.get_msg(timeout=TIMEOUT)
+    validate_message(pyerr, 'pyerr', msg_id)
 
 
 def test_execute_inc():
@@ -363,7 +299,21 @@ def test_user_variables():
 
     msg_id, reply = execute(code='x=1', user_variables=['x'])
     user_variables = reply['user_variables']
-    nt.assert_equal(user_variables, {u'x' : u'1'})
+    nt.assert_equal(user_variables, {u'x': {
+        u'status': u'ok',
+        u'data': {u'text/plain': u'1'},
+        u'metadata': {},
+    }})
+
+
+def test_user_variables_fail():
+    flush_channels()
+
+    msg_id, reply = execute(code='x=1', user_variables=['nosuchname'])
+    user_variables = reply['user_variables']
+    foo = user_variables['nosuchname']
+    nt.assert_equal(foo['status'], 'error')
+    nt.assert_equal(foo['ename'], 'KeyError')
 
 
 def test_user_expressions():
@@ -371,127 +321,113 @@ def test_user_expressions():
 
     msg_id, reply = execute(code='x=1', user_expressions=dict(foo='x+1'))
     user_expressions = reply['user_expressions']
-    nt.assert_equal(user_expressions, {u'foo' : u'2'})
+    nt.assert_equal(user_expressions, {u'foo': {
+        u'status': u'ok',
+        u'data': {u'text/plain': u'2'},
+        u'metadata': {},
+    }})
 
 
-@dec.parametric
+def test_user_expressions_fail():
+    flush_channels()
+
+    msg_id, reply = execute(code='x=0', user_expressions=dict(foo='nosuchname'))
+    user_expressions = reply['user_expressions']
+    foo = user_expressions['foo']
+    nt.assert_equal(foo['status'], 'error')
+    nt.assert_equal(foo['ename'], 'NameError')
+
+
 def test_oinfo():
     flush_channels()
 
-    shell = KM.shell_channel
-    
-    msg_id = shell.object_info('a')
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'object_info_reply', msg_id):
-        yield tst
+    msg_id = KC.object_info('a')
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'object_info_reply', msg_id)
 
 
-@dec.parametric
 def test_oinfo_found():
     flush_channels()
 
-    shell = KM.shell_channel
-    
     msg_id, reply = execute(code='a=5')
     
-    msg_id = shell.object_info('a')
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'object_info_reply', msg_id):
-        yield tst
+    msg_id = KC.object_info('a')
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'object_info_reply', msg_id)
     content = reply['content']
-    yield nt.assert_true(content['found'])
+    assert content['found']
     argspec = content['argspec']
-    yield nt.assert_true(argspec is None, "didn't expect argspec dict, got %r" % argspec)
+    nt.assert_is(argspec, None)
 
 
-@dec.parametric
 def test_oinfo_detail():
     flush_channels()
 
-    shell = KM.shell_channel
-    
     msg_id, reply = execute(code='ip=get_ipython()')
     
-    msg_id = shell.object_info('ip.object_inspect', detail_level=2)
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'object_info_reply', msg_id):
-        yield tst
+    msg_id = KC.object_info('ip.object_inspect', detail_level=2)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'object_info_reply', msg_id)
     content = reply['content']
-    yield nt.assert_true(content['found'])
+    assert content['found']
     argspec = content['argspec']
-    yield nt.assert_true(isinstance(argspec, dict), "expected non-empty argspec dict, got %r" % argspec)
-    yield nt.assert_equal(argspec['defaults'], [0])
+    nt.assert_is_instance(argspec, dict, "expected non-empty argspec dict, got %r" % argspec)
+    nt.assert_equal(argspec['defaults'], [0])
 
 
-@dec.parametric
 def test_oinfo_not_found():
     flush_channels()
 
-    shell = KM.shell_channel
-    
-    msg_id = shell.object_info('dne')
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'object_info_reply', msg_id):
-        yield tst
+    msg_id = KC.object_info('dne')
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'object_info_reply', msg_id)
     content = reply['content']
-    yield nt.assert_false(content['found'])
+    nt.assert_false(content['found'])
 
 
-@dec.parametric
 def test_complete():
     flush_channels()
 
-    shell = KM.shell_channel
-    
     msg_id, reply = execute(code="alpha = albert = 5")
     
-    msg_id = shell.complete('al', 'al', 2)
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'complete_reply', msg_id):
-        yield tst
+    msg_id = KC.complete('al', 'al', 2)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'complete_reply', msg_id)
     matches = reply['content']['matches']
     for name in ('alpha', 'albert'):
-        yield nt.assert_true(name in matches, "Missing match: %r" % name)
+        nt.assert_in(name, matches)
 
 
-@dec.parametric
 def test_kernel_info_request():
     flush_channels()
 
-    shell = KM.shell_channel
-
-    msg_id = shell.kernel_info()
-    reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'kernel_info_reply', msg_id):
-        yield tst
+    msg_id = KC.kernel_info()
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'kernel_info_reply', msg_id)
 
 
 # IOPub channel
 
 
-@dec.parametric
 def test_stream():
     flush_channels()
 
     msg_id, reply = execute("print('hi')")
 
-    stdout = KM.iopub_channel.get_msg(timeout=2)
-    for tst in validate_message(stdout, 'stream', msg_id):
-        yield tst
+    stdout = KC.iopub_channel.get_msg(timeout=TIMEOUT)
+    validate_message(stdout, 'stream', msg_id)
     content = stdout['content']
-    yield nt.assert_equal(content['name'], u'stdout')
-    yield nt.assert_equal(content['data'], u'hi\n')
+    nt.assert_equal(content['name'], u'stdout')
+    nt.assert_equal(content['data'], u'hi\n')
 
 
-@dec.parametric
 def test_display_data():
     flush_channels()
 
     msg_id, reply = execute("from IPython.core.display import display; display(1)")
     
-    display = KM.iopub_channel.get_msg(timeout=2)
-    for tst in validate_message(display, 'display_data', parent=msg_id):
-        yield tst
+    display = KC.iopub_channel.get_msg(timeout=TIMEOUT)
+    validate_message(display, 'display_data', parent=msg_id)
     data = display['content']['data']
-    yield nt.assert_equal(data['text/plain'], u'1')
+    nt.assert_equal(data['text/plain'], u'1')
 

@@ -229,7 +229,17 @@ class PrettyPrinter(_PrettyPrinterBase):
             self.buffer.append(Breakable(sep, width, self))
             self.buffer_width += width
             self._break_outer_groups()
-
+            
+    def break_(self):
+        """
+        Explicitly insert a newline into the output, maintaining correct indentation.
+        """
+        self.flush()
+        self.output.write(self.newline)
+        self.output.write(' ' * self.indentation)
+        self.output_width = self.indentation
+        self.buffer_width = 0
+        
 
     def begin_group(self, indent=0, open=''):
         """
@@ -478,8 +488,12 @@ def _default_pprint(obj, p, cycle):
     """
     klass = getattr(obj, '__class__', None) or type(obj)
     if getattr(klass, '__repr__', None) not in _baseclass_reprs:
-        # A user-provided repr.
-        p.text(repr(obj))
+        # A user-provided repr. Find newlines and replace them with p.break_()
+        output = repr(obj)
+        for idx,output_line in enumerate(output.splitlines()):
+            if idx:
+                p.break_()
+            p.text(output_line)
         return
     p.begin_group(1, '<')
     p.pretty(klass)
@@ -512,7 +526,7 @@ def _default_pprint(obj, p, cycle):
 def _seq_pprinter_factory(start, end, basetype):
     """
     Factory that returns a pprint function useful for sequences.  Used by
-    the default pprint for tuples, dicts, lists, sets and frozensets.
+    the default pprint for tuples, dicts, and lists.
     """
     def inner(obj, p, cycle):
         typ = type(obj)
@@ -533,6 +547,40 @@ def _seq_pprinter_factory(start, end, basetype):
             # Special case for 1-item tuples.
             p.text(',')
         p.end_group(step, end)
+    return inner
+
+
+def _set_pprinter_factory(start, end, basetype):
+    """
+    Factory that returns a pprint function useful for sets and frozensets.
+    """
+    def inner(obj, p, cycle):
+        typ = type(obj)
+        if basetype is not None and typ is not basetype and typ.__repr__ != basetype.__repr__:
+            # If the subclass provides its own repr, use it instead.
+            return p.text(typ.__repr__(obj))
+
+        if cycle:
+            return p.text(start + '...' + end)
+        if len(obj) == 0:
+            # Special case.
+            p.text(basetype.__name__ + '()')
+        else:
+            step = len(start)
+            p.begin_group(step, start)
+            # Like dictionary keys, we will try to sort the items.
+            items = list(obj)
+            try:
+                items.sort()
+            except Exception:
+                # Sometimes the items don't sort.
+                pass
+            for idx, x in enumerate(items):
+                if idx:
+                    p.text(',')
+                    p.breakable()
+                p.pretty(x)
+            p.end_group(step, end)
     return inner
 
 
@@ -604,10 +652,10 @@ def _re_pattern_pprint(obj, p, cycle):
 
 def _type_pprint(obj, p, cycle):
     """The pprint for classes and types."""
-    try:
-        mod = obj.__module__
-    except AttributeError:
-        # Heap allocated types might not have the module attribute.
+    mod = getattr(obj, '__module__', None)
+    if mod is None:
+        # Heap allocated types might not have the module attribute,
+        # and others may set it to None.
         return p.text(obj.__name__)
 
     if mod in ('__builtin__', 'exceptions'):
@@ -668,8 +716,8 @@ _type_pprinters = {
     list:                       _seq_pprinter_factory('[', ']', list),
     dict:                       _dict_pprinter_factory('{', '}', dict),
     
-    set:                        _seq_pprinter_factory('set([', '])', set),
-    frozenset:                  _seq_pprinter_factory('frozenset([', '])', frozenset),
+    set:                        _set_pprinter_factory('{', '}', set),
+    frozenset:                  _set_pprinter_factory('frozenset({', '})', frozenset),
     super:                      _super_pprint,
     _re_pattern_type:           _re_pattern_pprint,
     type:                       _type_pprint,

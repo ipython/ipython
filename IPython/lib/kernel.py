@@ -4,7 +4,7 @@ Moved to IPython.kernel.connect
 """
 
 import warnings
-warnings.warn("IPython.lib.kernel moved to IPython.kernel.connect in IPython 0.14",
+warnings.warn("IPython.lib.kernel moved to IPython.kernel.connect in IPython 1.0",
     DeprecationWarning
 )
 

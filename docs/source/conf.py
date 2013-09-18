@@ -30,10 +30,6 @@ if ON_RTD:
 # absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
-# Import support for ipython console session syntax highlighting (lives
-# in the sphinxext directory defined above)
-import ipython_console_highlighting
-
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
 execfile('../../IPython/core/release.py',iprelease)
@@ -49,9 +45,9 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    'inheritance_diagram',
-    'ipython_console_highlighting',
-    'ipython_directive',
+    'sphinx.ext.inheritance_diagram',
+    'IPython.sphinxext.ipython_console_highlighting',
+    'IPython.sphinxext.ipython_directive',
     'numpydoc',  # to preprocess docstrings
     'github',  # for easy GitHub links
 ]
@@ -61,13 +57,23 @@ if ON_RTD:
     extensions.remove('matplotlib.sphinxext.only_directives')
     extensions.remove('matplotlib.sphinxext.mathmpl')
     extensions.remove('matplotlib.sphinxext.plot_directive')
-    extensions.remove('ipython_directive')
+    extensions.remove('IPython.sphinxext.ipython_directive')
+    extensions.remove('IPython.sphinxext.ipython_console_highlighting')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.txt'
+source_suffix = '.rst'
+
+if iprelease['_version_extra']:
+    rst_prolog = """
+    .. note::
+
+        This documentation is for a development version of IPython. There may be
+        significant differences from the latest stable release (1.1.0).
+
+    """
 
 # The master toctree document.
 master_doc = 'index'
@@ -83,9 +89,10 @@ github_project_url = "https://github.com/ipython/ipython"
 # other places throughout the built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = iprelease['version']
-# The short X.Y version.
-version = '.'.join(release.split('.',2)[:2])
+codename = iprelease['codename']
+release = "%s: %s" % (iprelease['version'], codename)
+# Just the X.Y.Z part, no '-dev'
+version = iprelease['version'].split('-', 1)[0]
 
 
 # There are two options for replacing |today|: either, you set today to some
@@ -150,7 +157,9 @@ html_last_updated_fmt = '%b %d, %Y'
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-#html_additional_pages = {}
+html_additional_pages = {
+                         'interactive/htmlnotebook': 'htmlnotebook.html',
+}
 
 # If false, no module index is generated.
 #html_use_modindex = True
@@ -206,6 +215,19 @@ latex_documents = [
 
 # If false, no module index is generated.
 latex_use_modindex = True
+
+
+# Options for texinfo output
+# --------------------------
+
+texinfo_documents = [
+  (master_doc, 'ipython', 'IPython Documentation',
+   'The IPython Development Team',
+   'IPython',
+   'IPython Documentation',
+   'Programming',
+   1),
+]
 
 
 # Cleanup

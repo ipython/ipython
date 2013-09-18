@@ -40,14 +40,19 @@ current_nbformat = nbformat
 current_nbformat_minor = nbformat_minor
 
 
+class NBFormatError(ValueError):
+    pass
 
-class NBFormatError(Exception):
+class NotJSONError(ValueError):
     pass
 
 
 def parse_json(s, **kwargs):
     """Parse a string into a (nbformat, dict) tuple."""
-    d = json.loads(s, **kwargs)
+    try:
+        d = json.loads(s, **kwargs)
+    except ValueError:
+        raise NotJSONError("Notebook does not appear to be JSON: %r" % s[:16])
     nbf = d.get('nbformat', 1)
     nbm = d.get('nbformat_minor', 0)
     return nbf, nbm, d
@@ -82,7 +87,7 @@ def reads_json(s, **kwargs):
         nb = v3.to_notebook_json(d, **kwargs)
         nb = v3.convert_to_this_nbformat(nb, orig_version=3, orig_minor=minor)
     else:
-        raise NBFormatError('Unsupported JSON nbformat version: %i' % nbf)
+        raise NBFormatError('Unsupported JSON nbformat version %s (supported version: %i)' % (nbf, 3))
     return nb
 
 

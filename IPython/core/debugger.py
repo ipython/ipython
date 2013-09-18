@@ -31,10 +31,11 @@ import functools
 import linecache
 import sys
 
+from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
-from IPython.core import ipapi
 from IPython.utils import coloransi, io, py3compat
 from IPython.core.excolors import exception_colors
+from IPython.testing.skipdoctest import skip_doctest
 
 # See if we can use pydb.
 has_pydb = False
@@ -91,6 +92,7 @@ class Tracer(object):
     while functioning acceptably (though with limitations) if outside of it.
     """
 
+    @skip_doctest
     def __init__(self,colors=None):
         """Create a local debugger instance.
 
@@ -113,9 +115,8 @@ class Tracer(object):
         from the Python standard library for usage details.
         """
 
-        try:
-            ip = get_ipython()
-        except NameError:
+        ip = get_ipython()
+        if ip is None:
             # Outside of ipython, we set our own exception hook manually
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
@@ -205,7 +206,13 @@ class Pdb(OldPdb):
         # IPython changes...
         self.is_pydb = has_pydb
 
-        self.shell = ipapi.get()
+        self.shell = get_ipython()
+
+        if self.shell is None:
+            # No IPython instance running, we must create one
+            from IPython.terminal.interactiveshell import \
+                TerminalInteractiveShell
+            self.shell = TerminalInteractiveShell.instance()
 
         if self.is_pydb:
 
@@ -258,7 +265,13 @@ class Pdb(OldPdb):
 
     def interaction(self, frame, traceback):
         self.shell.set_completer_frame(frame)
-        OldPdb.interaction(self, frame, traceback)
+        while True:
+            try:
+                OldPdb.interaction(self, frame, traceback)
+            except KeyboardInterrupt:
+                self.shell.write("\nKeyboardInterrupt\n")
+            else:
+                break
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)

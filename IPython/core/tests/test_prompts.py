@@ -4,12 +4,10 @@
 import unittest
 
 import os
-import nose.tools as nt
 
 from IPython.testing import tools as tt, decorators as dec
 from IPython.core.prompts import PromptManager, LazyEvaluate
 from IPython.testing.globalipapp import get_ipython
-from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 
 ip = get_ipython()
@@ -65,6 +63,7 @@ class PromptTests(unittest.TestCase):
         self.pm.in_template = r'\#>'
         self.assertEqual(self.pm.render('in',color=False), '%d>' % ip.execution_count)
     
+    @dec.onlyif_unicode_paths
     def test_render_unicode_cwd(self):
         save = os.getcwdu()
         with TemporaryDirectory(u'ünicødé') as td:

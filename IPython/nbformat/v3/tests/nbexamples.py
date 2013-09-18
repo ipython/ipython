@@ -9,9 +9,9 @@ from ..nbbase import (
     new_metadata, new_author, new_heading_cell, nbformat, nbformat_minor
 )
 
-# some random base64-encoded *bytes*
-png = encodestring(os.urandom(5))
-jpeg = encodestring(os.urandom(6))
+# some random base64-encoded *text*
+png = encodestring(os.urandom(5)).decode('ascii')
+jpeg = encodestring(os.urandom(6)).decode('ascii')
 
 ws = new_worksheet(name='worksheet1')
 
@@ -85,7 +85,7 @@ ws.cells.append(new_code_cell(
         output_javascript=u'var i=0;'
     ),new_output(
         output_type=u'pyerr',
-        etype=u'NameError',
+        ename=u'NameError',
         evalue=u'NameError was here',
         traceback=[u'frame 0', u'frame 1', u'frame 2']
     ),new_output(
@@ -93,6 +93,7 @@ ws.cells.append(new_code_cell(
         output_text='foo\rbar\r\n'
     ),new_output(
         output_type=u'stream',
+        stream='stderr',
         output_text='\rfoo\rbar\n'
     )]
 ))

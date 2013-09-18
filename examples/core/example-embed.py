@@ -35,7 +35,7 @@ else:
     nested = 1
 
 # First import the embeddable shell class
-from IPython.frontend.terminal.embed import InteractiveShellEmbed
+from IPython.terminal.embed import InteractiveShellEmbed
 
 # Now create an instance of the embeddable shell. The first argument is a
 # string with options exactly as you would type them if you were starting

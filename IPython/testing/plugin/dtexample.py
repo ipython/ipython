@@ -45,12 +45,12 @@ def ipfunc():
     In [1]: !echo hello
     hello
 
-    In [2]: !echo hello > /tmp/foo
+    In [2]: !echo hello > /tmp/foo_iptest
 
-    In [3]: !cat /tmp/foo
+    In [3]: !cat /tmp/foo_iptest
     hello
 
-    In [4]: rm -f /tmp/foo
+    In [4]: rm -f /tmp/foo_iptest
 
     It's OK to use '_' for the last result, but do NOT try to use IPython's
     numbered history of _NN outputs, since those won't exist under the

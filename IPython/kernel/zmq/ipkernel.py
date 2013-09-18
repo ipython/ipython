@@ -25,7 +25,7 @@ import uuid
 
 from datetime import datetime
 from signal import (
-        signal, getsignal, default_int_handler, SIGINT, SIG_IGN
+        signal, default_int_handler, SIGINT
 )
 
 # System library imports
@@ -37,11 +37,10 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.config.configurable import Configurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
-from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
-    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode,
+    Any, Instance, Float, Dict, List, Set, Integer, Unicode,
     Type
 )
 
@@ -88,7 +87,7 @@ class Kernel(Configurable):
         if self.shell is not None:
             self.shell.user_module = new
     
-    user_ns = Dict(default_value=None)
+    user_ns = Instance(dict, args=None, allow_none=True)
     def _user_ns_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_ns = new
@@ -132,6 +131,7 @@ class Kernel(Configurable):
     # A reference to the Python builtin 'raw_input' function.
     # (i.e., __builtin__.raw_input for Python 2.7, builtins.input for Python 3)
     _sys_raw_input = Any()
+    _sys_eval_input = Any()
 
     # set of aborted msg_ids
     aborted = Set()
@@ -141,7 +141,7 @@ class Kernel(Configurable):
         super(Kernel, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
-        self.shell = self.shell_class.instance(config=self.config,
+        self.shell = self.shell_class.instance(parent=self,
             profile_dir = self.profile_dir,
             user_module = self.user_module,
             user_ns     = self.user_ns,
@@ -275,6 +275,9 @@ class Kernel(Configurable):
 
         for s in self.shell_streams:
             s.on_recv(make_dispatcher(s), copy=False)
+
+        # publish idle status
+        self._publish_status('starting')
     
     def do_one_iteration(self):
         """step eventloop just once"""
@@ -350,15 +353,18 @@ class Kernel(Configurable):
         # raw_input in the user namespace.
         if content.get('allow_stdin', False):
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+            input = lambda prompt='': eval(raw_input(prompt))
         else:
-            raw_input = lambda prompt='' : self._no_raw_input()
+            raw_input = input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
             self._sys_raw_input = __builtin__.input
             __builtin__.input = raw_input
         else:
             self._sys_raw_input = __builtin__.raw_input
+            self._sys_eval_input = __builtin__.input
             __builtin__.raw_input = raw_input
+            __builtin__.input = input
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
@@ -401,6 +407,7 @@ class Kernel(Configurable):
                  __builtin__.input = self._sys_raw_input
              else:
                  __builtin__.raw_input = self._sys_raw_input
+                 __builtin__.input = self._sys_eval_input
 
         reply_content[u'status'] = status
 
@@ -743,7 +750,16 @@ class Kernel(Configurable):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
-
+        # flush the stdin socket, to purge stale replies
+        while True:
+            try:
+                self.stdin_socket.recv_multipart(zmq.NOBLOCK)
+            except zmq.ZMQError as e:
+                if e.errno == zmq.EAGAIN:
+                    break
+                else:
+                    raise
+        
         # Send the input request.
         content = json_clean(dict(prompt=prompt))
         self.session.send(self.stdin_socket, u'input_request', content, parent,
@@ -755,10 +771,13 @@ class Kernel(Configurable):
                 ident, reply = self.session.recv(self.stdin_socket, 0)
             except Exception:
                 self.log.warn("Invalid Message:", exc_info=True)
+            except KeyboardInterrupt:
+                # re-raise KeyboardInterrupt, to truncate traceback
+                raise KeyboardInterrupt
             else:
                 break
         try:
-            value = reply['content']['value']
+            value = py3compat.unicode_to_str(reply['content']['value'])
         except:
             self.log.error("Got bad raw_input reply: ")
             self.log.error("%s", parent)

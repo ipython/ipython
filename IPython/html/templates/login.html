@@ -1,0 +1,52 @@
+{% extends "page.html" %}
+
+
+{% block stylesheet %}
+{{super()}}
+<link rel="stylesheet" href="{{ static_url("auth/css/override.css") }}" type="text/css" />
+{% endblock %}
+
+{% block login_widget %}
+{% endblock %}
+
+{% block site %}
+
+<div id="ipython-main-app" class="container">
+
+    {% if login_available %}
+    <div class="row">
+    <div class="navbar span8 offset2">
+      <div class="navbar-inner">
+        <div class="container">
+          <div class="center-nav">
+            <p class="navbar-text nav">Password:</p>
+            <form action="{{base_project_url}}login?next={{next}}" method="post" class="navbar-form pull-left">
+              <input type="password" name="password" id="password_input">
+              <button type="submit" id="login_submit">Log in</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    {% endif %}
+    {% if message %}
+      <div class="row">
+      {% for key in message %}
+        <div class="message {{key}}">
+           {{message[key]}}
+        </div>
+      {% endfor %}
+      </div>
+    {% endif %}
+
+<div/>
+
+{% endblock %}
+
+
+{% block script %}
+
+<script src="{{static_url("auth/js/loginmain.js") }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

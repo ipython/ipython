@@ -1,0 +1,94 @@
+
+
+<!DOCTYPE HTML>
+{% macro static_url(name) -%}
+   {{ base_project_url }}static/{{ name }}
+{%- endmacro %}
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>{% block title %}IPython Notebook{% endblock %}</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link rel="stylesheet" href="{{static_url("components/jquery-ui/themes/smoothness/jquery-ui.min.css") }}" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {% block stylesheet %}
+    {% block lesscss %}
+	    {% if use_less %}
+	        <link rel="stylesheet/less" href="{{ static_url("style/style.less") }}" type="text/css" />
+	    {% else %}
+	        <link rel="stylesheet" href="{{ static_url("style/style.min.css") }}" type="text/css"/>
+	    {% endif %}
+    {% endblock %}
+    {% endblock %}
+    <link rel="stylesheet" href="{{ static_url("custom/custom.css") }}" type="text/css" />
+    <script src="{{static_url("components/requirejs/require.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script>
+      require.config({
+          baseUrl: '{{static_url() }}',
+      });
+    </script>
+
+    {% block meta %}
+    {% endblock %}
+
+</head>
+
+<body {% block params %}{% endblock %}>
+
+<noscript>
+    <div id='noscript'>
+      IPython Notebook requires JavaScript.<br>
+      Please enable it to proceed.
+  </div>
+</noscript>
+
+<div id="header" class="navbar navbar-static-top">
+  <div class="navbar-inner navbar-nobg">
+    <div class="container">
+    <div id="ipython_notebook" class="nav brand pull-left"><a href="{{base_project_url}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
+
+    {% block login_widget %}
+
+      <span id="login_widget">
+        {% if logged_in %}
+          <button id="logout">Logout</button>
+        {% elif login_available and not logged_in %}
+          <button id="login">Login</button>
+        {% endif %}
+      </span>
+
+    {% endblock %}
+
+    {% block header %}
+    {% endblock %}
+    </div>
+  </div>
+</div>
+
+<div id="site">
+{% block site %}
+{% endblock %}
+</div>
+
+<script src="{{static_url("components/jquery/jquery.min.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("components/jquery-ui/ui/minified/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("components/bootstrap/bootstrap/js/bootstrap.min.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("base/js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("base/js/page.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("auth/js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
+
+{% block script %}
+    {% if use_less %}
+        <script src="{{ static_url("components/less.js/dist/less-1.3.3.min.js") }}" charset="utf-8"></script>
+    {% endif %}
+{% endblock %}
+
+<script src="{{static_url("custom/custom.js") }}" type="text/javascript" charset="utf-8"></script>
+
+</body>
+
+</html>

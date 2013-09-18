@@ -2,6 +2,7 @@
 
 This is copied from the stdlib and will be standard in Python 3.2 and onwards.
 """
+from __future__ import print_function
 
 import os as _os
 
@@ -32,15 +33,30 @@ except ImportError:
         def __enter__(self):
             return self.name
 
-        def cleanup(self):
-            if not self._closed:
-                self._rmtree(self.name)
+        def cleanup(self, _warn=False):
+            if self.name and not self._closed:
+                try:
+                    self._rmtree(self.name)
+                except (TypeError, AttributeError) as ex:
+                    # Issue #10188: Emit a warning on stderr
+                    # if the directory could not be cleaned
+                    # up due to missing globals
+                    if "None" not in str(ex):
+                        raise
+                    print("ERROR: {!r} while cleaning up {!r}".format(ex, self,),
+                          file=_sys.stderr)
+                    return
                 self._closed = True
+                if _warn:
+                    self._warn("Implicitly cleaning up {!r}".format(self),
+                               ResourceWarning)
 
         def __exit__(self, exc, value, tb):
             self.cleanup()
 
-        __del__ = cleanup
+        def __del__(self):
+            # Issue a ResourceWarning if implicit cleanup needed
+            self.cleanup(_warn=True)
 
 
         # XXX (ncoghlan): The following code attempts to make
@@ -104,3 +120,29 @@ class NamedFileInTemporaryDirectory(object):
 
     def __exit__(self, type, value, traceback):
         self.cleanup()
+
+
+class TemporaryWorkingDirectory(TemporaryDirectory):
+    """
+    Creates a temporary directory and sets the cwd to that directory.
+    Automatically reverts to previous cwd upon cleanup.
+    Usage example:
+
+        with TemporaryWorakingDirectory() as tmpdir:
+            ...
+    """
+
+    def __init__(self, **kw):
+        super(TemporaryWorkingDirectory, self).__init__(**kw)
+
+        #Change cwd to new temp dir.  Remember old cwd.
+        self.old_wd = _os.getcwd()
+        _os.chdir(self.name)
+
+
+    def cleanup(self, _warn=False):
+        #Revert to old cwd.
+        _os.chdir(self.old_wd)
+
+        #Cleanup
+        super(TemporaryWorkingDirectory, self).cleanup(_warn=_warn)

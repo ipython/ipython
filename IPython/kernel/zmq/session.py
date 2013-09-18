@@ -24,10 +24,12 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import hashlib
 import hmac
 import logging
 import os
 import pprint
+import random
 import uuid
 from datetime import datetime
 
@@ -43,13 +45,15 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.config.application import Application, boolean_flag
 from IPython.config.configurable import Configurable, LoggingConfigurable
+from IPython.utils import io
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
-from IPython.utils.py3compat import str_to_bytes
+from IPython.utils.py3compat import str_to_bytes, str_to_unicode
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName, CUnicode, Dict, Integer)
+                                        DottedObjectName, CUnicode, Dict, Integer,
+                                        TraitError,
+)
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
@@ -294,8 +298,9 @@ class Session(Configurable):
     # bsession is the session as bytes
     bsession = CBytes(b'')
 
-    username = Unicode(os.environ.get('USER',u'username'), config=True,
-        help="""Username for the Session. Default is your system username.""")
+    username = Unicode(str_to_unicode(os.environ.get('USER', 'username')),
+        help="""Username for the Session. Default is your system username.""",
+        config=True)
 
     metadata = Dict({}, config=True,
         help="""Metadata dictionary, which serves as the default top-level metadata dict for each message.""")
@@ -306,11 +311,35 @@ class Session(Configurable):
         help="""execution key, for extra authentication.""")
     def _key_changed(self, name, old, new):
         if new:
-            self.auth = hmac.HMAC(new)
+            self.auth = hmac.HMAC(new, digestmod=self.digest_mod)
         else:
             self.auth = None
+    
+    signature_scheme = Unicode('hmac-sha256', config=True,
+        help="""The digest scheme used to construct the message signatures.
+        Must have the form 'hmac-HASH'.""")
+    def _signature_scheme_changed(self, name, old, new):
+        if not new.startswith('hmac-'):
+            raise TraitError("signature_scheme must start with 'hmac-', got %r" % new)
+        hash_name = new.split('-', 1)[1]
+        try:
+            self.digest_mod = getattr(hashlib, hash_name)
+        except AttributeError:
+            raise TraitError("hashlib has no such attribute: %s" % hash_name)
+    
+    digest_mod = Any()
+    def _digest_mod_default(self):
+        return hashlib.sha256
+    
     auth = Instance(hmac.HMAC)
+    
     digest_history = Set()
+    digest_history_size = Integer(2**16, config=True,
+        help="""The maximum number of digests to remember.
+        
+        The digest history will be culled when it exceeds this value.
+        """
+    )
 
     keyfile = Unicode('', config=True,
         help="""path to file containing execution key.""")
@@ -318,6 +347,9 @@ class Session(Configurable):
         with open(new, 'rb') as f:
             self.key = f.read().strip()
 
+    # for protecting against sends from forks
+    pid = Integer()
+    
     # serialization traits:
     
     pack = Any(default_packer) # the actual packer function
@@ -341,6 +373,7 @@ class Session(Configurable):
         Containers larger than this are pickled outright.
         """
     )
+
     
     def __init__(self, **kwargs):
         """create a Session object
@@ -373,6 +406,11 @@ class Session(Configurable):
         key : bytes
             The key used to initialize an HMAC signature.  If unset, messages
             will not be signed or checked.
+        signature_scheme : str
+            The message digest scheme. Currently must be of the form 'hmac-HASH',
+            where 'HASH' is a hashing function available in Python's hashlib.
+            The default is 'hmac-sha256'.
+            This is ignored if 'key' is empty.
         keyfile : filepath
             The file containing a key.  If this is set, `key` will be
             initialized to the contents of the file.
@@ -382,6 +420,7 @@ class Session(Configurable):
         self.none = self.pack({})
         # ensure self._session_default() if necessary, so bsession is defined:
         self.session
+        self.pid = os.getpid()
 
     @property
     def msg_id(self):
@@ -568,7 +607,10 @@ class Session(Configurable):
         else:
             msg = self.msg(msg_or_type, content=content, parent=parent,
                            header=header, metadata=metadata)
-
+        if not os.getpid() == self.pid:
+            io.rprint("WARNING: attempted to send message from fork")
+            io.rprint(msg)
+            return
         buffers = [] if buffers is None else buffers
         to_send = self.serialize(msg, ident)
         to_send.extend(buffers)
@@ -690,6 +732,30 @@ class Session(Configurable):
             idents, msg_list = msg_list[:idx], msg_list[idx+1:]
             return [m.bytes for m in idents], msg_list
 
+    def _add_digest(self, signature):
+        """add a digest to history to protect against replay attacks"""
+        if self.digest_history_size == 0:
+            # no history, never add digests
+            return
+        
+        self.digest_history.add(signature)
+        if len(self.digest_history) > self.digest_history_size:
+            # threshold reached, cull 10%
+            self._cull_digest_history()
+    
+    def _cull_digest_history(self):
+        """cull the digest history
+        
+        Removes a randomly selected 10% of the digest history
+        """
+        current = len(self.digest_history)
+        n_to_cull = max(int(current // 10), current - self.digest_history_size)
+        if n_to_cull >= current:
+            self.digest_history = set()
+            return
+        to_cull = random.sample(self.digest_history, n_to_cull)
+        self.digest_history.difference_update(to_cull)
+    
     def unserialize(self, msg_list, content=True, copy=True):
         """Unserialize a msg_list to a nested message dict.
 
@@ -725,8 +791,8 @@ class Session(Configurable):
             if not signature:
                 raise ValueError("Unsigned Message")
             if signature in self.digest_history:
-                raise ValueError("Duplicate Signature: %r"%signature)
-            self.digest_history.add(signature)
+                raise ValueError("Duplicate Signature: %r" % signature)
+            self._add_digest(signature)
             check = self.sign(msg_list[1:5])
             if not signature == check:
                 raise ValueError("Invalid Signature: %r" % signature)

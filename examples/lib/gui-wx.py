@@ -4,7 +4,7 @@ A Simple wx example to test IPython's event loop integration.
 
 To run this do:
 
-In [5]: %gui wx  # or start IPython with '--gui wx' or '--pylab wx'
+In [5]: %gui wx  # or start IPython with '--gui wx'
 
 In [6]: %run gui-wx.py
 

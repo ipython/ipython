@@ -11,7 +11,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -28,6 +28,7 @@ from IPython.core.application import (
     BaseIPythonApplication, base_flags
 )
 from IPython.core.profiledir import ProfileDir
+from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.traitlets import Unicode, Bool, Dict
 
@@ -206,6 +207,8 @@ class ProfileCreate(BaseIPythonApplication):
     description = create_help
     examples = _create_examples
     auto_create = Bool(True, config=False)
+    def _log_format_default(self):
+        return "[%(name)s] %(message)s"
 
     def _copy_config_files_default(self):
         return True
@@ -234,31 +237,32 @@ class ProfileCreate(BaseIPythonApplication):
     flags = Dict(create_flags)
 
     classes = [ProfileDir]
+    
+    def _import_app(self, app_path):
+        """import an app class"""
+        app = None
+        name = app_path.rsplit('.', 1)[-1]
+        try:
+            app = import_item(app_path)
+        except ImportError as e:
+            self.log.info("Couldn't import %s, config file will be excluded", name)
+        except Exception:
+            self.log.warn('Unexpected error importing %s', name, exc_info=True)
+        return app
 
     def init_config_files(self):
         super(ProfileCreate, self).init_config_files()
         # use local imports, since these classes may import from here
-        from IPython.frontend.terminal.ipapp import TerminalIPythonApp
+        from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
-        try:
-            from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
-        except Exception:
-            # this should be ImportError, but under weird circumstances
-            # this might be an AttributeError, or possibly others
-            # in any case, nothing should cause the profile creation to crash.
-            pass
-        else:
-            apps.append(IPythonQtConsoleApp)
-        try:
-            from IPython.frontend.html.notebook.notebookapp import NotebookApp
-        except ImportError:
-            pass
-        except Exception:
-            self.log.debug('Unexpected error when importing NotebookApp',
-                           exc_info=True
-            )
-        else:
-            apps.append(NotebookApp)
+        for app_path in (
+            'IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
+            'IPython.html.notebookapp.NotebookApp',
+            'IPython.nbconvert.nbconvertapp.NbConvertApp',
+        ):
+            app = self._import_app(app_path)
+            if app is not None:
+                apps.append(app)
         if self.parallel:
             from IPython.parallel.apps.ipcontrollerapp import IPControllerApp
             from IPython.parallel.apps.ipengineapp import IPEngineApp

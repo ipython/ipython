@@ -1,12 +1,12 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 python:
-    - 2.6
     - 2.7
-    - 3.2
     - 3.3
 before_install:
     - easy_install -q pyzmq
+    - pip install jinja2 sphinx pygments tornado
+    - sudo apt-get install pandoc
 install:
     - python setup.py install -q 
 script:

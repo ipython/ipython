@@ -1,0 +1,38 @@
+{% extends "page.html" %}
+
+{% block stylesheet %}
+{{super()}}
+<link rel="stylesheet" href="{{ static_url("auth/css/override.css") }}" type="text/css" />
+{% endblock %}
+
+{% block login_widget %}
+{% endblock %}
+
+{% block site %}
+
+<div id="ipython-main-app" class="container">
+
+    {% if message %}
+      {% for key in message %}
+        <div class="message {{key}}">
+           {{message[key]}}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if not login_available %}
+    Proceed to the <a href="{{base_project_url}}">dashboard</a>.
+    {% else %}
+    Proceed to the <a href="{{base_project_url}}login">login page</a>.
+    {% endif %}
+
+
+<div/>
+
+{% endblock %}
+
+{% block script %}
+
+<script src="{{static_url("auth/js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

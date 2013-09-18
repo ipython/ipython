@@ -34,17 +34,18 @@ from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
+from IPython.display import display, Javascript
 from IPython.kernel.inprocess.socket import SocketABC
 from IPython.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import io, openpy
+from IPython.utils import openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
-from IPython.utils.warn import warn, error
+from IPython.utils.warn import error
 from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
@@ -60,7 +61,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     session = Instance(Session)
     pub_socket = Instance(SocketABC)
     parent_header = Dict({})
-    topic = CBytes(b'displaypub')
+    topic = CBytes(b'display_data')
 
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
@@ -150,18 +151,18 @@ class KernelMagics(Magics):
         # save a few values we'll need to recover later
         mode = save_dstore('mode', False)
         save_dstore('rc_pprint', ptformatter.pprint)
-        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
+        save_dstore('rc_active_types',disp_formatter.active_types)
         save_dstore('xmode', shell.InteractiveTB.mode)
 
         if mode == False:
             # turn on
             ptformatter.pprint = False
-            disp_formatter.plain_text_only = True
+            disp_formatter.active_types = ['text/plain']
             shell.magic('xmode Plain')
         else:
             # turn off
             ptformatter.pprint = dstore.rc_pprint
-            disp_formatter.plain_text_only = dstore.rc_plain_text_only
+            disp_formatter.active_types = dstore.rc_active_types
             shell.magic("xmode " + dstore.xmode)
 
         # Store new mode and inform on console
@@ -171,7 +172,7 @@ class KernelMagics(Magics):
 
         # Send the payload back so that clients can modify their prompt display
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.doctest_mode',
+            source='doctest_mode',
             mode=dstore.mode)
         shell.payload_manager.write_payload(payload)
         
@@ -323,7 +324,7 @@ class KernelMagics(Magics):
         filename = os.path.abspath(filename)
 
         payload = {
-            'source' : 'IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.edit_magic',
+            'source' : 'edit_magic',
             'filename' : filename,
             'line_number' : lineno
         }
@@ -444,27 +445,32 @@ class KernelMagics(Magics):
         except Exception as e:
             error("Could not start qtconsole: %r" % e)
             return
-
-def safe_unicode(e):
-    """unicode(e) with various fallbacks. Used for exceptions, which may not be
-    safe to call unicode() on.
-    """
-    try:
-        return unicode(e)
-    except UnicodeError:
-        pass
-
-    try:
-        return py3compat.str_to_unicode(str(e))
-    except UnicodeError:
-        pass
-
-    try:
-        return py3compat.str_to_unicode(repr(e))
-    except UnicodeError:
-        pass
-
-    return u'Unrecoverably corrupt evalue'
+    
+    @line_magic
+    def autosave(self, arg_s):
+        """Set the autosave interval in the notebook (in seconds).
+        
+        The default value is 120, or two minutes.
+        ``%autosave 0`` will disable autosave.
+        
+        This magic only has an effect when called from the notebook interface.
+        It has no effect when called in a startup file.
+        """
+        
+        try:
+            interval = int(arg_s)
+        except ValueError:
+            raise UsageError("%%autosave requires an integer, got %r" % arg_s)
+        
+        # javascript wants milliseconds
+        milliseconds = 1000 * interval
+        display(Javascript("IPython.notebook.set_autosave_interval(%i)" % milliseconds),
+            include=['application/javascript']
+        )
+        if interval:
+            print("Autosaving every %i seconds" % interval)
+        else:
+            print("Autosave disabled")
 
 
 class ZMQInteractiveShell(InteractiveShell):
@@ -497,8 +503,13 @@ class ZMQInteractiveShell(InteractiveShell):
 
     # Over ZeroMQ, GUI control isn't done with PyOS_InputHook as there is no
     # interactive input being read; we provide event loop support in ipkernel
-    from .eventloops import enable_gui
-    enable_gui = staticmethod(enable_gui)
+    @staticmethod
+    def enable_gui(gui):
+        from .eventloops import enable_gui as real_enable_gui
+        try:
+            real_enable_gui(gui)
+        except ValueError as e:
+            raise UsageError("%s" % e)
 
     def init_environment(self):
         """Configure the user's environment.
@@ -525,7 +536,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """
         new = self.prompt_manager.render('rewrite') + cmd
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
+            source='auto_rewrite_input',
             transformed_input=new,
             )
         self.payload_manager.write_payload(payload)
@@ -534,7 +545,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """Engage the exit actions."""
         self.exit_now = True
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
+            source='ask_exit',
             exit=True,
             keepkernel=self.keepkernel_on_exit,
             )
@@ -545,7 +556,7 @@ class ZMQInteractiveShell(InteractiveShell):
         exc_content = {
             u'traceback' : stb,
             u'ename' : unicode(etype.__name__),
-            u'evalue' : safe_unicode(evalue)
+            u'evalue' : py3compat.safe_unicode(evalue),
         }
 
         dh = self.displayhook
@@ -572,7 +583,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """Send the specified text to the frontend to be presented at the next
         input cell."""
         payload = dict(
-            source='IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.set_next_input',
+            source='set_next_input',
             text=text
         )
         self.payload_manager.write_payload(payload)

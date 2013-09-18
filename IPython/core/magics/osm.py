@@ -148,7 +148,7 @@ class OSMagics(Magics):
         from IPython.core.alias import InvalidAliasError
 
         # for the benefit of module completer in ipy_completers.py
-        del self.shell.db['rootmodules']
+        del self.shell.db['rootmodules_cache']
 
         path = [os.path.abspath(os.path.expanduser(p)) for p in
             os.environ.get('PATH','').split(os.pathsep)]
@@ -182,8 +182,9 @@ class OSMagics(Magics):
                             try:
                                 # Removes dots from the name since ipython
                                 # will assume names with dots to be python.
-                                self.shell.alias_manager.define_alias(
-                                    ff.replace('.',''), ff)
+                                if ff not in self.shell.alias_manager:
+                                    self.shell.alias_manager.define_alias(
+                                        ff.replace('.',''), ff)
                             except InvalidAliasError:
                                 pass
                             else:
@@ -697,30 +698,31 @@ class OSMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-a', '--amend', action='store_true', default=False,
-        help='Open file for amending if it exists'
+        '-a', '--append', action='store_true', default=False,
+        help='Append contents of the cell to an existing file. '
+             'The file will be created if it does not exist.'
     )
     @magic_arguments.argument(
         'filename', type=unicode,
         help='file to write'
     )
     @cell_magic
-    def file(self, line, cell):
+    def writefile(self, line, cell):
         """Write the contents of the cell to a file.
         
-        For frontends that do not support stdin (Notebook), -f is implied.
+        The file will be overwritten unless the -a (--append) flag is specified.
         """
-        args = magic_arguments.parse_argstring(self.file, line)
+        args = magic_arguments.parse_argstring(self.writefile, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
         
         if os.path.exists(filename):
-            if args.amend:
-                print "Amending to %s" % filename
+            if args.append:
+                print "Appending to %s" % filename
             else:
                 print "Overwriting %s" % filename
         else:
             print "Writing %s" % filename
         
-        mode = 'a' if args.amend else 'w'
+        mode = 'a' if args.append else 'w'
         with io.open(filename, mode, encoding='utf-8') as f:
             f.write(cell)

@@ -1,0 +1,32 @@
+div.text_cell {
+    padding: 5px 5px 5px 5px;
+}
+
+div.text_cell_input {
+    color: @textColor;
+    border: 1px solid @light_border_color;
+    .corner-all;
+    background: @cell_background;
+}
+
+div.text_cell_render {
+    /*font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
+    outline: none;
+    resize: none;
+    width:  inherit;
+    border-style: none;
+    padding: 5px;
+    color: @textColor;
+}
+
+a.anchor-link:link {
+  text-decoration: none;
+  padding: 0px 20px;
+  visibility: hidden;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    &:hover .anchor-link {
+        visibility: visible;
+    }
+}

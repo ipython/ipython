@@ -19,7 +19,6 @@ from __future__ import print_function
 import os
 import sys
 import ctypes
-import msvcrt
 
 from ctypes import c_int, POINTER
 from ctypes.wintypes import LPCWSTR, HLOCAL
@@ -83,7 +82,7 @@ def _find_cmd(cmd):
         path = None
         for ext in extensions:
             try:
-                path = SearchPath(PATH, cmd + ext)[0]
+                path = SearchPath(PATH, cmd, ext)[0]
             except:
                 pass
         if path is None:

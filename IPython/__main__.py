@@ -9,6 +9,6 @@
 #  The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from IPython.frontend.terminal.ipapp import launch_new_instance
+from IPython import start_ipython
 
-launch_new_instance()
+start_ipython()

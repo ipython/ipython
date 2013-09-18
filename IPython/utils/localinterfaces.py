@@ -31,15 +31,19 @@ from .data import uniq_stable
 LOCAL_IPS = []
 try:
     LOCAL_IPS = socket.gethostbyname_ex('localhost')[2]
-except socket.gaierror:
+except socket.error:
     pass
 
 PUBLIC_IPS = []
 try:
-    PUBLIC_IPS = socket.gethostbyname_ex(socket.gethostname())[2]
-except socket.gaierror:
+    hostname = socket.gethostname()
+    PUBLIC_IPS = socket.gethostbyname_ex(hostname)[2]
+    # try hostname.local, in case hostname has been short-circuited to loopback
+    if not hostname.endswith('.local') and all(ip.startswith('127') for ip in PUBLIC_IPS):
+        PUBLIC_IPS = socket.gethostbyname_ex(socket.gethostname() + '.local')[2]
+except socket.error:
     pass
-else:
+finally:
     PUBLIC_IPS = uniq_stable(PUBLIC_IPS)
     LOCAL_IPS.extend(PUBLIC_IPS)
 

@@ -16,21 +16,16 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# Stdlib imports
-from unittest import TestCase
-
 # Third-party imports
 import nose.tools as nt
 
 # Our own imports
-from IPython.testing import decorators as dec
 from IPython.kernel.launcher import swallow_argv
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-@dec.parametric
 def test_swallow_argv():
     tests = [
         # expected  , argv       , aliases, flags
@@ -39,7 +34,7 @@ def test_swallow_argv():
         ([], ['-a', '5'], ['a'], None),
         ([], ['-a', '5'], ['a'], ['a']),
         ([], ['--foo'], None, ['foo']),
-        (['--foo'], ['--foo'], ['foobar'], []),
+        ([], ['--foo'], ['foobar'], []),
         ([], ['--foo', '5'], ['foo'], []),
         ([], ['--foo=5'], ['foo'], []),
         (['--foo=5'], ['--foo=5'], [], ['foo']),
@@ -59,5 +54,5 @@ def test_swallow_argv():
             "expected : %r" % expected,
             "returned : %r" % stripped,
         ])
-        yield nt.assert_equal(expected, stripped, message)
+        nt.assert_equal(expected, stripped, message)
 

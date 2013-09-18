@@ -265,9 +265,10 @@ class NamespaceMagics(Magics):
 
         user_ns = self.shell.user_ns
         user_ns_hidden = self.shell.user_ns_hidden
+        nonmatching = object()  # This can never be in user_ns
         out = [ i for i in user_ns
                 if not i.startswith('_') \
-                and not i in user_ns_hidden ]
+                and (user_ns[i] is not user_ns_hidden.get(i, nonmatching)) ]
 
         typelist = parameter_s.split()
         if typelist:

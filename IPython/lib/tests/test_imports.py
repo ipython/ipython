@@ -1,4 +1,5 @@
 # encoding: utf-8
+from IPython.testing import decorators as dec
 
 def test_import_backgroundjobs():
     from IPython.lib import backgroundjobs
@@ -9,5 +10,6 @@ def test_import_deepreload():
 def test_import_demo():
     from IPython.lib import demo
 
+@dec.skip_win32
 def test_import_irunner():
-    from IPython.lib import demo
+    from IPython.lib import irunner

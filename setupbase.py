@@ -28,6 +28,7 @@ try:
 except:
     from ConfigParser import ConfigParser
 from distutils.command.build_py import build_py
+from distutils.cmd import Command
 from glob import glob
 
 from setupext import install_data_ext
@@ -39,6 +40,7 @@ from setupext import install_data_ext
 # A few handy globals
 isfile = os.path.isfile
 pjoin = os.path.join
+repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def oscmd(s):
     print(">", s)
@@ -71,7 +73,7 @@ def file_doesnt_endwith(test,endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','core','release.py'), globals())
+execfile(pjoin(repo_root, 'IPython','core','release.py'), globals())
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -132,7 +134,7 @@ def find_package_data():
     
     # walk notebook resources:
     cwd = os.getcwd()
-    os.chdir(os.path.join('IPython', 'frontend', 'html', 'notebook'))
+    os.chdir(os.path.join('IPython', 'html'))
     static_walk = list(os.walk('static'))
     os.chdir(cwd)
     static_data = []
@@ -144,10 +146,15 @@ def find_package_data():
 
     package_data = {
         'IPython.config.profile' : ['README*', '*/*.py'],
+        'IPython.core.tests' : ['*.png', '*.jpg'],
         'IPython.testing' : ['*.txt'],
         'IPython.testing.plugin' : ['*.txt'],
-        'IPython.frontend.html.notebook' : ['templates/*'] + static_data,
-        'IPython.frontend.qt.console' : ['resources/icon/*.svg'],
+        'IPython.html' : ['templates/*'] + static_data,
+        'IPython.qt.console' : ['resources/icon/*.svg'],
+        'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
+            'templates/latex/skeleton/*.tplx', 'templates/skeleton/*', 
+            'templates/reveal_internals/*.tpl', 'tests/files/*.*',
+            'exporters/tests/files/*.*']
     }
     return package_data
 
@@ -310,14 +317,14 @@ def find_scripts(entry_points=False, suffix=''):
     """
     if entry_points:
         console_scripts = [s % suffix for s in [
-            'ipython%s = IPython.frontend.terminal.ipapp:launch_new_instance',
+            'ipython%s = IPython:start_ipython',
             'pycolor%s = IPython.utils.PyColorize:main',
             'ipcontroller%s = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',
             'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
             'ipcluster%s = IPython.parallel.apps.ipclusterapp:launch_new_instance',
             'iptest%s = IPython.testing.iptest:main',
-            'irunner%s = IPython.lib.irunner:main'
+            'irunner%s = IPython.lib.irunner:main',
         ]]
         gui_scripts = []
         scripts = dict(console_scripts=console_scripts, gui_scripts=gui_scripts)
@@ -349,7 +356,8 @@ def check_for_dependencies():
         print_line, print_raw, print_status,
         check_for_sphinx, check_for_pygments,
         check_for_nose, check_for_pexpect,
-        check_for_pyzmq, check_for_readline
+        check_for_pyzmq, check_for_readline,
+        check_for_jinja2, check_for_tornado
     )
     print_line()
     print_raw("BUILDING IPYTHON")
@@ -366,14 +374,53 @@ def check_for_dependencies():
     check_for_nose()
     check_for_pexpect()
     check_for_pyzmq()
+    check_for_tornado()
     check_for_readline()
+    check_for_jinja2()
 
-def record_commit_info(pkg_dir, build_cmd=build_py):
-    """ Return extended build or sdist command class for recording commit
+#---------------------------------------------------------------------------
+# VCS related
+#---------------------------------------------------------------------------
+
+# utils.submodule has checks for submodule status
+execfile(pjoin('IPython','utils','submodule.py'), globals())
+
+class UpdateSubmodules(Command):
+    """Update git submodules
+    
+    IPython's external javascript dependencies live in a separate repo.
+    """
+    description = "Update git submodules"
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+    
+    def run(self):
+        failure = False
+        try:
+            self.spawn('git submodule init'.split())
+            self.spawn('git submodule update --recursive'.split())
+        except Exception as e:
+            failure = e
+            print(e)
+        
+        if not check_submodule_status(repo_root) == 'clean':
+            print("submodules could not be checked out")
+            sys.exit(1)
+
+
+def git_prebuild(pkg_dir, build_cmd=build_py):
+    """Return extended build or sdist command class for recording commit
     
     records git commit in IPython.utils._sysinfo.commit
     
     for use in IPython.utils.sysinfo.sys_info() calls after installation.
+    
+    Also ensures that submodules exist prior to running
     """
     
     class MyBuildPy(build_cmd):
@@ -415,4 +462,15 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
                     '# GENERATED BY setup.py\n',
                     'commit = "%s"\n' % repo_commit,
                 ])
-    return MyBuildPy
+    return require_submodules(MyBuildPy)
+
+
+def require_submodules(command):
+    """decorator for instructing a command to check for submodules before running"""
+    class DecoratedCommand(command):
+        def run(self):
+            if not check_submodule_status(repo_root) == 'clean':
+                print("submodules missing! Run `setup.py submodule` and try again")
+                sys.exit(1)
+            command.run(self)
+    return DecoratedCommand

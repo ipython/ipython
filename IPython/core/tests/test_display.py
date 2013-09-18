@@ -22,6 +22,24 @@ def test_image_size():
     img = display.Image(url=thisurl)
     nt.assert_equal(u'<img src="%s"/>' % (thisurl), img._repr_html_())
 
+def test_retina_png():
+    here = os.path.dirname(__file__)
+    img = display.Image(os.path.join(here, "2x2.png"), retina=True)
+    nt.assert_equal(img.height, 1)
+    nt.assert_equal(img.width, 1)
+    data, md = img._repr_png_()
+    nt.assert_equal(md['width'], 1)
+    nt.assert_equal(md['height'], 1)
+
+def test_retina_jpeg():
+    here = os.path.dirname(__file__)
+    img = display.Image(os.path.join(here, "2x2.jpg"), retina=True)
+    nt.assert_equal(img.height, 1)
+    nt.assert_equal(img.width, 1)
+    data, md = img._repr_jpeg_()
+    nt.assert_equal(md['width'], 1)
+    nt.assert_equal(md['height'], 1)
+
 def test_image_filename_defaults():
     '''test format constraint, and validity of jpeg and png'''
     tpath = ipath.get_ipython_package_dir()
@@ -29,7 +47,8 @@ def test_image_filename_defaults():
                      embed=True)
     nt.assert_raises(ValueError, display.Image)
     nt.assert_raises(ValueError, display.Image, data='this is not an image', format='badformat', embed=True)
-    imgfile = os.path.join(tpath, 'frontend/html/notebook/static/ipynblogo.png')
+    from IPython.html import DEFAULT_STATIC_FILES_PATH
+    imgfile = os.path.join(DEFAULT_STATIC_FILES_PATH, 'base/images/ipynblogo.png')
     img = display.Image(filename=imgfile)
     nt.assert_equal('png', img.format)
     nt.assert_is_not_none(img._repr_png_())

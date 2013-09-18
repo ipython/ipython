@@ -19,8 +19,6 @@ Inheritance diagram:
 # Imports
 #-----------------------------------------------------------------------------
 
-import __main__
-
 import os
 import re
 import sys
@@ -30,7 +28,18 @@ from string import Formatter
 from IPython.external.path import path
 from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
-from IPython.utils.data import flatten
+
+
+#-----------------------------------------------------------------------------
+# Declarations
+#-----------------------------------------------------------------------------
+
+# datetime.strftime date format for ipython
+if sys.platform == 'win32':
+    date_format = "%B %d, %Y"
+else:
+    date_format = "%B %-d, %Y"
+
 
 #-----------------------------------------------------------------------------
 # Code

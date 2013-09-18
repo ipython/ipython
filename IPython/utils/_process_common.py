@@ -103,9 +103,7 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
 
 
 def getoutput(cmd):
-    """Return standard output of executing cmd in a shell.
-
-    Accepts the same arguments as os.system().
+    """Run a command and return its stdout/stderr as a string.
 
     Parameters
     ----------
@@ -114,9 +112,12 @@ def getoutput(cmd):
 
     Returns
     -------
-    stdout : str
+    output : str
+      A string containing the combination of stdout and stderr from the
+    subprocess, in whatever order the subprocess originally wrote to its
+    file descriptors (so the order of the information in this string is the
+    correct order as would be seen if running the command in a terminal).
     """
-
     out = process_handler(cmd, lambda p: p.communicate()[0], subprocess.STDOUT)
     if out is None:
         return ''
@@ -138,13 +139,31 @@ def getoutputerror(cmd):
     stdout : str
     stderr : str
     """
+    return get_output_error_code(cmd)[:2]
 
-    out_err = process_handler(cmd, lambda p: p.communicate())
+def get_output_error_code(cmd):
+    """Return (standard output, standard error, return code) of executing cmd
+    in a shell.
+
+    Accepts the same arguments as os.system().
+
+    Parameters
+    ----------
+    cmd : str
+      A command to be executed in the system shell.
+
+    Returns
+    -------
+    stdout : str
+    stderr : str
+    returncode: int
+    """
+
+    out_err, p = process_handler(cmd, lambda p: (p.communicate(), p))
     if out_err is None:
-        return '', ''
+        return '', '', p.returncode
     out, err = out_err
-    return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
-
+    return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err), p.returncode
 
 def arg_split(s, posix=False, strict=True):
     """Split a command line's arguments in a shell-like manner.

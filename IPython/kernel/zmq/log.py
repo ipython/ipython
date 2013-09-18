@@ -1,7 +1,5 @@
-import logging
 from logging import INFO, DEBUG, WARN, ERROR, FATAL
 
-import zmq
 from zmq.log.handlers import PUBHandler
 
 class EnginePUBHandler(PUBHandler):

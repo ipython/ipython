@@ -158,6 +158,11 @@ class SimpleMagics(Magics):
         "A class-based line/cell magic"
 
 
+class Awkward(object):
+    def __getattr__(self, name):
+        raise Exception(name)
+
+
 def check_calltip(obj, name, call, docstring):
     """Generic check pattern all calltip tests will use"""
     info = inspector.info(obj, name)
@@ -203,7 +208,7 @@ def test_calltip_cell_magic():
     check_calltip(cmagic, 'cmagic', 'cmagic(line, cell)', "A cell magic")
 
         
-def test_calltip_line_magic():
+def test_calltip_line_cell_magic():
     check_calltip(lcmagic, 'lcmagic', 'lcmagic(line, cell=None)', 
                   "A line/cell magic")
         
@@ -261,6 +266,10 @@ def test_info():
         nt.assert_equal(i['type_name'], 'instance')
         nt.assert_equal(i['docstring'], OldStyle.__doc__)
 
+def test_info_awkward():
+    # Just test that this doesn't throw an error.
+    i = inspector.info(Awkward())
+
 def test_getdoc():
     class A(object):
         """standard docstring"""
@@ -288,3 +297,9 @@ def test_pdef():
     # See gh-1914
     def foo(): pass
     inspector.pdef(foo, 'foo')
+
+def test_pinfo_nonascii():
+    # See gh-1177
+    from . import nonascii2
+    ip.user_ns['nonascii2'] = nonascii2
+    ip._inspect('pinfo', 'nonascii2', detail_level=1)

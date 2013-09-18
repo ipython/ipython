@@ -9,9 +9,6 @@ def test_import_crashhandler():
 def test_import_debugger():
     from IPython.core import debugger
 
-def test_import_fakemodule():
-    from IPython.core import fakemodule
-
 def test_import_excolors():
     from IPython.core import excolors
 
@@ -21,8 +18,8 @@ def test_import_history():
 def test_import_hooks():
     from IPython.core import hooks
 
-def test_import_ipapi():
-    from IPython.core import ipapi
+def test_import_getipython():
+    from IPython.core import getipython
 
 def test_import_interactiveshell():
     from IPython.core import interactiveshell

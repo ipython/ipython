@@ -29,7 +29,7 @@ import sys
 
 from subprocess import Popen, PIPE
 
-from IPython.config.application import catch_config_error
+from IPython.config.application import catch_config_error, LevelFormatter
 from IPython.core import release
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.application import (
@@ -71,7 +71,6 @@ class ParallelCrashHandler(CrashHandler):
 base_aliases = {}
 base_aliases.update(base_ip_aliases)
 base_aliases.update({
-    'profile-dir' : 'ProfileDir.location',
     'work-dir' : 'BaseParallelApplication.work_dir',
     'log-to-file' : 'BaseParallelApplication.log_to_file',
     'clean-logs' : 'BaseParallelApplication.clean_logs',
@@ -105,7 +104,7 @@ class BaseParallelApplication(BaseIPythonApplication):
     
     def _log_format_default(self):
         """override default log format to include time"""
-        return u"%(asctime)s.%(msecs).03d [%(name)s] %(message)s"
+        return u"%(asctime)s.%(msecs).03d [%(name)s]%(highlevel)s %(message)s"
 
     work_dir = Unicode(os.getcwdu(), config=True,
         help='Set the working dir for the process.'
@@ -191,8 +190,8 @@ class BaseParallelApplication(BaseIPythonApplication):
         else:
             self._log_handler = self.log.handlers[0]
         # Add timestamps to log format:
-        self._log_formatter = logging.Formatter(self.log_format,
-                                                datefmt="%Y-%m-%d %H:%M:%S")
+        self._log_formatter = LevelFormatter(self.log_format,
+                                                datefmt=self.log_datefmt)
         self._log_handler.setFormatter(self._log_formatter)
         # do not propagate log messages to root logger
         # ipcluster app will sometimes print duplicate messages during shutdown

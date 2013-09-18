@@ -27,7 +27,7 @@ else:
     from ._process_posix import _find_cmd, system, getoutput, arg_split
 
 
-from ._process_common import getoutputerror
+from ._process_common import getoutputerror, get_output_error_code
 
 #-----------------------------------------------------------------------------
 # Code
@@ -43,8 +43,7 @@ def find_cmd(cmd):
 
     This function tries to determine the full path to a command line program
     using `which` on Unix/Linux/OS X and `win32api` on Windows.  Most of the
-    time it will use the version that is first on the users `PATH`.  If
-    cmd is `python` return `sys.executable`.
+    time it will use the version that is first on the users `PATH`.
 
     Warning, don't use this to find IPython command line programs as there
     is a risk you will find the wrong one.  Instead find those using the
@@ -52,15 +51,13 @@ def find_cmd(cmd):
 
         from IPython.utils.path import get_ipython_module_path
         from IPython.utils.process import pycmd2argv
-        argv = pycmd2argv(get_ipython_module_path('IPython.frontend.terminal.ipapp'))
+        argv = pycmd2argv(get_ipython_module_path('IPython.terminal.ipapp'))
 
     Parameters
     ----------
     cmd : str
         The command line program to look for.
     """
-    if cmd == 'python':
-        return os.path.abspath(sys.executable)
     try:
         path = _find_cmd(cmd).rstrip()
     except OSError:

@@ -29,11 +29,15 @@ def test_cython_inline():
     nt.assert_equal(result, 30)
 
 
+@dec.skip_win32
 def test_cython_pyximport():
     module_name = '_test_cython_pyximport'
     ip.run_cell_magic('cython_pyximport', module_name, code)
     ip.ex('g = f(10)')
     nt.assert_equal(ip.user_ns['g'], 20.0)
+    ip.run_cell_magic('cython_pyximport', module_name, code)
+    ip.ex('h = f(-10)')
+    nt.assert_equal(ip.user_ns['h'], -20.0)
     try:
         os.remove(module_name+'.pyx')
     except OSError:

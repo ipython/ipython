@@ -285,6 +285,7 @@ class HubFactory(RegistrationFactory):
         
         # Registrar socket
         q = ZMQStream(ctx.socket(zmq.ROUTER), loop)
+        util.set_hwm(q, 0)
         q.bind(self.client_url('registration'))
         self.log.info("Hub listening on %s for registration.", self.client_url('registration'))
         if self.client_ip != self.engine_ip:
@@ -297,8 +298,9 @@ class HubFactory(RegistrationFactory):
         hpub = ctx.socket(zmq.PUB)
         hpub.bind(self.engine_url('hb_ping'))
         hrep = ctx.socket(zmq.ROUTER)
+        util.set_hwm(hrep, 0)
         hrep.bind(self.engine_url('hb_pong'))
-        self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
+        self.heartmonitor = HeartMonitor(loop=loop, parent=self, log=self.log,
                                 pingstream=ZMQStream(hpub,loop),
                                 pongstream=ZMQStream(hrep,loop)
                             )
@@ -322,7 +324,7 @@ class HubFactory(RegistrationFactory):
         db_class = _db_shortcuts.get(self.db_class.lower(), self.db_class)
         self.log.info('Hub using DB backend: %r', (db_class.split('.')[-1]))
         self.db = import_item(str(db_class))(session=self.session.session,
-                                            config=self.config, log=self.log)
+                                            parent=self, log=self.log)
         time.sleep(.25)
 
         # resubmit stream
@@ -403,7 +405,7 @@ class Hub(SessionFactory):
         """
 
         super(Hub, self).__init__(**kwargs)
-        self.registration_timeout = max(5000, 2*self.heartmonitor.period)
+        self.registration_timeout = max(10000, 5*self.heartmonitor.period)
 
         # register our callbacks
         self.query.on_recv(self.dispatch_query)

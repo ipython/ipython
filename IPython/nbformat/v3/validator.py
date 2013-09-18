@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+import argparse
+import traceback
+import json
 
 from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
 import IPython.external.jsonpointer as jsonpointer
-from IPython.external import argparse
-import traceback
-import json
 
 def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
     v3schema = resolve_ref(json.load(open(schema,'r')))

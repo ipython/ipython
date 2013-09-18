@@ -49,10 +49,6 @@ from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 
 # Our own imports
 
-# We're temporarily using TerminalMagics.cleanup_input() until the functionality
-# is moved into core.
-from IPython.frontend.terminal.interactiveshell import TerminalMagics
-
 #-----------------------------------------------------------------------------
 # Module globals and other constants
 #-----------------------------------------------------------------------------
@@ -386,7 +382,11 @@ class IPDocTestParser(doctest.DocTestParser):
 
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
-        return TerminalMagics(_ip).cleanup_input(source)
+        block = _ip.input_transformer_manager.transform_cell(source)
+        if len(block.splitlines()) == 1:
+            return _ip.prefilter(block)
+        else:
+            return block
 
     def parse(self, string, name='<string>'):
         """

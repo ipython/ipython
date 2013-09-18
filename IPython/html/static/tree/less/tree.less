@@ -1,0 +1,97 @@
+
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+#tabs {
+}
+
+.list_toolbar {
+    padding: 5px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.toolbar_info {
+    float: left;
+}
+
+.toolbar_buttons {
+    float: right;
+}
+
+.list_header {
+    font-weight: bold;
+}
+
+.list_container {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid @border_color;
+  border-radius: 4px;
+}
+
+.list_container > div {
+  border-bottom: 1px solid @border_color;
+  &:hover .list-item{
+    background-color: red;
+  };
+}
+
+.list_container > div:last-child {
+  border: none;
+}
+
+.list_item {
+  &:hover .list_item {
+    background-color: #ddd;
+  };
+}
+
+.list_container > div > span, .list_container > div > div {
+  padding: 8px;
+}
+
+
+.list_item a {
+    text-decoration: none;
+}
+
+.profile_col {
+}
+
+.status_col {
+}
+
+.engines_col {
+}
+
+.action_col {
+}
+
+input.nbname_input {
+    height: 15px;
+}
+
+.highlight_text {
+    color: blue;
+}
+
+
+#project_name > .breadcrumb {
+    padding: 0px;
+    margin-bottom: 0px;
+    background-color: transparent;
+    font-weight: bold;
+   
+}
+
+input.engine_num_input {
+    height: 20px;
+    margin-bottom:2px;
+    padding-top:0;
+    padding-bottom:0;
+    width: 60px;
+}

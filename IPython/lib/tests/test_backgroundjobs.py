@@ -14,7 +14,6 @@
 from __future__ import print_function
 
 # Stdlib imports
-import sys
 import time
 
 # Third-party imports
@@ -22,7 +21,6 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.lib import backgroundjobs as bg
-from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
 # Globals and constants

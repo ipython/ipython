@@ -27,8 +27,6 @@ maintained here for backwards compatablitiy with old SymPy versions.
 #-----------------------------------------------------------------------------
 
 from IPython.lib.latextools import latex_to_png
-from IPython.testing import decorators as dec
-# use @dec.skipif_not_sympy to skip tests requiring sympy
 
 try:
     from sympy import pretty, latex
@@ -117,7 +115,7 @@ def load_ipython_extension(ip):
         pass
     else:
         warnings.warn("The sympyprinting extension in IPython is deprecated, "
-            "use sympy.interactive.ipythonprinting")
+            "use 'from sympy import init_printing; init_printing()'")
         ip.extension_manager.load_extension('sympy.interactive.ipythonprinting')
         return
 

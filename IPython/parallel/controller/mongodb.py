@@ -12,7 +12,12 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from pymongo import Connection
-from bson import Binary
+
+# bson.Binary import moved
+try:
+    from bson.binary import Binary
+except ImportError:
+    from bson import Binary
 
 from IPython.utils.traitlets import Dict, List, Unicode, Instance
 
@@ -34,7 +39,7 @@ class MongoDB(BaseDB):
         necessary if the default mongodb configuration does not point to your
         mongod instance."""
     )
-    database = Unicode(config=True,
+    database = Unicode("ipython-tasks", config=True,
         help="""The MongoDB database name to use for storing tasks for this session. If unspecified,
         a new database will be created with the Hub's IDENT.  Specifying the database will result
         in tasks from previous sessions being available via Clients' db_query and

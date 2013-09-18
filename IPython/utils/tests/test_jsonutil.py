@@ -11,6 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import datetime
 import json
 from base64 import decodestring
 
@@ -18,7 +19,7 @@ from base64 import decodestring
 import nose.tools as nt
 
 # our own
-from IPython.testing import decorators as dec
+from IPython.utils import jsonutil, tz
 from ..jsonutil import json_clean, encode_images
 from ..py3compat import unicode_to_str, str_to_bytes
 
@@ -60,7 +61,6 @@ def test():
 
 
 
-@dec.parametric
 def test_encode_images():
     # invalid data, but the header and footer are from real files
     pngdata = b'\x89PNG\r\n\x1a\nblahblahnotactuallyvalidIEND\xaeB`\x82'
@@ -74,19 +74,19 @@ def test_encode_images():
     for key, value in fmt.iteritems():
         # encoded has unicode, want bytes
         decoded = decodestring(encoded[key].encode('ascii'))
-        yield nt.assert_equal(decoded, value)
+        nt.assert_equal(decoded, value)
     encoded2 = encode_images(encoded)
-    yield nt.assert_equal(encoded, encoded2)
+    nt.assert_equal(encoded, encoded2)
     
     b64_str = {}
     for key, encoded in encoded.iteritems():
         b64_str[key] = unicode_to_str(encoded)
     encoded3 = encode_images(b64_str)
-    yield nt.assert_equal(encoded3, b64_str)
+    nt.assert_equal(encoded3, b64_str)
     for key, value in fmt.iteritems():
         # encoded3 has str, want bytes
         decoded = decodestring(str_to_bytes(encoded3[key]))
-        yield nt.assert_equal(decoded, value)
+        nt.assert_equal(decoded, value)
 
 def test_lambda():
     jc = json_clean(lambda : 1)
@@ -94,6 +94,33 @@ def test_lambda():
     assert '<lambda>' in jc
     json.dumps(jc)
 
+def test_extract_dates():
+    timestamps = [
+        '2013-07-03T16:34:52.249482',
+        '2013-07-03T16:34:52.249482Z',
+        '2013-07-03T16:34:52.249482Z-0800',
+        '2013-07-03T16:34:52.249482Z+0800',
+        '2013-07-03T16:34:52.249482Z+08:00',
+        '2013-07-03T16:34:52.249482Z-08:00',
+        '2013-07-03T16:34:52.249482-0800',
+        '2013-07-03T16:34:52.249482+0800',
+        '2013-07-03T16:34:52.249482+08:00',
+        '2013-07-03T16:34:52.249482-08:00',
+    ]
+    extracted = jsonutil.extract_dates(timestamps)
+    ref = extracted[0]
+    for dt in extracted:
+        nt.assert_true(isinstance(dt, datetime.datetime))
+        nt.assert_equal(dt, ref)
+
+def test_date_default():
+    data = dict(today=datetime.datetime.now(), utcnow=tz.utcnow())
+    jsondata = json.dumps(data, default=jsonutil.date_default)
+    nt.assert_in("+00", jsondata)
+    nt.assert_equal(jsondata.count("+00"), 1)
+    extracted = jsonutil.extract_dates(json.loads(jsondata))
+    for dt in extracted.values():
+        nt.assert_true(isinstance(dt, datetime.datetime))
 
 def test_exception():
     bad_dicts = [{1:'number', '1':'string'},

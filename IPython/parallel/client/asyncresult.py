@@ -31,15 +31,6 @@ from IPython.parallel import error
 # Functions
 #-----------------------------------------------------------------------------
 
-def _total_seconds(td):
-    """timedelta.total_seconds was added in 2.7"""
-    try:
-        # Python >= 2.7
-        return td.total_seconds()
-    except AttributeError:
-        # Python 2.6
-        return 1e-6 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-
 def _raw_text(s):
     display_pretty(s, raw=True)
 
@@ -73,6 +64,9 @@ class AsyncResult(object):
         if isinstance(msg_ids, basestring):
             # always a list
             msg_ids = [msg_ids]
+            self._single_result = True
+        else:
+            self._single_result = False
         if tracker is None:
             # default to always done
             tracker = finished_tracker
@@ -81,14 +75,11 @@ class AsyncResult(object):
         self._fname=fname
         self._targets = targets
         self._tracker = tracker
+        
         self._ready = False
         self._outputs_ready = False
         self._success = None
         self._metadata = [ self._client.metadata.get(id) for id in self.msg_ids ]
-        if len(msg_ids) == 1:
-            self._single_result = not isinstance(targets, (list, tuple))
-        else:
-            self._single_result = False
 
     def __repr__(self):
         if self._ready:
@@ -191,14 +182,21 @@ class AsyncResult(object):
         """
 
         results = self.get(timeout)
+        if self._single_result:
+            results = [results]
         engine_ids = [ md['engine_id'] for md in self._metadata ]
-        bycount = sorted(engine_ids, key=lambda k: engine_ids.count(k))
-        maxcount = bycount.count(bycount[-1])
-        if maxcount > 1:
-            raise ValueError("Cannot build dict, %i jobs ran on engine #%i"%(
-                    maxcount, bycount[-1]))
+        
+        
+        rdict = {}
+        for engine_id, result in zip(engine_ids, results):
+            if engine_id in rdict:
+                raise ValueError("Cannot build dict, %i jobs ran on engine #%i" % (
+                    engine_ids.count(engine_id), engine_id)
+                )
+            else:
+                rdict[engine_id] = result
 
-        return dict(zip(engine_ids,results))
+        return rdict
 
     @property
     def result(self):
@@ -331,7 +329,7 @@ class AsyncResult(object):
             # handle single_result AsyncResults, where ar.stamp is single object,
             # not a list
             end = end_key(end)
-        return _total_seconds(end - start)
+        return (end - start).total_seconds()
         
     @property
     def progress(self):
@@ -354,7 +352,7 @@ class AsyncResult(object):
                 stamp = self._client.metadata[msg_id]['submitted']
                 if stamp and stamp < submitted:
                     submitted = stamp
-        return _total_seconds(now-submitted)
+        return (now-submitted).total_seconds()
     
     @property
     @check_ready
@@ -365,7 +363,7 @@ class AsyncResult(object):
         """
         t = 0
         for md in self._metadata:
-            t += _total_seconds(md['completed'] - md['started'])
+            t += (md['completed'] - md['started']).total_seconds()
         return t
     
     @property
@@ -452,14 +450,14 @@ class AsyncResult(object):
             timeout = -1
         
         tic = time.time()
-        self._client._flush_iopub(self._client._iopub_socket)
-        self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
-        while not self._outputs_ready:
-            time.sleep(0.01)
+        while True:
             self._client._flush_iopub(self._client._iopub_socket)
-            self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
-            if timeout >= 0 and time.time() > tic + timeout:
+            self._outputs_ready = all(md['outputs_ready']
+                                      for md in self._metadata)
+            if self._outputs_ready or \
+               (timeout >= 0 and time.time() > tic + timeout):
                 break
+            time.sleep(0.01)
     
     @check_ready
     def display_outputs(self, groupby="type"):

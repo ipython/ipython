@@ -39,7 +39,7 @@ from IPython.config.loader import ConfigFileNotFound
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
+from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -53,9 +53,11 @@ from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict
 # aliases and flags
 
 base_aliases = {
+    'profile-dir' : 'ProfileDir.location',
     'profile' : 'BaseIPythonApplication.profile',
     'ipython-dir' : 'BaseIPythonApplication.ipython_dir',
     'log-level' : 'Application.log_level',
+    'config' : 'BaseIPythonApplication.extra_config_file',
 }
 
 base_flags = dict(
@@ -84,14 +86,14 @@ class BaseIPythonApplication(Application):
 
     # Track whether the config_file has changed,
     # because some logic happens only if we aren't using the default.
-    config_file_specified = Bool(False)
+    config_file_specified = Set()
 
-    config_file_name = Unicode(u'ipython_config.py')
+    config_file_name = Unicode()
     def _config_file_name_default(self):
         return self.name.replace('-','_') + u'_config.py'
     def _config_file_name_changed(self, name, old, new):
         if new != old:
-            self.config_file_specified = True
+            self.config_file_specified.add(new)
 
     # The directory that contains IPython's builtin profiles.
     builtin_profile_dir = Unicode(
@@ -101,6 +103,19 @@ class BaseIPythonApplication(Application):
     config_file_paths = List(Unicode)
     def _config_file_paths_default(self):
         return [os.getcwdu()]
+
+    extra_config_file = Unicode(config=True,
+    help="""Path to an extra config file to load.
+    
+    If specified, load this config file in addition to any other IPython config.
+    """)
+    def _extra_config_file_changed(self, name, old, new):
+        try:
+            self.config_files.remove(old)
+        except ValueError:
+            pass
+        self.config_file_specified.add(new)
+        self.config_files.append(new)
 
     profile = Unicode(u'default', config=True,
         help="""The IPython profile to use."""
@@ -119,6 +134,15 @@ class BaseIPythonApplication(Application):
         the environment variable IPYTHONDIR.
         """
     )
+    _in_init_profile_dir = False
+    profile_dir = Instance(ProfileDir)
+    def _profile_dir_default(self):
+        # avoid recursion
+        if self._in_init_profile_dir:
+            return
+        # profile_dir requested early, force initialization
+        self.init_profile_dir()
+        return self.profile_dir
 
     overwrite = Bool(False, config=True,
         help="""Whether to overwrite existing config files when copying""")
@@ -127,7 +151,7 @@ class BaseIPythonApplication(Application):
 
     config_files = List(Unicode)
     def _config_files_default(self):
-        return [u'ipython_config.py']
+        return [self.config_file_name]
 
     copy_config_files = Bool(False, config=True,
         help="""Whether to install the default config files into the profile dir.
@@ -144,8 +168,17 @@ class BaseIPythonApplication(Application):
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)
 
+    @catch_config_error
     def __init__(self, **kwargs):
         super(BaseIPythonApplication, self).__init__(**kwargs)
+        # ensure current working directory exists
+        try:
+            directory = os.getcwdu()
+        except:
+            # raise exception
+            self.log.error("Current working directory doesn't exist.")
+            raise
+
         # ensure even default IPYTHONDIR exists
         if not os.path.exists(self.ipython_dir):
             self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
@@ -207,33 +240,38 @@ class BaseIPythonApplication(Application):
             # ignore errors loading parent
             self.log.debug("Config file %s not found", base_config)
             pass
-        if self.config_file_name == base_config:
-            # don't load secondary config
-            return
-        self.log.debug("Attempting to load config file: %s" %
-                       self.config_file_name)
-        try:
-            Application.load_config_file(
-                self,
-                self.config_file_name,
-                path=self.config_file_paths
-            )
-        except ConfigFileNotFound:
-            # Only warn if the default config file was NOT being used.
-            if self.config_file_specified:
-                msg = self.log.warn
-            else:
-                msg = self.log.debug
-            msg("Config file not found, skipping: %s", self.config_file_name)
-        except:
-            # For testing purposes.
-            if not suppress_errors:
-                raise
-            self.log.warn("Error loading config file: %s" %
-                          self.config_file_name, exc_info=True)
+        
+        for config_file_name in self.config_files:
+            if not config_file_name or config_file_name == base_config:
+                continue
+            self.log.debug("Attempting to load config file: %s" %
+                           self.config_file_name)
+            try:
+                Application.load_config_file(
+                    self,
+                    config_file_name,
+                    path=self.config_file_paths
+                )
+            except ConfigFileNotFound:
+                # Only warn if the default config file was NOT being used.
+                if config_file_name in self.config_file_specified:
+                    msg = self.log.warn
+                else:
+                    msg = self.log.debug
+                msg("Config file not found, skipping: %s", config_file_name)
+            except:
+                # For testing purposes.
+                if not suppress_errors:
+                    raise
+                self.log.warn("Error loading config file: %s" %
+                              self.config_file_name, exc_info=True)
 
     def init_profile_dir(self):
         """initialize the profile dir"""
+        self._in_init_profile_dir = True
+        if self.profile_dir is not None:
+            # already ran
+            return
         try:
             # location explicitly specified:
             location = self.config.ProfileDir.location
@@ -278,6 +316,7 @@ class BaseIPythonApplication(Application):
 
         self.profile_dir = p
         self.config_file_paths.append(p.location)
+        self._in_init_profile_dir = False
 
     def init_config_files(self):
         """[optionally] copy default config files into profile dir."""

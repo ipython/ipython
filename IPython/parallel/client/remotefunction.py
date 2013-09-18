@@ -21,6 +21,7 @@ from __future__ import division
 import sys
 import warnings
 
+from IPython.external.decorator import decorator
 from IPython.testing.skipdoctest import skip_doctest
 
 from . import map as Map
@@ -79,6 +80,23 @@ def getname(f):
     
     return str(f)
 
+@decorator
+def sync_view_results(f, self, *args, **kwargs):
+    """sync relevant results from self.client to our results attribute.
+    
+    This is a clone of view.sync_results, but for remote functions
+    """
+    view = self.view
+    if view._in_sync_results:
+        return f(self, *args, **kwargs)
+    view._in_sync_results = True
+    try:
+        ret = f(self, *args, **kwargs)
+    finally:
+        view._in_sync_results = False
+        view._sync_results()
+    return ret
+    
 #--------------------------------------------------------------------------
 # Classes
 #--------------------------------------------------------------------------
@@ -142,13 +160,15 @@ class ParallelFunction(RemoteFunction):
     chunksize : int or None
         The size of chunk to use when breaking up sequences in a load-balanced manner
     ordered : bool [default: True]
-        Whether 
+        Whether the result should be kept in order. If False,
+        results become available as they arrive, regardless of submission order.
     **flags : remaining kwargs are passed to View.temp_flags
     """
 
-    chunksize=None
-    ordered=None
-    mapObject=None
+    chunksize = None
+    ordered = None
+    mapObject = None
+    _mapping = False
 
     def __init__(self, view, f, dist='b', block=None, chunksize=None, ordered=True, **flags):
         super(ParallelFunction, self).__init__(view, f, block=block, **flags)
@@ -157,22 +177,40 @@ class ParallelFunction(RemoteFunction):
 
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
-
+    
+    @sync_view_results
     def __call__(self, *sequences):
         client = self.view.client
         
+        lens = []
+        maxlen = minlen = -1
+        for i, seq in enumerate(sequences):
+            try:
+                n = len(seq)
+            except Exception:
+                seq = list(seq)
+                if isinstance(sequences, tuple):
+                    # can't alter a tuple
+                    sequences = list(sequences)
+                sequences[i] = seq
+                n = len(seq)
+            if n > maxlen:
+                maxlen = n
+            if minlen == -1 or n < minlen:
+                minlen = n
+            lens.append(n)
+        
         # check that the length of sequences match
-        len_0 = len(sequences[0])
-        for s in sequences:
-            if len(s)!=len_0:
-                msg = 'all sequences must have equal length, but %i!=%i'%(len_0,len(s))
-                raise ValueError(msg)
+        if not self._mapping and minlen != maxlen:
+            msg = 'all sequences must have equal length, but have %s' % lens
+            raise ValueError(msg)
+        
         balanced = 'Balanced' in self.view.__class__.__name__
         if balanced:
             if self.chunksize:
-                nparts = len_0//self.chunksize + int(len_0%self.chunksize > 0)
+                nparts = maxlen // self.chunksize + int(maxlen % self.chunksize > 0)
             else:
-                nparts = len_0
+                nparts = maxlen
             targets = [None]*nparts
         else:
             if self.chunksize:
@@ -191,21 +229,18 @@ class ParallelFunction(RemoteFunction):
         for index, t in enumerate(targets):
             args = []
             for seq in sequences:
-                part = self.mapObject.getPartition(seq, index, nparts)
-                if len(part) == 0:
-                    continue
-                else:
-                    args.append(part)
-            if not args:
+                part = self.mapObject.getPartition(seq, index, nparts, maxlen)
+                args.append(part)
+
+            if sum([len(arg) for arg in args]) == 0:
                 continue
 
-            # print (args)
-            if hasattr(self, '_map'):
+            if self._mapping:
                 if sys.version_info[0] >= 3:
                     f = lambda f, *sequences: list(map(f, *sequences))
                 else:
                     f = map
-                args = [self.func]+args
+                args = [self.func] + args
             else:
                 f=self.func
 
@@ -213,9 +248,9 @@ class ParallelFunction(RemoteFunction):
             with view.temp_flags(block=False, **self.flags):
                 ar = view.apply(f, *args)
 
-            msg_ids.append(ar.msg_ids[0])
+            msg_ids.extend(ar.msg_ids)
 
-        r = AsyncMapResult(self.view.client, msg_ids, self.mapObject, 
+        r = AsyncMapResult(self.view.client, msg_ids, self.mapObject,
                             fname=getname(self.func),
                             ordered=self.ordered
                         )
@@ -229,16 +264,19 @@ class ParallelFunction(RemoteFunction):
             return r
 
     def map(self, *sequences):
-        """call a function on each element of a sequence remotely.
+        """call a function on each element of one or more sequence(s) remotely.
         This should behave very much like the builtin map, but return an AsyncMapResult
         if self.block is False.
+        
+        That means it can take generators (will be cast to lists locally),
+        and mismatched sequence lengths will be padded with None.
         """
-        # set _map as a flag for use inside self.__call__
-        self._map = True
+        # set _mapping as a flag for use inside self.__call__
+        self._mapping = True
         try:
-            ret = self.__call__(*sequences)
+            ret = self(*sequences)
         finally:
-            del self._map
+            self._mapping = False
         return ret
 
 __all__ = ['remote', 'parallel', 'RemoteFunction', 'ParallelFunction']

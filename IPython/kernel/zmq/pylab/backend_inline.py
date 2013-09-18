@@ -5,9 +5,6 @@
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Standard library imports
-import sys
-
 # Third-party imports
 import matplotlib
 from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg
@@ -18,7 +15,7 @@ from IPython.config.configurable import SingletonConfigurable
 from IPython.core.display import display
 from IPython.core.displaypub import publish_display_data
 from IPython.core.pylabtools import print_figure, select_figure_format
-from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, CBool
+from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, Bool
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -56,7 +53,7 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
-    figure_format = CaselessStrEnum(['svg', 'png'], default_value='png', config=True,
+    figure_format = CaselessStrEnum(['svg', 'png', 'retina'], default_value='png', config=True,
         help="The image format for figures with the inline backend.")
 
     def _figure_format_changed(self, name, old, new):
@@ -65,7 +62,7 @@ class InlineBackend(InlineBackendConfig):
         else:
             select_figure_format(self.shell, new)
     
-    close_figures = CBool(True, config=True,
+    close_figures = Bool(True, config=True,
         help="""Close all figures at the end of each cell.
         
         When True, ensures that each cell starts with no active figures, but it
@@ -125,8 +122,10 @@ def draw_if_interactive():
     # execution.  Also sets the _draw_called flag, signaling that there will be
     # something to send.  At the end of the code execution, a separate call to
     # flush_figures() will act upon these values
-
-    fig = Gcf.get_active().canvas.figure
+    manager = Gcf.get_active()
+    if manager is None:
+        return
+    fig = manager.canvas.figure
 
     # Hack: matplotlib FigureManager objects in interacive backends (at least
     # in some of them) monkeypatch the figure object and add a .show() method

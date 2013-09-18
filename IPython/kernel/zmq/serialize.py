@@ -15,13 +15,6 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports
-import logging
-import os
-import re
-import socket
-import sys
-
 try:
     import cPickle
     pickle = cPickle
@@ -134,7 +127,7 @@ def unserialize_object(buffers, g=None):
         for c in canned:
             _restore_buffers(c, bufs)
         newobj = uncan_sequence(canned, g)
-    elif isinstance(canned, dict) and len(canned) < MAX_ITEMS:
+    elif istype(canned, dict) and len(canned) < MAX_ITEMS:
         newobj = {}
         for k in sorted(canned.iterkeys()):
             c = canned[k]

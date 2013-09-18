@@ -1,5 +1,7 @@
 # coding: utf-8
-from IPython.core.splitinput import split_user_input
+import nose.tools as nt
+
+from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
 
@@ -33,3 +35,8 @@ else:
 
 def test_split_user_input():
     return tt.check_pairs(split_user_input, tests)
+
+def test_LineInfo():
+    """Simple test for LineInfo construction and str()"""
+    linfo = LineInfo('  %cd /home')
+    nt.assert_equal(str(linfo), 'LineInfo [  |%|cd|/home]')

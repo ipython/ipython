@@ -16,25 +16,22 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+import base64
 import sys
 import platform
 import time
 from collections import namedtuple
 from tempfile import mktemp
-from StringIO import StringIO
 
 import zmq
-from nose import SkipTest
 from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
-from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.parallel import DirectView
 from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
@@ -46,7 +43,7 @@ def setup():
 
 point = namedtuple("point", "x y")
 
-class TestView(ClusterTestCase, ParametricTestCase):
+class TestView(ClusterTestCase):
     
     def setUp(self):
         # On Win XP, wait for resource cleanup, else parallel test group fails
@@ -156,10 +153,10 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = v.apply_async(wait, 1)
         # give the monitor time to notice the message
         time.sleep(.25)
-        ahr = v2.get_result(ar.msg_ids)
+        ahr = v2.get_result(ar.msg_ids[0])
         self.assertTrue(isinstance(ahr, AsyncHubResult))
         self.assertEqual(ahr.get(), ar.get())
-        ar2 = v2.get_result(ar.msg_ids)
+        ar2 = v2.get_result(ar.msg_ids[0])
         self.assertFalse(isinstance(ar2, AsyncHubResult))
         c.spin()
         c.close()
@@ -241,7 +238,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     @skip_without('numpy')
     def test_scatter_gather_numpy(self):
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         view = self.client[:]
         a = numpy.arange(64)
         view.scatter('a', a, block=True)
@@ -279,7 +276,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_apply_numpy(self):
         """view.apply(f, ndarray)"""
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         
         A = numpy.random.random((100,100))
         view = self.client[-1]
@@ -342,8 +339,20 @@ class TestView(ClusterTestCase, ParametricTestCase):
         arr = range(101)
         # ensure it will be an iterator, even in Python 3
         it = iter(arr)
-        r = view.map_sync(lambda x:x, arr)
+        r = view.map_sync(lambda x: x, it)
         self.assertEqual(r, list(arr))
+
+    @skip_without('numpy')
+    def test_map_numpy(self):
+        """test map on numpy arrays (direct)"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal
+
+        view = self.client[:]
+        # 101 is prime, so it won't be evenly distributed
+        arr = numpy.arange(101)
+        r = view.map_sync(lambda x: x, arr)
+        assert_array_equal(r, arr)
     
     def test_scatter_gather_nonblocking(self):
         data = range(16)
@@ -355,7 +364,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     @skip_without('numpy')
     def test_scatter_gather_numpy_nonblocking(self):
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         a = numpy.arange(64)
         view = self.client[:]
         ar = view.scatter('a', a, block=False)
@@ -499,19 +508,17 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_len(self):
         """len(view) makes sense"""
         e0 = self.client[self.client.ids[0]]
-        yield self.assertEqual(len(e0), 1)
+        self.assertEqual(len(e0), 1)
         v = self.client[:]
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         v = self.client.direct_view('all')
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         v = self.client[:2]
-        yield self.assertEqual(len(v), 2)
+        self.assertEqual(len(v), 2)
         v = self.client[:1]
-        yield self.assertEqual(len(v), 1)
+        self.assertEqual(len(v), 1)
         v = self.client.load_balanced_view()
-        yield self.assertEqual(len(v), len(self.client.ids))
-        # parametric tests seem to require manual closing?
-        self.client.close()
+        self.assertEqual(len(v), len(self.client.ids))
 
     
     # begin execute tests
@@ -523,6 +530,18 @@ class TestView(ClusterTestCase, ParametricTestCase):
         er = ar.get()
         self.assertEqual(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
         self.assertEqual(er.pyout['data']['text/plain'], '5')
+
+    def test_execute_reply_rich(self):
+        e0 = self.client[self.client.ids[0]]
+        e0.block = True
+        e0.execute("from IPython.display import Image, HTML")
+        ar = e0.execute("Image(data=b'garbage', format='png', width=10)", silent=False)
+        er = ar.get()
+        b64data = base64.encodestring(b'garbage').decode('ascii')
+        self.assertEqual(er._repr_png_(), (b64data, dict(width=10)))
+        ar = e0.execute("HTML('<b>bold</b>')", silent=False)
+        er = ar.get()
+        self.assertEqual(er._repr_html_(), "<b>bold</b>")
 
     def test_execute_reply_stdout(self):
         e0 = self.client[self.client.ids[0]]

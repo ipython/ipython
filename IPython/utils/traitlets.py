@@ -398,7 +398,7 @@ class HasTraits(object):
 
     __metaclass__ = MetaHasTraits
 
-    def __new__(cls, **kw):
+    def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
         # the cls argument.
         new_meth = super(HasTraits, cls).__new__
@@ -425,7 +425,7 @@ class HasTraits(object):
 
         return inst
 
-    def __init__(self, **kw):
+    def __init__(self, *args, **kw):
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.

@@ -58,9 +58,6 @@ from IPython.utils.traitlets import Bool, Unicode, Dict, List, Float, Instance
 # Module level variables
 #-----------------------------------------------------------------------------
 
-#: The default config file name for this application
-default_config_file_name = u'ipengine_config.py'
-
 _description = """Start an IPython engine for parallel computing.
 
 IPython engines run in parallel and perform computations on behalf of a client
@@ -144,7 +141,6 @@ class IPEngineApp(BaseParallelApplication):
     name = 'ipengine'
     description = _description
     examples = _examples
-    config_file_name = Unicode(default_config_file_name)
     classes = List([ZMQInteractiveShell, ProfileDir, Session, EngineFactory, Kernel, MPI])
 
     startup_script = Unicode(u'', config=True,
@@ -231,9 +227,10 @@ class IPEngineApp(BaseParallelApplication):
         ip = disambiguate_ip_address(ip, location)
         d['interface'] = '%s://%s' % (proto, ip)
         
-        # DO NOT allow override of basic URLs, serialization, or exec_key
+        # DO NOT allow override of basic URLs, serialization, or key
         # JSON file takes top priority there
-        config.Session.key = cast_bytes(d['exec_key'])
+        config.Session.key = cast_bytes(d['key'])
+        config.Session.signature_scheme = d['signature_scheme']
         
         config.EngineFactory.url = d['interface'] + ':%i' % d['registration']
         
@@ -360,7 +357,7 @@ class IPEngineApp(BaseParallelApplication):
     
     def init_mpi(self):
         global mpi
-        self.mpi = MPI(config=self.config)
+        self.mpi = MPI(parent=self)
 
         mpi_import_statement = self.mpi.init_script
         if mpi_import_statement:
@@ -388,11 +385,7 @@ class IPEngineApp(BaseParallelApplication):
             self.log.critical("Engine Interrupted, shutting down...\n")
 
 
-def launch_new_instance():
-    """Create and run the IPython engine"""
-    app = IPEngineApp.instance()
-    app.initialize()
-    app.start()
+launch_new_instance = IPEngineApp.launch_instance
 
 
 if __name__ == '__main__':

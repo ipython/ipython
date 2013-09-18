@@ -63,8 +63,7 @@ def setup():
     tic = time.time()
     while not os.path.exists(engine_json) or not os.path.exists(client_json):
         if cp.poll() is not None:
-            print cp.poll()
-            raise RuntimeError("The test controller failed to start.")
+            raise RuntimeError("The test controller exited with status %s" % cp.poll())
         elif time.time()-tic > 15:
             raise RuntimeError("Timeout waiting for the test controller to start.")
         time.sleep(0.1)

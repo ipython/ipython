@@ -4,17 +4,11 @@
 # Module imports
 #-----------------------------------------------------------------------------
 
-# stdlib
-import os
-import shutil
-import tempfile
-
 # third party
 import nose.tools as nt
 
 # our own packages
 from IPython.testing.globalipapp import get_ipython
-from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Globals

@@ -13,5 +13,4 @@
 #-----------------------------------------------------------------------------
 
 from IPython.core.display import *
-from IPython.core.displaypub import *
 from IPython.lib.display import *

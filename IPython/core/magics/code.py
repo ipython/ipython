@@ -157,7 +157,7 @@ class CodeMagics(Magics):
     def loadpy(self, arg_s):
         """Alias of `%load`
 
-        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
+        `%loadpy` has gained some flexibility and dropped the requirement of a `.py`
         extension. So it has been renamed simply into %load. You can look at
         `%load`'s docstring for more info.
         """

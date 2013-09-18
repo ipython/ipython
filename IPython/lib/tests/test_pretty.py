@@ -53,6 +53,28 @@ class Dummy1(object):
 class Dummy2(Dummy1):
     _repr_pretty_ = None
 
+class NoModule(object):
+    pass
+
+NoModule.__module__ = None
+
+class Breaking(object):
+    def _repr_pretty_(self, p, cycle):
+        with p.group(4,"TG: ",":"):
+            p.text("Breaking(")
+            p.break_()
+            p.text(")")
+
+class BreakingRepr(object):
+    def __repr__(self):
+        return "Breaking(\n)"
+
+class BreakingReprParent(object):
+    def _repr_pretty_(self, p, cycle):
+        with p.group(4,"TG: ",":"):
+            p.pretty(BreakingRepr())
+
+
 
 def test_indentation():
     """Test correct indentation in groups"""
@@ -84,6 +106,20 @@ def test_callability_checking():
 
     nt.assert_equal(gotoutput, expectedoutput)
 
+
+def test_sets():
+    """
+    Test that set and frozenset use Python 3 formatting.
+    """
+    objects = [set(), frozenset(), set([1]), frozenset([1]), set([1, 2]),
+        frozenset([1, 2]), set([-1, -2, -3])]
+    expected = ['set()', 'frozenset()', '{1}', 'frozenset({1})', '{1, 2}',
+        'frozenset({1, 2})', '{-3, -2, -1}']
+    for obj, expected_output in zip(objects, expected):
+        got_output = pretty.pretty(obj)
+        yield nt.assert_equal, got_output, expected_output
+
+
 @skip_without('xxlimited')
 def test_pprint_heap_allocated_type():
     """
@@ -92,3 +128,26 @@ def test_pprint_heap_allocated_type():
     import xxlimited
     output = pretty.pretty(xxlimited.Null)
     nt.assert_equal(output, 'xxlimited.Null')
+
+def test_pprint_nomod():
+    """
+    Test that pprint works for classes with no __module__.
+    """
+    output = pretty.pretty(NoModule)
+    nt.assert_equal(output, 'NoModule')
+    
+def test_pprint_break():
+    """
+    Test that p.break_ produces expected output
+    """
+    output = pretty.pretty(Breaking())
+    expected = "TG: Breaking(\n    ):"
+    nt.assert_equal(output, expected)
+
+def test_pprint_break_repr():
+    """
+    Test that p.break_ is used in repr
+    """
+    output = pretty.pretty(BreakingReprParent())
+    expected = "TG: Breaking(\n    ):"
+    nt.assert_equal(output, expected)

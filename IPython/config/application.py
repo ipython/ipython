@@ -61,6 +61,11 @@ This line is evaluated in Python, so simple expressions are allowed, e.g.::
 `--C.a='range(3)'` For setting C.a=[0,1,2].
 """.strip() # trim newlines of front and back
 
+# sys.argv can be missing, for example when python is embedded. See the docs
+# for details: http://docs.python.org/2/c-api/intro.html#embedding-python
+if not hasattr(sys, "argv"):
+    sys.argv = [""]
+
 subcommand_description = """
 Subcommands are launched as `{app} cmd [args]`. For information on using
 subcommand 'cmd', do: `{app} cmd -h`.
@@ -83,9 +88,7 @@ def catch_config_error(method, app, *args, **kwargs):
     try:
         return method(app, *args, **kwargs)
     except (TraitError, ArgumentError) as e:
-        app.print_description()
         app.print_help()
-        app.print_examples()
         app.log.fatal("Bad config encountered during initialization:")
         app.log.fatal(str(e))
         app.log.debug("Config at the time: %s", app.config)
@@ -95,6 +98,25 @@ def catch_config_error(method, app, *args, **kwargs):
 class ApplicationError(Exception):
     pass
 
+class LevelFormatter(logging.Formatter):
+    """Formatter with additional `highlevel` record
+    
+    This field is empty if log level is less than highlevel_limit,
+    otherwise it is formatted with self.highlevel_format.
+    
+    Useful for adding 'WARNING' to warning messages,
+    without adding 'INFO' to info, etc.
+    """
+    highlevel_limit = logging.WARN
+    highlevel_format = " %(levelname)s |"
+    
+    def format(self, record):
+        if record.levelno >= self.highlevel_limit:
+            record.highlevel = self.highlevel_format % record.__dict__
+        else:
+            record.highlevel = ""
+        return super(LevelFormatter, self).format(record)
+            
 
 class Application(SingletonConfigurable):
     """A singleton application with full configuration support."""
@@ -120,6 +142,9 @@ class Application(SingletonConfigurable):
 
     # The version string of this application.
     version = Unicode(u'0.0')
+    
+    # the argv used to initialize the application
+    argv = List(Unicode)
 
     # The log level for the application
     log_level = Enum((0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'),
@@ -133,9 +158,21 @@ class Application(SingletonConfigurable):
             self.log_level = new
         self.log.setLevel(new)
     
-    log_format = Unicode("[%(name)s] %(message)s", config=True,
+    log_datefmt = Unicode("%Y-%m-%d %H:%M:%S", config=True,
+        help="The date format used by logging formatters for %(asctime)s"
+    )
+    def _log_datefmt_changed(self, name, old, new):
+        self._log_format_changed()
+    
+    log_format = Unicode("[%(name)s]%(highlevel)s %(message)s", config=True,
         help="The Logging format template",
     )
+    def _log_format_changed(self, name, old, new):
+        """Change the log formatter when log_format is set."""
+        _log_handler = self.log.handlers[0]
+        _log_formatter = LevelFormatter(new, datefmt=self.log_datefmt)
+        _log_handler.setFormatter(_log_formatter)
+
     log = Instance(logging.Logger)
     def _log_default(self):
         """Start logging for this application.
@@ -146,6 +183,7 @@ class Application(SingletonConfigurable):
         """
         log = logging.getLogger(self.__class__.__name__)
         log.setLevel(self.log_level)
+        log.propagate = False
         _log = log # copied from Logger.hasHandlers() (new in Python 3.2)
         while _log:
             if _log.handlers:
@@ -160,7 +198,7 @@ class Application(SingletonConfigurable):
             _log_handler = logging.StreamHandler(open(os.devnull, 'w'))
         else:
             _log_handler = logging.StreamHandler()
-        _log_formatter = logging.Formatter(self.log_format)
+        _log_formatter = LevelFormatter(self.log_format, datefmt=self.log_datefmt)
         _log_handler.setFormatter(_log_formatter)
         log.addHandler(_log_handler)
         return log
@@ -299,6 +337,7 @@ class Application(SingletonConfigurable):
 
         If classes=False (the default), only flags and aliases are printed.
         """
+        self.print_description()
         self.print_subcommands()
         self.print_options()
 
@@ -317,6 +356,9 @@ class Application(SingletonConfigurable):
         else:
             print "To see all available configurables, use `--help-all`"
             print
+
+        self.print_examples()
+
 
     def print_description(self):
         """Print the application description."""
@@ -346,7 +388,7 @@ class Application(SingletonConfigurable):
         # Save a copy of the current config.
         newconfig = deepcopy(self.config)
         # Merge the new config into the current one.
-        newconfig._merge(config)
+        newconfig.merge(config)
         # Save the combined config as self.config, which triggers the traits
         # events.
         self.config = newconfig
@@ -362,7 +404,7 @@ class Application(SingletonConfigurable):
         # clear existing instances
         self.__class__.clear_instance()
         # instantiate
-        self.subapp = subapp.instance()
+        self.subapp = subapp.instance(config=self.config)
         # and initialize subapp
         self.subapp.initialize(argv)
     
@@ -415,6 +457,7 @@ class Application(SingletonConfigurable):
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
+        self.argv = list(argv)
         
         if argv and argv[0] == 'help':
             # turn `ipython help notebook` into `ipython notebook -h`
@@ -437,9 +480,7 @@ class Application(SingletonConfigurable):
             interpreted_argv = argv
 
         if any(x in interpreted_argv for x in ('-h', '--help-all', '--help')):
-            self.print_description()
             self.print_help('--help-all' in interpreted_argv)
-            self.print_examples()
             self.exit(0)
 
         if '--version' in interpreted_argv or '-V' in interpreted_argv:
@@ -489,6 +530,16 @@ class Application(SingletonConfigurable):
     def exit(self, exit_status=0):
         self.log.debug("Exiting application: %s" % self.name)
         sys.exit(exit_status)
+
+    @classmethod
+    def launch_instance(cls, argv=None, **kwargs):
+        """Launch a global instance of this Application
+        
+        If a global instance already exists, this reinitializes and starts it
+        """
+        app = cls.instance(**kwargs)
+        app.initialize(argv)
+        app.start()
 
 #-----------------------------------------------------------------------------
 # utility functions, for convenience

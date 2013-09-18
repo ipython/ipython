@@ -209,7 +209,8 @@ loop_map = {
 def enable_gui(gui, kernel=None):
     """Enable integration with a given GUI"""
     if gui not in loop_map:
-        raise ValueError("GUI %r not supported" % gui)
+        e = "Invalid GUI request %r, valid ones are:%s" % (gui, loop_map.keys())
+        raise ValueError(e)
     if kernel is None:
         if Application.initialized():
             kernel = getattr(Application.instance(), 'kernel', None)

@@ -27,12 +27,16 @@ Tools for Interactive Computing in Python
 
 Usage
 
-    ipython [subcommand] [options] [files]
+    ipython [subcommand] [options] [-c cmd | -m mod | file] [--] [arg] ...
 
-    If invoked with no options, it executes all the files listed in sequence
-    and exits, use -i to enter interactive mode after running the files.  Files
-    ending in .py will be treated as normal Python, but files ending in .ipy
-    can contain special IPython syntax (magic commands, shell expansions, etc.)
+    If invoked with no options, it executes the file and exits, passing the
+    remaining arguments to the script, just as if you had specified the same
+    command with python. You may need to specify `--` before args to be passed
+    to the script, to prevent IPython from attempting to parse them. If you
+    specify the option `-i` before the filename, it will enter an interactive
+    IPython session after running the script, rather than exiting. Files ending
+    in .py will be treated as normal Python, but files ending in .ipy can
+    contain special IPython syntax (magic commands, shell expansions, etc.).
 
     Almost all configuration in IPython is available via the command-line. Do
     `ipython --help-all` to see all available options.  For persistent
@@ -521,9 +525,9 @@ Inline matplotlib graphics
 ==========================
 
 The IPython console is capable of displaying matplotlib figures inline, in SVG
-or PNG format.  If started with the ``pylab=inline``, then all figures are
-rendered inline automatically (PNG by default).  If started with ``--pylab``
-or ``pylab=<your backend>``, then a GUI backend will be used, but IPython's
+or PNG format.  If started with the ``matplotlib=inline``, then all figures are
+rendered inline automatically (PNG by default).  If started with ``--matplotlib``
+or ``matplotlib=<your backend>``, then a GUI backend will be used, but IPython's
 ``display()`` and ``getfigs()`` functions can be used to view plots inline::
 
     In [9]: display(*getfigs())    # display all figures inline
@@ -546,7 +550,9 @@ gui_note = """\
 default_banner_parts = [
     'Python %s\n' % (sys.version.split('\n')[0],),
     'Type "copyright", "credits" or "license" for more information.\n\n',
-    'IPython %s -- An enhanced Interactive Python.\n' % (release.version,),
+    'IPython {version} -- An enhanced Interactive Python.\n'.format(
+        version=release.version,
+        ),
     quick_guide
 ]
 

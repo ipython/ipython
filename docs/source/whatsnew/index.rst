@@ -1,0 +1,36 @@
+.. Developers should add in this file, during each release cycle, information
+.. about important changes they've made, in a summary format that's meant for
+.. end users.  For each release we normally have three sections: features,  bug
+.. fixes and api breakage.
+.. Please remember to credit the authors of the contributions by name,
+.. especially when they are new users or developers who do not regularly
+.. participate  in IPython's development.
+
+.. _whatsnew_index:
+
+=====================
+What's new in IPython
+=====================
+
+This section documents the changes that have been made in various versions of
+IPython. Users should consult these pages to learn about new features, bug
+fixes and backwards incompatibilities. Developers should summarize the
+development work they do here in a user friendly format.
+
+.. toctree::
+   :maxdepth: 1
+
+   development
+   version1.0
+   github-stats-1.0
+   version0.13
+   github-stats-0.13
+   version0.12
+   github-stats-0.12
+   version0.11
+   github-stats-0.11
+   version0.10
+   version0.9
+   version0.8
+
+

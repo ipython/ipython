@@ -1,0 +1,83 @@
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+
+body {
+    background-color: white;
+    /* This makes sure that the body covers the entire window and needs to
+       be in a different element than the display: box in wrapper below */
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    overflow: visible;
+}
+
+div#header {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+}
+
+#ipython_notebook {
+    padding-left: 16px;
+}
+
+#noscript {
+     width: auto;
+     padding-top: 16px;
+     padding-bottom: 16px;
+     text-align: center;
+     font-size: 22px;
+     color: red;
+     font-weight: bold;
+}
+
+#ipython_notebook img {
+    font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    height: 24px;
+    text-decoration:none;
+    color: black;
+}
+
+#site {
+    width: 100%;
+    display: none;
+}
+
+/* Smaller buttons */
+.ui-button .ui-button-text {
+    padding: 0.2em 0.8em;
+    font-size: 77%;
+}
+
+input.ui-button {
+    padding: 0.3em 0.9em;
+}
+.navbar span {
+  margin-top: 3px;
+}
+
+span#login_widget {
+    float: right;
+}
+
+.nav-header {
+    text-transform: none;
+}
+
+.navbar-nobg {
+    background-color: transparent;
+    background-image: none;
+}
+
+#header > span {
+  margin-top: 10px;
+}
+
+.modal-body {
+  max-height: 500px;
+}

@@ -103,11 +103,12 @@ class DictDB(BaseDB):
     _culled_ids = set() # set of ids which have been culled
     _buffer_bytes = Integer(0) # running total of the bytes in the DB
     
-    size_limit = Integer(1024*1024, config=True,
+    size_limit = Integer(1024**3, config=True,
         help="""The maximum total size (in bytes) of the buffers stored in the db
         
         When the db exceeds this size, the oldest records will be culled until
         the total size is under size_limit * (1-cull_fraction).
+        default: 1 GB
         """
     )
     record_limit = Integer(1024, config=True,

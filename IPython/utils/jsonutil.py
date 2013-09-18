@@ -33,7 +33,7 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
 # timestamp formats
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
-ISO8601_PAT=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
+ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)Z?([\+\-]\d{2}:?\d{2})?$")
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -71,8 +71,12 @@ def extract_dates(obj):
     elif isinstance(obj, (list, tuple)):
         obj = [ extract_dates(o) for o in obj ]
     elif isinstance(obj, basestring):
-        if ISO8601_PAT.match(obj):
-            obj = datetime.strptime(obj, ISO8601)
+        m = ISO8601_PAT.match(obj)
+        if m:
+            # FIXME: add actual timezone support
+            # this just drops the timezone info
+            notz = m.groups()[0]
+            obj = datetime.strptime(notz, ISO8601)
     return obj
 
 def squash_dates(obj):
@@ -84,20 +88,24 @@ def squash_dates(obj):
     elif isinstance(obj, (list, tuple)):
         obj = [ squash_dates(o) for o in obj ]
     elif isinstance(obj, datetime):
-        obj = obj.strftime(ISO8601)
+        obj = obj.isoformat()
     return obj
 
 def date_default(obj):
     """default function for packing datetime objects in JSON."""
     if isinstance(obj, datetime):
-        return obj.strftime(ISO8601)
+        return obj.isoformat()
     else:
         raise TypeError("%r is not JSON serializable"%obj)
 
 
 # constants for identifying png/jpeg data
 PNG = b'\x89PNG\r\n\x1a\n'
+# front of PNG base64-encoded
+PNG64 = b'iVBORw0KG'
 JPEG = b'\xff\xd8'
+# front of JPEG base64-encoded
+JPEG64 = b'/9'
 
 def encode_images(format_dict):
     """b64-encodes images in a displaypub format dict
@@ -120,12 +128,21 @@ def encode_images(format_dict):
 
     """
     encoded = format_dict.copy()
+
     pngdata = format_dict.get('image/png')
-    if isinstance(pngdata, bytes) and pngdata[:8] == PNG:
-        encoded['image/png'] = encodebytes(pngdata).decode('ascii')
+    if isinstance(pngdata, bytes):
+        # make sure we don't double-encode
+        if not pngdata.startswith(PNG64):
+            pngdata = encodebytes(pngdata)
+        encoded['image/png'] = pngdata.decode('ascii')
+
     jpegdata = format_dict.get('image/jpeg')
-    if isinstance(jpegdata, bytes) and jpegdata[:2] == JPEG:
-        encoded['image/jpeg'] = encodebytes(jpegdata).decode('ascii')
+    if isinstance(jpegdata, bytes):
+        # make sure we don't double-encode
+        if not jpegdata.startswith(JPEG64):
+            jpegdata = encodebytes(jpegdata)
+        encoded['image/jpeg'] = jpegdata.decode('ascii')
+
     return encoded
 
 

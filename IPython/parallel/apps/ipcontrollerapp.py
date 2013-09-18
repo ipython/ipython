@@ -54,27 +54,32 @@ from IPython.kernel.zmq.session import (
 from IPython.parallel.controller.heartmonitor import HeartMonitor
 from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
-from IPython.parallel.controller.sqlitedb import SQLiteDB
+from IPython.parallel.controller.dictdb import DictDB
 
-from IPython.parallel.util import split_url, disambiguate_url
+from IPython.parallel.util import split_url, disambiguate_url, set_hwm
 
-# conditional import of MongoDB backend class
+# conditional import of SQLiteDB / MongoDB backend class
+real_dbs = []
+
+try:
+    from IPython.parallel.controller.sqlitedb import SQLiteDB
+except ImportError:
+    pass
+else:
+    real_dbs.append(SQLiteDB)
 
 try:
     from IPython.parallel.controller.mongodb import MongoDB
 except ImportError:
-    maybe_mongo = []
+    pass
 else:
-    maybe_mongo = [MongoDB]
+    real_dbs.append(MongoDB)
+
 
 
 #-----------------------------------------------------------------------------
 # Module level variables
 #-----------------------------------------------------------------------------
-
-
-#: The default config file name for this application
-default_config_file_name = u'ipcontroller_config.py'
 
 
 _description = """Start the IPython controller for parallel computing.
@@ -147,8 +152,7 @@ class IPControllerApp(BaseParallelApplication):
     name = u'ipcontroller'
     description = _description
     examples = _examples
-    config_file_name = Unicode(default_config_file_name)
-    classes = [ProfileDir, Session, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
+    classes = [ProfileDir, Session, HubFactory, TaskScheduler, HeartMonitor, DictDB] + real_dbs
     
     # change default to True
     auto_create = Bool(True, config=True,
@@ -247,7 +251,7 @@ class IPControllerApp(BaseParallelApplication):
             ecfg = json.loads(f.read())
         
         # json gives unicode, Session.key wants bytes
-        c.Session.key = ecfg['exec_key'].encode('ascii')
+        c.Session.key = ecfg['key'].encode('ascii')
         
         xport,ip = ecfg['interface'].split('://')
         
@@ -265,7 +269,7 @@ class IPControllerApp(BaseParallelApplication):
         with open(fname) as f:
             ccfg = json.loads(f.read())
         
-        for key in ('exec_key', 'registration', 'pack', 'unpack'):
+        for key in ('key', 'registration', 'pack', 'unpack', 'signature_scheme'):
             assert ccfg[key] == ecfg[key], "mismatch between engine and client info: %r" % key
         
         xport,addr = ccfg['interface'].split('://')
@@ -334,10 +338,11 @@ class IPControllerApp(BaseParallelApplication):
             # save to new json config files
             f = self.factory
             base = {
-                'exec_key'  : f.session.key.decode('ascii'),
+                'key'  : f.session.key.decode('ascii'),
                 'location'  : self.location,
                 'pack'      : f.session.packer,
                 'unpack'    : f.session.unpacker,
+                'signature_scheme' : f.session.signature_scheme,
             }
             
             cdict = {'ssh' : self.ssh_server}
@@ -376,6 +381,7 @@ class IPControllerApp(BaseParallelApplication):
 
         # Multiplexer Queue (in a Process)
         q = mq(zmq.ROUTER, zmq.ROUTER, zmq.PUB, b'in', b'out')
+        
         q.bind_in(f.client_url('mux'))
         q.setsockopt_in(zmq.IDENTITY, b'mux_in')
         q.bind_out(f.engine_url('mux'))
@@ -429,6 +435,22 @@ class IPControllerApp(BaseParallelApplication):
                 # single-threaded Controller
                 kwargs['in_thread'] = True
                 launch_scheduler(*sargs, **kwargs)
+        
+        # set unlimited HWM for all relay devices
+        if hasattr(zmq, 'SNDHWM'):
+            q = children[0]
+            q.setsockopt_in(zmq.RCVHWM, 0)
+            q.setsockopt_out(zmq.SNDHWM, 0)
+            
+            for q in children[1:]:
+                if not hasattr(q, 'setsockopt_in'):
+                    continue
+                q.setsockopt_in(zmq.SNDHWM, 0)
+                q.setsockopt_in(zmq.RCVHWM, 0)
+                q.setsockopt_out(zmq.SNDHWM, 0)
+                q.setsockopt_out(zmq.RCVHWM, 0)
+                q.setsockopt_mon(zmq.SNDHWM, 0)
+            
 
     def terminate_children(self):
         child_procs = []
@@ -502,8 +524,7 @@ class IPControllerApp(BaseParallelApplication):
             self.cleanup_connection_files()
             
 
-
-def launch_new_instance():
+def launch_new_instance(*args, **kwargs):
     """Create and run the IPython controller"""
     if sys.platform == 'win32':
         # make sure we don't get called from a multiprocessing subprocess
@@ -519,9 +540,7 @@ def launch_new_instance():
         if p.name != 'MainProcess':
             # we are a subprocess, don't start another Controller!
             return
-    app = IPControllerApp.instance()
-    app.initialize()
-    app.start()
+    return IPControllerApp.launch_instance(*args, **kwargs)
 
 
 if __name__ == '__main__':

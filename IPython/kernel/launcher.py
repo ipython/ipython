@@ -21,6 +21,7 @@ import os
 import sys
 from subprocess import Popen, PIPE
 
+from IPython.utils.py3compat import cast_bytes_py2
 
 #-----------------------------------------------------------------------------
 # Launching Kernels
@@ -60,6 +61,8 @@ def swallow_argv(argv, aliases=None, flags=None):
     swallow_next = False
     was_flag = False
     for a in argv:
+        if a == '--':
+            break
         if swallow_next:
             swallow_next = False
             # last arg was an alias, remove the next one
@@ -70,16 +73,19 @@ def swallow_argv(argv, aliases=None, flags=None):
                 continue
         if a.startswith('-'):
             split = a.lstrip('-').split('=')
-            alias = split[0]
-            if alias in aliases:
+            name = split[0]
+            # we use startswith because argparse accepts any arg to be specified
+            # by any leading section, as long as it is unique,
+            # so `--no-br` means `--no-browser` in the notebook, etc.
+            if any(alias.startswith(name) for alias in aliases):
                 stripped.remove(a)
                 if len(split) == 1:
                     # alias passed with arg via space
                     swallow_next = True
                     # could have been a flag that matches an alias, e.g. `existing`
                     # in which case, we might not swallow the next arg
-                    was_flag = alias in flags
-            elif alias in flags and len(split) == 1:
+                    was_flag = name in flags
+            elif len(split) == 1 and any(flag.startswith(name) for flag in flags):
                 # strip flag, but don't swallow next, as flags don't take args
                 stripped.remove(a)
     
@@ -185,6 +191,11 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
 
     # Spawn a kernel.
     if sys.platform == 'win32':
+        
+        if cwd:
+            # Popen on Python 2 on Windows cannot handle unicode cwd.
+            cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
+        
         from IPython.kernel.zmq.parentpoller import ParentPollerWindows
         # Create a Win32 event for interrupting the kernel.
         interrupt_event = ParentPollerWindows.create_interrupt_event()

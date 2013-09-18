@@ -16,6 +16,9 @@ Utilities for path handling.
 
 import os
 import sys
+import errno
+import shutil
+import random
 import tempfile
 import warnings
 from hashlib import md5
@@ -172,8 +175,7 @@ class HomeDirError(Exception):
 def get_home_dir(require_writable=False):
     """Return the 'home' directory, as a unicode string.
 
-    * First, check for frozen env in case of py2exe
-    * Otherwise, defer to os.path.expanduser('~')
+    Uses os.path.expanduser('~'), and checks for writability.
     
     See stdlib docs for how this is determined.
     $HOME is first priority on *ALL* platforms.
@@ -189,19 +191,6 @@ def get_home_dir(require_writable=False):
             The path is resolved, but it is not guaranteed to exist or be writable.
     """
 
-    # first, check py2exe distribution root directory for _ipython.
-    # This overrides all. Normally does not exist.
-
-    if hasattr(sys, "frozen"): #Is frozen by py2exe
-        if '\\library.zip\\' in IPython.__file__.lower():#libraries compressed to zip-file
-            root, rest = IPython.__file__.lower().split('library.zip')
-        else:
-            root=os.path.join(os.path.split(IPython.__file__)[0],"../../")
-        root=os.path.abspath(root).rstrip('\\')
-        if _writable_dir(os.path.join(root, '_ipython')):
-            os.environ["IPYKITROOT"] = root
-        return py3compat.cast_unicode(root, fs_encoding)
-    
     homedir = os.path.expanduser('~')
     # Next line will make things work even when /home/ is a symlink to
     # /usr/home as it is on FreeBSD, for example
@@ -238,6 +227,24 @@ def get_xdg_dir():
         # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
+        if xdg and _writable_dir(xdg):
+            return py3compat.cast_unicode(xdg, fs_encoding)
+
+    return None
+
+
+def get_xdg_cache_dir():
+    """Return the XDG_CACHE_HOME, if it is defined and exists, else None.
+
+    This is only for non-OS X posix (Linux,Unix,etc.) systems.
+    """
+
+    env = os.environ
+
+    if os.name == 'posix' and sys.platform != 'darwin':
+        # Linux, Unix, AIX, etc.
+        # use ~/.cache if empty OR not set
+        xdg = env.get("XDG_CACHE_HOME", None) or os.path.join(get_home_dir(), '.cache')
         if xdg and _writable_dir(xdg):
             return py3compat.cast_unicode(xdg, fs_encoding)
 
@@ -290,12 +297,26 @@ def get_ipython_dir():
                         " using a temp directory."%ipdir)
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
-        parent = ipdir.rsplit(os.path.sep, 1)[0]
+        parent = os.path.dirname(ipdir)
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
             warnings.warn("IPython parent '%s' is not a writable location,"
                         " using a temp directory."%parent)
             ipdir = tempfile.mkdtemp()
+
+    return py3compat.cast_unicode(ipdir, fs_encoding)
+
+
+def get_ipython_cache_dir():
+    """Get the cache directory it is created if it does not exist."""
+    xdgdir = get_xdg_cache_dir()
+    if xdgdir is None:
+        return get_ipython_dir()
+    ipdir = os.path.join(xdgdir, "ipython")
+    if not os.path.exists(ipdir) and _writable_dir(xdgdir):
+        os.makedirs(ipdir)
+    elif not _writable_dir(xdgdir):
+        return get_ipython_dir()
 
     return py3compat.cast_unicode(ipdir, fs_encoding)
 
@@ -492,3 +513,52 @@ def get_security_file(filename, profile='default'):
         raise IOError("Profile %r not found")
     return filefind(filename, ['.', pd.security_dir])
 
+
+ENOLINK = 1998
+
+def link(src, dst):
+    """Hard links ``src`` to ``dst``, returning 0 or errno.
+
+    Note that the special errno ``ENOLINK`` will be returned if ``os.link`` isn't
+    supported by the operating system.
+    """
+
+    if not hasattr(os, "link"):
+        return ENOLINK
+    link_errno = 0
+    try:
+        os.link(src, dst)
+    except OSError as e:
+        link_errno = e.errno
+    return link_errno
+
+
+def link_or_copy(src, dst):
+    """Attempts to hardlink ``src`` to ``dst``, copying if the link fails.
+
+    Attempts to maintain the semantics of ``shutil.copy``.
+
+    Because ``os.link`` does not overwrite files, a unique temporary file
+    will be used if the target already exists, then that file will be moved
+    into place.
+    """
+
+    if os.path.isdir(dst):
+        dst = os.path.join(dst, os.path.basename(src))
+
+    link_errno = link(src, dst)
+    if link_errno == errno.EEXIST:
+        new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
+        try:
+            link_or_copy(src, new_dst)
+        except:
+            try:
+                os.remove(new_dst)
+            except OSError:
+                pass
+            raise
+        os.rename(new_dst, dst)
+    elif link_errno != 0:
+        # Either link isn't supported, or the filesystem doesn't support
+        # linking, or 'src' and 'dst' are on different filesystems.
+        shutil.copy(src, dst)

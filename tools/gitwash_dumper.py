@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Checkout gitwash repo into directory and do search replace on name '''
+""" Checkout gitwash repo into directory and do search replace on name """
 
 import os
 from os.path import join as pjoin
@@ -51,9 +51,9 @@ def cp_files(in_path, globs, out_path):
 
 
 def filename_search_replace(sr_pairs, filename, backup=False):
-    ''' Search and replace for expressions in files
+    """ Search and replace for expressions in files
 
-    '''
+    """
     in_txt = open(filename, 'rt').read(-1)
     out_txt = in_txt[:]
     for in_exp, out_exp in sr_pairs:

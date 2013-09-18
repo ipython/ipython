@@ -9,8 +9,7 @@ except:
     numpy = None
 import nose.tools as nt
 
-from IPython.core.formatters import FormatterABC, PlainTextFormatter
-from IPython.lib import pretty
+from IPython.core.formatters import PlainTextFormatter
 
 class A(object):
     def __repr__(self):

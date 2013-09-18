@@ -411,6 +411,18 @@ class TestHasTraits(TestCase):
         self.assertEqual(a.i, 1)
         self.assertEqual(a.x, 10.0)
 
+    def test_positional_args(self):
+        class A(HasTraits):
+            i = Int(0)
+            def __init__(self, i):
+                super(A, self).__init__()
+                self.i = i
+        
+        a = A(5)
+        self.assertEqual(a.i, 5)
+        # should raise TypeError if no positional arg given
+        self.assertRaises(TypeError, A)
+
 #-----------------------------------------------------------------------------
 # Tests for specific trait types
 #-----------------------------------------------------------------------------

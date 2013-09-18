@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Usage:
-    python git-mpr.py -m 1657
+    git-mpr [-h] [-l | -a] [pr-number [pr-number ...]]
+
+Type `git mpr -h` for details.
 """
+
 from __future__ import print_function
 
 import io, os
@@ -31,7 +34,13 @@ def merge_branch(repo, branch ):
         return False
     return True
 
+    
+def git_new_branch(name):
+    """Create a new branch with the given name and check it out.
+    """
+    check_call(['git', 'checkout', '-b', name])
 
+    
 def merge_pr(num):
     """ try to merge the branch of PR `num` into current branch
     """
@@ -95,12 +104,16 @@ def main(*args):
                 ismgb=ismgb))
 
     if(args.merge_all):
+        branch_name = 'merge-' + '-'.join(str(pr['number']) for pr in pr_list)
+        git_new_branch(branch_name)
         pr_list = gh_api.get_pulls_list(gh_project)
         for pr in pr_list :
             merge_pr(pr['number'])
 
 
     elif args.merge:
+        branch_name = 'merge-' + '-'.join(map(str, args.merge))
+        git_new_branch(branch_name)
         for num in args.merge :
             merge_pr(num)
 

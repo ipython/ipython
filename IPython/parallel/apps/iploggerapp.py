@@ -40,8 +40,6 @@ from IPython.parallel.apps.logwatcher import LogWatcher
 #-----------------------------------------------------------------------------
 
 #: The default config file name for this application
-default_config_file_name = u'iplogger_config.py'
-
 _description = """Start an IPython logger for parallel computing.
 
 IPython controllers and engines (and your own processes) can broadcast log messages
@@ -64,8 +62,6 @@ class IPLoggerApp(BaseParallelApplication):
 
     name = u'iplogger'
     description = _description
-    config_file_name = Unicode(default_config_file_name)
-    
     classes = [LogWatcher, ProfileDir]
     aliases = Dict(aliases)
 
@@ -76,7 +72,7 @@ class IPLoggerApp(BaseParallelApplication):
     
     def init_watcher(self):
         try:
-            self.watcher = LogWatcher(config=self.config, log=self.log)
+            self.watcher = LogWatcher(parent=self, log=self.log)
         except:
             self.log.error("Couldn't start the LogWatcher", exc_info=True)
             self.exit(1)
@@ -91,11 +87,7 @@ class IPLoggerApp(BaseParallelApplication):
             self.log.critical("Logging Interrupted, shutting down...\n")
 
 
-def launch_new_instance():
-    """Create and run the IPython LogWatcher"""
-    app = IPLoggerApp.instance()
-    app.initialize()
-    app.start()
+launch_new_instance = IPLoggerApp.launch_instance
 
 
 if __name__ == '__main__':
