@@ -19,13 +19,13 @@ from IPython.utils.traitlets import Unicode
 from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
-from .exporter import Exporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class SlidesExporter(Exporter):
+class SlidesExporter(TemplateExporter):
     """
     Exports slides
     """

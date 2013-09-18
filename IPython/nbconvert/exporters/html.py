@@ -19,13 +19,13 @@ from IPython.utils.traitlets import Unicode, List
 from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
-from .exporter import Exporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class HTMLExporter(Exporter):
+class HTMLExporter(TemplateExporter):
     """
     Exports a basic HTML document.  This exporter assists with the export of
     HTML.  Inherit from it if you are writing your own HTML template and need
