@@ -587,6 +587,20 @@ class ZMQInteractiveShell(InteractiveShell):
         )
         self.payload_manager.write_payload(payload)
     
+    def set_parent(self, parent):
+        """Set the parent header for associating output with its triggering input"""
+        self.displayhook.set_parent(parent)
+        self.display_pub.set_parent(parent)
+        self.data_pub.set_parent(parent)
+        try:
+            sys.stdout.set_parent(parent)
+        except AttributeError:
+            pass
+        try:
+            sys.stderr.set_parent(parent)
+        except AttributeError:
+            pass
+    
     #-------------------------------------------------------------------------
     # Things related to magics
     #-------------------------------------------------------------------------
