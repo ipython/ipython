@@ -403,9 +403,16 @@ var IPython = (function (IPython) {
     };
 
 
+    Kernel.prototype.clear_callbacks_for_msg = function (msg_id) {
+        if (this._msg_callbacks[msg_id] !== undefined ) {
+            delete this._msg_callbacks[msg_id];
+        }
+    };
+
+
     Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
         this._msg_callbacks[msg_id] = callbacks || {};
-    }
+    };
 
 
     Kernel.prototype._handle_shell_reply = function (e) {
