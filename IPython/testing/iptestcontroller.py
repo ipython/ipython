@@ -387,7 +387,7 @@ def main():
                         'all tests.')
     parser.add_argument('--all', action='store_true',
                         help='Include slow tests not run by default.')
-    parser.add_argument('-j', '--fast', nargs='?', const=None, default=1,
+    parser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                         help='Run test sections in parallel.')
     parser.add_argument('--xunit', action='store_true',
                         help='Produce Xunit XML results')
@@ -397,12 +397,6 @@ def main():
 
     options = parser.parse_args()
 
-    try:
-        options.fast = int(options.fast)
-    except TypeError:
-        pass
-
-    # This starts subprocesses
     run_iptestall(options)
 
 
