@@ -56,15 +56,12 @@ class Comm(LoggingConfigurable):
     
     primary = Bool(True, help="Am I the primary or secondary Comm?")
     
-    def __init__(self, **kwargs):
+    def __init__(self, data=None, **kwargs):
         super(Comm, self).__init__(**kwargs)
         get_ipython().comm_manager.register_comm(self)
         if self.primary:
             # I am primary, open my peer
-            self.open()
-        else:
-            # I am secondary, handle creation
-            self.handle_open(self._open_data)
+            self.open(data)
     
     def _publish_msg(self, msg_type, data=None, **keys):
         """Helper for sending a comm message on IOPub"""
@@ -97,7 +94,7 @@ class Comm(LoggingConfigurable):
         self._closed = True
     
     def send(self, data=None):
-        """Update the frontend-side version of this comm"""
+        """Send a message to the frontend-side version of this comm"""
         self._publish_msg('comm_msg', data)
     
     # registering callbacks
@@ -130,23 +127,23 @@ class Comm(LoggingConfigurable):
     
     # handling of incoming messages
     
-    def handle_open(self, data):
+    def handle_open(self, msg):
         """Handle a comm_open message"""
-        self.log.debug("handle_open[%s](%s)", self.comm_id, data)
+        self.log.debug("handle_open[%s](%s)", self.comm_id, msg)
         if self._open_callback:
-            self._open_callback(data)
+            self._open_callback(msg)
     
-    def handle_close(self, data):
+    def handle_close(self, msg):
         """Handle a comm_close message"""
-        self.log.debug("handle_close[%s](%s)", self.comm_id, data)
+        self.log.debug("handle_close[%s](%s)", self.comm_id, msg)
         if self._close_callback:
-            self._close_callback(data)
+            self._close_callback(msg)
     
-    def handle_msg(self, data):
+    def handle_msg(self, msg):
         """Handle a comm_msg message"""
-        self.log.debug("handle_msg[%s](%s)", self.comm_id, data)
+        self.log.debug("handle_msg[%s](%s)", self.comm_id, msg)
         if self._msg_callback:
-            self._msg_callback(data)
+            self._msg_callback(msg)
 
 
 __all__ = ['Comm']
