@@ -370,6 +370,10 @@ class SVG(DisplayObject):
     def data(self):
         return self._data
 
+    # SVGs containing inline style are rewritten with
+    # the following template to avoid style leaks
+    svg_template = "<div><style scoped >{style}</style>{svg}</div>"
+
     @data.setter
     def data(self, svg):
         if svg is None:
@@ -382,13 +386,31 @@ class SVG(DisplayObject):
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
         if found_svg:
-            svg = found_svg[0].toxml()
+
+            styles_text = []
+
+            # Traverse svg's inline style elements.  Collect the css rules in
+            # styles_text and remove the inlined styles.
+            styles = found_svg[0].getElementsByTagName('style')
+            for style in styles:
+                for child in style.childNodes:
+                    styles_text.append(cast_unicode(child.data))
+                style.parentNode.removeChild(style)
+
+            svg_text = cast_unicode(found_svg[0].toxml())
+
+            # If any inlined styles were found, move them to a scoped style
+            # block to avoid css leaks
+            if styles_text:
+                self._data = self.svg_template.format(
+                        style="\n".join(styles_text),
+                        svg=svg_text)
+            else:
+                self._data = svg_text
         else:
             # fallback on the input, trust the user
             # but this is probably an error.
-            pass
-        svg = cast_unicode(svg)
-        self._data = svg
+            self._data = cast_unicode(svg)
 
     def _repr_svg_(self):
         return self.data

@@ -302,6 +302,8 @@ var IPython = (function (IPython) {
         this.outputs.push(json);
         var that = this;
         setTimeout(function(){that.element.trigger('resize');}, 100);
+        // Call jquery.scoped plugin to scope svg's style
+        $.scoped();
     };
 
 
