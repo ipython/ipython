@@ -323,7 +323,7 @@ def find_scripts(entry_points=False, suffix=''):
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',
             'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
             'ipcluster%s = IPython.parallel.apps.ipclusterapp:launch_new_instance',
-            'iptest%s = IPython.testing.iptest:main',
+            'iptest%s = IPython.testing.iptestcontroller:main',
             'irunner%s = IPython.lib.irunner:main',
         ]]
         gui_scripts = []
