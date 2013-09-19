@@ -130,20 +130,27 @@ class PyTestController(TestController):
 
     @property
     def will_run(self):
-        return test_sections[self.section].will_run
+        try:
+            return test_sections[self.section].will_run
+        except KeyError:
+            return True
 
     def add_xunit(self):
         xunit_file = os.path.abspath(self.section + '.xunit.xml')
         self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
 
     def add_coverage(self):
+        try:
+            sources = test_sections[self.section].includes
+        except KeyError:
+            sources = ['IPython']
+
         coverage_rc = ("[run]\n"
                        "data_file = {data_file}\n"
                        "source =\n"
                        "  {source}\n"
                       ).format(data_file=os.path.abspath('.coverage.'+self.section),
-                               source="\n  ".join(test_sections[self.section].includes))
-
+                               source="\n  ".join(sources))
         config_file = os.path.join(self.workingdir.name, '.coveragerc')
         with open(config_file, 'w') as f:
             f.write(coverage_rc)
@@ -156,7 +163,7 @@ class PyTestController(TestController):
         super(PyTestController, self).launch()
 
 
-def prepare_py_test_controllers(inc_slow=False, xunit=False, coverage=False):
+def prepare_py_test_controllers(inc_slow=False):
     """Returns an ordered list of PyTestController instances to be run."""
     to_run, not_run = [], []
     if not inc_slow:
@@ -164,15 +171,19 @@ def prepare_py_test_controllers(inc_slow=False, xunit=False, coverage=False):
 
     for name in test_group_names:
         controller = PyTestController(name)
-        if xunit:
-            controller.add_xunit()
-        if coverage:
-            controller.add_coverage()
         if controller.will_run:
             to_run.append(controller)
         else:
             not_run.append(controller)
     return to_run, not_run
+
+def configure_controllers(controllers, xunit=False, coverage=False):
+    """Apply options for a collection of TestController objects."""
+    for controller in controllers:
+        if xunit:
+            controller.add_xunit()
+        if coverage:
+            controller.add_coverage()
 
 def do_run(controller):
     try:
@@ -217,7 +228,7 @@ def report():
 
     return ''.join(out)
 
-def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
+def run_iptestall(options):
     """Run the entire IPython test suite by calling nose and trial.
 
     This function constructs :class:`IPTester` instances for all IPython
@@ -227,20 +238,39 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
     
     Parameters
     ----------
-    
-    inc_slow : bool, optional
+
+    All parameters are passed as attributes of the options object.
+
+    testgroups : list of str
+      Run only these sections of the test suite. If empty, run all the available
+      sections.
+
+    fast : int or None
+      Run the test suite in parallel, using n simultaneous processes. If None
+      is passed, one process is used per CPU core. Default 1 (i.e. sequential)
+
+    inc_slow : bool
       Include slow tests, like IPython.parallel. By default, these tests aren't
       run.
 
-    fast : bool, option
-      Run the test suite in parallel, if True, using as many threads as there
-      are processors
+    xunit : bool
+      Produce Xunit XML output. This is written to multiple foo.xunit.xml files.
+
+    coverage : bool or str
+      Measure code coverage from tests. True will store the raw coverage data,
+      or pass 'html' or 'xml' to get reports.
     """
-    if jobs != 1:
+    if options.fast != 1:
+        # If running in parallel, capture output so it doesn't get interleaved
         TestController.buffer_output = True
 
-    to_run, not_run = prepare_py_test_controllers(inc_slow=inc_slow, xunit=xunit_out,
-                                          coverage=coverage_out)
+    if options.testgroups:
+        to_run = [PyTestController(name) for name in options.testgroups]
+        not_run = []
+    else:
+        to_run, not_run = prepare_py_test_controllers(inc_slow=options.all)
+
+    configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage)
 
     def justify(ltext, rtext, width=70, fill='-'):
         ltext += ' '
@@ -251,8 +281,9 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
     failed = []
     t_start = time.time()
 
-    print('*'*70)
-    if jobs == 1:
+    print()
+    if options.fast == 1:
+        # This actually means sequential, i.e. with 1 job
         for controller in to_run:
             print('IPython test group:', controller.section)
             controller, res = do_run(controller)
@@ -264,8 +295,9 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
             print()
 
     else:
+        # Run tests concurrently
         try:
-            pool = multiprocessing.pool.ThreadPool(jobs)
+            pool = multiprocessing.pool.ThreadPool(options.fast)
             for (controller, res) in pool.imap_unordered(do_run, to_run):
                 res_string = 'OK' if res == 0 else 'FAILED'
                 print(justify('IPython test group: ' + controller.section, res_string))
@@ -286,33 +318,33 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
     nrunners = len(to_run)
     nfail = len(failed)
     # summarize results
-    print('*'*70)
+    print('_'*70)
     print('Test suite completed for system with the following information:')
     print(report())
     print('Ran %s test groups in %.3fs' % (nrunners, t_tests))
     print()
-    print('Status:')
+    print('Status: ', end='')
     if not failed:
         print('OK')
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
-        print('ERROR - %s out of %s test groups failed.' % (nfail, nrunners))
-        for controller in failed:
-            print('-'*40)
-            print('Runner failed:', controller.section)
-            print('You may wish to rerun this one individually, with:')
-            print('  iptest', *controller.cmd[3:])
-            print()
+        failed_sections = [c.section for c in failed]
+        print('ERROR - {} out of {} test groups failed ({}).'.format(nfail,
+                                  nrunners, ', '.join(failed_sections)))
+        print()
+        print('You may wish to rerun these, with:')
+        print('  iptest', *failed_sections)
+        print()
 
-    if coverage_out:
+    if options.coverage:
         from coverage import coverage
         cov = coverage(data_file='.coverage')
         cov.combine()
         cov.save()
 
         # Coverage HTML report
-        if coverage_out == 'html':
+        if options.coverage == 'html':
             html_dir = 'ipy_htmlcov'
             shutil.rmtree(html_dir, ignore_errors=True)
             print("Writing HTML coverage report to %s/ ... " % html_dir, end="")
@@ -340,7 +372,7 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
             print('done.')
 
         # Coverage XML report
-        elif coverage_out == 'xml':
+        elif options.coverage == 'xml':
             cov.xml_report(outfile='ipy_coverage.xml')
 
     if failed:
@@ -349,14 +381,10 @@ def run_iptestall(inc_slow=False, jobs=1, xunit_out=False, coverage_out=False):
 
 
 def main():
-    if len(sys.argv) > 1 and \
-            ((sys.argv[1] in test_sections) or sys.argv[1].startswith('IPython')):
-        from .iptest import run_iptest
-        # This is in-process
-        run_iptest()
-        return
-            
     parser = argparse.ArgumentParser(description='Run IPython test suite')
+    parser.add_argument('testgroups', nargs='*',
+                        help='Run specified groups of tests. If omitted, run '
+                        'all tests.')
     parser.add_argument('--all', action='store_true',
                         help='Include slow tests not run by default.')
     parser.add_argument('-j', '--fast', nargs='?', const=None, default=1,
@@ -370,13 +398,12 @@ def main():
     options = parser.parse_args()
 
     try:
-        jobs = int(options.fast)
+        options.fast = int(options.fast)
     except TypeError:
-        jobs = options.fast
+        pass
 
     # This starts subprocesses
-    run_iptestall(inc_slow=options.all, jobs=jobs,
-                  xunit_out=options.xunit, coverage_out=options.coverage)
+    run_iptestall(options)
 
 
 if __name__ == '__main__':
