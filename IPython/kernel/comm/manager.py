@@ -11,6 +11,8 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
+
 from IPython.config import LoggingConfigurable
 from IPython.core.prompts import LazyEvaluate
 from IPython.core.getipython import get_ipython
@@ -31,6 +33,23 @@ def lazy_keys(dikt):
     Used for debug-logging.
     """
     return LazyEvaluate(lambda d: list(d.keys()))
+
+
+def with_output(method):
+    """method decorator for ensuring output is handled properly in a message handler
+    
+    - sets parent header before entering the method
+    - flushes stdout/stderr after
+    """
+    def method_with_output(self, stream, ident, msg):
+        self.shell.set_parent(msg['header'])
+        try:
+            return method(self, stream, ident, msg)
+        finally:
+            sys.stdout.flush()
+            sys.stderr.flush()
+    
+    return method_with_output
 
 
 class CommManager(LoggingConfigurable):
@@ -97,7 +116,7 @@ class CommManager(LoggingConfigurable):
         return comm
     
     # Message handlers
-    
+    @with_output
     def comm_open(self, stream, ident, msg):
         """Handler for comm_open messages"""
         content = msg['content']
@@ -117,6 +136,7 @@ class CommManager(LoggingConfigurable):
         comm.handle_open(msg)
         self.register_comm(comm)
     
+    @with_output
     def comm_msg(self, stream, ident, msg):
         """Handler for comm_msg messages"""
         content = msg['content']
@@ -127,6 +147,7 @@ class CommManager(LoggingConfigurable):
             return
         comm.handle_msg(msg)
     
+    @with_output
     def comm_close(self, stream, ident, msg):
         """Handler for comm_close messages"""
         content = msg['content']

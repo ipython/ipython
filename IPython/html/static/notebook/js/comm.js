@@ -97,35 +97,35 @@ var IPython = (function (IPython) {
     //-----------------------------------------------------------------------
     
     var Comm = function (comm_id, target) {
-        this.comm_id = comm_id;
+        this.comm_id = comm_id || new IPython.utils.uuid();
         this.target = target || 'comm';
         this._msg_callback = this._open_callback = this._close_callback = null;
     };
     
     // methods for sending messages
-    Comm.prototype.open = function (data) {
+    Comm.prototype.open = function (data, callbacks) {
         var content = {
             comm_id : this.comm_id,
             target : this.target,
             data : data || {},
         };
-        this.kernel.send_shell_message("comm_open", content);
+        return this.kernel.send_shell_message("comm_open", content, callbacks);
     };
     
-    Comm.prototype.send = function (data) {
+    Comm.prototype.send = function (data, callbacks) {
         var content = {
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_msg", content);
+        return this.kernel.send_shell_message("comm_msg", content, callbacks);
     };
     
-    Comm.prototype.close = function (data) {
+    Comm.prototype.close = function (data, callbacks) {
         var content = {
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_close", content);
+        return this.kernel.send_shell_message("comm_close", content, callbacks);
     };
     
     // methods for registering callbacks for incoming messages
@@ -144,7 +144,7 @@ var IPython = (function (IPython) {
     Comm.prototype.on_close = function (callback) {
         this._register_callback('close', callback);
     };
-
+    
     // methods for handling incoming messages
     
     Comm.prototype._maybe_callback = function (key, msg) {
@@ -166,7 +166,7 @@ var IPython = (function (IPython) {
     
     IPython.CommManager = CommManager;
     IPython.Comm = Comm;
-
+    
     return IPython;
 
 }(IPython));
