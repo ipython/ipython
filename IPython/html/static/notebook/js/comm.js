@@ -70,7 +70,7 @@ var IPython = (function (IPython) {
         var comm = new Comm(content.comm_id);
         this.register_comm(comm);
         callback(comm);
-        comm.handle_open(content.data);
+        comm.handle_open(msg);
     };
     
     CommManager.prototype.comm_close = function (msg) {
@@ -80,7 +80,7 @@ var IPython = (function (IPython) {
             return;
         }
         delete this.comms[content.comm_id];
-        comm.handle_close(content.data);
+        comm.handle_close(msg);
     };
     
     CommManager.prototype.comm_msg = function (msg) {
@@ -89,16 +89,16 @@ var IPython = (function (IPython) {
         if (comm === undefined) {
             return;
         }
-        comm.handle_msg(content.data);
+        comm.handle_msg(msg);
     };
     
     //-----------------------------------------------------------------------
     // Comm base class
     //-----------------------------------------------------------------------
     
-    var Comm = function (comm_id) {
+    var Comm = function (comm_id, target) {
         this.comm_id = comm_id;
-        this.target = 'comm';
+        this.target = target || 'comm';
     };
     
     // methods for sending messages
@@ -129,16 +129,16 @@ var IPython = (function (IPython) {
     
     // methods for handling incoming messages
     
-    Comm.prototype.handle_open = function (data) {
-        $([this]).trigger("comm_open", data);
+    Comm.prototype.handle_open = function (msg) {
+        $([this]).trigger("comm_open", msg);
     };
     
-    Comm.prototype.handle_msg = function (data) {
-        $([this]).trigger("comm_msg", data);
+    Comm.prototype.handle_msg = function (msg) {
+        $([this]).trigger("comm_msg", msg);
     };
     
-    Comm.prototype.handle_close = function (data) {
-        $([this]).trigger("comm_close", data);
+    Comm.prototype.handle_close = function (msg) {
+        $([this]).trigger("comm_close", msg);
     };
     
     IPython.CommManager = CommManager;

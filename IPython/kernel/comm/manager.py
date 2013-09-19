@@ -107,7 +107,6 @@ class CommManager(LoggingConfigurable):
         comm = Comm(comm_id=comm_id,
                     shell=self.shell,
                     iopub_socket=self.iopub_socket,
-                    _open_data=content['data'],
                     primary=False,
         )
         if callback is None:
@@ -115,6 +114,7 @@ class CommManager(LoggingConfigurable):
             comm.close()
             return
         callback(comm)
+        comm.handle_open(msg)
         self.register_comm(comm)
     
     def comm_msg(self, stream, ident, msg):
@@ -125,7 +125,7 @@ class CommManager(LoggingConfigurable):
         if comm is None:
             # no such comm
             return
-        comm.handle_msg(content['data'])
+        comm.handle_msg(msg)
     
     def comm_close(self, stream, ident, msg):
         """Handler for comm_close messages"""
@@ -135,8 +135,8 @@ class CommManager(LoggingConfigurable):
         if comm is None:
             # no such comm
             return
-        comm.handle_close(content['data'])
         del self.comms[comm_id]
+        comm.handle_close(msg)
 
 
 __all__ = ['CommManager']
