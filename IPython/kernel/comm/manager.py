@@ -39,15 +39,19 @@ def with_output(method):
     """method decorator for ensuring output is handled properly in a message handler
     
     - sets parent header before entering the method
+    - publishes busy/idle
     - flushes stdout/stderr after
     """
     def method_with_output(self, stream, ident, msg):
-        self.shell.set_parent(msg['header'])
+        parent = msg['header']
+        self.shell.set_parent(parent)
+        self.shell.kernel._publish_status('busy')
         try:
             return method(self, stream, ident, msg)
         finally:
             sys.stdout.flush()
             sys.stderr.flush()
+            self.shell.kernel._publish_status('idle')
     
     return method_with_output
 
