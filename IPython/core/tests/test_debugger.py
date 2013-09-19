@@ -117,8 +117,7 @@ def test_ipdb_magics():
     ipdb> pinfo a
     Type:       ExampleClass
     String Form:ExampleClass()
-    Namespace:  Locals
-    File:       ...
+    Namespace:  Local...
     Docstring:  Docstring for ExampleClass.
     Constructor Docstring:Docstring for ExampleClass.__init__
     ipdb> continue

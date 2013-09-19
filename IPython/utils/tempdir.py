@@ -5,6 +5,8 @@ This is copied from the stdlib and will be standard in Python 3.2 and onwards.
 from __future__ import print_function
 
 import os as _os
+import warnings as _warnings
+import sys as _sys
 
 # This code should only be used in Python versions < 3.2, since after that we
 # can rely on the stdlib itself.
@@ -49,7 +51,7 @@ except ImportError:
                 self._closed = True
                 if _warn:
                     self._warn("Implicitly cleaning up {!r}".format(self),
-                               ResourceWarning)
+                               Warning)
 
         def __exit__(self, exc, value, tb):
             self.cleanup()
@@ -69,6 +71,7 @@ except ImportError:
         _remove = staticmethod(_os.remove)
         _rmdir = staticmethod(_os.rmdir)
         _os_error = _os.error
+        _warn = _warnings.warn
 
         def _rmtree(self, path):
             # Essentially a stripped down version of shutil.rmtree.  We can't

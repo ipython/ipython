@@ -597,23 +597,6 @@ class ExtensionDoctest(doctests.Doctest):
     name = 'extdoctest'   # call nosetests with --with-extdoctest
     enabled = True
 
-    def __init__(self,exclude_patterns=None):
-        """Create a new ExtensionDoctest plugin.
-
-        Parameters
-        ----------
-
-        exclude_patterns : sequence of strings, optional
-          These patterns are compiled as regular expressions, subsequently used
-          to exclude any filename which matches them from inclusion in the test
-          suite (using pattern.search(), NOT pattern.match() ).
-        """
-
-        if exclude_patterns is None:
-            exclude_patterns = []
-        self.exclude_patterns = map(re.compile,exclude_patterns)
-        doctests.Doctest.__init__(self)
-
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
         parser.add_option('--doctest-tests', action='store_true',
@@ -715,35 +698,6 @@ class ExtensionDoctest(doctests.Doctest):
                     yield DocFileCase(test)
                 else:
                     yield False # no tests to load
-
-    def wantFile(self,filename):
-        """Return whether the given filename should be scanned for tests.
-
-        Modified version that accepts extension modules as valid containers for
-        doctests.
-        """
-        #print '*** ipdoctest- wantFile:',filename  # dbg
-
-        for pat in self.exclude_patterns:
-            if pat.search(filename):
-                # print '###>>> SKIP:',filename  # dbg
-                return False
-
-        if is_extension_module(filename):
-            return True
-        else:
-            return doctests.Doctest.wantFile(self,filename)
-
-    def wantDirectory(self, directory):
-        """Return whether the given directory should be scanned for tests.
-
-        Modified version that supports exclusions.
-        """
-
-        for pat in self.exclude_patterns:
-            if pat.search(directory):
-                return False
-        return True
 
 
 class IPythonDoctest(ExtensionDoctest):
