@@ -43,7 +43,15 @@
         margin: 1em 2em;
     }
 
-    table, tr, th, td {
+    table {
+        // Center tables horizontally
+        margin-left: auto;
+        margin-right: auto;
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    tr, th, td {
         border: 1px solid black;
         border-collapse: collapse;
         margin: 1em 2em;
@@ -66,9 +74,16 @@
     p + p {
         margin-top: 1em;
     }
-    
+
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     .MathJax_Display {
-        margin-left: 12ex;
+        text-align: center !important;
+        // margin-left: 12ex;
     }
 
 }
