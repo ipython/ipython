@@ -214,7 +214,10 @@ def find_gui_and_backend(gui=None, gui_select=None):
         # select backend based on requested gui
         backend = backends[gui]
     else:
-        backend = matplotlib.rcParams['backend']
+        # We need to read the backend from the original data structure, *not*
+        # from mpl.rcParams, since a prior invocation of %matplotlib may have
+        # overwritten that.
+        backend = matplotlib.rcParamsOrig['backend']
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
         gui = backend2gui.get(backend, None)
