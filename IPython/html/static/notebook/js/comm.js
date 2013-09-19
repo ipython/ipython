@@ -99,6 +99,7 @@ var IPython = (function (IPython) {
     var Comm = function (comm_id, target) {
         this.comm_id = comm_id;
         this.target = target || 'comm';
+        this._msg_callback = this._open_callback = this._close_callback = null;
     };
     
     // methods for sending messages
@@ -127,18 +128,40 @@ var IPython = (function (IPython) {
         return this.kernel.send_shell_message("comm_close", content);
     };
     
+    // methods for registering callbacks for incoming messages
+    Comm.prototype._register_callback = function (key, callback) {
+        this['_' + key + '_callback'] = callback;
+    };
+    
+    Comm.prototype.on_open = function (callback) {
+        this._register_callback('open', callback);
+    };
+    
+    Comm.prototype.on_msg = function (callback) {
+        this._register_callback('msg', callback);
+    };
+    
+    Comm.prototype.on_close = function (callback) {
+        this._register_callback('close', callback);
+    };
+
     // methods for handling incoming messages
     
+    Comm.prototype._maybe_callback = function (key, msg) {
+        var callback = this['_' + key + '_callback'];
+        if (callback) callback(msg);
+    };
+    
     Comm.prototype.handle_open = function (msg) {
-        $([this]).trigger("comm_open", msg);
+        this._maybe_callback('open', msg);
     };
     
     Comm.prototype.handle_msg = function (msg) {
-        $([this]).trigger("comm_msg", msg);
+        this._maybe_callback('msg', msg);
     };
     
     Comm.prototype.handle_close = function (msg) {
-        $([this]).trigger("comm_close", msg);
+        this._maybe_callback('close', msg);
     };
     
     IPython.CommManager = CommManager;
