@@ -145,6 +145,7 @@ class Kernel(Configurable):
             profile_dir = self.profile_dir,
             user_module = self.user_module,
             user_ns     = self.user_ns,
+            kernel      = self,
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket

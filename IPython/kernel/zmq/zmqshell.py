@@ -477,6 +477,7 @@ class ZMQInteractiveShell(InteractiveShell):
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
     data_pub_class = Type(ZMQDataPublisher)
+    kernel = Any()
 
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved

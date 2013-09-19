@@ -41,12 +41,12 @@ class CommManager(LoggingConfigurable):
         return get_ipython()
     iopub_socket = Any()
     def _iopub_socket_default(self):
-        return self.shell.parent.iopub_socket
+        return self.shell.kernel.iopub_socket
     session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
         if self.shell is None:
             return
-        return self.shell.parent.session
+        return self.shell.kernel.session
     
     comms = Dict()
     targets = Dict()
