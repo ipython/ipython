@@ -657,15 +657,19 @@ class Image(DisplayObject):
         return unicode(s.split('.')[-1].lower())
 
 
-def clear_output():
-    """Clear the output of the current cell receiving output."""
+def clear_output(wait=False):
+    """Clear the output of the current cell receiving output.
+
+    Parameters
+    ----------
+    wait : bool [default: false]
+        Wait to clear the output until new output is available to replace it."""
     from IPython.core.interactiveshell import InteractiveShell
     if InteractiveShell.initialized():
-        InteractiveShell.instance().display_pub.clear_output()
+        InteractiveShell.instance().display_pub.clear_output(wait)
     else:
         from IPython.utils import io
         print('\033[2K\r', file=io.stdout, end='')
         io.stdout.flush()
         print('\033[2K\r', file=io.stderr, end='')
         io.stderr.flush()
-

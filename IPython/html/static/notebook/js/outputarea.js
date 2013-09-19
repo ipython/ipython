@@ -31,7 +31,7 @@ var IPython = (function (IPython) {
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
-        this.clear_out_timeout = null;
+        this.clear_queued = null;
         if (prompt_area === undefined) {
             this.prompt_area = true;
         } else {
@@ -289,6 +289,12 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
         this.expand();
+
+        // Clear the output if clear is queued.
+        if (this.clear_queued) {
+            this.clear_output(false);
+        }
+
         if (json.output_type === 'pyout') {
             this.append_pyout(json, dynamic);
         } else if (json.output_type === 'pyerr') {
@@ -605,21 +611,32 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.handle_clear_output = function (content) {
-        this.clear_output();
+        this.clear_output(content.wait);
     };
 
 
-    OutputArea.prototype.clear_output = function() {
-        
-        // Fix the output div's height
-        var height = this.element.height();
-        this.element.height(height);
+    OutputArea.prototype.clear_output = function(wait) {
+        if (wait) {
 
-        // clear all, no need for logic
-        this.element.html("");
-        this.outputs = [];
-        this.unscroll_area();
-        return;
+            // If a clear is queued, clear before adding another to the queue.
+            if (this.clear_queued) {
+                this.clear_output(false);
+            };
+
+            this.clear_queued = true;
+        } else {
+            this.clear_queued = false;
+
+            // Fix the output div's height
+            var height = this.element.height();
+            this.element.height(height);
+
+            // clear all, no need for logic
+            this.element.html("");
+            this.outputs = [];
+            this.unscroll_area();
+            return;
+        };
     };
 
 

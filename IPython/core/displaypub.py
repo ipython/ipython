@@ -108,7 +108,7 @@ class DisplayPublisher(Configurable):
         if 'text/plain' in data:
             print(data['text/plain'], file=io.stdout)
 
-    def clear_output(self):
+    def clear_output(self, wait=False):
         """Clear the output of the cell receiving output."""
         print('\033[2K\r', file=io.stdout, end='')
         io.stdout.flush()
@@ -123,8 +123,8 @@ class CapturingDisplayPublisher(DisplayPublisher):
     def publish(self, source, data, metadata=None):
         self.outputs.append((source, data, metadata))
     
-    def clear_output(self):
-        super(CapturingDisplayPublisher, self).clear_output()
+    def clear_output(self, wait=False):
+        super(CapturingDisplayPublisher, self).clear_output(wait)
         if other:
             # empty the list, *do not* reassign a new list
             del self.outputs[:]

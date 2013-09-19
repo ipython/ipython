@@ -386,8 +386,8 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.clear_output = function () {
-        this.output_area.clear_output();
+    CodeCell.prototype.clear_output = function (wait) {
+        this.output_area.clear_output(wait);
     };
 
 

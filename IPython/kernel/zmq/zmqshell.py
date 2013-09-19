@@ -86,8 +86,8 @@ class ZMQDisplayPublisher(DisplayPublisher):
             parent=self.parent_header, ident=self.topic,
         )
 
-    def clear_output(self):
-        content = {}
+    def clear_output(self, wait=False):
+        content = dict(wait=wait)
 
         print('\r', file=sys.stdout, end='')
         print('\r', file=sys.stderr, end='')
