@@ -293,6 +293,9 @@ sec.requires('pygments', 'jinja2', 'sphinx')
 # Executing the config files with iptest would cause an exception.
 sec.exclude('tests.files')
 sec.exclude('exporters.tests.files')
+if not have['tornado']:
+    sec.exclude('nbconvert.post_processors.serve')
+    sec.exclude('nbconvert.post_processors.tests.test_serve')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
