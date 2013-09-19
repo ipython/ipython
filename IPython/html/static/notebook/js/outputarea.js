@@ -625,12 +625,15 @@ var IPython = (function (IPython) {
 
             this.clear_queued = true;
         } else {
-            this.clear_queued = false;
 
-            // Fix the output div's height
-            var height = this.element.height();
-            this.element.height(height);
-
+            // Fix the output div's height if the clear_output is waiting for
+            // new output (it is being used in an animation).
+            if (this.clear_queued) {
+                var height = this.element.height();
+                this.element.height(height);
+                this.clear_queued = false;
+            }
+            
             // clear all, no need for logic
             this.element.html("");
             this.outputs = [];
