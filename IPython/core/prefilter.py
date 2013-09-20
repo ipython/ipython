@@ -24,6 +24,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from keyword import iskeyword
 import re
 
 from IPython.core.autocall import IPyAutocall
@@ -80,7 +81,8 @@ def is_shadowed(identifier, ip):
     # This is much safer than calling ofind, which can change state
     return (identifier in ip.user_ns \
             or identifier in ip.user_global_ns \
-            or identifier in ip.ns_table['builtin'])
+            or identifier in ip.ns_table['builtin']\
+            or iskeyword(identifier))
 
 
 #-----------------------------------------------------------------------------

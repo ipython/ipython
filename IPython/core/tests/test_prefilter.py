@@ -23,6 +23,29 @@ def test_prefilter():
     for raw, correct in pairs:
         nt.assert_equal(ip.prefilter(raw), correct)
 
+def test_prefilter_shadowed():
+    def dummy_magic(line): pass
+
+    prev_automagic_state = ip.automagic
+    ip.automagic = True
+
+    try:
+        # These should not be transformed - they are shadowed by other names
+        for name in ['if', 'zip', 'get_ipython']: # keyword, builtin, global
+            ip.register_magic_function(dummy_magic, magic_name=name)
+            res = ip.prefilter(name+' foo')
+            nt.assert_equal(res, name+' foo')
+            del ip.magics_manager.magics['line'][name]
+
+        # These should be transformed
+        for name in ['fi', 'piz', 'nohtypi_teg']:
+            ip.register_magic_function(dummy_magic, magic_name=name)
+            res = ip.prefilter(name+' foo')
+            nt.assert_not_equal(res, name+' foo')
+            del ip.magics_manager.magics['line'][name]
+
+    finally:
+        ip.automagic = prev_automagic_state
 
 def test_autocall_binops():
     """See https://github.com/ipython/ipython/issues/81"""
