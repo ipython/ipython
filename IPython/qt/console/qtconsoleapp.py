@@ -74,7 +74,7 @@ from IPython.consoleapp import (
 # Network Constants
 #-----------------------------------------------------------------------------
 
-from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
+from IPython.utils.localinterfaces import is_local_ip
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -250,7 +250,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         QtGui.QApplication.setWindowIcon(self.app.icon)
 
         ip = self.ip
-        local_kernel = (not self.existing) or ip in LOCAL_IPS
+        local_kernel = (not self.existing) or is_local_ip(ip)
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
         self.init_colors(self.widget)

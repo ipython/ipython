@@ -78,7 +78,7 @@ from IPython.kernel.zmq.kernelapp import (
     kernel_aliases,
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.localinterfaces import localhost
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
@@ -293,9 +293,11 @@ class NotebookApp(BaseIPythonApplication):
 
     # Network related information.
 
-    ip = Unicode(LOCALHOST, config=True,
+    ip = Unicode(config=True,
         help="The IP address the notebook server will listen on."
     )
+    def _ip_default(self):
+        return localhost()
 
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
@@ -694,7 +696,7 @@ class NotebookApp(BaseIPythonApplication):
         info("Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).")
 
         if self.open_browser or self.file_to_run:
-            ip = self.ip or LOCALHOST
+            ip = self.ip or localhost()
             try:
                 browser = webbrowser.get(self.browser or None)
             except webbrowser.Error as e:
