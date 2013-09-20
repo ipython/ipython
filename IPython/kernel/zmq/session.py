@@ -436,8 +436,15 @@ class Session(Configurable):
         msg = dict(a=[1,'hi'])
         try:
             packed = pack(msg)
-        except Exception:
-            raise ValueError("packer could not serialize a simple message")
+        except Exception as e:
+            msg = "packer '{packer}' could not serialize a simple message: {e}{jsonmsg}"
+            if self.packer == 'json':
+                jsonmsg = "\nzmq.utils.jsonapi.jsonmod = %s" % jsonapi.jsonmod
+            else:
+                jsonmsg = ""
+            raise ValueError(
+                msg.format(packer=self.packer, e=e, jsonmsg=jsonmsg)
+            )
 
         # ensure packed message is bytes
         if not isinstance(packed, bytes):
@@ -446,8 +453,15 @@ class Session(Configurable):
         # check that unpack is pack's inverse
         try:
             unpacked = unpack(packed)
-        except Exception:
-            raise ValueError("unpacker could not handle the packer's output")
+        except Exception as e:
+            msg = "unpacker '{unpacker}' could not handle output from packer '{packer}': {e}{jsonmsg}"
+            if self.packer == 'json':
+                jsonmsg = "\nzmq.utils.jsonapi.jsonmod = %s" % jsonapi.jsonmod
+            else:
+                jsonmsg = ""
+            raise ValueError(
+                msg.format(packer=self.packer, unpacker=self.unpacker, e=e, jsonmsg=jsonmsg)
+            )
 
         # check datetime support
         msg = dict(t=datetime.now())
