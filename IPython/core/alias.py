@@ -20,18 +20,15 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
-import keyword
 import os
 import re
 import sys
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import UsageError
-from IPython.core.splitinput import split_user_input
 
 from IPython.utils.traitlets import List, Instance
-from IPython.utils.warn import warn, error
+from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -105,19 +102,50 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
-class AliasCaller(object):
+class Alias(object):
+    """Callable object storing the details of one alias.
+
+    Instances are registered as magic functions to allow use of aliases.
+    """
+
+    # Prepare blacklist
+    blacklist = {'cd','popd','pushd','dhist','alias','unalias'}
+
     def __init__(self, shell, name, cmd):
         self.shell = shell
         self.name = name
         self.cmd = cmd
-        self.nargs = cmd.count('%s')
-        if (self.nargs > 0) and (cmd.find('%l') >= 0):
+        self.nargs = self.validate()
+
+    def validate(self):
+        """Validate the alias, and return the number of arguments."""
+        if self.name in self.blacklist:
+            raise InvalidAliasError("The name %s can't be aliased "
+                                    "because it is a keyword or builtin." % self.name)
+        try:
+            caller = self.shell.magics_manager.magics['line'][self.name]
+        except KeyError:
+            pass
+        else:
+            if not isinstance(caller, Alias):
+                raise InvalidAliasError("The name %s can't be aliased "
+                                        "because it is another magic command." % self.name)
+
+        if not (isinstance(self.cmd, basestring)):
+            raise InvalidAliasError("An alias command must be a string, "
+                                    "got: %r" % self.cmd)
+
+        nargs = self.cmd.count('%s')
+
+        if (nargs > 0) and (self.cmd.find('%l') >= 0):
             raise InvalidAliasError('The %s and %l specifiers are mutually '
-                                    'exclusive in alias definitions.')        
-    
+                                    'exclusive in alias definitions.')
+
+        return nargs
+
     def __repr__(self):
         return "<alias {} for {!r}>".format(self.name, self.cmd)
-        
+
     def __call__(self, rest=''):
         cmd = self.cmd
         nargs = self.nargs
@@ -135,7 +163,7 @@ class AliasCaller(object):
                 raise UsageError('Alias <%s> requires %s arguments, %s given.' %
                       (self.name, nargs, len(args)))
             cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
-        
+
         self.shell.system(cmd)
 
 #-----------------------------------------------------------------------------
@@ -150,34 +178,19 @@ class AliasManager(Configurable):
 
     def __init__(self, shell=None, **kwargs):
         super(AliasManager, self).__init__(shell=shell, **kwargs)
-        self.init_exclusions()
+        # For convenient access
+        self.linemagics = self.shell.magics_manager.magics['line']
         self.init_aliases()
+
+    def init_aliases(self):
+        # Load default & user aliases
+        for name, cmd in self.default_aliases + self.user_aliases:
+            self.soft_define_alias(name, cmd)
 
     @property
     def aliases(self):
-        linemagics = self.shell.magics_manager.magics['line']
-        return [(n, func.cmd) for (n, func) in linemagics.items()
-                            if isinstance(func, AliasCaller)]
-
-    def init_exclusions(self):
-        # set of things NOT to alias (keywords, builtins and some magics)
-        no_alias = {'cd','popd','pushd','dhist','alias','unalias'}
-        no_alias.update(set(keyword.kwlist))
-        no_alias.update(set(__builtin__.__dict__.keys()))
-        self.no_alias = no_alias
-
-    def init_aliases(self):
-        # Load default aliases
-        for name, cmd in self.default_aliases:
-            self.soft_define_alias(name, cmd)
-
-        # Load user aliases
-        for name, cmd in self.user_aliases:
-            self.soft_define_alias(name, cmd)
-    
-    def clear_aliases(self):
-        for name, cmd in self.aliases:
-            self.undefine_alias(name)
+        return [(n, func.cmd) for (n, func) in self.linemagics.items()
+                            if isinstance(func, Alias)]
 
     def soft_define_alias(self, name, cmd):
         """Define an alias, but don't raise on an AliasError."""
@@ -192,46 +205,33 @@ class AliasManager(Configurable):
         This will raise an :exc:`AliasError` if there are validation
         problems.
         """
-        self.validate_alias(name, cmd)
-        caller = AliasCaller(shell=self.shell, name=name, cmd=cmd)
+        caller = Alias(shell=self.shell, name=name, cmd=cmd)
         self.shell.magics_manager.register_function(caller, magic_kind='line',
                                                     magic_name=name)
 
+    def get_alias(self, name):
+        """Return an alias, or None if no alias by that name exists."""
+        aname = self.linemagics.get(name, None)
+        return aname if isinstance(aname, Alias) else None
+
+    def is_alias(self, name):
+        """Return whether or not a given name has been defined as an alias"""
+        return self.get_alias(name) is not None
+
     def undefine_alias(self, name):
-        linemagics = self.shell.magics_manager.magics['line']
-        caller = linemagics.get(name, None)
-        if isinstance(caller, AliasCaller):
-            del linemagics[name]
+        if self.is_alias(name):
+            del self.linemagics[name]
         else:
             raise ValueError('%s is not an alias' % name)
 
-    def validate_alias(self, name, cmd):
-        """Validate an alias and return the its number of arguments."""
-        if name in self.no_alias:
-            raise InvalidAliasError("The name %s can't be aliased "
-                                    "because it is a keyword or builtin." % name)
-        try:
-            caller = self.shell.magics_manager.magics['line'][name]
-        except KeyError:
-            pass
-        else:
-            if not isinstance(caller, AliasCaller):
-                raise InvalidAliasError("The name %s can't be aliased "
-                                        "because it is another magic command." % name)
-        if not (isinstance(cmd, basestring)):
-            raise InvalidAliasError("An alias command must be a string, "
-                                    "got: %r" % cmd)
-        return True
-    
+    def clear_aliases(self):
+        for name, cmd in self.aliases:
+            self.undefine_alias(name)
+
     def retrieve_alias(self, name):
         """Retrieve the command to which an alias expands."""
-        caller = self.shell.magics_manager.magics['line'].get(name, None)
-        if isinstance(caller, AliasCaller):
+        caller = self.get_alias(name)
+        if caller:
             return caller.cmd
         else:
             raise ValueError('%s is not an alias' % name)
-    
-    def is_alias(self, name):
-        """Return whether or not a given name has been defined as an alias"""
-        caller = self.shell.magics_manager.magics['line'].get(name, None)
-        return isinstance(caller, AliasCaller)

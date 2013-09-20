@@ -26,7 +26,7 @@ from pprint import pformat
 from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
-from IPython.core.alias import AliasError
+from IPython.core.alias import AliasError, Alias
 from IPython.core.error import UsageError
 from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
@@ -200,7 +200,7 @@ class OSMagics(Magics):
                             else:
                                 syscmdlist.append(ff)
             else:
-                no_alias = self.shell.alias_manager.no_alias
+                no_alias = Alias.blacklist
                 for pdir in path:
                     os.chdir(pdir)
                     for ff in os.listdir(pdir):

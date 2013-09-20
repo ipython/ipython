@@ -210,7 +210,6 @@ class StoreMagics(Magics, Configurable):
                 obj = ip.user_ns[args[0]]
             except KeyError:
                 # it might be an alias
-                # This needs to be refactored to use the new AliasManager stuff.
                 name = args[0]
                 try:
                     cmd = ip.alias_manager.retrieve_alias(name)
