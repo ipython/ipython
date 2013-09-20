@@ -358,7 +358,7 @@ class TaskScheduler(SessionFactory):
             # build fake metadata
             md = dict(
                 status=u'error',
-                engine=engine,
+                engine=engine.decode('ascii'),
                 date=datetime.now(),
             )
             msg = self.session.msg('apply_reply', content, parent=parent, metadata=md)
