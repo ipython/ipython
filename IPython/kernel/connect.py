@@ -36,7 +36,7 @@ from IPython.external.ssh import tunnel
 # IPython imports
 from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
-from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import str_to_bytes, bytes_to_str
 from IPython.utils.traitlets import (
@@ -49,7 +49,7 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         control_port=0, ip=LOCALHOST, key=b'', transport='tcp',
+                         control_port=0, ip='', key=b'', transport='tcp',
                          signature_scheme='hmac-sha256',
                          ):
     """Generates a JSON config file, including the selection of random ports.
@@ -90,6 +90,8 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         and 'sha256' is the default hash function.
 
     """
+    if not ip:
+        ip = localhost()
     # default to temporary connector file
     if not fname:
         fname = tempfile.mktemp('.json')
@@ -391,7 +393,7 @@ class ConnectionFileMixin(Configurable):
 
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
 
-    ip = Unicode(LOCALHOST, config=True,
+    ip = Unicode(config=True,
         help="""Set the kernel\'s IP address [default localhost].
         If the IP address is something other than localhost, then
         Consoles on other machines will be able to connect
@@ -405,7 +407,7 @@ class ConnectionFileMixin(Configurable):
             else:
                 return 'kernel-ipc'
         else:
-            return LOCALHOST
+            return localhost()
 
     def _ip_changed(self, name, old, new):
         if new == '*':

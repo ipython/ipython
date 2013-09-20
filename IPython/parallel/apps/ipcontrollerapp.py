@@ -11,7 +11,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -44,7 +44,7 @@ from IPython.parallel.apps.baseapp import (
     catch_config_error,
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.localinterfaces import LOCALHOST, PUBLIC_IPS
+from IPython.utils.localinterfaces import localhost, public_ips
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict, TraitError
 
 from IPython.kernel.zmq.session import (
@@ -224,13 +224,13 @@ class IPControllerApp(BaseParallelApplication):
         location = cdict['location']
         
         if not location:
-            if PUBLIC_IPS:
-                location = PUBLIC_IPS[-1]
+            if public_ips():
+                location = public_ips()[-1]
             else:
                 self.log.warn("Could not identify this machine's IP, assuming %s."
                 " You may need to specify '--location=<external_ip_address>' to help"
-                " IPython decide when to connect via loopback." % LOCALHOST)
-                location = LOCALHOST
+                " IPython decide when to connect via loopback." % localhost() )
+                location = localhost()
             cdict['location'] = location
         fname = os.path.join(self.profile_dir.security_dir, fname)
         self.log.info("writing connection info to %s", fname)

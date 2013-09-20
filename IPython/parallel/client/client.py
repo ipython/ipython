@@ -37,7 +37,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
-from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
+from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
@@ -433,13 +433,13 @@ class Client(HasTraits):
         
         url = cfg['registration']
         
-        if location is not None and addr == LOCALHOST:
+        if location is not None and addr == localhost():
             # location specified, and connection is expected to be local
-            if location not in LOCAL_IPS and not sshserver:
+            if not is_local_ip(location) and not sshserver:
                 # load ssh from JSON *only* if the controller is not on
                 # this machine
                 sshserver=cfg['ssh']
-            if location not in LOCAL_IPS and not sshserver:
+            if not is_local_ip(location) and not sshserver:
                 # warn if no ssh specified, but SSH is probably needed
                 # This is only a warning, because the most likely cause
                 # is a local Controller on a laptop whose IP is dynamic
