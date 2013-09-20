@@ -176,6 +176,8 @@ div.quickhelp{float:left;width:50%;}
 .rendered_html th{font-weight:bold;}
 .rendered_html p{text-align:justify;}
 .rendered_html p+p{margin-top:1em;}
+.rendered_html p+table{margin-top:1em;}
+.rendered_html table+p{margin-top:1em;}
 .rendered_html img{display:block;margin-left:auto;margin-right:auto;}
 .rendered_html .MathJax_Display{text-align:center !important;}
 span#save_widget{padding:0px 5px;margin-top:12px;}
