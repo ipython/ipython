@@ -99,6 +99,10 @@ function (marked) {
             tables: true,
             langPrefix: "language-",
             highlight: function(code, lang) {
+                if (!lang) {
+                    // no language, no highlight
+                    return code;
+                }
                 var highlighted;
                 try {
                     highlighted = hljs.highlight(lang, code, false);
