@@ -217,6 +217,7 @@ def find_gui_and_backend(gui=None, gui_select=None):
         # We need to read the backend from the original data structure, *not*
         # from mpl.rcParams, since a prior invocation of %matplotlib may have
         # overwritten that.
+        # WARNING: this assumes matplotlib 1.1 or newer!!
         backend = matplotlib.rcParamsOrig['backend']
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
