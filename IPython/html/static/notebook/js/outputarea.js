@@ -494,9 +494,36 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_svg = function (svg, md, element) {
-        var toinsert = $("<div/>").addClass("output_subarea output_svg");
-        toinsert.append(svg);
-        element.append(toinsert);
+        // To avoid style or use collisions between multiple svg figures,
+        // svg figures are wrapped inside an iframe.
+
+        var iframe = $('<iframe/>')
+        iframe.attr('frameborder', 0);
+        iframe.attr('scrolling', 'no');
+
+        var wrapper = $("<div/>").addClass("output_subarea output_svg");
+        wrapper.append(svg);
+
+        // Once the iframe is loaded, the svg is dynamically inserted
+        iframe.on('load', function() {
+            // Set the iframe height and width to fit the svg
+            // (the +10 pixel offset handles the default body margins
+            // in Chrome)
+            var svg = wrapper.children()[0];
+            iframe.width(svg.width.baseVal.value + 10);
+            iframe.height(svg.height.baseVal.value + 10);
+
+            // Workaround needed by Firefox, to properly render svg inside iframes,
+            // see http://stackoverflow.com/questions/10177190/svg-dynamically-added-to-iframe-does-not-render-correctly
+            iframe.contents()[0].open();
+            iframe.contents()[0].close();
+
+            // Insert the svg inside the iframe
+            var body = iframe.contents().find('body');
+            body.html(wrapper.html());
+        });
+
+        element.append(iframe);
     };
 
 
