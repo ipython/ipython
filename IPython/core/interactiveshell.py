@@ -29,6 +29,7 @@ import runpy
 import sys
 import tempfile
 import types
+import subprocess
 from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
@@ -2232,7 +2233,8 @@ class InteractiveShell(SingletonConfigurable):
         self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=1))
 
     def system_raw(self, cmd):
-        """Call the given cmd in a subprocess using os.system
+        """Call the given cmd in a subprocess using os.system on Windows or
+        subprocess.call using the system shell on other platforms.
 
         Parameters
         ----------
@@ -2250,11 +2252,12 @@ class InteractiveShell(SingletonConfigurable):
                 ec = os.system(cmd)
         else:
             cmd = py3compat.unicode_to_str(cmd)
-            ec = os.system(cmd)
-            # The high byte is the exit code, the low byte is a signal number
-            # that we discard for now. See the docs for os.wait()
-            if ec > 255:
-                ec >>= 8
+            # Call the cmd using the OS shell, instead of the default /bin/sh, if set.
+            ec = subprocess.call(cmd, shell=True, executable=os.environ.get('SHELL', None))
+            # Returns either the exit code or minus the value of the signal number.
+            # See the docs for subprocess.Popen.returncode .
+            if ec < 0:
+                ec = -ec
         
         # We explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
