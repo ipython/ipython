@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Tests for IPython.config.application.Application
 
@@ -185,4 +186,8 @@ class TestApplication(TestCase):
         self.assertEqual(app.bar.b, 5)
         self.assertEqual(app.extra_args, ['extra', '--disable', 'args'])
     
+    def test_unicode_argv(self):
+        app = MyApp()
+        app.parse_command_line(['ünîcødé'])
+        
 
