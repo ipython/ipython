@@ -33,7 +33,7 @@ from StringIO import StringIO
 import nose.tools as nt
 
 # Our own
-from IPython.testing.decorators import skipif, onlyif_unicode_paths
+from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
 
@@ -437,6 +437,13 @@ class TestSystemRaw(unittest.TestCase):
     def test_exit_code(self):
         """Test that the exit code is parsed correctly."""
         ip.system_raw('exit 1')
+        self.assertEqual(ip.user_ns['_exit_code'], 1)
+
+class TestSystemPiped(unittest.TestCase):
+    # TODO: Exit codes are currently ignored on Windows.
+    @skip_win32
+    def test_exit_code(self):
+        ip.system_piped('exit 1')
         self.assertEqual(ip.user_ns['_exit_code'], 1)
 
 class TestModules(unittest.TestCase, tt.TempFileMixin):
