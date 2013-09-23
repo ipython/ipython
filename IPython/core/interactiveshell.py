@@ -470,7 +470,6 @@ class InteractiveShell(SingletonConfigurable):
         # because it and init_io have to come after init_readline.
         self.init_user_ns()
         self.init_logger()
-        self.init_alias()
         self.init_builtins()
 
         # The following was in post_config_initialization
@@ -502,6 +501,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_displayhook()
         self.init_latextool()
         self.init_magics()
+        self.init_alias()
         self.init_logstart()
         self.init_pdb()
         self.init_extension_manager()
@@ -1363,9 +1363,7 @@ class InteractiveShell(SingletonConfigurable):
             namespaces = [ ('Interactive', self.user_ns),
                            ('Interactive (global)', self.user_global_ns),
                            ('Python builtin', builtin_mod.__dict__),
-                           ('Alias', self.alias_manager.alias_table),
                            ]
-            alias_ns = self.alias_manager.alias_table
 
         # initialize results to 'null'
         found = False; obj = None;  ospace = None;  ds = None;
@@ -1404,8 +1402,6 @@ class InteractiveShell(SingletonConfigurable):
                     # If we finish the for loop (no break), we got all members
                     found = True
                     ospace = nsname
-                    if ns == alias_ns:
-                        isalias = True
                     break  # namespace loop
 
         # Try to see if it's magic
@@ -1940,7 +1936,6 @@ class InteractiveShell(SingletonConfigurable):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     alias_table=self.alias_manager.alias_table,
                                      use_readline=self.has_readline,
                                      parent=self,
                                      )
@@ -2305,7 +2300,6 @@ class InteractiveShell(SingletonConfigurable):
     def init_alias(self):
         self.alias_manager = AliasManager(shell=self, parent=self)
         self.configurables.append(self.alias_manager)
-        self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
     # Things related to extensions

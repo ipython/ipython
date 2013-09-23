@@ -27,7 +27,7 @@ def test_store_restore():
     # Check restoring
     ip.magic('store -r')
     nt.assert_equal(ip.user_ns['foo'], 78)
-    nt.assert_in('bar', ip.alias_manager.alias_table)
+    assert ip.alias_manager.is_alias('bar')
     nt.assert_in(os.path.realpath(tmpd), ip.user_ns['_dh'])
     
     os.rmdir(tmpd)
