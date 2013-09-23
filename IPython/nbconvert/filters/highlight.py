@@ -37,6 +37,7 @@ __all__ = [
     'highlight2latex'
 ]
 
+
 def highlight2html(source, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source as html output.
@@ -44,30 +45,37 @@ def highlight2html(source, language='ipython', metadata=None):
     Parameters
     ----------
     source : str
-        source of the cell to highlight.
+        source of the cell to highlight
     language : str
-        Language to highlight the syntax of.
+        language to highlight the syntax of
     metadata : NotebookNode cell metadata
-        metadata of the cell to highlight.
+        metadata of the cell to highlight
     """
 
     return _pygment_highlight(source, HtmlFormatter(), language, metadata)
 
 
-def highlight2latex(source, language='ipython', metadata=None):
+def highlight2latex(source, language='ipython', metadata=None, strip_verbatim=False):
     """
     Return a syntax-highlighted version of the input source as latex output.
 
     Parameters
     ----------
     source : str
-        source of the cell to highlight.
+        source of the cell to highlight
     language : str
-        Language to highlight the syntax of.
+        language to highlight the syntax of
     metadata : NotebookNode cell metadata
-        metadata of the cell to highlight.
+        metadata of the cell to highlight
+    strip_verbatim : bool
+        remove the Verbatim environment that pygments provides by default
     """
-    return _pygment_highlight(source, LatexFormatter(), language, metadata)
+    latex = _pygment_highlight(source, LatexFormatter(), language, metadata)
+    if strip_verbatim:
+        latex = latex.replace(r'\begin{Verbatim}[commandchars=\\\{\}]' + '\n', '')
+        return latex.replace('\n\\end{Verbatim}\n', '')
+    else:
+        return latex
 
 
 
@@ -78,12 +86,12 @@ def _pygment_highlight(source, output_formatter, language='ipython', metadata=No
     Parameters
     ----------
     source : str
-        source of the cell to highlight.
+        source of the cell to highlight
     output_formatter : Pygments formatter
     language : str
-        Language to highlight the syntax of.
+        language to highlight the syntax of
     metadata : NotebookNode cell metadata
-        metadata of the cell to highlight.
+        metadata of the cell to highlight
     """
 
     # If the cell uses a magic extension language,

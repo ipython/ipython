@@ -1,0 +1,54 @@
+((= IPython input/output style =))
+
+((*- extends 'latex_base.tplx' -*))
+
+% Custom definitions
+((* block definitions *))
+    ((( super() )))
+
+    % Pygments definitions
+    ((( resources.latex.pygments_definitions )))
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+((* endblock definitions *))
+
+%===============================================================================
+% Input
+%===============================================================================
+
+((* block input scoped *))
+    ((( add_prompt(cell.input | highlight2latex(strip_verbatim=True), cell, 'In ', 'incolor') )))
+((* endblock input *))
+
+
+%===============================================================================
+% Output
+%===============================================================================
+
+((* block pyout scoped *))
+    ((*- for type in output | filter_data_type -*))
+        ((*- if type in ['text']*))
+            ((( add_prompt(output.text | escape_latex, cell, 'Out', 'outcolor') )))
+        ((* else -*))
+\texttt{\color{outcolor}Out[{\color{outcolor}((( cell.prompt_number )))}]:}((( super() )))
+        ((*- endif -*))
+    ((*- endfor -*))
+((* endblock pyout *))
+
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+
+% Name: draw_prompt
+% Purpose: Renders an output/input prompt
+((* macro add_prompt(text, cell, prompt, prompt_color) -*))
+    ((*- set prompt_number = "" ~ cell.prompt_number -*))
+    ((*- set indention =  " " * (prompt_number | length + 7) -*))
+\begin{Verbatim}[commandchars=\\\{\}]
+((( text | add_prompts(first='{\color{' ~ prompt_color ~ '}' ~ prompt ~ '[{\\color{' ~ prompt_color ~ '}' ~ prompt_number ~ '}]:} ', cont=indention) )))
+\end{Verbatim}
+((*- endmacro *))

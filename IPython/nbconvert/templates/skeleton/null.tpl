@@ -1,10 +1,10 @@
 {#
 
-DO NOT USE THIS AS A BASE WORK,
+DO NOT USE THIS AS A BASE,
 IF YOU ARE COPY AND PASTING THIS FILE
-YOU ARE PROBABLY DOING THINGS WRONG.
+YOU ARE PROBABLY DOING THINGS INCORRECTLY.
 
-Null template, Does nothing except defining a basic structure
+Null template, does nothing except defining a basic structure
 To layout the different blocks of a notebook.
 
 Subtemplates can override blocks to define their custom representation.
