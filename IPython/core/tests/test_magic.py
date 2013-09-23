@@ -487,7 +487,21 @@ def test_timeit_special_syntax():
     # cell mode test
     _ip.run_cell_magic('timeit', '-n1 -r1', '%lmagic my line2')
     nt.assert_equal(_ip.user_ns['lmagic_out'], 'my line2')
-    
+
+def test_timeit_return():
+    """
+    test wether timeit -o return object
+    """
+
+    res = _ip.run_line_magic('timeit','-n10 -r10 -o 1')
+    assert(res is not None)
+
+def test_timeit_quiet():
+    """
+    test quiet option of timeit magic
+    """
+    with tt.AssertNotPrints("loops"):
+        _ip.run_cell("%timeit -n1 -r1 -q 1")
 
 @dec.skipif(execution.profile is None)
 def test_prun_special_syntax():
