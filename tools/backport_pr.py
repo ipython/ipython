@@ -134,7 +134,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 3:
         branch = sys.argv[1]
         already = already_backported(branch)
-        should = should_backport("backport-1.1")
+        should = should_backport("backport-1.2")
         print ("The following PRs should be backported:")
         for pr in should.difference(already):
             print (pr)
