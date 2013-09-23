@@ -431,8 +431,7 @@ class IPCompleter(Completer):
     )
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 alias_table=None, use_readline=True,
-                 config=None, **kwargs):
+                 use_readline=True, config=None, **kwargs):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -449,9 +448,6 @@ class IPCompleter(Completer):
         - global_namespace: secondary optional dict for completions, to
           handle cases (such as IPython embedded inside functions) where
           both Python scopes are visible.
-
-        - If alias_table is supplied, it should be a dictionary of aliases
-          to complete.
 
         use_readline : bool, optional
           If true, use the readline library.  This completer can still function
@@ -476,9 +472,6 @@ class IPCompleter(Completer):
         # List where completion matches will be stored
         self.matches = []
         self.shell = shell
-        if alias_table is None:
-            alias_table = {}
-        self.alias_table = alias_table
         # Regexp to split filenames with spaces in them
         self.space_name_re = re.compile(r'([^\\] )')
         # Hold a local ref. to glob.glob for speed
@@ -505,7 +498,6 @@ class IPCompleter(Completer):
         self.matchers = [self.python_matches,
                          self.file_matches,
                          self.magic_matches,
-                         self.alias_matches,
                          self.python_func_kw_matches,
                          ]
 
@@ -627,22 +619,6 @@ class IPCompleter(Completer):
         if not text.startswith(pre2):
             comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
         return comp
-
-    def alias_matches(self, text):
-        """Match internal system aliases"""
-        #print 'Completer->alias_matches:',text,'lb',self.text_until_cursor # dbg
-
-        # if we are not in the first 'item', alias matching
-        # doesn't make sense - unless we are starting with 'sudo' command.
-        main_text = self.text_until_cursor.lstrip()
-        if ' ' in main_text and not main_text.startswith('sudo'):
-            return []
-        text = os.path.expanduser(text)
-        aliases =  self.alias_table.keys()
-        if text == '':
-            return aliases
-        else:
-            return [a for a in aliases if a.startswith(text)]
 
     def python_matches(self,text):
         """Match attributes or global python names"""

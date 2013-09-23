@@ -106,17 +106,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.run_cell('a = """\n%exit\n"""')
         self.assertEqual(ip.user_ns['a'], '\n%exit\n')
     
-    def test_alias_crash(self):
-        """Errors in prefilter can't crash IPython"""
-        ip.run_cell('%alias parts echo first %s second %s')
-        # capture stderr:
-        save_err = io.stderr
-        io.stderr = StringIO()
-        ip.run_cell('parts 1')
-        err = io.stderr.getvalue()
-        io.stderr = save_err
-        self.assertEqual(err.split(':')[0], 'ERROR')
-    
     def test_trailing_newline(self):
         """test that running !(command) does not raise a SyntaxError"""
         ip.run_cell('!(true)\n', False)
