@@ -28,6 +28,7 @@ import copy
 import os
 import re
 import sys
+import json
 
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
@@ -355,15 +356,6 @@ class FileConfigLoader(ConfigLoader):
     As we add more file based config loaders, the common logic should go
     here.
     """
-    pass
-
-
-class PyFileConfigLoader(FileConfigLoader):
-    """A config loader for pure python files.
-
-    This calls execfile on a plain python file and looks for attributes
-    that are all caps.  These attribute are added to the config Struct.
-    """
 
     def __init__(self, filename, path=None):
         """Build a config loader for a filename and path.
@@ -376,11 +368,46 @@ class PyFileConfigLoader(FileConfigLoader):
             The path to search for the config file on, or a sequence of
             paths to try in order.
         """
-        super(PyFileConfigLoader, self).__init__()
+        super(FileConfigLoader, self).__init__()
         self.filename = filename
         self.path = path
         self.full_filename = ''
-        self.data = None
+
+    def _find_file(self):
+        """Try to find the file by searching the paths."""
+        self.full_filename = filefind(self.filename, self.path)
+
+class JsonFileConfigLoader(FileConfigLoader):
+    """A Json file loader for config"""
+
+    def load_config(self):
+        """Load the config from a file and return it as a Struct."""
+        self.clear()
+        try:
+            self._find_file()
+        except IOError as e:
+            raise ConfigFileNotFound(str(e))
+        dct = self._read_file_as_dict()
+        self.config = self._convert_to_config(dct)
+        return self.config
+
+    def _read_file_as_dict(self):
+        with open(self.full_filename) as f :
+            return json.load(f)
+
+    def _convert_to_config(self, dictionary):
+        if dictionary['version'] == 0.1:
+            return dictionary['config']
+        else :
+            raise ValueError('Unknown version of JSON config file : version number {n}'.format(dictionary['version']))
+
+
+class PyFileConfigLoader(FileConfigLoader):
+    """A config loader for pure python files.
+
+    This calls execfile on a plain python file and looks for attributes
+    that are all caps.  These attribute are added to the config Struct.
+    """
 
     def load_config(self):
         """Load the config from a file and return it as a Struct."""
@@ -390,12 +417,8 @@ class PyFileConfigLoader(FileConfigLoader):
         except IOError as e:
             raise ConfigFileNotFound(str(e))
         self._read_file_as_dict()
-        self._convert_to_config()
         return self.config
 
-    def _find_file(self):
-        """Try to find the file by searching the paths."""
-        self.full_filename = filefind(self.filename, self.path)
 
     def _read_file_as_dict(self):
         """Load the config file into self.config, with recursive loading."""
@@ -447,10 +470,6 @@ class PyFileConfigLoader(FileConfigLoader):
         fs_encoding = sys.getfilesystemencoding() or 'ascii'
         conf_filename = self.full_filename.encode(fs_encoding)
         py3compat.execfile(conf_filename, namespace)
-
-    def _convert_to_config(self):
-        if self.data is None:
-            ConfigLoaderError('self.data does not exist')
 
 
 class CommandLineConfigLoader(ConfigLoader):
