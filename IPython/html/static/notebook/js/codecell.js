@@ -241,7 +241,7 @@ var IPython = (function (IPython) {
      * @method execute
      */
     CodeCell.prototype.execute = function () {
-        this.output_area.clear_output(true, true, true);
+        this.output_area.clear_output();
         this.set_input_prompt('*');
         this.element.addClass("running");
         if (this.last_msg_id) {
@@ -390,8 +390,8 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.clear_output = function (stdout, stderr, other) {
-        this.output_area.clear_output(stdout, stderr, other);
+    CodeCell.prototype.clear_output = function (wait) {
+        this.output_area.clear_output(wait);
     };
 
 
