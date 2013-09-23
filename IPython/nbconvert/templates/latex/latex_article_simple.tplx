@@ -1,2 +1,0 @@
-((* set cell_style = 'simple_style.tplx' *))
-((* extends 'latex_article.tplx' *))
