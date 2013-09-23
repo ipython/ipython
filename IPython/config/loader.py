@@ -28,9 +28,10 @@ import copy
 import os
 import re
 import sys
+import json
 
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils import py3compat, warn
+from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.py3compat import unicode_type, iteritems
 from IPython.utils.traitlets import HasTraits, List, Any, TraitError
@@ -303,8 +304,16 @@ class ConfigLoader(object):
     handled elsewhere.
     """
 
-    def __init__(self):
+    def _log_default(self):
+        from IPython.config.application import Application
+        return Application.instance().log
+
+    def __init__(self, log=None):
         """A base class for config loaders.
+
+        log : instance of :class:`logging.Logger` to use.
+              By default loger of :meth:`IPython.config.application.Application.instance()`
+              will be used
 
         Examples
         --------
@@ -315,6 +324,11 @@ class ConfigLoader(object):
         {}
         """
         self.clear()
+        if log is None :
+            self.log = self._log_default()
+            self.log.debug('Using default logger')
+        else :
+            self.log = log
 
     def clear(self):
         self.config = Config()
@@ -336,17 +350,8 @@ class FileConfigLoader(ConfigLoader):
     As we add more file based config loaders, the common logic should go
     here.
     """
-    pass
 
-
-class PyFileConfigLoader(FileConfigLoader):
-    """A config loader for pure python files.
-
-    This calls execfile on a plain python file and looks for attributes
-    that are all caps.  These attribute are added to the config Struct.
-    """
-
-    def __init__(self, filename, path=None):
+    def __init__(self, filename, path=None, **kw):
         """Build a config loader for a filename and path.
 
         Parameters
@@ -357,11 +362,53 @@ class PyFileConfigLoader(FileConfigLoader):
             The path to search for the config file on, or a sequence of
             paths to try in order.
         """
-        super(PyFileConfigLoader, self).__init__()
+        super(FileConfigLoader, self).__init__(**kw)
         self.filename = filename
         self.path = path
         self.full_filename = ''
-        self.data = None
+
+    def _find_file(self):
+        """Try to find the file by searching the paths."""
+        self.full_filename = filefind(self.filename, self.path)
+
+class JSONFileConfigLoader(FileConfigLoader):
+    """A Json file loader for config"""
+
+    def load_config(self):
+        """Load the config from a file and return it as a Struct."""
+        self.clear()
+        try:
+            self._find_file()
+        except IOError as e:
+            raise ConfigFileNotFound(str(e))
+        dct = self._read_file_as_dict()
+        self.config = self._convert_to_config(dct)
+        return self.config
+
+    def _read_file_as_dict(self):
+        with open(self.full_filename) as f :
+            return json.load(f)
+
+    def _convert_to_config(self, dictionary):
+        if 'version' in dictionary:
+            version = dictionary.pop('version')
+        else :
+            version = 1
+            self.log.warn("Unrecognized JSON config file version, assuming version : {}".format(version))
+
+        if version == 1:
+            return Config(dictionary)
+        else :
+            raise ValueError('Unknown version of JSON config file : version number {version}'.format(version=version))
+
+
+class PyFileConfigLoader(FileConfigLoader):
+    """A config loader for pure python files.
+
+    This is responsible for locating a Python config file by filename and
+    profile name, then executing it in a namespace where it could have access
+    to subconfigs.
+    """
 
     def load_config(self):
         """Load the config from a file and return it as a Struct."""
@@ -371,12 +418,8 @@ class PyFileConfigLoader(FileConfigLoader):
         except IOError as e:
             raise ConfigFileNotFound(str(e))
         self._read_file_as_dict()
-        self._convert_to_config()
         return self.config
 
-    def _find_file(self):
-        """Try to find the file by searching the paths."""
-        self.full_filename = filefind(self.filename, self.path)
 
     def _read_file_as_dict(self):
         """Load the config file into self.config, with recursive loading."""
@@ -428,10 +471,6 @@ class PyFileConfigLoader(FileConfigLoader):
         fs_encoding = sys.getfilesystemencoding() or 'ascii'
         conf_filename = self.full_filename.encode(fs_encoding)
         py3compat.execfile(conf_filename, namespace)
-
-    def _convert_to_config(self):
-        if self.data is None:
-            ConfigLoaderError('self.data does not exist')
 
 
 class CommandLineConfigLoader(ConfigLoader):
@@ -497,7 +536,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         ipython --profile="foo" --InteractiveShell.autocall=False
     """
 
-    def __init__(self, argv=None, aliases=None, flags=None):
+    def __init__(self, argv=None, aliases=None, flags=None, **kw):
         """Create a key value pair config loader.
 
         Parameters
@@ -529,7 +568,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             >>> sorted(d.items())
             [('A', {'name': 'brian'}), ('B', {'number': 0})]
         """
-        self.clear()
+        super(KeyValueConfigLoader, self).__init__(**kw)
         if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
@@ -606,7 +645,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     lhs = aliases[lhs]
                 if '.' not in lhs:
                     # probably a mistyped alias, but not technically illegal
-                    warn.warn("Unrecognized alias: '%s', it will probably have no effect."%lhs)
+                    self.log.warn("Unrecognized alias: '%s', it will probably have no effect. %s,-- %s"%(lhs,raw, aliases))
                 try:
                     self._exec_config_str(lhs, rhs)
                 except Exception:
@@ -633,7 +672,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
 class ArgParseConfigLoader(CommandLineConfigLoader):
     """A loader that uses the argparse module to load from the command line."""
 
-    def __init__(self, argv=None, aliases=None, flags=None, *parser_args, **parser_kw):
+    def __init__(self, argv=None, aliases=None, flags=None, log=None,  *parser_args, **parser_kw):
         """Create a config loader for use with argparse.
 
         Parameters
@@ -656,7 +695,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         config : Config
             The resulting Config object.
         """
-        super(CommandLineConfigLoader, self).__init__()
+        super(CommandLineConfigLoader, self).__init__(log=log)
         self.clear()
         if argv is None:
             argv = sys.argv[1:]
@@ -772,7 +811,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             self._load_flag(subc)
 
         if self.extra_args:
-            sub_parser = KeyValueConfigLoader()
+            sub_parser = KeyValueConfigLoader(log=self.log)
             sub_parser.load_config(self.extra_args)
             self.config.merge(sub_parser.config)
             self.extra_args = sub_parser.extra_args

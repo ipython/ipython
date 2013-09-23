@@ -33,7 +33,7 @@ import sys
 from IPython.config.loader import (
     Config, PyFileConfigLoader, ConfigFileNotFound
 )
-from IPython.config.application import boolean_flag, catch_config_error
+from IPython.config.application import boolean_flag, catch_config_error, Application
 from IPython.core import release
 from IPython.core import usage
 from IPython.core.completer import IPCompleter
@@ -364,7 +364,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         else:
             self.log.debug("IPython not interactive...")
 
-
 def load_default_config(ipython_dir=None):
     """Load the default config file from the default ipython_dir.
 
@@ -372,15 +371,14 @@ def load_default_config(ipython_dir=None):
     """
     if ipython_dir is None:
         ipython_dir = get_ipython_dir()
-    profile_dir = os.path.join(ipython_dir, 'profile_default')
-    cl = PyFileConfigLoader("ipython_config.py", profile_dir)
-    try:
-        config = cl.load_config()
-    except ConfigFileNotFound:
-        # no config found
-        config = Config()
-    return config
 
+    profile_dir = os.path.join(ipython_dir, 'profile_default')
+
+    config = Config()
+    for cf in Application._load_config_file(filename[:-3], path=profile_dir, log=None):
+        config.update(cf)
+
+    return config
 
 launch_new_instance = TerminalIPythonApp.launch_instance
 
