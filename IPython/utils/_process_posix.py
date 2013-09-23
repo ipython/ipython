@@ -184,6 +184,12 @@ class ProcessHandler(object):
                 child.terminate(force=True)
         # add isalive check, to ensure exitstatus is set:
         child.isalive()
+
+        # We follow the subprocess pattern, returning either the exit status
+        # as a positive number, or the terminating signal as a negative
+        # number
+        if child.signalstatus is not None:
+            return -child.signalstatus
         return child.exitstatus
 
 

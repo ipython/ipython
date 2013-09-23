@@ -2239,10 +2239,8 @@ class InteractiveShell(SingletonConfigurable):
             cmd = py3compat.unicode_to_str(cmd)
             # Call the cmd using the OS shell, instead of the default /bin/sh, if set.
             ec = subprocess.call(cmd, shell=True, executable=os.environ.get('SHELL', None))
-            # Returns either the exit code or minus the value of the signal number.
-            # See the docs for subprocess.Popen.returncode .
-            if ec < 0:
-                ec = -ec
+            # exit code is positive for program failure, or negative for
+            # terminating signal number.
         
         # We explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
