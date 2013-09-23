@@ -1339,7 +1339,7 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].clear_output(true,true,true);
+                cells[i].clear_output();
                 // Make all In[] prompts blank, as well
                 // TODO: make this configurable (via checkbox?)
                 cells[i].set_input_prompt();

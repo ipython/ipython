@@ -391,7 +391,7 @@ class AsyncResult(object):
         tic = time.time()
         while not self.ready() and (timeout < 0 or time.time() - tic <= timeout):
             self.wait(interval)
-            clear_output()
+            clear_output(wait=True)
             print("%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed), end="")
             sys.stdout.flush()
         print()

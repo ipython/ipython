@@ -657,35 +657,19 @@ class Image(DisplayObject):
         return unicode(s.split('.')[-1].lower())
 
 
-def clear_output(stdout=True, stderr=True, other=True):
+def clear_output(wait=False):
     """Clear the output of the current cell receiving output.
-
-    Optionally, each of stdout/stderr or other non-stream data (e.g. anything
-    produced by display()) can be excluded from the clear event.
-
-    By default, everything is cleared.
 
     Parameters
     ----------
-    stdout : bool [default: True]
-        Whether to clear stdout.
-    stderr : bool [default: True]
-        Whether to clear stderr.
-    other : bool [default: True]
-        Whether to clear everything else that is not stdout/stderr
-        (e.g. figures,images,HTML, any result of display()).
-    """
+    wait : bool [default: false]
+        Wait to clear the output until new output is available to replace it."""
     from IPython.core.interactiveshell import InteractiveShell
     if InteractiveShell.initialized():
-        InteractiveShell.instance().display_pub.clear_output(
-            stdout=stdout, stderr=stderr, other=other,
-        )
+        InteractiveShell.instance().display_pub.clear_output(wait)
     else:
         from IPython.utils import io
-        if stdout:
-            print('\033[2K\r', file=io.stdout, end='')
-            io.stdout.flush()
-        if stderr:
-            print('\033[2K\r', file=io.stderr, end='')
-            io.stderr.flush()
-
+        print('\033[2K\r', file=io.stdout, end='')
+        io.stdout.flush()
+        print('\033[2K\r', file=io.stderr, end='')
+        io.stderr.flush()

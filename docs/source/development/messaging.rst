@@ -984,6 +984,20 @@ Message type: ``status``::
         execution_state : ('busy', 'idle', 'starting')
     }
 
+Clear output
+------------
+
+This message type is used to clear the output that is visible on the frontend.
+
+Message type: ``clear_output``::
+
+    content = {
+
+        # Wait to clear the output until new output is available.  Clears the
+        # existing output immediately before the new output is displayed.  
+        # Useful for creating simple animations with minimal flickering.
+        'wait' : bool,
+    }
 
 Messages on the stdin ROUTER/DEALER sockets
 ===========================================
