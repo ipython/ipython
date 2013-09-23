@@ -40,6 +40,7 @@ __all__ = [
     'ipython2python',
     'posix_path',
     'path2url',
+    'add_prompts'
 ]
 
 
@@ -95,6 +96,16 @@ def add_anchor(html):
     return py3compat.decode(ElementTree.tostring(h), 'utf-8')
 
 
+def add_prompts(code, first='>>> ', cont='... '):
+    """Add prompts to code snippets"""
+    new_code = []
+    code_list = code.split('\n')
+    new_code.append(first + code_list[0])
+    for line in code_list[1:]:
+        new_code.append(cont + line)
+    return '\n'.join(new_code)
+
+    
 def strip_dollars(text):
     """
     Remove all dollar symbols from text

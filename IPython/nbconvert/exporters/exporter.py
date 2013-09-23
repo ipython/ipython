@@ -68,7 +68,6 @@ class Exporter(LoggingConfigurable):
                                  nbpreprocessors.CSSHTMLHeaderPreprocessor,
                                  nbpreprocessors.RevealHelpPreprocessor,
                                  nbpreprocessors.LatexPreprocessor,
-                                 nbpreprocessors.SphinxPreprocessor,
                                  nbpreprocessors.HighlightMagicsPreprocessor],
         config=True,
         help="""List of preprocessors available by default, by name, namespace, 
@@ -182,33 +181,33 @@ class Exporter(LoggingConfigurable):
         isclass = isinstance(preprocessor, type)
         constructed = not isclass
 
-        #Handle preprocessor's registration based on it's type
+        # Handle preprocessor's registration based on it's type
         if constructed and isinstance(preprocessor, py3compat.string_types):
-            #preprocessor is a string, import the namespace and recursively call
-            #this register_preprocessor method
+            # Preprocessor is a string, import the namespace and recursively call
+            # this register_preprocessor method
             preprocessor_cls = import_item(preprocessor)
             return self.register_preprocessor(preprocessor_cls, enabled)
 
         if constructed and hasattr(preprocessor, '__call__'):
-            #preprocessor is a function, no need to construct it.
-            #Register and return the preprocessor.
+            # Preprocessor is a function, no need to construct it.
+            # Register and return the preprocessor.
             if enabled:
                 preprocessor.enabled = True
             self._preprocessors.append(preprocessor)
             return preprocessor
 
         elif isclass and isinstance(preprocessor, MetaHasTraits):
-            #preprocessor is configurable.  Make sure to pass in new default for
-            #the enabled flag if one was specified.
+            # Preprocessor is configurable.  Make sure to pass in new default for 
+            # the enabled flag if one was specified.
             self.register_preprocessor(preprocessor(parent=self), enabled)
 
         elif isclass:
-            #preprocessor is not configurable, construct it
+            # Preprocessor is not configurable, construct it
             self.register_preprocessor(preprocessor(), enabled)
 
         else:
-            #preprocessor is an instance of something without a __call__
-            #attribute.
+            # Preprocessor is an instance of something without a __call__ 
+            # attribute.  
             raise TypeError('preprocessor')
 
 

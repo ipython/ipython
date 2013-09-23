@@ -9,9 +9,14 @@
 
 
 %===============================================================================
-% Latex Article
+% Latex Book
 %===============================================================================
 
+((* block predoc *))
+    ((( super() )))
+    ((* block tableofcontents *))\tableofcontents((* endblock tableofcontents *))
+((* endblock predoc *))
+
 ((* block docclass *))
-\documentclass{article}
+\documentclass{report}
 ((* endblock docclass *))
