@@ -28,6 +28,7 @@ def test_prefilter_shadowed():
 
     prev_automagic_state = ip.automagic
     ip.automagic = True
+    ip.autocall = 0
 
     try:
         # These should not be transformed - they are shadowed by other names
