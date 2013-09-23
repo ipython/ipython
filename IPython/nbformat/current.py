@@ -29,7 +29,8 @@ from IPython.nbformat.v3 import (
     nbformat_minor,
 )
 
-import reader
+from .reader import reads as reader_reads
+from .reader import versions
 from .convert import convert
 
 #-----------------------------------------------------------------------------
@@ -62,18 +63,18 @@ def parse_py(s, **kwargs):
 
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
-    return convert(reader.reads(s), current_nbformat)
+    return convert(reader_reads(s), current_nbformat)
 
 
 def writes_json(nb, **kwargs):
-    return reader.versions[current_nbformat].writes_json(nb, **kwargs)
+    return versions[current_nbformat].writes_json(nb, **kwargs)
 
 
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
     nbf, nbm, s = parse_py(s, **kwargs)
     if nbf == 2 or nbf == 3:
-        nb = reader.versions[nbf].to_notebook_py(s, **kwargs)
+        nb = versions[nbf].to_notebook_py(s, **kwargs)
     else:
         raise NBFormatError('Unsupported PY nbformat version: %i' % nbf)
     return nb
@@ -81,7 +82,7 @@ def reads_py(s, **kwargs):
 
 def writes_py(nb, **kwargs):
     # nbformat 3 is the latest format that supports py
-    return reader.versions[3].writes_py(nb, **kwargs)
+    return versions[3].writes_py(nb, **kwargs)
 
 
 # High level API
