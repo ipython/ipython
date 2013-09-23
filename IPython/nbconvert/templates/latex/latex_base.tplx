@@ -3,13 +3,16 @@ This template builds upon the abstract template, adding common latex output
 functions.  Figures, data_text,
 This template does not define a docclass, the inheriting class must define this.=))
 
-((*- extends 'abstract.tplx' -*))
+((*- extends 'display_priority.tplx' -*))
 
 %===============================================================================
 % Abstract overrides
 %===============================================================================
 
-((* block packages *))
+((* block header *))
+    ((* block docclass *))((* endblock docclass *))
+    
+    ((* block packages *))
     \usepackage{graphicx} % Used to insert images
     \usepackage{adjustbox} % Used to constrain images to a maximum size 
     \usepackage{color} % Allow colors to be defined
@@ -21,16 +24,14 @@ This template does not define a docclass, the inheriting class must define this.
     \usepackage{ucs} % Extended unicode (utf-8) support
     \usepackage{fancyvrb} % verbatim replacement that allows latex
     \usepackage{grffile} % extends the file name processing of package graphics 
-                         %to support a larger range 
-
+                         % to support a larger range 
     % The hyperref package gives us a pdf with properly built
     % internal navigation ('pdf bookmarks' for the table of contents,
     % internal cross-reference links, web links for URLs, etc.)
     \usepackage{hyperref}
-((* endblock packages *))
+    ((* endblock packages *))
 
-((* block definitions *))
-
+    ((* block definitions *))
     \definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
     \definecolor{darkorange}{rgb}{.71,0.21,0.01}
     \definecolor{darkgreen}{rgb}{.12,.54,.11}
@@ -41,7 +42,6 @@ This template does not define a docclass, the inheriting class must define this.
     \definecolor{inputbackground}{rgb}{.95, .95, .85}
     \definecolor{outputbackground}{rgb}{.95, .95, .95}
     \definecolor{traceback}{rgb}{1, .95, .95}
-
     % new ansi colors
     \definecolor{brown}{rgb}{0.54,0.27,0.07}
     \definecolor{purple}{rgb}{0.5,0.0,0.5}
@@ -51,24 +51,21 @@ This template does not define a docclass, the inheriting class must define this.
     \definecolor{lightblue}{rgb}{0.53,0.81,0.92}
     \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
     \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
-
     % Define a nice break command that doesn't care if a line doesn't already
     % exist.
     \def\br{\hspace*{\fill} \\* }
-
     % Math Jax compatability definitions
     \def\gt{>}
     \def\lt{<}
-
     % Document parameters
     ((* block title *))\title{((( resources.metadata.name | escape_latex )))}((* endblock title *))
     ((* block date *))((* endblock date *))
     ((* block author *))((* endblock author *))
-((* endblock definitions *))
+    ((* endblock definitions *))
 
-((* block commands *))
-    \sloppy % Prevent overflowing lines due to hard-to-break entities
-
+    ((* block commands *))
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
     % Setup hyperref package
     \hypersetup{
       breaklinks=true,  % so long urls are correctly broken across lines
@@ -77,17 +74,29 @@ This template does not define a docclass, the inheriting class must define this.
       linkcolor=darkorange,
       citecolor=darkgreen,
       }
-    
     % Slightly bigger margins than the latex defaults
     ((* block margins *))
     \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
     ((* endblock margins *))
-((* endblock commands *))
+    ((* endblock commands *))
+((* endblock header *))
 
-((* block predoc *))
+((* block body *))
+    \begin{document}
+    
+    ((* block predoc *))
     ((* block maketitle *))\maketitle((* endblock maketitle *))
     ((* block abstract *))((* endblock abstract *))
-((* endblock predoc *))
+    ((* endblock predoc *))
+
+    ((( super() )))
+
+    % Add a bibliography block to the postdoc
+    ((* block postdoc *))
+    ((* block bibliography *))((* endblock bibliography *))
+    ((* endblock postdoc *))
+    \end{document}
+((* endblock body *))
 
 %===============================================================================
 % Support blocks
@@ -186,8 +195,3 @@ This template does not define a docclass, the inheriting class must define this.
 % Don't display unknown types
 ((* block unknowncell scoped *))
 ((* endblock unknowncell *))
-
-% Add a bibliography block to the postdoc
-((* block postdoc *))
-    ((* block bibliography *))((* endblock bibliography *))
-((* endblock postdoc *))
