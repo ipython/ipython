@@ -147,7 +147,7 @@ class Application(SingletonConfigurable):
     version = Unicode(u'0.0')
     
     # the argv used to initialize the application
-    argv = List(Unicode)
+    argv = List()
 
     # The log level for the application
     log_level = Enum((0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'),
