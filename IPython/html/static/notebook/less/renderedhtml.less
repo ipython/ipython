@@ -6,16 +6,59 @@
     u {text-decoration: underline;}
     :link { text-decoration: underline }
     :visited { text-decoration: underline }
-    h1 {font-size: 225%; margin: 0; font-weight: bold;}
-    h2 {font-size: 180%; margin: 0; font-weight: bold;}
-    h3 {font-size: 142.5%; margin: 0; font-weight: bold;}
-    h4 {font-size: 100%; margin: 0; font-weight: bold;}
-    h5 {font-size: 85%; margin: 0; font-weight: bold;}
-    h6 {font-size: 85%; margin: 0; font-weight: bold; text-decoration:underline}
-    ul {list-style:disc; margin: 1em 2em;}
+    h1 {
+        font-size: 32px;
+        line-height: 40px;
+        margin-bottom: 15px;
+        padding-top: 5px;
+        margin-top: 0px;
+        font-weight: bold;
+    }
+    h2 {
+        font-size: 26px;
+        line-height: 40px;
+        margin-bottom: 13px;
+        padding-top: 7px;
+        margin-top: 0px;
+        font-weight: bold;
+    }
+    h3 {
+        font-size: 20px;
+        line-height: 40px;
+        margin-bottom: 12px;
+        padding-top: 8px;
+        margin-top: 0px;
+        font-weight: bold;
+    }
+    h4 {
+        font-size: 14px;
+        line-height: 20px;
+        margin-bottom: 0px;
+        margin-top: 0px;
+        font-weight: bold;
+    }
+    h5 {
+        font-size: 10px;
+        line-height: 20px;
+        margin-bottom: 0px;
+        margin-top: 0px;
+        font-weight: bold;
+    }
+    h6 {
+        font-size: 10px;
+        line-height: 20px;
+        margin-bottom: 0px;
+        margin-top: 0px;
+        font-weight: bold;
+    }
+    // h3 {font-size: 142.5%; margin: 0; font-weight: bold;}
+    // h4 {font-size: 100%; margin: 0; font-weight: bold;}
+    // h5 {font-size: 85%; margin: 0; font-weight: bold;}
+    // h6 {font-size: 85%; margin: 0; font-weight: bold; text-decoration:underline}
+    ul {list-style:disc; margin: 0 2em 20px 2em;}
     ul ul {list-style:square; margin: 0em 2em;}
     ul ul ul {list-style:circle; margin: 0em 2em;}
-    ol {list-style:decimal; margin: 1em 2em;}
+    ol {list-style:decimal; margin: 0 2em 20px 2em;}
     ol ol {list-style:upper-alpha; margin: 0em 2em;}
     ol ol ol {list-style:lower-alpha; margin: 0em 2em;}
     ol ol ol ol {list-style:lower-roman; margin: 0em 2em;}
@@ -28,7 +71,7 @@
     }
 
     pre {
-        margin: 1em 2em;
+        margin: 0 2em 20px 2em;
     }
 
 	pre, code {
@@ -46,7 +89,7 @@
     table, tr, th, td {
         border: 1px solid black;
         border-collapse: collapse;
-        margin: 1em 2em;
+        margin: 20px 2em;
     }
 
     td,th {
@@ -61,9 +104,12 @@
 
     p {
         text-align: justify;
+        margin-bottom: 20px;
     }
 
-    p + p {
-        margin-top: 1em;
-    }
+
+
+    // p + p {
+    //     margin-top: unit(@notebook_line_height, em);
+    // }
 }
