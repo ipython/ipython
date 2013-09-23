@@ -73,7 +73,7 @@ def writes_json(nb, **kwargs):
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
     nbf, nbm, s = parse_py(s, **kwargs)
-    if nbf == 2 or nbf == 3:
+    if nbf in (2, 3):
         nb = versions[nbf].to_notebook_py(s, **kwargs)
     else:
         raise NBFormatError('Unsupported PY nbformat version: %i' % nbf)

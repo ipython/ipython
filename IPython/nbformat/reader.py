@@ -62,8 +62,8 @@ def get_version(nb):
     return (major, minor)
 
 
-def reads(s, format='ipynb', **kwargs):
-    """Read a notebook from a 'ipynb' (json) string and return the 
+def reads(s, **kwargs):
+    """Read a notebook from a json string and return the 
     NotebookNode object.
 
     This function properly reads notebooks of any version.  No version 
@@ -103,4 +103,4 @@ def read(fp, **kwargs):
     nb : NotebookNode
         The notebook that was read.
     """
-    return reads(fp.read(), format, **kwargs)
+    return reads(fp.read(), **kwargs)
