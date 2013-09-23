@@ -453,6 +453,7 @@ class Session(Configurable):
         # check that unpack is pack's inverse
         try:
             unpacked = unpack(packed)
+            assert unpacked == msg
         except Exception as e:
             msg = "unpacker '{unpacker}' could not handle output from packer '{packer}': {e}{jsonmsg}"
             if self.packer == 'json':
