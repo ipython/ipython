@@ -177,13 +177,14 @@ def prepare_py_test_controllers(inc_slow=False):
             not_run.append(controller)
     return to_run, not_run
 
-def configure_controllers(controllers, xunit=False, coverage=False):
+def configure_controllers(controllers, xunit=False, coverage=False, extra_args=()):
     """Apply options for a collection of TestController objects."""
     for controller in controllers:
         if xunit:
             controller.add_xunit()
         if coverage:
             controller.add_coverage()
+        controller.cmd.extend(extra_args)
 
 def do_run(controller):
     try:
@@ -259,6 +260,9 @@ def run_iptestall(options):
     coverage : bool or str
       Measure code coverage from tests. True will store the raw coverage data,
       or pass 'html' or 'xml' to get reports.
+
+    extra_args : list
+      Extra arguments to pass to the test subprocesses, e.g. '-v'
     """
     if options.fast != 1:
         # If running in parallel, capture output so it doesn't get interleaved
@@ -270,7 +274,8 @@ def run_iptestall(options):
     else:
         to_run, not_run = prepare_py_test_controllers(inc_slow=options.all)
 
-    configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage)
+    configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage,
+                          extra_args=options.extra_args)
 
     def justify(ltext, rtext, width=70, fill='-'):
         ltext += ' '
@@ -381,6 +386,18 @@ def run_iptestall(options):
 
 
 def main():
+    # Arguments after -- should be passed through to nose. Argparse treats
+    # everything after -- as regular positional arguments, so we separate them
+    # first.
+    try:
+        ix = sys.argv.index('--')
+    except ValueError:
+        to_parse = sys.argv[1:]
+        extra_args = []
+    else:
+        to_parse = sys.argv[1:ix]
+        extra_args = sys.argv[ix+1:]
+
     parser = argparse.ArgumentParser(description='Run IPython test suite')
     parser.add_argument('testgroups', nargs='*',
                         help='Run specified groups of tests. If omitted, run '
@@ -395,7 +412,8 @@ def main():
                         help="Measure test coverage. Specify 'html' or "
                         "'xml' to get reports.")
 
-    options = parser.parse_args()
+    options = parser.parse_args(to_parse)
+    options.extra_args = extra_args
 
     run_iptestall(options)
 
