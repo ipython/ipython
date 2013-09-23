@@ -20,6 +20,12 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.kernel.zmq import session as ss
 
+def _bad_packer(obj):
+    raise TypeError("I don't work")
+
+def _bad_unpacker(bytes):
+    raise TypeError("I don't work either")
+
 class SessionTestCase(BaseZMQTestCase):
 
     def setUp(self):
@@ -222,4 +228,44 @@ class TestSession(SessionTestCase):
         self.assertTrue(len(session.digest_history) == 100)
         session._add_digest(uuid.uuid4().bytes)
         self.assertTrue(len(session.digest_history) == 91)
-
+    
+    def test_bad_pack(self):
+        try:
+            session = ss.Session(pack=_bad_packer)
+        except ValueError as e:
+            self.assertIn("could not serialize", str(e))
+            self.assertIn("don't work", str(e))
+        else:
+            self.fail("Should have raised ValueError")
+    
+    def test_bad_unpack(self):
+        try:
+            session = ss.Session(unpack=_bad_unpacker)
+        except ValueError as e:
+            self.assertIn("could not handle output", str(e))
+            self.assertIn("don't work either", str(e))
+        else:
+            self.fail("Should have raised ValueError")
+    
+    def test_bad_packer(self):
+        try:
+            session = ss.Session(packer=__name__ + '._bad_packer')
+        except ValueError as e:
+            self.assertIn("could not serialize", str(e))
+            self.assertIn("don't work", str(e))
+        else:
+            self.fail("Should have raised ValueError")
+    
+    def test_bad_unpacker(self):
+        try:
+            session = ss.Session(unpacker=__name__ + '._bad_unpacker')
+        except ValueError as e:
+            self.assertIn("could not handle output", str(e))
+            self.assertIn("don't work either", str(e))
+        else:
+            self.fail("Should have raised ValueError")
+    
+    def test_bad_roundtrip(self):
+        with self.assertRaises(ValueError):
+            session=  ss.Session(unpack=lambda b: 5)
+    
