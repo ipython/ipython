@@ -324,14 +324,10 @@ class ExclusionPlugin(Plugin):
         ----------
 
         exclude_patterns : sequence of strings, optional
-          These patterns are compiled as regular expressions, subsequently used
-          to exclude any filename which matches them from inclusion in the test
-          suite (using pattern.search(), NOT pattern.match() ).
+          Filenames containing these patterns (as raw strings, not as regular
+          expressions) are excluded from the tests.
         """
-
-        if exclude_patterns is None:
-            exclude_patterns = []
-        self.exclude_patterns = [re.compile(p) for p in exclude_patterns]
+        self.exclude_patterns = exclude_patterns or []
         super(ExclusionPlugin, self).__init__()
 
     def options(self, parser, env=os.environ):
@@ -345,14 +341,14 @@ class ExclusionPlugin(Plugin):
     def wantFile(self, filename):
         """Return whether the given filename should be scanned for tests.
         """
-        if any(pat.search(filename) for pat in self.exclude_patterns):
+        if any(pat in filename for pat in self.exclude_patterns):
             return False
         return None
 
     def wantDirectory(self, directory):
         """Return whether the given directory should be scanned for tests.
         """
-        if any(pat.search(directory) for pat in self.exclude_patterns):
+        if any(pat in directory for pat in self.exclude_patterns):
             return False
         return None
 
