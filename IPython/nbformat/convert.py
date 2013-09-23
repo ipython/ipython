@@ -41,14 +41,13 @@ def convert(nb, to_version):
 
     # Get input notebook version.
     (version, version_minor) = get_version(nb)
-    version_numbers = versions.keys()
 
     # Check if destination is current version, if so return contents
     if version == to_version:
         return nb
 
     # If the version exist, try to convert to it one step at a time.
-    elif to_version in version_numbers:
+    elif to_version in version:
 
         # Get the the version that this recursion will convert to as a step 
         # closer to the final revision.  Make sure the newer of the conversion
