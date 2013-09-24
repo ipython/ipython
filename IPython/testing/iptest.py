@@ -214,10 +214,10 @@ sec.exclude('inputhookgtk')
 sec.exclude('inputhook')
 
 # testing:
-sec = test_sections['lib']
+sec = test_sections['testing']
 # This guy is probably attic material
 sec.exclude('mkdoctests')
-# These have to be skipped on win32 because the use echo, rm, cd, etc.
+# These have to be skipped on win32 because they use echo, rm, cd, etc.
 # See ticket https://github.com/ipython/ipython/issues/87
 if sys.platform == 'win32':
     sec.exclude('plugin.test_exampleip')
