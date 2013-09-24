@@ -154,7 +154,8 @@ def find_package_data():
         'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
             'templates/latex/skeleton/*.tplx', 'templates/skeleton/*', 
             'templates/reveal_internals/*.tpl', 'tests/files/*.*',
-            'exporters/tests/files/*.*']
+            'exporters/tests/files/*.*'],
+        'IPython.nbformat' : ['tests/*.ipynb']
     }
     return package_data
 
