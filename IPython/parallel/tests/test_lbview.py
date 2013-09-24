@@ -155,6 +155,7 @@ class TestLoadBalancedView(ClusterTestCase):
         self.assertRaises(error.TaskAborted, ar3.get)
 
     def test_retries(self):
+        self.minimum_engines(3)
         view = self.view
         def fail():
             assert False
@@ -166,6 +167,7 @@ class TestLoadBalancedView(ClusterTestCase):
             self.assertRaisesRemote(error.TaskTimeout, view.apply_sync, fail)
 
     def test_short_timeout(self):
+        self.minimum_engines(2)
         view = self.view
         def fail():
             import time
