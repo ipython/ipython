@@ -11,6 +11,8 @@ casper.getNotebookServer = function () {
 casper.openNewNotebook = function () {
     var baseUrl = this.getNotebookServer();
     this.start(baseUrl + '/new');
+    // initially, the cells aren't created, so wait for them to appear
+    this.waitForSelector('.CodeMirror-code');
 };
 
 // Shut down the current notebook's kernel.
