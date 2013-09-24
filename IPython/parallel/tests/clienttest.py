@@ -103,6 +103,7 @@ def skip_without(*names):
 
 
 class ClusterTestCase(BaseZMQTestCase):
+    timeout = 10
     
     def add_engines(self, n=1, block=True):
         """add multiple engines to our cluster"""
@@ -126,9 +127,17 @@ class ClusterTestCase(BaseZMQTestCase):
         
         assert not len(self.client.ids) < n, "waiting for engines timed out"
     
+    def client_wait(self, client, jobs=None, timeout=-1):
+        """my wait wrapper, sets a default finite timeout to avoid hangs"""
+        if timeout < 0:
+            timeout = self.timeout
+        return Client.wait(client, jobs, timeout)
+    
     def connect_client(self):
         """connect a client with my Context, and track its sockets for cleanup"""
         c = Client(profile='iptest', context=self.context)
+        c.wait = lambda *a, **kw: self.client_wait(c, *a, **kw)
+        
         for name in filter(lambda n:n.endswith('socket'), dir(c)):
             s = getattr(c, name)
             s.setsockopt(zmq.LINGER, 0)
