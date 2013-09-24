@@ -13,7 +13,7 @@ casper.notebookTest(function () {
     this.then(function () {
         var result = this.evaluate(function () {
             var cell = IPython.notebook.get_cell(0);
-            var output = cell.element.find('.output_area').find('pre').html();
+            var output = cell.output_area.outputs[0].text;
             return output;
         })
         this.test.assertEquals(result, '10\n', 'stdout output matches')
