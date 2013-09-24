@@ -291,6 +291,7 @@ def run_iptestall(options):
         # This actually means sequential, i.e. with 1 job
         for controller in to_run:
             print('IPython test group:', controller.section)
+            sys.stdout.flush()  # Show in correct order when output is piped
             controller, res = do_run(controller)
             if res:
                 failed.append(controller)
