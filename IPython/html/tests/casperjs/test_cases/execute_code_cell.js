@@ -3,7 +3,7 @@
 //
 casper.notebookTest(function () {
     this.evaluate(function () {
-        var cell = IPython.notebook.get_selected_cell();
+        var cell = IPython.notebook.get_cell(0);
         cell.set_text('a=10; print a');
         cell.execute();
     });
