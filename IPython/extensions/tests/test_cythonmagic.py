@@ -50,6 +50,14 @@ def test_cython():
     nt.assert_equal(ip.user_ns['g'], 20.0)
 
 
+def test_cython_name():
+    # The Cython module named 'mymodule' defines the function f.
+    ip.run_cell_magic('cython', '--name=mymodule', code)
+    # This module can now be imported in the interactive namespace.
+    ip.ex('import mymodule; g = mymodule.f(10)')
+    nt.assert_equal(ip.user_ns['g'], 20.0)
+
+
 @dec.skip_win32
 def test_extlibs():
     code = py3compat.str_to_unicode("""
