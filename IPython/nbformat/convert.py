@@ -47,7 +47,7 @@ def convert(nb, to_version):
         return nb
 
     # If the version exist, try to convert to it one step at a time.
-    elif to_version in version:
+    elif to_version in versions:
 
         # Get the the version that this recursion will convert to as a step 
         # closer to the final revision.  Make sure the newer of the conversion
