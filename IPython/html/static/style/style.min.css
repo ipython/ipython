@@ -1510,7 +1510,9 @@ p{margin-bottom:0;}
 .end_space{height:200px;}
 #notification_area{z-index:10;}
 .notification_widget{color:#777777;padding:1px 12px;margin:2px 4px;z-index:10;border:1px solid #ccc;border-radius:4px;background:rgba(240, 240, 240, 0.5);}
-div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
+div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}div.output_area .MathJax_Display{text-align:left !important;}
+div.output_area .rendered_html table{margin-left:0;margin-right:0;}
+div.output_area .rendered_html img{margin-left:0;margin-right:0;}
 div.output_area pre{font-family:monospace;margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:black;background-color:transparent;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;line-height:inherit;}
 div.output_subarea{padding:0.44em 0.4em 0.4em 1px;margin-left:6px;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;}
 div.output_text{text-align:left;color:#000000;font-family:monospace;line-height:1.231em;}
@@ -1556,11 +1558,10 @@ div.quickhelp{float:left;width:50%;}
 .rendered_html td,.rendered_html th{text-align:left;vertical-align:middle;padding:4px;}
 .rendered_html th{font-weight:bold;}
 .rendered_html p{text-align:justify;}
-.rendered_html p+p{margin-top:1em;}
-.rendered_html p+table{margin-top:1em;}
-.rendered_html table+p{margin-top:1em;}
 .rendered_html img{display:block;margin-left:auto;margin-right:auto;}
-.rendered_html .MathJax_Display{text-align:center !important;}
+.rendered_html *+p{margin-top:1em;}
+.rendered_html *+table{margin-top:1em;}
+.rendered_html *+img{margin-top:1em;}
 span#save_widget{padding:0px 5px;margin-top:12px;}
 span#checkpoint_status,span#autosave_status{font-size:small;}
 @media (max-width:767px){span#save_widget{font-size:small;} span#checkpoint_status,span#autosave_status{font-size:x-small;}}@media (max-width:767px){span#checkpoint_status,span#autosave_status{display:none;}}@media (min-width:768px) and (max-width:979px){span#checkpoint_status{display:none;} span#autosave_status{font-size:x-small;}}div.text_cell{padding:5px 5px 5px 5px;}

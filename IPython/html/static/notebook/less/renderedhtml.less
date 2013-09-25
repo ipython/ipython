@@ -1,4 +1,4 @@
-.rendered_html{
+.rendered_html {
 
     color: black;
     em {font-style: italic;}
@@ -71,26 +71,22 @@
         text-align: justify;
     }
 
-    p + p {
-        margin-top: 1em;
-    }
-
-    p + table {
-        margin-top: 1em;
-    }
-
-    table + p {
-        margin-top: 1em;
-    }
-
     img {
         display: block;
         margin-left: auto;
         margin-right: auto;
     }
 
-    .MathJax_Display {
-        text-align: center !important;
+    * + p {
+        margin-top: 1em;
+    }
+
+    * + table {
+        margin-top: 1em;
+    }
+    
+    * + img {
+        margin-top: 1em;
     }
 
 }

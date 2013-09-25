@@ -3,6 +3,25 @@ div.output_area {
     padding: 0px;
     page-break-inside: avoid;
     .hbox();
+
+    .MathJax_Display {
+        // Inside a CodeCell, elements are left justified
+        text-align: left !important;
+    }
+
+    .rendered_html {
+        // Inside a CodeCell, elements are left justified
+        table {
+            // Center tables horizontally
+            margin-left: 0;
+            margin-right: 0;
+        }
+    
+        img {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    }
 }
 
 
