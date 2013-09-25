@@ -11,7 +11,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2011 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -60,10 +60,12 @@ class ProfileDir(LoggingConfigurable):
     log_dir_name = Unicode('log')
     startup_dir_name = Unicode('startup')
     pid_dir_name = Unicode('pid')
+    static_dir_name = Unicode('static')
     security_dir = Unicode(u'')
     log_dir = Unicode(u'')
     startup_dir = Unicode(u'')
     pid_dir = Unicode(u'')
+    static_dir = Unicode(u'')
 
     location = Unicode(u'', config=True,
         help="""Set the profile location directly. This overrides the logic used by the
@@ -84,6 +86,7 @@ class ProfileDir(LoggingConfigurable):
         self.log_dir = os.path.join(new, self.log_dir_name)
         self.startup_dir = os.path.join(new, self.startup_dir_name)
         self.pid_dir = os.path.join(new, self.pid_dir_name)
+        self.static_dir = os.path.join(new, self.static_dir_name)
         self.check_dirs()
 
     def _log_dir_changed(self, name, old, new):
@@ -153,11 +156,29 @@ class ProfileDir(LoggingConfigurable):
     def check_pid_dir(self):
         self._mkdir(self.pid_dir, 0o40700)
 
+    def _static_dir_changed(self, name, old, new):
+        self.check_startup_dir()
+
+    def check_static_dir(self):
+        self._mkdir(self.static_dir)
+        custom = os.path.join(self.static_dir, 'custom')
+        self._mkdir(custom)
+        from IPython.html import DEFAULT_STATIC_FILES_PATH
+        for fname in ('custom.js', 'custom.css'):
+            src = os.path.join(DEFAULT_STATIC_FILES_PATH, 'custom', fname)
+            dest = os.path.join(custom, fname)
+            if not os.path.exists(src):
+                self.log.warn("Could not copy default file to static dir. Source file %s does not exist.", src)
+                continue
+            if not os.path.exists(dest):
+                shutil.copy(src, dest)
+
     def check_dirs(self):
         self.check_security_dir()
         self.check_log_dir()
         self.check_pid_dir()
         self.check_startup_dir()
+        self.check_static_dir()
 
     def copy_config_file(self, config_file, path=None, overwrite=False):
         """Copy a default config file into the active profile directory.
