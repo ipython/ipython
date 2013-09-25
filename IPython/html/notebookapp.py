@@ -85,7 +85,7 @@ from IPython.utils.traitlets import (
     DottedObjectName
 )
 from IPython.utils import py3compat
-from IPython.utils.path import filefind
+from IPython.utils.path import filefind, get_ipython_dir
 
 from .utils import url_path_join
 
@@ -170,6 +170,7 @@ class NotebookWebApplication(web.Application):
             cluster_manager=cluster_manager,
             
             # IPython stuff
+            js_extensions_path = ipython_app.js_extensions_path,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             use_less=ipython_app.use_less,
@@ -193,6 +194,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
+            (r"/js_extensions/(.*)", FileFindHandler, {'path' : settings['js_extensions_path']}),
         ])
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
@@ -432,6 +434,12 @@ class NotebookApp(BaseIPythonApplication):
     def static_file_path(self):
         """return extra paths + the default location"""
         return self.extra_static_paths + [DEFAULT_STATIC_FILES_PATH]
+    
+    js_extensions_path = List(Unicode, config=True,
+        help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/js_extensions"""
+    )
+    def _js_extensions_path_default(self):
+        return [os.path.join(get_ipython_dir(), 'js_extensions')]
 
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
@@ -521,9 +529,9 @@ class NotebookApp(BaseIPythonApplication):
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager, 
+            self, self.kernel_manager, self.notebook_manager,
             self.cluster_manager, self.log,
-            self.base_project_url, self.webapp_settings
+            self.base_project_url, self.webapp_settings,
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)
