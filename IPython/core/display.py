@@ -363,6 +363,30 @@ class Latex(DisplayObject):
 
 class SVG(DisplayObject):
 
+    def __init__(self, data=None, url=None, filename=None, scoped=False):
+        """Create a SVG display object given raw data.
+
+        When this object is returned by an expression or passed to the
+        display function, it will result in the data being displayed
+        in the frontend. If the data is a URL, the data will first be
+        downloaded and then displayed.
+
+        Parameters
+        ----------
+        data : unicode, str or bytes
+            The Javascript source code or a URL to download it from.
+        url : unicode
+            A URL to download the data from.
+        filename : unicode
+            Path to a local file to load the data from.
+        scoped : bool
+            Should the SVG declarations be scoped.
+        """
+        if not isinstance(scoped, (bool)):
+            raise TypeError('expected bool, got: %r' % scoped)
+        self.scoped = scoped
+        super(SVG, self).__init__(data=data, url=url, filename=filename)
+
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
     _data = None
@@ -370,6 +394,8 @@ class SVG(DisplayObject):
     @property
     def data(self):
         return self._data
+
+    _scoped_class = "ipython-scoped"
 
     @data.setter
     def data(self, svg):
@@ -383,6 +409,12 @@ class SVG(DisplayObject):
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
         if found_svg:
+            # If the user request scoping, tag the svg with the
+            # ipython-scoped class
+            if self.scoped:
+                classes = (found_svg[0].getAttribute('class') +
+                           " " + self._scoped_class)
+                found_svg[0].setAttribute('class', classes)
             svg = found_svg[0].toxml()
         else:
             # fallback on the input, trust the user
