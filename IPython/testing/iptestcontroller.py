@@ -162,19 +162,18 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch()
 
+def prepare_controllers(testgroups=None, inc_slow=False):
+    """Returns two lists of TestController instances, those to run, and those
+    not to run."""
+    if not testgroups:
+        testgroups = test_group_names
+        if not inc_slow:
+            test_sections['parallel'].enabled = False
 
-def prepare_py_test_controllers(inc_slow=False):
-    """Returns an ordered list of PyTestController instances to be run."""
-    to_run, not_run = [], []
-    if not inc_slow:
-        test_sections['parallel'].enabled = False
+    controllers = [PyTestController(name) for name in testgroups]
 
-    for name in test_group_names:
-        controller = PyTestController(name)
-        if controller.will_run:
-            to_run.append(controller)
-        else:
-            not_run.append(controller)
+    to_run = [c for c in controllers if c.will_run]
+    not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
 
 def configure_controllers(controllers, xunit=False, coverage=False, extra_args=()):
@@ -268,11 +267,7 @@ def run_iptestall(options):
         # If running in parallel, capture output so it doesn't get interleaved
         TestController.buffer_output = True
 
-    if options.testgroups:
-        to_run = [PyTestController(name) for name in options.testgroups]
-        not_run = []
-    else:
-        to_run, not_run = prepare_py_test_controllers(inc_slow=options.all)
+    to_run, not_run = prepare_controllers(options.testgroups, inc_slow=options.all)
 
     configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage,
                           extra_args=options.extra_args)
