@@ -43,10 +43,9 @@ class Comm(LoggingConfigurable):
     def _topic_default(self):
         return ('comm-%s' % self.comm_id).encode('ascii')
     
-    _open_data = Dict(help="data dict, if any, to be included in comm_close")
+    _open_data = Dict(help="data dict, if any, to be included in comm_open")
     _close_data = Dict(help="data dict, if any, to be included in comm_close")
     
-    _open_callback = Any()
     _msg_callback = Any()
     _close_callback = Any()
     
@@ -61,7 +60,7 @@ class Comm(LoggingConfigurable):
         super(Comm, self).__init__(**kwargs)
         get_ipython().comm_manager.register_comm(self)
         if self.primary:
-            # I am primary, open my peer
+            # I am primary, open my peer.
             self.open(data)
     
     def _publish_msg(self, msg_type, data=None, **keys):
@@ -99,14 +98,6 @@ class Comm(LoggingConfigurable):
         self._publish_msg('comm_msg', data)
     
     # registering callbacks
-    def on_open(self, callback):
-        """Register a callback for comm_open
-        
-        Will be called with the `data` of the open message.
-        
-        Call `on_open(None)` to disable an existing callback.
-        """
-        self._open_callback = callback
     
     def on_close(self, callback):
         """Register a callback for comm_close
@@ -127,12 +118,6 @@ class Comm(LoggingConfigurable):
         self._msg_callback = callback
     
     # handling of incoming messages
-    
-    def handle_open(self, msg):
-        """Handle a comm_open message"""
-        self.log.debug("handle_open[%s](%s)", self.comm_id, msg)
-        if self._open_callback:
-            self._open_callback(msg)
     
     def handle_close(self, msg):
         """Handle a comm_close message"""

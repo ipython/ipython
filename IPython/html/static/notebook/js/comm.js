@@ -61,16 +61,15 @@ var IPython = (function (IPython) {
     
     CommManager.prototype.comm_open = function (msg) {
         var content = msg.content;
-        var callback = this.targets[content.target_name];
-        if (callback === undefined) {
+        var f = this.targets[content.target_name];
+        if (f === undefined) {
             console.log("No such target registered: ", content.target_name);
             console.log("Available targets are: ", this.targets);
             return;
         }
         var comm = new Comm(content.comm_id);
         this.register_comm(comm);
-        callback(comm);
-        comm.handle_open(msg);
+        f(comm, msg);
     };
     
     CommManager.prototype.comm_close = function (msg) {
@@ -99,7 +98,7 @@ var IPython = (function (IPython) {
     var Comm = function (comm_id, target_name) {
         this.comm_id = comm_id || new IPython.utils.uuid();
         this.target_name = target_name;
-        this._msg_callback = this._open_callback = this._close_callback = null;
+        this._msg_callback = this._close_callback = null;
     };
     
     // methods for sending messages
@@ -133,10 +132,6 @@ var IPython = (function (IPython) {
         this['_' + key + '_callback'] = callback;
     };
     
-    Comm.prototype.on_open = function (callback) {
-        this._register_callback('open', callback);
-    };
-    
     Comm.prototype.on_msg = function (callback) {
         this._register_callback('msg', callback);
     };
@@ -150,10 +145,6 @@ var IPython = (function (IPython) {
     Comm.prototype._maybe_callback = function (key, msg) {
         var callback = this['_' + key + '_callback'];
         if (callback) callback(msg);
-    };
-    
-    Comm.prototype.handle_open = function (msg) {
-        this._maybe_callback('open', msg);
     };
     
     Comm.prototype.handle_msg = function (msg) {
