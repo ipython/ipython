@@ -211,14 +211,9 @@ class IPEngineApp(BaseParallelApplication):
         
         # allow hand-override of location for disambiguation
         # and ssh-server
-        try:
-            config.EngineFactory.location
-        except AttributeError:
+        if 'EngineFactory.location' not in config:
             config.EngineFactory.location = d['location']
-        
-        try:
-            config.EngineFactory.sshserver
-        except AttributeError:
+        if 'EngineFactory.sshserver' not in config:
             config.EngineFactory.sshserver = d.get('ssh')
         
         location = config.EngineFactory.location
@@ -313,21 +308,17 @@ class IPEngineApp(BaseParallelApplication):
             self.log.fatal("Fatal: url file never arrived: %s", self.url_file)
             self.exit(1)
         
+        exec_lines = []
+        for app in ('IPKernelApp', 'InteractiveShellApp'):
+            if '%s.exec_lines' in config:
+                exec_lines = config.IPKernelApp.exec_lines = config[app].exec_lines
+                break
         
-        try:
-            exec_lines = config.IPKernelApp.exec_lines
-        except AttributeError:
-            try:
-                exec_lines = config.InteractiveShellApp.exec_lines
-            except AttributeError:
-                exec_lines = config.IPKernelApp.exec_lines = []
-        try:
-            exec_files = config.IPKernelApp.exec_files
-        except AttributeError:
-            try:
-                exec_files = config.InteractiveShellApp.exec_files
-            except AttributeError:
-                exec_files = config.IPKernelApp.exec_files = []
+        exec_files = []
+        for app in ('IPKernelApp', 'InteractiveShellApp'):
+            if '%s.exec_files' in config:
+                exec_files = config.IPKernelApp.exec_files = config[app].exec_files
+                break
         
         if self.startup_script:
             exec_files.append(self.startup_script)

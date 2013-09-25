@@ -281,18 +281,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         # are removed from the backend.
 
         # parse the colors arg down to current known labels
-        try:
-            colors = self.config.ZMQInteractiveShell.colors
-        except AttributeError:
-            colors = None
-        try:
-            style = self.config.IPythonWidget.syntax_style
-        except AttributeError:
-            style = None
-        try:
-            sheet = self.config.IPythonWidget.style_sheet
-        except AttributeError:
-            sheet = None
+        cfg = self.config
+        colors = cfg.ZMQInteractiveShell.colors if 'ZMQInteractiveShell.colors' in cfg else None
+        style = cfg.IPythonWidget.syntax_style if 'IPythonWidget.syntax_style' in cfg else None
+        sheet = cfg.IPythonWidget.style_sheet if 'IPythonWidget.style_sheet' in cfg else None
 
         # find the value for colors:
         if colors:

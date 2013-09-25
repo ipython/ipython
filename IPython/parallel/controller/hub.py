@@ -255,10 +255,9 @@ class HubFactory(RegistrationFactory):
 
         ctx = self.context
         loop = self.loop
-
-        try:
+        if 'TaskScheduler.scheme_name' in self.config:
             scheme = self.config.TaskScheduler.scheme_name
-        except AttributeError:
+        else:
             from .scheduler import TaskScheduler
             scheme = TaskScheduler.scheme_name.get_default_value()
         
