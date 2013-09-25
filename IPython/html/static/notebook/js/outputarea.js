@@ -498,7 +498,7 @@ var IPython = (function (IPython) {
         wrapper.append(svg);
         var svg_element = wrapper.children()[0];
 
-        if (svg_element.classList.contains('ipython-scoped')) {
+        if (md['scoped']) {
             // To avoid style or use collisions between multiple svg figures,
             // svg figures are wrapped inside an iframe.
             var iframe = $('<iframe/>')

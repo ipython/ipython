@@ -395,8 +395,6 @@ class SVG(DisplayObject):
     def data(self):
         return self._data
 
-    _scoped_class = "ipython-scoped"
-
     @data.setter
     def data(self, svg):
         if svg is None:
@@ -409,12 +407,6 @@ class SVG(DisplayObject):
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
         if found_svg:
-            # If the user requests scoping, tag the svg with the
-            # ipython-scoped class
-            if self.scoped:
-                classes = (found_svg[0].getAttribute('class') +
-                           " " + self._scoped_class)
-                found_svg[0].setAttribute('class', classes)
             svg = found_svg[0].toxml()
         else:
             # fallback on the input, trust the user
@@ -424,7 +416,11 @@ class SVG(DisplayObject):
         self._data = svg
 
     def _repr_svg_(self):
-        return self.data
+        if self.scoped:
+            metadata = dict(scoped=True)
+            return self.data, metadata
+        else:
+            return self.data
 
 
 class JSON(DisplayObject):
