@@ -1,3 +1,8 @@
 from .base import PostProcessorBase
 from .pdf import PDFPostProcessor
-from .serve import ServePostProcessor
+
+# protect against unavailable tornado
+try:
+    from .serve import ServePostProcessor
+except ImportError:
+    pass

@@ -47,6 +47,7 @@ from IPython.core.magics import ScriptMagics
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
+from IPython.extensions.storemagic import StoreMagics
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.utils import warn
 from IPython.utils.path import get_ipython_dir, check_for_old_config
@@ -219,6 +220,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             PlainTextFormatter,
             IPCompleter,
             ScriptMagics,
+            StoreMagics,
         ]
 
     subcommands = Dict(dict(

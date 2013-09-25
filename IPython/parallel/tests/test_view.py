@@ -22,20 +22,16 @@ import platform
 import time
 from collections import namedtuple
 from tempfile import mktemp
-from StringIO import StringIO
 
 import zmq
-from nose import SkipTest
 from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
-from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.parallel import DirectView
 from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
@@ -47,7 +43,7 @@ def setup():
 
 point = namedtuple("point", "x y")
 
-class TestView(ClusterTestCase, ParametricTestCase):
+class TestView(ClusterTestCase):
     
     def setUp(self):
         # On Win XP, wait for resource cleanup, else parallel test group fails
@@ -242,7 +238,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     @skip_without('numpy')
     def test_scatter_gather_numpy(self):
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         view = self.client[:]
         a = numpy.arange(64)
         view.scatter('a', a, block=True)
@@ -280,7 +276,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_apply_numpy(self):
         """view.apply(f, ndarray)"""
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         
         A = numpy.random.random((100,100))
         view = self.client[-1]
@@ -368,7 +364,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     @skip_without('numpy')
     def test_scatter_gather_numpy_nonblocking(self):
         import numpy
-        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        from numpy.testing.utils import assert_array_equal
         a = numpy.arange(64)
         view = self.client[:]
         ar = view.scatter('a', a, block=False)
@@ -512,19 +508,17 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_len(self):
         """len(view) makes sense"""
         e0 = self.client[self.client.ids[0]]
-        yield self.assertEqual(len(e0), 1)
+        self.assertEqual(len(e0), 1)
         v = self.client[:]
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         v = self.client.direct_view('all')
-        yield self.assertEqual(len(v), len(self.client.ids))
+        self.assertEqual(len(v), len(self.client.ids))
         v = self.client[:2]
-        yield self.assertEqual(len(v), 2)
+        self.assertEqual(len(v), 2)
         v = self.client[:1]
-        yield self.assertEqual(len(v), 1)
+        self.assertEqual(len(v), 1)
         v = self.client.load_balanced_view()
-        yield self.assertEqual(len(v), len(self.client.ids))
-        # parametric tests seem to require manual closing?
-        self.client.close()
+        self.assertEqual(len(v), len(self.client.ids))
 
     
     # begin execute tests

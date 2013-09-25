@@ -369,7 +369,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
 
         for name, cmd in aliases:
-            self.alias_manager.define_alias(name, cmd)
+            self.alias_manager.soft_define_alias(name, cmd)
 
     #-------------------------------------------------------------------------
     # Things related to the banner and usage

@@ -1,4 +1,5 @@
 from .ansi import *
+from .citation import *
 from .datatypefilter import *
 from .highlight import *
 from .latex import *

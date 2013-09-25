@@ -19,7 +19,8 @@ For full details, see the installation section of the manual.  The basic parts
 of IPython only need the Python standard library, but much of its more advanced
 functionality requires extra packages.
 
-Officially, IPython requires Python version 2.6, 2.7, or 3.1 and above.
+Officially, IPython requires Python version 2.7, or 3.3 and above.
+IPython 1.x is the last IPython version to support Python 2.6 and 3.2.
 
 
 Instant running
@@ -38,7 +39,9 @@ If you want to hack on certain parts, e.g. the IPython notebook, in a clean
 environment (such as a virtualenv) you can use ``pip`` to grab the necessary
 dependencies quickly::
 
-   $ pip install -e .[notebook]
+   $ git clone --recursive https://github.com/ipython/ipython.git
+   $ cd ipython
+   $ pip install -e ".[notebook]"
 
 This installs the necessary packages and symlinks IPython into your current
 environment so that you can work on your local repo copy and run it from anywhere::

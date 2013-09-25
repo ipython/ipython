@@ -16,10 +16,6 @@ Included decorators:
 
 Lightweight testing that remains unittest-compatible.
 
-- @parametric, for parametric test support that is vastly easier to use than
-  nose's for debugging. With ours, if a test fails, the stack under inspection
-  is that of the test and not that of the test framework.
-
 - An @as_unittest decorator can be used to tag any normal parameter-less
   function as a unittest TestCase.  Then, both nose and normal unittest will
   recognize it as such.  This will make it easier to migrate away from Nose if
@@ -57,12 +53,6 @@ import unittest
 
 # This is Michele Simionato's decorator module, kept verbatim.
 from IPython.external.decorator import decorator
-
-# We already have python3-compliant code for parametric tests
-if sys.version[0]=='2':
-    from _paramtestpy2 import parametric
-else:
-    from _paramtestpy3 import parametric
 
 # Expose the unittest-driven decorators
 from ipunittest import ipdoctest, ipdocstring
@@ -384,7 +374,7 @@ def onlyif_cmds_exist(*commands):
                             "is installed".format(cmd))
         except ImportError as e:
             # is_cmd_found uses pywin32 on windows, which might not be available
-            if sys.platform == 'win32' and 'pywin32' in e.message:
+            if sys.platform == 'win32' and 'pywin32' in str(e):
                 return skip("This test runs only if pywin32 and command '{0}' "
                             "is installed".format(cmd))
             raise e

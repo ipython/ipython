@@ -31,7 +31,7 @@ var IPython = (function (IPython) {
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
-        this.clear_out_timeout = null;
+        this.clear_queued = null;
         if (prompt_area === undefined) {
             this.prompt_area = true;
         } else {
@@ -289,7 +289,12 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
         this.expand();
-        this.flush_clear_timeout();
+
+        // Clear the output if clear is queued.
+        if (this.clear_queued) {
+            this.clear_output(false);
+        }
+
         if (json.output_type === 'pyout') {
             this.append_pyout(json, dynamic);
         } else if (json.output_type === 'pyerr') {
@@ -300,6 +305,7 @@ var IPython = (function (IPython) {
             this.append_stream(json);
         }
         this.outputs.push(json);
+        this.element.height('auto');
         var that = this;
         setTimeout(function(){that.element.trigger('resize');}, 100);
     };
@@ -312,6 +318,33 @@ var IPython = (function (IPython) {
         }
         return oa;
     };
+    
+    OutputArea.prototype._append_javascript_error = function (err, container) {
+        // display a message when a javascript error occurs in display output
+        var msg = "Javascript error adding output!"
+        console.log(msg, err);
+        if ( container === undefined ) return;
+        container.append(
+            $('<div/>').html(msg + "<br/>" +
+                err.toString() +
+                '<br/>See your browser Javascript console for more details.'
+            ).addClass('js-error')
+        );
+        container.show();
+    };
+    
+    OutputArea.prototype._safe_append = function (toinsert) {
+        // safely append an item to the document
+        // this is an object created by user code,
+        // and may have errors, which should not be raised
+        // under any circumstances.
+        try {
+            this.element.append(toinsert);
+        } catch(err) {
+            console.log(err);
+            this._append_javascript_error(err, this.element);
+        }
+    };
 
 
     OutputArea.prototype.append_pyout = function (json, dynamic) {
@@ -321,19 +354,7 @@ var IPython = (function (IPython) {
             toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         }
         this.append_mime_type(json, toinsert, dynamic);
-        try {
-            this.element.append(toinsert);
-        } catch(err) {
-            console.log("Error attaching output!");
-            console.log(err);
-            this.element.show();
-            toinsert.html($('<div/>')
-                .html("Javascript error adding output!<br/>" +
-                    err.toString() +
-                    '<br/>See your browser Javascript console for more details.')
-                .addClass('js-error')
-            );
-        }
+        this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
             this.typeset();
@@ -352,7 +373,7 @@ var IPython = (function (IPython) {
             s = s + '\n';
             var toinsert = this.create_output_area();
             this.append_text(s, {}, toinsert);
-            this.element.append(toinsert);
+            this._safe_append(toinsert);
         }
     };
 
@@ -389,14 +410,14 @@ var IPython = (function (IPython) {
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
         this.append_text(text, {}, toinsert, "output_stream "+subclass);
-        this.element.append(toinsert);
+        this._safe_append(toinsert);
     };
 
 
     OutputArea.prototype.append_display_data = function (json, dynamic) {
         var toinsert = this.create_output_area();
         this.append_mime_type(json, toinsert, dynamic);
-        this.element.append(toinsert);
+        this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
             this.typeset();
@@ -444,15 +465,7 @@ var IPython = (function (IPython) {
         try {
             eval(js);
         } catch(err) {
-            console.log('Error in Javascript!');
-            console.log(err);
-            container.show();
-            element.append($('<div/>')
-                .html("Error in Javascript !<br/>"+
-                    err.toString()+
-                    '<br/>See your browser Javascript console for more details.')
-                .addClass('js-error')
-                );
+            this._append_javascript_error(err, container);
         }
     };
 
@@ -546,7 +559,6 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_raw_input = function (content) {
         var that = this;
         this.expand();
-        this.flush_clear_timeout();
         var area = this.create_output_area();
         
         // disable any other raw_inputs, if they are left around
@@ -599,81 +611,35 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.handle_clear_output = function (content) {
-        this.clear_output(content.stdout, content.stderr, content.other);
+        this.clear_output(content.wait);
     };
 
 
-    OutputArea.prototype.clear_output = function (stdout, stderr, other) {
-        var that = this;
-        if (this.clear_out_timeout != null){
-            // fire previous pending clear *immediately*
-            clearTimeout(this.clear_out_timeout);
-            this.clear_out_timeout = null;
-            this.clear_output_callback(this._clear_stdout, this._clear_stderr, this._clear_other);
-        }
-        // store flags for flushing the timeout
-        this._clear_stdout = stdout;
-        this._clear_stderr = stderr;
-        this._clear_other = other;
-        this.clear_out_timeout = setTimeout(function() {
-            // really clear timeout only after a short delay
-            // this reduces flicker in 'clear_output; print' cases
-            that.clear_out_timeout = null;
-            that._clear_stdout = that._clear_stderr = that._clear_other = null;
-            that.clear_output_callback(stdout, stderr, other);
-        }, 500
-        );
-    };
+    OutputArea.prototype.clear_output = function(wait) {
+        if (wait) {
 
+            // If a clear is queued, clear before adding another to the queue.
+            if (this.clear_queued) {
+                this.clear_output(false);
+            };
 
-    OutputArea.prototype.clear_output_callback = function (stdout, stderr, other) {
-        var output_div = this.element;
+            this.clear_queued = true;
+        } else {
 
-        if (stdout && stderr && other){
+            // Fix the output div's height if the clear_output is waiting for
+            // new output (it is being used in an animation).
+            if (this.clear_queued) {
+                var height = this.element.height();
+                this.element.height(height);
+                this.clear_queued = false;
+            }
+            
             // clear all, no need for logic
-            output_div.html("");
+            this.element.html("");
             this.outputs = [];
             this.unscroll_area();
             return;
-        }
-        // remove html output
-        // each output_subarea that has an identifying class is in an output_area
-        // which is the element to be removed.
-        if (stdout) {
-            output_div.find("div.output_stdout").parent().remove();
-        }
-        if (stderr) {
-            output_div.find("div.output_stderr").parent().remove();
-        }
-        if (other) {
-            output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
-        }
-        this.unscroll_area();
-        
-        // remove cleared outputs from JSON list:
-        for (var i = this.outputs.length - 1; i >= 0; i--) {
-            var out = this.outputs[i];
-            var output_type = out.output_type;
-            if (output_type == "display_data" && other) {
-                this.outputs.splice(i,1);
-            } else if (output_type == "stream") {
-                if (stdout && out.stream == "stdout") {
-                    this.outputs.splice(i,1);
-                } else if (stderr && out.stream == "stderr") {
-                    this.outputs.splice(i,1);
-                }
-            }
-        }
-    };
-
-
-    OutputArea.prototype.flush_clear_timeout = function() {
-        var output_div = this.element;
-        if (this.clear_out_timeout){
-            clearTimeout(this.clear_out_timeout);
-            this.clear_out_timeout = null;
-            this.clear_output_callback(this._clear_stdout, this._clear_stderr, this._clear_other);
-        }
+        };
     };
 
 

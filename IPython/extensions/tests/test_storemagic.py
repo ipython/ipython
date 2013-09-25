@@ -1,5 +1,6 @@
 import tempfile, os
 
+from IPython.config.loader import Config
 import nose.tools as nt
 
 ip = get_ipython()
@@ -26,7 +27,24 @@ def test_store_restore():
     # Check restoring
     ip.magic('store -r')
     nt.assert_equal(ip.user_ns['foo'], 78)
-    nt.assert_in('bar', ip.alias_manager.alias_table)
+    assert ip.alias_manager.is_alias('bar')
     nt.assert_in(os.path.realpath(tmpd), ip.user_ns['_dh'])
     
     os.rmdir(tmpd)
+
+def test_autorestore():
+    ip.user_ns['foo'] = 95
+    ip.magic('store foo')
+    del ip.user_ns['foo']
+    c = Config()
+    c.StoreMagics.autorestore = False
+    orig_config = ip.config
+    try:
+        ip.config = c
+        ip.extension_manager.reload_extension('storemagic')
+        nt.assert_not_in('foo', ip.user_ns)
+        c.StoreMagics.autorestore = True
+        ip.extension_manager.reload_extension('storemagic')
+        nt.assert_equal(ip.user_ns['foo'], 95)
+    finally:
+        ip.config = orig_config

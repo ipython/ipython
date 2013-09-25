@@ -87,7 +87,7 @@ class Kernel(Configurable):
         if self.shell is not None:
             self.shell.user_module = new
     
-    user_ns = Dict(default_value=None)
+    user_ns = Instance(dict, args=None, allow_none=True)
     def _user_ns_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_ns = new
@@ -131,6 +131,7 @@ class Kernel(Configurable):
     # A reference to the Python builtin 'raw_input' function.
     # (i.e., __builtin__.raw_input for Python 2.7, builtins.input for Python 3)
     _sys_raw_input = Any()
+    _sys_eval_input = Any()
 
     # set of aborted msg_ids
     aborted = Set()
@@ -352,15 +353,18 @@ class Kernel(Configurable):
         # raw_input in the user namespace.
         if content.get('allow_stdin', False):
             raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+            input = lambda prompt='': eval(raw_input(prompt))
         else:
-            raw_input = lambda prompt='' : self._no_raw_input()
+            raw_input = input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
             self._sys_raw_input = __builtin__.input
             __builtin__.input = raw_input
         else:
             self._sys_raw_input = __builtin__.raw_input
+            self._sys_eval_input = __builtin__.input
             __builtin__.raw_input = raw_input
+            __builtin__.input = input
 
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
@@ -403,6 +407,7 @@ class Kernel(Configurable):
                  __builtin__.input = self._sys_raw_input
              else:
                  __builtin__.raw_input = self._sys_raw_input
+                 __builtin__.input = self._sys_eval_input
 
         reply_content[u'status'] = status
 

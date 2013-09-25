@@ -51,26 +51,24 @@ def test_full_path_win32():
     nt.assert_equal(result, ['c:\\a.txt'])
 
     
-@dec.parametric
 def test_parser():
     err = ("FAILED (errors=1)", 1, 0)
     fail = ("FAILED (failures=1)", 0, 1)
     both = ("FAILED (errors=1, failures=1)", 1, 1)
     for txt, nerr, nfail in [err, fail, both]:
         nerr1, nfail1 = tt.parse_test_output(txt)
-        yield nt.assert_equal(nerr, nerr1)
-        yield nt.assert_equal(nfail, nfail1)
+        nt.assert_equal(nerr, nerr1)
+        nt.assert_equal(nfail, nfail1)
 
-        
-@dec.parametric
+
 def test_temp_pyfile():
     src = 'pass\n'
     fname, fh = tt.temp_pyfile(src)
-    yield nt.assert_true(os.path.isfile(fname))
+    assert os.path.isfile(fname)
     fh.close()
     with open(fname) as fh2:
         src2 = fh2.read()
-    yield nt.assert_equal(src2, src)
+    nt.assert_equal(src2, src)
 
 class TestAssertPrints(unittest.TestCase):
     def test_passing(self):

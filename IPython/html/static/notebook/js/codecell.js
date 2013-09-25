@@ -65,8 +65,8 @@ var IPython = (function (IPython) {
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.collapsed = false;
-        this.default_mode = 'ipython';
         this.cell_type = "code";
+        this.last_msg_id = null;
 
 
         var cm_overwrite_options  = {
@@ -167,7 +167,7 @@ var IPython = (function (IPython) {
             // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
-            // The second argument says to hide the tooltip if the docstring 
+            // The second argument says to hide the tooltip if the docstring
             // is actually empty
             IPython.tooltip.pending(that, true);
         } else if (event.which === key.UPARROW && event.type === 'keydown') {
@@ -180,8 +180,7 @@ var IPython = (function (IPython) {
                 return true;
             };
         } else if (event.which === key.ESC) {
-            IPython.tooltip.remove_and_cancel_tooltip(true);
-            return true;
+            return IPython.tooltip.remove_and_cancel_tooltip(true);
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
@@ -242,9 +241,12 @@ var IPython = (function (IPython) {
      * @method execute
      */
     CodeCell.prototype.execute = function () {
-        this.output_area.clear_output(true, true, true);
+        this.output_area.clear_output();
         this.set_input_prompt('*');
         this.element.addClass("running");
+        if (this.last_msg_id) {
+            this.kernel.clear_callbacks_for_msg(this.last_msg_id);
+        }
         var callbacks = {
             'execute_reply': $.proxy(this._handle_execute_reply, this),
             'output': $.proxy(this.output_area.handle_output, this.output_area),
@@ -252,7 +254,7 @@ var IPython = (function (IPython) {
             'set_next_input': $.proxy(this._handle_set_next_input, this),
             'input_request': $.proxy(this._handle_input_request, this)
         };
-        var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
     };
 
     /**
@@ -273,7 +275,7 @@ var IPython = (function (IPython) {
         var data = {'cell': this, 'text': text}
         $([IPython.events]).trigger('set_next_input.Notebook', data);
     }
-    
+
     /**
      * @method _handle_input_request
      * @private
@@ -388,8 +390,8 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.clear_output = function (stdout, stderr, other) {
-        this.output_area.clear_output(stdout, stderr, other);
+    CodeCell.prototype.clear_output = function (wait) {
+        this.output_area.clear_output(wait);
     };
 
 

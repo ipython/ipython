@@ -18,11 +18,12 @@ import time
 import nose.tools as nt
 from nose import SkipTest
 
+import IPython.testing.tools as tt
 from IPython.testing import decorators as dec
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
-# Test functions begin
+# Tests
 #-----------------------------------------------------------------------------
 
 @dec.skip_win32
@@ -55,3 +56,8 @@ def test_console_starts():
     p.expect([pexpect.EOF, pexpect.TIMEOUT], timeout=t)
     if p.isalive():
         p.terminate()
+
+def test_help_output():
+    """ipython console --help-all works"""
+    tt.help_all_output_test('console')
+

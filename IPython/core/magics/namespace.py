@@ -265,9 +265,10 @@ class NamespaceMagics(Magics):
 
         user_ns = self.shell.user_ns
         user_ns_hidden = self.shell.user_ns_hidden
+        nonmatching = object()  # This can never be in user_ns
         out = [ i for i in user_ns
                 if not i.startswith('_') \
-                and not i in user_ns_hidden ]
+                and (user_ns[i] is not user_ns_hidden.get(i, nonmatching)) ]
 
         typelist = parameter_s.split()
         if typelist:
@@ -353,10 +354,10 @@ class NamespaceMagics(Magics):
           - For {},[],(): their length.
 
           - For numpy arrays, a summary with shape, number of
-          elements, typecode and size in memory.
+            elements, typecode and size in memory.
 
           - Everything else: a string representation, snipping their middle if
-          too long.
+            too long.
 
         Examples
         --------

@@ -489,11 +489,11 @@ class Magics(object):
     MUST:
 
     - Use the method decorators `@line_magic` and `@cell_magic` to decorate
-    individual methods as magic functions, AND
+      individual methods as magic functions, AND
 
     - Use the class decorator `@magics_class` to ensure that the magic
-    methods are properly registered at the instance level upon instance
-    initialization.
+      methods are properly registered at the instance level upon instance
+      initialization.
 
     See :mod:`magic_functions` for examples of actual implementation classes.
     """

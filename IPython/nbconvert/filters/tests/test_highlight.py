@@ -49,13 +49,13 @@ class TestHighlight(TestsBase):
     def test_highlight2html(self):
         """highlight2html test"""
         for index, test in enumerate(self.tests):
-            yield self._try_highlight(highlight2html, test, self.tokens[index])
+            self._try_highlight(highlight2html, test, self.tokens[index])
 
 
     def test_highlight2latex(self):
         """highlight2latex test"""
         for index, test in enumerate(self.tests):
-            yield self._try_highlight(highlight2latex, test, self.tokens[index])
+            self._try_highlight(highlight2latex, test, self.tokens[index])
 
 
     def _try_highlight(self, method, test, tokens):

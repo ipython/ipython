@@ -15,13 +15,13 @@ Python exporter which exports Notebook code into a PY file.
 
 from IPython.utils.traitlets import Unicode
 
-from .exporter import Exporter
+from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class PythonExporter(Exporter):
+class PythonExporter(TemplateExporter):
     """
     Exports a Python code file.
     """

@@ -1,26 +1,17 @@
-((============================================================================
-  NBConvert Sphinx-Latex HowTo Template
 
-  Purpose: Allow export of PDF friendly Latex inspired by Sphinx HowTo 
-           document style.  Most of the is derived directly from Sphinx source.
+% Default to the notebook output style
+((* if not cell_style is defined *))
+    ((* set cell_style = 'style_ipython.tplx' *))
+((* endif *))
 
-  Inheritance: null>display_priority>sphinx
-
-  ==========================================================================))
-
-((*- extends 'sphinx.tplx' -*))
+% Inherit from the specified cell style.
+((* extends cell_style *))
 
 
-((* set parentdocumentclass = 'article' *))
-((* set documentclass = 'howto' *))
+%===============================================================================
+% Latex Article
+%===============================================================================
 
-((* block h1 -*))part((* endblock h1 -*))
-((* block h2 -*))section((* endblock h2 -*))
-((* block h3 -*))subsection((* endblock h3 -*))
-((* block h4 -*))subsubsection((* endblock h4 -*))
-((* block h5 -*))paragraph((* endblock h5 -*))
-((* block h6 -*))subparagraph((* endblock h6 -*))
-
-% Diasble table of contents for howto
-((* block toc *))
-((* endblock toc *))
+((* block docclass *))
+\documentclass{article}
+((* endblock docclass *))

@@ -4,13 +4,11 @@ python:
     - 2.7
     - 3.3
 before_install:
-    - pip install jinja2
     - easy_install -q pyzmq
+    - pip install jinja2 sphinx pygments tornado
     - sudo apt-get install pandoc
-    - pip install pygments
-    - pip install sphinx
 install:
     - python setup.py install -q 
 script:
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then iptest -w /tmp; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.'* ]]; then iptest3 -w /tmp; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then cd /tmp; iptest; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.'* ]]; then cd /tmp; iptest3; fi

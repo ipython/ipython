@@ -24,7 +24,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 from IPython.external.ssh import tunnel
 # internal
-from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.localinterfaces import localhost
 from IPython.utils.traitlets import (
     Instance, Dict, Integer, Type, Float, Integer, Unicode, CBytes, Bool
 )
@@ -184,13 +184,13 @@ class EngineFactory(RegistrationFactory):
             if self.max_heartbeat_misses > 0:
                 # Add a monitor socket which will record the last time a ping was seen
                 mon = self.context.socket(zmq.SUB)
-                mport = mon.bind_to_random_port('tcp://%s' % LOCALHOST)
+                mport = mon.bind_to_random_port('tcp://%s' % localhost())
                 mon.setsockopt(zmq.SUBSCRIBE, b"")
                 self._hb_listener = zmqstream.ZMQStream(mon, self.loop)
                 self._hb_listener.on_recv(self._report_ping)
             
             
-                hb_monitor = "tcp://%s:%i" % (LOCALHOST, mport)
+                hb_monitor = "tcp://%s:%i" % (localhost(), mport)
 
             heart = Heart(hb_ping, hb_pong, hb_monitor , heart_id=identity)
             heart.start()

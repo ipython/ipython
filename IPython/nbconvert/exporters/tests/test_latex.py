@@ -44,18 +44,18 @@ class TestLatexExporter(ExportersTestsBase):
     @onlyif_cmds_exist('pandoc')
     def test_export_book(self):
         """
-        Can a LatexExporter export using 'book' template?
+        Can a LatexExporter export using 'report' template?
         """
-        (output, resources) = LatexExporter(template_file='book').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(template_file='report').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     @onlyif_cmds_exist('pandoc')
     def test_export_basic(self):
         """
-        Can a LatexExporter export using 'basic' template?
+        Can a LatexExporter export using 'article' template?
         """
-        (output, resources) = LatexExporter(template_file='basic').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(template_file='article').from_filename(self._get_notebook())
         assert len(output) > 0
 
 

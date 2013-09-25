@@ -24,7 +24,6 @@ import numpy as np
 
 # Our own imports
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.testing import decorators as dec
 from .. import pylabtools as pt
 
 #-----------------------------------------------------------------------------
@@ -39,11 +38,10 @@ from .. import pylabtools as pt
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-@dec.parametric
 def test_figure_to_svg():
     # simple empty-figure test
     fig = plt.figure()
-    yield nt.assert_equal(pt.print_figure(fig, 'svg'), None)
+    nt.assert_equal(pt.print_figure(fig, 'svg'), None)
 
     plt.close('all')
 
@@ -53,7 +51,7 @@ def test_figure_to_svg():
     ax.plot([1,2,3])
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
-    yield nt.assert_true('doctype svg' in svg)
+    nt.assert_in(b'doctype svg', svg)
 
 
 def test_import_pylab():

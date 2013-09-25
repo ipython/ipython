@@ -17,20 +17,14 @@ Authors:
 #-------------------------------------------------------------------------------
 
 import re
-import sys
 import time
 
-import zmq
-from nose import SkipTest
 
 from IPython.testing import decorators as dec
-from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
-from IPython.parallel import error
 from IPython.parallel import AsyncResult
-from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
 
@@ -39,7 +33,7 @@ from .clienttest import ClusterTestCase, generate_output
 def setup():
     add_engines(3, total=True)
 
-class TestParallelMagics(ClusterTestCase, ParametricTestCase):
+class TestParallelMagics(ClusterTestCase):
     
     def test_px_blocking(self):
         ip = get_ipython()

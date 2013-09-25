@@ -61,14 +61,9 @@ The currently supported export formats are:
 * ``--to slides``
 
   This generates a Reveal.js HTML slideshow.
-  It must be served by an HTTP server.  The easiest way to get this is to add
+  It must be served by an HTTP server.  The easiest way to do this is adding
   ``--post serve`` on the command-line.
-  If you want to use the speaker notes plugin, just add
-  ``--slide-notes=True`` on the command-line.
-  For low connectivity environments, you can use a local copy of the reveal.js library, 
-  just add ``--offline-slides=reveal.js`` on the command-line, and do not forget to move
-  your downloaded ``reveal.js`` library to the same folder where your slides are located.
-  
+
 * ``--to markdown``
 
   Simple markdown output.  Markdown cells are unaffected,
@@ -124,6 +119,21 @@ and using the command::
 
 
 .. _notebook_format:
+
+LaTeX citations
+---------------
+
+``nbconvert`` now has support for LaTeX citations. With this capability you
+can:
+
+* Manage citations using BibTeX.
+* Cite those citations in Markdown cells using HTML data attributes.
+* Have ``nbconvert`` generate proper LaTeX citations and run BibTeX.
+
+For an example of how this works, please see the citations example in
+the nbconvert-examples_ repository.
+
+.. _nbconvert-examples: https://github.com/ipython/nbconvert-examples
 
 Notebook JSON file format
 -------------------------

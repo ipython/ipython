@@ -19,7 +19,8 @@ def cell_preprocessor(function):
     Wrap a function to be executed on all cells of a notebook
     
     Wrapped Parameters
-    ----------
+    ------------------
+    
     cell : NotebookNode cell
         Notebook cell being processed
     resources : dictionary
@@ -69,7 +70,7 @@ def coalesce_streams(cell, resources, index):
             last.text += output.text
         else:
             new_outputs.append(output)
-        last = output
+            last = output
 
     cell.outputs = new_outputs
     return cell, resources

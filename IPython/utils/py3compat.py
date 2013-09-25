@@ -60,12 +60,12 @@ def safe_unicode(e):
         pass
 
     try:
-        return py3compat.str_to_unicode(str(e))
+        return str_to_unicode(str(e))
     except UnicodeError:
         pass
 
     try:
-        return py3compat.str_to_unicode(repr(e))
+        return str_to_unicode(repr(e))
     except UnicodeError:
         pass
 

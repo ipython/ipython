@@ -36,7 +36,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 
 {% block input %}
 <div class="input_area box-flex1">
-{{ cell.input | highlight2html }}
+{{ cell.input | highlight2html(metadata=cell.metadata) }}
 </div>
 {%- endblock input %}
 
@@ -133,6 +133,12 @@ unknown type  {{ cell.type }}
 <pre>
 {{ output.text | ansi2html }}
 </pre>
+{%- endblock -%}
+
+{%- block data_javascript %}
+<script type="text/javascript">
+{{ output.javascript }}
+</script>
 {%- endblock -%}
 
 {%- block display_data scoped -%}

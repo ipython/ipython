@@ -15,6 +15,7 @@ from __future__ import print_function
 
 # Stdlib imports
 import subprocess
+from io import TextIOWrapper, BytesIO
 
 # IPython imports
 from IPython.utils.py3compat import cast_bytes
@@ -64,6 +65,6 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
             "http://johnmacfarlane.net/pandoc/installing.html"
         )
     out, _ = p.communicate(cast_bytes(source, encoding))
-    out = out.decode(encoding, 'replace')
-    return out[:-1]
+    out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
+    return out.rstrip('\n')
 

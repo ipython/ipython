@@ -171,11 +171,11 @@ which already exists. But you must first start the logging process with
         Inputs:
 
         - line_mod: possibly modified input, such as the transformations made
-        by input prefilters or input handlers of various kinds.  This should
-        always be valid Python.
+          by input prefilters or input handlers of various kinds. This should
+          always be valid Python.
 
-        - line_ori: unmodified input line from the user.  This is not
-        necessarily valid Python.
+        - line_ori: unmodified input line from the user. This is not
+          necessarily valid Python.
         """
 
         # Write the log line, but decide which one according to the

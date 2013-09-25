@@ -30,6 +30,7 @@ except:
 from distutils.command.build_py import build_py
 from distutils.cmd import Command
 from glob import glob
+from subprocess import call
 
 from setupext import install_data_ext
 
@@ -323,7 +324,7 @@ def find_scripts(entry_points=False, suffix=''):
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',
             'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
             'ipcluster%s = IPython.parallel.apps.ipclusterapp:launch_new_instance',
-            'iptest%s = IPython.testing.iptest:main',
+            'iptest%s = IPython.testing.iptestcontroller:main',
             'irunner%s = IPython.lib.irunner:main',
         ]]
         gui_scripts = []
@@ -474,3 +475,26 @@ def require_submodules(command):
                 sys.exit(1)
             command.run(self)
     return DecoratedCommand
+
+#---------------------------------------------------------------------------
+# Notebook related
+#---------------------------------------------------------------------------
+
+class CompileCSS(Command):
+    """Recompile Notebook CSS
+    
+    Regenerate the compiled CSS from LESS sources.
+    
+    Requires various dev dependencies, such as fabric and lessc.
+    """
+    description = "Recompile Notebook CSS"
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+    
+    def run(self):
+        call("fab css", shell=True, cwd=pjoin(repo_root, "IPython", "html"))

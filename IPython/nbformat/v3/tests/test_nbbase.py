@@ -141,3 +141,17 @@ class TestMetadata(TestCase):
         self.assertEqual(md.gistid, u'21341231')
         self.assertEqual(md.authors, authors)
 
+class TestOutputs(TestCase):
+    def test_binary_png(self):
+        out = new_output(output_png=b'\x89PNG\r\n\x1a\n')
+
+    def test_b64b6tes_png(self):
+        out = new_output(output_png=b'iVBORw0KG')
+    
+    def test_binary_jpeg(self):
+        out = new_output(output_jpeg=b'\xff\xd8')
+
+    def test_b64b6tes_jpeg(self):
+        out = new_output(output_jpeg=b'/9')
+        
+

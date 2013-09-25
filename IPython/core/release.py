@@ -26,7 +26,7 @@ _version_extra = 'dev'
 # _version_extra = 'rc1'
 # _version_extra = ''  # Uncomment this for full releases
 
-codename = 'An Afternoon Hack'
+codename = 'Work in Progress'
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor, _version_patch]
@@ -141,11 +141,8 @@ classifiers = [
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Python',
     'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.2',
-    'Programming Language :: Python :: 3.3',
     'Topic :: System :: Distributed Computing',
     'Topic :: System :: Shells'
     ]

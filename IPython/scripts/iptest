@@ -20,5 +20,5 @@ Exiting."""
     import sys
     print >> sys.stderr, error
 else:
-    from IPython.testing import iptest
-    iptest.main()
+    from IPython.testing import iptestcontroller
+    iptestcontroller.main()

@@ -53,7 +53,7 @@ from IPython.kernel.connect import ConnectionFileMixin
 # Network Constants
 #-----------------------------------------------------------------------------
 
-from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.localinterfaces import localhost
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -254,7 +254,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
         with open(fname) as f:
             cfg = json.load(f)
         self.transport = cfg.get('transport', 'tcp')
-        self.ip = cfg.get('ip', LOCALHOST)
+        self.ip = cfg.get('ip', localhost())
         
         for channel in ('hb', 'shell', 'iopub', 'stdin', 'control'):
             name = channel + '_port'
@@ -282,7 +282,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
         if self.sshkey and not self.sshserver:
             # specifying just the key implies that we are connecting directly
             self.sshserver = ip
-            ip = LOCALHOST
+            ip = localhost()
         
         # build connection dict for tunnels:
         info = dict(ip=ip,
@@ -295,7 +295,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
         self.log.info("Forwarding connections to %s via %s"%(ip, self.sshserver))
         
         # tunnels return a new set of ports, which will be on localhost:
-        self.ip = LOCALHOST
+        self.ip = localhost()
         try:
             newports = tunnel_to_kernel(info, self.sshserver, self.sshkey)
         except:

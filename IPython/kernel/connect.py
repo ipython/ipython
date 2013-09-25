@@ -34,14 +34,13 @@ import zmq
 from IPython.external.ssh import tunnel
 
 # IPython imports
-# from IPython.config import Configurable
+from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
-from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import str_to_bytes, bytes_to_str
 from IPython.utils.traitlets import (
     Bool, Integer, Unicode, CaselessStrEnum,
-    HasTraits,
 )
 
 
@@ -50,7 +49,7 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         control_port=0, ip=LOCALHOST, key=b'', transport='tcp',
+                         control_port=0, ip='', key=b'', transport='tcp',
                          signature_scheme='hmac-sha256',
                          ):
     """Generates a JSON config file, including the selection of random ports.
@@ -91,6 +90,8 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         and 'sha256' is the default hash function.
 
     """
+    if not ip:
+        ip = localhost()
     # default to temporary connector file
     if not fname:
         fname = tempfile.mktemp('.json')
@@ -383,7 +384,7 @@ channel_socket_types = {
 
 port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
 
-class ConnectionFileMixin(HasTraits):
+class ConnectionFileMixin(Configurable):
     """Mixin for configurable classes that work with connection files"""
 
     # The addresses for the communication channels
@@ -392,7 +393,7 @@ class ConnectionFileMixin(HasTraits):
 
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
 
-    ip = Unicode(LOCALHOST, config=True,
+    ip = Unicode(config=True,
         help="""Set the kernel\'s IP address [default localhost].
         If the IP address is something other than localhost, then
         Consoles on other machines will be able to connect
@@ -406,7 +407,7 @@ class ConnectionFileMixin(HasTraits):
             else:
                 return 'kernel-ipc'
         else:
-            return LOCALHOST
+            return localhost()
 
     def _ip_changed(self, name, old, new):
         if new == '*':

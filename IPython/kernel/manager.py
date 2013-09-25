@@ -1,5 +1,4 @@
-"""Base class to manage a running kernel
-"""
+"""Base class to manage a running kernel"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2013  The IPython Development Team
@@ -24,7 +23,7 @@ import zmq
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
-from IPython.utils.localinterfaces import LOCAL_IPS
+from IPython.utils.localinterfaces import is_local_ip, local_ips
 from IPython.utils.traitlets import (
     Any, Instance, Unicode, List, Bool, Type, DottedObjectName
 )
@@ -185,11 +184,11 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
              keyword arguments that are passed down to build the kernel_cmd
              and launching the kernel (e.g. Popen kwargs).
         """
-        if self.transport == 'tcp' and self.ip not in LOCAL_IPS:
+        if self.transport == 'tcp' and not is_local_ip(self.ip):
             raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
                                "configured properly. "
-                               "Currently valid addresses are: %s"%LOCAL_IPS
+                               "Currently valid addresses are: %s" % local_ips()
                                )
 
         # write connection file / get default ports

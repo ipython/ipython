@@ -19,6 +19,7 @@ templates.
 import os
 import re
 import textwrap
+from urllib2 import quote
 from xml.etree import ElementTree
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -38,6 +39,8 @@ __all__ = [
     'get_lines',
     'ipython2python',
     'posix_path',
+    'path2url',
+    'add_prompts'
 ]
 
 
@@ -80,7 +83,7 @@ def add_anchor(html):
     
     For use in heading cells
     """
-    h = ElementTree.fromstring(py3compat.cast_bytes_py2(html))
+    h = ElementTree.fromstring(py3compat.cast_bytes_py2(html, encoding='utf-8'))
     link = html2text(h).replace(' ', '-')
     h.set('id', link)
     a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
@@ -93,6 +96,16 @@ def add_anchor(html):
     return py3compat.decode(ElementTree.tostring(h), 'utf-8')
 
 
+def add_prompts(code, first='>>> ', cont='... '):
+    """Add prompts to code snippets"""
+    new_code = []
+    code_list = code.split('\n')
+    new_code.append(first + code_list[0])
+    for line in code_list[1:]:
+        new_code.append(cont + line)
+    return '\n'.join(new_code)
+
+    
 def strip_dollars(text):
     """
     Remove all dollar symbols from text
@@ -181,3 +194,8 @@ def posix_path(path):
     if os.path.sep != '/':
         return path.replace(os.path.sep, '/')
     return path
+
+def path2url(path):
+    """Turn a file path into a URL"""
+    parts = path.split(os.path.sep)
+    return '/'.join(quote(part) for part in parts)

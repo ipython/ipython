@@ -71,7 +71,6 @@ class ParallelCrashHandler(CrashHandler):
 base_aliases = {}
 base_aliases.update(base_ip_aliases)
 base_aliases.update({
-    'profile-dir' : 'ProfileDir.location',
     'work-dir' : 'BaseParallelApplication.work_dir',
     'log-to-file' : 'BaseParallelApplication.log_to_file',
     'clean-logs' : 'BaseParallelApplication.clean_logs',

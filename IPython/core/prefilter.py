@@ -488,22 +488,6 @@ class AutoMagicChecker(PrefilterChecker):
         return self.prefilter_manager.get_handler_by_name('magic')
 
 
-class AliasChecker(PrefilterChecker):
-
-    priority = Integer(800, config=True)
-
-    def check(self, line_info):
-        "Check if the initital identifier on the line is an alias."
-        # Note: aliases can not contain '.'
-        head = line_info.ifun.split('.',1)[0]
-        if line_info.ifun not in self.shell.alias_manager \
-               or head not in self.shell.alias_manager \
-               or is_shadowed(head, self.shell):
-            return None
-
-        return self.prefilter_manager.get_handler_by_name('alias')
-
-
 class PythonOpsChecker(PrefilterChecker):
 
     priority = Integer(900, config=True)
@@ -589,20 +573,6 @@ class PrefilterHandler(Configurable):
 
     def __str__(self):
         return "<%s(name=%s)>" % (self.__class__.__name__, self.handler_name)
-
-
-class AliasHandler(PrefilterHandler):
-
-    handler_name = Unicode('alias')
-
-    def handle(self, line_info):
-        """Handle alias input lines. """
-        transformed = self.shell.alias_manager.expand_aliases(line_info.ifun,line_info.the_rest)
-        # pre is needed, because it carries the leading whitespace.  Otherwise
-        # aliases won't work in indented sections.
-        line_out = '%sget_ipython().system(%r)' % (line_info.pre_whitespace, transformed)
-
-        return line_out
 
 
 class MacroHandler(PrefilterHandler):
@@ -730,14 +700,12 @@ _default_checkers = [
     IPyAutocallChecker,
     AssignmentChecker,
     AutoMagicChecker,
-    AliasChecker,
     PythonOpsChecker,
     AutocallChecker
 ]
 
 _default_handlers = [
     PrefilterHandler,
-    AliasHandler,
     MacroHandler,
     MagicHandler,
     AutoHandler,

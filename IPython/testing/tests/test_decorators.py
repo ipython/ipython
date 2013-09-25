@@ -12,7 +12,6 @@ import nose.tools as nt
 # Our own
 from IPython.testing import decorators as dec
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.testing.ipunittest import ParametricTestCase
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -46,24 +45,6 @@ def getargspec(obj):
 def trivial():
     """A trivial test"""
     pass
-
-# Some examples of parametric tests.
-
-def is_smaller(i,j):
-    assert i<j,"%s !< %s" % (i,j)
-
-class Tester(ParametricTestCase):
-
-    def test_parametric(self):
-        yield is_smaller(3, 4)
-        x, y = 1, 2
-        yield is_smaller(x, y)
-
-@dec.parametric
-def test_par_standalone():
-    yield is_smaller(3, 4)
-    x, y = 1, 2
-    yield is_smaller(x, y)
 
 
 @dec.skip

@@ -26,12 +26,10 @@ import sys
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-#~ if sys.version[0:3] < '2.6':
-    #~ error = """\
-#~ ERROR: 'IPython requires Python Version 2.6 or above.'
-#~ Exiting."""
-    #~ print >> sys.stderr, error
-    #~ sys.exit(1)
+if sys.version_info[:2] < (2,7):
+    error = "ERROR: IPython requires Python Version 2.7 or above."
+    print(error, file=sys.stderr)
+    sys.exit(1)
 
 PY3 = (sys.version_info[0] >= 3)
 
@@ -72,6 +70,7 @@ from setupbase import (
     update_submodules,
     require_submodules,
     UpdateSubmodules,
+    CompileCSS,
 )
 from setupext import setupext
 
@@ -238,6 +237,7 @@ setup_args['cmdclass'] = {
     'sdist' : git_prebuild('IPython', sdist),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
+    'css' : CompileCSS,
 }
 
 #---------------------------------------------------------------------------

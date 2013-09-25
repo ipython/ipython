@@ -8,7 +8,7 @@ Authors
 from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
+#  Copyright (C) 2009 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -37,6 +37,7 @@ except ImportError:
     has_nose = False
 
 from IPython.config.loader import Config
+from IPython.utils.process import get_output_error_code
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
@@ -344,6 +345,8 @@ class AssertPrints(object):
     """
     def __init__(self, s, channel='stdout', suppress=True):
         self.s = s
+        if isinstance(self.s, py3compat.string_types):
+            self.s = [self.s]
         self.channel = channel
         self.suppress = suppress
     
@@ -357,7 +360,8 @@ class AssertPrints(object):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
-        assert self.s in printed, notprinted_msg.format(self.s, self.channel, printed)
+        for s in self.s:
+            assert s in printed, notprinted_msg.format(s, self.channel, printed)
         return False
 
 printed_msg = """Found {0!r} in printed output (on {1}):
@@ -374,7 +378,8 @@ class AssertNotPrints(AssertPrints):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
-        assert self.s not in printed, printed_msg.format(self.s, self.channel, printed)
+        for s in self.s:
+            assert s not in printed, printed_msg.format(s, self.channel, printed)
         return False
 
 @contextmanager
@@ -408,3 +413,26 @@ def monkeypatch(obj, name, attr):
     setattr(obj, name, attr)
     yield
     setattr(obj, name, orig)
+
+
+def help_output_test(subcommand=''):
+    """test that `ipython [subcommand] -h` works"""
+    cmd = ' '.join(get_ipython_cmd() + [subcommand, '-h'])
+    out, err, rc = get_output_error_code(cmd)
+    nt.assert_equal(rc, 0, err)
+    nt.assert_not_in("Traceback", err)
+    nt.assert_in("Options", out)
+    nt.assert_in("--help-all", out)
+    return out, err
+
+
+def help_all_output_test(subcommand=''):
+    """test that `ipython [subcommand] --help-all` works"""
+    cmd = ' '.join(get_ipython_cmd() + [subcommand, '--help-all'])
+    out, err, rc = get_output_error_code(cmd)
+    nt.assert_equal(rc, 0, err)
+    nt.assert_not_in("Traceback", err)
+    nt.assert_in("Options", out)
+    nt.assert_in("Class parameters", out)
+    return out, err
+

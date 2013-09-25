@@ -202,6 +202,9 @@ being a **code cell**, but its type can be changed by using a dropdown on the
 toolbar (which will be "Code", initially), or via :ref:`keyboard shortcuts
 <keyboard-shortcuts>`.  
 
+For more information on the different things you can do in a notebook,
+see the `collection of examples
+<https://github.com/ipython/ipython/tree/master/examples/notebooks#readme>`_.
 
 Code cells
 ~~~~~~~~~~
