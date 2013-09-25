@@ -365,6 +365,18 @@ IPython.utils = (function (IPython) {
         test.remove();
         return Math.floor(points*pixel_per_point);
     };
+    
+    var always_new = function (constructor) {
+        // wrapper around contructor to avoid requiring `var a = new constructor()`
+        // useful for passing constructors as callbacks,
+        // not for programmer laziness.
+        // from http://programmers.stackexchange.com/questions/118798
+        return function () {
+            var obj = Object.create(constructor.prototype);
+            constructor.apply(obj, arguments);
+            return obj;
+        };
+    };
 
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
     var browser = (function() {
@@ -384,7 +396,8 @@ IPython.utils = (function (IPython) {
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
-        browser : browser    
+        always_new : always_new,
+        browser : browser
     };
 
 }(IPython));
