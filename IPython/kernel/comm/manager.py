@@ -76,8 +76,8 @@ class CommManager(LoggingConfigurable):
     
     # Public APIs
     
-    def register_target(self, target, f):
-        """Register a callable f for a given target
+    def register_target(self, target_name, f):
+        """Register a callable f for a given target name
         
         f will be called with a Comm object as its only argument
         when a comm_open message is received with `target`.
@@ -87,7 +87,7 @@ class CommManager(LoggingConfigurable):
         if isinstance(f, basestring):
             f = import_item(f)
         
-        self.targets[target] = f
+        self.targets[target_name] = f
     
     def register_comm(self, comm):
         """Register a new comm"""
@@ -125,18 +125,18 @@ class CommManager(LoggingConfigurable):
         """Handler for comm_open messages"""
         content = msg['content']
         comm_id = content['comm_id']
-        target = content['target']
-        callback = self.targets.get(target, None)
+        target_name = content['target_name']
+        f = self.targets.get(target_name, None)
         comm = Comm(comm_id=comm_id,
                     shell=self.shell,
                     iopub_socket=self.iopub_socket,
                     primary=False,
         )
-        if callback is None:
-            self.log.error("No such comm target registered: %s", target)
+        if f is None:
+            self.log.error("No such comm target registered: %s", target_name)
             comm.close()
             return
-        callback(comm)
+        f(comm)
         comm.handle_open(msg)
         self.register_comm(comm)
     

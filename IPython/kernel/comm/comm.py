@@ -37,7 +37,7 @@ class Comm(LoggingConfigurable):
             return
         return self.shell.kernel.session
     
-    target = Unicode('comm')
+    target_name = Unicode('comm')
     
     topic = Bytes()
     def _topic_default(self):
@@ -82,7 +82,7 @@ class Comm(LoggingConfigurable):
         """Open the frontend-side version of this comm"""
         if data is None:
             data = self._open_data
-        self._publish_msg('comm_open', data, target=self.target)
+        self._publish_msg('comm_open', data, target_name=self.target_name)
     
     def close(self, data=None):
         """Close the frontend-side version of this comm"""

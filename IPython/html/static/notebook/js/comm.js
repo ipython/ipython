@@ -24,7 +24,7 @@ var IPython = (function (IPython) {
     
     var CommManager = function (kernel) {
         this.comms = {};
-        this.targets = {comm : Comm};
+        this.targets = {};
         if (kernel !== undefined) {
             this.init_kernel(kernel);
         }
@@ -40,9 +40,9 @@ var IPython = (function (IPython) {
         }
     };
     
-    CommManager.prototype.register_target = function (target, constructor) {
-        // Register a constructor for a given target key
-        this.targets[target] = constructor;
+    CommManager.prototype.register_target = function (target_name, f) {
+        // Register a target function for a given target name
+        this.targets[target_name] = f;
     };
     
     CommManager.prototype.register_comm = function (comm) {
@@ -61,9 +61,9 @@ var IPython = (function (IPython) {
     
     CommManager.prototype.comm_open = function (msg) {
         var content = msg.content;
-        var callback = this.targets[content.target];
+        var callback = this.targets[content.target_name];
         if (callback === undefined) {
-            console.log("No such target registered: ", content.target);
+            console.log("No such target registered: ", content.target_name);
             console.log("Available targets are: ", this.targets);
             return;
         }
@@ -96,9 +96,9 @@ var IPython = (function (IPython) {
     // Comm base class
     //-----------------------------------------------------------------------
     
-    var Comm = function (comm_id, target) {
+    var Comm = function (comm_id, target_name) {
         this.comm_id = comm_id || new IPython.utils.uuid();
-        this.target = target || 'comm';
+        this.target_name = target_name;
         this._msg_callback = this._open_callback = this._close_callback = null;
     };
     
@@ -106,7 +106,7 @@ var IPython = (function (IPython) {
     Comm.prototype.open = function (data, callbacks) {
         var content = {
             comm_id : this.comm_id,
-            target : this.target,
+            target_name : this.target_name,
             data : data || {},
         };
         return this.kernel.send_shell_message("comm_open", content, callbacks);
