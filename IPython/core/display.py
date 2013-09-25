@@ -409,7 +409,7 @@ class SVG(DisplayObject):
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
         if found_svg:
-            # If the user request scoping, tag the svg with the
+            # If the user requests scoping, tag the svg with the
             # ipython-scoped class
             if self.scoped:
                 classes = (found_svg[0].getAttribute('class') +

@@ -502,7 +502,7 @@ var IPython = (function (IPython) {
             // To avoid style or use collisions between multiple svg figures,
             // svg figures are wrapped inside an iframe.
             var iframe = $('<iframe/>')
-                iframe.attr('frameborder', 0);
+            iframe.attr('frameborder', 0);
             iframe.attr('scrolling', 'no');
 
             // Once the iframe is loaded, the svg is dynamically inserted
