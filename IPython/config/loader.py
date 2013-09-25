@@ -25,6 +25,7 @@ Authors
 
 import __builtin__ as builtin_mod
 import argparse
+import copy
 import os
 import re
 import sys
@@ -32,6 +33,7 @@ import sys
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
+from IPython.utils.traitlets import HasTraits, List, Any, TraitError
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -73,6 +75,83 @@ class ArgumentParser(argparse.ArgumentParser):
 #-----------------------------------------------------------------------------
 # Config class for holding config information
 #-----------------------------------------------------------------------------
+
+class LazyConfigValue(HasTraits):
+    """Proxy object for exposing methods on configurable containers
+    
+    Exposes:
+    
+    - append, extend, insert on lists
+    - update on dicts
+    - update, add on sets
+    """
+    
+    _value = None
+    
+    # list methods
+    _extend = List()
+    
+    def append(self, obj):
+        self._extend.append(obj)
+    
+    def extend(self, other):
+        self._extend.extend(other)
+    
+    _inserts = List()
+    def insert(self, index, other):
+        if not isinstance(index, int):
+            raise TypeError("An integer is required")
+        self._inserts.append((index, other))
+    
+    # dict methods
+    # update is used for both dict and set
+    _update = Any()
+    def update(self, other):
+        if self._update is None:
+            if isinstance(other, dict):
+                self._update = {}
+            else:
+                self._update = set()
+        self._update.update(other)
+    
+    # set methods
+    def add(self, obj):
+        self.update({obj})
+    
+    def get_value(self, initial):
+        """construct the value from the initial one
+        
+        after applying any insert / extend / update changes
+        """
+        if self._value is not None:
+            return self._value
+        value = copy.deepcopy(initial)
+        if isinstance(value, list):
+            for idx, obj in self._inserts:
+                value.insert(idx, obj)
+            value.extend(self._extend)
+        elif isinstance(value, dict):
+            if self._update:
+                value.update(self._update)
+        elif isinstance(value, set):
+            if self._update:
+                value.update(self._update)
+        self._value = value
+        return value
+    
+    def to_dict(self):
+        """return JSONable dict form of my data
+        
+        Currently update as dict or set, extend as list, and inserts as list of tuples.
+        """
+        d = {}
+        if self._update:
+            d['update'] = self._update
+        if self._extend:
+            d['extend'] = self._extend
+        elif self._inserts:
+            d['inserts'] = self._inserts
+        return d
 
 
 class Config(dict):
@@ -125,6 +204,14 @@ class Config(dict):
             return False
 
     def __contains__(self, key):
+        # allow nested contains of the form `Section.key in config`
+        if '.' in key:
+            first, remainder = key.split('.', 1)
+            if first not in self:
+                return False
+            return remainder in self[first]
+        
+        # we always have Sections
         if self._is_section_key(key):
             return True
         else:
@@ -147,7 +234,7 @@ class Config(dict):
     def __deepcopy__(self, memo):
         import copy
         return type(self)(copy.deepcopy(self.items()))
-
+    
     def __getitem__(self, key):
         # We cannot use directly self._is_section_key, because it triggers
         # infinite recursion on top of PyPy. Instead, we manually fish the
@@ -170,7 +257,14 @@ class Config(dict):
                 dict.__setitem__(self, key, c)
                 return c
         else:
-            return dict.__getitem__(self, key)
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError:
+                # undefined
+                v = LazyConfigValue()
+                dict.__setitem__(self, key, v)
+                return v
+            
 
     def __setitem__(self, key, value):
         if self._is_section_key(key):
