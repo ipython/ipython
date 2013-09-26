@@ -32,41 +32,6 @@ def citation2latex(s):
     Any HTML tag can be used, which allows the citations to be formatted
     in HTML in any manner.
     """
-    try:
-        from lxml import html
-    except ImportError:
-        return s
-
-    tree = html.fragment_fromstring(s, create_parent='div')
-    _process_node_cite(tree)
-    s = html.tostring(tree, encoding='unicode')
-    if s.endswith('</div>'):
-        s = s[:-6]
-    if s.startswith('<div>'):
-        s = s[5:]
-    return s
-
-
-def _process_node_cite(node):
-    """Do the citation replacement as we walk the lxml tree."""
-    
-    def _get(o, name):
-        value = getattr(o, name, None)
-        return '' if value is None else value
-    
-    if 'data-cite' in node.attrib:
-        cite = '\cite{%(ref)s}' % {'ref': node.attrib['data-cite']}
-        prev = node.getprevious()
-        if prev is not None:
-            prev.tail = _get(prev, 'tail') + cite + _get(node, 'tail')
-        else:
-            parent = node.getparent()
-            if parent is not None:
-                parent.text = _get(parent, 'text') + cite + _get(node, 'tail')
-        try:
-            node.getparent().remove(node)
-        except AttributeError:
-            pass
-    else:
-        for child in node:
-            _process_node_cite(child)
+    import re
+    return re.sub("<(?P<tag>[a-z]+) .*?data-cite=['\"]{0,1}(?P<label>[^['\" >]*).*?/(?P=tag)>",
+                  '\\cite{\g<label>}',s)
