@@ -170,7 +170,7 @@ class NotebookWebApplication(web.Application):
             cluster_manager=cluster_manager,
             
             # IPython stuff
-            nb_extensions_path = ipython_app.nb_extensions_path,
+            nbextensions_path = ipython_app.nbextensions_path,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             use_less=ipython_app.use_less,
@@ -194,7 +194,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
-            (r"/nb_extensions/(.*)", FileFindHandler, {'path' : settings['nb_extensions_path']}),
+            (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         ])
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
@@ -435,11 +435,11 @@ class NotebookApp(BaseIPythonApplication):
         """return extra paths + the default location"""
         return self.extra_static_paths + [DEFAULT_STATIC_FILES_PATH]
     
-    nb_extensions_path = List(Unicode, config=True,
-        help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nb_extensions"""
+    nbextensions_path = List(Unicode, config=True,
+        help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nbextensions"""
     )
-    def _nb_extensions_path_default(self):
-        return [os.path.join(get_ipython_dir(), 'nb_extensions')]
+    def _nbextensions_path_default(self):
+        return [os.path.join(get_ipython_dir(), 'nbextensions')]
 
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
@@ -451,9 +451,9 @@ class NotebookApp(BaseIPythonApplication):
                          url_path_join(self.base_project_url, "static")
         )
         
-        # try local mathjax, either in nb_extensions/mathjax or static/mathjax
+        # try local mathjax, either in nbextensions/mathjax or static/mathjax
         for (url_prefix, search_path) in [
-            (url_path_join(self.base_project_url, "extensions"), self.nb_extensions_path),
+            (url_path_join(self.base_project_url, "nbextensions"), self.nbextensions_path),
             (static_url_prefix, self.static_file_path),
         ]:
             self.log.debug("searching for local mathjax in %s", search_path)

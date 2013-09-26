@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """Utility function for installing MathJax javascript library into
-your IPython nb_extensions directory, for offline use.
+your IPython nbextensions directory, for offline use.
 
  Authors:
 
@@ -66,7 +66,7 @@ from IPython.utils.path import get_ipython_dir
 
 # Where mathjax will be installed
 
-default_dest = os.path.join(get_ipython_dir(), 'nb_extensions', 'mathjax')
+default_dest = os.path.join(get_ipython_dir(), 'nbextensions', 'mathjax')
 
 # Test for access to install mathjax
 
@@ -128,7 +128,7 @@ def extract_zip(fd, dest):
 def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, extractor=extract_tar):
     """Download and/or install MathJax for offline use.
 
-    This will install mathjax to the js_extensions dir in your IPYTHONDIR.
+    This will install mathjax to the nbextensions dir in your IPYTHONDIR.
 
     MathJax is a ~15MB download, and ~150MB installed.
 
@@ -137,7 +137,7 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
 
     replace : bool [False]
         Whether to remove and replace an existing install.
-    dest : str [IPYTHONDIR/js_extensions]
+    dest : str [IPYTHONDIR/nbextensions]
         Where to locally install mathjax
     tag : str ['v2.2']
         Which tag to download. Default is 'v2.2', the current stable release,
