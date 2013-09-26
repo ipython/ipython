@@ -38,7 +38,10 @@ casper.notebookTest = function(test) {
     this.openNewNotebook();
     this.then(test);
     this.shutdownCurrentKernel();
-    this.deleteCurrentNotebook();
+    //XXX: the implementation of deleteCurrentNotebook is currently broken
+    // it's not a big deal, since the notebook directory will be deleted on
+    // cleanup, but we should add tests for deleting the notebook separately
+    //this.deleteCurrentNotebook();
     
     // Run the browser automation.
     this.run(function() {
