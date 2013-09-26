@@ -20,6 +20,7 @@ from __future__ import print_function
 
 import argparse
 import multiprocessing.pool
+from multiprocessing import Process, Queue
 import os
 import shutil
 import signal
@@ -164,13 +165,40 @@ class JSController(TestController):
         """Create new test runner."""
         TestController.__init__(self)
         self.section = section
-        
+
+        # start the ipython notebook, so we get the port number
+        self._init_server()
+
         import IPython.html.tests as t
         test_dir = os.path.join(os.path.dirname(t.__file__), 'casperjs')
         includes = '--includes=' + os.path.join(test_dir,'util.js')
         test_cases = os.path.join(test_dir, 'test_cases')
-        self.cmd = ['casperjs', 'test', includes, test_cases]
+        port = '--port=' + str(self.server_port)
+        self.cmd = ['casperjs', 'test', port, includes, test_cases]
 
+
+    def _init_server(self):
+        "Start the notebook server in a separate process"
+        self.queue = q = Queue()
+        self.server = server = Process(target=run_webapp, args=(q,))
+        server.start()
+        self.server_port = q.get()
+
+    def cleanup(self):
+        self.server.terminate()
+        TestController.cleanup(self)
+
+
+def run_webapp(q):
+    """start the IPython Notebook, and pass port back to the queue"""
+    import IPython.html.notebookapp as nbapp
+    # get rid of command line flags used to launch the testing framework
+    sys.argv = [sys.executable]
+    server = nbapp.NotebookApp()
+    server.initialize()
+    # communicate the port number to the parent process
+    q.put(server.port)
+    server.start()
 
 def prepare_controllers(options):
     """Returns two lists of TestController instances, those to run, and those
