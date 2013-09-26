@@ -192,10 +192,8 @@ class JSController(TestController):
 def run_webapp(q):
     """start the IPython Notebook, and pass port back to the queue"""
     import IPython.html.notebookapp as nbapp
-    # get rid of command line flags used to launch the testing framework
-    sys.argv = [sys.executable]
     server = nbapp.NotebookApp()
-    server.initialize()
+    server.initialize(['--no-browser'])
     # communicate the port number to the parent process
     q.put(server.port)
     server.start()
