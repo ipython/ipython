@@ -4,6 +4,8 @@ python:
     - 2.7
     - 3.3
 before_install:
+    # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
+    - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
     - easy_install -q pyzmq
     - pip install jinja2 sphinx pygments tornado requests
     - sudo apt-get install pandoc
