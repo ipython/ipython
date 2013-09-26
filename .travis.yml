@@ -8,7 +8,10 @@ before_install:
     - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
     - easy_install -q pyzmq
     - pip install jinja2 sphinx pygments tornado requests
-    - sudo apt-get install pandoc
+    # Pierre Carrier's PPA for PhantomJS and CasperJS
+    - sudo add-apt-repository ppa:pcarrier/ppa
+    - sudo apt-get update
+    - sudo apt-get install pandoc casperjs
 install:
     - python setup.py install -q 
 script:
