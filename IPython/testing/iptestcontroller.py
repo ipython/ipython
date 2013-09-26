@@ -56,10 +56,13 @@ class TestController(object):
         self.env = {}
         self.dirs = []
     
+
     @property
     def will_run(self):
-        """Override in subclasses to check for dependencies."""
-        return False
+        try:
+            return test_sections[self.section].will_run
+        except KeyError:
+            return True
 
     def launch(self):
         # print('*** ENV:', self.env)  # dbg
@@ -128,13 +131,6 @@ class PyTestController(TestController):
         # This means we won't get odd effects from our own matplotlib config
         self.env['MPLCONFIGDIR'] = workingdir.name
 
-    @property
-    def will_run(self):
-        try:
-            return test_sections[self.section].will_run
-        except KeyError:
-            return True
-
     def add_xunit(self):
         xunit_file = os.path.abspath(self.section + '.xunit.xml')
         self.cmd.extend(['--with-xunit', '--xunit-file', xunit_file])
@@ -162,21 +158,42 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch()
 
-def prepare_controllers(testgroups=None, inc_slow=False):
+class JSController(TestController):
+    """Run CasperJS tests """
+    def __init__(self, section):
+        """Create new test runner."""
+        TestController.__init__(self)
+        self.section = section
+        
+        import IPython.html.tests as t
+        test_dir = os.path.join(os.path.dirname(t.__file__), 'casperjs')
+        includes = '--includes=' + os.path.join(test_dir,'util.js')
+        test_cases = os.path.join(test_dir, 'test_cases')
+        self.cmd = ['casperjs', 'test', includes, test_cases]
+
+
+def prepare_controllers(options):
     """Returns two lists of TestController instances, those to run, and those
     not to run."""
+    testgroups = options.testgroups
+
     if not testgroups:
         testgroups = test_group_names
-        if not inc_slow:
+        if not options.all:
             test_sections['parallel'].enabled = False
 
-    controllers = [PyTestController(name) for name in testgroups]
+    c_js = [JSController(name) for name in testgroups if 'js' in name]
+    c_py = [PyTestController(name) for name in testgroups if 'js' not in name]
 
+    configure_py_controllers(c_py, xunit=options.xunit,
+            coverage=options.coverage)
+    
+    controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
     not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
 
-def configure_controllers(controllers, xunit=False, coverage=False, extra_args=()):
+def configure_py_controllers(controllers, xunit=False, coverage=False, extra_args=()):
     """Apply options for a collection of TestController objects."""
     for controller in controllers:
         if xunit:
@@ -267,10 +284,7 @@ def run_iptestall(options):
         # If running in parallel, capture output so it doesn't get interleaved
         TestController.buffer_output = True
 
-    to_run, not_run = prepare_controllers(options.testgroups, inc_slow=options.all)
-
-    configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage,
-                          extra_args=options.extra_args)
+    to_run, not_run = prepare_controllers(options)
 
     def justify(ltext, rtext, width=70, fill='-'):
         ltext += ' '
