@@ -4,7 +4,9 @@
 
 // Get the URL of a notebook server on which to run tests.
 casper.getNotebookServer = function () {
-    return 'http://127.0.0.1:' + casper.cli.get("port");
+    port = casper.cli.get("port")
+    port = (typeof port === 'undefined') ? '8888' : port;
+    return 'http://127.0.0.1:' + port
 };
 
 // Create and open a new notebook.
