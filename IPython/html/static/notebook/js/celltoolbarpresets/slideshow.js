@@ -9,14 +9,6 @@
 //CellToolbar Example
 //============================================================================
 
-/**
- * $.getScript('/static/js/celltoolbarpresets/slideshow.js');
- * ```
- * or more generally  
- * ```
- * $.getScript('url to this file');
- * ```
- */
  // IIFE without asignement, we don't modifiy the IPython namespace
 (function (IPython) {
     "use strict";
@@ -25,7 +17,7 @@
     var slideshow_preset = [];
 
     var select_type = CellToolbar.utils.select_ui_generator([
-            ["-"            ,undefined      ],
+            ["-"            ,"-"            ],
             ["Slide"        ,"slide"        ],
             ["Sub-Slide"    ,"subslide"     ],
             ["Fragment"     ,"fragment"     ],
