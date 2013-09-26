@@ -208,17 +208,13 @@ var IPython = (function (IPython) {
         var cur = this.editor.getCursor();
         cur.ch = cur.ch-matched_text.length;
         var pos = this.editor.cursorCoords(cur);
-        var invert = false;
         var left = pos.left-3;
         var top;
         var cheight = this.complete.height();
         var wheight = $(window).height();
-        console.log(pos.bottom, cheight, wheight)
         if (pos.bottom+cheight+5 > wheight) {
-            invert = true;
             top = pos.top-cheight-4;
         } else {
-            invert = false;
             top = pos.bottom+1;
         }
         this.complete.css('left', left + 'px');
@@ -235,7 +231,7 @@ var IPython = (function (IPython) {
             that.keydown(event);
         });
 
-        this.build_gui_list(this.raw_result, invert);
+        this.build_gui_list(this.raw_result);
 
         this.sel.focus();
         // Opera sometimes ignores focusing a freshly created node
@@ -249,23 +245,13 @@ var IPython = (function (IPython) {
         this.editor.replaceRange(completion.str, completion.from, completion.to);
     }
 
-    Completer.prototype.build_gui_list = function (completions, invert) {
-        invert = invert || false;
-        if (!invert) {
-            for (var i = 0; i < completions.length; ++i) {
-                var opt = $('<option/>').text(completions[i].str).addClass(completions[i].type);
-                this.sel.append(opt);
-            }
-            this.sel.children().first().attr('selected', 'true');
-            this.sel.scrollTop(0);
-        } else {
-            for (var i = (completions.length-1); i > -1; --i) {
-                var opt = $('<option/>').text(completions[i].str).addClass(completions[i].type);
-                this.sel.append(opt);
-            }
-            this.sel.children().last().attr('selected', 'true');
-            this.sel.scrollTop(this.sel[0].scrollHeight);
+    Completer.prototype.build_gui_list = function (completions) {
+        for (var i = 0; i < completions.length; ++i) {
+            var opt = $('<option/>').text(completions[i].str).addClass(completions[i].type);
+            this.sel.append(opt);
         }
+        this.sel.children().first().attr('selected', 'true');
+        this.sel.scrollTop(0);
     }
 
     Completer.prototype.close = function () {
