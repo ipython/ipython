@@ -450,21 +450,32 @@ class NotebookApp(BaseIPythonApplication):
         static_url_prefix = self.webapp_settings.get("static_url_prefix",
                          url_path_join(self.base_project_url, "static")
         )
-        try:
-            mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
-        except IOError:
-            if self.certfile:
-                # HTTPS: load from Rackspace CDN, because SSL certificate requires it
-                base = u"https://c328740.ssl.cf1.rackcdn.com"
+        
+        # try local mathjax, either in nb_extensions/mathjax or static/mathjax
+        for (url_prefix, search_path) in [
+            (url_path_join(self.base_project_url, "extensions"), self.nb_extensions_path),
+            (static_url_prefix, self.static_file_path),
+        ]:
+            self.log.debug("searching for local mathjax in %s", search_path)
+            try:
+                mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), search_path)
+            except IOError:
+                continue
             else:
-                base = u"http://cdn.mathjax.org"
-            
-            url = base + u"/mathjax/latest/MathJax.js"
-            self.log.info("Using MathJax from CDN: %s", url)
-            return url
+                url = url_path_join(url_prefix, u"mathjax/MathJax.js")
+                self.log.info("Serving local MathJax from %s at %s", mathjax, url)
+                return url
+        
+        # no local mathjax, serve from CDN
+        if self.certfile:
+            # HTTPS: load from Rackspace CDN, because SSL certificate requires it
+            host = u"https://c328740.ssl.cf1.rackcdn.com"
         else:
-            self.log.info("Using local MathJax from %s" % mathjax)
-            return url_path_join(static_url_prefix, u"mathjax/MathJax.js")
+            host = u"http://cdn.mathjax.org"
+        
+        url = host + u"/mathjax/latest/MathJax.js"
+        self.log.info("Using MathJax from CDN: %s", url)
+        return url
     
     def _mathjax_url_changed(self, name, old, new):
         if new and not self.enable_mathjax:
