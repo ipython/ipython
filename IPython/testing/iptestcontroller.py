@@ -166,6 +166,10 @@ class JSController(TestController):
         TestController.__init__(self)
         self.section = section
 
+        self.ipydir = TemporaryDirectory()
+        self.dirs.append(self.ipydir)
+        self.env['IPYTHONDIR'] = self.ipydir.name
+
         # start the ipython notebook, so we get the port number
         self._init_server()
 
@@ -180,20 +184,21 @@ class JSController(TestController):
     def _init_server(self):
         "Start the notebook server in a separate process"
         self.queue = q = Queue()
-        self.server = server = Process(target=run_webapp, args=(q,))
-        server.start()
+        self.server = Process(target=run_webapp, args=(q, self.ipydir.name))
+        self.server.start()
         self.server_port = q.get()
 
     def cleanup(self):
         self.server.terminate()
+        self.server.join()
         TestController.cleanup(self)
 
 
-def run_webapp(q):
+def run_webapp(q, nbdir):
     """start the IPython Notebook, and pass port back to the queue"""
     import IPython.html.notebookapp as nbapp
     server = nbapp.NotebookApp()
-    server.initialize(['--no-browser'])
+    server.initialize(['--no-browser', '--notebook-dir='+nbdir])
     # communicate the port number to the parent process
     q.put(server.port)
     server.start()
