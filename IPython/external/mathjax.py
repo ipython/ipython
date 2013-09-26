@@ -21,7 +21,9 @@ From the command line:
 
 To a specific location:
 
-    $ python -m IPython.external.mathjax -i /usr/share/mathjax
+    $ python -m IPython.external.mathjax -i /usr/share/
+
+will install mathjax to /usr/share/mathjax
 
 To install MathJax from a file you have already downloaded:
 
@@ -39,7 +41,7 @@ To find the directory where IPython would like MathJax installed:
 
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -66,7 +68,8 @@ from IPython.utils.path import get_ipython_dir
 
 # Where mathjax will be installed
 
-default_dest = os.path.join(get_ipython_dir(), 'nbextensions', 'mathjax')
+nbextensions = os.path.join(get_ipython_dir(), 'nbextensions')
+default_dest = os.path.join(nbextensions, 'mathjax')
 
 # Test for access to install mathjax
 
@@ -80,14 +83,17 @@ def prepare_dest(dest, replace=False):
     parent = os.path.abspath(os.path.join(dest, os.path.pardir))
     if not os.path.exists(parent):
         os.makedirs(parent)
-
+    
     if os.path.exists(dest):
         if replace:
             print "removing existing MathJax at %s" % dest
             shutil.rmtree(dest)
             return True
         else:
-            print "MathJax apparently already installed at %s" % dest
+            mathjax_js = os.path.join(dest, 'MathJax.js')
+            if not os.path.exists(mathjax_js):
+                raise IOError("%s exists, but does not contain MathJax.js" % dest)
+            print "%s already exists" % mathjax_js
             return False
     else:
         return True
@@ -137,8 +143,8 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
 
     replace : bool [False]
         Whether to remove and replace an existing install.
-    dest : str [IPYTHONDIR/nbextensions]
-        Where to locally install mathjax
+    dest : str [IPYTHONDIR/nbextensions/mathjax]
+        Where to install mathjax
     tag : str ['v2.2']
         Which tag to download. Default is 'v2.2', the current stable release,
         but alternatives include 'v1.1a' and 'master'.
@@ -176,8 +182,8 @@ def main():
     parser.add_argument(
             '-i',
             '--install-dir',
-            default=default_dest,
-            help='custom installation directory')
+            default=nbextensions,
+            help='custom installation directory. Mathjax will be installed in here/mathjax')
 
     parser.add_argument(
             '-d',
@@ -196,7 +202,7 @@ def main():
 
     pargs = parser.parse_args()
 
-    dest = pargs.install_dir
+    dest = os.path.join(pargs.install_dir, 'mathjax')
 
     if pargs.print_dest:
         print dest
