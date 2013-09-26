@@ -194,11 +194,15 @@ class JSController(TestController):
         TestController.cleanup(self)
 
 
-def run_webapp(q, nbdir):
+def run_webapp(q, nbdir, loglevel=0):
     """start the IPython Notebook, and pass port back to the queue"""
     import IPython.html.notebookapp as nbapp
     server = nbapp.NotebookApp()
-    server.initialize(['--no-browser', '--notebook-dir='+nbdir])
+    args = ['--no-browser']
+    args.append('--notebook-dir='+nbdir)
+    args.append('--profile-dir='+nbdir)
+    args.append('--log-level='+str(loglevel))
+    server.initialize(args)
     # communicate the port number to the parent process
     q.put(server.port)
     server.start()
