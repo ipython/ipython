@@ -93,12 +93,14 @@ var IPython = (function (IPython) {
      * @method create_elements
      */
     Notebook.prototype.create_elements = function () {
+        var that = this;
+        // We need the notebook div to be focusable so it can watch for keyboard events.
+        this.element.attr('tabindex','-1');
+        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
-        var that = this;
-        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         var end_space = $('<div/>').addClass('end_space');
         end_space.dblclick(function (e) {
             var ncells = that.ncells();
@@ -106,7 +108,6 @@ var IPython = (function (IPython) {
         });
         this.element.append(this.container);
         this.container.append(end_space);
-        $('div#notebook').addClass('border-box-sizing');
     };
 
     /**
@@ -155,7 +156,14 @@ var IPython = (function (IPython) {
             });
         });
 
-        // $(document).keydown(function (event) {
+        $(document).keydown(function (event) {
+            if (event.which === key.ESC) {
+                // Intercept escape at highest level to avoid closing
+                // websocket connection with firefox
+                event.preventDefault();
+            }
+        });
+
         this.element.keydown(function (event) {
             // console.log(event);
 
@@ -215,11 +223,11 @@ var IPython = (function (IPython) {
                     };
                 };
             // Event handlers for command mode
-            } else if (that.mode === 'command' && !(event.ctrlKey || event.altKey)) {
+            } else if (that.mode === 'command' && !(event.ctrlKey || event.altKey || event.metaKey)) {
                 if (event.which === key.ENTER && !(event.ctrlKey || event.altKey || event.shiftKey)) {
                     // Enter edit mode = ENTER alone
                     that.edit_mode();
-                    return false
+                    return false;
                 } else if (event.which === key.UPARROW && !event.shiftKey) {
                     var index = that.get_selected_index();
                     if (index !== 0 && index !== null) {
@@ -309,7 +317,6 @@ var IPython = (function (IPython) {
                 } else if (event.which === 83) {
                     // Save notebook = s
                     that.save_checkpoint();
-                    that.control_key_active = false;
                     return false;
                 } else if (event.which === 74) {
                     // Move cell down = j
@@ -349,7 +356,6 @@ var IPython = (function (IPython) {
                     return false;
                 };
             };
-
             // If we havn't handled it, let someone else.
             return true;
         });
@@ -763,6 +769,7 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.before(tomove);
                 this.select(i-1);
+                this.element.focus();
                 
             };
             this.set_dirty(true);
@@ -787,6 +794,7 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.after(tomove);
                 this.select(i+1);
+                this.element.focus();
             };
         };
         this.set_dirty();
@@ -822,6 +830,7 @@ var IPython = (function (IPython) {
             };
             $([IPython.events]).trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
+            this.element.focus();
         };
         return this;
     };
@@ -979,6 +988,8 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -1130,6 +1141,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.cut_cell = function () {
         this.copy_cell();
         this.delete_cell();
+        this.element.focus();
     }
 
     /**
@@ -1156,6 +1168,7 @@ var IPython = (function (IPython) {
             var old_cell = this.get_next_cell(new_cell);
             this.delete_cell(this.find_cell_index(old_cell));
             this.select(this.find_cell_index(new_cell));
+            this.element.focus();
         };
     };
 
@@ -1169,6 +1182,7 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
+            this.element.focus();
         };
     };
 
@@ -1182,6 +1196,7 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_below(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
+            this.element.focus();
         };
     };
 
@@ -1215,6 +1230,7 @@ var IPython = (function (IPython) {
             this.select(current_index);
             this.undelete_backup = null;
             this.undelete_index = null;
+            this.element.focus();
         }
         $('#undelete_cell').addClass('disabled');
     }
@@ -1987,6 +2003,7 @@ var IPython = (function (IPython) {
         } else {
             this.select(0);
             this.command_mode();
+            this.element.focus();
         };
         this.set_dirty(false);
         this.scroll_to_top();
