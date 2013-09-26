@@ -90,12 +90,17 @@ class LazyConfigValue(HasTraits):
     
     # list methods
     _extend = List()
+    _prepend = List()
     
     def append(self, obj):
         self._extend.append(obj)
     
     def extend(self, other):
         self._extend.extend(other)
+    
+    def prepend(self, other):
+        """like list.extend, but for the front"""
+        self._prepend[:0] = other
     
     _inserts = List()
     def insert(self, index, other):
@@ -129,7 +134,9 @@ class LazyConfigValue(HasTraits):
         if isinstance(value, list):
             for idx, obj in self._inserts:
                 value.insert(idx, obj)
+            value[:0] = self._prepend
             value.extend(self._extend)
+        
         elif isinstance(value, dict):
             if self._update:
                 value.update(self._update)
@@ -142,13 +149,15 @@ class LazyConfigValue(HasTraits):
     def to_dict(self):
         """return JSONable dict form of my data
         
-        Currently update as dict or set, extend as list, and inserts as list of tuples.
+        Currently update as dict or set, extend, prepend as lists, and inserts as list of tuples.
         """
         d = {}
         if self._update:
             d['update'] = self._update
         if self._extend:
             d['extend'] = self._extend
+        if self._prepend:
+            d['prepend'] = self._prepend
         elif self._inserts:
             d['inserts'] = self._inserts
         return d
