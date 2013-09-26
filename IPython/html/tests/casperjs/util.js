@@ -51,6 +51,12 @@ casper.notebookTest = function(test) {
     });
 };
 
+casper.options.waitTimeout=5000
+casper.on('waitFor.timeout', function onWaitForTimeout(timeout) {
+    this.echo("Timeout for " + casper.getNotebookServer());
+    this.echo("Is the notebook server running?");
+});
+
 // Pass `console.log` calls from page JS to casper.
 casper.printLog = function () {
     this.on('remote.message', function(msg) {
