@@ -1,7 +1,7 @@
 //
 // Test that a Markdown cell is rendered to HTML.
 //
-casper.notebookTest(function () {
+casper.notebook_test(function () {
     // Test JavaScript models.
     var output = this.evaluate(function () {
         IPython.notebook.to_markdown();

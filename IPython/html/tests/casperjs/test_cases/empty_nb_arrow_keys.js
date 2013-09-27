@@ -1,7 +1,7 @@
 //
 // Check for errors with up and down arrow presses in an empty notebook.
 //
-casper.notebookTest(function () {
+casper.notebook_test(function () {
     var result = this.evaluate(function() {
         var ncells = IPython.notebook.ncells(),
             i;

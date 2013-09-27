@@ -1,7 +1,7 @@
 //
 // Test merging two notebook cells.
 //
-casper.notebookTest(function() {
+casper.notebook_test(function() {
     var output = this.evaluate(function () {
         // Fill in test data.
         var set_cell_text = function () {

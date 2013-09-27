@@ -3,29 +3,29 @@
 //
 
 // Get the URL of a notebook server on which to run tests.
-casper.getNotebookServer = function () {
+casper.get_notebook_server = function () {
     port = casper.cli.get("port")
     port = (typeof port === 'undefined') ? '8888' : port;
     return 'http://127.0.0.1:' + port
 };
 
 // Create and open a new notebook.
-casper.openNewNotebook = function () {
-    var baseUrl = this.getNotebookServer();
+casper.open_new_notebook = function () {
+    var baseUrl = this.get_notebook_server();
     this.start(baseUrl + '/new');
     // initially, the cells aren't created, so wait for them to appear
     this.waitForSelector('.CodeMirror-code');
 };
 
 // Shut down the current notebook's kernel.
-casper.shutdownCurrentKernel = function () {
+casper.shutdown_current_kernel = function () {
     this.thenEvaluate(function() {
         IPython.notebook.kernel.kill();
     });
 };
 
 // Delete created notebook.
-casper.deleteCurrentNotebook = function () {
+casper.delete_current_notebook = function () {
     this.thenEvaluate(function() {
         var nbData = $('body').data();
         var url = nbData.baseProjectUrl + 'notebooks/' + nbData.notebookId;
@@ -36,14 +36,14 @@ casper.deleteCurrentNotebook = function () {
 };
 
 // Wrap a notebook test to reduce boilerplate.
-casper.notebookTest = function(test) {
-    this.openNewNotebook();
+casper.notebook_test = function(test) {
+    this.open_new_notebook();
     this.then(test);
-    this.shutdownCurrentKernel();
-    //XXX: the implementation of deleteCurrentNotebook is currently broken
+    this.shutdown_current_kernel();
+    //XXX: the implementation of delete_current_notebook is currently broken
     // it's not a big deal, since the notebook directory will be deleted on
     // cleanup, but we should add tests for deleting the notebook separately
-    //this.deleteCurrentNotebook();
+    //this.delete_current_notebook();
     
     // Run the browser automation.
     this.run(function() {
@@ -53,7 +53,7 @@ casper.notebookTest = function(test) {
 
 casper.options.waitTimeout=5000
 casper.on('waitFor.timeout', function onWaitForTimeout(timeout) {
-    this.echo("Timeout for " + casper.getNotebookServer());
+    this.echo("Timeout for " + casper.get_notebook_server());
     this.echo("Is the notebook server running?");
 });
 
