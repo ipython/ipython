@@ -33,5 +33,5 @@ def citation2latex(s):
     in HTML in any manner.
     """
     import re
-    return re.sub("<(?P<tag>[a-z]+) .*?data-cite=['\"]{0,1}(?P<label>[^['\" >]*).*?/(?P=tag)>",
+    return re.sub("<(?P<tag>[a-z]+) [^>]*?data-cite=['\"]{0,1}(?P<label>[^['\" >]*).*?/(?P=tag)>",
                   '\\cite{\g<label>}',s, flags=re.S|re.I)
