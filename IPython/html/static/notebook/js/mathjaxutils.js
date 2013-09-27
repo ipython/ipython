@@ -27,7 +27,8 @@ IPython.mathjaxutils = (function (IPython) {
                 },
                 displayAlign: 'left', // Change this to 'center' to center equations.
                 "HTML-CSS": {
-                    styles: {'.MathJax_Display': {"margin": 0}}
+                    styles: {'.MathJax_Display': {"margin": 0}},
+                    linebreaks: { automatic: true }
                 }
             });
             MathJax.Hub.Configured();
