@@ -97,8 +97,6 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
-
-
 #-----------------------------------------------------------------------------
 # Main functions and classes
 #-----------------------------------------------------------------------------
@@ -169,6 +167,7 @@ def expand_user(path):
 
     return newpath, tilde_expand, tilde_val
 
+
 def compress_user(path, tilde_expand, tilde_val):
     """Does the opposite of expand_user, with its outputs.
     """
@@ -176,42 +175,6 @@ def compress_user(path, tilde_expand, tilde_val):
         return path.replace(tilde_val, '~')
     else:
         return path
-
-def penalize_magics_key(word):
-    """key for sorting that penalizes magic commands in the ordering
-
-    Normal words are left alone.
-
-    Magic commands have the initial % moved to the end, e.g.
-    %matplotlib is transformed as follows:
-
-    %matplotlib -> matplotlib%
-
-    [The choice of the final % is arbitrary.]
-
-    Since "matplotlib" < "matplotlib%" as strings, 
-    "timeit" will appear before the magic "%timeit" in the ordering
-
-    For consistency, move "%%" to the end, so cell magics appear *after*
-    line magics with the same name.
-
-    A check is performed that there are no other "%" in the string; 
-    if there are, then the string is not a magic command and is left unchanged.
-
-    """
-
-    # Move any % signs from start to end of the key 
-    # provided there are no others elsewhere in the string
-
-    if word[:2] == "%%":
-        if not "%" in word[2:]:
-            return word[2:] + "%%" 
-
-    if word[:1] == "%":
-        if not "%" in word[1:]:
-            return word[1:] + "%"
-    
-    return word
 
 
 class Bunch(object): pass
@@ -536,7 +499,6 @@ class IPCompleter(Completer):
                          self.file_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
-                         self.alias_matches,
                          ]
 
     def all_completions(self, text):
@@ -922,19 +884,13 @@ class IPCompleter(Completer):
                     self.matches = matcher(text)
                     if self.matches:
                         break
-
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
-
-        # Use penalize_magics_key to push magics to after normal variables
-        # with the same name:
-
-        self.matches = sorted(set(self.matches), key=penalize_magics_key)
-        
+        self.matches = sorted(set(self.matches))
+        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
         return text, self.matches
-
 
     def rlcomplete(self, text, state):
         """Return the state-th possible completion for 'text'.
@@ -997,6 +953,3 @@ class IPCompleter(Completer):
             return self.matches[state]
         except IndexError:
             return None
-
-
-
