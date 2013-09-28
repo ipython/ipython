@@ -3,7 +3,7 @@
 An application for IPython.
 
 All top-level applications should use the classes in this module for
-handling configuration and creating componenets.
+handling configuration and creating configurables.
 
 The job of an :class:`Application` is to create the master configuration
 object and then create the configurable objects, passing the config to them.
@@ -17,7 +17,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -28,6 +28,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import atexit
+import errno
 import glob
 import logging
 import os
@@ -126,7 +127,7 @@ class BaseIPythonApplication(Application):
                 get_ipython_package_dir(), u'config', u'profile', new
         )
 
-    ipython_dir = Unicode(get_ipython_dir(), config=True,
+    ipython_dir = Unicode(config=True,
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
@@ -134,6 +135,11 @@ class BaseIPythonApplication(Application):
         the environment variable IPYTHONDIR.
         """
     )
+    def _ipython_dir_default(self):
+        d = get_ipython_dir()
+        self._ipython_dir_changed('ipython_dir', '', d)
+        return d
+    
     _in_init_profile_dir = False
     profile_dir = Instance(ProfileDir)
     def _profile_dir_default(self):
@@ -179,10 +185,6 @@ class BaseIPythonApplication(Application):
             self.log.error("Current working directory doesn't exist.")
             raise
 
-        # ensure even default IPYTHONDIR exists
-        if not os.path.exists(self.ipython_dir):
-            self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
-
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
@@ -214,9 +216,17 @@ class BaseIPythonApplication(Application):
         if not os.path.isdir(new):
             os.makedirs(new, mode=0o777)
         readme = os.path.join(new, 'README')
-        if not os.path.exists(readme):
-            path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
-            shutil.copy(os.path.join(path, 'README'), readme)
+        readme_src = os.path.join(get_ipython_package_dir(), u'config', u'profile', 'README')
+        if not os.path.exists(readme) and os.path.exists(readme_src):
+            shutil.copy(readme_src, readme)
+        for d in ('extensions', 'nbextensions'):
+            path = os.path.join(new, d)
+            if not os.path.exists(path):
+                try:
+                    os.mkdir(path)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        self.log.error("couldn't create path %s: %s", path, e)
         self.log.debug("IPYTHONDIR set to: %s" % new)
 
     def load_config_file(self, suppress_errors=True):
