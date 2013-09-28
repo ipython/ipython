@@ -97,8 +97,6 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
-START_WITH_MAGIC_PATTERN = re.compile("%+")  # find %
-
 
 
 #-----------------------------------------------------------------------------
@@ -197,15 +195,22 @@ def penalize_magics_key(word):
     For consistency, move "%%" to the end, so cell magics appear *after*
     line magics with the same name.
 
+    A check is performed that there are no other "%" in the string; 
+    if there are, then the string is not a magic command and is left unchanged.
+
     """
 
-    # Move all % to end of the *key* (don't change the actual text, of course)
+    # Move any % signs from start to end of the key 
+    # provided there are no others elsewhere in the string
 
-    m = START_WITH_MAGIC_PATTERN.match(word) # at the start of the string
+    if word[:2] == "%%":
+        if not "%" in word[2:]:
+            return word[2:] + "%%" 
 
-    if m != None:  # if there is a match
-        word = word[m.end():] + m.group()  # move all %'s to the end
-       
+    if word[:1] == "%":
+        if not "%" in word[1:]:
+            return word[1:] + "%"
+    
     return word
 
 
@@ -947,7 +952,7 @@ class IPCompleter(Completer):
         # richer completion semantics in other evironments.
 
 
-        # Use the penalize_magics_keys to push magics to after variables
+        # Use penalize_magics_key to push magics to after normal variables
         # with the same name:
 
         self.matches = sorted(set(self.matches), key=penalize_magics_key)
