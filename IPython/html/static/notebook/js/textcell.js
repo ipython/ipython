@@ -283,6 +283,67 @@ var IPython = (function (IPython) {
 
 
     /**
+     * @class RestructuredtextCell
+     * @constructor RestructuredtextCell
+     * @extends IPython.HTMLCell
+     */
+    var RestructuredtextCell = function (options) {
+        var options = options || {};
+
+        options = this.mergeopt(RestructuredtextCell,options);
+        TextCell.apply(this, [options]);
+
+        this.cell_type = 'restructuredtext';
+    };
+
+    RestructuredtextCell.options_default = {
+        cm_config: {
+            mode: 'rst'
+        },
+        placeholder: "Type *reStructuredText* and LaTeX: $\\alpha^2$"
+    }
+
+
+    RestructuredtextCell.prototype = new TextCell();
+
+
+    /**
+     * @method render
+     */
+    RestructuredtextCell.prototype.render = function () {
+        if (this.rendered === false) {
+            var text = this.get_text();
+            if (text === "") { text = this.placeholder; }
+
+            var whole_rst_source = "";
+
+            $.each(IPython.notebook.get_cells(), function(i, cell){
+                if (cell.cell_type === "restructuredtext"){
+                    whole_rst_source += "\n.. rst-cell-" + i.toString() + "\n\n" + cell.get_text();
+                }
+            });
+
+            var html = "<pre>" + whole_rst_source + "</pre>";
+            try {
+                this.set_rendered(html);
+            } catch (e) {
+                console.log("Error running Javascript in reStructuredText:");
+                console.log(e);
+                this.set_rendered($("<div/>").addClass("js-error").html(
+                    "Error rendering reStructuredText!<br/>" + e.toString())
+                );
+            }
+            this.element.find('div.text_cell_input').hide();
+            this.element.find("div.text_cell_render").show();
+            this.typeset()
+            this.rendered = true;
+        }
+    };
+
+
+
+
+    /**
      * @class MarkdownCell
      * @constructor MarkdownCell
      * @extends IPython.HTMLCell
@@ -553,7 +614,7 @@ var IPython = (function (IPython) {
                     .attr('href', '#' + hash)
                     .text('¶')
             );
-            
+
             this.set_rendered(h);
             this.typeset();
             this.element.find('div.text_cell_input').hide();
@@ -564,6 +625,7 @@ var IPython = (function (IPython) {
 
     IPython.TextCell = TextCell;
     IPython.MarkdownCell = MarkdownCell;
+    IPython.RestructuredtextCell = RestructuredtextCell;
     IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
 
