@@ -112,14 +112,15 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.sessions_loaded = function(data){
         this.sessions = new Object();
+		console.log(data)
         var len = data.length;
         if (len != 0) {
             for (var i=0; i<len; i++) {
-                if (data[i]['path']==null) {
-                    nb_path = data[i]['name'];
+                if (data[i]['notebook']['path']==null) {
+                    nb_path = data[i]['notebook']['name'];
                 }
                 else {
-                    nb_path = data[i]['path'] + data[i]['name'];
+                    nb_path = data[i]['notebook']['path'] + data[i]['notebook']['name'];
                 }
                 this.sessions[nb_path]= data[i]['id'];
             }
@@ -352,4 +353,3 @@ var IPython = (function (IPython) {
     return IPython;
 
 }(IPython));
-

@@ -66,7 +66,6 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.collapsed = false;
         this.cell_type = "code";
-        this.last_msg_id = null;
 
 
         var cm_overwrite_options  = {
@@ -241,12 +240,9 @@ var IPython = (function (IPython) {
      * @method execute
      */
     CodeCell.prototype.execute = function () {
-        this.output_area.clear_output();
+        this.output_area.clear_output(true, true, true);
         this.set_input_prompt('*');
         this.element.addClass("running");
-        if (this.last_msg_id) {
-            this.kernel.clear_callbacks_for_msg(this.last_msg_id);
-        }
         var callbacks = {
             'execute_reply': $.proxy(this._handle_execute_reply, this),
             'output': $.proxy(this.output_area.handle_output, this.output_area),
@@ -254,7 +250,7 @@ var IPython = (function (IPython) {
             'set_next_input': $.proxy(this._handle_set_next_input, this),
             'input_request': $.proxy(this._handle_input_request, this)
         };
-        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        var msg_id = this.session.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
     };
 
     /**
@@ -390,8 +386,8 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.clear_output = function (wait) {
-        this.output_area.clear_output(wait);
+    CodeCell.prototype.clear_output = function (stdout, stderr, other) {
+        this.output_area.clear_output(stdout, stderr, other);
     };
 
 
