@@ -13,31 +13,31 @@ var IPython = (function (IPython) {
     
     var Session = function(notebook_name, notebook_path, Notebook){
         this.kernel = null;
-        this.kernel_id = null;
-        this.session_id = null;
-        this.notebook_name = notebook_name;
-        this.notebook_path = notebook_path;
+        this.id = null;
+        this.name = notebook_name;
+        this.path = notebook_path;
         this.notebook = Notebook;
         this._baseProjectUrl = Notebook.baseProjectUrl() 
     };
     
     Session.prototype.start = function() {
         var that = this
-        var notebook = {'notebook':{'name': this.notebook_name, 'path': this.notebook_path}}
+        var notebook = {'notebook':{'name': this.name, 'path': this.path}}
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
             data: JSON.stringify(notebook),
             dataType : "json",
+            success : $.proxy(this.start_kernel, that),
         };
         var url = this._baseProjectUrl + 'api/sessions';
         $.ajax(url, settings);
     };
     
     Session.prototype.notebook_rename = function (name, path) {
-        this.notebook_name = name;
-        this.notebook_path = path;
+        this.name = name;
+        this.path = path;
         var notebook = {'notebook':{'name':name, 'path': path}};
         var settings = {
             processData : false,
@@ -68,7 +68,7 @@ var IPython = (function (IPython) {
      * @method start_kernel
      */
     Session.prototype.start_kernel = function (json) {
-        this.session_id = json.id;
+        this.id = json.id;
         this.kernel_content = json.kernel;
         var base_url = $('body').data('baseKernelUrl') + "api/kernels";
         this.kernel = new IPython.Kernel(base_url, this.session_id);
