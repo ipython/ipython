@@ -176,6 +176,42 @@ def compress_user(path, tilde_expand, tilde_val):
     else:
         return path
 
+def penalize_magics_key(word):
+    """key for sorting that penalizes magic commands in the ordering
+
+    Normal words are left alone.
+
+    Magic commands have the initial % moved to the end, e.g.
+    %matplotlib is transformed as follows:
+
+    %matplotlib -> matplotlib%
+
+    [The choice of the final % is arbitrary.]
+
+    Since "matplotlib" < "matplotlib%" as strings, 
+    "timeit" will appear before the magic "%timeit" in the ordering
+
+    For consistency, move "%%" to the end, so cell magics appear *after*
+    line magics with the same name.
+
+    A check is performed that there are no other "%" in the string; 
+    if there are, then the string is not a magic command and is left unchanged.
+
+    """
+
+    # Move any % signs from start to end of the key 
+    # provided there are no others elsewhere in the string
+
+    if word[:2] == "%%":
+        if not "%" in word[2:]:
+            return word[2:] + "%%" 
+
+    if word[:1] == "%":
+        if not "%" in word[1:]:
+            return word[1:] + "%"
+    
+    return word
+
 
 class Bunch(object): pass
 
@@ -888,8 +924,12 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
-        self.matches = sorted(set(self.matches))
-        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
+
+        # Use penalize_magics_key to push magics to after normal variables
+        # with the same name:
+
+        self.matches = sorted(set(self.matches), key=penalize_magics_key)
+        
         return text, self.matches
 
     def rlcomplete(self, text, state):
