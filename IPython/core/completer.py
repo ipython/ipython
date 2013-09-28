@@ -97,6 +97,8 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
+
+
 #-----------------------------------------------------------------------------
 # Main functions and classes
 #-----------------------------------------------------------------------------
@@ -166,7 +168,6 @@ def expand_user(path):
             tilde_val = newpath
 
     return newpath, tilde_expand, tilde_val
-
 
 def compress_user(path, tilde_expand, tilde_val):
     """Does the opposite of expand_user, with its outputs.
@@ -535,6 +536,7 @@ class IPCompleter(Completer):
                          self.file_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
+                         self.alias_matches,
                          ]
 
     def all_completions(self, text):
@@ -920,6 +922,7 @@ class IPCompleter(Completer):
                     self.matches = matcher(text)
                     if self.matches:
                         break
+
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
@@ -931,6 +934,7 @@ class IPCompleter(Completer):
         self.matches = sorted(set(self.matches), key=penalize_magics_key)
         
         return text, self.matches
+
 
     def rlcomplete(self, text, state):
         """Return the state-th possible completion for 'text'.
@@ -993,3 +997,6 @@ class IPCompleter(Completer):
             return self.matches[state]
         except IndexError:
             return None
+
+
+
