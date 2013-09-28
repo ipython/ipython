@@ -8,7 +8,18 @@ casper.notebook_test(function () {
         cell.execute();
     });
 
-    this.wait(2000);
+
+    this.waitFor(function () {
+        return this.evaluate(function get_output() {
+            var cell = IPython.notebook.get_cell(0);
+            return cell.output_area.outputs.length != 0;
+        })
+    }, null, function on_timeout() {
+            this.echo( this.evaluate( function() {
+                IPython.notebook.save_notebook();
+                return IPython.notebook.notebook_name;
+            }) + ".ipynb is the name of the notebook which failed");
+    });
 
     this.then(function () {
         var result = this.evaluate(function () {
