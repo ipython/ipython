@@ -316,10 +316,12 @@ var IPython = (function (IPython) {
             if (text === "") { text = this.placeholder; }
 
             var whole_rst_source = "";
-
+            var split_mark = "\n\n.. raw:: html\n\n   <!-- split //-->\n\n";
+            var rst_cells = [];
             $.each(IPython.notebook.get_cells(), function(i, cell){
                 if (cell.cell_type === "restructuredtext"){
-                    whole_rst_source += "\n.. rst-cell\n\n" + cell.get_text();
+                    rst_cells.push(i);
+                    whole_rst_source += cell.get_text() + split_mark;
                 }
             });
 
@@ -327,17 +329,17 @@ var IPython = (function (IPython) {
             $.post(url,
                 {'source': whole_rst_source},
                 function( data ){
-                    $.each(IPython.notebook.get_cells(), function(i, cell){
-                        if (cell.cell_type === "restructuredtext"){
-                            try {
-                                cell.set_rendered(data);
-                            } catch (e) {
-                                console.log("Error running Javascript in reStructuredText:");
-                                console.log(e);
-                                cell.set_rendered($("<div/>").addClass("js-error").html(
-                                    "Error rendering reStructuredText!<br/>" + e.toString())
-                                );
-                            }
+
+                    $.each(data, function(i, cell_html){
+                        var cell = IPython.notebook.get_cell(rst_cells[i])
+                        try {
+                            cell.set_rendered(cell_html);
+                        } catch (e) {
+                            console.log("Error running Javascript in reStructuredText:");
+                            console.log(e);
+                            cell.set_rendered($("<div/>").addClass("js-error").html(
+                                "Error rendering reStructuredText!<br/>" + e.toString())
+                            );
                         }
                     });
             });

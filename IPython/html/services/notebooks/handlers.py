@@ -144,7 +144,9 @@ class NotebookRstHandler(IPythonHandler):
     def post(self):
         """post creates a """
         source = self.get_argument('source')
-        self.finish(rst2html(source))
+        html = rst2html(source).split("<!-- split //-->\n")[:-1]
+        self.set_header('Content-Type', 'application/json')
+        self.finish(jsonapi.dumps(html))
 
 
 #-----------------------------------------------------------------------------
