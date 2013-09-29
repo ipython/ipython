@@ -62,13 +62,13 @@ class Exporter(LoggingConfigurable):
 
     _preprocessors = None
 
-    default_preprocessors = List([nbpreprocessors.coalesce_streams,
-                                 nbpreprocessors.SVG2PDFPreprocessor,
-                                 nbpreprocessors.ExtractOutputPreprocessor,
-                                 nbpreprocessors.CSSHTMLHeaderPreprocessor,
-                                 nbpreprocessors.RevealHelpPreprocessor,
-                                 nbpreprocessors.LatexPreprocessor,
-                                 nbpreprocessors.HighlightMagicsPreprocessor],
+    default_preprocessors = List(['IPython.nbconvert.preprocessors.coalesce_streams',
+                                  'IPython.nbconvert.preprocessors.SVG2PDFPreprocessor',
+                                  'IPython.nbconvert.preprocessors.ExtractOutputPreprocessor',
+                                  'IPython.nbconvert.preprocessors.CSSHTMLHeaderPreprocessor',
+                                  'IPython.nbconvert.preprocessors.RevealHelpPreprocessor',
+                                  'IPython.nbconvert.preprocessors.LatexPreprocessor',
+                                  'IPython.nbconvert.preprocessors.HighlightMagicsPreprocessor'],
         config=True,
         help="""List of preprocessors available by default, by name, namespace, 
         instance, or type.""")
