@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 """Notebook related utilities
 
 Authors:
 
 * Brian Granger
+* Martín Gaitán
 """
 
 #-----------------------------------------------------------------------------
@@ -15,6 +17,31 @@ Authors:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import docutils.core
+import docutils.io
+try:
+    from rst2html5 import HTML5Writer
+except ImportError:
+    HTML5Writer = None
+
+
+def rst2html(source):
+    writer = HTML5Writer() if HTML5Writer else None
+    output, pub = docutils.core.publish_programmatically(
+        source=source, source_path=None,
+        source_class=docutils.io.StringInput,
+        destination_class=docutils.io.StringOutput,
+        destination=None,
+        destination_path=None,
+        reader=None, reader_name='standalone',
+        parser=None, parser_name='restructuredtext',
+        writer=writer, writer_name='html',
+        settings=None, settings_spec=None,
+        settings_overrides=None,
+        config_section=None,
+        enable_exit_status=None)
+    return pub.writer.parts['body']
+
 
 def url_path_join(*pieces):
     """Join components of url into a relative url

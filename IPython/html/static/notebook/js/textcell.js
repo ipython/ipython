@@ -319,20 +319,28 @@ var IPython = (function (IPython) {
 
             $.each(IPython.notebook.get_cells(), function(i, cell){
                 if (cell.cell_type === "restructuredtext"){
-                    whole_rst_source += "\n.. rst-cell-" + i.toString() + "\n\n" + cell.get_text();
+                    whole_rst_source += "\n.. rst-cell\n\n" + cell.get_text();
                 }
             });
 
-            var html = "<pre>" + whole_rst_source + "</pre>";
-            try {
-                this.set_rendered(html);
-            } catch (e) {
-                console.log("Error running Javascript in reStructuredText:");
-                console.log(e);
-                this.set_rendered($("<div/>").addClass("js-error").html(
-                    "Error rendering reStructuredText!<br/>" + e.toString())
-                );
-            }
+            var url = $('body').data('baseProjectUrl') + 'notebooks/rst';
+            $.post(url,
+                {'source': whole_rst_source},
+                function( data ){
+                    $.each(IPython.notebook.get_cells(), function(i, cell){
+                        if (cell.cell_type === "restructuredtext"){
+                            try {
+                                cell.set_rendered(data);
+                            } catch (e) {
+                                console.log("Error running Javascript in reStructuredText:");
+                                console.log(e);
+                                cell.set_rendered($("<div/>").addClass("js-error").html(
+                                    "Error rendering reStructuredText!<br/>" + e.toString())
+                                );
+                            }
+                        }
+                    });
+            });
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             this.typeset()

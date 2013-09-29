@@ -21,6 +21,7 @@ from tornado import web
 from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
+from IPython.html.utils import rst2html
 
 from ...base.handlers import IPythonHandler
 
@@ -62,7 +63,7 @@ class NotebookHandler(IPythonHandler):
         nbm = self.notebook_manager
         format = self.get_argument('format', default='json')
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
-        
+
         if format == u'json':
             self.set_header('Content-Type', 'application/json')
             self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
@@ -89,9 +90,9 @@ class NotebookHandler(IPythonHandler):
 
 
 class NotebookCheckpointsHandler(IPythonHandler):
-    
+
     SUPPORTED_METHODS = ('GET', 'POST')
-    
+
     @web.authenticated
     def get(self, notebook_id):
         """get lists checkpoints for a notebook"""
@@ -99,7 +100,7 @@ class NotebookCheckpointsHandler(IPythonHandler):
         checkpoints = nbm.list_checkpoints(notebook_id)
         data = jsonapi.dumps(checkpoints, default=date_default)
         self.finish(data)
-    
+
     @web.authenticated
     def post(self, notebook_id):
         """post creates a new checkpoint"""
@@ -109,14 +110,14 @@ class NotebookCheckpointsHandler(IPythonHandler):
         self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
             self.base_project_url, notebook_id, checkpoint['checkpoint_id']
         ))
-        
+
         self.finish(data)
 
 
 class ModifyNotebookCheckpointsHandler(IPythonHandler):
-    
+
     SUPPORTED_METHODS = ('POST', 'DELETE')
-    
+
     @web.authenticated
     def post(self, notebook_id, checkpoint_id):
         """post restores a notebook from a checkpoint"""
@@ -124,7 +125,7 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
         nbm.restore_checkpoint(notebook_id, checkpoint_id)
         self.set_status(204)
         self.finish()
-    
+
     @web.authenticated
     def delete(self, notebook_id, checkpoint_id):
         """delete clears a checkpoint for a given notebook"""
@@ -132,6 +133,18 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
         nbm.delte_checkpoint(notebook_id, checkpoint_id)
         self.set_status(204)
         self.finish()
+
+
+
+class NotebookRstHandler(IPythonHandler):
+
+    SUPPORTED_METHODS = ('POST',)
+
+    @web.authenticated
+    def post(self):
+        """post creates a """
+        source = self.get_argument('source')
+        self.finish(rst2html(source))
 
 
 #-----------------------------------------------------------------------------
@@ -145,6 +158,7 @@ _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 default_handlers = [
     (r"/notebooks", NotebookRootHandler),
     (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+    (r"/notebooks/rst", NotebookRstHandler),
     (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
     (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
         ModifyNotebookCheckpointsHandler
