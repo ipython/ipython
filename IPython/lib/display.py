@@ -10,7 +10,6 @@ from io import BytesIO
 import wave
 import mimetypes
 
-import numpy as np
 from IPython.core.display import DisplayObject
 
 
@@ -105,8 +104,8 @@ class Audio(DisplayObject):
             
     def _make_wav(self,data,rate):
         """ Transform a numpy array to a PCM bytestring """
-        data = np.array(data)
-        scaled = np.int16(data/np.max(np.abs(data)) * 32767)
+        maxabsvalue = max(map(abs,data))
+        scaled = map(lambda x: int(x/maxabsvalue*32767), data)
         fp = BytesIO()
         waveobj = wave.open(fp,mode='wb')
         waveobj.setnchannels(1)
