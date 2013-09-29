@@ -19,59 +19,75 @@ Authors:
 import os
 from tornado import web
 HTTPError = web.HTTPError
+from zmq.utils import jsonapi
+
 
 from ..base.handlers import IPythonHandler
 from ..utils import url_path_join
+from urllib import quote
 
 #-----------------------------------------------------------------------------
 # Handlers
 #-----------------------------------------------------------------------------
 
 
-class NewHandler(IPythonHandler):
+class NotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self):
-        notebook_id = self.notebook_manager.new_notebook()
-        self.redirect(url_path_join(self.base_project_url, notebook_id))
+    def post(self):
+        """post either creates a new notebook if no json data is
+        sent to the server, or copies the data and returns a 
+        copied notebook."""
+        nbm = self.notebook_manager
+        data=self.request.body
+        if data:
+            data = jsonapi.loads(data)
+            notebook_name = nbm.copy_notebook(data['name'])
+        else:
+            notebook_name = nbm.new_notebook()
+        self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
 class NamedNotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, notebook_id):
+    def get(self, notebook_path):
+        """get renders the notebook template if a name is given, or 
+        redirects to the '/files/' handler if the name is not given."""
         nbm = self.notebook_manager
-        if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
-        self.write(self.render_template('notebook.html',
-            project=self.project,
-            notebook_id=notebook_id,
-            kill_kernel=False,
-            mathjax_url=self.mathjax_url,
+        name, path = nbm.named_notebook_path(notebook_path)
+        if name is not None:
+            # a .ipynb filename was given
+            if not nbm.notebook_exists(name, path):
+                raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
+            name = nbm.url_encode(name)
+            path = nbm.url_encode(path)
+            self.write(self.render_template('notebook.html',
+                project=self.project_dir,
+                notebook_path=path,
+                notebook_name=name,
+                kill_kernel=False,
+                mathjax_url=self.mathjax_url,
+                )
             )
-        )
-
-
-class NotebookRedirectHandler(IPythonHandler):
-    
-    @web.authenticated
-    def get(self, notebook_name):
-        # strip trailing .ipynb:
-        notebook_name = os.path.splitext(notebook_name)[0]
-        notebook_id = self.notebook_manager.rev_mapping.get(notebook_name, '')
-        if notebook_id:
-            url = url_path_join(self.settings.get('base_project_url', '/'), notebook_id)
-            return self.redirect(url)
         else:
-            raise HTTPError(404)
-
-
-class NotebookCopyHandler(IPythonHandler):
+            url = "/files/" + notebook_path
+            self.redirect(url)
+            
 
     @web.authenticated
-    def get(self, notebook_id):
-        notebook_id = self.notebook_manager.copy_notebook(notebook_id)
-        self.redirect(url_path_join(self.base_project_url, notebook_id))
+    def post(self, notebook_path):
+        """post either creates a new notebook if no json data is
+        sent to the server, or copies the data and returns a 
+        copied notebook in the location given by 'notebook_path."""
+        nbm = self.notebook_manager
+        data = self.request.body
+        if data:
+            data = jsonapi.loads(data)
+            notebook_name = nbm.copy_notebook(data['name'], notebook_path)
+        else:
+            notebook_name = nbm.new_notebook(notebook_path)
+        self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
 #-----------------------------------------------------------------------------
@@ -79,13 +95,10 @@ class NotebookCopyHandler(IPythonHandler):
 #-----------------------------------------------------------------------------
 
 
-_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
-_notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
+_notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
-    (r"/new", NewHandler),
-    (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
-    (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
-    (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
-
+    (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
+    (r"/notebooks/", NotebookHandler),
 ]
+

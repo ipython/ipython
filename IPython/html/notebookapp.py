@@ -65,6 +65,7 @@ from .services.kernels.kernelmanager import MappingKernelManager
 from .services.notebooks.nbmanager import NotebookManager
 from .services.notebooks.filenbmanager import FileNotebookManager
 from .services.clusters.clustermanager import ClusterManager
+from .services.sessions.sessionmanager import SessionManager
 
 from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
@@ -127,19 +128,19 @@ def load_handlers(name):
 class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, notebook_manager,
-                 cluster_manager, log,
-                 base_project_url, settings_overrides):
+                 cluster_manager, session_manager, log, base_project_url,
+                 settings_overrides):
 
         settings = self.init_settings(
             ipython_app, kernel_manager, notebook_manager, cluster_manager,
-            log, base_project_url, settings_overrides)
+            session_manager, log, base_project_url, settings_overrides)
         handlers = self.init_handlers(settings)
 
         super(NotebookWebApplication, self).__init__(handlers, **settings)
 
     def init_settings(self, ipython_app, kernel_manager, notebook_manager,
-                      cluster_manager, log,
-                      base_project_url, settings_overrides):
+                      cluster_manager, session_manager, log, base_project_url,
+                      settings_overrides):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn
         # make the patterns unicode, and ultimately result in unicode
@@ -168,7 +169,8 @@ class NotebookWebApplication(web.Application):
             kernel_manager=kernel_manager,
             notebook_manager=notebook_manager,
             cluster_manager=cluster_manager,
-            
+            session_manager=session_manager,
+
             # IPython stuff
             nbextensions_path = ipython_app.nbextensions_path,
             mathjax_url=ipython_app.mathjax_url,
@@ -192,6 +194,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.kernels.handlers'))
         handlers.extend(load_handlers('services.notebooks.handlers'))
         handlers.extend(load_handlers('services.clusters.handlers'))
+        handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
@@ -292,6 +295,7 @@ class NotebookApp(BaseIPythonApplication):
 
     # file to be opened in the notebook server
     file_to_run = Unicode('')
+    entry_path = Unicode('')
 
     # Network related information.
 
@@ -499,11 +503,13 @@ class NotebookApp(BaseIPythonApplication):
         if self.extra_args:
             f = os.path.abspath(self.extra_args[0])
             if os.path.isdir(f):
-                nbdir = f
-            else:
+                self.entry_path = self.extra_args[0]
+            elif os.path.isfile(f):
                 self.file_to_run = f
-                nbdir = os.path.dirname(f)
-            self.config.NotebookManager.notebook_dir = nbdir
+                path = os.path.split(self.extra_args[0])
+                if path[0] != '':
+                    self.entry_path = path[0]+'/'
+                
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
@@ -523,7 +529,7 @@ class NotebookApp(BaseIPythonApplication):
         )
         kls = import_item(self.notebook_manager_class)
         self.notebook_manager = kls(parent=self, log=self.log)
-        self.notebook_manager.load_notebook_names()
+        self.session_manager = SessionManager(parent=self, log=self.log)
         self.cluster_manager = ClusterManager(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
 
@@ -540,9 +546,9 @@ class NotebookApp(BaseIPythonApplication):
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager,
-            self.cluster_manager, self.log,
-            self.base_project_url, self.webapp_settings,
+            self, self.kernel_manager, self.notebook_manager, 
+            self.cluster_manager, self.session_manager,
+            self.log, self.base_project_url, self.webapp_settings
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)
@@ -724,9 +730,9 @@ class NotebookApp(BaseIPythonApplication):
 
             if self.file_to_run:
                 name, _ = os.path.splitext(os.path.basename(self.file_to_run))
-                url = self.notebook_manager.rev_mapping.get(name, '')
+                url = 'notebooks/' + self.entry_path + name + _
             else:
-                url = ''
+                url = 'tree/' + self.entry_path
             if browser:
                 b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
                     self.port, self.base_project_url, url), new=2)

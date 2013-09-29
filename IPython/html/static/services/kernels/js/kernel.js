@@ -31,7 +31,7 @@ var IPython = (function (IPython) {
         this.stdin_channel = null;
         this.base_url = base_url;
         this.running = false;
-        this.username = "username";
+        this.username= "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
 
@@ -72,17 +72,16 @@ var IPython = (function (IPython) {
      * Start the Python kernel
      * @method start
      */
-    Kernel.prototype.start = function (notebook_id) {
-        var that = this;
-        if (!this.running) {
-            var qs = $.param({notebook:notebook_id});
-            var url = this.base_url + '?' + qs;
-            $.post(url,
-                $.proxy(that._kernel_started,that),
-                'json'
-            );
-        };
-    };
+     Kernel.prototype.start = function () {
+         var that = this;
+         if (!this.running) {
+             var url = this.base_url;
+             $.post(url,
+                 $.proxy(that._kernel_started,that),
+                 'json'
+             );
+         };
+     };
 
     /**
      * Restart the python kernel.
@@ -107,9 +106,9 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype._kernel_started = function (json) {
-        console.log("Kernel started: ", json.kernel_id);
+        console.log("Kernel started: ", json.id);
         this.running = true;
-        this.kernel_id = json.kernel_id;
+        this.kernel_id = json.id;
         var ws_url = json.ws_url;
         if (ws_url.match(/wss?:\/\//) == null) {
             // trailing 's' in https will become wss for secure web sockets

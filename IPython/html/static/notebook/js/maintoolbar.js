@@ -112,7 +112,7 @@ var IPython = (function (IPython) {
                     label : 'Interrupt',
                     icon : 'icon-stop',
                     callback : function () {
-                        IPython.notebook.kernel.interrupt();
+                        IPython.notebook.session.interrupt_kernel();
                         }
                 }
             ],'run_int');

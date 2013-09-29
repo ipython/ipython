@@ -19,12 +19,16 @@ Authors:
 
 import datetime
 import email.utils
+import functools
 import hashlib
+import json
 import logging
 import mimetypes
 import os
 import stat
+import sys
 import threading
+import traceback
 
 from tornado import web
 from tornado import websocket
@@ -37,6 +41,7 @@ except ImportError:
 from IPython.config import Application
 from IPython.external.decorator import decorator
 from IPython.utils.path import filefind
+from IPython.utils.jsonutil import date_default
 
 #-----------------------------------------------------------------------------
 # Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
@@ -214,7 +219,11 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings['cluster_manager']
     
     @property
-    def project(self):
+    def session_manager(self):
+        return self.settings['session_manager']
+    
+    @property
+    def project_dir(self):
         return self.notebook_manager.notebook_dir
     
     #---------------------------------------------------------------
@@ -240,12 +249,58 @@ class IPythonHandler(AuthenticatedHandler):
             use_less=self.use_less,
         )
 
+    def get_json_body(self):
+        """Return the body of the request as JSON data."""
+        if not self.request.body:
+            return None
+        # Do we need to call body.decode('utf-8') here?
+        body = self.request.body.strip().decode(u'utf-8')
+        try:
+            model = json.loads(body)
+        except:
+            raise web.HTTPError(400, u'Invalid JSON in body of request')
+        return model
+
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
 
     @web.authenticated
     def get(self, path):
         return web.StaticFileHandler.get(self, path)
+
+
+def json_errors(method):
+    """Decorate methods with this to return GitHub style JSON errors.
+    
+    This should be used on any handler method that can raise HTTPErrors.
+    
+    This will grab the latest HTTPError exception using sys.exc_info
+    and then:
+    
+    1. Set the HTTP status code based on the HTTPError
+    2. Create and return a JSON body with a message field describing
+       the error in a human readable form.
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        try:
+            result = method(self, *args, **kwargs)
+        except:
+            t, value, tb = sys.exc_info()
+            if isinstance(value, web.HTTPError):
+                status = value.status_code
+                message = value.log_message
+            else:
+                status = 400
+                message = u"Unknown server error"
+            self.set_status(status)
+            tb_text = ''.join(traceback.format_exception(t, value, tb))
+            reply = dict(message=message, traceback=tb_text)
+            self.finish(json.dumps(reply, default=date_default))
+        else:
+            return result
+    return wrapper
+
 
 
 #-----------------------------------------------------------------------------
@@ -339,6 +394,12 @@ class FileFindHandler(web.StaticFileHandler):
             if if_since >= modified:
                 self.set_status(304)
                 return
+        
+        if os.path.splitext(path)[1] == '.ipynb':
+            raise HTTPError(404, 'HAHA')
+            name = os.path.splitext(os.path.split(path))[0]
+            self.set_header('Content-Type', 'application/json')
+            self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
 
         with open(abspath, "rb") as file:
             data = file.read()

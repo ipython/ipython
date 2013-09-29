@@ -131,7 +131,7 @@ var IPython = (function (IPython) {
             var callbacks = {
                 'complete_reply': $.proxy(this.finish_completing, this)
             };
-            this.cell.kernel.complete(line, cur.ch, callbacks);
+            this.cell.session.kernel.complete(line, cur.ch, callbacks);
         }
     };
 
