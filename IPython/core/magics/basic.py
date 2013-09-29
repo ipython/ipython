@@ -341,7 +341,6 @@ Currently the magic system has the following functions:""",
         if not new_scheme:
             raise UsageError(
                 "%colors: you must specify a color scheme. See '%colors?'")
-            return
         # local shortcut
         shell = self.shell
 
