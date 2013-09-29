@@ -4,11 +4,6 @@ Authors : MinRK, gregcaporaso, dannystaple
 """
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
-import base64
-import struct
-from io import BytesIO
-import wave
-import mimetypes
 
 from IPython.core.display import DisplayObject
 
@@ -25,7 +20,7 @@ class Audio(DisplayObject):
     data : numpy array, unicode, str or bytes
         Can be a
         * Numpy array containing the desired waveform,
-        * String containingvthe filename
+        * String containing the filename
         * Bytestring containing raw PCM data or
         * URL pointing to a file on the web. 
         
@@ -91,6 +86,7 @@ class Audio(DisplayObject):
             
     def reload(self):
         """Reload the raw data from file or URL."""
+        import mimetypes
         if self.embed:
             super(Audio, self).reload()
 
@@ -104,6 +100,9 @@ class Audio(DisplayObject):
             
     def _make_wav(self,data,rate):
         """ Transform a numpy array to a PCM bytestring """
+        import struct
+        from io import BytesIO
+        import wave
         maxabsvalue = max(map(abs,data))
         scaled = map(lambda x: int(x/maxabsvalue*32767), data)
         fp = BytesIO()
@@ -137,6 +136,7 @@ class Audio(DisplayObject):
         return src.format(src=self.src_attr(),type=self.mimetype, autoplay=self.autoplay_attr())
 
     def src_attr(self):
+        import base64
         if self.embed and (self.data is not None):
                 return """data:{type};base64,{base64}""".format(type=self.mimetype, base64=base64.encodestring(self.data))
         elif self.url is not None:
