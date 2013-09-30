@@ -62,7 +62,7 @@ def test_extract_code_ranges():
 
 
 def test_extract_symbols():
-    source = """import foo\na = 10\ndef b():\n    return 42\nclass A: pass\n"""
+    source = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
     symbols_args = ["a", "b", "A", "A,b", "A,a", "z"]
     expected = [[],
                 ["def b():\n    return 42\n"],
