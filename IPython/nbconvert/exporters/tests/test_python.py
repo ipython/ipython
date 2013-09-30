@@ -1,6 +1,4 @@
-"""
-Module with tests for python.py
-"""
+"""Tests for PythonExporter"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -22,7 +20,10 @@ from ..python import PythonExporter
 #-----------------------------------------------------------------------------
 
 class TestPythonExporter(ExportersTestsBase):
-    """Contains test functions for python.py"""
+    """Tests for PythonExporter"""
+
+    exporter_class = PythonExporter
+    should_include_raw = ['python']
 
     def test_constructor(self):
         """

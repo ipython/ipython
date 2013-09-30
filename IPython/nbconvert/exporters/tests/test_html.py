@@ -1,6 +1,4 @@
-"""
-Module with tests for html.py
-"""
+"""Tests for HTMLExporter"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -23,7 +21,10 @@ from IPython.testing.decorators import onlyif_cmds_exist
 #-----------------------------------------------------------------------------
 
 class TestHTMLExporter(ExportersTestsBase):
-    """Contains test functions for html.py"""
+    """Tests for HTMLExporter"""
+    
+    exporter_class = HTMLExporter
+    should_include_raw = ['html']
 
     def test_constructor(self):
         """
@@ -57,3 +58,4 @@ class TestHTMLExporter(ExportersTestsBase):
         """
         (output, resources) = HTMLExporter(template_file='full').from_filename(self._get_notebook())
         assert len(output) > 0
+

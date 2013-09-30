@@ -1,6 +1,4 @@
-"""
-Module with tests for markdown.py
-"""
+"""Tests for MarkdownExporter"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -22,7 +20,10 @@ from ..markdown import MarkdownExporter
 #-----------------------------------------------------------------------------
 
 class TestMarkdownExporter(ExportersTestsBase):
-    """Contains test functions for markdown.py"""
+    """Tests for MarkdownExporter"""
+
+    exporter_class = MarkdownExporter
+    should_include_raw = ['markdown', 'html']
 
     def test_constructor(self):
         """
