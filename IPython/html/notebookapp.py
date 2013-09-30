@@ -112,7 +112,7 @@ def random_ports(port, n):
     for i in range(min(5, n)):
         yield port + i
     for i in range(n-5):
-        yield port + random.randint(-2*n, 2*n)
+        yield max(1, port + random.randint(-2*n, 2*n))
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
