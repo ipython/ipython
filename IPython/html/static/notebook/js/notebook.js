@@ -297,6 +297,11 @@ var IPython = (function (IPython) {
                 that.cell_toggle_line_numbers();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 82 && that.control_key_active) {
+                // Run all cells = r
+                that.execute_all_cells();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 73 && that.control_key_active) {
                 // Interrupt kernel = i
                 that.kernel.interrupt();
