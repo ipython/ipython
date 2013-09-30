@@ -261,7 +261,7 @@ class CodeMagics(Magics):
           (x..(y-1)). Both limits x and y can be left blank (meaning the 
           beginning and end of the file, respectively).
 
-          -s <symbols>: Specify function or classes to load from python source. Could be
+          -s <symbols>: Specify function or classes to load from python source. 
 
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
