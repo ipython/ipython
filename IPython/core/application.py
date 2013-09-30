@@ -137,7 +137,7 @@ class BaseIPythonApplication(Application):
     )
     def _ipython_dir_default(self):
         d = get_ipython_dir()
-        self._ipython_dir_changed('ipython_dir', '', d)
+        self._ipython_dir_changed('ipython_dir', d, d)
         return d
     
     _in_init_profile_dir = False
