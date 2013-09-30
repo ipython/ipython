@@ -590,9 +590,14 @@ class NotebookApp(BaseIPythonApplication):
                         break
                     # restore the monekypatch
                     socket.AI_ADDRCONFIG = saved_AI_ADDRCONFIG
-                if e.errno != errno.EADDRINUSE:
+                if e.errno == errno.EADDRINUSE:
+                    self.log.info('The port %i is already in use, trying another random port.' % port)
+                    continue
+                elif e.errno in (errno.EACCES, getattr(errno, 'WSAEACCES', errno.EACCES)):
+                    self.log.warn("Permission to listen on port %i denied" % port)
+                    continue
+                else:
                     raise
-                self.log.info('The port %i is already in use, trying another random port.' % port)
             else:
                 self.port = port
                 success = True
