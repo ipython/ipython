@@ -60,6 +60,28 @@ def test_extract_code_ranges():
     actual = list(code.extract_code_ranges(instr))
     nt.assert_equal(actual, expected)
 
+
+def test_extract_symbols():
+    source = """import foo\na = 10\ndef b():\n    return 42\nclass A: pass\n"""
+    symbols_args = ["a", "b", "A", "A,b", "A,a", "z"]
+    expected = [[],
+                ["def b():\n    return 42"],
+                ["class A: pass\n"],
+                ["class A: pass\n", "def b():\n    return 42"],
+                ["class A: pass\n"],
+                []]
+    for symbols, exp in zip(symbols_args, expected):
+        nt.assert_equal(code.extract_symbols(source, symbols), exp)
+
+
+def test_extract_symbols_ignores_non_python_code():
+    source = ("=begin A Ruby program :)=end\n"
+              "def hello\n"
+              "puts 'Hello world'\n"
+              "end")
+    nt.assert_equal(code.extract_symbols(source, "hello"), [])
+
+
 def test_rehashx():
     # clear up everything
     _ip = get_ipython()

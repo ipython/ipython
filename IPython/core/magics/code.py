@@ -18,6 +18,7 @@ import io
 import os
 import re
 import sys
+import ast
 from itertools import chain
 
 # Our own packages
@@ -47,7 +48,6 @@ range_re = re.compile(r"""
  (?P<end>\d+)?)?
 $""", re.VERBOSE)
 
-
 def extract_code_ranges(ranges_str):
     """Turn a string of range for %%load into 2-tuples of (start, stop)
     ready to use as a slice of the content splitted by lines.
@@ -75,6 +75,40 @@ def extract_code_ranges(ranges_str):
             end = int(start)
             start = int(start) - 1
         yield (start, end)
+
+def extract_symbols(code, symbols):
+    """
+    Return a list of code fragments for each symbol parsed from code
+    For example, suppose code is::
+
+        a = 10
+
+        def b(): return 42
+
+        class A: pass
+
+    >>> extract_symbols(code, 'A,b'):
+        class A: pass
+
+        def b(): return 42
+    """
+    try:
+        py_code = ast.parse(code)
+    except SyntaxError:
+        return []
+    marks = [(getattr(s, 'name', None), s.lineno) for s in py_code.body]
+    end = None
+    symbols_lines = {}
+    for name, start in reversed(marks):
+        if name:
+            symbols_lines[name] = (start - 1, end)
+        end = start - 1
+    blocks = []
+    code = code.split('\n')
+    for symbol in symbols.split(','):
+        if symbol in symbols_lines:
+            blocks.append('\n'.join(code[slice(*symbols_lines[symbol])]))
+    return blocks
 
 
 class InteractivelyDefined(Exception):
@@ -217,6 +251,8 @@ class CodeMagics(Magics):
           (x..(y-1)). Both limits x and y can be left blank (meaning the 
           beginning and end of the file, respectively).
 
+          -s <symbols>: Specify function or classes to load from python source. Could be
+
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
         This magic command can either take a local filename, a URL, an history
@@ -230,14 +266,18 @@ class CodeMagics(Magics):
         %load http://www.example.com/myscript.py
         %load -r 5-10 myscript.py
         %load -r 10-20,30,40: foo.py
+        %load -s MyClass,wonder_function myscript.py
         """
-        opts,args = self.parse_options(arg_s,'yr:')
+        opts,args = self.parse_options(arg_s,'ys:r:')
 
         if not args:
             raise UsageError('Missing filename, URL, input history range, '
                              'or macro.')
 
         contents = self.shell.find_user_code(args)
+
+        if 's' in opts:
+            contents = '\n'.join(extract_symbols(contents, opts['s']))
 
         if 'r' in opts:
             ranges = opts['r'].replace(',', ' ')
@@ -247,7 +287,6 @@ class CodeMagics(Magics):
             contents = '\n'.join(chain.from_iterable(contents))
 
         l = len(contents)
-
 
         # 200 000 is ~ 2500 full 80 caracter lines
         # so in average, more than 5000 lines
