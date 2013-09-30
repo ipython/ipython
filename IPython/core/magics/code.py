@@ -212,7 +212,11 @@ class CodeMagics(Magics):
 
         Options:
         --------
-          -r : specify ranges of lines to load from the source
+          -r <lines>: Specify lines or ranges of lines to load from the source.
+          Ranges could be specified as x-y (x..y) or in python-style x:y 
+          (x..(y-1)). Both limits x and y can be left blank (meaning the 
+          beginning and end of the file, respectively).
+
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
         This magic command can either take a local filename, a URL, an history
@@ -225,7 +229,7 @@ class CodeMagics(Magics):
         %load myMacro
         %load http://www.example.com/myscript.py
         %load -r 5-10 myscript.py
-        %load -r 10-20,30,40-50 foo.py
+        %load -r 10-20,30,40: foo.py
         """
         opts,args = self.parse_options(arg_s,'yr:')
 
