@@ -50,9 +50,4 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit
 
 def test_citation2latex():
     """Are citations parsed properly?"""
-    try:
-        import lxml
-    except ImportError:
-        assert test_md == citation2latex(test_md) 
-    else:
-        assert test_md_parsed == citation2latex(test_md)
+    assert test_md_parsed == citation2latex(test_md)
