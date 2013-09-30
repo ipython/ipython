@@ -1,9 +1,5 @@
-"""
-Exporter that allows Latex Jinja templates to work.  Contains logic to
-appropriately prepare IPYNB files for export to LaTeX.  Including but 
-not limited to escaping LaTeX, fixing math region tags, using special
-tags to circumvent Jinja/Latex syntax conflicts.
-"""
+"""LaTeX Exporter class"""
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -66,6 +62,9 @@ class LatexExporter(TemplateExporter):
     
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
+
+    def _raw_format_default(self):
+        return 'latex'
 
 
     @property

@@ -1,6 +1,5 @@
-"""
-Exporter for exporting notebooks to restructured text.
-"""
+"""restructuredText Exporter class"""
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -30,6 +29,12 @@ class RSTExporter(TemplateExporter):
     file_extension = Unicode(
         'rst', config=True, 
         help="Extension of the file that should be written to disk")
+
+    def _raw_format_default(self):
+        return 'rst'
+    
+    def _raw_formats_default(self):
+        return ['rst', 'restructuredtext']
 
     @property
     def default_config(self):

@@ -1,5 +1,5 @@
-"""This module defines Exporter, a highly configurable converter
-that uses Jinja2 to export notebook files into different formats.
+"""This module defines a base Exporter class. For Jinja template-based export,
+see templateexporter.py.
 """
 
 #-----------------------------------------------------------------------------
