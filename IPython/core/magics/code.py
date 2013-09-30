@@ -76,10 +76,12 @@ def extract_code_ranges(ranges_str):
             start = int(start) - 1
         yield (start, end)
 
+
+@skip_doctest
 def extract_symbols(code, symbols):
     """
     Return a list of code fragments for each symbol parsed from code
-    For example, suppose code is::
+    For example, suppose code is a string::
 
         a = 10
 
@@ -87,27 +89,35 @@ def extract_symbols(code, symbols):
 
         class A: pass
 
-    >>> extract_symbols(code, 'A,b'):
-        class A: pass
+        >>> extract_symbols(code, 'A,b')
 
-        def b(): return 42
+            ["class A: pass", "def b(): return 42"]
     """
     try:
         py_code = ast.parse(code)
     except SyntaxError:
+        # ignores non python code
         return []
+
     marks = [(getattr(s, 'name', None), s.lineno) for s in py_code.body]
+
+    # construct a dictionary with elements
+    # {'symbol_name': (start_lineno, end_lineno), ...}
     end = None
     symbols_lines = {}
     for name, start in reversed(marks):
         if name:
             symbols_lines[name] = (start - 1, end)
         end = start - 1
+
+    # fill a list with chunks of codes for each symbol
     blocks = []
     code = code.split('\n')
     for symbol in symbols.split(','):
         if symbol in symbols_lines:
-            blocks.append('\n'.join(code[slice(*symbols_lines[symbol])]))
+            start, end = symbols_lines[symbol]
+            blocks.append('\n'.join(code[start:end]))
+
     return blocks
 
 
