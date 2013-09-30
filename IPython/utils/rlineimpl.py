@@ -85,10 +85,10 @@ if uses_libedit and sys.platform == 'darwin':
         "   * corrupting long-lines",
         "   * failure to wrap or indent lines properly",
         "It is highly recommended that you install readline, which is easy_installable:",
-        "     easy_install readline",
+        "     easy_install -a readline",
         "Note that `pip install readline` generally DOES NOT WORK, because",
         "it installs to site-packages, which come *after* lib-dynload in sys.path,",
-        "where readline is located.  It must be `easy_install readline`, or to a custom",
+        "where readline is located.  It must be `easy_install -a readline`, or to a custom",
         "location on your PYTHONPATH (even --user comes after lib-dyload).",
         "*"*78]),
         RuntimeWarning)

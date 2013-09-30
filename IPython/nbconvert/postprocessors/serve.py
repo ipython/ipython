@@ -82,8 +82,12 @@ class ServePostProcessor(PostProcessorBase):
             client=AsyncHTTPClient(),
         )
         # hook up tornado logging to our logger
-        from tornado import log
-        log.app_log = self.log
+        try:
+            from tornado import log
+            log.app_log = self.log
+        except ImportError:
+            # old tornado (<= 3), ignore
+            pass
     
         http_server = httpserver.HTTPServer(app)
         http_server.listen(self.port, address=self.ip)

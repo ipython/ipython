@@ -22,6 +22,7 @@ Authors
 # stdlib
 import ast
 import os
+import signal
 import shutil
 import sys
 import tempfile
@@ -33,7 +34,7 @@ from StringIO import StringIO
 import nose.tools as nt
 
 # Our own
-from IPython.testing.decorators import skipif, onlyif_unicode_paths
+from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
 
@@ -414,19 +415,48 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         """
         ip.safe_execfile(self.fname, {}, raise_exceptions=True)
 
+class ExitCodeChecks(tt.TempFileMixin):
+    def test_exit_code_ok(self):
+        self.system('exit 0')
+        self.assertEqual(ip.user_ns['_exit_code'], 0)
 
-class TestSystemRaw(unittest.TestCase):
+    def test_exit_code_error(self):
+        self.system('exit 1')
+        self.assertEqual(ip.user_ns['_exit_code'], 1)
+
+    @skipif(not hasattr(signal, 'SIGALRM'))
+    def test_exit_code_signal(self):
+        self.mktmp("import signal, time\n"
+                   "signal.setitimer(signal.ITIMER_REAL, 0.1)\n"
+                   "time.sleep(1)\n")
+        self.system("%s %s" % (sys.executable, self.fname))
+        self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGALRM)
+
+class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
+    system = ip.system_raw
+
     @onlyif_unicode_paths
     def test_1(self):
         """Test system_raw with non-ascii cmd
         """
-        cmd = ur'''python -c "'åäö'"   '''
+        cmd = u'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
-    
-    def test_exit_code(self):
-        """Test that the exit code is parsed correctly."""
-        ip.system_raw('exit 1')
-        self.assertEqual(ip.user_ns['_exit_code'], 1)
+
+# TODO: Exit codes are currently ignored on Windows.
+class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
+    system = ip.system_piped
+
+    @skip_win32
+    def test_exit_code_ok(self):
+        ExitCodeChecks.test_exit_code_ok(self)
+
+    @skip_win32
+    def test_exit_code_error(self):
+        ExitCodeChecks.test_exit_code_error(self)
+
+    @skip_win32
+    def test_exit_code_signal(self):
+        ExitCodeChecks.test_exit_code_signal(self)
 
 class TestModules(unittest.TestCase, tt.TempFileMixin):
     def test_extraneous_loads(self):

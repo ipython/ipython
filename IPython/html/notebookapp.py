@@ -85,7 +85,7 @@ from IPython.utils.traitlets import (
     DottedObjectName
 )
 from IPython.utils import py3compat
-from IPython.utils.path import filefind
+from IPython.utils.path import filefind, get_ipython_dir
 
 from .utils import url_path_join
 
@@ -170,6 +170,7 @@ class NotebookWebApplication(web.Application):
             cluster_manager=cluster_manager,
             
             # IPython stuff
+            nbextensions_path = ipython_app.nbextensions_path,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             use_less=ipython_app.use_less,
@@ -193,6 +194,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
+            (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         ])
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
@@ -432,6 +434,12 @@ class NotebookApp(BaseIPythonApplication):
     def static_file_path(self):
         """return extra paths + the default location"""
         return self.extra_static_paths + [DEFAULT_STATIC_FILES_PATH]
+    
+    nbextensions_path = List(Unicode, config=True,
+        help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nbextensions"""
+    )
+    def _nbextensions_path_default(self):
+        return [os.path.join(get_ipython_dir(), 'nbextensions')]
 
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
@@ -442,21 +450,32 @@ class NotebookApp(BaseIPythonApplication):
         static_url_prefix = self.webapp_settings.get("static_url_prefix",
                          url_path_join(self.base_project_url, "static")
         )
-        try:
-            mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
-        except IOError:
-            if self.certfile:
-                # HTTPS: load from Rackspace CDN, because SSL certificate requires it
-                base = u"https://c328740.ssl.cf1.rackcdn.com"
+        
+        # try local mathjax, either in nbextensions/mathjax or static/mathjax
+        for (url_prefix, search_path) in [
+            (url_path_join(self.base_project_url, "nbextensions"), self.nbextensions_path),
+            (static_url_prefix, self.static_file_path),
+        ]:
+            self.log.debug("searching for local mathjax in %s", search_path)
+            try:
+                mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), search_path)
+            except IOError:
+                continue
             else:
-                base = u"http://cdn.mathjax.org"
-            
-            url = base + u"/mathjax/latest/MathJax.js"
-            self.log.info("Using MathJax from CDN: %s", url)
-            return url
+                url = url_path_join(url_prefix, u"mathjax/MathJax.js")
+                self.log.info("Serving local MathJax from %s at %s", mathjax, url)
+                return url
+        
+        # no local mathjax, serve from CDN
+        if self.certfile:
+            # HTTPS: load from Rackspace CDN, because SSL certificate requires it
+            host = u"https://c328740.ssl.cf1.rackcdn.com"
         else:
-            self.log.info("Using local MathJax from %s" % mathjax)
-            return url_path_join(static_url_prefix, u"mathjax/MathJax.js")
+            host = u"http://cdn.mathjax.org"
+        
+        url = host + u"/mathjax/latest/MathJax.js"
+        self.log.info("Using MathJax from CDN: %s", url)
+        return url
     
     def _mathjax_url_changed(self, name, old, new):
         if new and not self.enable_mathjax:
@@ -521,9 +540,9 @@ class NotebookApp(BaseIPythonApplication):
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager, 
+            self, self.kernel_manager, self.notebook_manager,
             self.cluster_manager, self.log,
-            self.base_project_url, self.webapp_settings
+            self.base_project_url, self.webapp_settings,
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)

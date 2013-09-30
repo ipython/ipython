@@ -218,7 +218,7 @@ class CythonMagics(Magics):
             key += time.time(),
 
         if args.name:
-            module_name = str(args.name)
+            module_name = py3compat.unicode_to_str(args.name)
         else:
             module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
         module_path = os.path.join(lib_dir, module_name + self.so_ext)
