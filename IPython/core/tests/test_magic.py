@@ -47,11 +47,11 @@ class DummyMagics(magic.Magics): pass
 
 def test_extract_code_ranges():
     instr = "1 3 5-6 7-9 10:15 17: :10 10- -13 :"
-    expected = [(0, 1),  # 0 == current session
+    expected = [(0, 1), 
                 (2, 3),
                 (4, 6),
                 (6, 9),
-                (9, 14),  # None == to end
+                (9, 14),
                 (16, None),
                 (None, 9),
                 (9, None),
