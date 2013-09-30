@@ -95,7 +95,7 @@ def strip_math_space(text):
             if within_math:
                 within_math = False
                 skip = True
-                ptext = ptext+'$'+text[math_start_index+1:index].strip()+'$'
+                ptext = ptext+'$'+text[math_start_index+1:index].strip(' ')+'$'
                 math_regions.append([math_start_index, index+1])
             else:
 
@@ -110,6 +110,14 @@ def strip_math_space(text):
             if within_math:
                 math_lines += 1
                 if math_lines > 1:
+                    within_math = False
+                    ptext = ptext+text[math_start_index:index]
+        
+        # html tags (</) are not allowed in latex, hence their appearance
+        # closes a math environment
+        elif text[index] == "<":
+            if within_math:
+                if index == len(text)-1 or text[index+1] == "/":
                     within_math = False
                     ptext = ptext+text[math_start_index:index]
 
