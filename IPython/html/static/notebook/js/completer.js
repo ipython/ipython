@@ -150,16 +150,17 @@ var IPython = (function (IPython) {
                 matched_text: ""
             })
         } else {
-            var callbacks = {
-                'complete_reply': $.proxy(this.finish_completing, this)
-            };
+            var callbacks = { shell : {
+                reply: $.proxy(this.finish_completing, this)
+            }};
             this.cell.kernel.complete(line, cur.ch, callbacks);
         }
     };
 
-    Completer.prototype.finish_completing = function (content) {
+    Completer.prototype.finish_completing = function (msg) {
         // let's build a function that wrap all that stuff into what is needed
         // for the new completer:
+        var content = msg.content;
         var matched_text = content.matched_text;
         var matches = content.matches;
 

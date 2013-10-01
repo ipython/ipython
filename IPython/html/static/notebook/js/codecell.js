@@ -244,12 +244,22 @@ var IPython = (function (IPython) {
         this.set_input_prompt('*');
         this.element.addClass("running");
         var callbacks = {
-            'execute_reply': $.proxy(this._handle_execute_reply, this),
-            'output': $.proxy(this.output_area.handle_output, this.output_area),
-            'clear_output': $.proxy(this.output_area.handle_clear_output, this.output_area),
-            'set_next_input': $.proxy(this._handle_set_next_input, this),
-            'input_request': $.proxy(this._handle_input_request, this)
-        };
+            shell : {
+                reply : $.proxy(this._handle_execute_reply, this),
+                payload : {
+                    set_next_input : $.proxy(this._handle_set_next_input, this),
+                    page : function (payload) {
+                        $([IPython.events]).trigger('open_with_text.Pager', payload);
+                    }
+                }
+            },
+            iopub : {
+                output : $.proxy(this.output_area.handle_output, this.output_area),
+                clear_output : $.proxy(this.output_area.handle_clear_output, this.output_area),
+            },
+            input : $.proxy(this._handle_input_request, this)
+        }
+        
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
     };
 
@@ -257,8 +267,8 @@ var IPython = (function (IPython) {
      * @method _handle_execute_reply
      * @private
      */
-    CodeCell.prototype._handle_execute_reply = function (content) {
-        this.set_input_prompt(content.execution_count);
+    CodeCell.prototype._handle_execute_reply = function (msg) {
+        this.set_input_prompt(msg.content.execution_count);
         this.element.removeClass("running");
         $([IPython.events]).trigger('set_dirty.Notebook', {value: true});
     }
@@ -267,8 +277,8 @@ var IPython = (function (IPython) {
      * @method _handle_set_next_input
      * @private
      */
-    CodeCell.prototype._handle_set_next_input = function (text) {
-        var data = {'cell': this, 'text': text}
+    CodeCell.prototype._handle_set_next_input = function (payload) {
+        var data = {'cell': this, 'text': payload.text}
         $([IPython.events]).trigger('set_next_input.Notebook', data);
     }
 
@@ -276,8 +286,8 @@ var IPython = (function (IPython) {
      * @method _handle_input_request
      * @private
      */
-    CodeCell.prototype._handle_input_request = function (content) {
-        this.output_area.append_raw_input(content);
+    CodeCell.prototype._handle_input_request = function (msg) {
+        this.output_area.append_raw_input(msg);
     }
 
 

@@ -231,9 +231,10 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.handle_output = function (msg_type, content) {
+    OutputArea.prototype.handle_output = function (msg) {
         var json = {};
-        json.output_type = msg_type;
+        var msg_type = json.output_type = msg.header.msg_type;
+        var content = msg.content;
         if (msg_type === "stream") {
             json.text = content.data;
             json.stream = content.name;
@@ -564,9 +565,10 @@ var IPython = (function (IPython) {
         element.append(toinsert);
     };
 
-    OutputArea.prototype.append_raw_input = function (content) {
+    OutputArea.prototype.append_raw_input = function (msg) {
         var that = this;
         this.expand();
+        var content = msg.content;
         var area = this.create_output_area();
         
         // disable any other raw_inputs, if they are left around
@@ -618,8 +620,8 @@ var IPython = (function (IPython) {
     }
 
 
-    OutputArea.prototype.handle_clear_output = function (content) {
-        this.clear_output(content.wait);
+    OutputArea.prototype.handle_clear_output = function (msg) {
+        this.clear_output(msg.content.wait);
     };
 
 

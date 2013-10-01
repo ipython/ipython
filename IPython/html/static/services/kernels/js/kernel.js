@@ -239,7 +239,7 @@ var IPython = (function (IPython) {
         this.shell_channel.send(JSON.stringify(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
-    }
+    };
 
     /**
      * Get info on object asynchronoulsy
@@ -340,7 +340,7 @@ var IPython = (function (IPython) {
             allow_stdin : false
         };
         callbacks = callbacks || {};
-        if (callbacks.input_request !== undefined) {
+        if (callbacks.input !== undefined) {
             content.allow_stdin = true;
         }
         $.extend(true, content, options);
@@ -431,11 +431,22 @@ var IPython = (function (IPython) {
             delete this._msg_callbacks[msg_id];
         }
     };
-
-
+    
+    /* Set callbacks for a particular message.
+     * Callbacks should be a struct of the following form:
+     * shell : {
+     * 
+     * }
+    
+     */
     Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
         if (callbacks) {
-            this._msg_callbacks[msg_id] = callbacks;
+            // shallow-copy mapping, because we will modify it at the top level
+            var cbcopy = this._msg_callbacks[msg_id] = {};
+            cbcopy.shell = callbacks.shell;
+            cbcopy.iopub = callbacks.iopub;
+            cbcopy.input = callbacks.input;
+            this._msg_callbacks[msg_id] = cbcopy;
         }
     };
 
@@ -443,37 +454,40 @@ var IPython = (function (IPython) {
     Kernel.prototype._handle_shell_reply = function (e) {
         var reply = $.parseJSON(e.data);
         $([IPython.events]).trigger('shell_reply.Kernel', {kernel: this, reply:reply});
-        var header = reply.header;
         var content = reply.content;
         var metadata = reply.metadata;
-        var msg_type = header.msg_type;
-        var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
-        if (callbacks !== undefined) {
-            var cb = callbacks[msg_type];
-            if (cb !== undefined) {
-                cb(content, metadata);
-            }
+        var parent_id = reply.parent_header.msg_id;
+        var callbacks = this.get_callbacks_for_msg(parent_id);
+        if (!callbacks || !callbacks.shell) {
+            return;
         }
-
-        if (content.payload !== undefined) {
-            var payload = content.payload || [];
-            this._handle_payload(callbacks, payload);
+        var shell_callbacks = callbacks.shell;
+        
+        // clear callbacks on shell
+        delete callbacks.shell;
+        delete callbacks.input;
+        if (!callbacks.iopub) {
+            this.clear_callbacks_for_msg(parent_id);
+        }
+        
+        if (shell_callbacks.reply !== undefined) {
+            shell_callbacks.reply(reply);
+        }
+        if (content.payload && shell_callbacks.payload) {
+            this._handle_payloads(content.payload, shell_callbacks.payload, reply);
         }
     };
 
 
-    Kernel.prototype._handle_payload = function (callbacks, payload) {
-        var l = payload.length;
+    Kernel.prototype._handle_payloads = function (payloads, payload_callbacks, msg) {
+        var l = payloads.length;
         // Payloads are handled by triggering events because we don't want the Kernel
         // to depend on the Notebook or Pager classes.
         for (var i=0; i<l; i++) {
-            if (payload[i].source === 'page') {
-                var data = {'text':payload[i].text};
-                $([IPython.events]).trigger('open_with_text.Pager', data);
-            } else if (payload[i].source === 'set_next_input') {
-                if (callbacks.set_next_input !== undefined) {
-                    callbacks.set_next_input(payload[i].text);
-                }
+            var payload = payloads[i];
+            var callback = payload_callbacks[payload.source];
+            if (callback) {
+                callback(payload, msg);
             }
         }
     };
@@ -483,6 +497,17 @@ var IPython = (function (IPython) {
         if (execution_state === 'busy') {
             $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
         } else if (execution_state === 'idle') {
+            // clear callbacks
+            var parent_id = msg.parent_header.msg_id;
+            var callbacks = this.get_callbacks_for_msg(parent_id);
+            if (callbacks !== undefined) {
+                delete callbacks.iopub;
+                delete callbacks.input;
+                if (!callbacks.shell) {
+                    this.clear_callbacks_for_msg(parent_id);
+                }
+            }
+        
             $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
         } else if (execution_state === 'restarting') {
             // autorestarting is distinct from restarting,
@@ -501,12 +526,12 @@ var IPython = (function (IPython) {
     // handle clear_output message
     Kernel.prototype._handle_clear_output = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
-        if (callbacks === undefined) {
+        if (!callbacks || !callbacks.iopub) {
             return;
         }
-        var callback = callbacks['clear_output'];
-        if (callback !== undefined) {
-            callback(msg.content, msg.metadata);
+        var callback = callbacks.clear_output;
+        if (callback) {
+            callback(msg);
         }
     };
 
@@ -514,12 +539,12 @@ var IPython = (function (IPython) {
     // handle an output message (pyout, display_data, etc.)
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
-        if (callbacks === undefined) {
+        if (!callbacks || !callbacks.iopub) {
             return;
         }
-        var callback = callbacks['output'];
-        if (callback !== undefined) {
-            callback(msg.header.msg_type, msg.content, msg.metadata);
+        var callback = callbacks.iopub.output;
+        if (callback) {
+            callback(msg);
         }
     };
 
@@ -546,10 +571,9 @@ var IPython = (function (IPython) {
             return;
         }
         var callbacks = this.get_callbacks_for_msg(request.parent_header.msg_id);
-        if (callbacks !== undefined) {
-            var cb = callbacks[msg_type];
-            if (cb !== undefined) {
-                cb(content, metadata);
+        if (callbacks) {
+            if (callbacks.input) {
+                callbacks.input(request);
             }
         }
     };
