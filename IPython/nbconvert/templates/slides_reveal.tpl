@@ -173,7 +173,8 @@ window.onload = function () {
 
 <script>
 Reveal.addEventListener( 'slidechanged', function( event ) {
-MathJax.Hub.Rerender(event.currentSlide);
+  window.scrollTo(0,0);
+  MathJax.Hub.Rerender(event.currentSlide);
 });
 </script>
 
