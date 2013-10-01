@@ -26,7 +26,8 @@ velit, lobortis sed interdum at, vestibulum vitae libero <strong data-cite="fper
 Lorem ipsum dolor sit amet, consectetur adipiscing elit
 <em data-cite="takluyver">Thomas</em>. Quisque iaculis ligula ut ipsum mattis viverra.
 
-<p>Here is a plain paragraph that should be unaffected.</p>
+<p>Here is a plain paragraph that should be unaffected. It contains simple
+relations like 1<2 & 4>5.</p>
 
 * One <cite data-cite="jdfreder">Jonathan</cite>.
 * Two <cite data-cite="carreau">Matthias</cite>.
@@ -42,7 +43,8 @@ velit, lobortis sed interdum at, vestibulum vitae libero \cite{fperez}.
 Lorem ipsum dolor sit amet, consectetur adipiscing elit
 \cite{takluyver}. Quisque iaculis ligula ut ipsum mattis viverra.
 
-<p>Here is a plain paragraph that should be unaffected.</p>
+<p>Here is a plain paragraph that should be unaffected. It contains simple
+relations like 1<2 & 4>5.</p>
 
 * One \cite{jdfreder}.
 * Two \cite{carreau}.
