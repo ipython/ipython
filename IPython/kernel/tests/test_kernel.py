@@ -17,6 +17,7 @@ import nose.tools as nt
 
 from IPython.testing import decorators as dec, tools as tt
 from IPython.utils import py3compat
+from IPython.utils.path import locate_profile
 
 from .utils import new_kernel, kernel, TIMEOUT, assemble_output, execute, flush_channels
 
@@ -45,6 +46,21 @@ def test_simple_print():
         nt.assert_equal(stderr, '')
         _check_mp_mode(kc, expected=False)
 
+
+def test_sys_path():
+    """test that sys.path doesn't get messed up by default"""
+    with kernel() as kc:
+        msg_id, content = execute(kc=kc, code="import sys; print (repr(sys.path[0]))")
+        stdout, stderr = assemble_output(kc.iopub_channel)
+        nt.assert_equal(stdout, "''\n")
+
+def test_sys_path_profile_dir():
+    """test that sys.path doesn't get messed up when `--profile-dir` is specified"""
+    
+    with new_kernel(['--profile-dir', locate_profile('default')]) as kc:
+        msg_id, content = execute(kc=kc, code="import sys; print (repr(sys.path[0]))")
+        stdout, stderr = assemble_output(kc.iopub_channel)
+        nt.assert_equal(stdout, "''\n")
 
 @dec.knownfailureif(sys.platform == 'win32', "subprocess prints fail on Windows")
 def test_subprocess_print():
