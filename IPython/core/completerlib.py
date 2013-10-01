@@ -255,8 +255,8 @@ def magic_run_completer(self, event):
     comps = arg_split(event.line, strict=False)
     relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
 
-    #print("\nev=", event)  # dbg
-    #print("rp=", relpath)  # dbg
+    # print('\nev="{}"'.format(event.line))  # dbg
+    # print('rp="{}"'.format(relpath))  # dbg
     #print('comps=', comps)  # dbg
 
     lglob = glob.glob
@@ -270,7 +270,17 @@ def magic_run_completer(self, event):
     # be arguments to the input script.
 
     if any(magic_run_re.match(c) for c in comps):
-        pys =  [f.replace('\\','/') for f in lglob('*')]
+        # If the last character typed by the user was a space while the last
+        # character of the last argument is not, we considere that user wants a
+        # a new completion, not to complete on last argument. So we only glob on
+        # files in current directory.
+        files = lglob('*')
+        if not(relpath[-1] != ' ' and event.line[-1] == ' '):
+            files.extend(lglob(relpath + '*'))
+
+        # Use same convention as for dirs
+        pys = [f + "/" if isdir(f) else f for f in
+               [f.replace('\\', '/') for f in files]]
     else:
         pys =  [f.replace('\\','/')
                 for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
