@@ -19,7 +19,7 @@ class Audio(DisplayObject):
     ----------
     data : numpy array, unicode, str or bytes
         Can be a
-        * Numpy array containing the desired waveform,
+        * Numpy 1d array containing the desired waveform (mono),
         * String containing the filename
         * Bytestring containing raw PCM data or
         * URL pointing to a file on the web. 
@@ -105,6 +105,8 @@ class Audio(DisplayObject):
         import wave
         try:
             import numpy as np
+            if len(data.shape) > 1:
+                raise ValueError("encoding of stereo PCM signals are unsupported")
             data = np.array(data,dtype=float)
             scaled = list(np.int16(data/np.max(np.abs(data))*32767))
         except ImportError:
