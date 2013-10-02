@@ -437,6 +437,14 @@ var IPython = (function (IPython) {
         this.element.animate({scrollTop:0}, 0);
     };
 
+    // Edit Notebook metadata
+
+    Notebook.prototype.edit_metadata = function () {
+        var that = this;
+        IPython.dialog.edit_metadata(this.metadata, function (md) {
+            that.metadata = md;
+        }, 'Notebook');
+    };
 
     // Cell indexing, retrieval, etc.
 
