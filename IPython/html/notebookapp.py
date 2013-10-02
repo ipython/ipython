@@ -112,7 +112,7 @@ def random_ports(port, n):
     for i in range(min(5, n)):
         yield port + i
     for i in range(n-5):
-        yield port + random.randint(-2*n, 2*n)
+        yield max(1, port + random.randint(-2*n, 2*n))
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
@@ -590,9 +590,14 @@ class NotebookApp(BaseIPythonApplication):
                         break
                     # restore the monekypatch
                     socket.AI_ADDRCONFIG = saved_AI_ADDRCONFIG
-                if e.errno != errno.EADDRINUSE:
+                if e.errno == errno.EADDRINUSE:
+                    self.log.info('The port %i is already in use, trying another random port.' % port)
+                    continue
+                elif e.errno in (errno.EACCES, getattr(errno, 'WSAEACCES', errno.EACCES)):
+                    self.log.warn("Permission to listen on port %i denied" % port)
+                    continue
+                else:
                     raise
-                self.log.info('The port %i is already in use, trying another random port.' % port)
             else:
                 self.port = port
                 success = True
