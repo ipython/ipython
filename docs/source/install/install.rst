@@ -426,7 +426,7 @@ Dependencies for nbconvert (converting notebooks to various formats)
 pandoc
 ------
 
-The most important dependency of nbconvert is Pandoc_, a document format translation program.
+The most important dependency of nbconvert is Pandoc_ 1.10 or later, a document format translation program.
 This is not a Python package, so it cannot be expressed as a regular IPython dependency with setuptools.
 
 To install pandoc on Linux, you can generally use your package manager::
