@@ -36,7 +36,7 @@ kernel has three sockets that serve the following functions:
    The frontend that executed the code has a DEALER socket that acts as a 'virtual keyboard'
    for the kernel while this communication is happening (illustrated in the
    figure by the black outline around the central keyboard).  In practice,
-   frontends may display such kernel requests using a special input widget or
+   frontends may display such kernel requests using a special input comm or
    otherwise indicating that the user is to type input for the kernel instead
    of normal commands in the frontend.
 
@@ -1058,64 +1058,78 @@ where the first part is the zmq.IDENTITY of the heart's DEALER on the engine, an
 the rest is the message sent by the monitor.  No Python code ever has any
 access to the message between the monitor's send, and the monitor's recv.
 
-Widget Messages
+Custom Messages
 ===============
 
-IPython 2.0 adds interactive widgets, and a few messages associated with their management.
-Widget messages are fully symmetrical - both the Kernel and the Frontend can send each message,
+IPython 2.0 adds a messaging system for developers to add their own objects with Frontend
+and Kernel-side components, and allow them to communicate with each other.
+To do this, IPython adds a notion of a ``Comm``, which exists on both sides,
+and can communicate in either direction.
+
+These messages are fully symmetrical - both the Kernel and the Frontend can send each message,
 and no messages expect a reply.
 The Kernel listens for these messages on the Shell channel,
 and the Frontend listens for them on the IOPub channel.
 
 .. versionadded:: 2.0
 
-Widget Creation
----------------
+Opening a Comm
+--------------
 
-Creating a widget produces a ``widget_create`` message, to be sent to the other side::
+Opening a Comm produces a ``comm_open`` message, to be sent to the other side::
 
     {
-      'widget_id' : 'u-u-i-d',
-      'widget_type' : 'my_widget',
+      'comm_id' : 'u-u-i-d',
+      'target_name' : 'my_comm',
       'data' : {}
     }
 
-Every widget has an ID and a type identifier.
+Every Comm has an ID and a target name.
 The code handling the message on the receiving side is responsible for maintaining a mapping
-of widget_type keys to constructors.
-After a ``widget_create`` message has been sent,
-there should be a corresponding Widget instance on both sides.
-The ``data`` key is always a dict and can be any extra JSON information used in initialization of the widget.
+of target_name keys to constructors.
+After a ``comm_open`` message has been sent,
+there should be a corresponding Comm instance on both sides.
+The ``data`` key is always a dict and can be any extra JSON information used in initialization of the comm.
 
-Updating Widgets
-----------------
+If the ``target_name`` key is not found on the receiving side,
+then it should immediately reply with a ``comm_close`` message to avoid an inconsistent state.
 
-Widget updates are one-way communications to update widget state,
-used for synchronizing state, or simply requesting actions of a widget's counterpart.
+Comm Messages
+-------------
 
-Essentially, each widget pair defines their own message specification implemented inside the ``data`` dict.
+Comm messages are one-way communications to update comm state,
+used for synchronizing widget state, or simply requesting actions of a comm's counterpart.
 
-There are no expected replies (of course, one side can send another ``widget_update`` in reply).
+Essentially, each comm pair defines their own message specification implemented inside the ``data`` dict.
 
-Message type: ``widget_update``::
+There are no expected replies (of course, one side can send another ``comm_msg`` in reply).
+
+Message type: ``comm_msg``::
 
     {
-      'widget_id' : 'u-u-i-d',
+      'comm_id' : 'u-u-i-d',
       'data' : {}
     }
 
-Tearing Down Widgets
---------------------
+Tearing Down Comms
+------------------
 
-Since widgets live on both sides, when a widget is destroyed the other side must be notified.
-This is done with a ``widget_destroy`` message.
+Since comms live on both sides, when a comm is destroyed the other side must be notified.
+This is done with a ``comm_close`` message.
 
-Message type: ``widget_destroy``::
+Message type: ``comm_close``::
 
     {
-      'widget_id' : 'u-u-i-d',
+      'comm_id' : 'u-u-i-d',
       'data' : {}
     }
+
+Output Side Effects
+-------------------
+
+Since comm messages can execute arbitrary user code,
+handlers should set the parent header and publish status busy / idle,
+just like an execute request.
 
 
 ToDo
