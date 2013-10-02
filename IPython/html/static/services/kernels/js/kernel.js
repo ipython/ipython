@@ -515,7 +515,7 @@ var IPython = (function (IPython) {
         if (!callbacks || !callbacks.iopub) {
             return;
         }
-        var callback = callbacks.clear_output;
+        var callback = callbacks.iopub.clear_output;
         if (callback) {
             callback(msg);
         }
