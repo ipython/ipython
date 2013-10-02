@@ -1584,3 +1584,4 @@ span#checkpoint_status,span#autosave_status{font-size:small;}
 .ipython_tooltip .tooltiptext pre{border:0;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;font-size:100%;background-color:#f7f7f7;}
 .pretooltiparrow{left:0px;margin:0px;top:-16px;width:40px;height:16px;overflow:hidden;position:absolute;}
 .pretooltiparrow:before{background-color:#f7f7f7;border:1px #ababab solid;z-index:11;content:"";position:absolute;left:15px;top:10px;width:25px;height:25px;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);}
+div.widget_subarea{padding:0.44em 0.4em 0.4em 1px;margin-left:6px;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;}
