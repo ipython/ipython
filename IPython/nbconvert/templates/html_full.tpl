@@ -6,7 +6,7 @@
 <html>
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 
 {% for css in resources.inlining.css -%}
     <style type="text/css">

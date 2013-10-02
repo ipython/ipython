@@ -6,8 +6,8 @@
 <html>
 <head>
 
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="chrome=1" />
 
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
