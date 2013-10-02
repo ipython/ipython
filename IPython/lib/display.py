@@ -96,22 +96,21 @@ class Audio(DisplayObject):
             self.mimetype = mimetypes.guess_type(self.url)[0]
         else:
             self.mimetype = "audio/wav"
-            
-            
-    def _make_wav(self,data,rate):
+           
+    def _make_wav(self, data, rate):
         """ Transform a numpy array to a PCM bytestring """
         import struct
         from io import BytesIO
         import wave
         try:
             import numpy as np
-            if len(data.shape) > 1:
-                raise ValueError("encoding of stereo PCM signals are unsupported")
             data = np.array(data,dtype=float)
-            scaled = list(np.int16(data/np.max(np.abs(data))*32767))
+            if len(data.shape) > 1:
+                raise ValueError("encoding of stereo PCM signals are unsupported")  
+            scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
         except ImportError:
-            maxabsvalue = float(max(map(abs,data)))
-            scaled = map(lambda x: int(x/maxabsvalue*32767), data)
+            print("Numpy is required to encode PCM from an array")
+            raise
         fp = BytesIO()
         waveobj = wave.open(fp,mode='wb')
         waveobj.setnchannels(1)
@@ -121,7 +120,7 @@ class Audio(DisplayObject):
         waveobj.writeframes(b''.join([struct.pack('<h',x) for x in scaled]))
         val = fp.getvalue()
         waveobj.close()
-        return val
+        return val 
     
     def _data_and_metadata(self):
         """shortcut for returning metadata with url information, if defined"""
