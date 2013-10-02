@@ -121,7 +121,6 @@ dependencies: [
 { src: "{{resources.reveal.url_prefix}}/lib/js/classList.js", condition: function() { return !document.body.classList; } },
 { src: "{{resources.reveal.url_prefix}}/plugin/highlight/highlight.js", async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
 { src: "{{resources.reveal.url_prefix}}/plugin/notes/notes.js", async: true, condition: function() { return !!document.body.classList; } }
-// { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
 ]
 });
 </script>
@@ -144,7 +143,7 @@ MathJax.Hub.Config({
 <script>
 //  We wait for the onload function to load MathJax after the page is completely loaded.
 //  MathJax is loaded 1 unit of time after the page is ready.
-//  This hack prevent problems when you load multiple js files (i.e. social button from addthis).
+//  This hack prevent problems when you load multiple js files.
 //
 window.onload = function () {
   setTimeout(function () {
