@@ -244,17 +244,13 @@ var IPython = (function (IPython) {
     /**
      * Get info on an object
      *
-     * @async
      * @param objname {string}
      * @param callback {function}
      * @method object_info
      *
-     * @example
-     *
-     * When calling this method pass a callback function that expects one argument.
-     *
-     * The callback will be passed the complete `object_info_reply` message documented in
-     * [IPython dev documentation](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
+     * When calling this method, pass a callback function that expects one argument.
+     * The callback will be passed the complete `object_info_reply` message documented
+     * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
      */
     Kernel.prototype.object_info = function (objname, callback) {
         var callbacks;
@@ -275,16 +271,15 @@ var IPython = (function (IPython) {
     /**
      * Execute given code into kernel, and pass result to callback.
      *
-     * TODO: document input_request in callbacks
-     *
      * @async
      * @method execute
      * @param {string} code
-     * @param [callbacks] {Object} With the optional following keys
-     *      @param callbacks.'execute_reply' {function}
-     *      @param callbacks.'output' {function}
-     *      @param callbacks.'clear_output' {function}
-     *      @param callbacks.'set_next_input' {function}
+     * @param [callbacks] {Object} With the following keys (all optional)
+     *      @param callbacks.shell.reply {function}
+     *      @param callbacks.shell.payload.[payload_name] {function}
+     *      @param callbacks.iopub.output {function}
+     *      @param callbacks.iopub.clear_output {function}
+     *      @param callbacks.input {function}
      * @param {object} [options]
      *      @param [options.silent=false] {Boolean}
      *      @param [options.user_expressions=empty_dict] {Dict}
@@ -306,27 +301,21 @@ var IPython = (function (IPython) {
      * When calling this method pass a callbacks structure of the form:
      *
      *      callbacks = {
-     *       'execute_reply': execute_reply_callback,
-     *       'output': output_callback,
-     *       'clear_output': clear_output_callback,
-     *       'set_next_input': set_next_input_callback
+     *       shell : {
+     *         reply : execute_reply_callback,
+     *         payload : {
+     *           set_next_input : set_next_input_callback,
+     *         }
+     *       },
+     *       iopub : {
+     *         output : output_callback,
+     *         clear_output : clear_output_callback,
+     *       },
+     *       input : raw_input_callback
      *      }
      *
-     * The `execute_reply_callback` will be passed the content and metadata
-     * objects of the `execute_reply` message documented
-     * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#execute)
-     *
-     * The `output_callback` will be passed `msg_type` ('stream','display_data','pyout','pyerr')
-     * of the output and the content and metadata objects of the PUB/SUB channel that contains the
-     * output:
-     *
-     * http://ipython.org/ipython-doc/dev/development/messaging.html#messages-on-the-pub-sub-socket
-     *
-     * The `clear_output_callback` will be passed a content object that contains
-     * stdout, stderr and other fields that are booleans, as well as the metadata object.
-     *
-     * The `set_next_input_callback` will be passed the text that should become the next
-     * input cell.
+     * Each callback will be passed the entire message as a single arugment.
+     * Payload handlers will be passed the corresponding payload and the execute_reply message.
      */
     Kernel.prototype.execute = function (code, callbacks, options) {
 
@@ -348,11 +337,8 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * When calling this method pass a function to be called with the `complete_reply` message
+     * When calling this method, pass a function to be called with the `complete_reply` message
      * as its only argument when it arrives.
-     *      callbacks = {
-     *       'complete_reply': complete_reply_callback
-     *      }
      *
      * `complete_reply` is documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#complete)
