@@ -103,8 +103,13 @@ class Audio(DisplayObject):
         import struct
         from io import BytesIO
         import wave
-        maxabsvalue = float(max(map(abs,data)))
-        scaled = map(lambda x: int(x/maxabsvalue*32767), data)
+        try:
+            import numpy as np
+            data = np.array(data,dtype=float)
+            scaled = list(np.int16(data/np.max(np.abs(data))*32767))
+        except ImportError:
+            maxabsvalue = float(max(map(abs,data)))
+            scaled = map(lambda x: int(x/maxabsvalue*32767), data)
         fp = BytesIO()
         waveobj = wave.open(fp,mode='wb')
         waveobj.setnchannels(1)
