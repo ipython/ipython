@@ -132,8 +132,14 @@ var IPython = (function (IPython) {
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
+
+        var widget_area = $('<div/>').addClass('widget_area');
+        var widget_prompt = $('<div/>').addClass('prompt');
+        var widget_subarea = $('<div/>').addClass('widget_subarea');
+        widget_area.append(widget_prompt).append(widget_subarea);
+
         var output = $('<div></div>');
-        cell.append(input).append(output);
+        cell.append(input).append(widget_area).append(output);
         this.element = cell;
         this.output_area = new IPython.OutputArea(output, true);
         this.completer = new IPython.Completer(this);
