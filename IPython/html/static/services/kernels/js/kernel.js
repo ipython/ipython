@@ -242,27 +242,26 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Get info on object asynchronoulsy
+     * Get info on an object
      *
      * @async
      * @param objname {string}
-     * @param callback {dict}
-     * @method object_info_request
+     * @param callback {function}
+     * @method object_info
      *
      * @example
      *
-     * When calling this method pass a callbacks structure of the form:
+     * When calling this method pass a callback function that expects one argument.
      *
-     *     callbacks = {
-     *      'object_info_reply': object_info_reply_callback
-     *     }
-     *
-     * The `object_info_reply_callback` will be passed the content object of the
-     *
-     * `object_into_reply` message documented in
+     * The callback will be passed the complete `object_info_reply` message documented in
      * [IPython dev documentation](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
      */
-    Kernel.prototype.object_info_request = function (objname, callbacks) {
+    Kernel.prototype.object_info = function (objname, callback) {
+        var callbacks;
+        if (callback) {
+            callbacks = { shell : { reply : callback } };
+        }
+        
         if (typeof(objname) !== null && objname !== null) {
             var content = {
                 oname : objname.toString(),
@@ -349,25 +348,26 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * When calling this method pass a callbacks structure of the form:
-     *
+     * When calling this method pass a function to be called with the `complete_reply` message
+     * as its only argument when it arrives.
      *      callbacks = {
      *       'complete_reply': complete_reply_callback
      *      }
      *
-     * The `complete_reply_callback` will be passed the content object of the
-     * `complete_reply` message documented
+     * `complete_reply` is documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#complete)
      *
      * @method complete
      * @param line {integer}
      * @param cursor_pos {integer}
-     * @param {dict} callbacks
-     *      @param callbacks.complete_reply {function} `complete_reply_callback`
+     * @param callback {function}
      *
      */
-    Kernel.prototype.complete = function (line, cursor_pos, callbacks) {
-        callbacks = callbacks || {};
+    Kernel.prototype.complete = function (line, cursor_pos, callback) {
+        var callbacks;
+        if (callback) {
+            callbacks = { shell : { reply : callback } };
+        }
         var content = {
             text : '',
             line : line,

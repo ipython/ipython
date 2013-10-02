@@ -150,10 +150,7 @@ var IPython = (function (IPython) {
                 matched_text: ""
             })
         } else {
-            var callbacks = { shell : {
-                reply: $.proxy(this.finish_completing, this)
-            }};
-            this.cell.kernel.complete(line, cur.ch, callbacks);
+            this.cell.kernel.complete(line, cur.ch, $.proxy(this.finish_completing, this));
         }
     };
 

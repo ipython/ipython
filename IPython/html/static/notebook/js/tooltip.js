@@ -218,8 +218,7 @@ var IPython = (function (IPython) {
         // remove everything after last open bracket
         line = line.replace(endBracket, "");
         return Tooltip.last_token_re.exec(line)
-    }
-
+    };
 
     Tooltip.prototype._request_tooltip = function (cell, line) {
         var callbacks = { shell : {
