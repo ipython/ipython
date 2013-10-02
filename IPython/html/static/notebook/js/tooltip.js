@@ -215,11 +215,8 @@ var IPython = (function (IPython) {
         // remove everything after last open bracket
         func = func.replace(endBracket, "");
 
-        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
-        var callbacks = { shell : {
-            reply : $.proxy(this._show, this)
-        }};
-        var msg_id = cell.kernel.object_info_request(re.exec(func), callbacks);
+        var re = /[a-z_][0-9a-z._]+$/gi; // case insensitive
+        var msg_id = cell.kernel.object_info(re.exec(func), $.proxy(this._show, this));
     }
 
     // make an imediate completion request
