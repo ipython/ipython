@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 
 # Standard library imports
+import re
 import signal
 import sys
 import time
@@ -140,7 +141,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     #--------------------------------------------------------------------------
 
     def format_kernel_cmd(self, **kw):
-        """format templated args (e.g. {connection_file})"""
+        """replace templated args (e.g. {connection_file})"""
         if self.kernel_cmd:
             cmd = self.kernel_cmd
         else:
@@ -150,7 +151,13 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             )
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
-        return [ c.format(**ns) for c in cmd ]
+        
+        pat = re.compile(r'\{([A-Za-z0-9_]+)\}')
+        def from_ns(match):
+            """Get the key out of ns if it's there, otherwise no change."""
+            return ns.get(match.group(1), match.group())
+        
+        return [ pat.sub(from_ns, arg) for arg in cmd ]
 
     def _launch_kernel(self, kernel_cmd, **kw):
         """actually launch the kernel
