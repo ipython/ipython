@@ -101,21 +101,6 @@ text-align: inherit;
 </div>
 </div>
 
-<!--
-Uncomment the following block and the addthis_widget.js (see below inside dependencies)
-to get enable social buttons.
--->
-
-<!--
-<div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
-<a class="addthis_button_twitter"></a>
-<a class="addthis_button_google_plusone_share"></a>
-<a class="addthis_button_linkedin"></a>
-<a class="addthis_button_facebook"></a>
-<a class="addthis_button_more"></a>
-</div>
--->
-
 <script src="{{resources.reveal.url_prefix}}/lib/js/head.min.js"></script>
 
 <script src="{{resources.reveal.url_prefix}}/js/reveal.js"></script>
