@@ -5,8 +5,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>[{{nb.metadata.name}}]</title>
+
+<meta charset="utf-8">
+
 {% for css in resources.inlining.css -%}
     <style type="text/css">
     {{ css }}
@@ -24,10 +25,10 @@ body {
 }
 
 pre {
-    padding: 0.2em;
-    border: none;
-    margin: 0px;
-    font-size: 13px;
+  padding: 0.2em;
+  border: none;
+  margin: 0px;
+  font-size: 13px;
 }
 </style>
 
