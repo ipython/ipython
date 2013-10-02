@@ -17,7 +17,7 @@
 
 
 /* local util for codemirror */
-var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;}
+var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
 
 /**
  *
@@ -27,16 +27,16 @@ var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;}
  */
 CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
     var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
-    if (!posEq(from, to)) {cm.replaceRange("", from, to); return}
+    if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
     var cur = cm.getCursor(), line = cm.getLine(cur.line);
     var tabsize = cm.getOption('tabSize');
     var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-    var from = {ch:cur.ch-chToPrevTabStop,line:cur.line}
-    var select = cm.getRange(from,cur)
-    if( select.match(/^\ +$/) != null){
-        cm.replaceRange("",from,cur)
+    from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
+    var select = cm.getRange(from,cur);
+    if( select.match(/^\ +$/) !== null){
+        cm.replaceRange("",from,cur);
     } else {
-        cm.deleteH(-1,"char")
+        cm.deleteH(-1,"char");
     }
 };
 
@@ -104,7 +104,7 @@ var IPython = (function (IPython) {
      * @method auto_highlight
      */
     CodeCell.prototype.auto_highlight = function () {
-        this._auto_highlight(IPython.config.cell_magic_highlight)
+        this._auto_highlight(IPython.config.cell_magic_highlight);
     };
 
     /** @method create_element */
@@ -117,7 +117,7 @@ var IPython = (function (IPython) {
         this.celltoolbar = new IPython.CellToolbar(this);
 
         var input = $('<div></div>').addClass('input');
-        var vbox = $('<div/>').addClass('vbox box-flex1')
+        var vbox = $('<div/>').addClass('vbox box-flex1');
         input.append($('<div/>').addClass('prompt input_prompt'));
         vbox.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
@@ -152,7 +152,7 @@ var IPython = (function (IPython) {
         // they are sent, and remove tooltip if any, except for tab again
         if (event.type === 'keydown' && event.which != key.TAB ) {
             IPython.tooltip.remove_and_cancel_tooltip();
-        };
+        }
 
         var cur = editor.getCursor();
         if (event.keyCode === key.ENTER){
@@ -177,7 +177,7 @@ var IPython = (function (IPython) {
                 return false;
             } else {
                 return true;
-            };
+            }
         } else if (event.which === key.ESC) {
             return IPython.tooltip.remove_and_cancel_tooltip(true);
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
@@ -188,7 +188,7 @@ var IPython = (function (IPython) {
                 return false;
             } else {
                 return true;
-            };
+            }
         } else if (event.keyCode === key.TAB && event.type == 'keydown' && event.shiftKey) {
                 if (editor.somethingSelected()){
                     var anchor = editor.getCursor("anchor");
@@ -203,7 +203,7 @@ var IPython = (function (IPython) {
         } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
             //Do not trim here because of tooltip
-            if (editor.somethingSelected()){return false}
+            if (editor.somethingSelected()) { return false; }
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
             if (pre_cursor.trim() === "") {
                 // Don't autocomplete if the part of the line before the cursor
@@ -219,12 +219,12 @@ var IPython = (function (IPython) {
                 event.stop();
                 this.completer.startCompletion();
                 return true;
-            };
+            }
         } else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.
             return false;
-        };
+        }
         return false;
     };
 
@@ -233,7 +233,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.set_kernel = function (kernel) {
         this.kernel = kernel;
-    }
+    };
 
     /**
      * Execute current code cell to the kernel
@@ -258,7 +258,7 @@ var IPython = (function (IPython) {
                 clear_output : $.proxy(this.output_area.handle_clear_output, this.output_area),
             },
             input : $.proxy(this._handle_input_request, this)
-        }
+        };
         
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
     };
@@ -271,16 +271,16 @@ var IPython = (function (IPython) {
         this.set_input_prompt(msg.content.execution_count);
         this.element.removeClass("running");
         $([IPython.events]).trigger('set_dirty.Notebook', {value: true});
-    }
+    };
 
     /**
      * @method _handle_set_next_input
      * @private
      */
     CodeCell.prototype._handle_set_next_input = function (payload) {
-        var data = {'cell': this, 'text': payload.text}
+        var data = {'cell': this, 'text': payload.text};
         $([IPython.events]).trigger('set_next_input.Notebook', data);
-    }
+    };
 
     /**
      * @method _handle_input_request
@@ -288,7 +288,7 @@ var IPython = (function (IPython) {
      */
     CodeCell.prototype._handle_input_request = function (msg) {
         this.output_area.append_raw_input(msg);
-    }
+    };
 
 
     // Basic cell manipulation.
@@ -338,21 +338,23 @@ var IPython = (function (IPython) {
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns = prompt_value || "&nbsp;";
-        return 'In&nbsp;[' + ns + ']:'
+        return 'In&nbsp;[' + ns + ']:';
     };
 
     CodeCell.input_prompt_continuation = function (prompt_value, lines_number) {
         var html = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
-        for(var i=1; i < lines_number; i++){html.push(['...:'])};
-        return html.join('</br>')
+        for(var i=1; i < lines_number; i++) {
+            html.push(['...:']);
+        }
+        return html.join('<br/>');
     };
 
     CodeCell.input_prompt_function = CodeCell.input_prompt_classical;
 
 
     CodeCell.prototype.set_input_prompt = function (number) {
-        var nline = 1
-        if( this.code_mirror != undefined) {
+        var nline = 1;
+        if (this.code_mirror !== undefined) {
            nline = this.code_mirror.lineCount();
         }
         this.input_prompt_number = number;
@@ -417,16 +419,16 @@ var IPython = (function (IPython) {
                 this.set_input_prompt(data.prompt_number);
             } else {
                 this.set_input_prompt();
-            };
+            }
             this.output_area.fromJSON(data.outputs);
             if (data.collapsed !== undefined) {
                 if (data.collapsed) {
                     this.collapse();
                 } else {
                     this.expand();
-                };
-            };
-        };
+                }
+            }
+        }
     };
 
 
@@ -436,7 +438,7 @@ var IPython = (function (IPython) {
         data.cell_type = 'code';
         if (this.input_prompt_number) {
             data.prompt_number = this.input_prompt_number;
-        };
+        }
         var outputs = this.output_area.toJSON();
         data.outputs = outputs;
         data.language = 'python';
