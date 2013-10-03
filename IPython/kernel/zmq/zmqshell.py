@@ -610,7 +610,7 @@ class ZMQInteractiveShell(InteractiveShell):
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias('ed', 'edit')
     
-    def init_widgets(self):
+    def init_comms(self):
         self.comm_manager = CommManager(shell=self, parent=self)
         self.configurables.append(self.comm_manager)
 
