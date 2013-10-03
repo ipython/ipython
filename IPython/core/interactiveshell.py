@@ -507,7 +507,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_pdb()
         self.init_extension_manager()
         self.init_payload()
-        self.init_widgets()
+        self.init_comms()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
 
@@ -2323,7 +2323,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to widgets
     #-------------------------------------------------------------------------
     
-    def init_widgets(self):
+    def init_comms(self):
         # not implemented in the base class
         pass
     
