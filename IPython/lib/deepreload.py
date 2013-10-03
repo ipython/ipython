@@ -280,9 +280,8 @@ def deep_reload_hook(m):
         subname = name
         path = None
     else:
-        try:
-            parent = sys.modules[name[:dot]]
-        except KeyError:
+        parent = sys.modules.get(name[:dot])
+        if parent is None:
             modules_reloading.clear()
             raise ImportError("reload(): parent %.200s not in sys.modules" % name[:dot])
         subname = name[dot+1:]
