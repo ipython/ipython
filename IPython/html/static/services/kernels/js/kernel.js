@@ -49,7 +49,7 @@ var IPython = (function (IPython) {
     };
 
 
-    Kernel.prototype._get_msg = function (msg_type, content) {
+    Kernel.prototype._get_msg = function (msg_type, content, metadata) {
         var msg = {
             header : {
                 msg_id : utils.uuid(),
@@ -57,7 +57,7 @@ var IPython = (function (IPython) {
                 session : this.session_id,
                 msg_type : msg_type
             },
-            metadata : {},
+            metadata : metadata || {},
             content : content,
             parent_header : {}
         };
@@ -234,8 +234,8 @@ var IPython = (function (IPython) {
     // Main public methods.
     
     // send a message on the Kernel's shell channel
-    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks) {
-        var msg = this._get_msg(msg_type, content);
+    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata) {
+        var msg = this._get_msg(msg_type, content, metadata);
         this.shell_channel.send(JSON.stringify(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
