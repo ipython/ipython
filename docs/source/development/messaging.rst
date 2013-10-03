@@ -430,7 +430,9 @@ When status is 'ok', the following extra fields are present::
       # Each execution payload is a dict with string keys that may have been
       # produced by the code being executed.  It is retrieved by the kernel at
       # the end of the execution and sent back to the front end, which can take
-      # action on it as needed.  See main text for further details.
+      # action on it as needed.
+      # The only requirement of each payload dict is that it have a 'source' key,
+      # which is a string classifying the payload (e.g. 'pager').
       'payload' : list(dict),
 
       # Results for the user_variables and user_expressions.
