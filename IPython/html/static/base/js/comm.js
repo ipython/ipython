@@ -102,29 +102,29 @@ var IPython = (function (IPython) {
     };
     
     // methods for sending messages
-    Comm.prototype.open = function (data, callbacks) {
+    Comm.prototype.open = function (data, callbacks, metadata) {
         var content = {
             comm_id : this.comm_id,
             target_name : this.target_name,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_open", content, callbacks);
+        return this.kernel.send_shell_message("comm_open", content, callbacks, metadata);
     };
     
-    Comm.prototype.send = function (data, callbacks) {
+    Comm.prototype.send = function (data, callbacks, metadata) {
         var content = {
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_msg", content, callbacks);
+        return this.kernel.send_shell_message("comm_msg", content, callbacks, metadata);
     };
     
-    Comm.prototype.close = function (data, callbacks) {
+    Comm.prototype.close = function (data, callbacks, metadata) {
         var content = {
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_close", content, callbacks);
+        return this.kernel.send_shell_message("comm_close", content, callbacks, metadata);
     };
     
     // methods for registering callbacks for incoming messages
