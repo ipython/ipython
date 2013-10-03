@@ -982,7 +982,7 @@ python-profiler package from non-free.""")
         if number == 0:
             # determine number so that 0.2 <= total time < 2.0
             number = 1
-            for i in range(1, 10):
+            for _ in range(1, 10):
                 if timer.timeit(number) >= 0.2:
                     break
                 number *= 10
@@ -1284,5 +1284,4 @@ def _format_time(timespan, precision=3):
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 3
-    ret =  u"%.*g %s" % (precision, timespan * scaling[order], units[order])
-    return ret
+    return u"%.*g %s" % (precision, timespan * scaling[order], units[order])
