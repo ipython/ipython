@@ -311,7 +311,7 @@ var IPython = (function (IPython) {
         // Only reset the height to automatic if the height is currently
         // fixed (done by wait=True flag on clear_output).
         if (needs_height_reset) {
-            this.element.height('auto');    
+            this.element.height('');    
         }
 
         var that = this;
