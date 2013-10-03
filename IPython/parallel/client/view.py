@@ -457,7 +457,7 @@ class DirectView(View):
             else:
                 user_ns[name] = sys.modules[name]
 
-        def view_import(name, globals={}, locals={}, fromlist=[], level=-1):
+        def view_import(name, globals={}, locals={}, fromlist=[], level=0):
             """the drop-in replacement for __import__, that optionally imports
             locally as well.
             """
@@ -478,7 +478,7 @@ class DirectView(View):
             imp.release_lock()
 
             key = name+':'+','.join(fromlist or [])
-            if level == -1 and key not in modules:
+            if level <= 0 and key not in modules:
                 modules.add(key)
                 if not quiet:
                     if fromlist:
