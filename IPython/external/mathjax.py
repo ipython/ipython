@@ -164,7 +164,7 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
 
     if file is None:
         # download mathjax
-        mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s" % tag
+        mathjax_url = "https://github.com/mathjax/MathJax/archive/%s.tar.gz" %tag
         print "Downloading mathjax source from %s" % mathjax_url
         response = urllib2.urlopen(mathjax_url)
         file = response.fp
