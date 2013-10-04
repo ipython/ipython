@@ -145,7 +145,7 @@ class WinHPCJob(Configurable):
         """Return the string representation of the job description XML."""
         root = self.as_element()
         indent(root)
-        txt = ET.tostring(root, encoding="utf-8")
+        txt = ET.tostring(root, encoding="utf-8").decode('utf-8')
         # Now remove the tokens used to order the attributes.
         txt = re.sub(r'_[A-Z]_','',txt)
         txt = '<?xml version="1.0" encoding="utf-8"?>\n' + txt
