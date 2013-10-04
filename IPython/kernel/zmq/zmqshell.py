@@ -478,6 +478,7 @@ class ZMQInteractiveShell(InteractiveShell):
     display_pub_class = Type(ZMQDisplayPublisher)
     data_pub_class = Type(ZMQDataPublisher)
     kernel = Any()
+    parent_header = Any()
 
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved
@@ -589,6 +590,7 @@ class ZMQInteractiveShell(InteractiveShell):
     
     def set_parent(self, parent):
         """Set the parent header for associating output with its triggering input"""
+        self.parent_header = parent
         self.displayhook.set_parent(parent)
         self.display_pub.set_parent(parent)
         self.data_pub.set_parent(parent)
@@ -600,6 +602,9 @@ class ZMQInteractiveShell(InteractiveShell):
             sys.stderr.set_parent(parent)
         except AttributeError:
             pass
+    
+    def get_parent(self):
+        return self.parent_header
     
     #-------------------------------------------------------------------------
     # Things related to magics
