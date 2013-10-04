@@ -7,6 +7,7 @@
 <head>
 
 <meta charset="utf-8" />
+<title>{{resources['metadata']['name']}}</title>
 
 {% for css in resources.inlining.css -%}
     <style type="text/css">
