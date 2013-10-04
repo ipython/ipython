@@ -10,7 +10,7 @@ casper.notebook_test(function() {
             
             IPython.notebook.insert_cell_below('code');
             var cell_two = IPython.notebook.get_selected_cell();
-            cell_two.set_text('print a');
+            cell_two.set_text('print(a)');
         };
         
         // merge_cell_above()
@@ -30,8 +30,8 @@ casper.notebook_test(function() {
         };
     });
     
-    this.test.assertEquals(output.above, 'a = 5\nprint a',
+    this.test.assertEquals(output.above, 'a = 5\nprint(a)',
                            'Successful insert_cell_above().');
-    this.test.assertEquals(output.below, 'a = 5\nprint a',
+    this.test.assertEquals(output.below, 'a = 5\nprint(a)',
                            'Successful insert_cell_below().');
 });
