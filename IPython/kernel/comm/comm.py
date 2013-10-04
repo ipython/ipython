@@ -68,6 +68,7 @@ class Comm(LoggingConfigurable):
         data = {} if data is None else data
         self.session.send(self.iopub_socket, msg_type,
             dict(data=data, comm_id=self.comm_id, **keys),
+            parent=self.shell.get_parent(),
             ident=self.topic,
         )
     
