@@ -38,7 +38,7 @@ from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils.py3compat import str_to_bytes, bytes_to_str
+from IPython.utils.py3compat import str_to_bytes, bytes_to_str, cast_bytes_py2
 from IPython.utils.traitlets import (
     Bool, Integer, Unicode, CaselessStrEnum,
 )
@@ -360,7 +360,7 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
     if tunnel.try_passwordless_ssh(sshserver, sshkey):
         password=False
     else:
-        password = getpass("SSH Password for %s: "%str(sshserver))
+        password = getpass("SSH Password for %s: " % cast_bytes_py2(sshserver))
     
     for lp,rp in zip(lports, rports):
         tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password)
