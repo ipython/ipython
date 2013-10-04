@@ -46,6 +46,7 @@ var IPython = (function (IPython) {
         
         this.bind_events();
         this.init_iopub_handlers();
+        this.comm_manager = new IPython.CommManager(this);
     };
 
 
