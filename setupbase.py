@@ -319,7 +319,6 @@ def find_scripts(entry_points=False, suffix=''):
     if entry_points:
         console_scripts = [s % suffix for s in [
             'ipython%s = IPython:start_ipython',
-            'pycolor%s = IPython.utils.PyColorize:main',
             'ipcontroller%s = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',
             'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
@@ -338,7 +337,6 @@ def find_scripts(entry_points=False, suffix=''):
                    pjoin(parallel_scripts, 'ipcluster'),
                    pjoin(parallel_scripts, 'iplogger'),
                    pjoin(main_scripts, 'ipython'),
-                   pjoin(main_scripts, 'pycolor'),
                    pjoin(main_scripts, 'irunner'),
                    pjoin(main_scripts, 'iptest')
         ]
