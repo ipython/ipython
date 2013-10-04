@@ -177,9 +177,17 @@ class TestSSHEngineLauncher(SSHTest, LauncherTest, TestCase):
 # Windows Launcher Tests
 #-------------------------------------------------------------------------------
 
-if sys.platform.startswith("win"):
-    class TestWinHPCControllerLauncher(ControllerLauncherTest, TestCase):
-        launcher_class = launcher.WindowsHPCControllerLauncher
+class WinHPCTest:
+    """Tests for WinHPC Launchers"""
+    def test_batch_template(self):
+        launcher = self.build_launcher()
+        job_file = os.path.join(self.profile_dir, launcher.job_file_name)
+        self.assertEqual(launcher.job_file, job_file)
+        launcher.write_job_file(1)
+        self.assertTrue(os.path.isfile(job_file))
 
-    class TestWinHPCEngineSetLauncher(EngineSetLauncherTest, TestCase):
-        launcher_class = launcher.WindowsHPCEngineSetLauncher
+class TestWinHPCControllerLauncher(WinHPCTest, ControllerLauncherTest, TestCase):
+    launcher_class = launcher.WindowsHPCControllerLauncher
+
+class TestWinHPCEngineSetLauncher(WinHPCTest, EngineSetLauncherTest, TestCase):
+    launcher_class = launcher.WindowsHPCEngineSetLauncher
