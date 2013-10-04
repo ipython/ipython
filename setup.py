@@ -185,10 +185,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                  ('docs/man/irunner.1.gz',
                   ['docs/man/irunner.1'],
                   'cd docs/man && gzip -9c irunner.1 > irunner.1.gz'),
-
-                 ('docs/man/pycolor.1.gz',
-                  ['docs/man/pycolor.1'],
-                  'cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz'),
                  ]
 
 
