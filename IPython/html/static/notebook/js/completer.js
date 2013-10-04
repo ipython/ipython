@@ -202,9 +202,8 @@ var IPython = (function (IPython) {
         this.complete.append(this.sel);
         $('body').append(this.complete);
 
-        // After everything is on the page compute the postion.
-        // We invert the completion list and put it above the code if it is too
-        // close to the bottom of the page.
+        // After everything is on the page, compute the postion.
+        // We put it above the code if it is too close to the bottom of the page.
         var cur = this.editor.getCursor();
         cur.ch = cur.ch-matched_text.length;
         var pos = this.editor.cursorCoords(cur);
