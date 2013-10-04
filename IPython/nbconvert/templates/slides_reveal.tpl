@@ -36,10 +36,11 @@ document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/cs
 
 <style type="text/css">
 /* Overrides of notebook CSS for static HTML export */
+html {
+overflow-y: auto;
+}
 .reveal {
 font-size: 20px;
-overflow-y: auto;
-overflow-x: hidden;
 }
 .reveal pre {
 width: 95%;
@@ -157,7 +158,8 @@ window.onload = function () {
 
 <script>
 Reveal.addEventListener( 'slidechanged', function( event ) {
-MathJax.Hub.Rerender(event.currentSlide);
+  window.scrollTo(0,0);
+  MathJax.Hub.Rerender(event.currentSlide);
 });
 </script>
 
