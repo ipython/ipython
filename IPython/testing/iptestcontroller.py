@@ -28,7 +28,7 @@ import sys
 import subprocess
 import time
 
-from .iptest import have, test_group_names, test_sections
+from .iptest import have, test_group_names as py_test_group_names, test_sections
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import sys_info
 from IPython.utils.tempdir import TemporaryDirectory
@@ -56,14 +56,6 @@ class TestController(object):
         self.cmd = []
         self.env = {}
         self.dirs = []
-    
-
-    @property
-    def will_run(self):
-        try:
-            return test_sections[self.section].will_run
-        except KeyError:
-            return True
 
     def launch(self):
         # print('*** ENV:', self.env)  # dbg
@@ -102,13 +94,13 @@ class TestController(object):
         if subp.poll() is None:
             # The process did not die...
             print('... failed. Manual cleanup may be required.')
-    
+
     def cleanup(self):
         "Kill process if it's still alive, and clean up temporary directories"
         self.cleanup_process()
         for td in self.dirs:
             td.cleanup()
-    
+
     __del__ = cleanup
 
 class PyTestController(TestController):
@@ -131,6 +123,13 @@ class PyTestController(TestController):
         self.env['IPTEST_WORKING_DIR'] = workingdir.name
         # This means we won't get odd effects from our own matplotlib config
         self.env['MPLCONFIGDIR'] = workingdir.name
+
+    @property
+    def will_run(self):
+        try:
+            return test_sections[self.section].will_run
+        except KeyError:
+            return True
 
     def add_xunit(self):
         xunit_file = os.path.abspath(self.section + '.xunit.xml')
@@ -170,6 +169,7 @@ class JSController(TestController):
         self.dirs.append(self.ipydir)
         self.env['IPYTHONDIR'] = self.ipydir.name
 
+    def launch(self):
         # start the ipython notebook, so we get the port number
         self._init_server()
 
@@ -180,6 +180,11 @@ class JSController(TestController):
         port = '--port=' + str(self.server_port)
         self.cmd = ['casperjs', 'test', port, includes, test_cases]
 
+        super(JSController, self).launch()
+
+    @property
+    def will_run(self):
+        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs'])
 
     def _init_server(self):
         "Start the notebook server in a separate process"
@@ -193,6 +198,7 @@ class JSController(TestController):
         self.server.join()
         TestController.cleanup(self)
 
+js_test_group_names = {'js'}
 
 def run_webapp(q, nbdir, loglevel=0):
     """start the IPython Notebook, and pass port back to the queue"""
@@ -212,17 +218,21 @@ def prepare_controllers(options):
     not to run."""
     testgroups = options.testgroups
 
-    if not testgroups:
-        testgroups = test_group_names
+    if testgroups:
+        py_testgroups = [g for g in testgroups if g in py_test_group_names]
+        js_testgroups = [g for g in testgroups if g in js_test_group_names]
+    else:
+        py_testgroups = py_test_group_names
+        js_testgroups = js_test_group_names
         if not options.all:
             test_sections['parallel'].enabled = False
 
-    c_js = [JSController(name) for name in testgroups if 'js' in name]
-    c_py = [PyTestController(name) for name in testgroups if 'js' not in name]
+    c_js = [JSController(name) for name in js_testgroups]
+    c_py = [PyTestController(name) for name in py_testgroups]
 
     configure_py_controllers(c_py, xunit=options.xunit,
             coverage=options.coverage)
-    
+
     controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
     not_run = [c for c in controllers if not c.will_run]
@@ -245,10 +255,10 @@ def do_run(controller):
             import traceback
             traceback.print_exc()
             return controller, 1  # signal failure
-    
+
         exitcode = controller.wait()
         return controller, exitcode
-    
+
     except KeyboardInterrupt:
         return controller, -signal.SIGINT
     finally:
@@ -287,7 +297,7 @@ def run_iptestall(options):
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
     nose.
-    
+
     Parameters
     ----------
 
@@ -359,7 +369,7 @@ def run_iptestall(options):
                         break
         except KeyboardInterrupt:
             return
-    
+
     for controller in not_run:
         print(justify('IPython test group: ' + controller.section, 'NOT RUN'))
 

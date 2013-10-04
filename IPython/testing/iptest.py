@@ -164,7 +164,7 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 
 test_group_names = ['parallel', 'kernel', 'kernel.inprocess', 'config', 'core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
-                    'nbformat', 'qt', 'html', 'js', 'nbconvert'
+                    'nbformat', 'qt', 'html', 'nbconvert'
                    ]
 
 class TestSection(object):
@@ -287,9 +287,6 @@ if not have['jinja2']:
     sec.exclude('notebookapp')
 if not have['azure']:
     sec.exclude('services.notebooks.azurenbmanager')
-
-sec = test_sections['js']
-sec.requires('zmq', 'tornado', 'jinja2', 'casperjs')
 
 # config:
 # Config files aren't really importable stand-alone
