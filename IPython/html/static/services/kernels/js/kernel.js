@@ -72,10 +72,10 @@ var IPython = (function (IPython) {
      * Start the Python kernel
      * @method start
      */
-    Kernel.prototype.start = function (notebook_id) {
+    Kernel.prototype.start = function (params) {
         var that = this;
         if (!this.running) {
-            var qs = $.param({notebook:notebook_id});
+            var qs = $.param(params);
             var url = this.base_url + '?' + qs;
             $.post(url,
                 $.proxy(that._kernel_started,that),
