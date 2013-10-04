@@ -45,7 +45,7 @@ class PDFPostProcessor(PostProcessorBase):
         config=True, help="""
         Filename extensions of temp files to remove after running.
         """)
-    pdf_open = Bool(True, config=True, help="""
+    pdf_open = Bool(False, config=True, help="""
         Whether or not to open the pdf after the compile call.
         """)
 
@@ -117,14 +117,14 @@ class PDFPostProcessor(PostProcessorBase):
             except OSError:
                 pass
 
-    def open_pdf(self,filename):
-        filepath = filename+'.pdf'
+    def open_pdf(self, filename):
+        """Open the pdf in the default viewer."""
         if sys.platform.startswith('darwin'):
-            subprocess.call(('open', filepath))
+            subprocess.call(('open', filename))
         elif os.name == 'nt':
-            os.startfile(filepath)
+            os.startfile(filename)
         elif os.name == 'posix':
-            subprocess.call(('xdg-open', filepath))
+            subprocess.call(('xdg-open', filename))
         return
 
     def postprocess(self, filename):
@@ -143,7 +143,7 @@ class PDFPostProcessor(PostProcessorBase):
         if os.path.isfile(filename+'.pdf'):
             self.log.info('PDF successfully created')
             if self.pdf_open: 
-                self.open_pdf(filename)
                 self.log.info('Viewer called')
+                self.open_pdf(filename+'.pdf')
         return
  
