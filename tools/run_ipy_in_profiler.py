@@ -11,7 +11,7 @@ import sys
 
 def main():
     import IPython.ipapi
-    print "Entering ipython for profiling. Type 'Exit' for profiler report"
+    print("Entering ipython for profiling. Type 'Exit' for profiler report")
     IPython.ipapi.launch_new_instance()
 
 if len(sys.argv) == 1:
