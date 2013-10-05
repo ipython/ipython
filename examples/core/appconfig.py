@@ -31,6 +31,7 @@ the trait's events for all of the config=True attributes.
 """
 
 import sys
+from __future__ import print_function
 
 from IPython.config.configurable import Configurable
 from IPython.config.application import Application
@@ -87,8 +88,8 @@ class MyApp(Application):
         self.init_bar()
     
     def start(self):
-        print "app.config:"
-        print self.config
+        print("app.config:")
+        print(self.config)
 
 
 def main():
