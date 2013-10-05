@@ -18,8 +18,6 @@ var IPython = (function (IPython) {
         }
         
         var handle_output = function (msg) {
-            console.log(msg);
-            console.log(that.output_msg_id, msg.parent_header.msg_id)
             if (!that.output_msg_id) {
                 that.output_msg_id = msg.parent_header.msg_id;
             }
@@ -40,7 +38,6 @@ var IPython = (function (IPython) {
             },
         };
         
-        console.log("running...")
         cell.kernel.execute(
             cell.get_text(), callbacks, {silent: false, store_history: false}
         );
