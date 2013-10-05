@@ -565,12 +565,6 @@ class TerminalInteractiveShell(InteractiveShell):
           - continue_prompt(False): whether this line is the first one or a
           continuation in a sequence of inputs.
         """
-        # Code run by the user may have modified the readline completer state.
-        # We must ensure that our completer is back in place.
-
-        if self.has_readline:
-            self.set_readline_completer()
-        
         # raw_input expects str, but we pass it unicode sometimes
         prompt = py3compat.cast_bytes_py2(prompt)
 
