@@ -47,5 +47,5 @@ class TestLatex(PreprocessorTestsBase):
         # Make sure the code cell wasn't modified.
         self.assertEqual(nb.worksheets[0].cells[0].input, '$ e $')
 
-        # Verify that the markdown cell was processed.
-        self.assertEqual(nb.worksheets[0].cells[1].source, '$e$')
+        # Verify that the markdown cell wasn't processed.
+        self.assertEqual(nb.worksheets[0].cells[1].source, '$ e $')
