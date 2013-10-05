@@ -15,6 +15,7 @@
 # Stdlib
 import re
 
+from __future__ import print_function
 # Our own packages
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
@@ -116,9 +117,9 @@ class ConfigMagics(Magics):
         line = s.strip()
         if not line:
             # print available configurable names
-            print "Available objects for config:"
+            print("Available objects for config:")
             for name in classnames:
-                print "    ", name
+                print("    ", name)
             return
         elif line in classnames:
             # `%config TerminalInteractiveShell` will print trait info for
@@ -128,7 +129,7 @@ class ConfigMagics(Magics):
             help = cls.class_get_help(c)
             # strip leading '--' from cl-args:
             help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
-            print help
+            print(help)
             return
         elif reg.match(line):
             cls, attr = line.split('.')

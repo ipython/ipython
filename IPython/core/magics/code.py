@@ -19,6 +19,7 @@ import os
 import re
 import sys
 from itertools import chain
+from __future__ import print_function
 
 # Our own packages
 from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
@@ -131,10 +132,10 @@ class CodeMagics(Magics):
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
-                print "File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s)
+                print("File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s))
                 return
             if not overwrite :
-                print 'Operation cancelled.'
+                print('Operation cancelled.')
                 return
         try:
             cmds = self.shell.find_user_code(codefrom,raw)
@@ -149,8 +150,8 @@ class CodeMagics(Magics):
             # make sure we end on a newline
             if not out.endswith(u'\n'):
                 f.write(u'\n')
-        print 'The following commands were written to file `%s`:' % fname
-        print cmds
+        print('The following commands were written to file `%s`:' % fname)
+        print(cmds)
 
     @line_magic
     def pastebin(self, parameter_s=''):
@@ -172,7 +173,7 @@ class CodeMagics(Magics):
         try:
             code = self.shell.find_user_code(args)
         except (ValueError, TypeError) as e:
-            print e.args[0]
+            print(e.args[0])
             return
 
         from urllib2 import urlopen  # Deferred import
@@ -260,7 +261,7 @@ class CodeMagics(Magics):
                 ans = True
 
             if ans is False :
-                print 'Operation cancelled.'
+                print('Operation cancelled.')
                 return
 
         self.shell.set_next_input(contents)
@@ -560,7 +561,7 @@ class CodeMagics(Magics):
             self._edit_macro(args, e.args[0])
             return
         except InteractivelyDefined as e:
-            print "Editing In[%i]" % e.index
+            print("Editing In[%i]" % e.index)
             args = str(e.index)
             filename, lineno, is_temp = self._find_edit_target(self.shell, 
                                                        args, opts, last_call)
@@ -570,7 +571,7 @@ class CodeMagics(Magics):
             return
 
         # do actual editing here
-        print 'Editing...',
+        print('Editing...', end=' ')
         sys.stdout.flush()
         try:
             # Quote filenames that may have spaces in them
@@ -588,9 +589,9 @@ class CodeMagics(Magics):
                 self.shell.user_ns['pasted_block'] = f.read()
 
         if 'x' in opts:  # -x prevents actual execution
-            print
+            print()
         else:
-            print 'done. Executing edited code...'
+            print('done. Executing edited code...')
             with preserve_keys(self.shell.user_ns, '__file__'):
                 if not is_temp:
                     self.shell.user_ns['__file__'] = filename

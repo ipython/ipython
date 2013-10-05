@@ -20,6 +20,7 @@ import re
 import sys
 import types
 from getopt import getopt, GetoptError
+from __future__ import print_function
 
 # Our own
 from IPython.config.configurable import Configurable
