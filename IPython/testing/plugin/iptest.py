@@ -10,8 +10,8 @@ import ipdoctest
 from ipdoctest import IPDocTestRunner
 
 if __name__ == '__main__':
-    print 'WARNING: this code is incomplete!'
-    print
+    print('WARNING: this code is incomplete!')
+    print()
 
     pp = [x() for x in plugins]  # activate all builtin plugins first
     main(testRunner=IPDocTestRunner(),

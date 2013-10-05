@@ -190,7 +190,7 @@ class BackgroundJobManager(object):
         job.num = len(self.all)+1 if self.all else 0
         self.running.append(job)
         self.all[job.num] = job
-        print 'Starting job # %s in a separate thread.' % job.num
+        print('Starting job # %s in a separate thread.' % job.num)
         job.start()
         return job
 
@@ -416,7 +416,7 @@ class BackgroundJobBase(threading.Thread):
         return '<BackgroundJob #%d: %s>' % (self.num, self.strform)
 
     def traceback(self):
-        print self._tb
+        print(self._tb)
         
     def run(self):
         try:
