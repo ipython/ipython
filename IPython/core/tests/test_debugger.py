@@ -14,6 +14,8 @@
 
 import sys
 
+from __future__ import print_function
+
 # third-party
 import nose.tools as nt
 
@@ -36,7 +38,7 @@ class _FakeInput(object):
 
     def readline(self):
         line = next(self.lines)
-        print line
+        print(line)
         return line+'\n'
 
 class PdbTestInput(object):

@@ -497,10 +497,10 @@ if __name__ == '__main__':
             # real interpreter would instead send it for execution somewhere.
             #src = isp.source; raise EOFError # dbg
             src, raw = isp.source_raw_reset()
-            print 'Input source was:\n', src
-            print 'Raw source was:\n', raw
+            print('Input source was:\n', src)
+            print('Raw source was:\n', raw)
     except EOFError:
-        print 'Bye'
+        print('Bye')
 
 # Tests for cell magics support
 

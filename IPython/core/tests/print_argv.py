@@ -1,2 +1,5 @@
 import sys
-print sys.argv[1:]
+
+from __future__ import print_function
+
+print(sys.argv[1:])

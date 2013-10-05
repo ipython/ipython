@@ -162,8 +162,8 @@ class FunctionMaker(object):
             # print >> sys.stderr, 'Compiling %s' % src
             exec(code, evaldict)
         except:
-            print >> sys.stderr, 'Error in generated code:'
-            print >> sys.stderr, src
+            print('Error in generated code:', file=sys.stderr)
+            print(src, file=sys.stderr)
             raise
         func = evaldict[name]
         if addsource:
