@@ -16,7 +16,7 @@ from IPython.parallel.ipengineapp import launch_new_instance
 ns = {}
 
 # job
-exec sys.argv[1] in ns
+exec(sys.argv[1], ns)
 
 # this should really use Config:
 EngineFactory.user_ns = ns

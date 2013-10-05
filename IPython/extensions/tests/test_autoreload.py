@@ -44,7 +44,7 @@ class FakeShell(object):
             self.auto_magics.pre_run_code_hook(self)
         except TryNext:
             pass
-        exec code in self.ns
+        exec(code, self.ns)
 
     def push(self, items):
         self.ns.update(items)
