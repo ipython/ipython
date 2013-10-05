@@ -199,15 +199,27 @@ var IPython = (function (IPython) {
         this.complete.attr('id', 'complete');
 
         this.sel = $('<select style="width: auto"/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
-        //var pos = this.editor.cursorCoords();
-		var cur = this.editor.getCursor();
-		cur.ch = cur.ch-matched_text.length;
-		var pos = this.editor.cursorCoords(cur);
-        this.complete.css('left', pos.left-3 + 'px');
-        this.complete.css('top', pos.bottom+1 + 'px');
         this.complete.append(this.sel);
-
         $('body').append(this.complete);
+
+        // After everything is on the page, compute the postion.
+        // We put it above the code if it is too close to the bottom of the page.
+        var cur = this.editor.getCursor();
+        cur.ch = cur.ch-matched_text.length;
+        var pos = this.editor.cursorCoords(cur);
+        var left = pos.left-3;
+        var top;
+        var cheight = this.complete.height();
+        var wheight = $(window).height();
+        if (pos.bottom+cheight+5 > wheight) {
+            top = pos.top-cheight-4;
+        } else {
+            top = pos.bottom+1;
+        }
+        this.complete.css('left', left + 'px');
+        this.complete.css('top', top + 'px');
+
+
         //build the container
         var that = this;
         this.sel.dblclick(function () {
@@ -233,12 +245,12 @@ var IPython = (function (IPython) {
     }
 
     Completer.prototype.build_gui_list = function (completions) {
-        // Need to clear the all list
         for (var i = 0; i < completions.length; ++i) {
             var opt = $('<option/>').text(completions[i].str).addClass(completions[i].type);
             this.sel.append(opt);
         }
         this.sel.children().first().attr('selected', 'true');
+        this.sel.scrollTop(0);
     }
 
     Completer.prototype.close = function () {
