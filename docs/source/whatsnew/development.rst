@@ -14,6 +14,24 @@ This document describes in-flight development work.
 - `%%capture` cell magic now captures the rich display output, not just
   stdout/stderr
 
+Select Notebook Name When Renaming a Notebook
+---------------------------------------------
+
+The default notebook name is Untitled. It's unlikely you want to keep this name
+or part of it when naming your notebook. Instead, IPython will select the text
+in the input field so the user can easily type over the name and change it.
+
+clear_output changes
+--------------------
+
+* There is no longer a 500ms delay when calling ``clear_output``.
+* The ability to clear stderr and stdout individually was removed.
+* A new ``wait`` flag that prevents ``clear_output`` from being executed until new
+  output is available.  This eliminates animation flickering by allowing the
+  user to double buffer the output.
+* The output div height is remembered when the ``wait=True`` flag is used.
+
+.. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 Backwards incompatible changes
 ------------------------------
@@ -24,3 +42,21 @@ Backwards incompatible changes
   their `call` methods for them have been renamed to `preprocess`.
 * The `call` methods of nbconvert post-processsors have been renamed to
   `postprocess`.
+
+* The module ``IPython.core.fakemodule`` has been removed.
+
+* The alias system has been reimplemented to use magic functions. There should be little
+  visible difference while automagics are enabled, as they are by default, but parts of the
+  :class:`~IPython.core.alias.AliasManager` API have been removed.
+
+* We fixed an issue with switching between matplotlib inline and GUI backends,
+  but the fix requires matplotlib 1.1 or newer.  So from now on, we consider
+  matplotlib 1.1 to be the minimally supported version for IPython. Older
+  versions for the most part will work, but we make no guarantees about it.
+
+* The :command:`pycolor` command has been removed. We recommend the much more capable
+  :command:`pygmentize` command from the `Pygments <http://pygments.org/>`_ project.
+  If you need to keep the exact output of :command:`pycolor`, you can still use
+  ``python -m IPython.utils.PyColorize foo.py``.
+
+.. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
