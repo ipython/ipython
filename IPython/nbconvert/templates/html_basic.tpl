@@ -55,13 +55,13 @@ In&nbsp;[{{ cell.prompt_number }}]:
 
 {% block markdowncell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-{{ cell.source | strip_math_space | markdown2html | strip_files_prefix }}
+{{ cell.source  | markdown2html | strip_files_prefix }}
 </div>
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-{{ ("#" * cell.level + cell.source) | replace('\n', ' ') | strip_math_space | markdown2html | strip_files_prefix | add_anchor }}
+{{ ("#" * cell.level + cell.source) | replace('\n', ' ')  | markdown2html | strip_files_prefix | add_anchor }}
 </div>
 {% endblock headingcell %}
 
