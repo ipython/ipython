@@ -136,6 +136,10 @@ var IPython = (function (IPython) {
         this.element.find('#select_next').click(function () {
             IPython.notebook.select_next();
         });
+        this.element.find('#edit_nb_metadata').click(function () {
+            IPython.notebook.edit_metadata();
+        });
+        
         // View
         this.element.find('#toggle_header').click(function () {
             $('div#header').toggle();
