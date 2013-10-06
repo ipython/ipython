@@ -9,8 +9,9 @@ var IPython = (function (IPython) {
     var key = IPython.utils.keycodes;
 
     function prepend_n_prc(str, n) {
-        for( var i =0 ; i< n ; i++)
-        { str = '%'+str }
+        for( var i =0 ; i< n ; i++){
+            str = '%'+str ;
+        }
         return str;
     }
 
@@ -33,7 +34,7 @@ var IPython = (function (IPython) {
         for (var i = 0; i < B.length; i++) {
             var str = B[i].str;
             var localmin = 0;
-            if(drop_prct == true){
+            if(drop_prct === true){
                 while ( str.substr(0, 1) == '%') {
                     localmin = localmin+1;
                     str = str.substring(1);
@@ -52,13 +53,13 @@ var IPython = (function (IPython) {
             while (s && tem2.indexOf(tem1) == -1) {
                 tem1 = tem1.substring(0, --s);
             }
-            if (tem1 == "" || tem2.indexOf(tem1) != 0) {
+            if (tem1 === "" || tem2.indexOf(tem1) !== 0) {
                 return {
                     str:prepend_n_prc('', min_lead_prct),
                     type: "computed",
                     from: B[0].from,
                     to: B[0].to
-                    }
+                    };
             }
             return {
                 str: prepend_n_prc(tem1, min_lead_prct),
@@ -94,10 +95,28 @@ var IPython = (function (IPython) {
         this.carry_on_completion(true);
     };
 
-    Completer.prototype.carry_on_completion = function (ff) {
+
+    // easy access for julia to monkeypatch
+    //
+    Completer.reinvoke_re = /[%0-9a-z._/\\:~-]/i;
+
+    Completer.prototype.reinvoke= function(pre_cursor, block, cursor){
+        return Completer.reinvoke_re.test(pre_cursor);
+    }
+
+    /**
+     *
+     * pass true as parameter if this is the first invocation of the completer
+     * this will prevent the completer to dissmiss itself if it is not on a
+     * word boundary like pressing tab after a space, and make it autopick the
+     * only choice if there is only one which prevent from popping the UI.  as
+     * well as fast-forwarding the typing if all completion have a common
+     * shared start
+     **/
+    Completer.prototype.carry_on_completion = function (first_invocation) {
         // Pass true as parameter if you want the commpleter to autopick when
         // only one completion. This function is automatically reinvoked at
-        // each keystroke with ff = false
+        // each keystroke with first_invocation = false
         var cur = this.editor.getCursor();
         var line = this.editor.getLine(cur.line);
         var pre_cursor = this.editor.getRange({
@@ -107,18 +126,21 @@ var IPython = (function (IPython) {
 
         // we need to check that we are still on a word boundary
         // because while typing the completer is still reinvoking itself
-        if (!/[%0-9a-z._/\\:~-]/i.test(pre_cursor)) {
+        // so dismiss if we are on a "bad" caracter
+        if (!this.reinvoke(pre_cursor) && !first_invocation) {
             this.close();
             return;
         }
 
         this.autopick = false;
-        if (ff != 'undefined' && ff == true) {
+        if (first_invocation) {
             this.autopick = true;
         }
 
         // We want a single cursor position.
-        if (this.editor.somethingSelected()) return;
+        if (this.editor.somethingSelected()) {
+            return;
+        };
 
         // one kernel completion came back, finish_completing will be called with the results
         // we fork here and directly call finish completing if kernel is busy
@@ -198,7 +220,9 @@ var IPython = (function (IPython) {
         this.complete = $('<div/>').addClass('completions');
         this.complete.attr('id', 'complete');
 
-        this.sel = $('<select style="width: auto"/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
+        this.sel = $('<select style="width: auto"/>')
+            .attr('multiple', 'true')
+            .attr('size', Math.min(10, this.raw_result.length));
         this.complete.append(this.sel);
         $('body').append(this.complete);
 
@@ -273,13 +297,13 @@ var IPython = (function (IPython) {
         var code = event.keyCode;
         var that = this;
         var special_key = false;
-        
+
         // detect special keys like SHIFT,PGUP,...
         for( var _key in key ) {
             if (code == key[_key] ) {
                 special_key = true;
             }
-        };         
+        };
 
         // Enter
         if (code == key.ENTER) {
@@ -314,7 +338,7 @@ var IPython = (function (IPython) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
             event.stopPropagation();
-        } else if (special_key != true) { 
+        } else if (special_key != true) {
             this.close();
             this.editor.focus();
             //we give focus to the editor immediately and call sell in 50 ms
