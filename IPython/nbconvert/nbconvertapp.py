@@ -88,7 +88,7 @@ class NbConvertApp(BaseIPythonApplication):
     
     def _classes_default(self):
         classes = [NbConvertBase, ProfileDir]
-        for pkg in (exporters, preprocessors, writers):
+        for pkg in (exporters, preprocessors, writers, postprocessors):
             for name in dir(pkg):
                 cls = getattr(pkg, name)
                 if isinstance(cls, type) and issubclass(cls, Configurable):
