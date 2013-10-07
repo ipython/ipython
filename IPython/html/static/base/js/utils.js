@@ -366,6 +366,21 @@ IPython.utils = (function (IPython) {
         return Math.floor(points*pixel_per_point);
     };
 
+
+    var url_path_join = function () {
+        // join a sequence of url components with '/'
+        var url = '';
+        for (var i = 0; i < arguments.length; i++) {
+            if (url.length > 0 && url[url.length-1] != '/') {
+                url = url + '/' + arguments[i];
+            } else {
+                url = url + arguments[i];
+            }
+        }
+        return url;
+    };
+
+
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
     var browser = (function() {
         var N= navigator.appName, ua= navigator.userAgent, tem;
@@ -384,7 +399,8 @@ IPython.utils = (function (IPython) {
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
-        browser : browser    
+        url_path_join : url_path_join,
+        browser : browser
     };
 
 }(IPython));
