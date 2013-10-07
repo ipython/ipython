@@ -257,7 +257,9 @@ class IPythonHandler(AuthenticatedHandler):
         body = self.request.body.strip().decode(u'utf-8')
         try:
             model = json.loads(body)
-        except:
+        except Exception:
+            self.log.debug("Bad JSON: %r", body)
+            self.log.error("Couldn't parse JSON", exc_info=True)
             raise web.HTTPError(400, u'Invalid JSON in body of request')
         return model
 
