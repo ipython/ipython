@@ -73,14 +73,14 @@ class FileNotebookManager(NotebookManager):
             except:
                 raise TraitError("Couldn't create checkpoint dir %r" % new)
 
-    def get_notebook_names(self, path='/'):
+    def get_notebook_names(self, path=''):
         """List all notebook names in the notebook dir and path."""
         names = glob.glob(self.get_os_path('*'+self.filename_ext, path))
         names = [os.path.basename(name)
                  for name in names]
         return names
 
-    def increment_filename(self, basename, path='/'):
+    def increment_filename(self, basename, path=''):
         """Return a non-used filename of the form basename<int>."""
         i = 0
         while True:
@@ -97,7 +97,7 @@ class FileNotebookManager(NotebookManager):
         if os.path.exists(path) is False:
             raise web.HTTPError(404, "No file or directory found.")
         
-    def notebook_exists(self, name, path='/'):
+    def notebook_exists(self, name, path=''):
         """Returns a True if the notebook exists. Else, returns False.
 
         Parameters
@@ -111,8 +111,8 @@ class FileNotebookManager(NotebookManager):
         -------
         bool
         """
-        path = self.get_os_path(name, path='/')
-        return os.path.isfile(path)
+        nbpath = self.get_os_path(name, path=path)
+        return os.path.isfile(nbpath)
 
     def list_notebooks(self, path):
         """Returns a list of dictionaries that are the standard model
@@ -137,7 +137,7 @@ class FileNotebookManager(NotebookManager):
         notebooks = sorted(notebooks, key=lambda item: item['name'])
         return notebooks
 
-    def get_notebook_model(self, name, path='/', content=True):
+    def get_notebook_model(self, name, path='', content=True):
         """ Takes a path and name for a notebook and returns it's model
         
         Parameters
@@ -173,13 +173,13 @@ class FileNotebookManager(NotebookManager):
             model['content'] = nb
         return model
 
-    def save_notebook_model(self, model, name, path='/'):
+    def save_notebook_model(self, model, name, path=''):
         """Save the notebook model and return the model with no content."""
 
         if 'content' not in model:
             raise web.HTTPError(400, u'No notebook JSON data provided')
 
-        new_path = model.get('path', path)
+        new_path = model.get('path', path).strip('/')
         new_name = model.get('name', name)
 
         if path != new_path or name != new_name:
