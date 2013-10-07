@@ -363,30 +363,6 @@ class Latex(DisplayObject):
 
 class SVG(DisplayObject):
 
-    def __init__(self, data=None, url=None, filename=None, scoped=False):
-        """Create a SVG display object given raw data.
-
-        When this object is returned by an expression or passed to the
-        display function, it will result in the data being displayed
-        in the frontend. If the data is a URL, the data will first be
-        downloaded and then displayed.
-
-        Parameters
-        ----------
-        data : unicode, str or bytes
-            The Javascript source code or a URL to download it from.
-        url : unicode
-            A URL to download the data from.
-        filename : unicode
-            Path to a local file to load the data from.
-        scoped : bool
-            Should the SVG declarations be scoped.
-        """
-        if not isinstance(scoped, (bool)):
-            raise TypeError('expected bool, got: %r' % scoped)
-        self.scoped = scoped
-        super(SVG, self).__init__(data=data, url=url, filename=filename)
-
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
     _data = None
@@ -416,11 +392,7 @@ class SVG(DisplayObject):
         self._data = svg
 
     def _repr_svg_(self):
-        if self.scoped:
-            metadata = dict(scoped=True)
-            return self.data, metadata
-        else:
-            return self.data
+        return self.data
 
 
 class JSON(DisplayObject):

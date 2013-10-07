@@ -327,7 +327,51 @@ var IPython = (function (IPython) {
         }
         return oa;
     };
-    
+
+
+    OutputArea.prototype.create_output_subarea = function(md, classes) {
+        var subarea = $('<div/>').addClass('output_subarea').addClass(classes);
+        if (md['isolated']) {
+            // Create an iframe to isolate the subarea from the rest of the
+            // document
+            var iframe = $('<iframe/>');
+            iframe.attr('frameborder', 0);
+            iframe.attr('scrolling', 'auto');
+
+            // Once the iframe is loaded, the subarea is dynamically inserted
+            iframe.on('load', function() {
+                // Workaround needed by Firefox, to properly render svg inside
+                // iframes, see http://stackoverflow.com/questions/10177190/
+                // svg-dynamically-added-to-iframe-does-not-render-correctly
+                this.contentDocument.open();
+
+                // Insert the subarea into the iframe
+                // We must directly write the html. When using Jquery's append
+                // method, javascript is evaluated in the parent document and
+                // not in the iframe document.
+                this.contentDocument.write(subarea.html());
+
+                this.contentDocument.close();
+
+                var body = this.contentDocument.body;
+                // Adjust the iframe width and height
+                iframe.width(body.scrollWidth + 'px');
+                iframe.height(body.scrollHeight + 'px');
+            });
+
+            // Elements should be appended to the inner subarea and not to the
+            // iframe
+            iframe.append = function(that) {
+                subarea.append(that);
+            };
+
+            return iframe;
+        } else {
+            return subarea;
+        }
+    }
+
+
     OutputArea.prototype._append_javascript_error = function (err, container) {
         // display a message when a javascript error occurs in display output
         var msg = "Javascript error adding output!"
@@ -457,7 +501,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_html = function (html, md, element) {
-        var toinsert = $("<div/>").addClass("output_subarea output_html rendered_html");
+        var toinsert = this.create_output_subarea(md, "output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
     };
@@ -465,7 +509,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
-        var element = $("<div/>").addClass("output_subarea");
+        var element = this.create_output_subarea(md, "");
         container.append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
         container.hide();
@@ -480,7 +524,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_text = function (data, md, element, extra_class) {
-        var toinsert = $("<div/>").addClass("output_subarea output_text");
+        var toinsert = this.create_output_subarea(md, "output_text");
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
@@ -494,40 +538,9 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_svg = function (svg, md, element) {
-        var wrapper = $('<div/>').addClass('output_subarea output_svg');
-        wrapper.append(svg);
-        var svg_element = wrapper.children()[0];
-
-        if (md['scoped']) {
-            // To avoid style or use collisions between multiple svg figures,
-            // svg figures are wrapped inside an iframe.
-            var iframe = $('<iframe/>')
-            iframe.attr('frameborder', 0);
-            iframe.attr('scrolling', 'no');
-
-            // Once the iframe is loaded, the svg is dynamically inserted
-            iframe.on('load', function() {
-                // Set the iframe height and width to fit the svg
-                // (the +10 pixel offset handles the default body margins
-                // in Chrome)
-                iframe.width(svg_element.width.baseVal.value + 10);
-                iframe.height(svg_element.height.baseVal.value + 10);
-
-                // Workaround needed by Firefox, to properly render svg inside
-                // iframes, see http://stackoverflow.com/questions/10177190/
-                // svg-dynamically-added-to-iframe-does-not-render-correctly
-                iframe.contents()[0].open();
-                iframe.contents()[0].close();
-
-                // Insert the svg inside the iframe
-                var body = iframe.contents().find('body');
-                body.html(wrapper.html());
-            });
-
-            element.append(iframe);
-        } else {
-            element.append(wrapper);
-        }
+        var toinsert = this.create_output_subarea(md, "output_svg");
+        toinsert.append(svg);
+        element.append(toinsert);
     };
 
 
@@ -559,7 +572,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_png = function (png, md, element) {
-        var toinsert = $("<div/>").addClass("output_subarea output_png");
+        var toinsert = this.create_output_subarea(md, "output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
         if (md['height']) {
             img.attr('height', md['height']);
@@ -574,7 +587,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
-        var toinsert = $("<div/>").addClass("output_subarea output_jpeg");
+        var toinsert = this.create_output_subarea(md, "output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         if (md['height']) {
             img.attr('height', md['height']);
@@ -591,7 +604,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
-        var toinsert = $("<div/>").addClass("output_subarea output_latex");
+        var toinsert = this.create_output_subarea(md, "output_latex");
         toinsert.append(latex);
         element.append(toinsert);
     };
