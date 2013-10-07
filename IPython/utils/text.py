@@ -726,15 +726,17 @@ def columnize(items, separator='  ', displaywidth=80):
     return '\n'.join(map(sjoin, fmatrix))+'\n'
 
 
-def get_text_list(list_, last_word='and', wrap_item_with=""):
+def get_text_list(list_, last_sep=' and ', sep=", ", wrap_item_with=""):
     """
     Return a string with a natural enumeration of items
 
     >>> get_text_list(['a', 'b', 'c', 'd'])
     'a, b, c and d'
-    >>> get_text_list(['a', 'b', 'c'], 'or')
+    >>> get_text_list(['a', 'b', 'c'], ' or ')
     'a, b or c'
-    >>> get_text_list(['a', 'b'], 'or')
+    >>> get_text_list(['a', 'b', 'c'], ', ')
+    'a, b, c'
+    >>> get_text_list(['a', 'b'], ' or ')
     'a or b'
     >>> get_text_list(['a'])
     'a'
@@ -742,6 +744,8 @@ def get_text_list(list_, last_word='and', wrap_item_with=""):
     ''
     >>> get_text_list(['a', 'b'], wrap_item_with="`")
     '`a` and `b`'
+    >>> get_text_list(['a', 'b', 'c', 'd'], " = ", sep=" + ")
+    'a + b + c = d'
     """
     if len(list_) == 0:
         return ''
@@ -750,6 +754,6 @@ def get_text_list(list_, last_word='and', wrap_item_with=""):
                  item in list_]
     if len(list_) == 1:
         return list_[0]
-    return '%s %s %s' % (
-        ', '.join(i for i in list_[:-1]),
-        last_word, list_[-1])
+    return '%s%s%s' % (
+        sep.join(i for i in list_[:-1]),
+        last_sep, list_[-1])
