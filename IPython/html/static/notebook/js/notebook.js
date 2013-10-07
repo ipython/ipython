@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -1683,7 +1683,12 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath()+ this.notebook_name;
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name
+        );
         $.ajax(url, settings);
     };
     
@@ -1747,7 +1752,15 @@ var IPython = (function (IPython) {
             dataType : "json",
             success:$.proxy(function (data, status, xhr){
                 var notebook_name = data.name;
-                window.open(this.baseProjectUrl() +'notebooks' + this.notebookPath()+ notebook_name, '_blank');
+                window.open(
+                    utils.url_path_join(
+                        this.baseProjectUrl(),
+                        'notebooks',
+                        this.notebookPath(),
+                        notebook_name
+                    ),
+                    '_blank'
+                );
             }, this)
         };
         var url = this.baseProjectUrl() + 'api/notebooks' + path;
@@ -1766,10 +1779,19 @@ var IPython = (function (IPython) {
             dataType : "json",
             success:$.proxy(function (data, status, xhr){
                 notebook_name = data.name;
-                window.open(this._baseProjectUrl +'notebooks' + this.notebookPath()+ notebook_name);
+                window.open(utils.url_path_join(
+                    this._baseProjectUrl,
+                    'notebooks',
+                    this.notebookPath(),
+                    notebook_name
+                ));
             }, this)
         };
-        var url = this._baseProjectUrl + 'notebooks' + path;
+        var url = utils.url_path_join(
+            this._baseProjectUrl,
+            'notebooks',
+            path
+        );
         $.ajax(url,settings);
     };
 
@@ -1788,7 +1810,12 @@ var IPython = (function (IPython) {
             error : $.proxy(that.rename_error, this)
         };
         $([IPython.events]).trigger('notebook_rename.Notebook');
-        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath()+ this.notebook_name;
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name
+        );
         $.ajax(url, settings);
     };
     
@@ -1837,22 +1864,27 @@ var IPython = (function (IPython) {
      * @method load_notebook
      * @param {String} notebook_naem and path A notebook to load
      */
-     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
-         var that = this;
-         this.notebook_name = notebook_name;
-         this.notebook_path = notebook_path;
-         // We do the call with settings so we can set cache to false.
-         var settings = {
-             processData : false,
-             cache : false,
-             type : "GET",
-             dataType : "json",
-             success : $.proxy(this.load_notebook_success,this),
-             error : $.proxy(this.load_notebook_error,this),
-         };
-         $([IPython.events]).trigger('notebook_loading.Notebook');
-         var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name;
-         $.ajax(url, settings);
+    Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
+        var that = this;
+        this.notebook_name = notebook_name;
+        this.notebook_path = notebook_path;
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : $.proxy(this.load_notebook_success,this),
+            error : $.proxy(this.load_notebook_error,this),
+        };
+        $([IPython.events]).trigger('notebook_loading.Notebook');
+        var url = utils.url_path_join(
+            this._baseProjectUrl,
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name
+        );
+        $.ajax(url, settings);
      };
 
     /**
@@ -1983,14 +2015,20 @@ var IPython = (function (IPython) {
      * 
      * @method list_checkpoints
      */
-     Notebook.prototype.list_checkpoints = function () {
-         var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints';
-         $.get(url).done(
-             $.proxy(this.list_checkpoints_success, this)
-         ).fail(
-             $.proxy(this.list_checkpoints_error, this)
-         );
-     };
+    Notebook.prototype.list_checkpoints = function () {
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name,
+            'checkpoints'
+        );
+        $.get(url).done(
+            $.proxy(this.list_checkpoints_success, this)
+        ).fail(
+            $.proxy(this.list_checkpoints_error, this)
+        );
+    };
 
     /**
      * Success callback for listing checkpoints.
@@ -2028,14 +2066,20 @@ var IPython = (function (IPython) {
      * 
      * @method create_checkpoint
      */
-     Notebook.prototype.create_checkpoint = function () {
-         var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints';
-         $.post(url).done(
-             $.proxy(this.create_checkpoint_success, this)
-         ).fail(
-             $.proxy(this.create_checkpoint_error, this)
-         );
-     };
+    Notebook.prototype.create_checkpoint = function () {
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name,
+            'checkpoints'
+        );
+        $.post(url).done(
+            $.proxy(this.create_checkpoint_success, this)
+        ).fail(
+            $.proxy(this.create_checkpoint_error, this)
+        );
+    };
 
     /**
      * Success callback for creating a checkpoint.
@@ -2110,7 +2154,14 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints/' + checkpoint;
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name,
+            'checkpoints',
+            checkpoint
+        );
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
         ).fail(
@@ -2151,7 +2202,14 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath() + this.notebook_name + '/checkpoints/' + checkpoint;
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            this.notebookPath(),
+            this.notebook_name,
+            'checkpoints',
+            checkpoint
+        );
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),

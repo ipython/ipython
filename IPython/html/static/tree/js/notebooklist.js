@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -10,6 +10,9 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
+    
+    var utils = IPython.utils;
 
     var NotebookList = function (selector) {
         this.selector = selector;
@@ -18,8 +21,8 @@ var IPython = (function (IPython) {
             this.style();
             this.bind_events();
         }
-        this.notebooks_list = new Array();
-        this.sessions = new Object();
+        this.notebooks_list = [];
+        this.sessions = {};
     };
 
     NotebookList.prototype.baseProjectUrl = function () {
@@ -27,15 +30,9 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.notebookPath = function() {
-        var path = $('body').data('notebookPath');
-        path = decodeURIComponent(path);
-        return path;
+        return $('body').data('notebookPath');
     };
     
-    NotebookList.prototype.url_name = function(name){
-        return encodeURIComponent(name);
-    };
-
     NotebookList.prototype.style = function () {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
@@ -66,15 +63,16 @@ var IPython = (function (IPython) {
             files = event.originalEvent.dataTransfer.files;
         } else 
         {
-            files = event.originalEvent.target.files
+            files = event.originalEvent.target.files;
         }
-        for (var i = 0, f; f = files[i]; i++) {
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
             var reader = new FileReader();
             reader.readAsText(f);
             var fname = f.name.split('.'); 
             var nbname = fname.slice(0,-1).join('.');
             var nbformat = fname.slice(-1)[0];
-            if (nbformat === 'ipynb') {nbformat = 'json';};
+            if (nbformat === 'ipynb') {nbformat = 'json';}
             if (nbformat === 'py' || nbformat === 'json') {
                 var item = that.new_notebook_item(0);
                 that.add_name_input(nbname, item);
@@ -87,10 +85,10 @@ var IPython = (function (IPython) {
                     that.add_notebook_data(event.target.result, nbitem);
                     that.add_upload_button(nbitem);
                 };
-            };
+            }
         }
         return false;
-        };
+    };
 
     NotebookList.prototype.clear_list = function () {
         this.element.children('.list_item').remove();
@@ -111,20 +109,22 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.sessions_loaded = function(data){
-        this.sessions = new Object();
-		console.log(data)
+        this.sessions = {};
         var len = data.length;
-        if (len != 0) {
+        if (len > 0) {
             for (var i=0; i<len; i++) {
-                if (data[i]['notebook']['path']==null) {
-                    nb_path = data[i]['notebook']['name'];
+                if (!data[i].notebook.path) {
+                    nb_path = data[i].notebook.name;
                 }
                 else {
-                    nb_path = data[i]['notebook']['path'] + data[i]['notebook']['name'];
+                    nb_path = utils.url_path_join(
+                        data[i].notebook.path,
+                        data[i].notebook.name
+                    );
                 }
-                this.sessions[nb_path]= data[i]['id'];
+                this.sessions[nb_path] = data[i].id;
             }
-        };
+        }
         this.load_list();
     };
 
@@ -141,7 +141,12 @@ var IPython = (function (IPython) {
                              },this)
         };
 
-        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath();
+        var url = utils.url_path_join(
+                this.baseProjectUrl(),
+                'api',
+                'notebooks',
+                this.notebookPath()
+        );
         $.ajax(url, settings);
     };
 
@@ -149,17 +154,16 @@ var IPython = (function (IPython) {
     NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
         var message = 'Notebook list empty.';
         if (param !== undefined && param.msg) {
-            var message = param.msg;
+            message = param.msg;
         }
         var len = data.length;
         this.clear_list();
-        if(len == 0)
-        {
+        if (len === 0) {
             $(this.new_notebook_item(0))
                 .append(
                     $('<div style="margin:auto;text-align:center;color:grey"/>')
                     .text(message)
-                    )
+                );
         }
         for (var i=0; i<len; i++) {
             var name = data[i].name;
@@ -168,12 +172,12 @@ var IPython = (function (IPython) {
             var item = this.new_notebook_item(i);
             this.add_link(path, nbname, item);
             name = this.notebookPath() + name;
-            if(this.sessions[name] == undefined){
+            if(this.sessions[name] === undefined){
                 this.add_delete_button(item);
             } else {
                 this.add_shutdown_button(item,this.sessions[name]);
             }
-        };
+        }
     };
 
 
@@ -203,8 +207,14 @@ var IPython = (function (IPython) {
         item.data('path', path);
         item.find(".item_name").text(nbname);
         item.find("a.item_link")
-            .attr('href', this.baseProjectUrl() + "notebooks" + this.notebookPath() + nbname + ".ipynb")
-            .attr('target','_blank');
+            .attr('href',
+                utils.url_path_join(
+                    this.baseProjectUrl(),
+                    "notebooks",
+                    this.notebookPath(),
+                    nbname + ".ipynb"
+                )
+            ).attr('target','_blank');
     };
 
 
@@ -238,7 +248,11 @@ var IPython = (function (IPython) {
                         that.load_sessions();
                     }
                 };
-                var url = that.baseProjectUrl() + 'api/sessions/' + session;
+                var url = utils.url_path_join(
+                    that.baseProjectUrl(),
+                    'api/sessions',
+                    session
+                );
                 $.ajax(url, settings);
                 return false;
             });
@@ -274,7 +288,12 @@ var IPython = (function (IPython) {
                                         parent_item.remove();
                                     }
                                 };
-                                var url = notebooklist.baseProjectUrl() + 'api/notebooks' + notebooklist.notebookPath() + nbname + '.ipynb';
+                                var url = utils.url_path_join(
+                                    notebooklist.baseProjectUrl(),
+                                    'api/notebooks',
+                                    notebooklist.notebookPath(),
+                                     nbname + '.ipynb'
+                                );
                                 $.ajax(url, settings);
                             }
                         },
@@ -300,7 +319,7 @@ var IPython = (function (IPython) {
                     content_type = 'application/json';
                 } else if (nbformat === 'py') {
                     content_type = 'application/x-python';
-                };
+                }
                 var settings = {
                     processData : false,
                     cache : false,
@@ -315,7 +334,10 @@ var IPython = (function (IPython) {
                 };
 
                 var qs = $.param({name:nbname, format:nbformat});
-                var url = that.baseProjectUrl() + 'notebooks?' + qs;
+                var url = utils.url_path_join(
+                    that.baseProjectUrl(),
+                    'notebooks?' + qs
+                );
                 $.ajax(url, settings);
                 return false;
             });
@@ -340,12 +362,23 @@ var IPython = (function (IPython) {
             type : "POST",
             dataType : "json",
             success:$.proxy(function (data, status, xhr){
-                notebook_name = data.name;
-                window.open(this.baseProjectUrl() +'notebooks' + this.notebookPath()+ notebook_name, '_blank');
+                var notebook_name = data.name;
+                window.open(
+                    utils.url_path_join(
+                        this.baseProjectUrl(),
+                        'notebooks',
+                        this.notebookPath(),
+                        notebook_name),
+                    '_blank'
+                );
             }, this)
         };
-        var url = this.baseProjectUrl() + 'api/notebooks' + path;
-        $.ajax(url,settings);
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'api/notebooks',
+            path
+        );
+        $.ajax(url, settings);
     };
 
     IPython.NotebookList = NotebookList;
