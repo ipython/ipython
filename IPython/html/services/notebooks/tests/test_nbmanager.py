@@ -67,42 +67,6 @@ class TestNotebookManager(TestCase):
         except OSError:
             print "Directory already exists."
 
-    def test_url_encode(self):
-        nm = NotebookManager()
-
-        # changes path or notebook name with special characters to url encoding
-        # these tests specifically encode paths with spaces
-        path = nm.url_encode('/this is a test/for spaces/')
-        self.assertEqual(path, '/this%20is%20a%20test/for%20spaces/')
-
-        path = nm.url_encode('notebook with space.ipynb')
-        self.assertEqual(path, 'notebook%20with%20space.ipynb')
-
-        path = nm.url_encode('/path with a/notebook and space.ipynb')
-        self.assertEqual(path, '/path%20with%20a/notebook%20and%20space.ipynb')
-        
-        path = nm.url_encode('/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
-        self.assertEqual(path,
-            '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
-
-    def test_url_decode(self):
-        nm = NotebookManager()
-
-        # decodes a url string to a plain string
-        # these tests decode paths with spaces
-        path = nm.url_decode('/this%20is%20a%20test/for%20spaces/')
-        self.assertEqual(path, '/this is a test/for spaces/')
-
-        path = nm.url_decode('notebook%20with%20space.ipynb')
-        self.assertEqual(path, 'notebook with space.ipynb')
-
-        path = nm.url_decode('/path%20with%20a/notebook%20and%20space.ipynb')
-        self.assertEqual(path, '/path with a/notebook and space.ipynb')
-
-        path = nm.url_decode(
-            '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
-        self.assertEqual(path, '/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
-
     def test_create_notebook_model(self):
         with TemporaryDirectory() as td:
             # Test in root directory
