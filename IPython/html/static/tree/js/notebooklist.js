@@ -113,6 +113,7 @@ var IPython = (function (IPython) {
         var len = data.length;
         if (len > 0) {
             for (var i=0; i<len; i++) {
+                var nb_path;
                 if (!data[i].notebook.path) {
                     nb_path = data[i].notebook.name;
                 }
@@ -171,7 +172,7 @@ var IPython = (function (IPython) {
             var nbname = name.split(".")[0];
             var item = this.new_notebook_item(i);
             this.add_link(path, nbname, item);
-            name = this.notebookPath() + name;
+            name = utils.url_path_join(this.notebookPath(), name);
             if(this.sessions[name] === undefined){
                 this.add_delete_button(item);
             } else {
@@ -367,7 +368,7 @@ var IPython = (function (IPython) {
                     utils.url_path_join(
                         this.baseProjectUrl(),
                         'notebooks',
-                        this.notebookPath(),
+                        path,
                         notebook_name),
                     '_blank'
                 );
