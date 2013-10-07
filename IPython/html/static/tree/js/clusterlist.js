@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -10,6 +10,9 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
+    
+    var utils = IPython.utils;
 
     var ClusterList = function (selector) {
         this.selector = selector;
@@ -48,14 +51,14 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.load_list_success, this)
         };
-        var url = this.baseProjectUrl() + 'clusters';
+        var url = utils.url_path_join(this.baseProjectUrl(), 'clusters');
         $.ajax(url, settings);
     };
 
 
     ClusterList.prototype.clear_list = function () {
         this.element.children('.list_item').remove();
-    }
+    };
 
     ClusterList.prototype.load_list_success = function (data, status, xhr) {
         this.clear_list();
@@ -66,7 +69,7 @@ var IPython = (function (IPython) {
             item.update_state(data[i]);
             element.data('item', item);
             this.element.append(element);
-        };
+        }
     };
 
 
@@ -81,10 +84,9 @@ var IPython = (function (IPython) {
     };
 
 
-
     ClusterItem.prototype.style = function () {
         this.element.addClass('list_item').addClass("row-fluid");
-    }
+    };
 
     ClusterItem.prototype.update_state = function (data) {
         this.data = data;
@@ -92,9 +94,8 @@ var IPython = (function (IPython) {
             this.state_running();
         } else if (data.status === 'stopped') {
             this.state_stopped();
-        };
-
-    }
+        }
+    };
 
 
     ClusterItem.prototype.state_stopped = function () {
@@ -132,13 +133,18 @@ var IPython = (function (IPython) {
                         that.update_state(data);
                     },
                     error : function (data, status, xhr) {
-                        status_col.html("error starting cluster")
+                        status_col.html("error starting cluster");
                     }
                 };
                 status_col.html('starting');
-                var url = that.baseProjectUrl() + 'clusters/' + that.data.profile + '/start';
+                var url = utils.url_path_join(
+                    that.baseProjectUrl(),
+                    'clusters',
+                    that.data.profile,
+                    'start'
+                );
                 $.ajax(url, settings);
-            };
+            }
         });
     };
 
@@ -169,11 +175,16 @@ var IPython = (function (IPython) {
                 },
                 error : function (data, status, xhr) {
                     console.log('error',data);
-                    status_col.html("error stopping cluster")
+                    status_col.html("error stopping cluster");
                 }
             };
-            status_col.html('stopping')
-            var url = that.baseProjectUrl() + 'clusters/' + that.data.profile + '/stop';
+            status_col.html('stopping');
+            var url = utils.url_path_join(
+                that.baseProjectUrl(),
+                'clusters',
+                that.data.profile,
+                'stop'
+            );
             $.ajax(url, settings);
         });
     };
