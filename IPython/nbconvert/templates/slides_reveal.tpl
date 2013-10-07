@@ -7,10 +7,12 @@
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta http-equiv="X-UA-Compatible" content="chrome=1" />
 
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<title>{{resources['metadata']['name']}} slides</title>
 
 <!-- General and theme style sheets -->
 <link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/reveal.css">
@@ -36,53 +38,54 @@ document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/cs
 
 <style type="text/css">
 /* Overrides of notebook CSS for static HTML export */
+html {
+  overflow-y: auto;
+}
 .reveal {
-font-size: 20px;
-overflow-y: auto;
-overflow-x: hidden;
+  font-size: 20px;
 }
 .reveal pre {
-width: 95%;
-padding: 0.4em;
-margin: 0px;
-font-family: monospace, sans-serif;
-font-size: 80%;
-box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+  width: 95%;
+  padding: 0.4em;
+  margin: 0px;
+  font-family: monospace, sans-serif;
+  font-size: 80%;
+  box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
 }
 .reveal section img {
-border: 0px solid black;
-box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+  border: 0px solid black;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0);
 }
 .reveal .slides {
-text-align: left;
+  text-align: left;
 }
 .reveal.fade {
-opacity: 1;
+  opacity: 1;
 }
 div.input_area {
-padding: 0.06em;
+  padding: 0.06em;
 }
 div.code_cell {
-background-color: transparent;
+  background-color: transparent;
 }
 div.prompt {
-width: 11ex;
-padding: 0.4em;
-margin: 0px;
-font-family: monospace, sans-serif;
-font-size: 80%;
-text-align: right;
+  width: 11ex;
+  padding: 0.4em;
+  margin: 0px;
+  font-family: monospace, sans-serif;
+  font-size: 80%;
+  text-align: right;
 }
 div.output_area pre {
-font-family: monospace, sans-serif;
-font-size: 80%;
+  font-family: monospace, sans-serif;
+  font-size: 80%;
 }
 div.output_prompt {
-    /* 5px right shift to account for margin in parent container */
-    margin: 5px 5px 0 0;
+  /* 5px right shift to account for margin in parent container */
+  margin: 5px 5px 0 0;
 }
 .rendered_html p {
-text-align: inherit;
+  text-align: inherit;
 }
 </style>
 
@@ -100,21 +103,6 @@ text-align: inherit;
 {{ super() }}
 </div>
 </div>
-
-<!--
-Uncomment the following block and the addthis_widget.js (see below inside dependencies)
-to get enable social buttons.
--->
-
-<!--
-<div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
-<a class="addthis_button_twitter"></a>
-<a class="addthis_button_google_plusone_share"></a>
-<a class="addthis_button_linkedin"></a>
-<a class="addthis_button_facebook"></a>
-<a class="addthis_button_more"></a>
-</div>
--->
 
 <script src="{{resources.reveal.url_prefix}}/lib/js/head.min.js"></script>
 
@@ -136,7 +124,6 @@ dependencies: [
 { src: "{{resources.reveal.url_prefix}}/lib/js/classList.js", condition: function() { return !document.body.classList; } },
 { src: "{{resources.reveal.url_prefix}}/plugin/highlight/highlight.js", async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
 { src: "{{resources.reveal.url_prefix}}/plugin/notes/notes.js", async: true, condition: function() { return !!document.body.classList; } }
-// { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
 ]
 });
 </script>
@@ -144,14 +131,14 @@ dependencies: [
 <!-- MathJax configuration -->
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
-    tex2jax: {
-        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
-    },
-    displayAlign: 'left', // Change this to 'center' to center equations.
-    "HTML-CSS": {
-        styles: {'.MathJax_Display': {"margin": 0}}
-    }
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+    displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+  },
+  displayAlign: 'left', // Change this to 'center' to center equations.
+  "HTML-CSS": {
+    styles: {'.MathJax_Display': {"margin": 0}}
+  }
 });
 </script>
 <!-- End of mathjax configuration -->
@@ -159,8 +146,8 @@ MathJax.Hub.Config({
 <script>
 //  We wait for the onload function to load MathJax after the page is completely loaded.
 //  MathJax is loaded 1 unit of time after the page is ready.
-//  This hack prevent problems when you load multiple js files (i.e. social button from addthis).
-//
+//  This hack prevent problems when you load multiple js files.
+
 window.onload = function () {
   setTimeout(function () {
     var script = document.createElement("script");
@@ -173,7 +160,8 @@ window.onload = function () {
 
 <script>
 Reveal.addEventListener( 'slidechanged', function( event ) {
-MathJax.Hub.Rerender(event.currentSlide);
+  window.scrollTo(0,0);
+  MathJax.Hub.Rerender(event.currentSlide);
 });
 </script>
 

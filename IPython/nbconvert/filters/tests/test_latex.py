@@ -15,7 +15,7 @@ Module with tests for Latex
 #-----------------------------------------------------------------------------
 
 from ...tests.base import TestsBase
-from ..latex import escape_latex, strip_math_space
+from ..latex import escape_latex
 
 
 #-----------------------------------------------------------------------------
@@ -43,24 +43,3 @@ class TestLatex(TestsBase):
         self.assertEqual(escape_latex(test), result)
 
 
-    def test_strip_math_space(self):
-        """strip_math_space test"""
-        tests = [
-            ('$e$','$e$'),
-            ('$ e $','$e$'),
-            ('xxx$e^i$yyy','xxx$e^i$yyy'),
-            ('xxx$ e^i $yyy','xxx$e^i$yyy'),
-            ('xxx$e^i $yyy','xxx$e^i$yyy'),
-            ('xxx$ e^i$yyy','xxx$e^i$yyy'),
-            ('\$ e $ e $','\$ e $e$'),
-            ('','')]
-
-        for test in tests:
-            self._try_strip_math_space(test[0], test[1])
-
-
-    def _try_strip_math_space(self, test, result):
-        """
-        Try to remove spaces between dollar symbols and contents correctly
-        """
-        self.assertEqual(strip_math_space(test), result)

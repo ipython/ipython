@@ -14,27 +14,22 @@ they are converted.
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
-import os
 
-# Third-party import, needed for Pygments latex definitions.
-from pygments.formatters import LatexFormatter
-
-# ipy imports
-from .base import (Preprocessor)
-from IPython.nbconvert import filters
+from .base import Preprocessor
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 class LatexPreprocessor(Preprocessor):
-    """
-    Converter for latex destined documents.
+    """Preprocessor for latex destined documents.
+    
+    Mainly populates the `latex` key in the resources dict,
+    adding definitions for pygments highlight styles.
     """
 
     def preprocess(self, nb, resources):
-        """
-        Preprocessing to apply on each notebook.
+        """Preprocessing to apply on each notebook.
         
         Parameters
         ----------
@@ -44,31 +39,9 @@ class LatexPreprocessor(Preprocessor):
             Additional resources used in the conversion process.  Allows
             preprocessors to pass variables into the Jinja engine.
         """
-        # Generate Pygments definitions for Latex 
-        resources["latex"] = {}
-        resources["latex"]["pygments_definitions"] = LatexFormatter().get_style_defs()
-        return super(LatexPreprocessor, self).preprocess(nb, resources)
-
-
-    def preprocess_cell(self, cell, resources, index):
-        """
-        Apply a transformation on each cell,
+        # Generate Pygments definitions for Latex
+        from pygments.formatters import LatexFormatter
         
-        Parameters
-        ----------
-        cell : NotebookNode cell
-            Notebook cell being processed
-        resources : dictionary
-            Additional resources used in the conversion process.  Allows
-            preprocessors to pass variables into the Jinja engine.
-        index : int
-            Modified index of the cell being processed (see base.py)
-        """
-        
-        #If the cell is a markdown cell, preprocess the ampersands used to
-        #remove the space between them and their contents.  Latex will complain
-        #if spaces exist between the ampersands and the math content.  
-        #See filters.latex.rm_math_space for more information.
-        if hasattr(cell, "source") and cell.cell_type == "markdown":
-            cell.source = filters.strip_math_space(cell.source)
-        return cell, resources
+        resources.setdefault("latex", {})
+        resources["latex"].setdefault("pygments_definitions", LatexFormatter().get_style_defs())
+        return nb, resources

@@ -291,8 +291,10 @@ var IPython = (function (IPython) {
         this.expand();
 
         // Clear the output if clear is queued.
+        var needs_height_reset = false;
         if (this.clear_queued) {
             this.clear_output(false);
+            needs_height_reset = true;
         }
 
         if (json.output_type === 'pyout') {
@@ -305,7 +307,13 @@ var IPython = (function (IPython) {
             this.append_stream(json);
         }
         this.outputs.push(json);
-        this.element.height('auto');
+        
+        // Only reset the height to automatic if the height is currently
+        // fixed (done by wait=True flag on clear_output).
+        if (needs_height_reset) {
+            this.element.height('');    
+        }
+
         var that = this;
         setTimeout(function(){that.element.trigger('resize');}, 100);
     };

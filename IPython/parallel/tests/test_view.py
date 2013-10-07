@@ -805,4 +805,30 @@ class TestView(ClusterTestCase):
         view = self.client[-1]
         tup = view.apply_sync(echoxy, point(1, 2))
         self.assertEqual(tup, (2,1))
+    
+    def test_sync_imports(self):
+        view = self.client[-1]
+        with capture_output() as io:
+            with view.sync_imports():
+                import IPython
+        self.assertIn("IPython", io.stdout)
+        
+        @interactive
+        def find_ipython():
+            return 'IPython' in globals()
+        
+        assert view.apply_sync(find_ipython)
+
+    def test_sync_imports_quiet(self):
+        view = self.client[-1]
+        with capture_output() as io:
+            with view.sync_imports(quiet=True):
+                import IPython
+        self.assertEqual(io.stdout, '')
+        
+        @interactive
+        def find_ipython():
+            return 'IPython' in globals()
+        
+        assert view.apply_sync(find_ipython)
 

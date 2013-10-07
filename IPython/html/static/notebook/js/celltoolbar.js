@@ -329,7 +329,8 @@ var IPython = (function (IPython) {
      *
      * @param list_list {list of sublist} List of sublist of metadata value and name in the dropdown list.
      *        subslit shoud contain 2 element each, first a string that woul be displayed in the dropdown list,
-     *        and second the corresponding value to  be passed to setter/return by getter.
+     *        and second the corresponding value to  be passed to setter/return by getter. the corresponding value 
+     *        should not be "undefined" or behavior can be unexpected.
      * @param setter {function( cell, newValue )}
      *        A setter method to set the newValue
      * @param getter {function( cell )}
@@ -341,7 +342,7 @@ var IPython = (function (IPython) {
      * @example
      *
      *      var select_type = CellToolbar.utils.select_ui_generator([
-     *              ["<None>"            , undefined      ],
+     *              ["<None>"       , "None"      ],
      *              ["Header Slide" , "header_slide" ],
      *              ["Slide"        , "slide"        ],
      *              ["Fragment"     , "fragment"     ],

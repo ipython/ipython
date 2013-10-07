@@ -15,6 +15,7 @@ Contains writer for writing nbconvert output to PDF.
 
 import subprocess
 import os
+import sys
 
 from IPython.utils.traitlets import Integer, List, Bool
 
@@ -43,6 +44,9 @@ class PDFPostProcessor(PostProcessorBase):
     temp_file_exts = List(['.aux', '.bbl', '.blg', '.idx', '.log', '.out'], 
         config=True, help="""
         Filename extensions of temp files to remove after running.
+        """)
+    pdf_open = Bool(False, config=True, help="""
+        Whether or not to open the pdf after the compile call.
         """)
 
     def run_command(self, command_list, filename, count, log_function):
@@ -113,6 +117,16 @@ class PDFPostProcessor(PostProcessorBase):
             except OSError:
                 pass
 
+    def open_pdf(self, filename):
+        """Open the pdf in the default viewer."""
+        if sys.platform.startswith('darwin'):
+            subprocess.call(('open', filename))
+        elif os.name == 'nt':
+            os.startfile(filename)
+        elif os.name == 'posix':
+            subprocess.call(('xdg-open', filename))
+        return
+
     def postprocess(self, filename):
         """Build a PDF by running pdflatex and bibtex"""
         self.log.info("Building PDF")
@@ -128,5 +142,8 @@ class PDFPostProcessor(PostProcessorBase):
         filename = os.path.splitext(filename)[0]
         if os.path.isfile(filename+'.pdf'):
             self.log.info('PDF successfully created')
+            if self.pdf_open: 
+                self.log.info('Viewer called')
+                self.open_pdf(filename+'.pdf')
         return
-
+ 

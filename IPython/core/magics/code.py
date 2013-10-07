@@ -18,6 +18,7 @@ import io
 import os
 import re
 import sys
+from itertools import chain
 
 # Our own packages
 from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
@@ -38,6 +39,43 @@ from IPython.utils.warn import warn
 class MacroToEdit(ValueError): pass
 
 ipython_input_pat = re.compile(r"<ipython\-input\-(\d+)-[a-z\d]+>$")
+
+# To match, e.g. 8-10 1:5 :10 3-
+range_re = re.compile(r"""
+(?P<start>\d+)?
+((?P<sep>[\-:])
+ (?P<end>\d+)?)?
+$""", re.VERBOSE)
+
+
+def extract_code_ranges(ranges_str):
+    """Turn a string of range for %%load into 2-tuples of (start, stop)
+    ready to use as a slice of the content splitted by lines.
+
+    Examples
+    --------
+    list(extract_input_ranges("5-10 2"))
+    [(4, 10), (1, 2)]
+    """
+    for range_str in ranges_str.split():
+        rmatch = range_re.match(range_str)
+        if not rmatch:
+            continue
+        sep = rmatch.group("sep")
+        start = rmatch.group("start")
+        end = rmatch.group("end")
+
+        if sep == '-':
+            start = int(start) - 1 if start else None
+            end = int(end) if end else None
+        elif sep == ':':
+            start = int(start) - 1 if start else None
+            end = int(end) - 1 if end else None
+        else:
+            end = int(start)
+            start = int(start) - 1
+        yield (start, end)
+
 
 class InteractivelyDefined(Exception):
     """Exception for interactively defined variable in magic_edit"""
@@ -174,6 +212,11 @@ class CodeMagics(Magics):
 
         Options:
         --------
+          -r <lines>: Specify lines or ranges of lines to load from the source.
+          Ranges could be specified as x-y (x..y) or in python-style x:y 
+          (x..(y-1)). Both limits x and y can be left blank (meaning the 
+          beginning and end of the file, respectively).
+
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
         This magic command can either take a local filename, a URL, an history
@@ -185,14 +228,26 @@ class CodeMagics(Magics):
         %load 7-27
         %load myMacro
         %load http://www.example.com/myscript.py
+        %load -r 5-10 myscript.py
+        %load -r 10-20,30,40: foo.py
         """
-        opts,args = self.parse_options(arg_s,'y')
+        opts,args = self.parse_options(arg_s,'yr:')
+
         if not args:
             raise UsageError('Missing filename, URL, input history range, '
                              'or macro.')
 
         contents = self.shell.find_user_code(args)
+
+        if 'r' in opts:
+            ranges = opts['r'].replace(',', ' ')
+            lines = contents.split('\n')
+            slices = extract_code_ranges(ranges)
+            contents = [lines[slice(*slc)] for slc in slices]
+            contents = '\n'.join(chain.from_iterable(contents))
+
         l = len(contents)
+
 
         # 200 000 is ~ 2500 full 80 caracter lines
         # so in average, more than 5000 lines
@@ -347,9 +402,8 @@ class CodeMagics(Magics):
         self.shell.hooks.editor(filename)
 
         # and make a new macro object, to replace the old one
-        mfile = open(filename)
-        mvalue = mfile.read()
-        mfile.close()
+        with open(filename) as mfile:
+            mvalue = mfile.read()
         self.shell.user_ns[mname] = Macro(mvalue)
 
     @skip_doctest
