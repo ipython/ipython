@@ -232,7 +232,7 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.add_notebook_data = function (data, item) {
-        item.data('nbdata',data);
+        item.data('nbdata', data);
     };
 
 
@@ -315,29 +315,37 @@ var IPython = (function (IPython) {
                 var nbname = item.find('.item_name > input').attr('value');
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
-                var content_type = 'text/plain';
+                var content_type = 'application/json';
                 if (nbformat === 'json') {
-                    content_type = 'application/json';
+                    // pass
                 } else if (nbformat === 'py') {
-                    content_type = 'application/x-python';
+                    // TODO: re-enable non-ipynb upload
                 }
+                var model = {
+                    content : JSON.parse(nbdata),
+                    name : nbname,
+                    path : that.notebookPath()
+                };
                 var settings = {
                     processData : false,
                     cache : false,
                     type : 'POST',
                     dataType : 'json',
-                    data : nbdata,
+                    data : JSON.stringify(model),
                     headers : {'Content-Type': content_type},
                     success : function (data, status, xhr) {
                         that.add_link(data, nbname, item);
                         that.add_delete_button(item);
+                    },
+                    error : function (data, status, xhr) {
+                        console.log(data, status);
                     }
                 };
 
-                var qs = $.param({name:nbname, format:nbformat});
                 var url = utils.url_path_join(
                     that.baseProjectUrl(),
-                    'notebooks?' + qs
+                    'api/notebooks',
+                    that.notebookPath()
                 );
                 $.ajax(url, settings);
                 return false;

@@ -18,12 +18,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
-import uuid
-from urllib import quote, unquote
 
-from tornado import web
-
-from IPython.html.utils import url_path_join
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
 from IPython.utils.traitlets import List, Dict, Unicode, TraitError
@@ -123,13 +118,16 @@ class NotebookManager(LoggingConfigurable):
 
     def create_notebook_model(self, model=None, path=''):
         """Create a new untitled notebook and return its model with no content."""
-        name = self.increment_filename('Untitled', path)
+        untitled = self.increment_filename('Untitled', path)
         if model is None:
             model = {}
             metadata = current.new_metadata(name=u'')
             nb = current.new_notebook(metadata=metadata)
             model['content'] = nb
-            model['name'] = name
+            model['name'] = name = untitled
+            model['path'] = path
+        else:
+            name = model.setdefault('name', untitled)
             model['path'] = path
         model = self.save_notebook_model(model, name, path)
         return model

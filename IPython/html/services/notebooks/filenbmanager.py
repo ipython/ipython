@@ -192,16 +192,18 @@ class FileNotebookManager(NotebookManager):
             the notebook model. If contents=True, returns the 'contents' 
             dict in the model as well.
         """
-        os_path = self.get_os_path(name, path)
-        if not os.path.isfile(os_path):
+        if not self.notebook_exists(name=name, path=path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
+        os_path = self.get_os_path(name, path)
         info = os.stat(os_path)
         last_modified = tz.utcfromtimestamp(info.st_mtime)
+        created = tz.utcfromtimestamp(info.st_ctime)
         # Create the notebook model.
         model ={}
         model['name'] = name
         model['path'] = path
         model['last_modified'] = last_modified
+        model['created'] = last_modified
         if content is True:
             with open(os_path, 'r') as f:
                 try:
@@ -211,7 +213,7 @@ class FileNotebookManager(NotebookManager):
             model['content'] = nb
         return model
 
-    def save_notebook_model(self, model, name, path=''):
+    def save_notebook_model(self, model, name='', path=''):
         """Save the notebook model and return the model with no content."""
 
         if 'content' not in model:
@@ -295,7 +297,7 @@ class FileNotebookManager(NotebookManager):
         try:
             os.rename(old_os_path, new_os_path)
         except Exception as e:
-            raise web.HTTPError(400, u'Unknown error renaming notebook: %s %s' % (old_os_path, e))
+            raise web.HTTPError(500, u'Unknown error renaming notebook: %s %s' % (old_os_path, e))
 
         # Move the checkpoints
         old_checkpoints = self.list_checkpoints(old_name, old_path)

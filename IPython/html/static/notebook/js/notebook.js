@@ -1661,13 +1661,11 @@ var IPython = (function (IPython) {
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function () {
-        // We may want to move the name/id/nbformat logic inside toJSON?
-        var data = this.toJSON();
-        var model = {};
         // Create a JSON model to be sent to the server.
-        model['name'] = this.notebook_name;
-        model['path'] = this.notebook_path;
-        model['content'] = data
+        var model = {};
+        model.name = this.notebook_name;
+        model.path = this.notebook_path;
+        model.content = this.toJSON();
         model.content.nbformat = this.nbformat;
         model.content.nbformat_minor = this.nbformat_minor;
         // time the ajax call for autosave tuning purposes.
