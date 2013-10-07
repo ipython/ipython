@@ -91,18 +91,6 @@ class NotebookManager(LoggingConfigurable):
         path = os.path.join(self.notebook_dir, *parts)
         return path
 
-    def url_encode(self, path):
-        """Takes a URL path with special characters and returns 
-        the path with all these characters URL encoded"""
-        parts = path.split('/')
-        return '/'.join([quote(p) for p in parts])
-
-    def url_decode(self, path):
-        """Takes a URL path with encoded special characters and 
-        returns the URL with special characters decoded"""
-        parts = path.split('/')
-        return '/'.join([unquote(p) for p in parts])
-
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
         if not os.path.isabs(new):
