@@ -49,6 +49,17 @@ class CacheMagics(Magics, Configurable):
     def cache(self, line, cell):
         """Cache user variables in a file, and skip the cell if the cached
         variables exist.
+        
+        Usage::
+        
+            %%cache var1 var2 --to=myfile.pkl
+            # If myfile.pkl doesn't exist, this cell is executed and 
+            # var1 and var2 are saved in this file.
+            # Otherwise, the cell is skipped and these variables are
+            # injected from the file to the interactive namespace.
+            var1 = ...
+            var2 = ...
+        
         """
         ip = self.shell
         args = magic_arguments.parse_argstring(self.cache, line)
