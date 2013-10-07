@@ -71,8 +71,7 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def patch(self, path='', name=None):
-        """patch is currently used strictly for notebook renaming.
-        Changes the notebook name to the name given in data."""
+        """PATCH renames a notebook without re-uploading content."""
         nbm = self.notebook_manager
         if name is None:
             raise web.HTTPError(400, u'Notebook name missing')
@@ -90,10 +89,31 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self, path='', name=None):
-        """Create a new notebook in the location given by 'notebook_path'."""
+        """Create a new notebook in the specified path.
+        
+        POST creates new notebooks.
+        
+        POST /api/notebooks/path : new untitled notebook in path
+        POST /api/notebooks/path/notebook.ipynb : new notebook with name in path
+            If content specified upload notebook, otherwise start empty.
+        """
         nbm = self.notebook_manager
         model = self.get_json_body()
-        model = nbm.create_notebook_model(model, path)
+        if name is None:
+            # creating new notebook, model doesn't make sense
+            if model is not None:
+                raise web.HTTPError(400, "Model not valid when creating untitled notebooks.")
+            model = nbm.create_notebook_model(path=path)
+        else:
+            if model is None:
+                self.log.info("Creating new Notebook at %s/%s", path, name)
+                model = {}
+            else:
+                self.log.info("Uploading Notebook to %s/%s", path, name)
+            # set the model name from the URL
+            model['name'] = name
+            model = nbm.create_notebook_model(model, path)
+        
         location = self.notebook_location(model[u'name'], model[u'path'])
         self.set_header(u'Location', location)
         self.set_header(u'Last-Modified', model[u'last_modified'])
@@ -120,6 +140,29 @@ class NotebookHandler(IPythonHandler):
         self.set_status(204)
         self.finish()
 
+class NotebookCopyHandler(IPythonHandler):
+    
+    SUPPORTED_METHODS = ('POST')
+    
+    @web.authenticated
+    @json_errors
+    def post(self, path='', name=None):
+        """Copy an existing notebook."""
+        nbm = self.notebook_manager
+        model = self.get_json_body()
+        if name is None:
+            raise web.HTTPError(400, "Notebook name required")
+        self.log.info("Copying Notebook %s/%s", path, name)
+        model = nbm.copy_notebook(name, path)
+        location =  url_path_join(
+            self.base_project_url, 'api', 'notebooks',
+            model['path'], model['name'],
+        )
+        self.set_header(u'Location', location)
+        self.set_header(u'Last-Modified', model[u'last_modified'])
+        self.set_status(201)
+        self.finish(json.dumps(model, default=date_default))
+    
 
 class NotebookCheckpointsHandler(IPythonHandler):
     
@@ -180,6 +223,7 @@ _notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
 _notebook_path_regex = "%s/%s" % (_path_regex, _notebook_name_regex)
 
 default_handlers = [
+    (r"/api/notebooks/?%s/copy" % _notebook_path_regex, NotebookCopyHandler),
     (r"/api/notebooks/?%s/checkpoints" % _notebook_path_regex, NotebookCheckpointsHandler),
     (r"/api/notebooks/?%s/checkpoints/%s" % (_notebook_path_regex, _checkpoint_id_regex),
         ModifyNotebookCheckpointsHandler),

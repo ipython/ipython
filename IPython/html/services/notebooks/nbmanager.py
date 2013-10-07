@@ -87,7 +87,7 @@ class NotebookManager(LoggingConfigurable):
         """
         return basename
 
-    def list_notebooks(self):
+    def list_notebooks(self, path=''):
         """Return a list of notebook dicts without content.
 
         This returns a list of dicts, each of the form::
@@ -112,53 +112,51 @@ class NotebookManager(LoggingConfigurable):
         """Update the notebook model and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook_model(self, name, path):
+    def delete_notebook_model(self, name, path=''):
         """Delete notebook by name and path."""
         raise NotImplementedError('must be implemented in a subclass')
 
     def create_notebook_model(self, model=None, path=''):
         """Create a new untitled notebook and return its model with no content."""
-        untitled = self.increment_filename('Untitled', path)
         if model is None:
             model = {}
+        if 'content' not in model:
             metadata = current.new_metadata(name=u'')
-            nb = current.new_notebook(metadata=metadata)
-            model['content'] = nb
-            model['name'] = name = untitled
-            model['path'] = path
-        else:
-            name = model.setdefault('name', untitled)
-            model['path'] = path
-        model = self.save_notebook_model(model, name, path)
+            model['content'] = current.new_notebook(metadata=metadata)
+        if 'name' not in model:
+            model['name'] = self.increment_filename('Untitled', path)
+            
+        model['path'] = path
+        model = self.save_notebook_model(model, model['name'], model['path'])
         return model
 
-    def copy_notebook(self, name, path='/', content=False):
+    def copy_notebook(self, name, path=''):
         """Copy an existing notebook and return its new model."""
         model = self.get_notebook_model(name, path)
         name = os.path.splitext(name)[0] + '-Copy'
         name = self.increment_filename(name, path) + self.filename_ext
         model['name'] = name
-        model = self.save_notebook_model(model, name, path, content=content)
+        model = self.save_notebook_model(model, name, path)
         return model
     
     # Checkpoint-related
     
-    def create_checkpoint(self, name, path='/'):
+    def create_checkpoint(self, name, path=''):
         """Create a checkpoint of the current state of a notebook
         
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
     
-    def list_checkpoints(self, name, path='/'):
+    def list_checkpoints(self, name, path=''):
         """Return a list of checkpoints for a given notebook"""
         return []
     
-    def restore_checkpoint(self, checkpoint_id, name, path='/'):
+    def restore_checkpoint(self, checkpoint_id, name, path=''):
         """Restore a notebook from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
-    def delete_checkpoint(self, checkpoint_id, name, path='/'):
+    def delete_checkpoint(self, checkpoint_id, name, path=''):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
     
