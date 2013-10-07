@@ -49,7 +49,7 @@ class NotebookManager(LoggingConfigurable):
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
         
-        Override this method for non-filesystem-based notebooks.
+        Override this method in subclasses.
         
         Parameters
         ----------
@@ -61,36 +61,8 @@ class NotebookManager(LoggingConfigurable):
         exists : bool
             Whether the path does indeed exist.
         """
-        os_path = self.get_os_path(name, path)
-        return os.path.exists(os_path)
-        
+        raise NotImplementedError
     
-    def get_os_path(self, name=None, path=''):
-        """Given a notebook name and a URL path, return its file system
-        path.
-
-        Parameters
-        ----------
-        name : string
-            The name of a notebook file with the .ipynb extension
-        path : string
-            The relative URL path (with '/' as separator) to the named
-            notebook.
-
-        Returns
-        -------
-        path : string
-            A file system path that combines notebook_dir (location where
-            server started), the relative path, and the filename with the
-            current operating system's url.
-        """
-        parts = path.strip('/').split('/')
-        parts = [p for p in parts if p != ''] # remove duplicate splits
-        if name is not None:
-            parts.append(name)
-        path = os.path.join(self.notebook_dir, *parts)
-        return path
-
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
         if not os.path.isabs(new):
