@@ -312,7 +312,7 @@ var IPython = (function (IPython) {
         var upload_button = $('<button/>').text("Upload")
             .addClass('btn btn-primary btn-mini upload_button')
             .click(function (e) {
-                var nbname = item.find('.item_name > input').attr('value');
+                var nbname = item.find('.item_name > input').val();
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
                 var content_type = 'application/json';
@@ -323,8 +323,6 @@ var IPython = (function (IPython) {
                 }
                 var model = {
                     content : JSON.parse(nbdata),
-                    name : nbname,
-                    path : that.notebookPath()
                 };
                 var settings = {
                     processData : false,
@@ -345,7 +343,8 @@ var IPython = (function (IPython) {
                 var url = utils.url_path_join(
                     that.baseProjectUrl(),
                     'api/notebooks',
-                    that.notebookPath()
+                    that.notebookPath(),
+                    nbname + '.ipynb'
                 );
                 $.ajax(url, settings);
                 return false;

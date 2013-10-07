@@ -1768,15 +1768,12 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.copy_notebook = function(){
         var path = this.notebookPath();
-        var name = {'name': this.notebook_name}
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
-            data: JSON.stringify(name),
-            dataType : "json",
             success:$.proxy(function (data, status, xhr){
-                notebook_name = data.name;
+                var notebook_name = data.name;
                 window.open(utils.url_path_join(
                     this._baseProjectUrl,
                     'notebooks',
@@ -1787,8 +1784,10 @@ var IPython = (function (IPython) {
         };
         var url = utils.url_path_join(
             this._baseProjectUrl,
-            'notebooks',
-            path
+            'api/notebooks',
+            path,
+            this.notebook_name,
+            'copy'
         );
         $.ajax(url,settings);
     };
