@@ -93,7 +93,7 @@ text-align: inherit;
 {% endblock header%}
 
 
-{% block body %}
+{%- block body %}
 <body>
 <div class="reveal">
 <div class="slides">
@@ -178,7 +178,7 @@ MathJax.Hub.Rerender(event.currentSlide);
 </script>
 
 </body>
-{% endblock body %}
+{% endblock body -%}
 
 {% block footer %}
 </html>
