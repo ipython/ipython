@@ -45,45 +45,33 @@ class NotebookManager(LoggingConfigurable):
             """)
 
     filename_ext = Unicode(u'.ipynb')
-
-    def named_notebook_path(self, notebook_path):
-        """Given notebook_path (*always* a URL path to notebook), returns a 
-        (name, path) tuple, where name is a .ipynb file, and path is the 
-        URL path that describes the file system path for the file. 
-        It *always* starts *and* ends with a '/' character.
-
+    
+    def path_exists(self, path):
+        """Does the API-style path (directory) actually exist?
+        
+        Override this method for non-filesystem-based notebooks.
+        
         Parameters
         ----------
-        notebook_path : string
-            A path that may be a .ipynb name or a directory
-
+        path : string
+            The 
+        
         Returns
         -------
-        name : string or None
-            the filename of the notebook, or None if not a .ipynb extension
-        path : string
-            the path to the directory which contains the notebook
+        exists : bool
+            Whether the path does indeed exist.
         """
-        names = notebook_path.split('/')
-        names = [n for n in names if n != ''] # remove duplicate splits
-
-        names = [''] + names
-
-        if names and names[-1].endswith(".ipynb"):
-            name = names[-1]
-            path = "/".join(names[:-1]) + '/'
-        else:
-            name = None
-            path = "/".join(names) + '/'
-        return name, path
+        os_path = self.get_os_path(name, path)
+        return os.path.exists(os_path)
         
-    def get_os_path(self, fname=None, path='/'):
+    
+    def get_os_path(self, name=None, path=''):
         """Given a notebook name and a URL path, return its file system
         path.
 
         Parameters
         ----------
-        fname : string
+        name : string
             The name of a notebook file with the .ipynb extension
         path : string
             The relative URL path (with '/' as separator) to the named
@@ -96,10 +84,10 @@ class NotebookManager(LoggingConfigurable):
             server started), the relative path, and the filename with the
             current operating system's url.
         """
-        parts = path.split('/')
+        parts = path.strip('/').split('/')
         parts = [p for p in parts if p != ''] # remove duplicate splits
-        if fname is not None:
-            parts += [fname]
+        if name is not None:
+            parts.append(name)
         path = os.path.join(self.notebook_dir, *parts)
         return path
 
@@ -132,7 +120,7 @@ class NotebookManager(LoggingConfigurable):
 
     # Main notebook API
 
-    def increment_filename(self, basename, path='/'):
+    def increment_filename(self, basename, path=''):
         """Increment a notebook filename without the .ipynb to make it unique.
         
         Parameters
@@ -157,15 +145,15 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def get_notebook_model(self, name, path='/', content=True):
+    def get_notebook_model(self, name, path='', content=True):
         """Get the notebook model with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_notebook_model(self, model, name, path='/'):
+    def save_notebook_model(self, model, name, path=''):
         """Save the notebook model and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def update_notebook_model(self, model, name, path='/'):
+    def update_notebook_model(self, model, name, path=''):
         """Update the notebook model and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -173,7 +161,7 @@ class NotebookManager(LoggingConfigurable):
         """Delete notebook by name and path."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def create_notebook_model(self, model=None, path='/'):
+    def create_notebook_model(self, model=None, path=''):
         """Create a new untitled notebook and return its model with no content."""
         name = self.increment_filename('Untitled', path)
         if model is None:
