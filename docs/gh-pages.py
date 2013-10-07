@@ -20,7 +20,7 @@ import shutil
 import sys
 from os import chdir as cd
 from os.path import join as pjoin
-
+from __future__ import print_function
 from subprocess import Popen, PIPE, CalledProcessError, check_call
 
 #-----------------------------------------------------------------------------
@@ -126,13 +126,13 @@ if __name__ == '__main__':
 
         sh('git add -A %s' % tag)
         sh('git commit -m"Updated doc release: %s"' % tag)
-        print
-        print 'Most recent 3 commits:'
+        print()
+        print('Most recent 3 commits:')
         sys.stdout.flush()
         sh('git --no-pager log --oneline HEAD~3..')
     finally:
         cd(startdir)
 
-    print
-    print 'Now verify the build in: %r' % dest
-    print "If everything looks good, 'git push'"
+    print()
+    print('Now verify the build in: %r' % dest)
+    print("If everything looks good, 'git push'")

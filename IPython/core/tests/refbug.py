@@ -44,4 +44,4 @@ if __name__ == '__main__':
 
     def call_f():
         for func in cache:
-            print 'lowercased:',func().lower()
+            print('lowercased:',func().lower())

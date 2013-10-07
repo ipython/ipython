@@ -25,6 +25,7 @@ import re
 import sys
 from copy import deepcopy
 from collections import defaultdict
+from __future__ import print_function
 
 from IPython.external.decorator import decorator
 
@@ -285,7 +286,7 @@ class Application(SingletonConfigurable):
                 help[0] = help[0].replace('--%s='%alias, '-%s '%alias)
             lines.extend(help)
         # lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
 
     def print_flag_help(self):
         """Print the flag part of the help."""
@@ -298,7 +299,7 @@ class Application(SingletonConfigurable):
             lines.append(prefix+m)
             lines.append(indent(dedent(help.strip())))
         # lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
 
     def print_options(self):
         if not self.flags and not self.aliases:
@@ -309,10 +310,10 @@ class Application(SingletonConfigurable):
         for p in wrap_paragraphs(self.option_description):
             lines.append(p)
             lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
         self.print_flag_help()
         self.print_alias_help()
-        print
+        print()
 
     def print_subcommands(self):
         """Print the subcommand part of the help."""
@@ -330,7 +331,7 @@ class Application(SingletonConfigurable):
             if help:
                 lines.append(indent(dedent(help.strip())))
         lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
 
     def print_help(self, classes=False):
         """Print the help for each Configurable class in self.classes.
@@ -343,19 +344,19 @@ class Application(SingletonConfigurable):
 
         if classes:
             if self.classes:
-                print "Class parameters"
-                print "----------------"
-                print
+                print("Class parameters")
+                print("----------------")
+                print()
                 for p in wrap_paragraphs(self.keyvalue_description):
-                    print p
-                    print
+                    print(p)
+                    print()
 
             for cls in self.classes:
                 cls.class_print_help()
-                print
+                print()
         else:
-            print "To see all available configurables, use `--help-all`"
-            print
+            print("To see all available configurables, use `--help-all`")
+            print()
 
         self.print_examples()
 
@@ -363,8 +364,8 @@ class Application(SingletonConfigurable):
     def print_description(self):
         """Print the application description."""
         for p in wrap_paragraphs(self.description):
-            print p
-            print
+            print(p)
+            print()
 
     def print_examples(self):
         """Print usage and examples.
@@ -373,15 +374,15 @@ class Application(SingletonConfigurable):
         and should contain examples of the application's usage.
         """
         if self.examples:
-            print "Examples"
-            print "--------"
-            print
-            print indent(dedent(self.examples.strip()))
-            print
+            print("Examples")
+            print("--------")
+            print()
+            print(indent(dedent(self.examples.strip())))
+            print()
 
     def print_version(self):
         """Print the version string."""
-        print self.version
+        print(self.version)
 
     def update_config(self, config):
         """Fire the traits events when the config is updated."""

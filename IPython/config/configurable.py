@@ -28,6 +28,7 @@ Authors:
 import datetime
 from copy import deepcopy
 
+from __future__ import print_function
 from loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
 from IPython.utils.text import indent, wrap_paragraphs
@@ -231,7 +232,7 @@ class Configurable(HasTraits):
     @classmethod
     def class_print_help(cls, inst=None):
         """Get the help string for a single trait and print it."""
-        print cls.class_get_help(inst)
+        print(cls.class_get_help(inst))
 
     @classmethod
     def class_config_section(cls):

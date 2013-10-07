@@ -154,7 +154,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.banner2 = self.old_banner2
 
         if self.exit_msg is not None:
-            print self.exit_msg
+            print(self.exit_msg)
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
                  display_banner=None, global_ns=None, compile_flags=None):

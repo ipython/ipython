@@ -19,7 +19,7 @@ example, you could use a startup file like this::
 
     def calljed(self,filename, linenum):
         "My editor hook calls the jed editor directly."
-        print "Calling my own editor, jed ..."
+        print("Calling my own editor, jed ...")
         if os.system('jed +%d %s' % (linenum,filename)) != 0:
             raise TryNext()
 

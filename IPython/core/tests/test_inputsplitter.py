@@ -365,7 +365,7 @@ class InteractiveLoopTestCase(unittest.TestCase):
         """
         src = mini_interactive_loop(pseudo_input(lines))
         test_ns = {}
-        exec src in test_ns
+        exec(src, test_ns)
         # We can't check that the provided ns is identical to the test_ns,
         # because Python fills test_ns with extra keys (copyright, etc).  But
         # we can check that the given dict is *contained* in test_ns
@@ -497,10 +497,10 @@ if __name__ == '__main__':
             # real interpreter would instead send it for execution somewhere.
             #src = isp.source; raise EOFError # dbg
             src, raw = isp.source_raw_reset()
-            print 'Input source was:\n', src
-            print 'Raw source was:\n', raw
+            print('Input source was:\n', src)
+            print('Raw source was:\n', raw)
     except EOFError:
-        print 'Bye'
+        print('Bye')
 
 # Tests for cell magics support
 

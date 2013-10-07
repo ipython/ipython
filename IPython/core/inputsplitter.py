@@ -70,6 +70,8 @@ import codeop
 import re
 import sys
 
+from __future__ import print_function
+
 # IPython modules
 from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
@@ -229,7 +231,7 @@ class InputSplitter(object):
             prompt = '>>> ' + indent
             line = indent + raw_input(prompt)
             isp.push(line)
-        print 'Input source was:\n', isp.source_reset(),
+        print('Input source was:\n', isp.source_reset(),)
     """
     # Number of spaces of indentation computed from input that has been pushed
     # so far.  This is the attributes callers should query to get the current

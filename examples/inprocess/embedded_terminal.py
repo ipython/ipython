@@ -1,11 +1,12 @@
 import os
+from __future__ import print_function
 
 from IPython.kernel.inprocess import InProcessKernelManager
 from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
 
 
 def print_process_id():
-    print 'Process ID is:', os.getpid()
+    print('Process ID is:', os.getpid())
 
 
 def main():

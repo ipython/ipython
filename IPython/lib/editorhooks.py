@@ -45,7 +45,7 @@ def install_editor(template, wait=False):
         if line is None:
             line = 0
         cmd = template.format(filename=pipes.quote(filename), line=line)
-        print ">", cmd
+        print(">", cmd)
         proc = subprocess.Popen(cmd, shell=True)
         if wait and proc.wait() != 0:
             raise TryNext()

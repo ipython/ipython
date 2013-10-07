@@ -190,7 +190,7 @@ class BackgroundJobManager(object):
         job.num = len(self.all)+1 if self.all else 0
         self.running.append(job)
         self.all[job.num] = job
-        print 'Starting job # %s in a separate thread.' % job.num
+        print('Starting job # %s in a separate thread.' % job.num)
         job.start()
         return job
 
@@ -245,10 +245,10 @@ class BackgroundJobManager(object):
         Return True if the group had any elements."""
 
         if group:
-            print '%s jobs:' % name
+            print('%s jobs:' % name)
             for job in group:
-                print '%s : %s' % (job.num,job)
-            print
+                print('%s : %s' % (job.num,job))
+            print()
             return True
 
     def _group_flush(self,group,name):
@@ -259,7 +259,7 @@ class BackgroundJobManager(object):
         njobs = len(group)
         if njobs:
             plural = {1:''}.setdefault(njobs,'s')
-            print 'Flushing %s %s job%s.' % (njobs,name,plural)
+            print('Flushing %s %s job%s.' % (njobs,name,plural))
             group[:] = []
             return True
         
@@ -325,7 +325,7 @@ class BackgroundJobManager(object):
         fl_comp = self._group_flush(self.completed, 'Completed')
         fl_dead = self._group_flush(self.dead, 'Dead')
         if not (fl_comp or fl_dead):
-            print 'No jobs to flush.'
+            print('No jobs to flush.')
 
     def result(self,num):
         """result(N) -> return the result of job N."""
@@ -345,9 +345,9 @@ class BackgroundJobManager(object):
         if job is None:
             self._update_status()
             for deadjob in self.dead:
-                print "Traceback for: %r" % deadjob
+                print("Traceback for: %r" % deadjob)
                 self._traceback(deadjob)
-                print
+                print()
         else:
             self._traceback(job)
 
@@ -416,7 +416,7 @@ class BackgroundJobBase(threading.Thread):
         return '<BackgroundJob #%d: %s>' % (self.num, self.strform)
 
     def traceback(self):
-        print self._tb
+        print(self._tb)
         
     def run(self):
         try:

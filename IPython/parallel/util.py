@@ -232,7 +232,7 @@ def _push(**ns):
     try:
         for name, value in ns.iteritems():
             user_ns[tmp] = value
-            exec "%s = %s" % (name, tmp) in user_ns
+            exec("%s = %s" % (name, tmp), user_ns)
     finally:
         user_ns.pop(tmp, None)
 
@@ -247,7 +247,7 @@ def _pull(keys):
 @interactive
 def _execute(code):
     """helper method for implementing `client.execute` via `client.apply`"""
-    exec code in globals()
+    exec(code, globals())
 
 #--------------------------------------------------------------------------
 # extra process management utilities

@@ -274,12 +274,12 @@ def import_pylab(user_ns, import_all=True):
           "np = numpy\n"
           "plt = pyplot\n"
           )
-    exec s in user_ns
+    exec(s, user_ns)
     
     if import_all:
         s = ("from matplotlib.pylab import *\n"
              "from numpy import *\n")
-        exec s in user_ns
+        exec(s, user_ns)
     
     # IPython symbols to add
     user_ns['figsize'] = figsize
