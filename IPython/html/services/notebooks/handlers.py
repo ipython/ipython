@@ -93,10 +93,7 @@ class NotebookHandler(IPythonHandler):
         """Create a new notebook in the location given by 'notebook_path'."""
         nbm = self.notebook_manager
         model = self.get_json_body()
-        if name is not None:
-            raise web.HTTPError(400, 'No name can be provided when POSTing a new notebook.')
         model = nbm.create_notebook_model(model, path)
-        location = nbm.notebook_dir + model[u'path'] + model[u'name']
         location = self.notebook_location(model[u'name'], model[u'path'])
         self.set_header(u'Location', location)
         self.set_header(u'Last-Modified', model[u'last_modified'])
