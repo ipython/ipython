@@ -8,13 +8,13 @@
 {%- endblock codecell %}
 
 {% block input_group -%}
-<div class="input hbox">
+<div class="input">
 {{ super() }}
 </div>
 {% endblock input_group %}
 
 {% block output_group %}
-<div class="vbox output_wrapper">
+<div class="output_wrapper">
 <div class="output vbox">
 {{ super() }}
 </div>
@@ -41,7 +41,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {%- endblock input %}
 
 {% block output %}
-<div class="hbox output_area">
+<div class="output_area">
 {%- if output.output_type == 'pyout' -%}
     <div class="prompt output_prompt">
     Out[{{ cell.prompt_number }}]:
