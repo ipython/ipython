@@ -272,7 +272,7 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
 def json_errors(method):
     """Decorate methods with this to return GitHub style JSON errors.
     
-    This should be used on any handler method that can raise HTTPErrors.
+    This should be used on any JSON API on any handler method that can raise HTTPErrors.
     
     This will grab the latest HTTPError exception using sys.exc_info
     and then:
@@ -285,18 +285,20 @@ def json_errors(method):
     def wrapper(self, *args, **kwargs):
         try:
             result = method(self, *args, **kwargs)
-        except:
+        except web.HTTPError as e:
+            status = e.status_code
+            message = e.log_message
+            self.set_status(e.status_code)
+            self.finish(json.dumps(dict(message=message)))
+        except Exception:
+            self.log.error("Unhandled error in API request", exc_info=True)
+            status = 500
+            message = "Unknown server error"
             t, value, tb = sys.exc_info()
-            if isinstance(value, web.HTTPError):
-                status = value.status_code
-                message = value.log_message
-            else:
-                status = 400
-                message = u"Unknown server error"
             self.set_status(status)
             tb_text = ''.join(traceback.format_exception(t, value, tb))
             reply = dict(message=message, traceback=tb_text)
-            self.finish(json.dumps(reply, default=date_default))
+            self.finish(json.dumps(reply))
         else:
             return result
     return wrapper
