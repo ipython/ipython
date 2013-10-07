@@ -64,12 +64,12 @@ def test_extract_code_ranges():
 def test_extract_symbols():
     source = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
     symbols_args = ["a", "b", "A", "A,b", "A,a", "z"]
-    expected = [[],
-                ["def b():\n    return 42\n"],
-                ["class A: pass\n"],
-                ["class A: pass\n", "def b():\n    return 42\n"],
-                ["class A: pass\n"],
-                []]
+    expected = [([], ['a']),
+                (["def b():\n    return 42\n"], []),
+                (["class A: pass\n"], []),
+                (["class A: pass\n", "def b():\n    return 42\n"], []),
+                (["class A: pass\n"], ['a']),
+                ([], ['z'])]
     for symbols, exp in zip(symbols_args, expected):
         nt.assert_equal(code.extract_symbols(source, symbols), exp)
 
