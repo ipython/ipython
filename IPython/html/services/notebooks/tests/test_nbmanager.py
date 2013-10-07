@@ -67,48 +67,6 @@ class TestNotebookManager(TestCase):
         except OSError:
             print "Directory already exists."
 
-    def test_named_notebook_path(self):
-        """the `named_notebook_path` method takes a URL path to
-        a notebook and returns a url path split into nb and path"""
-        nm = NotebookManager()
-
-        # doesn't end with ipynb, should just be path
-        name, path = nm.named_notebook_path('hello')
-        self.assertEqual(name, None)
-        self.assertEqual(path, '/hello/')
-
-        # Root path returns just the root slash
-        name, path = nm.named_notebook_path('/')
-        self.assertEqual(name, None)
-        self.assertEqual(path, '/')
-
-        # get notebook, and return the path as '/'
-        name, path = nm.named_notebook_path('notebook.ipynb')
-        self.assertEqual(name, 'notebook.ipynb')
-        self.assertEqual(path, '/')
-
-        # Test a notebook name with leading slash returns
-        # the same as above
-        name, path = nm.named_notebook_path('/notebook.ipynb')
-        self.assertEqual(name, 'notebook.ipynb')
-        self.assertEqual(path, '/')
-
-        # Multiple path arguments splits the notebook name
-        # and returns path with leading and trailing '/'
-        name, path = nm.named_notebook_path('/this/is/a/path/notebook.ipynb')
-        self.assertEqual(name, 'notebook.ipynb')
-        self.assertEqual(path, '/this/is/a/path/')
-
-        # path without leading slash is returned with leading slash
-        name, path = nm.named_notebook_path('path/without/leading/slash/notebook.ipynb')
-        self.assertEqual(name, 'notebook.ipynb')
-        self.assertEqual(path, '/path/without/leading/slash/')
-
-        # path with spaces and no leading or trailing '/'
-        name, path = nm.named_notebook_path('foo / bar% path& to# @/ notebook name.ipynb')
-        self.assertEqual(name, ' notebook name.ipynb')
-        self.assertEqual(path, '/foo / bar% path& to# @/')
-
     def test_url_encode(self):
         nm = NotebookManager()
 

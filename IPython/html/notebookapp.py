@@ -734,10 +734,9 @@ class NotebookApp(BaseIPythonApplication):
                 browser = None
 
             if self.file_to_run:
-                name, _ = os.path.splitext(os.path.basename(self.file_to_run))
-                url = 'notebooks/' + self.entry_path + name + _
+                url = url_path_join('notebooks', self.entry_path, self.file_to_run)
             else:
-                url = 'tree/' + self.entry_path
+                url = url_path_join('tree', self.entry_path)
             if browser:
                 b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
                     self.port, self.base_project_url, url), new=2)

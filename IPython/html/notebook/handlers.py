@@ -23,6 +23,7 @@ from zmq.utils import jsonapi
 
 
 from ..base.handlers import IPythonHandler
+from ..services.notebooks.handlers import _notebook_path_regex, _path_regex
 from ..utils import url_path_join
 from urllib import quote
 
@@ -51,32 +52,31 @@ class NotebookHandler(IPythonHandler):
 class NamedNotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, notebook_path):
+    def get(self, path='', name=None):
         """get renders the notebook template if a name is given, or 
         redirects to the '/files/' handler if the name is not given."""
         nbm = self.notebook_manager
-        name, path = nbm.named_notebook_path(notebook_path)
-        if name is not None:
-            # a .ipynb filename was given
-            if not nbm.notebook_exists(name, path):
-                raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
-            name = nbm.url_encode(name)
-            path = nbm.url_encode(path)
-            self.write(self.render_template('notebook.html',
-                project=self.project_dir,
-                notebook_path=path,
-                notebook_name=name,
-                kill_kernel=False,
-                mathjax_url=self.mathjax_url,
-                )
-            )
-        else:
-            url = "/files/" + notebook_path
+        if name is None:
+            url = url_path_join(self.base_project_url, 'files', path)
             self.redirect(url)
+            return
             
+        # a .ipynb filename was given
+        if not nbm.notebook_exists(name, path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s/%s' % (path, name))
+        name = nbm.url_encode(name)
+        path = nbm.url_encode(path)
+        self.write(self.render_template('notebook.html',
+            project=self.project_dir,
+            notebook_path=path,
+            notebook_name=name,
+            kill_kernel=False,
+            mathjax_url=self.mathjax_url,
+            )
+        )
 
     @web.authenticated
-    def post(self, notebook_path):
+    def post(self, path='', name=None):
         """post either creates a new notebook if no json data is
         sent to the server, or copies the data and returns a 
         copied notebook in the location given by 'notebook_path."""
@@ -95,10 +95,9 @@ class NamedNotebookHandler(IPythonHandler):
 #-----------------------------------------------------------------------------
 
 
-_notebook_path_regex = r"(?P<notebook_path>.+)"
-
 default_handlers = [
-    (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
-    (r"/notebooks/", NotebookHandler),
+    (r"/notebooks/?%s" % _notebook_path_regex, NamedNotebookHandler),
+    (r"/notebooks/?%s" % _path_regex, NamedNotebookHandler),
+    (r"/notebooks/?", NotebookHandler),
 ]
 
