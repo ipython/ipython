@@ -49,3 +49,18 @@ def url2path(url):
     path = os.path.join(*pieces)
     return path
     
+def url_escape(path):
+    """Escape special characters in a URL path
+    
+    Turns '/foo bar/' into '/foo%20bar/'
+    """
+    parts = path.split('/')
+    return '/'.join([quote(p) for p in parts])
+
+def url_unescape(path):
+    """Unescape special characters in a URL path
+    
+    Turns '/foo%20bar/' into '/foo bar/'
+    """
+    return '/'.join([unquote(p) for p in path.split('/')])
+
