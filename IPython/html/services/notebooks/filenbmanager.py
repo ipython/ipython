@@ -92,11 +92,49 @@ class FileNotebookManager(NotebookManager):
                 i = i+1
         return name
 
-    def os_path_exists(self, path):
-        """Check that the given file system path is valid on this machine."""
-        if os.path.exists(path) is False:
-            raise web.HTTPError(404, "No file or directory found.")
+    def path_exists(self, path):
+        """Does the API-style path (directory) actually exist?
         
+        Parameters
+        ----------
+        path : string
+            The path to check. This is an API path (`/` separated,
+            relative to base notebook-dir).
+        
+        Returns
+        -------
+        exists : bool
+            Whether the path is indeed a directory.
+        """
+        os_path = self.get_os_path(path=path)
+        return os.path.isdir(os_path)
+    
+    def get_os_path(self, name=None, path=''):
+        """Given a notebook name and a URL path, return its file system
+        path.
+
+        Parameters
+        ----------
+        name : string
+            The name of a notebook file with the .ipynb extension
+        path : string
+            The relative URL path (with '/' as separator) to the named
+            notebook.
+
+        Returns
+        -------
+        path : string
+            A file system path that combines notebook_dir (location where
+            server started), the relative path, and the filename with the
+            current operating system's url.
+        """
+        parts = path.strip('/').split('/')
+        parts = [p for p in parts if p != ''] # remove duplicate splits
+        if name is not None:
+            parts.append(name)
+        path = os.path.join(self.notebook_dir, *parts)
+        return path
+
     def notebook_exists(self, name, path=''):
         """Returns a True if the notebook exists. Else, returns False.
 
