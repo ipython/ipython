@@ -95,8 +95,8 @@ def extract_symbols(code, symbols):
 
         class A: pass'''
 
-        >>> extract_symbols(code, 'A,b')
-        (["class A: pass", "def b(): return 42"], [])
+        >>> extract_symbols(code, 'A,b,z')
+        (["class A: pass", "def b(): return 42"], ['z'])
     """
     try:
         py_code = ast.parse(code)
@@ -107,10 +107,12 @@ def extract_symbols(code, symbols):
     marks = [(getattr(s, 'name', None), s.lineno) for s in py_code.body]
     code = code.split('\n')
 
-    # construct a dictionary with elements
-    # {'symbol_name': (start_lineno, end_lineno), ...}
-    end = len(code)
     symbols_lines = {}
+    
+    # we already know the start_lineno of each symbol (marks). 
+    # To find each end_lineno, we traverse in reverse order until each 
+    # non-blank line
+    end = len(code)  
     for name, start in reversed(marks):
         while not code[end - 1].strip():
             end -= 1
@@ -118,7 +120,10 @@ def extract_symbols(code, symbols):
             symbols_lines[name] = (start - 1, end)
         end = start - 1
 
-    # fill a list with chunks of codes for each symbol
+    # Now symbols_lines is a map
+    # {'symbol_name': (start_lineno, end_lineno), ...}
+    
+    # fill a list with chunks of codes for each requested symbol
     blocks = []
     not_found = []
     for symbol in symbols.split(','):
