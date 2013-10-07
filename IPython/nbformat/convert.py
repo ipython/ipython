@@ -65,7 +65,7 @@ def convert(nb, to_version):
             raise Exception("Cannot convert notebook from v%d to v%d.  Operation" \
                 "failed silently." % (major, step_version))
 
-        # Recuresively convert until target version is reached.
+        # Recursively convert until target version is reached.
         return convert(converted, to_version)
     else:
         raise Exception("Cannot convert notebook to v%d because that " \

@@ -51,8 +51,8 @@ class TestConvert(TestsBase):
 
 
     def test_open_current(self):
-        """Can an old notebook be opened and converted to the current verion while
-        remembering the original version of the notebook?"""
+        """Can an old notebook be opened and converted to the current version 
+        while remembering the original version of the notebook?"""
 
         # Open a version 2 notebook and attempt to upgrade it to the current version
         # while remembering it's version information.
