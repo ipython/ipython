@@ -174,9 +174,7 @@ class APITest(NotebookTestBase):
 
     def test_rename(self):
         resp = self.nb_api.rename('a.ipynb', 'foo', 'z.ipynb')
-        if False:
-            # XXX: Spec says this should be set, but it isn't
-            self.assertEqual(resp.headers['Location'].split('/')[-1], 'z.ipynb')
+        self.assertEqual(resp.headers['Location'].split('/')[-1], 'z.ipynb')
         self.assertEqual(resp.json()['name'], 'z.ipynb')
         assert os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'z.ipynb'))
 
