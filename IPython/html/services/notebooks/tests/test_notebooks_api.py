@@ -1,8 +1,11 @@
+# coding: utf-8
 """Test the notebooks webservice API."""
 
 import io
 import os
 import shutil
+from unicodedata import normalize
+
 from zmq.utils import jsonapi
 
 pjoin = os.path.join
@@ -111,9 +114,10 @@ class APITest(NotebookTestBase):
 
         nbs = self.nb_api.list('foo').json()
         self.assertEqual(len(nbs), 4)
-        nbnames = set(n['name'] for n in nbs)
-        self.assertEqual(nbnames, {'a.ipynb', 'b.ipynb',
-                                   'name with spaces.ipynb', u'unicodé.ipynb'})
+        nbnames = { normalize('NFC', n['name']) for n in nbs }
+        expected = [ u'a.ipynb', u'b.ipynb', u'name with spaces.ipynb', u'unicodé.ipynb']
+        expected = { normalize('NFC', name) for name in expected }
+        self.assertEqual(nbnames, expected)
 
     def assert_404(self, name, path):
         try:
