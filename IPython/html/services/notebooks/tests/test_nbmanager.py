@@ -115,7 +115,7 @@ class TestNotebookManager(TestCase):
             self.assertIn('path', model2)
             self.assertIn('content', model2)
             self.assertEqual(model2['name'], 'Untitled0.ipynb')
-            self.assertEqual(model2['path'], sub_dir)
+            self.assertEqual(model2['path'], sub_dir.strip('/'))
             
     def test_update_notebook_model(self):
         with TemporaryDirectory() as td:
@@ -152,7 +152,7 @@ class TestNotebookManager(TestCase):
             self.assertIn('name', model)
             self.assertIn('path', model)
             self.assertEqual(model['name'], 'test_in_sub.ipynb')
-            self.assertEqual(model['path'], sub_dir)
+            self.assertEqual(model['path'], sub_dir.strip('/'))
             
             # Make sure the old name is gone
             self.assertRaises(HTTPError, nm.get_notebook_model, name, path)
@@ -192,7 +192,7 @@ class TestNotebookManager(TestCase):
             self.assertIn('name', model)
             self.assertIn('path', model)
             self.assertEqual(model['name'], 'Untitled0.ipynb')
-            self.assertEqual(model['path'], sub_dir)          
+            self.assertEqual(model['path'], sub_dir.strip('/'))
 
     def test_delete_notebook_model(self):
         with TemporaryDirectory() as td:
