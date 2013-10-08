@@ -280,3 +280,13 @@ class TestConfig(TestCase):
         self.assertEqual(c1.Foo.bar, 1)
         self.assertEqual(c1.Foo.baz, 2)
         self.assertNotIn('baz', c2.Foo)
+    
+    def test_contains(self):
+        c1 = Config({'Foo' : {'baz' : 2}})
+        c2 = Config({'Foo' : {'bar' : 1}})
+        self.assertIn('Foo', c1)
+        self.assertIn('Foo.baz', c1)
+        self.assertIn('Foo.bar', c2)
+        self.assertNotIn('Foo.bar', c1)
+    
+
