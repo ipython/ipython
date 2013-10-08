@@ -371,6 +371,9 @@ IPython.utils = (function (IPython) {
         // join a sequence of url components with '/'
         var url = '';
         for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] === '') {
+                continue;
+            }
             if (url.length > 0 && url[url.length-1] != '/') {
                 url = url + '/' + arguments[i];
             } else {
