@@ -75,7 +75,7 @@ class SessionHandler(IPythonHandler):
     def get(self, session_id):
         # Returns the JSON model for a single session
         sm = self.session_manager
-        model = sm.get_session(id=session_id)
+        model = sm.get_session(session_id=session_id)
         self.finish(json.dumps(model, default=date_default))
 
     @web.authenticated
@@ -93,8 +93,9 @@ class SessionHandler(IPythonHandler):
                 changes['name'] = notebook['name']
             if 'path' in notebook:
                 changes['path'] = notebook['path']
+
         sm.update_session(session_id, **changes)
-        model = sm.get_session(id=session_id)
+        model = sm.get_session(session_id=session_id)
         self.finish(json.dumps(model, default=date_default))
 
     @web.authenticated
@@ -103,8 +104,8 @@ class SessionHandler(IPythonHandler):
         # Deletes the session with given session_id
         sm = self.session_manager
         km = self.kernel_manager
-        session = sm.get_session(id=session_id)
-        sm.delete_session(session_id)        
+        session = sm.get_session(session_id=session_id)
+        sm.delete_session(session_id)
         km.shutdown_kernel(session['kernel']['id'])
         self.set_status(204)
         self.finish()
