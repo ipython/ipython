@@ -42,7 +42,7 @@ class SessionAPI(object):
         return self._req('POST', '', body)
 
     def modify(self, id, name, path):
-        body = json.dumps({'name':name, 'path':path})
+        body = json.dumps({'notebook': {'name':name, 'path':path}})
         return self._req('PATCH', id, body)
 
     def delete(self, id):
@@ -89,7 +89,7 @@ class SessionAPITest(NotebookTestBase):
 
         # Retrieve it
         sid = newsession['id']
-        got = self.sess_api.get(sid)
+        got = self.sess_api.get(sid).json()
         self.assertEqual(got, newsession)
 
     def test_delete(self):
@@ -110,5 +110,5 @@ class SessionAPITest(NotebookTestBase):
 
         changed = self.sess_api.modify(sid, 'nb2.ipynb', '').json()
         self.assertEqual(changed['id'], sid)
-        self.assertEqual(newsession['notebook']['name'], 'nb2.ipynb')
-        self.assertEqual(newsession['notebook']['path'], '')
+        self.assertEqual(changed['notebook']['name'], 'nb2.ipynb')
+        self.assertEqual(changed['notebook']['path'], '')
