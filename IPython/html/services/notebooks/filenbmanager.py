@@ -76,6 +76,8 @@ class FileNotebookManager(NotebookManager):
     def get_notebook_names(self, path=''):
         """List all notebook names in the notebook dir and path."""
         path = path.strip('/')
+        if not os.path.isdir(self.get_os_path(path=path)):
+            raise web.HTTPError(404, 'Directory not found: ' + path)
         names = glob.glob(self.get_os_path('*'+self.filename_ext, path))
         names = [os.path.basename(name)
                  for name in names]
