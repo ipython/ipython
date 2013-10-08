@@ -74,7 +74,7 @@ class NotebookRedirectHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/notebooks/?%s" % _notebook_path_regex, NotebookHandler),
-    (r"/notebooks/?%s" % _path_regex, NotebookRedirectHandler),
+    (r"/notebooks%s" % _notebook_path_regex, NotebookHandler),
+    (r"/notebooks%s" % _path_regex, NotebookRedirectHandler),
 ]
 
