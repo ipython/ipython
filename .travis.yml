@@ -5,7 +5,7 @@ python:
     - 3.3
 before_install:
     - easy_install -q pyzmq
-    - pip install jinja2 sphinx pygments tornado
+    - pip install jinja2 sphinx pygments tornado requests
     - sudo apt-get install pandoc
 install:
     - python setup.py install -q 
