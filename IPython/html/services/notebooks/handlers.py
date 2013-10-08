@@ -91,10 +91,8 @@ class NotebookHandler(IPythonHandler):
         if model is None:
             raise web.HTTPError(400, u'JSON body missing')
         model = nbm.update_notebook_model(model, name, path)
-        if model[u'name'] != name or model[u'path'] != path:
-            self.set_status(301)
-            location = self.notebook_location(model[u'name'], model[u'path'])
-            self.set_header(u'Location', location)
+        location = self.notebook_location(model[u'name'], model[u'path'])
+        self.set_header(u'Location', location)
         self.set_header(u'Last-Modified', model[u'last_modified'])
         self.finish(json.dumps(model, default=date_default))
 
