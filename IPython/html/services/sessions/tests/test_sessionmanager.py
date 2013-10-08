@@ -1,11 +1,9 @@
 """Tests for the session manager."""
 
-import os
-
 from unittest import TestCase
-from tempfile import NamedTemporaryFile
 
-from IPython.utils.tempdir import TemporaryDirectory
+from tornado import web
+
 from IPython.utils.traitlets import TraitError
 
 from ..sessionmanager import SessionManager
@@ -82,5 +80,5 @@ class TestSessionManager(TestCase):
         sm = SessionManager()
         session_id = sm.get_session_id()
         sm.save_session(session_id=session_id, name='test.ipynb', path='/path/to/', kernel_id='5678', ws_url='ws_url')
-        self.assertRaises(TraitError, sm.delete_session, session_id='23424') # Bad keyword
+        self.assertRaises(web.HTTPError, sm.delete_session, session_id='23424') # Bad keyword
 
