@@ -13,7 +13,7 @@ pjoin = os.path.join
 import requests
 
 from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase
+from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.current import (new_notebook, write, read, new_worksheet,
                                       new_heading_cell, to_notebook_json)
 from IPython.utils.data import uniq_stable
@@ -119,13 +119,9 @@ class APITest(NotebookTestBase):
         expected = { normalize('NFC', name) for name in expected }
         self.assertEqual(nbnames, expected)
 
-    def assert_404(self, name, path):
-        try:
-            self.nb_api.read(name, path)
-        except requests.HTTPError as e:
-            self.assertEqual(e.response.status_code, 404)
-        else:
-            assert False, "Reading a non-existent notebook should fail"
+    def test_list_nonexistant_dir(self):
+        with assert_http_error(404):
+            self.nb_api.list('nonexistant')
 
     def test_get_contents(self):
         for d, name in self.dirs_nbs:
@@ -136,7 +132,8 @@ class APITest(NotebookTestBase):
             self.assertIsInstance(nb['content']['metadata'], dict)
 
         # Name that doesn't exist - should be a 404
-        self.assert_404('q.ipynb', 'foo')
+        with assert_http_error(404):
+            self.nb_api.read('q.ipynb', 'foo')
 
     def _check_nb_created(self, resp, name, path):
         self.assertEqual(resp.status_code, 201)
@@ -212,4 +209,5 @@ class APITest(NotebookTestBase):
         self.assertEqual(saved['path'], 'foo/bar')
         assert os.path.isfile(pjoin(self.notebook_dir.name,'foo','bar','a2.ipynb'))
         assert not os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'a.ipynb'))
-        self.assert_404('a.ipynb', 'foo')
+        with assert_http_error(404):
+            self.nb_api.read('a.ipynb', 'foo')
