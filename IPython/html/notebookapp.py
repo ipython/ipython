@@ -541,7 +541,10 @@ class NotebookApp(BaseIPythonApplication):
         
         # hook up tornado 3's loggers to our app handlers
         for name in ('access', 'application', 'general'):
-            logging.getLogger('tornado.%s' % name).handlers = self.log.handlers
+            logger = logging.getLogger('tornado.%s' % name)
+            logger.propagate = False
+            logger.setLevel(self.log.level)
+            logger.handlers = self.log.handlers
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
