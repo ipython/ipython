@@ -133,7 +133,7 @@ class SessionManager(LoggingConfigurable):
         if reply is not None:
             model = self.reply_to_dictionary_model(reply)
         else:
-            model = None
+            raise web.HTTPError(404, u'Session not found: %s=%r' % (column, value))
         return model
 
     def update_session(self, session_id, **kwargs):
@@ -151,8 +151,6 @@ class SessionManager(LoggingConfigurable):
             and the value replaces the current value in the session 
             with session_id.
         """
-        column = kwargs.keys() # uses only the first kwarg that is entered
-        value = kwargs.values()
         for kwarg in kwargs:
             try:
                 self.cursor.execute("UPDATE session SET %s=? WHERE id=?" %kwarg, (kwargs[kwarg], session_id))
