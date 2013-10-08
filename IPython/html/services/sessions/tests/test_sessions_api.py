@@ -9,7 +9,7 @@ import shutil
 pjoin = os.path.join
 
 from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase
+from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.current import new_notebook, write
 
 class SessionAPI(object):
@@ -64,14 +64,6 @@ class SessionAPITest(NotebookTestBase):
             self.sess_api.delete(session['id'])
         shutil.rmtree(pjoin(self.notebook_dir.name, 'foo'))
 
-    def assert_404(self, id):
-        try:
-            self.sess_api.get(id)
-        except requests.HTTPError as e:
-            self.assertEqual(e.response.status_code, 404)
-        else:
-            assert False, "Getting nonexistent session didn't give HTTP error"
-
     def test_create(self):
         sessions = self.sess_api.list().json()
         self.assertEqual(len(sessions), 0)
@@ -101,7 +93,8 @@ class SessionAPITest(NotebookTestBase):
         sessions = self.sess_api.list().json()
         self.assertEqual(sessions, [])
 
-        self.assert_404(sid)
+        with assert_http_error(404):
+            self.sess_api.get(sid)
 
     def test_modify(self):
         newsession = self.sess_api.create('nb1.ipynb', 'foo').json()
