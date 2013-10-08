@@ -254,7 +254,7 @@ class FileNotebookManager(NotebookManager):
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s %s' % (py_path, e))
 
-        model = self.get_notebook_model(name, path, content=False)
+        model = self.get_notebook_model(new_name, new_path, content=False)
         return model
 
     def update_notebook_model(self, model, name, path=''):
