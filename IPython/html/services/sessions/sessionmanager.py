@@ -178,8 +178,5 @@ class SessionManager(LoggingConfigurable):
         """Deletes the row in the session database with given session_id"""
         # Check that session exists before deleting
         model = self.get_session(id=session_id)
-        if model is None:
-            raise TraitError("The session does not exist: %s" %session_id)
-        else: 
-            self.cursor.execute("DELETE FROM session WHERE id=?", (session_id,))
-            self.connection.commit()
+        self.cursor.execute("DELETE FROM session WHERE id=?", (session_id,))
+        self.connection.commit()
