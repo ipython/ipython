@@ -42,6 +42,9 @@ class NBAPI(object):
     def upload(self, name, body, path='/'):
         return self._req('POST', url_path_join(path, name), body)
 
+    def copy(self, name, path='/'):
+        return self._req('POST', url_path_join(path, name, 'copy'))
+
     def save(self, name, body, path='/'):
         return self._req('PUT', url_path_join(path, name), body)
 
@@ -152,6 +155,10 @@ class APITest(NotebookTestBase):
         resp = self.nb_api.upload('Upload test.ipynb', path='foo',
                                               body=jsonapi.dumps(nbmodel))
         self._check_nb_created(resp, 'Upload test.ipynb', 'foo')
+
+    def test_copy(self):
+        resp = self.nb_api.copy('a.ipynb', path='foo')
+        self._check_nb_created(resp, 'a-Copy0.ipynb', 'foo')
 
     def test_delete(self):
         for d, name in self.dirs_nbs:
