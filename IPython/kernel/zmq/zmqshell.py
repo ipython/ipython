@@ -583,7 +583,7 @@ class ZMQInteractiveShell(InteractiveShell):
             source='set_next_input',
             text=text
         )
-        self.payload_manager.write_payload(payload)
+        self.payload_manager.write_payload(payload, update=True)
     
     #-------------------------------------------------------------------------
     # Things related to magics
