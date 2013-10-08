@@ -16,15 +16,13 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import uuid
 import sqlite3
 
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.nbformat import current
-from IPython.utils.traitlets import List, Dict, Unicode, TraitError
+from IPython.utils.traitlets import TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
