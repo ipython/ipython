@@ -399,9 +399,9 @@ class IPControllerApp(BaseParallelApplication):
         q.connect_mon(monitor_url)
         q.daemon=True
         children.append(q)
-        try:
+        if 'TaskScheduler.scheme_name' in self.config:
             scheme = self.config.TaskScheduler.scheme_name
-        except AttributeError:
+        else:
             scheme = TaskScheduler.scheme_name.get_default_value()
         # Task Queue (in a Process)
         if scheme == 'pure':

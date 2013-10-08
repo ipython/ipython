@@ -28,7 +28,7 @@ Authors:
 import datetime
 from copy import deepcopy
 
-from loader import Config
+from .loader import Config, LazyConfigValue
 from IPython.utils.traitlets import HasTraits, Instance
 from IPython.utils.text import indent, wrap_paragraphs
 
@@ -137,7 +137,7 @@ class Configurable(HasTraits):
                 if c._has_section(sname):
                     my_config.merge(c[sname])
         return my_config
-
+    
     def _load_config(self, cfg, section_names=None, traits=None):
         """load traits from a Config object"""
         
@@ -149,6 +149,11 @@ class Configurable(HasTraits):
         my_config = self._find_my_config(cfg)
         for name, config_value in my_config.iteritems():
             if name in traits:
+                if isinstance(config_value, LazyConfigValue):
+                    # ConfigValue is a wrapper for using append / update on containers
+                    # without having to copy the 
+                    initial = getattr(self, name)
+                    config_value = config_value.get_value(initial)
                 # We have to do a deepcopy here if we don't deepcopy the entire
                 # config object. If we don't, a mutable config_value will be
                 # shared by all instances, effectively making it a class attribute.
