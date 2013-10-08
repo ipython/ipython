@@ -76,7 +76,7 @@ class TestNotebookManager(TestCase):
             self.assertIn('name', model)
             self.assertIn('path', model)
             self.assertEqual(model['name'], 'Untitled0.ipynb')
-            self.assertEqual(model['path'], '/')
+            self.assertEqual(model['path'], '')
 
             # Test in sub-directory
             sub_dir = '/foo/'
