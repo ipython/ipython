@@ -11,7 +11,8 @@ import requests
 
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
-from IPython.nbformat.current import new_notebook, write, writes
+from IPython.nbformat.current import (new_notebook, write, read, new_worksheet,
+                                      new_heading_cell, to_notebook_json)
 from IPython.utils.data import uniq_stable
 
 class NBAPI(object):
@@ -40,6 +41,9 @@ class NBAPI(object):
 
     def upload(self, name, body, path='/'):
         return self._req('POST', url_path_join(path, name), body)
+
+    def save(self, name, body, path='/'):
+        return self._req('PUT', url_path_join(path, name), body)
 
     def delete(self, name, path='/'):
         return self._req('DELETE', url_path_join(path, name))
@@ -144,10 +148,10 @@ class APITest(NotebookTestBase):
 
     def test_upload(self):
         nb = new_notebook(name='Upload test')
+        nbmodel = {'content': nb}
         resp = self.nb_api.upload('Upload test.ipynb', path='foo',
-                                              body=writes(nb, format='ipynb'))
+                                              body=jsonapi.dumps(nbmodel))
         self._check_nb_created(resp, 'Upload test.ipynb', 'foo')
-
 
     def test_delete(self):
         for d, name in self.dirs_nbs:
@@ -170,3 +174,20 @@ class APITest(NotebookTestBase):
         nbnames = set(n['name'] for n in nbs)
         self.assertIn('z.ipynb', nbnames)
         self.assertNotIn('a.ipynb', nbnames)
+
+    def test_save(self):
+        resp = self.nb_api.read('a.ipynb', 'foo')
+        nbcontent = jsonapi.loads(resp.text)['content']
+        nb = to_notebook_json(nbcontent)
+        ws = new_worksheet()
+        nb.worksheets = [ws]
+        ws.cells.append(new_heading_cell('Created by test'))
+
+        nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb}
+        resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
+
+        nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
+        with open(nbfile, 'r') as f:
+            newnb = read(f, format='ipynb')
+        self.assertEqual(newnb.worksheets[0].cells[0].source,
+                         'Created by test')
