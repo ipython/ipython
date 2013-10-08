@@ -282,10 +282,7 @@ class BaseIPythonApplication(Application):
         if self.profile_dir is not None:
             # already ran
             return
-        try:
-            # location explicitly specified:
-            location = self.config.ProfileDir.location
-        except AttributeError:
+        if 'ProfileDir.location' not in self.config:
             # location not specified, find by profile name
             try:
                 p = ProfileDir.find_profile_dir_by_name(self.ipython_dir, self.profile, self.config)
@@ -305,6 +302,7 @@ class BaseIPythonApplication(Application):
             else:
                 self.log.info("Using existing profile dir: %r"%p.location)
         else:
+            location = self.config.ProfileDir.location
             # location is fully specified
             try:
                 p = ProfileDir.find_profile_dir(location, self.config)

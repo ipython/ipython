@@ -9,7 +9,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2008 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -279,4 +279,14 @@ class TestConfig(TestCase):
         self.assertEqual(c1.Foo.__class__, Config)
         self.assertEqual(c1.Foo.bar, 1)
         self.assertEqual(c1.Foo.baz, 2)
-        self.assertRaises(AttributeError, getattr, c2.Foo, 'baz')
+        self.assertNotIn('baz', c2.Foo)
+    
+    def test_contains(self):
+        c1 = Config({'Foo' : {'baz' : 2}})
+        c2 = Config({'Foo' : {'bar' : 1}})
+        self.assertIn('Foo', c1)
+        self.assertIn('Foo.baz', c1)
+        self.assertIn('Foo.bar', c2)
+        self.assertNotIn('Foo.bar', c1)
+    
+
