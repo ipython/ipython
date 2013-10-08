@@ -213,7 +213,7 @@ class Config(dict):
             return False
 
     def __contains__(self, key):
-        # allow nested contains of the form `Section.key in config`
+        # allow nested contains of the form `"Section.key" in config`
         if '.' in key:
             first, remainder = key.split('.', 1)
             if first not in self:
