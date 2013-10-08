@@ -364,25 +364,27 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.new_notebook = function(){
         var path = this.notebookPath();
+        var base_project_url = this.baseProjectUrl();
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
             dataType : "json",
-            success:$.proxy(function (data, status, xhr){
+            async : false,
+            success : function (data, status, xhr) {
                 var notebook_name = data.name;
                 window.open(
                     utils.url_path_join(
-                        this.baseProjectUrl(),
+                        base_project_url,
                         'notebooks',
                         path,
                         notebook_name),
                     '_blank'
                 );
-            }, this)
+            }
         };
         var url = utils.url_path_join(
-            this.baseProjectUrl(),
+            base_project_url,
             'api/notebooks',
             path
         );

@@ -134,7 +134,7 @@ class NotebookManager(LoggingConfigurable):
         """Copy an existing notebook and return its new model."""
         model = self.get_notebook_model(name, path)
         name = os.path.splitext(name)[0] + '-Copy'
-        name = self.increment_filename(name, path) + self.filename_ext
+        name = self.increment_filename(name, path)
         model['name'] = name
         model = self.save_notebook_model(model, name, path)
         return model
