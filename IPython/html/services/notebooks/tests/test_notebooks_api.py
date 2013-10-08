@@ -115,6 +115,14 @@ class APITest(NotebookTestBase):
         self.assertEqual(nbnames, {'a.ipynb', 'b.ipynb',
                                    'name with spaces.ipynb', u'unicodé.ipynb'})
 
+    def assert_404(self, name, path):
+        try:
+            self.nb_api.read(name, path)
+        except requests.HTTPError as e:
+            self.assertEqual(e.response.status_code, 404)
+        else:
+            assert False, "Reading a non-existent notebook should fail"
+
     def test_get_contents(self):
         for d, name in self.dirs_nbs:
             nb = self.nb_api.read('%s.ipynb' % name, d+'/').json()
@@ -124,12 +132,7 @@ class APITest(NotebookTestBase):
             self.assertIsInstance(nb['content']['metadata'], dict)
 
         # Name that doesn't exist - should be a 404
-        try:
-            self.nb_api.read('q.ipynb', 'foo')
-        except requests.HTTPError as e:
-            self.assertEqual(e.response.status_code, 404)
-        else:
-            assert False, "Reading a non-existent notebook should fail"
+        self.assert_404('q.ipynb', 'foo')
 
     def _check_nb_created(self, resp, name, path):
         self.assertEqual(resp.status_code, 201)
@@ -198,3 +201,13 @@ class APITest(NotebookTestBase):
             newnb = read(f, format='ipynb')
         self.assertEqual(newnb.worksheets[0].cells[0].source,
                          'Created by test')
+
+        # Save and rename
+        nbmodel= {'name': 'a2.ipynb', 'path':'foo/bar', 'content': nb}
+        resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
+        saved = resp.json()
+        self.assertEqual(saved['name'], 'a2.ipynb')
+        self.assertEqual(saved['path'], 'foo/bar')
+        assert os.path.isfile(pjoin(self.notebook_dir.name,'foo','bar','a2.ipynb'))
+        assert not os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'a.ipynb'))
+        self.assert_404('a.ipynb', 'foo')
