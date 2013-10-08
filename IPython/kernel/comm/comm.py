@@ -63,11 +63,13 @@ class Comm(LoggingConfigurable):
             # I am primary, open my peer.
             self.open(data)
     
-    def _publish_msg(self, msg_type, data=None, **keys):
+    def _publish_msg(self, msg_type, data=None, metadata=None, **keys):
         """Helper for sending a comm message on IOPub"""
         data = {} if data is None else data
+        metadata = {} if metadata is None else metadata
         self.session.send(self.iopub_socket, msg_type,
             dict(data=data, comm_id=self.comm_id, **keys),
+            metadata=metadata,
             parent=self.shell.get_parent(),
             ident=self.topic,
         )
@@ -78,25 +80,25 @@ class Comm(LoggingConfigurable):
     
     # publishing messages
     
-    def open(self, data=None):
+    def open(self, data=None, metadata=None):
         """Open the frontend-side version of this comm"""
         if data is None:
             data = self._open_data
-        self._publish_msg('comm_open', data, target_name=self.target_name)
+        self._publish_msg('comm_open', data, metadata, target_name=self.target_name)
     
-    def close(self, data=None):
+    def close(self, data=None, metadata=None):
         """Close the frontend-side version of this comm"""
         if self._closed:
             # only close once
             return
         if data is None:
             data = self._close_data
-        self._publish_msg('comm_close', data)
+        self._publish_msg('comm_close', data, metadata)
         self._closed = True
     
-    def send(self, data=None):
+    def send(self, data=None, metadata=None):
         """Send a message to the frontend-side version of this comm"""
-        self._publish_msg('comm_msg', data)
+        self._publish_msg('comm_msg', data, metadata)
     
     # registering callbacks
     
