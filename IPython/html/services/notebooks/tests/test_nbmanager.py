@@ -86,7 +86,7 @@ class TestNotebookManager(TestCase):
             self.assertIn('name', model)
             self.assertIn('path', model)
             self.assertEqual(model['name'], 'Untitled0.ipynb')
-            self.assertEqual(model['path'], sub_dir)
+            self.assertEqual(model['path'], sub_dir.strip('/'))
 
     def test_get_notebook_model(self):
         with TemporaryDirectory() as td:
