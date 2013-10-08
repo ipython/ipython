@@ -3,11 +3,11 @@
 import sys
 import time
 import requests
+from contextlib import contextmanager
 from subprocess import Popen, PIPE
 from unittest import TestCase
 
 from IPython.utils.tempdir import TemporaryDirectory
-
 
 class NotebookTestBase(TestCase):
     """A base class for tests that need a running notebook.
@@ -67,3 +67,15 @@ class NotebookTestBase(TestCase):
     @classmethod
     def base_url(cls):
         return 'http://localhost:%i/' % cls.port
+
+
+@contextmanager
+def assert_http_error(status):
+    try:
+        yield
+    except requests.HTTPError as e:
+        real_status = e.response.status_code
+        assert real_status == status, \
+                    "Expected status %d, got %d" % (real_status, status)
+    else:
+        assert False, "Expected HTTP error status"
