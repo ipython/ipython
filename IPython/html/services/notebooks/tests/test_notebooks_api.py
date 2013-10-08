@@ -11,7 +11,7 @@ import requests
 
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
-from IPython.nbformat.current import new_notebook, write
+from IPython.nbformat.current import new_notebook, write, writes
 from IPython.utils.data import uniq_stable
 
 class NBAPI(object):
@@ -38,6 +38,9 @@ class NBAPI(object):
     def create_untitled(self, path='/'):
         return self._req('POST', path)
 
+    def upload(self, name, body, path='/'):
+        return self._req('POST', url_path_join(path, name), body)
+
     def delete(self, name, path='/'):
         return self._req('DELETE', url_path_join(path, name))
 
@@ -62,6 +65,7 @@ class APITest(NotebookTestBase):
 
     def setUp(self):
         nbdir = self.notebook_dir.name
+
         for d in self.dirs:
             os.mkdir(pjoin(nbdir, d))
 
@@ -121,6 +125,7 @@ class APITest(NotebookTestBase):
             assert False, "Reading a non-existent notebook should fail"
 
     def _check_nb_created(self, resp, name, path):
+        self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp.headers['Location'].split('/')[-1], name)
         self.assertEqual(resp.json()['name'], name)
         assert os.path.isfile(pjoin(self.notebook_dir.name, path, name))
@@ -136,6 +141,13 @@ class APITest(NotebookTestBase):
         # And two directories down
         resp = self.nb_api.create_untitled(path='foo/bar')
         self._check_nb_created(resp, 'Untitled0.ipynb', pjoin('foo', 'bar'))
+
+    def test_upload(self):
+        nb = new_notebook(name='Upload test')
+        resp = self.nb_api.upload('Upload test.ipynb', path='foo',
+                                              body=writes(nb, format='ipynb'))
+        self._check_nb_created(resp, 'Upload test.ipynb', 'foo')
+
 
     def test_delete(self):
         for d, name in self.dirs_nbs:
