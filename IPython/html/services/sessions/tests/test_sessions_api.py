@@ -1,96 +1,114 @@
 """Test the sessions web service API."""
 
-
+import io
 import os
-import sys
 import json
 import requests
+import shutil
+
+pjoin = os.path.join
 
 from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
+from IPython.nbformat.current import new_notebook, write
+
+class SessionAPI(object):
+    """Wrapper for notebook API calls."""
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def _req(self, verb, path, body=None):
+        response = requests.request(verb,
+                url_path_join(self.base_url, 'api/sessions', path), data=body)
+
+        if 400 <= response.status_code < 600:
+            try:
+                response.reason = response.json()['message']
+            except:
+                pass
+        response.raise_for_status()
+
+        return response
+
+    def list(self):
+        return self._req('GET', '')
+
+    def get(self, id):
+        return self._req('GET', id)
+
+    def create(self, name, path):
+        body = json.dumps({'notebook': {'name':name, 'path':path}})
+        return self._req('POST', '', body)
+
+    def modify(self, id, name, path):
+        body = json.dumps({'name':name, 'path':path})
+        return self._req('PATCH', id, body)
+
+    def delete(self, id):
+        return self._req('DELETE', id)
 
 class SessionAPITest(NotebookTestBase):
     """Test the sessions web service API"""
-    
-    def notebook_url(self):
-        return url_path_join(super(SessionAPITest,self).base_url(), 'api/notebooks')
+    def setUp(self):
+        nbdir = self.notebook_dir.name
+        os.mkdir(pjoin(nbdir, 'foo'))
 
-    def session_url(self):
-        return super(SessionAPITest,self).base_url() + 'api/sessions'
+        with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w') as f:
+            nb = new_notebook(name='nb1')
+            write(nb, f, format='ipynb')
 
-    def mknb(self, name='', path='/'):
-        url = self.notebook_url() + path
-        return url, requests.post(url)
+        self.sess_api = SessionAPI(self.base_url())
 
-    def delnb(self, name, path='/'):
-        url = self.notebook_url() + path + name
-        r = requests.delete(url)
-        return r.status_code
+    def tearDown(self):
+        for session in self.sess_api.list().json():
+            self.sess_api.delete(session['id'])
+        shutil.rmtree(pjoin(self.notebook_dir.name, 'foo'))
 
-    def test_no_sessions(self):
-        """Make sure there are no sessions running at the start"""
-        url = self.session_url()
-        r = requests.get(url)
-        self.assertEqual(r.json(), [])
+    def assert_404(self, id):
+        try:
+            self.sess_api.get(id)
+        except requests.HTTPError as e:
+            self.assertEqual(e.response.status_code, 404)
+        else:
+            assert False, "Getting nonexistent session didn't give HTTP error"
 
-    def test_session_root_handler(self):
-        # POST a session
-        url, nb = self.mknb()
-        notebook = nb.json()
-        model = {'notebook': {'name':notebook['name'], 'path': notebook['path']}}
-        r = requests.post(self.session_url(), data=json.dumps(model, default=date_default))
-        data = r.json()
-        assert isinstance(data, dict)
-        self.assertIn('name', data['notebook'])
-        self.assertEqual(data['notebook']['name'], notebook['name'])
+    def test_create(self):
+        sessions = self.sess_api.list().json()
+        self.assertEqual(len(sessions), 0)
 
-        # GET sessions
-        r = requests.get(self.session_url())
-        assert isinstance(r.json(), list)
-        assert isinstance(r.json()[0], dict)
-        self.assertEqual(r.json()[0]['id'], data['id'])
+        resp = self.sess_api.create('nb1.ipynb', 'foo')
+        self.assertEqual(resp.status_code, 201)
+        newsession = resp.json()
+        self.assertIn('id', newsession)
+        self.assertEqual(newsession['notebook']['name'], 'nb1.ipynb')
+        self.assertEqual(newsession['notebook']['path'], 'foo')
 
-        # Clean up
-        self.delnb('Untitled0.ipynb')
-        sess_url = self.session_url() +'/'+data['id']
-        r = requests.delete(sess_url)
-        self.assertEqual(r.status_code, 204)
+        sessions = self.sess_api.list().json()
+        self.assertEqual(sessions, [newsession])
 
-    def test_session_handler(self):
-        # Create a session
-        url, nb = self.mknb()
-        notebook = nb.json()
-        model = {'notebook': {'name':notebook['name'], 'path': notebook['path']}}
-        r = requests.post(self.session_url(), data=json.dumps(model, default=date_default))
-        session = r.json()
+        # Retrieve it
+        sid = newsession['id']
+        got = self.sess_api.get(sid)
+        self.assertEqual(got, newsession)
 
-        # GET a session
-        sess_url = self.session_url() + '/' + session['id']
-        r = requests.get(sess_url)
-        assert isinstance(r.json(), dict)
-        self.assertEqual(r.json(), session)
+    def test_delete(self):
+        newsession = self.sess_api.create('nb1.ipynb', 'foo').json()
+        sid = newsession['id']
 
-        # PATCH a session
-        model = {'notebook': {'name':'test.ipynb', 'path': '/'}}
-        r = requests.patch(sess_url, data=json.dumps(model, default=date_default))
-        
-        # Patching the notebook webservice too (just for consistency)
-        requests.patch(self.notebook_url() + '/Untitled0.ipynb', 
-            data=json.dumps({'name':'test.ipynb'}))
-        print r.json()
-        assert isinstance(r.json(), dict)
-        self.assertIn('name', r.json()['notebook'])
-        self.assertIn('id', r.json())
-        self.assertEqual(r.json()['notebook']['name'], 'test.ipynb')
-        self.assertEqual(r.json()['id'], session['id'])
+        resp = self.sess_api.delete(sid)
+        self.assertEqual(resp.status_code, 204)
 
-        # DELETE a session
-        r = requests.delete(sess_url)
-        self.assertEqual(r.status_code, 204)
-        r = requests.get(self.session_url())
-        self.assertEqual(r.json(), [])
-        
-        # Clean up
-        r = self.delnb('test.ipynb')
-        self.assertEqual(r, 204)
+        sessions = self.sess_api.list().json()
+        self.assertEqual(sessions, [])
+
+        self.assert_404(sid)
+
+    def test_modify(self):
+        newsession = self.sess_api.create('nb1.ipynb', 'foo').json()
+        sid = newsession['id']
+
+        changed = self.sess_api.modify(sid, 'nb2.ipynb', '').json()
+        self.assertEqual(changed['id'], sid)
+        self.assertEqual(newsession['notebook']['name'], 'nb2.ipynb')
+        self.assertEqual(newsession['notebook']['path'], '')
