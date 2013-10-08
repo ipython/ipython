@@ -35,7 +35,7 @@ class PayloadManager(Configurable):
 
         if update and 'source' in data:
             source = data['source']
-            for i,pl in enumerate(self._payload):
+            for i, pl in enumerate(self._payload):
                 if 'source' in pl and pl['source'] == source:
                     self._payload[i] = data
                     return
