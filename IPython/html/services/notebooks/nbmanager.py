@@ -118,6 +118,7 @@ class NotebookManager(LoggingConfigurable):
 
     def create_notebook_model(self, model=None, path=''):
         """Create a new untitled notebook and return its model with no content."""
+        path = path.strip('/')
         if model is None:
             model = {}
         if 'content' not in model:
@@ -132,6 +133,7 @@ class NotebookManager(LoggingConfigurable):
 
     def copy_notebook(self, name, path=''):
         """Copy an existing notebook and return its new model."""
+        path = path.strip('/')
         model = self.get_notebook_model(name, path)
         name = os.path.splitext(name)[0] + '-Copy'
         name = self.increment_filename(name, path)
