@@ -84,6 +84,17 @@ class KernelAPITest(NotebookTestBase):
         assert isinstance(kernels, list)
         self.assertEquals(len(kernels), 2)
 
+        # Interrupt a kernel
+        r = self.kern_api.interrupt(kern2['id'])
+        self.assertEqual(r.status_code, 204)
+
+        # Restart a kernel
+        r = self.kern_api.restart(kern2['id'])
+        self.assertEqual(r.headers['Location'], '/api/kernels/'+kern2['id'])
+        rekern = r.json()
+        self.assertEqual(rekern['id'], kern2['id'])
+        self.assertIn('ws_url', rekern)
+
     def test_kernel_handler(self):
         # GET kernel with given id
         kid = self.kern_api.start().json()['id']
