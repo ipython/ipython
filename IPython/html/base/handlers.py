@@ -472,9 +472,22 @@ class FileFindHandler(web.StaticFileHandler):
             url_path = url_path.replace("/", os.path.sep)
         return url_path
 
+class TrailingSlashHandler(web.RequestHandler):
+    """Simple redirect handler that strips trailing slashes
+    
+    This should be the first, highest priority handler.
+    """
+    
+    SUPPORTED_METHODS = ['GET']
+    
+    def get(self):
+        self.redirect(self.request.uri.rstrip('/'))
+
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
 
 
-default_handlers = []
+default_handlers = [
+    (r".*/", TrailingSlashHandler)
+]
