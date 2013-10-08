@@ -8,7 +8,6 @@ import shutil
 
 pjoin = os.path.join
 
-from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase
 from IPython.nbformat.current import new_notebook, write

@@ -83,11 +83,9 @@ class SessionHandler(IPythonHandler):
     def patch(self, session_id):
         # Currently, this handler is strictly for renaming notebooks
         sm = self.session_manager
-        nbm = self.notebook_manager
-        km = self.kernel_manager
         model = self.get_json_body()
         if model is None:
-            raise HTTPError(400, "No JSON data provided")
+            raise web.HTTPError(400, "No JSON data provided")
         changes = {}
         if 'notebook' in model:
             notebook = model['notebook']
@@ -104,7 +102,6 @@ class SessionHandler(IPythonHandler):
     def delete(self, session_id):
         # Deletes the session with given session_id
         sm = self.session_manager
-        nbm = self.notebook_manager
         km = self.kernel_manager
         session = sm.get_session(id=session_id)
         sm.delete_session(session_id)        
