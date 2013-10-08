@@ -62,10 +62,22 @@ class NotebookHandler(IPythonHandler):
             # List notebooks in 'path'
             notebooks = nbm.list_notebooks(path)
             self.finish(json.dumps(notebooks, default=date_default))
+            return
+        # get and return notebook representation
+        model = nbm.get_notebook_model(name, path)
+        self.set_header(u'Last-Modified', model[u'last_modified'])
+        
+        if self.get_argument('download', default='False') == 'True':
+            format = self.get_argument('format', default='json')
+            if format == u'json':
+                self.set_header('Content-Type', 'application/json')
+                raise web.HTTPError(400, "Unrecognized format: %s" % ext)
+
+            self.set_header('Content-Disposition',
+                'attachment; filename="%s"' % name
+            )
+            self.finish(json.dumps(model['content'], default=date_default))
         else:
-            # get and return notebook representation
-            model = nbm.get_notebook_model(name, path)
-            self.set_header(u'Last-Modified', model[u'last_modified'])
             self.finish(json.dumps(model, default=date_default))
 
     @web.authenticated

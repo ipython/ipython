@@ -1660,7 +1660,7 @@ var IPython = (function (IPython) {
      * 
      * @method save_notebook
      */
-    Notebook.prototype.save_notebook = function () {
+    Notebook.prototype.save_notebook = function (extra_settings) {
         // Create a JSON model to be sent to the server.
         var model = {};
         model.name = this.notebook_name;
@@ -1680,6 +1680,11 @@ var IPython = (function (IPython) {
             success : $.proxy(this.save_notebook_success, this, start),
             error : $.proxy(this.save_notebook_error, this)
         };
+        if (extra_settings) {
+            for (var key in extra_settings) {
+                settings[key] = extra_settings[key];
+            }
+        }
         $([IPython.events]).trigger('notebook_saving.Notebook');
         var url = utils.url_path_join(
             this.baseProjectUrl(),

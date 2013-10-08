@@ -18,6 +18,8 @@
 
 var IPython = (function (IPython) {
     "use strict";
+    
+    var utils = IPython.utils;
 
     /**
      * A MenuBar Class to generate the menubar of IPython notebook
@@ -83,14 +85,29 @@ var IPython = (function (IPython) {
         });
         this.element.find('#download_ipynb').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'api/notebooks' + that.notebookPath() +
-                      notebook_name + '?format=json'+ '&download=True';
+            if (IPython.notebook.dirty) {
+                IPython.notebook.save_notebook({async : false});
+            }
+            
+            var url = utils.url_path_join(
+                that.baseProjectUrl(),
+                'api/notebooks',
+                that.notebookPath(),
+                notebook_name + '.ipynb?format=json&download=True'
+            );
             window.location.assign(url);
         });
         this.element.find('#download_py').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'api/notebooks' + that.notebookPath() +
-                      notebook_name + '?format=py' + '&download=True';
+            if (IPython.notebook.dirty) {
+                IPython.notebook.save_notebook({async : false});
+            }
+            var url = utils.url_path_join(
+                that.baseProjectUrl(),
+                'api/notebooks',
+                that.notebookPath(),
+                notebook_name + '.ipynb?format=py&download=True'
+            );
             window.location.assign(url);
         });
         this.element.find('#rename_notebook').click(function () {
