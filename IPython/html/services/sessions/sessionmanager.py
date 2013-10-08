@@ -22,7 +22,6 @@ import sqlite3
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.utils.traitlets import TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -33,6 +32,7 @@ class SessionManager(LoggingConfigurable):
     # Session database initialized below
     _cursor = None
     _connection = None
+    _columns = {'session_id', 'name', 'path', 'kernel_id', 'ws_url'}
     
     @property
     def cursor(self):
@@ -40,7 +40,7 @@ class SessionManager(LoggingConfigurable):
         if self._cursor is None:
             self._cursor = self.connection.cursor()
             self._cursor.execute("""CREATE TABLE session 
-                (id, name, path, kernel_id, ws_url)""")
+                (session_id, name, path, kernel_id, ws_url)""")
         return self._cursor
 
     @property
@@ -48,7 +48,7 @@ class SessionManager(LoggingConfigurable):
         """Start a database connection"""
         if self._connection is None:
             self._connection = sqlite3.connect(':memory:')
-            self._connection.row_factory = sqlite3.Row
+            self._connection.row_factory = self.row_factory
         return self._connection
         
     def __del__(self):
@@ -56,21 +56,21 @@ class SessionManager(LoggingConfigurable):
         self.cursor.close()
 
     def session_exists(self, name, path):
-        """Check to see if the session for the given notebook exists"""
-        self.cursor.execute("SELECT * FROM session WHERE name=? AND path=?", (name,path))
+        """Check to see if the session for a given notebook exists"""
+        self.cursor.execute("SELECT * FROM session WHERE name=? AND path=?", (name, path))
         reply = self.cursor.fetchone()
         if reply is None:
             return False
         else:
             return True
 
-    def get_session_id(self):
+    def new_session_id(self):
         "Create a uuid for a new session"
         return unicode(uuid.uuid4())
 
     def create_session(self, name=None, path=None, kernel_id=None, ws_url=None):
         """Creates a session and returns its model"""
-        session_id = self.get_session_id()
+        session_id = self.new_session_id()
         return self.save_session(session_id, name=name, path=path, kernel_id=kernel_id, ws_url=ws_url)
 
     def save_session(self, session_id, name=None, path=None, kernel_id=None, ws_url=None):
@@ -98,10 +98,10 @@ class SessionManager(LoggingConfigurable):
         model : dict
             a dictionary of the session model
         """
-        self.cursor.execute("""INSERT INTO session VALUES 
-            (?,?,?,?,?)""", (session_id, name, path, kernel_id, ws_url))
-        self.connection.commit()
-        return self.get_session(id=session_id)
+        self.cursor.execute("INSERT INTO session VALUES (?,?,?,?,?)",
+            (session_id, name, path, kernel_id, ws_url)
+        )
+        return self.get_session(session_id=session_id)
 
     def get_session(self, **kwargs):
         """Returns the model for a particular session.
@@ -121,17 +121,25 @@ class SessionManager(LoggingConfigurable):
             returns a dictionary that includes all the information from the 
             session described by the kwarg.
         """
-        column = kwargs.keys()[0] # uses only the first kwarg that is entered
-        value = kwargs.values()[0]
-        try:
-            self.cursor.execute("SELECT * FROM session WHERE %s=?" %column, (value,))
-        except sqlite3.OperationalError:
-            raise TraitError("The session database has no column: %s" %column)
-        reply = self.cursor.fetchone()
-        if reply is not None:
-            model = self.reply_to_dictionary_model(reply)
-        else:
-            raise web.HTTPError(404, u'Session not found: %s=%r' % (column, value))
+        if not kwargs:
+            raise TypeError("must specify a column to query")
+
+        conditions = []
+        for column in kwargs.keys():
+            if column not in self._columns:
+                raise TypeError("No such column: %r", column)
+            conditions.append("%s=?" % column)
+
+        query = "SELECT * FROM session WHERE %s" % (' AND '.join(conditions))
+
+        self.cursor.execute(query, kwargs.values())
+        model = self.cursor.fetchone()
+        if model is None:
+            q = []
+            for key, value in kwargs.items():
+                q.append("%s=%r" % (key, value))
+
+            raise web.HTTPError(404, u'Session not found: %s' % (', '.join(q)))
         return model
 
     def update_session(self, session_id, **kwargs):
@@ -149,34 +157,45 @@ class SessionManager(LoggingConfigurable):
             and the value replaces the current value in the session 
             with session_id.
         """
-        for kwarg in kwargs:
-            try:
-                self.cursor.execute("UPDATE session SET %s=? WHERE id=?" %kwarg, (kwargs[kwarg], session_id))
-                self.connection.commit()
-            except sqlite3.OperationalError:
-                raise TraitError("No session exists with ID: %s" %session_id)
+        self.get_session(session_id=session_id)
 
-    def reply_to_dictionary_model(self, reply):
+        if not kwargs:
+            # no changes
+            return
+
+        sets = []
+        for column in kwargs.keys():
+            if column not in self._columns:
+                raise TypeError("No such column: %r" % column)
+            sets.append("%s=?" % column)
+        query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
+        self.cursor.execute(query, kwargs.values() + [session_id])
+
+    @staticmethod
+    def row_factory(cursor, row):
         """Takes sqlite database session row and turns it into a dictionary"""
-        model = {'id': reply['id'],
-                 'notebook': {'name': reply['name'], 'path': reply['path']},
-                 'kernel': {'id': reply['kernel_id'], 'ws_url': reply['ws_url']}}
+        row = sqlite3.Row(cursor, row)
+        model = {
+            'id': row['session_id'],
+            'notebook': {
+                'name': row['name'],
+                'path': row['path']
+            },
+            'kernel': {
+                'id': row['kernel_id'],
+                'ws_url': row['ws_url']
+            }
+        }
         return model
-        
+
     def list_sessions(self):
         """Returns a list of dictionaries containing all the information from
         the session database"""
-        session_list=[]
-        self.cursor.execute("SELECT * FROM session")
-        sessions = self.cursor.fetchall()
-        for session in sessions:
-            model = self.reply_to_dictionary_model(session)
-            session_list.append(model)
-        return session_list
+        c = self.cursor.execute("SELECT * FROM session")
+        return list(c.fetchall())
 
     def delete_session(self, session_id):
         """Deletes the row in the session database with given session_id"""
         # Check that session exists before deleting
-        model = self.get_session(id=session_id)
-        self.cursor.execute("DELETE FROM session WHERE id=?", (session_id,))
-        self.connection.commit()
+        self.get_session(session_id=session_id)
+        self.cursor.execute("DELETE FROM session WHERE session_id=?", (session_id,))
