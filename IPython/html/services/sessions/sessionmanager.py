@@ -16,15 +16,13 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import uuid
 import sqlite3
 
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.nbformat import current
-from IPython.utils.traitlets import List, Dict, Unicode, TraitError
+from IPython.utils.traitlets import TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -133,7 +131,7 @@ class SessionManager(LoggingConfigurable):
         if reply is not None:
             model = self.reply_to_dictionary_model(reply)
         else:
-            model = None
+            raise web.HTTPError(404, u'Session not found: %s=%r' % (column, value))
         return model
 
     def update_session(self, session_id, **kwargs):
@@ -151,8 +149,6 @@ class SessionManager(LoggingConfigurable):
             and the value replaces the current value in the session 
             with session_id.
         """
-        column = kwargs.keys() # uses only the first kwarg that is entered
-        value = kwargs.values()
         for kwarg in kwargs:
             try:
                 self.cursor.execute("UPDATE session SET %s=? WHERE id=?" %kwarg, (kwargs[kwarg], session_id))
@@ -182,8 +178,5 @@ class SessionManager(LoggingConfigurable):
         """Deletes the row in the session database with given session_id"""
         # Check that session exists before deleting
         model = self.get_session(id=session_id)
-        if model is None:
-            raise TraitError("The session does not exist: %s" %session_id)
-        else: 
-            self.cursor.execute("DELETE FROM session WHERE id=?", (session_id,))
-            self.connection.commit()
+        self.cursor.execute("DELETE FROM session WHERE id=?", (session_id,))
+        self.connection.commit()
