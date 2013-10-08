@@ -1743,47 +1743,56 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.new_notebook = function(){
         var path = this.notebookPath();
+        var base_project_url = this.baseProjectUrl();
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
             dataType : "json",
-            success:$.proxy(function (data, status, xhr){
+            async : false,
+            success : function (data, status, xhr){
                 var notebook_name = data.name;
                 window.open(
                     utils.url_path_join(
-                        this.baseProjectUrl(),
+                        base_project_url,
                         'notebooks',
-                        this.notebookPath(),
+                        path,
                         notebook_name
                     ),
                     '_blank'
                 );
-            }, this)
+            }
         };
-        var url = this.baseProjectUrl() + 'api/notebooks' + path;
+        var url = utils.url_path_join(
+            base_project_url,
+            'api/notebooks',
+            path
+        );
         $.ajax(url,settings);
     };
 
 
     Notebook.prototype.copy_notebook = function(){
         var path = this.notebookPath();
+        var base_project_url = this.baseProjectUrl();
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
-            success:$.proxy(function (data, status, xhr){
+            dataType : "json",
+            async : false,
+            success : function (data, status, xhr) {
                 var notebook_name = data.name;
                 window.open(utils.url_path_join(
-                    this._baseProjectUrl,
+                    base_project_url,
                     'notebooks',
-                    this.notebookPath(),
+                    path,
                     notebook_name
-                ));
-            }, this)
+                ), '_blank');
+            }
         };
         var url = utils.url_path_join(
-            this._baseProjectUrl,
+            base_project_url,
             'api/notebooks',
             path,
             this.notebook_name,
