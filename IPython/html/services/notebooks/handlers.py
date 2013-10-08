@@ -229,18 +229,18 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
 #-----------------------------------------------------------------------------
 
 
-_path_regex = r"(?P<path>.*)"
+_path_regex = r"(?P<path>(?:/.*)*)"
 _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 _notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
 _notebook_path_regex = "%s/%s" % (_path_regex, _notebook_name_regex)
 
 default_handlers = [
-    (r"/api/notebooks/?%s/copy" % _notebook_path_regex, NotebookCopyHandler),
-    (r"/api/notebooks/?%s/checkpoints" % _notebook_path_regex, NotebookCheckpointsHandler),
-    (r"/api/notebooks/?%s/checkpoints/%s" % (_notebook_path_regex, _checkpoint_id_regex),
+    (r"/api/notebooks%s/copy" % _notebook_path_regex, NotebookCopyHandler),
+    (r"/api/notebooks%s/checkpoints" % _notebook_path_regex, NotebookCheckpointsHandler),
+    (r"/api/notebooks%s/checkpoints/%s" % (_notebook_path_regex, _checkpoint_id_regex),
         ModifyNotebookCheckpointsHandler),
-    (r"/api/notebooks/?%s" % _notebook_path_regex, NotebookHandler),
-    (r"/api/notebooks/?%s/?" % _path_regex, NotebookHandler),
+    (r"/api/notebooks%s" % _notebook_path_regex, NotebookHandler),
+    (r"/api/notebooks%s" % _path_regex, NotebookHandler),
 ]
 
 

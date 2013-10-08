@@ -64,10 +64,8 @@ class TreeRedirectHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/tree/(.*)/", TreeRedirectHandler),
-    (r"/tree/?%s" % _notebook_path_regex, TreeHandler),
-    (r"/tree/?%s" % _path_regex, TreeHandler),
-    (r"/tree/", TreeRedirectHandler),
+    (r"/tree%s" % _notebook_path_regex, TreeHandler),
+    (r"/tree%s" % _path_regex, TreeHandler),
     (r"/tree", TreeHandler),
     (r"/", TreeRedirectHandler),
     ]
