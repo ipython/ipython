@@ -8,93 +8,106 @@ import json
 import requests
 
 from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase
+from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 
+class KernelAPI(object):
+    """Wrapper for kernel REST API requests"""
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def _req(self, verb, path, body=None):
+        response = requests.request(verb,
+                url_path_join(self.base_url, 'api/kernels', path), data=body)
+
+        if 400 <= response.status_code < 600:
+            try:
+                response.reason = response.json()['message']
+            except:
+                pass
+        response.raise_for_status()
+
+        return response
+
+    def list(self):
+        return self._req('GET', '')
+
+    def get(self, id):
+        return self._req('GET', id)
+
+    def start(self):
+        return self._req('POST', '')
+
+    def shutdown(self, id):
+        return self._req('DELETE', id)
+
+    def interrupt(self, id):
+        return self._req('POST', url_path_join(id, 'interrupt'))
+
+    def restart(self, id):
+        return self._req('POST', url_path_join(id, 'restart'))
 
 class KernelAPITest(NotebookTestBase):
     """Test the kernels web service API"""
+    def setUp(self):
+        self.kern_api = KernelAPI(self.base_url())
 
-    def base_url(self):
-        return url_path_join(super(KernelAPITest,self).base_url(), 'api/kernels')
-
-    def mkkernel(self):
-        r = requests.post(self.base_url())
-        return r.json()
+    def tearDown(self):
+        for k in self.kern_api.list().json():
+            self.kern_api.shutdown(k['id'])
 
     def test__no_kernels(self):
         """Make sure there are no kernels running at the start"""
-        url = self.base_url()
-        r = requests.get(url)
-        self.assertEqual(r.json(), [])
+        kernels = self.kern_api.list().json()
+        self.assertEqual(kernels, [])
 
     def test_main_kernel_handler(self):
         # POST request
-        r = requests.post(self.base_url())
-        data = r.json()
-        status = r.status_code
-        header = r.headers
-        self.assertIn('location', header)
-        self.assertEquals(header['location'], '/api/kernels/' + data['id'])
-        self.assertEquals(status, 201)
-        assert isinstance(data, dict)
+        r = self.kern_api.start()
+        kern1 = r.json()
+        self.assertEquals(r.headers['location'], '/api/kernels/' + kern1['id'])
+        self.assertEquals(r.status_code, 201)
+        self.assertIsInstance(kern1, dict)
 
         # GET request
-        r = requests.get(self.base_url())
-        status = r.status_code
-        self.assertEquals(status, 200)
+        r = self.kern_api.list()
+        self.assertEquals(r.status_code, 200)
         assert isinstance(r.json(), list)
-        self.assertEqual(r.json()[0]['id'], data['id'])
-        
-        # create another kernel and check that they both are added to the 
+        self.assertEqual(r.json()[0]['id'], kern1['id'])
+
+        # create another kernel and check that they both are added to the
         # list of kernels from a GET request
-        data2 = self.mkkernel()
-        assert isinstance(data2, dict)
-        r = requests.get(self.base_url())
+        kern2 = self.kern_api.start().json()
+        assert isinstance(kern2, dict)
+        r = self.kern_api.list()
         kernels = r.json()
-        status = r.status_code
-        self.assertEquals(status, 200)
+        self.assertEquals(r.status_code, 200)
         assert isinstance(kernels, list)
         self.assertEquals(len(kernels), 2)
 
     def test_kernel_handler(self):
         # GET kernel with given id
-        data = self.mkkernel()
-        url = self.base_url() +'/' + data['id']
-        r = requests.get(url)
-        data1 = r.json()
-        status = r.status_code
-        self.assertEquals(status, 200)
-        assert isinstance(data1, dict)
-        self.assertIn('id', data1)
-        self.assertIn('ws_url', data1)
-        self.assertEqual(data1['id'], data['id'])
-        
+        kid = self.kern_api.start().json()['id']
+        r = self.kern_api.get(kid)
+        kern1 = r.json()
+        self.assertEquals(r.status_code, 200)
+        assert isinstance(kern1, dict)
+        self.assertIn('id', kern1)
+        self.assertIn('ws_url', kern1)
+        self.assertEqual(kern1['id'], kid)
+
         # Request a bad kernel id and check that a JSON
         # message is returned!
         bad_id = '111-111-111-111-111'
-        bad_url = self.base_url() + '/' + bad_id
-        r = requests.get(bad_url)
-        status = r.status_code
-        message = r.json()
-        self.assertEquals(status, 404)
-        assert isinstance(message, dict)
-        self.assertIn('message', message)
-        self.assertEquals(message['message'], 'Kernel does not exist: ' + bad_id)
-        
+        with assert_http_error(404, 'Kernel does not exist: ' + bad_id):
+            self.kern_api.get(bad_id)
+
         # DELETE kernel with id
-        r = requests.delete(url)
+        r = self.kern_api.shutdown(kid)
         self.assertEqual(r.status_code, 204)
-        r = requests.get(self.base_url())
-        self.assertEqual(r.json(), [])
-        
+        kernels = self.kern_api.list().json()
+        self.assertEqual(kernels, [])
+
         # Request to delete a non-existent kernel id
         bad_id = '111-111-111-111-111'
-        bad_url = self.base_url() + '/' + bad_id
-        r = requests.delete(bad_url)
-        status = r.status_code
-        message = r.json()
-        self.assertEquals(status, 404)
-        assert isinstance(message, dict)
-        self.assertIn('message', message)
-        self.assertEquals(message['message'], 'Kernel does not exist: ' + bad_id)
-        
+        with assert_http_error(404, 'Kernel does not exist: ' + bad_id):
+            self.kern_api.shutdown(bad_id)
