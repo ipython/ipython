@@ -400,10 +400,9 @@ class FileFindHandler(web.StaticFileHandler):
                 return
         
         if os.path.splitext(path)[1] == '.ipynb':
-            raise HTTPError(404, 'HAHA')
-            name = os.path.splitext(os.path.split(path))[0]
+            name = os.path.basename(path)
             self.set_header('Content-Type', 'application/json')
-            self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
+            self.set_header('Content-Disposition','attachment; filename="%s"' % name)
 
         with open(abspath, "rb") as file:
             data = file.read()
