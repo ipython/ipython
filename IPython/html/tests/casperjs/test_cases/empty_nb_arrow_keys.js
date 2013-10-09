@@ -3,8 +3,8 @@
 //
 casper.notebook_test(function () {
     var result = this.evaluate(function() {
-        var ncells = IPython.notebook.ncells(),
-            i;
+        var ncells = IPython.notebook.ncells();
+        var i;
         
         // Delete all cells.
         for (i = 0; i < ncells; i++) {
