@@ -101,6 +101,10 @@ var IPython = (function (IPython) {
             );
             window.location.assign(url);
         });
+        
+        /* FIXME: download-as-py doesn't work right now
+         * We will need nbconvert hooked up to get this back
+        
         this.element.find('#download_py').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
             if (IPython.notebook.dirty) {
@@ -114,6 +118,9 @@ var IPython = (function (IPython) {
             );
             window.location.assign(url);
         });
+        
+        */
+        
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
         });

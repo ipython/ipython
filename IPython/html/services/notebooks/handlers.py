@@ -69,9 +69,9 @@ class NotebookHandler(IPythonHandler):
         
         if self.get_argument('download', default='False') == 'True':
             format = self.get_argument('format', default='json')
-            if format == u'json':
+            if format != u'json':
                 self.set_header('Content-Type', 'application/json')
-                raise web.HTTPError(400, "Unrecognized format: %s" % ext)
+                raise web.HTTPError(400, "Unrecognized format: %s" % format)
 
             self.set_header('Content-Disposition',
                 'attachment; filename="%s"' % name
