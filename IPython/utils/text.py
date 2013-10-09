@@ -724,3 +724,36 @@ def columnize(items, separator='  ', displaywidth=80):
     fmatrix = [filter(None, x) for x in matrix]
     sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['columns_width'])])
     return '\n'.join(map(sjoin, fmatrix))+'\n'
+
+
+def get_text_list(list_, last_sep=' and ', sep=", ", wrap_item_with=""):
+    """
+    Return a string with a natural enumeration of items
+
+    >>> get_text_list(['a', 'b', 'c', 'd'])
+    'a, b, c and d'
+    >>> get_text_list(['a', 'b', 'c'], ' or ')
+    'a, b or c'
+    >>> get_text_list(['a', 'b', 'c'], ', ')
+    'a, b, c'
+    >>> get_text_list(['a', 'b'], ' or ')
+    'a or b'
+    >>> get_text_list(['a'])
+    'a'
+    >>> get_text_list([])
+    ''
+    >>> get_text_list(['a', 'b'], wrap_item_with="`")
+    '`a` and `b`'
+    >>> get_text_list(['a', 'b', 'c', 'd'], " = ", sep=" + ")
+    'a + b + c = d'
+    """
+    if len(list_) == 0:
+        return ''
+    if wrap_item_with:
+        list_ = ['%s%s%s' % (wrap_item_with, item, wrap_item_with) for
+                 item in list_]
+    if len(list_) == 1:
+        return list_[0]
+    return '%s%s%s' % (
+        sep.join(i for i in list_[:-1]),
+        last_sep, list_[-1])

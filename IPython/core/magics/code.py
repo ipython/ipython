@@ -18,6 +18,7 @@ import io
 import os
 import re
 import sys
+import ast
 from itertools import chain
 
 # Our own packages
@@ -29,7 +30,8 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename, unquote_filename
-from IPython.utils.warn import warn
+from IPython.utils.warn import warn, error
+from IPython.utils.text import get_text_list
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -75,6 +77,62 @@ def extract_code_ranges(ranges_str):
             end = int(start)
             start = int(start) - 1
         yield (start, end)
+
+
+@skip_doctest
+def extract_symbols(code, symbols):
+    """
+    Return a tuple  (blocks, not_found)
+    where ``blocks`` is a list of code fragments
+    for each symbol parsed from code, and ``not_found`` are
+    symbols not found in the code.
+
+    For example::
+
+        >>> code = '''a = 10
+
+        def b(): return 42
+
+        class A: pass'''
+
+        >>> extract_symbols(code, 'A,b,z')
+        (["class A: pass", "def b(): return 42"], ['z'])
+    """
+    symbols = symbols.split(',')
+
+    # this will raise SyntaxError if code isn't valid Python
+    py_code = ast.parse(code)
+
+    marks = [(getattr(s, 'name', None), s.lineno) for s in py_code.body]
+    code = code.split('\n')
+
+    symbols_lines = {}
+    
+    # we already know the start_lineno of each symbol (marks). 
+    # To find each end_lineno, we traverse in reverse order until each 
+    # non-blank line
+    end = len(code)  
+    for name, start in reversed(marks):
+        while not code[end - 1].strip():
+            end -= 1
+        if name:
+            symbols_lines[name] = (start - 1, end)
+        end = start - 1
+
+    # Now symbols_lines is a map
+    # {'symbol_name': (start_lineno, end_lineno), ...}
+    
+    # fill a list with chunks of codes for each requested symbol
+    blocks = []
+    not_found = []
+    for symbol in symbols:
+        if symbol in symbols_lines:
+            start, end = symbols_lines[symbol]
+            blocks.append('\n'.join(code[start:end]) + '\n')
+        else:
+            not_found.append(symbol)
+
+    return blocks, not_found
 
 
 class InteractivelyDefined(Exception):
@@ -217,6 +275,8 @@ class CodeMagics(Magics):
           (x..(y-1)). Both limits x and y can be left blank (meaning the 
           beginning and end of the file, respectively).
 
+          -s <symbols>: Specify function or classes to load from python source. 
+
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
         This magic command can either take a local filename, a URL, an history
@@ -230,14 +290,32 @@ class CodeMagics(Magics):
         %load http://www.example.com/myscript.py
         %load -r 5-10 myscript.py
         %load -r 10-20,30,40: foo.py
+        %load -s MyClass,wonder_function myscript.py
         """
-        opts,args = self.parse_options(arg_s,'yr:')
+        opts,args = self.parse_options(arg_s,'ys:r:')
 
         if not args:
             raise UsageError('Missing filename, URL, input history range, '
                              'or macro.')
 
         contents = self.shell.find_user_code(args)
+
+        if 's' in opts:
+            try:
+                blocks, not_found = extract_symbols(contents, opts['s'])
+            except SyntaxError:
+                # non python code
+                error("Unable to parse the input as valid Python code")
+                return
+
+            if len(not_found) == 1:
+                warn('The symbol `%s` was not found' % not_found[0])
+            elif len(not_found) > 1:
+                warn('The symbols %s were not found' % get_text_list(not_found,
+                                                                     wrap_item_with='`')
+                )
+
+            contents = '\n'.join(blocks)
 
         if 'r' in opts:
             ranges = opts['r'].replace(',', ' ')
@@ -247,7 +325,6 @@ class CodeMagics(Magics):
             contents = '\n'.join(chain.from_iterable(contents))
 
         l = len(contents)
-
 
         # 200 000 is ~ 2500 full 80 caracter lines
         # so in average, more than 5000 lines
