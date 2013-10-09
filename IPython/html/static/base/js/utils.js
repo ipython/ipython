@@ -355,6 +355,15 @@ IPython.utils = (function (IPython) {
                 RIGHT_SUPER : 92,
                 COMMAND  : 93,
     };
+    
+    // trigger a key press event
+    var press = function (key) {
+        var key_press =  $.Event('keydown', {which: key});
+        $(document).trigger(key_press);
+    }
+
+    var press_up = function() { press(keycodes.UP); };
+    var press_down = function() { press(keycodes.DOWN); };
 
 
     var points_to_pixels = function (points) {
@@ -411,6 +420,9 @@ IPython.utils = (function (IPython) {
         uuid : uuid,
         fixConsole : fixConsole,
         keycodes : keycodes,
+        press : press,
+        press_up : press_up,
+        press_down : press_down,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
