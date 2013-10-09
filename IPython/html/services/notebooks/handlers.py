@@ -49,13 +49,11 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def get(self, path='', name=None):
+        """Return a Notebook or list of notebooks.
+
+        * GET with path and no notebook name lists notebooks in a directory
+        * GET with path and notebook name returns notebook JSON
         """
-        GET with path and no notebook lists notebooks in a directory
-        GET with path and notebook name 
-        
-        GET get checks if a notebook is not named, an returns a list of notebooks
-        in the notebook path given. If a name is given, return 
-        the notebook representation"""
         nbm = self.notebook_manager
         # Check to see if a notebook name was given
         if name is None:
