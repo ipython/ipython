@@ -357,6 +357,9 @@ class AssertPrints(object):
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
     
     def __exit__(self, etype, value, traceback):
+        if value is not None:
+            # If an error was raised, don't check anything else
+            return False
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
@@ -375,6 +378,9 @@ class AssertNotPrints(AssertPrints):
     
     Counterpart of AssertPrints"""
     def __exit__(self, etype, value, traceback):
+        if value is not None:
+            # If an error was raised, don't check anything else
+            return False
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
