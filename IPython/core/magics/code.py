@@ -98,11 +98,12 @@ def extract_symbols(code, symbols):
         >>> extract_symbols(code, 'A,b,z')
         (["class A: pass", "def b(): return 42"], ['z'])
     """
+    symbols = symbols.split(',')
     try:
         py_code = ast.parse(code)
     except SyntaxError:
         # ignores non python code
-        return []
+        return [], symbols
 
     marks = [(getattr(s, 'name', None), s.lineno) for s in py_code.body]
     code = code.split('\n')
@@ -126,7 +127,7 @@ def extract_symbols(code, symbols):
     # fill a list with chunks of codes for each requested symbol
     blocks = []
     not_found = []
-    for symbol in symbols.split(','):
+    for symbol in symbols:
         if symbol in symbols_lines:
             start, end = symbols_lines[symbol]
             blocks.append('\n'.join(code[start:end]) + '\n')

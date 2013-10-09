@@ -79,7 +79,7 @@ def test_extract_symbols_ignores_non_python_code():
               "def hello\n"
               "puts 'Hello world'\n"
               "end")
-    nt.assert_equal(code.extract_symbols(source, "hello"), [])
+    nt.assert_equal(code.extract_symbols(source, "hello"), ([], ['hello']))
 
 
 def test_rehashx():
