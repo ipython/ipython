@@ -328,10 +328,9 @@ def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
         found_now[i] = 1
     try:
         with replace_import_hook(deep_import_hook):
-            ret = deep_reload_hook(module)
+            return deep_reload_hook(module)
     finally:
         found_now = {}
-    return ret
 
 # Uncomment the following to automatically activate deep reloading whenever
 # this module is imported

@@ -143,10 +143,9 @@ def latex_to_png_dvipng(s, wrap):
                 stdout=devnull, stderr=devnull)
 
         with open(outfile, "rb") as f:
-            bin_data = f.read()
+            return f.read()
     finally:
         shutil.rmtree(workdir)
-    return bin_data
 
 
 def kpsewhich(filename):
