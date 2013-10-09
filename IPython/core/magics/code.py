@@ -30,7 +30,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename, unquote_filename
-from IPython.utils.warn import warn
+from IPython.utils.warn import warn, error
 from IPython.utils.text import get_text_list
 
 #-----------------------------------------------------------------------------
@@ -99,11 +99,9 @@ def extract_symbols(code, symbols):
         (["class A: pass", "def b(): return 42"], ['z'])
     """
     symbols = symbols.split(',')
-    try:
-        py_code = ast.parse(code)
-    except SyntaxError:
-        # ignores non python code
-        return [], symbols
+
+    # this will raise SyntaxError if code isn't valid Python
+    py_code = ast.parse(code)
 
     marks = [(getattr(s, 'name', None), s.lineno) for s in py_code.body]
     code = code.split('\n')
@@ -303,7 +301,13 @@ class CodeMagics(Magics):
         contents = self.shell.find_user_code(args)
 
         if 's' in opts:
-            blocks, not_found = extract_symbols(contents, opts['s'])
+            try:
+                blocks, not_found = extract_symbols(contents, opts['s'])
+            except SyntaxError:
+                # non python code
+                error("Unable to parse the input as valid Python code")
+                return
+
             if len(not_found) == 1:
                 warn('The symbol `%s` was not found' % not_found[0])
             elif len(not_found) > 1:

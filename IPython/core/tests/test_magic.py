@@ -74,12 +74,13 @@ def test_extract_symbols():
         nt.assert_equal(code.extract_symbols(source, symbols), exp)
 
 
-def test_extract_symbols_ignores_non_python_code():
+def test_extract_symbols_raises_exception_with_non_python_code():
     source = ("=begin A Ruby program :)=end\n"
               "def hello\n"
               "puts 'Hello world'\n"
               "end")
-    nt.assert_equal(code.extract_symbols(source, "hello"), ([], ['hello']))
+    with nt.assert_raises(SyntaxError):
+        code.extract_symbols(source, "hello")
 
 
 def test_rehashx():
