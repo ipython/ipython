@@ -64,13 +64,13 @@ class KernelAPITest(NotebookTestBase):
         # POST request
         r = self.kern_api.start()
         kern1 = r.json()
-        self.assertEquals(r.headers['location'], '/api/kernels/' + kern1['id'])
-        self.assertEquals(r.status_code, 201)
+        self.assertEqual(r.headers['location'], '/api/kernels/' + kern1['id'])
+        self.assertEqual(r.status_code, 201)
         self.assertIsInstance(kern1, dict)
 
         # GET request
         r = self.kern_api.list()
-        self.assertEquals(r.status_code, 200)
+        self.assertEqual(r.status_code, 200)
         assert isinstance(r.json(), list)
         self.assertEqual(r.json()[0]['id'], kern1['id'])
 
@@ -80,9 +80,9 @@ class KernelAPITest(NotebookTestBase):
         assert isinstance(kern2, dict)
         r = self.kern_api.list()
         kernels = r.json()
-        self.assertEquals(r.status_code, 200)
+        self.assertEqual(r.status_code, 200)
         assert isinstance(kernels, list)
-        self.assertEquals(len(kernels), 2)
+        self.assertEqual(len(kernels), 2)
 
         # Interrupt a kernel
         r = self.kern_api.interrupt(kern2['id'])
@@ -100,7 +100,7 @@ class KernelAPITest(NotebookTestBase):
         kid = self.kern_api.start().json()['id']
         r = self.kern_api.get(kid)
         kern1 = r.json()
-        self.assertEquals(r.status_code, 200)
+        self.assertEqual(r.status_code, 200)
         assert isinstance(kern1, dict)
         self.assertIn('id', kern1)
         self.assertIn('ws_url', kern1)
