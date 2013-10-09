@@ -72,18 +72,17 @@ var IPython = (function (IPython) {
      * Start the Python kernel
      * @method start
      */
-     Kernel.prototype.start = function (params) {
-         var that = this;
-         params = params || {};
-         if (!this.running) {
-             var qs = $.param(params);
-             var url = this.base_url + '?' + qs;
-             $.post(url,
-                 $.proxy(that._kernel_started,that),
-                 'json'
-             );
-         };
-     };
+    Kernel.prototype.start = function (params) {
+        params = params || {};
+        if (!this.running) {
+            var qs = $.param(params);
+            var url = this.base_url + '?' + qs;
+            $.post(url,
+                $.proxy(this._kernel_started, this),
+                'json'
+            );
+        };
+    };
 
     /**
      * Restart the python kernel.
@@ -95,12 +94,11 @@ var IPython = (function (IPython) {
      */
     Kernel.prototype.restart = function () {
         $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
-        var that = this;
         if (this.running) {
             this.stop_channels();
-            var url = this.kernel_url + "/restart";
+            var url = utils.url_path_join(this.kernel_url, "restart");
             $.post(url,
-                $.proxy(that._kernel_started, that),
+                $.proxy(this._kernel_started, this),
                 'json'
             );
         };
@@ -118,14 +116,14 @@ var IPython = (function (IPython) {
             ws_url = prot + location.host + ws_url;
         };
         this.ws_url = ws_url;
-        this.kernel_url = this.base_url + "/" + this.kernel_id;
+        this.kernel_url = utils.url_path_join(this.base_url, this.kernel_id);
         this.start_channels();
     };
 
 
     Kernel.prototype._websocket_closed = function(ws_url, early) {
         this.stop_channels();
-        $([IPython.events]).trigger('websocket_closed.Kernel', 
+        $([IPython.events]).trigger('websocket_closed.Kernel',
             {ws_url: ws_url, kernel: this, early: early}
         );
     };

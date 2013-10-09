@@ -36,8 +36,8 @@ var IPython = (function (IPython) {
      *      does not support change for now is set through this option
      */
     var MenuBar = function (selector, options) {
-        var options = options || {};
-        if(options.baseProjectUrl!= undefined){
+        options = options || {};
+        if (options.baseProjectUrl !== undefined) {
             this._baseProjectUrl = options.baseProjectUrl;
         }
         this.selector = selector;
@@ -55,7 +55,7 @@ var IPython = (function (IPython) {
     MenuBar.prototype.notebookPath = function() {
         var path = $('body').data('notebookPath');
         path = decodeURIComponent(path);
-        return path
+        return path;
     };
     
     MenuBar.prototype.style = function () {
@@ -77,7 +77,11 @@ var IPython = (function (IPython) {
             IPython.notebook.new_notebook();
         });
         this.element.find('#open_notebook').click(function () {
-            window.open(that.baseProjectUrl() + 'tree' + that.notebookPath());
+            window.open(utils.url_path_join(
+                that.baseProjectUrl(),
+                'tree',
+                that.notebookPath()
+            ));
         });
         this.element.find('#copy_notebook').click(function () {
             IPython.notebook.copy_notebook();
@@ -260,7 +264,7 @@ var IPython = (function (IPython) {
     MenuBar.prototype.update_restore_checkpoint = function(checkpoints) {
         var ul = this.element.find("#restore_checkpoint").find("ul");
         ul.empty();
-        if (! checkpoints || checkpoints.length == 0) {
+        if (!checkpoints || checkpoints.length === 0) {
             ul.append(
                 $("<li/>")
                 .addClass("disabled")
@@ -270,7 +274,7 @@ var IPython = (function (IPython) {
                 )
             );
             return;
-        };
+        }
         
         checkpoints.map(function (checkpoint) {
             var d = new Date(checkpoint.last_modified);
