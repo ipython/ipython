@@ -12,10 +12,9 @@ casper.notebook_test(function () {
         }
         
         // Simulate the "up arrow" and "down arrow" keys.
-        var up_press = $.Event('keydown', {which: $.ui.keyCode.UP});
-        $(document).trigger(up_press);
-        var down_press = $.Event('keydown', {which: $.ui.keyCode.DOWN});
-        $(document).trigger(down_press);
+        //
+        IPython.utils.press_up();
+        IPython.utils.press_down();
         return true;
     });
     this.test.assertTrue(result, 'Up/down arrow okay in empty notebook.');
