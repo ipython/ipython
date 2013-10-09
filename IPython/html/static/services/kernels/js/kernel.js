@@ -31,7 +31,7 @@ var IPython = (function (IPython) {
         this.stdin_channel = null;
         this.base_url = base_url;
         this.running = false;
-        this.username= "username";
+        this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
 
