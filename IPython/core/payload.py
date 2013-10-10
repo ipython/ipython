@@ -32,8 +32,8 @@ class PayloadManager(Configurable):
     def write_payload(self, data, single=True):
         """Include or update the specified `data` payload in the PayloadManager.
 
-        If a previous payload with the same source than `data` exists
-        and `single` is True, it will be overwritten with the new one.
+        If a previous payload with the same source exists and `single` is True,
+        it will be overwritten with the new one.
         """
 
         if not isinstance(data, dict):
