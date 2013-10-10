@@ -406,6 +406,15 @@ def test_kernel_info_request():
     validate_message(reply, 'kernel_info_reply', msg_id)
 
 
+def test_single_payload():
+    flush_channels()
+    msg_id, reply = execute(code="for i in range(3):\n"+
+                                 "   x=range?\n")
+    payload = reply['payload']
+    next_input_pls = [pl for pl in payload if pl["source"] == "set_next_input"]
+    nt.assert_equal(len(next_input_pls), 1)
+
+
 # IOPub channel
 
 
