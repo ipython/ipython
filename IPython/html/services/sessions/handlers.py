@@ -19,8 +19,10 @@ Authors:
 import json
 
 from tornado import web
-from IPython.utils.jsonutil import date_default
+
 from ...base.handlers import IPythonHandler, json_errors
+from IPython.utils.jsonutil import date_default
+from IPython.html.utils import url_path_join
 
 #-----------------------------------------------------------------------------
 # Session web service handlers
@@ -62,7 +64,8 @@ class SessionRootHandler(IPythonHandler):
         else:
             kernel_id = km.start_kernel(cwd=nbm.notebook_dir)
             model = sm.create_session(name=name, path=path, kernel_id=kernel_id, ws_url=self.ws_url)
-        self.set_header('Location', '{0}/api/sessions/{1}'.format(self.base_project_url, model['id']))
+        location = url_path_join(self.base_kernel_url, 'api', 'sessions', model['id'])
+        self.set_header('Location', location)
         self.set_status(201)
         self.finish(json.dumps(model, default=date_default))
 
