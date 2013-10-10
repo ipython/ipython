@@ -215,11 +215,8 @@ var IPython = (function (IPython) {
         // remove everything after last open bracket
         func = func.replace(endBracket, "");
 
-        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
-        var callbacks = {
-            'object_info_reply': $.proxy(this._show, this)
-        }
-        var msg_id = cell.kernel.object_info_request(re.exec(func), callbacks);
+        var re = /[a-z_][0-9a-z._]+$/gi; // case insensitive
+        var msg_id = cell.kernel.object_info(re.exec(func), $.proxy(this._show, this));
     }
 
     // make an imediate completion request
@@ -294,7 +291,8 @@ var IPython = (function (IPython) {
     Tooltip.prototype._show = function (reply) {
         // move the bubble if it is not hidden
         // otherwise fade it
-        this.name = reply.name;
+        var content = reply.content;
+        this.name = content.name;
 
         // do some math to have the tooltip arrow on more or less on left or right
         // width of the editor
@@ -327,20 +325,20 @@ var IPython = (function (IPython) {
         });
 
         // build docstring
-        var defstring = reply.call_def;
+        var defstring = content.call_def;
         if (defstring == null) {
-            defstring = reply.init_definition;
+            defstring = content.init_definition;
         }
         if (defstring == null) {
-            defstring = reply.definition;
+            defstring = content.definition;
         }
 
-        var docstring = reply.call_docstring;
+        var docstring = content.call_docstring;
         if (docstring == null) {
-            docstring = reply.init_docstring;
+            docstring = content.init_docstring;
         }
         if (docstring == null) {
-            docstring = reply.docstring;
+            docstring = content.docstring;
         }
 
         if (docstring == null) {
