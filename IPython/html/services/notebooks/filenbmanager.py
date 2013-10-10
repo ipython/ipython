@@ -213,7 +213,7 @@ class FileNotebookManager(NotebookManager):
         model['last_modified'] = last_modified
         model['created'] = last_modified
         if content is True:
-            with open(os_path, 'r') as f:
+            with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
                     nb = current.read(f, u'json')
                 except Exception as e:
@@ -241,7 +241,7 @@ class FileNotebookManager(NotebookManager):
             nb['metadata']['name'] = u''
         try:
             self.log.debug("Autosaving notebook %s", os_path)
-            with open(os_path, 'w') as f:
+            with io.open(os_path, 'w', encoding='utf-8') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
@@ -394,7 +394,7 @@ class FileNotebookManager(NotebookManager):
                 u'Notebook checkpoint does not exist: %s-%s' % (name, checkpoint_id)
             )
         # ensure notebook is readable (never restore from an unreadable notebook)
-        with open(cp_path, 'r') as f:
+        with io.open(cp_path, 'r', encoding='utf-8') as f:
             nb = current.read(f, u'json')
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
