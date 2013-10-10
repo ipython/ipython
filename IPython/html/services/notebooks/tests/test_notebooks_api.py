@@ -23,10 +23,6 @@ class NBAPI(object):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    @property
-    def nb_url(self):
-        return url_path_join(self.base_url, 'api/notebooks')
-
     def _req(self, verb, path, body=None):
         response = requests.request(verb,
                 url_path_join(self.base_url, 'api/notebooks', path), data=body)
@@ -57,6 +53,18 @@ class NBAPI(object):
     def rename(self, name, path, new_name):
         body = jsonapi.dumps({'name': new_name})
         return self._req('PATCH', url_path_join(path, name), body)
+
+    def get_checkpoints(self, name, path):
+        return self._req('GET', url_path_join(path, name, 'checkpoints'))
+
+    def new_checkpoint(self, name, path):
+        return self._req('POST', url_path_join(path, name, 'checkpoints'))
+
+    def restore_checkpoint(self, name, path, checkpoint_id):
+        return self._req('POST', url_path_join(path, name, 'checkpoints', checkpoint_id))
+
+    def delete_checkpoint(self, name, path, checkpoint_id):
+        return self._req('DELETE', url_path_join(path, name, 'checkpoints', checkpoint_id))
 
 class APITest(NotebookTestBase):
     """Test the kernels web service API"""
@@ -211,3 +219,43 @@ class APITest(NotebookTestBase):
         assert not os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'a.ipynb'))
         with assert_http_error(404):
             self.nb_api.read('a.ipynb', 'foo')
+
+    def test_checkpoints(self):
+        resp = self.nb_api.read('a.ipynb', 'foo')
+        r = self.nb_api.new_checkpoint('a.ipynb', 'foo')
+        self.assertEqual(r.status_code, 201)
+        cp1 = r.json()
+        self.assertEqual(set(cp1), {'checkpoint_id', 'last_modified'})
+        self.assertEqual(r.headers['Location'].split('/')[-1], cp1['checkpoint_id'])
+
+        # Modify it
+        nbcontent = jsonapi.loads(resp.text)['content']
+        nb = to_notebook_json(nbcontent)
+        ws = new_worksheet()
+        nb.worksheets = [ws]
+        hcell = new_heading_cell('Created by test')
+        ws.cells.append(hcell)
+        # Save
+        nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb}
+        resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
+
+        # List checkpoints
+        cps = self.nb_api.get_checkpoints('a.ipynb', 'foo').json()
+        self.assertEqual(cps, [cp1])
+
+        nbcontent = self.nb_api.read('a.ipynb', 'foo').json()['content']
+        nb = to_notebook_json(nbcontent)
+        self.assertEqual(nb.worksheets[0].cells[0].source, 'Created by test')
+
+        # Restore cp1
+        r = self.nb_api.restore_checkpoint('a.ipynb', 'foo', cp1['checkpoint_id'])
+        self.assertEqual(r.status_code, 204)
+        nbcontent = self.nb_api.read('a.ipynb', 'foo').json()['content']
+        nb = to_notebook_json(nbcontent)
+        self.assertEqual(nb.worksheets, [])
+
+        # Delete cp1
+        r = self.nb_api.delete_checkpoint('a.ipynb', 'foo', cp1['checkpoint_id'])
+        self.assertEqual(r.status_code, 204)
+        cps = self.nb_api.get_checkpoints('a.ipynb', 'foo').json()
+        self.assertEqual(cps, [])
