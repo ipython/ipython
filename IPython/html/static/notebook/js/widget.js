@@ -215,9 +215,10 @@ var IPython = (function (IPython) {
             };
         };
         
-        var data = {sync_method: method, sync_data: model.toJSON()};
+        var model_json = model.toJSON();
+        var data = {sync_method: method, sync_data: model_json};
         comm.send(data, callbacks);
-        return data;
+        return model_json;
     }
 
     IPython.WidgetManager = WidgetManager;
