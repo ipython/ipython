@@ -198,16 +198,20 @@ class APITest(NotebookTestBase):
         nb = to_notebook_json(nbcontent)
         ws = new_worksheet()
         nb.worksheets = [ws]
-        ws.cells.append(new_heading_cell('Created by test'))
+        ws.cells.append(new_heading_cell(u'Created by test ³'))
 
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb}
         resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
 
         nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
-        with open(nbfile, 'r') as f:
+        with io.open(nbfile, 'r', encoding='utf-8') as f:
             newnb = read(f, format='ipynb')
         self.assertEqual(newnb.worksheets[0].cells[0].source,
-                         'Created by test')
+                         u'Created by test ³')
+        nbcontent = self.nb_api.read('a.ipynb', 'foo').json()['content']
+        newnb = to_notebook_json(nbcontent)
+        self.assertEqual(newnb.worksheets[0].cells[0].source,
+                         u'Created by test ³')
 
         # Save and rename
         nbmodel= {'name': 'a2.ipynb', 'path':'foo/bar', 'content': nb}
