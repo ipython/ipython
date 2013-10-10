@@ -394,7 +394,7 @@ class FileNotebookManager(NotebookManager):
                 u'Notebook checkpoint does not exist: %s-%s' % (name, checkpoint_id)
             )
         # ensure notebook is readable (never restore from an unreadable notebook)
-        with file(cp_path, 'r') as f:
+        with open(cp_path, 'r') as f:
             nb = current.read(f, u'json')
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
