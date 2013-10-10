@@ -95,9 +95,9 @@ var IPython = (function (IPython) {
             
             var url = utils.url_path_join(
                 that.baseProjectUrl(),
-                'api/notebooks',
+                'files',
                 that.notebookPath(),
-                notebook_name + '.ipynb?format=json&download=True'
+                notebook_name + '.ipynb'
             );
             window.location.assign(url);
         });
