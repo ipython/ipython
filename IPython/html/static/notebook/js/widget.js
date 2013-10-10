@@ -19,7 +19,7 @@
 // require(['components/underscore/underscore-min.js',
 //          'components/backbone/backbone-min.js'],
 
-var IPython = function (IPython) {
+var IPython = (function (IPython) {
     "use strict";
 
     //-----------------------------------------------------------------------
@@ -224,6 +224,7 @@ var IPython = function (IPython) {
     IPython.WidgetModel = WidgetModel;
     IPython.WidgetView = WidgetView;
 
+  
     return IPython;
 
-};
+}(IPython));
