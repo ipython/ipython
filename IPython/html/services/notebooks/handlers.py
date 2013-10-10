@@ -197,6 +197,7 @@ class NotebookCheckpointsHandler(IPythonHandler):
         location = url_path_join(self.base_project_url, u'/api/notebooks',
             path, name, 'checkpoints', checkpoint[u'checkpoint_id'])
         self.set_header(u'Location', location)
+        self.set_status(201)
         self.finish(data)
 
 
