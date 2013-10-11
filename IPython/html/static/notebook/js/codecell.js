@@ -243,14 +243,25 @@ var IPython = (function (IPython) {
         this.output_area.clear_output();
         this.set_input_prompt('*');
         this.element.addClass("running");
-        var callbacks = {
+        if (this.last_msg_id) {
+            this.kernel.clear_callbacks_for_msg(this.last_msg_id);
+        }
+        var callbacks = this.get_callbacks();
+        
+        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+    };
+    
+    /**
+     * Construct the default callbacks for
+     * @method get_callbacks
+     */
+    CodeCell.prototype.get_callbacks = function () {
+        return {
             shell : {
                 reply : $.proxy(this._handle_execute_reply, this),
                 payload : {
                     set_next_input : $.proxy(this._handle_set_next_input, this),
-                    page : function (payload) {
-                        $([IPython.events]).trigger('open_with_text.Pager', payload);
-                    }
+                    page : $.proxy(this._open_with_pager, this)
                 }
             },
             iopub : {
@@ -259,8 +270,10 @@ var IPython = (function (IPython) {
             },
             input : $.proxy(this._handle_input_request, this)
         };
-        
-        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+    };
+    
+    CodeCell.prototype._open_with_pager = function (payload) {
+        $([IPython.events]).trigger('open_with_text.Pager', payload);
     };
 
     /**
