@@ -1161,15 +1161,15 @@ var IPython = (function (IPython) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
             if (cell instanceof IPython.CodeCell) {
-                cell.set_text(texta);
-                var new_cell = this.insert_cell_below('code');
-                new_cell.set_text(textb);
+                cell.set_text(textb);
+                var new_cell = this.insert_cell_above('code');
+                new_cell.set_text(texta);
             } else if (cell instanceof IPython.MarkdownCell) {
-                cell.set_text(texta);
+                cell.set_text(textb);
                 cell.render();
-                var new_cell = this.insert_cell_below('markdown');
+                var new_cell = this.insert_cell_above('markdown');
                 new_cell.edit(); // editor must be visible to call set_text
-                new_cell.set_text(textb);
+                new_cell.set_text(texta);
                 new_cell.render();
             }
         };
