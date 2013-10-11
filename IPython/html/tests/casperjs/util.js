@@ -12,7 +12,19 @@ casper.get_notebook_server = function () {
 // Create and open a new notebook.
 casper.open_new_notebook = function () {
     var baseUrl = this.get_notebook_server();
-    this.start(baseUrl + '/new');
+    this.start(baseUrl);
+    this.thenClick('button#new_notebook');
+    this.waitForPopup('');
+
+    this.then(function () {
+        // XXX: Kind of odd, the next line works for one test, but not when
+        // running multiple tests back-to-back, so we will just point the main
+        // casper browser to the same URL as the popup we just grabbed.
+
+        //this.page = this.popups[0];
+        this.open(this.popups[0].url);
+    });
+
     // initially, the cells aren't created, so wait for them to appear
     this.waitForSelector('.CodeMirror-code');
 };
