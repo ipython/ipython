@@ -1164,6 +1164,7 @@ var IPython = (function (IPython) {
                 cell.set_text(textb);
                 var new_cell = this.insert_cell_above('code');
                 new_cell.set_text(texta);
+                this.select_next();
             } else if (cell instanceof IPython.MarkdownCell) {
                 cell.set_text(textb);
                 cell.render();
@@ -1171,6 +1172,7 @@ var IPython = (function (IPython) {
                 new_cell.edit(); // editor must be visible to call set_text
                 new_cell.set_text(texta);
                 new_cell.render();
+                this.select_next();
             }
         };
     };
