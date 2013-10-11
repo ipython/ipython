@@ -49,7 +49,7 @@ var IPython = (function (IPython) {
         // Unregister a target function for a given target name
         delete this.targets[target_name];
     };
-
+    
     CommManager.prototype.register_comm = function (comm) {
         // Register a comm in the mapping
         this.comms[comm.comm_id] = comm;
@@ -74,7 +74,13 @@ var IPython = (function (IPython) {
         }
         var comm = new Comm(content.comm_id);
         this.register_comm(comm);
-        f(comm, msg);
+        try {
+            f(comm, msg);
+        } catch (e) {
+            console.log("Exception opening new comm:", e, msg);
+            comm.close();
+            this.unregister_comm(comm);
+        }
     };
     
     CommManager.prototype.comm_close = function (msg) {
@@ -84,7 +90,11 @@ var IPython = (function (IPython) {
             return;
         }
         delete this.comms[content.comm_id];
-        comm.handle_close(msg);
+        try {
+            comm.handle_close(msg);
+        } catch (e) {
+            console.log("Exception closing comm: ", e, msg);
+        }
     };
     
     CommManager.prototype.comm_msg = function (msg) {
@@ -93,7 +103,11 @@ var IPython = (function (IPython) {
         if (comm === undefined) {
             return;
         }
-        comm.handle_msg(msg);
+        try {
+            comm.handle_msg(msg);
+        } catch (e) {
+            console.log("Exception handling comm msg: ", e, msg);
+        }
     };
     
     //-----------------------------------------------------------------------

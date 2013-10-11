@@ -79,8 +79,10 @@ class CommManager(LoggingConfigurable):
     def register_target(self, target_name, f):
         """Register a callable f for a given target name
         
-        f will be called with a Comm object as its only argument
-        when a comm_open message is received with `target`.
+        f will be called with two arguments when a comm_open message is received with `target`:
+        
+        - the Comm instance
+        - the `comm_open` message itself.
         
         f can be a Python callable or an import string for one.
         """
@@ -92,7 +94,7 @@ class CommManager(LoggingConfigurable):
     def unregister_target(self, target_name, f):
         """Unregister a callable registered with register_target"""
         return self.targets.pop(target_name);
-
+    
     def register_comm(self, comm):
         """Register a new comm"""
         comm_id = comm.comm_id
@@ -141,7 +143,12 @@ class CommManager(LoggingConfigurable):
             comm.close()
             return
         self.register_comm(comm)
-        f(comm, msg)
+        try:
+            f(comm, msg)
+        except Exception:
+            self.log.error("Exception opening comm with target: %s", target_name, exc_info=True)
+            comm.close()
+            self.unregister_comm(comm_id)
     
     @with_output
     def comm_msg(self, stream, ident, msg):
@@ -152,7 +159,10 @@ class CommManager(LoggingConfigurable):
         if comm is None:
             # no such comm
             return
-        comm.handle_msg(msg)
+        try:
+            comm.handle_msg(msg)
+        except Exception:
+            self.log.error("Exception in comm_msg for %s", comm_id, exc_info=True)
     
     @with_output
     def comm_close(self, stream, ident, msg):
@@ -162,9 +172,14 @@ class CommManager(LoggingConfigurable):
         comm = self.get_comm(comm_id)
         if comm is None:
             # no such comm
+            self.log.debug("No such comm to close: %s", comm_id)
             return
         del self.comms[comm_id]
-        comm.handle_close(msg)
+        
+        try:
+            comm.handle_close(msg)
+        except Exception:
+            self.log.error("Exception handling comm_close for %s", comm_id, exc_info=True)
 
 
 __all__ = ['CommManager']
