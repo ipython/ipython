@@ -42,10 +42,10 @@ LOCALHOST = ''
 def _only_once(f):
     """decorator to only run a function once"""
     f.called = False
-    def wrapped():
+    def wrapped(**kwargs):
         if f.called:
             return
-        ret = f()
+        ret = f(**kwargs)
         f.called = True
         return ret
     return wrapped
@@ -203,7 +203,7 @@ def _load_ips_dumb():
     PUBLIC_IPS[:] = []
 
 @_only_once
-def _load_ips():
+def _load_ips(suppress_exceptions=True):
     """load the IPs that point to this machine
     
     This function will only ever be called once.
@@ -241,6 +241,8 @@ def _load_ips():
         
         return _load_ips_gethostbyname()
     except Exception as e:
+        if not suppress_exceptions:
+            raise
         # unexpected error shouldn't crash, load dumb default values instead.
         warn("Unexpected error discovering local network interfaces: %s" % e)
     _load_ips_dumb()
