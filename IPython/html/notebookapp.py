@@ -295,7 +295,6 @@ class NotebookApp(BaseIPythonApplication):
 
     # file to be opened in the notebook server
     file_to_run = Unicode('')
-    entry_path = Unicode('')
 
     # Network related information.
 
@@ -502,14 +501,13 @@ class NotebookApp(BaseIPythonApplication):
         
         if self.extra_args:
             f = os.path.abspath(self.extra_args[0])
+            if not os.path.exists(f):
+                self.log.critical("No such file or directory: %s", f)
+                self.exit(1)
             if os.path.isdir(f):
-                self.entry_path = self.extra_args[0]
+                self.config.FileNotebookManager.notebook_dir = f
             elif os.path.isfile(f):
                 self.file_to_run = f
-                path = os.path.split(self.extra_args[0])
-                if path[0] != '':
-                    self.entry_path = path[0]+'/'
-                
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
@@ -735,11 +733,19 @@ class NotebookApp(BaseIPythonApplication):
             except webbrowser.Error as e:
                 self.log.warn('No web browser found: %s.' % e)
                 browser = None
-
-            if self.file_to_run:
-                url = url_path_join('notebooks', self.entry_path, self.file_to_run)
+            
+            nbdir = os.path.abspath(self.notebook_manager.notebook_dir)
+            f = self.file_to_run
+            if f.startswith(nbdir):
+                f = f[len(nbdir):]
             else:
-                url = url_path_join('tree', self.entry_path)
+                self.log.warn("Probably won't be able to open notebook %s", f)
+                self.log.warn("Because it is not in notebook_dir %s", nbdir)
+
+            if os.path.isfile(self.file_to_run):
+                url = url_path_join('notebooks', f)
+            else:
+                url = url_path_join('tree', f)
             if browser:
                 b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
                     self.port, self.base_project_url, url), new=2)
