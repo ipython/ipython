@@ -27,7 +27,6 @@ import socket
 
 from .data import uniq_stable
 from .process import get_output_error_code
-from .py3compat import bytes_to_str
 from .warn import warn
 
 #-----------------------------------------------------------------------------
@@ -96,11 +95,11 @@ def _load_ips_ifconfig():
     if rc:
         raise IOError("no ifconfig: %s" % err)
     
-    lines = bytes_to_str(out).splitlines()
+    lines = out.splitlines()
     addrs = []
     for line in lines:
         blocks = line.lower().split()
-        if blocks[0] == 'inet':
+        if (len(blocks) >= 2) and (blocks[0] == 'inet'):
             addrs.append(blocks[1])
     _populate_from_list(addrs)
 
@@ -111,11 +110,11 @@ def _load_ips_ip():
     if rc:
         raise IOError("no ip: %s" % err)
     
-    lines = bytes_to_str(out).splitlines()
+    lines = out.splitlines()
     addrs = []
     for line in lines:
         blocks = line.lower().split()
-        if blocks[0] == 'inet':
+        if (len(blocks) >= 2) and (blocks[0] == 'inet'):
             addrs.append(blocks[1].split('/')[0])
     _populate_from_list(addrs)
 
@@ -126,7 +125,7 @@ def _load_ips_ipconfig():
     if rc:
         raise IOError("no ipconfig: %s" % err)
     
-    lines = bytes_to_str(out).splitlines()
+    lines = out.splitlines()
     addrs = ['127.0.0.1']
     for line in lines:
         line = line.lower().split()
