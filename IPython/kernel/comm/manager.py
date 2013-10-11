@@ -89,6 +89,10 @@ class CommManager(LoggingConfigurable):
         
         self.targets[target_name] = f
     
+    def unregister_target(self, target_name, f):
+        """Unregister a callable registered with register_target"""
+        return self.targets.pop(target_name);
+
     def register_comm(self, comm):
         """Register a new comm"""
         comm_id = comm.comm_id

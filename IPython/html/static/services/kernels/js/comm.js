@@ -45,6 +45,11 @@ var IPython = (function (IPython) {
         this.targets[target_name] = f;
     };
     
+    CommManager.prototype.unregister_target = function (target_name, f) {
+        // Unregister a target function for a given target name
+        delete this.targets[target_name];
+    };
+
     CommManager.prototype.register_comm = function (comm) {
         // Register a comm in the mapping
         this.comms[comm.comm_id] = comm;
