@@ -71,12 +71,10 @@ var IPython = (function (IPython) {
             reader.readAsText(f);
             var fname = f.name.split('.'); 
             var nbname = fname.slice(0,-1).join('.');
-            var nbformat = fname.slice(-1)[0];
-            if (nbformat === 'ipynb') {nbformat = 'json';}
-            if (nbformat === 'py' || nbformat === 'json') {
+            var file_ext = fname.slice(-1)[0];
+            if (file_ext === 'ipynb') {
                 var item = that.new_notebook_item(0);
                 that.add_name_input(nbname, item);
-                item.data('nbformat', nbformat);
                 // Store the notebook item in the reader so we can use it later
                 // to know which item it belongs to.
                 $(reader).data('item', item);
@@ -85,6 +83,13 @@ var IPython = (function (IPython) {
                     that.add_notebook_data(event.target.result, nbitem);
                     that.add_upload_button(nbitem);
                 };
+            } else {
+                var dialog = 'Uploaded notebooks must be .ipynb files';
+                IPython.dialog.modal({
+                    title : 'Invalid file type',
+                    body : dialog,
+                    buttons : {'OK' : {'class' : 'btn-primary'}}
+                });
             }
         }
         return false;
@@ -313,14 +318,8 @@ var IPython = (function (IPython) {
             .addClass('btn btn-primary btn-mini upload_button')
             .click(function (e) {
                 var nbname = item.find('.item_name > input').val();
-                var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
                 var content_type = 'application/json';
-                if (nbformat === 'json') {
-                    // pass
-                } else if (nbformat === 'py') {
-                    // TODO: re-enable non-ipynb upload
-                }
                 var model = {
                     content : JSON.parse(nbdata),
                 };

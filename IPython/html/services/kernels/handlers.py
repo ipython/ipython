@@ -22,6 +22,7 @@ from tornado import web
 from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
+from IPython.html.utils import url_path_join
 
 from ...base.handlers import IPythonHandler, json_errors
 from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
@@ -45,7 +46,8 @@ class MainKernelHandler(IPythonHandler):
         km = self.kernel_manager
         kernel_id = km.start_kernel()
         model = km.kernel_model(kernel_id, self.ws_url)
-        self.set_header('Location', '{0}api/kernels/{1}'.format(self.base_kernel_url, kernel_id))
+        location = url_path_join(self.base_kernel_url, 'api', 'kernels', kernel_id)
+        self.set_header('Location', location)
         self.set_status(201)
         self.finish(jsonapi.dumps(model))
 

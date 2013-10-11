@@ -268,6 +268,10 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
 
     @web.authenticated
     def get(self, path):
+        if os.path.splitext(path)[1] == '.ipynb':
+            name = os.path.basename(path)
+            self.set_header('Content-Type', 'application/json')
+            self.set_header('Content-Disposition','attachment; filename="%s"' % name)
         return web.StaticFileHandler.get(self, path)
 
 
@@ -399,11 +403,6 @@ class FileFindHandler(web.StaticFileHandler):
                 self.set_status(304)
                 return
         
-        if os.path.splitext(path)[1] == '.ipynb':
-            name = os.path.basename(path)
-            self.set_header('Content-Type', 'application/json')
-            self.set_header('Content-Disposition','attachment; filename="%s"' % name)
-
         with open(abspath, "rb") as file:
             data = file.read()
             hasher = hashlib.sha1()
