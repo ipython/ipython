@@ -9,6 +9,6 @@ before_install:
     - sudo apt-get install pandoc
 install:
     - python setup.py install -q 
-script:
+script: 
     - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then cd /tmp; iptest; fi
     - if [[ $TRAVIS_PYTHON_VERSION == '3.'* ]]; then cd /tmp; iptest3; fi
