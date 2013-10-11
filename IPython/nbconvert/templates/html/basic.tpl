@@ -119,11 +119,25 @@ unknown type  {{ cell.type }}
 {%- endblock data_html %}
 
 {% block data_png %}
-<img src="data:image/png;base64,{{ output.png }}">
+<img src="data:image/png;base64,{{ output.png }}"
+{%- if 'width' in output.metadata.get('png', {}) %}
+width={{output.metadata['png']['width']}}
+{%- endif %}
+{%- if 'height' in output.metadata.get('png', {}) %}
+height={{output.metadata['png']['height']}}
+{%- endif %}
+>
 {%- endblock data_png %}
 
 {% block data_jpg %}
-<img src="data:image/jpeg;base64,{{ output.jpeg }}">
+<img src="data:image/jpeg;base64,{{ output.jpeg }}"
+{%- if 'width' in output.metadata.get('jpeg', {}) %}
+width={{output.metadata['jpeg']['width']}}
+{%- endif %}
+{%- if 'height' in output.metadata.get('jpeg', {}) %}
+height={{output.metadata['jpeg']['height']}}
+{%- endif %}
+>
 {%- endblock data_jpg %}
 
 {% block data_latex %}
