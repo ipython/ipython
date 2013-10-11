@@ -167,12 +167,12 @@ var IPython = (function (IPython) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
+        this.cancel_pending();
         if (!this._hidden) {
           if (force || !this._sticky) {
               this.cancel_stick();
               this._hide();
           }
-          this.cancel_pending();
           this.reset_tabs_function();
           return true;
         } else {
