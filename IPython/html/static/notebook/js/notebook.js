@@ -317,7 +317,9 @@ var IPython = (function (IPython) {
                 that.undelete();
                 that.control_key_active = false;
                 return false;
-            } else if (event.which === 189 && that.control_key_active) {
+            } else if ((event.which === 189 || event.which === 173) &&
+                    that.control_key_active) {
+                // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
                 // Split cell = -
                 that.split_cell();
                 that.control_key_active = false;
