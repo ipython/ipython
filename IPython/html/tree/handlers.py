@@ -32,6 +32,7 @@ class TreeHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, path='', name=None):
+        path = path.strip('/')
         nbm = self.notebook_manager
         if name is not None:
             # is a notebook, redirect to notebook handler

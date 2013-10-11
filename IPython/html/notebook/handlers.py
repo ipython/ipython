@@ -38,6 +38,7 @@ class NotebookHandler(IPythonHandler):
     def get(self, path='', name=None):
         """get renders the notebook template if a name is given, or 
         redirects to the '/files/' handler if the name is not given."""
+        path = path.strip('/')
         nbm = self.notebook_manager
         if name is None:
             raise web.HTTPError(500, "This shouldn't be accessible: %s" % self.request.uri)
