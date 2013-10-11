@@ -56,7 +56,9 @@ class Comm(LoggingConfigurable):
     
     primary = Bool(True, help="Am I the primary or secondary Comm?")
     
-    def __init__(self, data=None, **kwargs):
+    def __init__(self, target_name='', data=None, **kwargs):
+        if target_name:
+            kwargs['target_name'] = target_name
         super(Comm, self).__init__(**kwargs)
         get_ipython().comm_manager.register_comm(self)
         if self.primary:
