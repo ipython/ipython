@@ -128,7 +128,7 @@ var IPython = (function (IPython) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
         var empty = function () {};
-        cell.kernel.execute(
+        cell.session.kernel.execute(
         that.name + '?', {
             'execute_reply': empty,
             'output': empty,
