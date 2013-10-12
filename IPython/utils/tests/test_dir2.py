@@ -50,3 +50,31 @@ def test_SubClass_with_trait_names_attr():
 
     res = dir2(SubClass())
     assert('trait_names' in res)
+
+
+def test_misbehaving_object_without_trait_names():
+    # dir2 shouldn't raise even when objects are dumb and raise
+    # something other than AttribteErrors on bad getattr.
+
+    class BadTraitNames(object):
+        @property
+        def trait_names(self):
+            raise KeyboardInterrupt("This should be caught")
+
+        def some_method(self):
+            pass
+
+    class MisbehavingGetattr(object):
+        def __getattr__(self):
+            raise KeyError("I should be caught")
+
+        def some_method(self):
+            pass
+
+    class SillierWithDir(MisbehavingGetattr):
+        def __dir__(self):
+            return ['some_method']
+
+    for bad_klass in (BadTraitNames, MisbehavingGetattr, SillierWithDir):
+        res = dir2(bad_klass())
+        assert('some_method' in res)

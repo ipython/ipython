@@ -36,6 +36,7 @@ from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import openpy
 from IPython.utils import py3compat
+from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
@@ -257,16 +258,6 @@ def call_tip(oinfo, format_call=True):
         doc = oinfo.get('docstring','')
 
     return call_line, doc
-
-def safe_hasattr(obj, attr):
-    """In recent versions of Python, hasattr() only catches AttributeError.
-    This catches all errors.
-    """
-    try:
-        getattr(obj, attr)
-        return True
-    except:
-        return False
 
 
 def find_file(obj):
