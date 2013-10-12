@@ -283,6 +283,77 @@ var IPython = (function (IPython) {
 
 
     /**
+     * @class RestructuredtextCell
+     * @constructor RestructuredtextCell
+     * @extends IPython.HTMLCell
+     */
+    var RestructuredtextCell = function (options) {
+        var options = options || {};
+
+        options = this.mergeopt(RestructuredtextCell,options);
+        TextCell.apply(this, [options]);
+
+        this.cell_type = 'restructuredtext';
+    };
+
+    RestructuredtextCell.options_default = {
+        cm_config: {
+            mode: 'rst'
+        },
+        placeholder: "Type *reStructuredText* and LaTeX: $\\alpha^2$"
+    }
+
+
+    RestructuredtextCell.prototype = new TextCell();
+
+
+    /**
+     * @method render
+     */
+    RestructuredtextCell.prototype.render = function () {
+        if (this.rendered === false) {
+            var text = this.get_text();
+            if (text === "") { text = this.placeholder; }
+
+            var whole_rst_source = "";
+            var split_mark = "\n\n.. raw:: html\n\n   <!-- split //-->\n\n";
+            var rst_cells = [];
+            $.each(IPython.notebook.get_cells(), function(i, cell){
+                if (cell.cell_type === "restructuredtext"){
+                    rst_cells.push(i);
+                    whole_rst_source += cell.get_text() + split_mark;
+                }
+            });
+
+            var url = $('body').data('baseProjectUrl') + 'notebooks/rst';
+            $.post(url,
+                {'source': whole_rst_source},
+                function( data ){
+
+                    $.each(data, function(i, cell_html){
+                        var cell = IPython.notebook.get_cell(rst_cells[i])
+                        try {
+                            cell.set_rendered(cell_html);
+                        } catch (e) {
+                            console.log("Error running Javascript in reStructuredText:");
+                            console.log(e);
+                            cell.set_rendered($("<div/>").addClass("js-error").html(
+                                "Error rendering reStructuredText!<br/>" + e.toString())
+                            );
+                        }
+                    });
+            });
+            this.element.find('div.text_cell_input').hide();
+            this.element.find("div.text_cell_render").show();
+            this.typeset()
+            this.rendered = true;
+        }
+    };
+
+
+
+
+    /**
      * @class MarkdownCell
      * @constructor MarkdownCell
      * @extends IPython.HTMLCell
@@ -553,7 +624,7 @@ var IPython = (function (IPython) {
                     .attr('href', '#' + hash)
                     .text('¶')
             );
-            
+
             this.set_rendered(h);
             this.typeset();
             this.element.find('div.text_cell_input').hide();
@@ -564,6 +635,7 @@ var IPython = (function (IPython) {
 
     IPython.TextCell = TextCell;
     IPython.MarkdownCell = MarkdownCell;
+    IPython.RestructuredtextCell = RestructuredtextCell;
     IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
 

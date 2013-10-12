@@ -20,7 +20,7 @@ var IPython = (function (IPython) {
         this.bind_events();
     };
 
-    MainToolBar.prototype = new IPython.ToolBar(); 
+    MainToolBar.prototype = new IPython.ToolBar();
 
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([
@@ -78,7 +78,7 @@ var IPython = (function (IPython) {
                         }
                 }
             ],'move_up_down');
-        
+
         this.add_buttons_group([
                 {
                     id : 'insert_above_b',
@@ -125,6 +125,7 @@ var IPython = (function (IPython) {
                 // .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
+                .append($('<option/>').attr('value','restructuredtext').text('reStructuredText'))
                 .append($('<option/>').attr('value','raw').text('Raw Text'))
                 .append($('<option/>').attr('value','heading1').text('Heading 1'))
                 .append($('<option/>').attr('value','heading2').text('Heading 2'))
@@ -168,13 +169,15 @@ var IPython = (function (IPython) {
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
-        
+
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
                 IPython.notebook.to_code();
             } else if (cell_type === 'markdown')  {
                 IPython.notebook.to_markdown();
+            } else if (cell_type === 'restructuredtext')  {
+                IPython.notebook.to_restructuredtext();
             } else if (cell_type === 'raw')  {
                 IPython.notebook.to_raw();
             } else if (cell_type === 'heading1')  {
