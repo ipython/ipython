@@ -54,12 +54,11 @@ class Audio(DisplayObject):
     import numpy as np
     framerate = 44100
     t = np.linspace(0,5,framerate*5)
-    data = np.sin(2*np.pi*440*np.sin(10*t**2))
+    data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t))
     Audio(data,rate=framerate)
 
     Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")
-    Audio(url="http://media.bradsucks.net/albums/ooi-128/01_-_Brad_Sucks_-_Dropping_out_of_School.mp3")
-    Audio(url="http://www.w3schools.com/html/horse.ogg", embed=True)
+    Audio(url="http://www.w3schools.com/html/horse.ogg")
     
     Audio('/path/to/sound.wav')
     Audio(filename='/path/to/sound.ogg')
