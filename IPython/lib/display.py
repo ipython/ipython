@@ -17,9 +17,10 @@ class Audio(DisplayObject):
     
     Parameters
     ----------
-    data : numpy array, unicode, str or bytes
+    data : numpy array, list, unicode, str or bytes
         Can be a
-        * Numpy 1d array containing the desired waveform (mono),
+        * Numpy 1d array containing the desired waveform (mono)
+        * List of float or integer representing the waveform (mono)
         * String containing the filename
         * Bytestring containing raw PCM data or
         * URL pointing to a file on the web. 
@@ -109,8 +110,8 @@ class Audio(DisplayObject):
                 raise ValueError("encoding of stereo PCM signals are unsupported")  
             scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
         except ImportError:
-            print("Numpy is required to encode PCM from an array")
-            raise
+            maxabsvalue = float(max([abs(x) for x in data]))
+            scaled = [int(x/maxabsvalue*32767) for x in data] 
         fp = BytesIO()
         waveobj = wave.open(fp,mode='wb')
         waveobj.setnchannels(1)
