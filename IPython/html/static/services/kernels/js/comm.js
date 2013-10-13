@@ -40,6 +40,15 @@ var IPython = (function (IPython) {
         }
     };
     
+    CommManager.prototype.new_comm = function (target_name, data, callbacks, metadata, comm_id) {
+        // Create a new Comm, register it, and open its Kernel-side counterpart
+        // Mimics the auto-registration in `Comm.__init__` in the IPython Comm
+        var comm = new Comm(target_name, comm_id);
+        this.register_comm(comm);
+        comm.open(data, callbacks, metadata);
+        return comm;
+    };
+    
     CommManager.prototype.register_target = function (target_name, f) {
         // Register a target function for a given target name
         this.targets[target_name] = f;
@@ -72,7 +81,7 @@ var IPython = (function (IPython) {
             console.log("Available targets are: ", this.targets);
             return;
         }
-        var comm = new Comm(content.comm_id);
+        var comm = new Comm(content.target_name, content.comm_id);
         this.register_comm(comm);
         try {
             f(comm, msg);
@@ -114,9 +123,9 @@ var IPython = (function (IPython) {
     // Comm base class
     //-----------------------------------------------------------------------
     
-    var Comm = function (comm_id, target_name) {
-        this.comm_id = comm_id || new IPython.utils.uuid();
+    var Comm = function (target_name, comm_id) {
         this.target_name = target_name;
+        this.comm_id = comm_id || IPython.utils.uuid();
         this._msg_callback = this._close_callback = null;
     };
     
