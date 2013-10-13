@@ -31,7 +31,7 @@ from IPython.utils.encoding import get_stream_enc
 #-----------------------------------------------------------------------------
 
 # RegExp for splitting line contents into pre-char//first word-method//rest.
-# For clarity, each group in on one line.
+# For clarity, each group is on one line.
 
 # WARNING: update the regexp if the escapes in interactiveshell are changed, as
 # they are hardwired in.
@@ -42,11 +42,11 @@ from IPython.utils.encoding import get_stream_enc
 # ? triggers as first or last char.
 
 line_split = re.compile("""
-             ^(\s*)               # any leading space
-             ([,;/%]|!!?|\?\??)?  # escape character or characters
-             \s*(%{0,2}[\w\.\*]*)     # function/method, possibly with leading %
-                                  # to correctly treat things like '?%magic'
-             (.*?$|$)             # rest of line
+             ^(\s*)                 # any leading space
+             ([,;/%]|!!?|\?\??)?    # escape character or characters
+             \s*(%{0,2}[\w\.\*!]*)  # function/method, possibly with leading %
+                                    # to correctly treat things like '?%magic'
+             (.*?$|$)               # rest of line
              """, re.VERBOSE)
 
 

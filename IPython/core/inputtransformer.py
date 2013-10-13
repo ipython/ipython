@@ -270,11 +270,14 @@ def escaped_commands(line):
 
 _initial_space_re = re.compile(r'\s*')
 
-_help_end_re = re.compile(r"""(%{0,2}
-                              [a-zA-Z_*][\w*]*        # Variable name
-                              (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
-                              )
-                              (\?\??)$                # ? or ??
+_help_end_re = re.compile(r"""  (%{0,2}         # Line/cell magic
+                                [a-zA-Z_*!]     # Allowed first characters
+                                [\w*]*          # The rest of the 
+                                                # variable name
+                                (\.[a-zA-Z_*]   # Any number of 
+                                [\w*]*)*        # dotted sub-variables
+                                )
+                                (\?\??)$        # ? or ??            
                               """,
                               re.VERBOSE)
 
@@ -356,7 +359,7 @@ def cellmagic(end_on_blank_line=False):
     reset (sent None).
     """
     tpl = 'get_ipython().run_cell_magic(%r, %r, %r)'
-    cellmagic_help_re = re.compile('%%\w+\?')
+    cellmagic_help_re =  re.compile(r'%%(\w+|!)\?')
     line = ''
     while True:
         line = (yield line)
