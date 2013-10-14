@@ -25,7 +25,18 @@ var IPython = (function (IPython) {
     //-----------------------------------------------------------------------
     // WidgetModel class
     //-----------------------------------------------------------------------
-    var WidgetModel = Backbone.Model.extend({});
+    var WidgetModel = Backbone.Model.extend({
+        apply: function(sender) {
+            this.save();
+
+            for (var index in this.views) {
+                var view = this.views[index];
+                if (view !== sender) {
+                    view.refresh();    
+                }
+            }
+        }
+    });
 
 
     //-----------------------------------------------------------------------
@@ -214,7 +225,6 @@ var IPython = (function (IPython) {
                 clear_output : $.proxy(outputarea.handle_clear_output, outputarea)}
             };
         };
-        
         var model_json = model.toJSON();
         var data = {sync_method: method, sync_data: model_json};
         comm.send(data, callbacks);
