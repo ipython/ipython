@@ -12,14 +12,25 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
+
+def safe_hasattr(obj, attr):
+    """In recent versions of Python, hasattr() only catches AttributeError.
+    This catches all errors.
+    """
+    try:
+        getattr(obj, attr)
+        return True
+    except:
+        return False
+
+
 def get_class_members(cls):
     ret = dir(cls)
-    if hasattr(cls, '__bases__'):
+    if safe_hasattr(cls, '__bases__'):
         try:
             bases = cls.__bases__
         except AttributeError:
@@ -49,7 +60,7 @@ def dir2(obj):
 
     words = set(dir(obj))
 
-    if hasattr(obj, '__class__'):
+    if safe_hasattr(obj, '__class__'):
         #words.add('__class__')
         words |= set(get_class_members(obj.__class__))
 
@@ -57,14 +68,13 @@ def dir2(obj):
     # for objects with Enthought's traits, add trait_names() list
     # for PyCrust-style, add _getAttributeNames() magic method list
     for attr in ('trait_names', '_getAttributeNames'):
-        if hasattr(obj, attr):
-            try:
-                func = getattr(obj, attr)
-                if callable(func):
-                    words |= set(func())
-            except:
-                # TypeError: obj is class not instance
-                pass
+        try:
+            func = getattr(obj, attr)
+            if callable(func):
+                words |= set(func())
+        except:
+            # TypeError: obj is class not instance
+            pass
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
