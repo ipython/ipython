@@ -51,10 +51,14 @@ casper.delete_current_notebook = function () {
 casper.notebook_test = function(test) {
     this.open_new_notebook();
     this.then(test);
-    this.shutdown_current_kernel();
+    //XXX: we get sporadic error messages when shutting down some of the tests.
+    //     Since the entire server will go down at the end of running the test
+    //     suite, it's ok for now to not try to shut anything down.
+    //this.shutdown_current_kernel();
+    
     //XXX: the implementation of delete_current_notebook is currently broken
-    // it's not a big deal, since the notebook directory will be deleted on
-    // cleanup, but we should add tests for deleting the notebook separately
+    //     it's not a big deal, since the notebook directory will be deleted on
+    //     cleanup, but we should add tests for deleting the notebook separately
     //this.delete_current_notebook();
     
     // Run the browser automation.
