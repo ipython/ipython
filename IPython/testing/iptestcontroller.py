@@ -29,7 +29,7 @@ import time
 
 from .iptest import have, test_group_names, test_sections
 from IPython.utils.py3compat import bytes_to_str
-from IPython.utils.sysinfo import sys_info
+from IPython.utils.sysinfo import brief_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
 
@@ -206,7 +206,7 @@ def do_run(controller):
 def report():
     """Return a string with a summary report of test-related variables."""
 
-    out = [ sys_info(), '\n']
+    out = [ brief_sys_info(), '\n']
 
     avail = []
     not_avail = []
@@ -327,17 +327,16 @@ def run_iptestall(options):
     print('_'*70)
     print('Test suite completed for system with the following information:')
     print(report())
-    print('Ran %s test groups in %.3fs' % (nrunners, t_tests))
-    print()
+    took = "Took %.3fs." % t_tests
     print('Status: ', end='')
     if not failed:
-        print('OK')
+        print('OK.', took)
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
         failed_sections = [c.section for c in failed]
         print('ERROR - {} out of {} test groups failed ({}).'.format(nfail,
-                                  nrunners, ', '.join(failed_sections)))
+                                  nrunners, ', '.join(failed_sections)), took)
         print()
         print('You may wish to rerun these, with:')
         print('  iptest', *failed_sections)

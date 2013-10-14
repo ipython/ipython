@@ -117,6 +117,34 @@ def sys_info():
     path = p.dirname(p.abspath(p.join(__file__, '..')))
     return pprint.pformat(pkg_info(path))
 
+def _compress_user(path):
+    """Reverse of :func:`os.path.expanduser`
+    """
+    home = os.path.expanduser('~')
+    if path.startswith(home):
+        path =  "~" + path[len(home):]
+    return path
+
+def brief_sys_info():
+    """Return summary information about IPython and the system, as a string.
+    """
+    p = os.path
+    path = p.dirname(p.abspath(p.join(__file__, '..')))
+    inf = pkg_info(path)
+    out = []
+    def _add(name, value):
+        out.append((name, value))
+
+    _add('IPython version', inf['ipython_version'])
+    _add('IPython commit', "{} ({})".format(inf['commit_hash'], inf['commit_source']))
+    _add('IPython package', _compress_user(inf['ipython_path']))
+    _add('Python version', inf['sys_version'].replace('\n',''))
+    _add('sys.executable', _compress_user(inf['sys_executable']))
+    _add('Platform', inf['platform'])
+
+    width = max(len(n) for (n,v) in out)
+    return '\n'.join("{:<{width}}: {}".format(n, v, width=width) for (n,v) in out)
+
 
 def _num_cpus_unix():
     """Return the number of active CPUs on a Unix system."""
