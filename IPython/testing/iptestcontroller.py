@@ -330,7 +330,7 @@ def run_iptestall(options):
     took = "Took %.3fs." % t_tests
     print('Status: ', end='')
     if not failed:
-        print('OK.', took)
+        print('OK (%d test groups).' % nrunners, took)
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
