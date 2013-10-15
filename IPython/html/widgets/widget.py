@@ -1,18 +1,18 @@
-from IPython.kernel.comm import Comm
-from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Float, Bool, Dict
-from IPython.display import clear_output
 
 from copy import copy
 import uuid
 import sys
 
+from IPython.kernel.comm import Comm
+from IPython.config import LoggingConfigurable
+from IPython.utils.traitlets import Unicode, Dict
+from IPython.display import Javascript, display
 
 class Widget(Comm):
     
     ### Public declarations
     target_name = Unicode('widget')
-    default_view_name = Unicode()
+    view_name = Unicode()
     
     
     ### Private/protected declarations
@@ -31,7 +31,11 @@ class Widget(Comm):
         if parent is not None:
             parent._children.append(self)
         self._parent = parent
-        
+
+        # Send frontend type code.
+        display(Javascript(data=self._get_backbone_js()))
+
+        # Create a comm.
         self.comm = Comm(target_name=self.target_name)
         self.comm.on_msg(self._handle_msg)
         
@@ -114,9 +118,8 @@ class Widget(Comm):
     
     
     ### Public methods
-    def show(self, view_name=None):
-        if not view_name:
-            view_name = self.default_view_name
+    def _repr_widget_(self):
+        view_name = self.view_name
         if not view_name:
             view_name = self.target_name
             
@@ -133,7 +136,8 @@ class Widget(Comm):
         
         # Now show children if any.
         for child in self.children:
-            child.show()
+            child._repr_widget_()
+        return self._get_backbone_js
             
     
     def send_state(self):
@@ -146,3 +150,6 @@ class Widget(Comm):
         self.comm.send({"method": "update",
                    "state": state})
     
+    ### Private methods
+    def _get_backbone_js(self):
+        return 'alert("woohoo!");'
