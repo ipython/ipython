@@ -54,7 +54,7 @@ casper.notebook_test = function(test) {
     //XXX: we get sporadic error messages when shutting down some of the tests.
     //     Since the entire server will go down at the end of running the test
     //     suite, it's ok for now to not try to shut anything down.
-    //this.shutdown_current_kernel();
+    this.shutdown_current_kernel();
     
     //XXX: the implementation of delete_current_notebook is currently broken
     //     it's not a big deal, since the notebook directory will be deleted on
