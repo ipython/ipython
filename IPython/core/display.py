@@ -24,6 +24,7 @@ import struct
 
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
                                      unicode_type)
+from IPython.html.widgets import Widget
 
 from .displaypub import publish_display_data
 
@@ -110,17 +111,20 @@ def display(*objs, **kwargs):
 
     from IPython.core.interactiveshell import InteractiveShell
 
-    if raw:
-        for obj in objs:
-            publish_display_data('display', obj, metadata)
+    if isinstance(obj, Widget):
+        obj._repr_widget_(**kwargs)
     else:
-        format = InteractiveShell.instance().display_formatter.format
-        for obj in objs:
-            format_dict, md_dict = format(obj, include=include, exclude=exclude)
-            if metadata:
-                # kwarg-specified metadata gets precedence
-                _merge(md_dict, metadata)
-            publish_display_data('display', format_dict, md_dict)
+        if raw:
+            for obj in objs:
+                publish_display_data('display', obj, metadata)
+        else:
+            format = InteractiveShell.instance().display_formatter.format
+            for obj in objs:
+                format_dict, md_dict = format(obj, include=include, exclude=exclude)
+                if metadata:
+                    # kwarg-specified metadata gets precedence
+                    _merge(md_dict, metadata)
+                publish_display_data('display', format_dict, md_dict)
 
 
 def display_pretty(*objs, **kwargs):
