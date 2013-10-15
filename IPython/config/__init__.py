@@ -13,6 +13,6 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-from application import *
-from configurable import *
+from .application import *
+from .configurable import *
 from .loader import Config
