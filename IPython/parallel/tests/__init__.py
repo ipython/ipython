@@ -14,7 +14,9 @@
 import os
 import tempfile
 import time
-from subprocess import Popen
+from subprocess import Popen, PIPE, STDOUT
+
+import nose
 
 from IPython.utils.path import get_ipython_dir
 from IPython.parallel import Client
@@ -35,12 +37,16 @@ class TestProcessLauncher(LocalProcessLauncher):
     def start(self):
         if self.state == 'before':
             self.process = Popen(self.args,
-                stdout=blackhole, stderr=blackhole,
+                stdout=PIPE, stderr=STDOUT,
                 env=os.environ,
                 cwd=self.work_dir
             )
             self.notify_start(self.process.pid)
             self.poll = self.process.poll
+            # Store stdout & stderr to show with failing tests.
+            # This is defined in IPython.testing.iptest
+            nose.ipy_stream_capturer.add_stream(self.process.stdout.fileno())
+            nose.ipy_stream_capturer.ensure_started()
         else:
             s = 'The process was already started and has state: %r' % self.state
             raise ProcessStateError(s)
@@ -57,7 +63,7 @@ def setup():
     
     cp = TestProcessLauncher()
     cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['--profile=iptest', '--log-level=50', '--ping=250', '--dictdb']
+                ['--profile=iptest', '--log-level=20', '--ping=250', '--dictdb']
     cp.start()
     launchers.append(cp)
     tic = time.time()
@@ -107,6 +113,7 @@ def teardown():
     time.sleep(1)
     while launchers:
         p = launchers.pop()
+        nose.ipy_stream_capturer.remove_stream(p.process.stdout.fileno())
         if p.poll() is None:
             try:
                 p.stop()
