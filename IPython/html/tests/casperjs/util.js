@@ -16,6 +16,7 @@ casper.open_new_notebook = function () {
     this.thenClick('button#new_notebook');
     this.waitForPopup('');
 
+    this.withPopup('', function () {this.waitForSelector('.CodeMirror-code');});
     this.then(function () {
         // XXX: Kind of odd, the next line works for one test, but not when
         // running multiple tests back-to-back, so we will just point the main
@@ -27,6 +28,12 @@ casper.open_new_notebook = function () {
 
     // initially, the cells aren't created, so wait for them to appear
     this.waitForSelector('.CodeMirror-code');
+    // and make sure the kernel has started
+    this.waitFor(function kernel_ready() {
+        return this.evaluate(function kernel_ready() {
+            return IPython.notebook.kernel.running;
+        });
+    });
 };
 
 // Shut down the current notebook's kernel.
