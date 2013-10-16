@@ -282,6 +282,9 @@ var IPython = (function (IPython) {
         if (data['application/javascript'] !== undefined) {
             json.javascript = data['application/javascript'];
         }
+        if (data['application/pdf'] !== undefined) {
+            json.pdf = data['application/pdf'];
+        }
         return json;
     };
 
@@ -432,7 +435,7 @@ var IPython = (function (IPython) {
         }
     };
 
-    OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','text'];
+    OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','pdf','text'];
 
     OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
         for(var type_i in OutputArea.display_order){
@@ -448,6 +451,10 @@ var IPython = (function (IPython) {
                     }
                 } else {
                     this['append_'+type](json[type], md, element);
+                }
+                if(((type == 'png') || (type == 'svg') || (type == 'jpeg')) &&
+                    json['pdf'] != undefined){
+                    this.append_pdf(json['pdf'], md, element, type);
                 }
                 return;
             }
@@ -553,6 +560,12 @@ var IPython = (function (IPython) {
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
+    };
+
+
+    OutputArea.prototype.append_pdf = function (pdf, md, element, type) {
+        var link = $("<a/>").attr('download', '').attr('href','data:application/pdf;base64,'+pdf);
+        element.find('img').wrap(link);
     };
 
 
