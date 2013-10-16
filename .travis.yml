@@ -15,5 +15,5 @@ before_install:
 install:
     - python setup.py install -q 
 script:
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then cd /tmp; iptest js; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.'* ]]; then cd /tmp; iptest3 js; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then cd /tmp; iptest; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.'* ]]; then cd /tmp; iptest3; fi
