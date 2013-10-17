@@ -1,6 +1,6 @@
 import os
 
-from ..widget import Widget
+from base import Widget
 from IPython.utils.traitlets import Unicode, Bool
 from IPython.utils.javascript import display_all_js
 
