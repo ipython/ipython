@@ -172,7 +172,13 @@ var IPython = (function (IPython) {
     
     Comm.prototype._maybe_callback = function (key, msg) {
         var callback = this['_' + key + '_callback'];
-        if (callback) callback(msg);
+        if (callback) {
+            try {
+                callback(msg);
+            } catch (e) {
+                console.log("Exception in Comm callback", e, msg);
+            }
+        }
     };
     
     Comm.prototype.handle_msg = function (msg) {
