@@ -8,7 +8,7 @@ import os
 import IPython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict
+from IPython.utils.traitlets import Unicode, Dict, List
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
@@ -18,6 +18,7 @@ class Widget(LoggingConfigurable):
     ### Public declarations
     target_name = Unicode('widget')
     default_view_name = Unicode()
+    js_requirements = List()
     
     
     ### Private/protected declarations
@@ -122,6 +123,10 @@ class Widget(LoggingConfigurable):
         if not view_name:
             view_name = self.default_view_name
         
+        # Require traitlet specified widget js
+        for requirement in self.js_requirements:
+            self._require_js(requirement)
+
         # Create a comm.
         if self.comm is None:
             self.comm = Comm(target_name=self.target_name)
@@ -155,3 +160,16 @@ class Widget(LoggingConfigurable):
         self.comm.send({"method": "update",
                         "state": state})
     
+    ### Private methods
+
+    def _require_js(self, js_path):
+        # Since we are loading requirements that must be loaded before this call
+        # returns, preform async js load.
+        display(Javascript(data="""
+$.ajax({
+    url: '{0}',
+    async: false,
+    dataType: "script",
+    timeout: 1000, // Wait a maximum of one second for the script to load.
+});
+        """.format(js_path)))
