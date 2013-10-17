@@ -10,12 +10,7 @@ casper.notebook_test(function () {
 
     this.thenClick('li#int_kernel');
 
-    this.waitFor(function () {
-        return this.evaluate(function get_output() {
-            var cell = IPython.notebook.get_cell(0);
-            return cell.output_area.outputs.length != 0;
-        })
-    });
+    this.wait_for_output(0);
 
     this.then(function () {
         var result = this.evaluate(function () {
