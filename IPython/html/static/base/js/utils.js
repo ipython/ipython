@@ -384,6 +384,18 @@ IPython.utils = (function (IPython) {
     };
 
 
+    var splitext = function (filename) {
+        // mimic Python os.path.splitext
+        // Returns ['base', '.ext']
+        var idx = filename.lastIndexOf('.');
+        if (idx > 0) {
+            return [filename.slice(0, idx), filename.slice(idx)];
+        } else {
+            return [filename, ''];
+        }
+    }
+
+
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
     var browser = (function() {
         var N= navigator.appName, ua= navigator.userAgent, tem;
@@ -403,6 +415,7 @@ IPython.utils = (function (IPython) {
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
         url_path_join : url_path_join,
+        splitext : splitext,
         browser : browser
     };
 
