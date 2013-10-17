@@ -13,7 +13,7 @@ from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 from IPython.utils.javascript import display_all_js
 
-def init_widget_js(cls):    
+def init_widget_js():    
     path = os.path.split(os.path.abspath( __file__ ))[0]
     display_all_js(path)
     for root, dirs, files in os.walk(path):
