@@ -8,12 +8,7 @@ casper.notebook_test(function () {
         cell.execute();
     });
 
-    this.waitFor(function () {
-        return this.evaluate(function get_output() {
-            var cell = IPython.notebook.get_cell(0);
-            return cell.output_area.outputs.length != 0;
-        })
-    });
+    this.wait_for_output(0);
 
     this.then(function () {
         var result = this.evaluate(function () {
@@ -33,12 +28,7 @@ casper.notebook_test(function () {
         IPython.utils.press_ctrl_enter();
     });
 
-    this.waitFor(function () {
-        return this.evaluate(function get_output() {
-            var cell = IPython.notebook.get_cell(0);
-            return cell.output_area.outputs.length != 0;
-        })
-    });
+    this.wait_for_output(0);
 
     this.then(function () {
         var result = this.evaluate(function () {
@@ -57,12 +47,7 @@ casper.notebook_test(function () {
         IPython.utils.press_shift_enter();
     });
 
-    this.waitFor(function () {
-        return this.evaluate(function get_output() {
-            var cell = IPython.notebook.get_cell(0);
-            return cell.output_area.outputs.length != 0;
-        })
-    });
+    this.wait_for_output(0);
 
     this.then(function () {
         var result = this.evaluate(function () {

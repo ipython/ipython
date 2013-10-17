@@ -54,6 +54,20 @@ casper.delete_current_notebook = function () {
     });
 };
 
+// wait for output in a given cell
+casper.wait_for_output = function (cell_num) {
+    this.then(function() {
+        this.waitFor(function (c) {
+            return this.evaluate(function get_output(c) {
+                var cell = IPython.notebook.get_cell(c);
+                return cell.output_area.outputs.length != 0;
+            },
+            // pass parameter from the test suite js to the browser code js
+            {c : cell_num});
+        });
+    });
+};
+
 // Wrap a notebook test to reduce boilerplate.
 casper.notebook_test = function(test) {
     this.open_new_notebook();
