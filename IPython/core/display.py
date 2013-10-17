@@ -24,7 +24,6 @@ import struct
 
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
                                      unicode_type)
-from IPython.html.widgets import Widget
 
 from .displaypub import publish_display_data
 
@@ -111,15 +110,16 @@ def display(*objs, **kwargs):
 
     from IPython.core.interactiveshell import InteractiveShell
 
-    if isinstance(obj, Widget):
-        obj._repr_widget_(**kwargs)
-    else:
-        if raw:
-            for obj in objs:
-                publish_display_data('display', obj, metadata)
+    if not raw:
+        format = InteractiveShell.instance().display_formatter.format
+
+    for obj in objs:
+        if hasattr(obj, '_repr_widget_'):
+            obj._repr_widget_(**kwargs)
         else:
-            format = InteractiveShell.instance().display_formatter.format
-            for obj in objs:
+            if raw:
+                publish_display_data('display', obj, metadata)
+            else:            
                 format_dict, md_dict = format(obj, include=include, exclude=exclude)
                 if metadata:
                     # kwarg-specified metadata gets precedence
