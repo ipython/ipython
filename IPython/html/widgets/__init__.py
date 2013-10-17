@@ -1,4 +1,4 @@
-from base import Widget, init_widget_js
+from base import Widget
 
 from container import ContainerWidget
 from float_range import FloatRangeWidget

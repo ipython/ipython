@@ -1,4 +1,3 @@
-
 from copy import copy
 from glob import glob
 import uuid
@@ -124,6 +123,7 @@ class Widget(LoggingConfigurable):
             view_name = self.default_view_name
         
         # Require traitlet specified widget js
+        self._require_js('static/notebook/js/widget.js')
         for requirement in self.js_requirements:
             self._require_js(requirement)
 
@@ -165,11 +165,4 @@ class Widget(LoggingConfigurable):
     def _require_js(self, js_path):
         # Since we are loading requirements that must be loaded before this call
         # returns, preform async js load.
-        display(Javascript(data="""
-$.ajax({
-    url: '{0}',
-    async: false,
-    dataType: "script",
-    timeout: 1000, // Wait a maximum of one second for the script to load.
-});
-        """.format(js_path)))
+        display(Javascript(data='$.ajax({url: "%s", async: false, dataType: "script", timeout: 1000});' % js_path))

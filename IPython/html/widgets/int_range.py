@@ -7,7 +7,7 @@ from IPython.utils.javascript import display_all_js
 class IntRangeWidget(Widget):
     target_name = Unicode('IntRangeWidgetModel')
     default_view_name = Unicode('IntSliderView')
-    js_requirements = List(["notebook/js/widgets/int_range.js"])
+    js_requirements = List(["static/notebook/js/widgets/int_range.js"])
     _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation']
 
     value = Int(0) 

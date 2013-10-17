@@ -7,6 +7,6 @@ from IPython.utils.javascript import display_all_js
 class ContainerWidget(Widget):
     target_name = Unicode('container_widget')
     default_view_name = Unicode('ContainerView')
-    js_requirements = List(["notebook/js/widgets/container.js"])
+    js_requirements = List(["static/notebook/js/widgets/container.js"])
     
     _keys = []
