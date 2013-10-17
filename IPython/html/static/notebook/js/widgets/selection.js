@@ -63,6 +63,7 @@ var DropdownView = IPython.WidgetView.extend({
 });
 
 IPython.notebook.widget_manager.register_widget_view('DropdownView', DropdownView);
+
 var RadioButtonView = IPython.WidgetView.extend({
     
     // Called when view is rendered.
@@ -126,3 +127,68 @@ var RadioButtonView = IPython.WidgetView.extend({
 });
 
 IPython.notebook.widget_manager.register_widget_view('RadioButtonView', RadioButtonView);
+
+
+var ToggleButtonView = IPython.WidgetView.extend({
+    
+    // Called when view is rendered.
+    render : function(){
+        this.$el
+            .html('')
+            .addClass(this.model.comm.comm_id);
+        this.$buttongroup = $('<div />')
+            .addClass('btn-group')
+            .attr('data-toggle', 'buttons-radio')
+            .appendTo(this.$el);
+        this.update();
+    },
+    
+    // Handles: Backend -> Frontend Sync
+    //          Frontent -> Frontend Sync
+    update : function(){
+        
+        // Add missing items to the DOM.
+        var items = this.model.get('values');
+        for (var index in items) {
+            var item_query = ' :contains("' + items[index] + '")';
+            if (this.$buttongroup.find(item_query).length == 0) {
+                
+                var that = this;
+                $('<button />')
+                    .attr('type', 'button')
+                    .addClass('btn')
+                    .html(items[index])
+                    .appendTo(this.$buttongroup)
+                    .on('click', function(e){
+                        that.model.set('value', $(e.target).html(), this);
+                        that.model.apply();
+                    });
+            }
+            
+            if (this.model.get('value') == items[index]) {
+                this.$buttongroup.find(item_query).addClass('active');
+            } else {
+                this.$buttongroup.find(item_query).removeClass('active');
+            }
+        }
+        
+        // Remove items that no longer exist.
+        this.$buttongroup.find('button').each(function(i, obj) {
+            var value = $(obj).html();
+            var found = false;
+            for (var index in items) {
+                if (items[index] == value) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (!found) {
+                $(obj).remove();
+            }
+        });
+    },
+    
+});
+
+IPython.notebook.widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
