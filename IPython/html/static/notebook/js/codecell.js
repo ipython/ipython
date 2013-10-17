@@ -133,10 +133,25 @@ var IPython = (function (IPython) {
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
 
-        var widget_area = $('<div/>').addClass('widget_area');
-        var widget_prompt = $('<div/>').addClass('prompt');
-        var widget_subarea = $('<div/>').addClass('widget_subarea');
-        widget_area.append(widget_prompt).append(widget_subarea);
+        var widget_area = $('<div/>')
+            .addClass('widget_area')
+            .hide();
+        this.widget_area = widget_area;
+        var widget_prompt = $('<div/>')
+            .addClass('prompt')
+            .appendTo(widget_area);
+        var widget_subarea = $('<div/>')
+            .addClass('widget_subarea')
+            .appendTo(widget_area);
+        this.widget_subarea = widget_subarea;
+        var widget_clear_buton = $('<button />')
+            .addClass('close')
+            .addClass('widget_div_clear')
+            .html('&times;')
+            .click(function() {
+                widget_area.slideUp('', function(){ widget_subarea.html(''); });
+                })
+            .appendTo(widget_prompt);
 
         var output = $('<div></div>');
         cell.append(input).append(widget_area).append(output);
