@@ -365,6 +365,16 @@ IPython.utils = (function (IPython) {
     var press_up = function() { press(keycodes.UP); };
     var press_down = function() { press(keycodes.DOWN); };
 
+    var press_ctrl_enter = function() {
+        $(document).trigger($.Event('keydown', {which: keycodes.ENTER, ctrlKey: true}));
+    };
+
+    var press_shift_enter = function() {
+        $(document).trigger($.Event('keydown', {which: keycodes.ENTER, shiftKey: true}));
+    };
+    // trigger the ctrl-m shortcut followed by one of our keys
+    var press_ghetto = function(key) { presspress(key); };
+
 
     var points_to_pixels = function (points) {
         // A reasonably good way of converting between points and pixels.
@@ -423,6 +433,8 @@ IPython.utils = (function (IPython) {
         press : press,
         press_up : press_up,
         press_down : press_down,
+        press_ctrl_enter : press_ctrl_enter,
+        press_shift_enter : press_shift_enter,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
