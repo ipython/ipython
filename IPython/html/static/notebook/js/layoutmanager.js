@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -16,7 +16,6 @@ var IPython = (function (IPython) {
         this.bind_events();
     };
 
-
     LayoutManager.prototype.bind_events = function () {
         $(window).resize($.proxy(this.do_resize,this));
     };
@@ -31,18 +30,17 @@ var IPython = (function (IPython) {
         } else {
             header_height = $('div#header').outerHeight(true);
         }
-        var menubar_height = $('div#menubar').outerHeight(true);
-        var toolbar_height;
-        if ($('div#maintoolbar').css('display') === 'none') {
-            toolbar_height = 0;
+        var menubar_height;
+        if ($('div#menubar-container').css('display') === 'none') {
+            menubar_height = 0;
         } else {
-            toolbar_height = $('div#maintoolbar').outerHeight(true);
+            menubar_height = $('div#menubar-container').outerHeight(true);
         }
-        return h-header_height-menubar_height-toolbar_height;  // content height
-    }
+        return h-header_height-menubar_height; // content height
+    };
 
     LayoutManager.prototype.do_resize = function () {
-        var app_height = this.app_height()  // content height
+        var app_height = this.app_height();  // content height
 
         $('#ipython-main-app').height(app_height);  // content+padding+border height
 
