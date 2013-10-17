@@ -69,10 +69,10 @@ var IPython = (function (IPython) {
             var f = files[i];
             var reader = new FileReader();
             reader.readAsText(f);
-            var fname = f.name.split('.'); 
-            var nbname = fname.slice(0,-1).join('.');
-            var file_ext = fname.slice(-1)[0];
-            if (file_ext === 'ipynb') {
+            var name_and_ext = utils.splitext(f.name);
+            var nbname = name_and_ext[0];
+            var file_ext = name_and_ext[-1];
+            if (file_ext === '.ipynb') {
                 var item = that.new_notebook_item(0);
                 that.add_name_input(nbname, item);
                 // Store the notebook item in the reader so we can use it later
@@ -174,7 +174,7 @@ var IPython = (function (IPython) {
         for (var i=0; i<len; i++) {
             var name = data[i].name;
             var path = this.notebookPath();
-            var nbname = name.split(".")[0];
+            var nbname = utils.splitext(name)[0];
             var item = this.new_notebook_item(i);
             this.add_link(path, nbname, item);
             name = utils.url_path_join(this.notebookPath(), name);
