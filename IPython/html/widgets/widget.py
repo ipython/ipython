@@ -115,7 +115,7 @@ class Widget(LoggingConfigurable):
     
     
     def _handle_property_changed(self, name, old, new):
-        if not self._property_lock:
+        if not self._property_lock and self.comm is not None:
             # TODO: Validate properties.
             # Send new state to frontend
             self.send_state()
