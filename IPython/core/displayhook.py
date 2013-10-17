@@ -241,16 +241,13 @@ class DisplayHook(Configurable):
         """
         self.check_for_underscore()
         if result is not None and not self.quiet():
-            if hasattr(result, '_repr_widget_'):
-                result._repr_widget_()
-            else:
-                self.start_displayhook()
-                self.write_output_prompt()
-                format_dict, md_dict = self.compute_format_data(result)
-                self.write_format_data(format_dict, md_dict)
-                self.update_user_ns(result)
-                self.log_output(format_dict)
-                self.finish_displayhook()
+            self.start_displayhook()
+            self.write_output_prompt()
+            format_dict, md_dict = self.compute_format_data(result)
+            self.write_format_data(format_dict, md_dict)
+            self.update_user_ns(result)
+            self.log_output(format_dict)
+            self.finish_displayhook()
 
     def flush(self):
         if not self.do_full_cache:
