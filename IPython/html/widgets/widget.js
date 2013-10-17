@@ -19,8 +19,10 @@
 // require(['components/underscore/underscore-min.js',
 //          'components/backbone/backbone-min.js'],
 
-var IPython = (function (IPython) {
-    "use strict";
+"use strict";
+
+// Only run once on a notebook.
+if (IPython.notebook.widget_manager == undefined) {
 
     //-----------------------------------------------------------------------
     // WidgetModel class
@@ -120,21 +122,21 @@ var IPython = (function (IPython) {
         
         // Create the corresponding widget model.
         var widget_model = new this.widget_model_types[widget_type_name];
-        
+
         // Remember comm associated with the model.
         widget_model.comm = comm;
         comm.model = widget_model;
-        
+
         // Create an array to remember the views associated with the model.
         widget_model.views = [];
-        
+
         // Add a handle to delete the control when the comm is closed.
         var that = this;
         var handle_close = function(msg) {
             that.handle_comm_closed(comm, msg);
         }
         comm.on_close(handle_close);
-        
+
         // Handle incomming messages.
         var handle_msg = function(msg) {
             that.handle_comm_msg(comm, msg);
@@ -147,11 +149,26 @@ var IPython = (function (IPython) {
         var widget_view = new this.widget_view_types[widget_view_name]({model: widget_model});
         widget_view.render();
         widget_model.views.push(widget_view);
-        
+
+        // Handle when the view element is remove from the page.
+        widget_view.$el.on("remove", function(){ 
+            var index = widget_model.views.indexOf(widget_view);
+            if (index > -1) {
+                widget_model.views.splice(index, 1);
+            }
+            widget_view.remove(); // Clean-up view 
+
+            // Close the comm if there are no views left.
+            if (widget_model.views.length()==0) {
+                widget_model.comm.close();     
+            }
+        });
+
         // Add the view's element to cell's widget div.
         widget_area
-            .append($("<div />").append(widget_view.$el));   
-        
+            .append($("<div />").append(widget_view.$el))
+            .parent().show(); // Show the widget_area (parent of widget_subarea)
+
         // Update the view based on the model contents.
         widget_view.refresh();
     }
@@ -162,18 +179,18 @@ var IPython = (function (IPython) {
         var method = msg.content.data.method;
         switch (method){
             case 'show':
-                
+
                 // TODO: Get cell from registered output handler.
                 var cell = IPython.notebook.get_cell(IPython.notebook.get_selected_index()-1);
                 var widget_subarea = cell.element.find('.widget_area').find('.widget_subarea');
-                
+
                 if (msg.content.data.parent != undefined) {
                     var find_results = widget_subarea.find("." + msg.content.data.parent);
                     if (find_results.length > 0) {
                         widget_subarea = find_results;
                     }
                 }
-                
+
                 this.show_view(widget_subarea, comm.model, msg.content.data.view_name);
                 break;
             case 'update':
@@ -235,7 +252,6 @@ var IPython = (function (IPython) {
     IPython.WidgetModel = WidgetModel;
     IPython.WidgetView = WidgetView;
 
-  
-    return IPython;
+    IPython.notebook.widget_manager = new WidgetManager(IPython.notebook.kernel.comm_manager);    
 
-}(IPython));
+}
