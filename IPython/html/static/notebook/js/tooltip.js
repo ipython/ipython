@@ -196,7 +196,10 @@ var IPython = (function (IPython) {
         }, that.time_before_tooltip);
     }
 
-    Tooltip.prototype._request_tooltip = function (cell, func) {
+    // easy access for julia monkey patching.
+    Tooltip.last_token_re = /[a-z_][0-9a-z._]+$/gi;
+
+    Tooltip.prototype.extract_oir_token = function(line){
         // use internally just to make the request to the kernel
         // Feel free to shorten this logic if you are better
         // than me in regEx
@@ -205,21 +208,25 @@ var IPython = (function (IPython) {
         // remove everything between matchin bracket (need to iterate)
         var matchBracket = /\([^\(\)]+\)/g;
         var endBracket = /\([^\(]*$/g;
-        var oldfunc = func;
+        var oldline = line;
 
-        func = func.replace(matchBracket, "");
-        while (oldfunc != func) {
-            oldfunc = func;
-            func = func.replace(matchBracket, "");
+        line = line.replace(matchBracket, "");
+        while (oldline != line) {
+            oldline = line;
+            line = line.replace(matchBracket, "");
         }
         // remove everything after last open bracket
-        func = func.replace(endBracket, "");
+        line = line.replace(endBracket, "");
+        return Tooltip.last_token_re.exec(line)
+    }
 
-        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
+
+    Tooltip.prototype._request_tooltip = function (cell, line) {
         var callbacks = {
             'object_info_reply': $.proxy(this._show, this)
         }
-        var msg_id = cell.kernel.object_info_request(re.exec(func), callbacks);
+        var oir_token = this.extract_oir_token(line)
+        cell.kernel.object_info_request(oir_token, callbacks);
     }
 
     // make an imediate completion request
