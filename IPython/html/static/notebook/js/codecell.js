@@ -304,9 +304,13 @@ var IPython = (function (IPython) {
      */
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output();
+        
+        // Clear widget area
         this.widget_subarea.html('');
         this.widget_subarea.height('');
         this.widget_area.height('');
+        this.widget_area.hide();
+
         this.set_input_prompt('*');
         this.element.addClass("running");
         if (this.last_msg_id) {
