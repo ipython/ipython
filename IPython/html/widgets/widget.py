@@ -1,18 +1,31 @@
 
 from copy import copy
+from glob import glob
 import uuid
 import sys
+import os
 
+import IPython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
 from IPython.utils.traitlets import Unicode, Dict
 from IPython.display import Javascript, display
+from IPython.utils.py3compat import string_types
+from IPython.utils.javascript import display_all_js
 
-class Widget(Comm):
-    
+def init_widget_js(cls):    
+    path = os.path.split(os.path.abspath( __file__ ))[0]
+    display_all_js(path)
+    for root, dirs, files in os.walk(path):
+        for sub_directory in dirs:
+            display_all_js(os.path.join(path, sub_directory))
+
+
+class Widget(LoggingConfigurable):
+
     ### Public declarations
     target_name = Unicode('widget')
-    view_name = Unicode()
+    default_view_name = Unicode()
     
     
     ### Private/protected declarations
@@ -31,19 +44,10 @@ class Widget(Comm):
         if parent is not None:
             parent._children.append(self)
         self._parent = parent
-
-        # Send frontend type code.
-        display(Javascript(data=self._get_backbone_js()))
-
-        # Create a comm.
-        self.comm = Comm(target_name=self.target_name)
-        self.comm.on_msg(self._handle_msg)
+        self.comm = None
         
         # Register after init to allow default values to be specified
         self.on_trait_change(self._handle_property_changed, self.keys)
-        
-        # Set initial properties on client model.
-        self.send_state()
         
         
     def __del__(self):
@@ -115,14 +119,23 @@ class Widget(Comm):
             # TODO: Validate properties.
             # Send new state to frontend
             self.send_state()
+
+
+    def _handle_close(self):
+        self.comm = None
     
     
     ### Public methods
-    def _repr_widget_(self):
-        view_name = self.view_name
+    def _repr_widget_(self, view_name=None):
         if not view_name:
-            view_name = self.target_name
-            
+            view_name = self.default_view_name
+        
+        # Create a comm.
+        if self.comm is None:
+            self.comm = Comm(target_name=self.target_name)
+            self.comm.on_msg(self._handle_msg)
+            self.comm.on_close(self._handle_close)
+        
         # Make sure model is syncronized
         self.send_state()
             
@@ -137,9 +150,9 @@ class Widget(Comm):
         # Now show children if any.
         for child in self.children:
             child._repr_widget_()
-        return self._get_backbone_js
-            
-    
+        return None
+
+
     def send_state(self):
         state = {}
         for key in self.keys:
@@ -148,8 +161,5 @@ class Widget(Comm):
             except Exception as e:
                 pass # Eat errors, nom nom nom
         self.comm.send({"method": "update",
-                   "state": state})
+                        "state": state})
     
-    ### Private methods
-    def _get_backbone_js(self):
-        return 'alert("woohoo!");'
