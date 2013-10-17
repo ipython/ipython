@@ -2009,7 +2009,7 @@ var IPython = (function (IPython) {
         var found = false;
         for (var i = 0; i < this.checkpoints.length; i++) {
             var existing = this.checkpoints[i];
-            if (existing.checkpoint_id == checkpoint.checkpoint_id) {
+            if (existing.id == checkpoint.id) {
                 found = true;
                 this.checkpoints[i] = checkpoint;
                 break;
@@ -2149,7 +2149,7 @@ var IPython = (function (IPython) {
                 Revert : {
                     class : "btn-danger",
                     click : function () {
-                        that.restore_checkpoint(checkpoint.checkpoint_id);
+                        that.restore_checkpoint(checkpoint.id);
                     }
                 },
                 Cancel : {}

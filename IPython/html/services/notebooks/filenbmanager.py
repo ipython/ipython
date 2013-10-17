@@ -278,7 +278,7 @@ class FileNotebookManager(NotebookManager):
         
         # clear checkpoints
         for checkpoint in self.list_checkpoints(name, path):
-            checkpoint_id = checkpoint['checkpoint_id']
+            checkpoint_id = checkpoint['id']
             cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
             if os.path.isfile(cp_path):
                 self.log.debug("Unlinking checkpoint %s", cp_path)
@@ -315,7 +315,7 @@ class FileNotebookManager(NotebookManager):
         # Move the checkpoints
         old_checkpoints = self.list_checkpoints(old_name, old_path)
         for cp in old_checkpoints:
-            checkpoint_id = cp['checkpoint_id']
+            checkpoint_id = cp['id']
             old_cp_path = self.get_checkpoint_path(checkpoint_id, old_name, old_path)
             new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, new_path)
             if os.path.isfile(old_cp_path):
@@ -346,7 +346,7 @@ class FileNotebookManager(NotebookManager):
         stats = os.stat(cp_path)
         last_modified = tz.utcfromtimestamp(stats.st_mtime)
         info = dict(
-            checkpoint_id = checkpoint_id,
+            id = checkpoint_id,
             last_modified = last_modified,
         )
         return info

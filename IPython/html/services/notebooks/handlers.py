@@ -180,9 +180,9 @@ class NotebookCheckpointsHandler(IPythonHandler):
         nbm = self.notebook_manager
         checkpoint = nbm.create_checkpoint(name, path)
         data = json.dumps(checkpoint, default=date_default)
-        location = url_path_join(self.base_project_url, u'/api/notebooks',
-            path, name, 'checkpoints', checkpoint[u'checkpoint_id'])
-        self.set_header(u'Location', location)
+        location = url_path_join(self.base_project_url, 'api/notebooks',
+            path, name, 'checkpoints', checkpoint['id'])
+        self.set_header('Location', location)
         self.set_status(201)
         self.finish(data)
 

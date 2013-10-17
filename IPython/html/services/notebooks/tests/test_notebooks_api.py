@@ -229,8 +229,8 @@ class APITest(NotebookTestBase):
         r = self.nb_api.new_checkpoint('a.ipynb', 'foo')
         self.assertEqual(r.status_code, 201)
         cp1 = r.json()
-        self.assertEqual(set(cp1), {'checkpoint_id', 'last_modified'})
-        self.assertEqual(r.headers['Location'].split('/')[-1], cp1['checkpoint_id'])
+        self.assertEqual(set(cp1), {'id', 'last_modified'})
+        self.assertEqual(r.headers['Location'].split('/')[-1], cp1['id'])
 
         # Modify it
         nbcontent = jsonapi.loads(resp.text)['content']
@@ -252,14 +252,14 @@ class APITest(NotebookTestBase):
         self.assertEqual(nb.worksheets[0].cells[0].source, 'Created by test')
 
         # Restore cp1
-        r = self.nb_api.restore_checkpoint('a.ipynb', 'foo', cp1['checkpoint_id'])
+        r = self.nb_api.restore_checkpoint('a.ipynb', 'foo', cp1['id'])
         self.assertEqual(r.status_code, 204)
         nbcontent = self.nb_api.read('a.ipynb', 'foo').json()['content']
         nb = to_notebook_json(nbcontent)
         self.assertEqual(nb.worksheets, [])
 
         # Delete cp1
-        r = self.nb_api.delete_checkpoint('a.ipynb', 'foo', cp1['checkpoint_id'])
+        r = self.nb_api.delete_checkpoint('a.ipynb', 'foo', cp1['id'])
         self.assertEqual(r.status_code, 204)
         cps = self.nb_api.get_checkpoints('a.ipynb', 'foo').json()
         self.assertEqual(cps, [])
