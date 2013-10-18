@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for the notebook manager."""
 
 import os
@@ -208,3 +209,22 @@ class TestNotebookManager(TestCase):
             
             # Check that a 'get' on the deleted notebook raises and error
             self.assertRaises(HTTPError, nm.get_notebook_model, name, path)
+    
+    def test_copy_notebook(self):
+        with TemporaryDirectory() as td:
+            # Test in the root directory
+            # Create a notebook
+            nm = FileNotebookManager(notebook_dir=td)
+            path = u'å b'
+            name = u'nb √.ipynb'
+            os.mkdir(os.path.join(td, path))
+            orig = nm.create_notebook_model({'name' : name}, path=path)
+            
+            # copy with unspecified name
+            copy = nm.copy_notebook(name, path=path)
+            self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy0.ipynb'))
+            
+            # copy with specified name
+            copy2 = nm.copy_notebook(name, u'copy 2.ipynb', path=path)
+            self.assertEqual(copy2['name'], u'copy 2.ipynb')
+    
