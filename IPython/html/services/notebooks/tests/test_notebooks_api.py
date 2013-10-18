@@ -7,8 +7,6 @@ import os
 import shutil
 from unicodedata import normalize
 
-from zmq.utils import jsonapi
-
 pjoin = os.path.join
 
 import requests
@@ -67,7 +65,7 @@ class NBAPI(object):
         return self._req('DELETE', url_path_join(path, name))
 
     def rename(self, name, path, new_name):
-        body = jsonapi.dumps({'name': new_name})
+        body = json.dumps({'name': new_name})
         return self._req('PATCH', url_path_join(path, name), body)
 
     def get_checkpoints(self, name, path):
@@ -186,14 +184,14 @@ class APITest(NotebookTestBase):
         nb = new_notebook(name='Upload test')
         nbmodel = {'content': nb}
         resp = self.nb_api.upload_untitled(path=u'å b',
-                                              body=jsonapi.dumps(nbmodel))
+                                              body=json.dumps(nbmodel))
         self._check_nb_created(resp, 'Untitled0.ipynb', u'å b')
 
     def test_upload(self):
         nb = new_notebook(name=u'ignored')
         nbmodel = {'content': nb}
         resp = self.nb_api.upload(u'Upload tést.ipynb', path=u'å b',
-                                              body=jsonapi.dumps(nbmodel))
+                                              body=json.dumps(nbmodel))
         self._check_nb_created(resp, u'Upload tést.ipynb', u'å b')
 
     def test_copy_untitled(self):
@@ -226,14 +224,14 @@ class APITest(NotebookTestBase):
 
     def test_save(self):
         resp = self.nb_api.read('a.ipynb', 'foo')
-        nbcontent = jsonapi.loads(resp.text)['content']
+        nbcontent = json.loads(resp.text)['content']
         nb = to_notebook_json(nbcontent)
         ws = new_worksheet()
         nb.worksheets = [ws]
         ws.cells.append(new_heading_cell(u'Created by test ³'))
 
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb}
-        resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
+        resp = self.nb_api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
 
         nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
         with io.open(nbfile, 'r', encoding='utf-8') as f:
@@ -247,7 +245,7 @@ class APITest(NotebookTestBase):
 
         # Save and rename
         nbmodel= {'name': 'a2.ipynb', 'path':'foo/bar', 'content': nb}
-        resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
+        resp = self.nb_api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
         saved = resp.json()
         self.assertEqual(saved['name'], 'a2.ipynb')
         self.assertEqual(saved['path'], 'foo/bar')
@@ -265,7 +263,7 @@ class APITest(NotebookTestBase):
         self.assertEqual(r.headers['Location'].split('/')[-1], cp1['id'])
 
         # Modify it
-        nbcontent = jsonapi.loads(resp.text)['content']
+        nbcontent = json.loads(resp.text)['content']
         nb = to_notebook_json(nbcontent)
         ws = new_worksheet()
         nb.worksheets = [ws]
@@ -273,7 +271,7 @@ class APITest(NotebookTestBase):
         ws.cells.append(hcell)
         # Save
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb}
-        resp = self.nb_api.save('a.ipynb', path='foo', body=jsonapi.dumps(nbmodel))
+        resp = self.nb_api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
 
         # List checkpoints
         cps = self.nb_api.get_checkpoints('a.ipynb', 'foo').json()
