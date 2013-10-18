@@ -16,16 +16,21 @@ from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.current import (new_notebook, write, read, new_worksheet,
                                       new_heading_cell, to_notebook_json)
+from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
+
 
 class NBAPI(object):
     """Wrapper for notebook API calls."""
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def _req(self, verb, path, body=None):
+    def _req(self, verb, path, body=None, params=None):
         response = requests.request(verb,
-                url_path_join(self.base_url, 'api/notebooks', path), data=body)
+                url_path_join(self.base_url, 'api/notebooks', path),
+                data=body,
+                params=params,
+        )
         response.raise_for_status()
         return response
 
@@ -38,11 +43,20 @@ class NBAPI(object):
     def create_untitled(self, path='/'):
         return self._req('POST', path)
 
-    def upload(self, name, body, path='/'):
-        return self._req('POST', url_path_join(path, name), body)
+    def upload_untitled(self, body, path='/'):
+        return self._req('POST', path, body)
 
-    def copy(self, name, path='/'):
-        return self._req('POST', url_path_join(path, name, 'copy'))
+    def copy_untitled(self, copy_from, path='/'):
+        return self._req('POST', path, params={'copy':copy_from})
+
+    def create(self, name, path='/'):
+        return self._req('PUT', url_path_join(path, name))
+
+    def upload(self, name, body, path='/'):
+        return self._req('PUT', url_path_join(path, name), body)
+
+    def copy(self, copy_from, copy_to, path='/'):
+        return self._req('PUT', url_path_join(path, copy_to), params={'copy':copy_from})
 
     def save(self, name, body, path='/'):
         return self._req('PUT', url_path_join(path, name), body)
@@ -76,6 +90,7 @@ class APITest(NotebookTestBase):
                 ('foo', 'name with spaces'),
                 ('foo', u'unicodé'),
                 ('foo/bar', 'baz'),
+                (u'å b', u'ç d')
                ]
 
     dirs = uniq_stable([d for (d,n) in dirs_nbs])
@@ -85,7 +100,8 @@ class APITest(NotebookTestBase):
         nbdir = self.notebook_dir.name
 
         for d in self.dirs:
-            os.mkdir(pjoin(nbdir, d))
+            if not os.path.isdir(pjoin(nbdir, d)):
+                os.mkdir(pjoin(nbdir, d))
 
         for d, name in self.dirs_nbs:
             with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w') as f:
@@ -97,7 +113,7 @@ class APITest(NotebookTestBase):
     def tearDown(self):
         nbdir = self.notebook_dir.name
 
-        for dname in ['foo', 'Directory with spaces in', u'unicodé']:
+        for dname in ['foo', 'Directory with spaces in', u'unicodé', u'å b']:
             shutil.rmtree(pjoin(nbdir, dname), ignore_errors=True)
 
         if os.path.isfile(pjoin(nbdir, 'inroot.ipynb')):
@@ -115,10 +131,12 @@ class APITest(NotebookTestBase):
         nbs = self.nb_api.list(u'/unicodé/').json()
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'innonascii.ipynb')
+        self.assertEqual(nbs[0]['path'], u'unicodé')
 
         nbs = self.nb_api.list('/foo/bar/').json()
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'baz.ipynb')
+        self.assertEqual(nbs[0]['path'], 'foo/bar')
 
         nbs = self.nb_api.list('foo').json()
         self.assertEqual(len(nbs), 4)
@@ -134,7 +152,7 @@ class APITest(NotebookTestBase):
     def test_get_contents(self):
         for d, name in self.dirs_nbs:
             nb = self.nb_api.read('%s.ipynb' % name, d+'/').json()
-            self.assertEqual(nb['name'], '%s.ipynb' % name)
+            self.assertEqual(nb['name'], u'%s.ipynb' % name)
             self.assertIn('content', nb)
             self.assertIn('metadata', nb['content'])
             self.assertIsInstance(nb['content']['metadata'], dict)
@@ -145,32 +163,44 @@ class APITest(NotebookTestBase):
 
     def _check_nb_created(self, resp, name, path):
         self.assertEqual(resp.status_code, 201)
-        self.assertEqual(resp.headers['Location'].split('/')[-1], name)
+        location_header = py3compat.str_to_unicode(resp.headers['Location'])
+        self.assertEqual(location_header.split('/')[-1], name)
         self.assertEqual(resp.json()['name'], name)
         assert os.path.isfile(pjoin(self.notebook_dir.name, path, name))
 
     def test_create_untitled(self):
-        resp = self.nb_api.create_untitled(path='foo')
-        self._check_nb_created(resp, 'Untitled0.ipynb', 'foo')
+        resp = self.nb_api.create_untitled(path=u'å b')
+        self._check_nb_created(resp, 'Untitled0.ipynb', u'å b')
 
         # Second time
-        resp = self.nb_api.create_untitled(path='foo')
-        self._check_nb_created(resp, 'Untitled1.ipynb', 'foo')
+        resp = self.nb_api.create_untitled(path=u'å b')
+        self._check_nb_created(resp, 'Untitled1.ipynb', u'å b')
 
         # And two directories down
         resp = self.nb_api.create_untitled(path='foo/bar')
         self._check_nb_created(resp, 'Untitled0.ipynb', pjoin('foo', 'bar'))
 
-    def test_upload(self):
+    def test_upload_untitled(self):
         nb = new_notebook(name='Upload test')
         nbmodel = {'content': nb}
-        resp = self.nb_api.upload('Upload test.ipynb', path='foo',
+        resp = self.nb_api.upload_untitled(path=u'å b',
                                               body=jsonapi.dumps(nbmodel))
-        self._check_nb_created(resp, 'Upload test.ipynb', 'foo')
+        self._check_nb_created(resp, 'Untitled0.ipynb', 'å b')
+
+    def test_upload(self):
+        nb = new_notebook(name=u'ignored')
+        nbmodel = {'content': nb}
+        resp = self.nb_api.upload(u'Upload tést.ipynb', path=u'å b',
+                                              body=jsonapi.dumps(nbmodel))
+        self._check_nb_created(resp, u'Upload tést.ipynb', u'å b')
+
+    def test_copy_untitled(self):
+        resp = self.nb_api.copy_untitled(u'ç d.ipynb', path=u'å b')
+        self._check_nb_created(resp, u'ç d-Copy0.ipynb', u'å b')
 
     def test_copy(self):
-        resp = self.nb_api.copy('a.ipynb', path='foo')
-        self._check_nb_created(resp, 'a-Copy0.ipynb', 'foo')
+        resp = self.nb_api.copy(u'ç d.ipynb', u'cøpy.ipynb', path=u'å b')
+        self._check_nb_created(resp, u'cøpy.ipynb', u'å b')
 
     def test_delete(self):
         for d, name in self.dirs_nbs:
