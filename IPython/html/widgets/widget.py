@@ -16,8 +16,9 @@ def init_widget_js():
     for filepath in glob(os.path.join(path, "*.py")):
         filename = os.path.split(filepath)[1]
         name = filename.rsplit('.', 1)[0]
-        if not (name == 'base' or name == '__init__'):
-            js_path = 'static/notebook/js/widgets/%s.js' % name
+        if not (name == 'widget' or name == '__init__') and name.startswith('widget_'):
+            # Remove 'widget_' from the start of the name before compiling the path.
+            js_path = 'static/notebook/js/widgets/%s.js' % name[7:]
             display(Javascript(data='$.getScript("%s");' % js_path))  
 
 

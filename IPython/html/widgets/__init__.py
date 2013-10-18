@@ -1,10 +1,10 @@
-from base import Widget, init_widget_js
+from widget import Widget, init_widget_js
 
-from bool import BoolWidget
-from container import ContainerWidget
-from float import FloatWidget
-from float_range import FloatRangeWidget
-from int import IntWidget
-from int_range import IntRangeWidget
-from selection import SelectionWidget
-from string import StringWidget
+from widget_bool import BoolWidget
+from widget_container import ContainerWidget
+from widget_float import FloatWidget
+from widget_float_range import FloatRangeWidget
+from widget_int import IntWidget
+from widget_int_range import IntRangeWidget
+from widget_selection import SelectionWidget
+from widget_string import StringWidget
