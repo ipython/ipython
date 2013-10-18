@@ -18,6 +18,8 @@ from pygments import highlight as pygements_highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from pygments.formatters import LatexFormatter
+from IPython.config import catch_config_error, Configurable
+from IPython.utils.traitlets import Unicode
 
 # Our own imports
 from IPython.nbconvert.utils.lexers import IPythonLexer
@@ -33,26 +35,32 @@ MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 #-----------------------------------------------------------------------------
 
 __all__ = [
-    'highlight2html',
+    'Highlight2Html',
     'highlight2latex'
 ]
 
 
-def highlight2html(source, language='ipython', metadata=None):
-    """
-    Return a syntax-highlighted version of the input source as html output.
+class Highlight2Html(Configurable):
 
-    Parameters
-    ----------
-    source : str
-        source of the cell to highlight
-    language : str
-        language to highlight the syntax of
-    metadata : NotebookNode cell metadata
-        metadata of the cell to highlight
-    """
+    language = Unicode('ipython', config=True, help='default highlight language')
 
-    return _pygment_highlight(source, HtmlFormatter(), language, metadata)
+    def __call__(self, source, language=None, metadata=None):
+        """
+        Return a syntax-highlighted version of the input source as html output.
+
+        Parameters
+        ----------
+        source : str
+            source of the cell to highlight
+        language : str
+            language to highlight the syntax of
+        metadata : NotebookNode cell metadata
+            metadata of the cell to highlight
+        """
+        if not language:
+            language=self.language
+
+        return _pygment_highlight(source, HtmlFormatter(), language, metadata)
 
 
 def highlight2latex(source, language='ipython', metadata=None, strip_verbatim=False):

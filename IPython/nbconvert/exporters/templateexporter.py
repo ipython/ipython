@@ -43,7 +43,7 @@ default_filters = {
         'ansi2html': filters.ansi2html,
         'filter_data_type': filters.DataTypeFilter,
         'get_lines': filters.get_lines,
-        'highlight2html': filters.highlight2html,
+        'highlight2html': filters.Highlight2Html,
         'highlight2latex': filters.highlight2latex,
         'ipython2python': filters.ipython2python,
         'posix_path': filters.posix_path,
