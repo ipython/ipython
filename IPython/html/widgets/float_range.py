@@ -1,13 +1,9 @@
-import os
-
 from base import Widget
 from IPython.utils.traitlets import Unicode, Float, Bool, List
-from IPython.utils.javascript import display_all_js
 
 class FloatRangeWidget(Widget):
     target_name = Unicode('FloatRangeWidgetModel')
     default_view_name = Unicode('FloatSliderView')
-    js_requirements = List(["static/notebook/js/widgets/float_range.js"])
     _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation']
     
     value = Float(0.0) 
