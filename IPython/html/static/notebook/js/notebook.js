@@ -33,6 +33,7 @@ var IPython = (function (IPython) {
         this.element.data("notebook", this);
         this.next_prompt_number = 1;
         this.session = null;
+        this.kernel = null;
         this.clipboard = null;
         this.undelete_backup = null;
         this.undelete_index = null;
@@ -797,7 +798,7 @@ var IPython = (function (IPython) {
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
-                cell = new IPython.CodeCell(this.session);
+                cell = new IPython.CodeCell(this.kernel);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 cell = new IPython.MarkdownCell();
@@ -1390,21 +1391,21 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.start_session = function () {
         this.session = new IPython.Session(this.notebook_name, this.notebook_path, this);
-        this.session.start();
-        this.link_cells_to_session();
+        this.session.start($.proxy(this._session_started, this));
     };
 
 
     /**
-     * Once a session is started, link the code cells to the session
+     * Once a session is started, link the code cells to the kernel
      *
      */
-    Notebook.prototype.link_cells_to_session= function(){
+    Notebook.prototype._session_started = function(){
+        this.kernel = this.session.kernel;
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
             if (cell instanceof IPython.CodeCell) {
-                cell.set_session(this.session);
+                cell.set_kernel(this.session.kernel);
             };
         };  
     };
@@ -1806,21 +1807,20 @@ var IPython = (function (IPython) {
         $.ajax(url,settings);
     };
 
-    Notebook.prototype.notebook_rename = function (nbname) {
+    Notebook.prototype.rename = function (nbname) {
         var that = this;
-        var new_name = nbname + '.ipynb'
-        var name = {'name': new_name};
+        var data = {name: nbname + '.ipynb'};
         var settings = {
             processData : false,
             cache : false,
             type : "PATCH",
-            data : JSON.stringify(name),
+            data : JSON.stringify(data),
             dataType: "json",
             headers : {'Content-Type': 'application/json'},
             success : $.proxy(that.rename_success, this),
             error : $.proxy(that.rename_error, this)
         };
-        $([IPython.events]).trigger('notebook_rename.Notebook');
+        $([IPython.events]).trigger('rename_notebook.Notebook', data);
         var url = utils.url_path_join(
             this.baseProjectUrl(),
             'api/notebooks',
@@ -1835,8 +1835,8 @@ var IPython = (function (IPython) {
         this.notebook_name = json.name
         var name = this.notebook_name
         var path = json.path
-        this.session.notebook_rename(name, path);
-        $([IPython.events]).trigger('notebook_renamed.Notebook');
+        this.session.rename_notebook(name, path);
+        $([IPython.events]).trigger('notebook_renamed.Notebook', json);
     }
 
     Notebook.prototype.rename_error = function (json, status, xhr) {

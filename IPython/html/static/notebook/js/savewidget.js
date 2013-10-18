@@ -95,7 +95,7 @@ var IPython = (function (IPython) {
                         );
                         return false;
                     } else {
-                        IPython.notebook.notebook_rename(new_name);
+                        IPython.notebook.rename(new_name);
                     }
                 }}
                 },

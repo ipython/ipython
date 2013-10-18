@@ -23,7 +23,7 @@ var IPython = (function (IPython) {
         this._baseProjectUrl = notebook.baseProjectUrl();
     };
     
-    Session.prototype.start = function() {
+    Session.prototype.start = function(callback) {
         var that = this;
         var model = {
             notebook : {
@@ -37,13 +37,18 @@ var IPython = (function (IPython) {
             type : "POST",
             data: JSON.stringify(model),
             dataType : "json",
-            success : $.proxy(this.start_kernel, that),
+            success : function (data, status, xhr) {
+                that._handle_start_success(data);
+                if (callback) {
+                    callback(data, status, xhr);
+                }
+            },
         };
         var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions');
         $.ajax(url, settings);
     };
     
-    Session.prototype.notebook_rename = function (name, path) {
+    Session.prototype.rename_notebook = function (name, path) {
         this.name = name;
         this.path = path;
         var model = {
@@ -63,7 +68,7 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
     
-    Session.prototype.delete_session = function() {
+    Session.prototype.delete = function() {
         var settings = {
             processData : false,
             cache : false,
@@ -76,16 +81,15 @@ var IPython = (function (IPython) {
     
     // Kernel related things
     /**
-     * Start a new kernel and set it on each code cell.
+     * Create the Kernel object associated with this Session.
      * 
-     * @method start_kernel
+     * @method _handle_start_success
      */
-    Session.prototype.start_kernel = function (json) {
-        this.id = json.id;
-        this.kernel_content = json.kernel;
+    Session.prototype._handle_start_success = function (data, status, xhr) {
+        this.id = data.id;
         var base_url = utils.url_path_join($('body').data('baseKernelUrl'), "api/kernels");
-        this.kernel = new IPython.Kernel(base_url, this.session_id);
-        this.kernel._kernel_started(this.kernel_content);
+        this.kernel = new IPython.Kernel(base_url);
+        this.kernel._kernel_started(data.kernel);
     };
     
     /**

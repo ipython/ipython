@@ -128,7 +128,7 @@ var IPython = (function (IPython) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
         var empty = function () {};
-        cell.session.kernel.execute(
+        cell.kernel.execute(
         that.name + '?', {
             'execute_reply': empty,
             'output': empty,
@@ -226,7 +226,7 @@ var IPython = (function (IPython) {
             'object_info_reply': $.proxy(this._show, this)
         }
         var oir_token = this.extract_oir_token(line);
-        var msg_id = cell.session.kernel.object_info_request(oir_token, callbacks);
+        var msg_id = cell.kernel.object_info_request(oir_token, callbacks);
     }
 
     // make an imediate completion request

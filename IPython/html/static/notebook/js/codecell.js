@@ -60,8 +60,8 @@ var IPython = (function (IPython) {
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
-    var CodeCell = function (session, options) {
-        this.session = session || null;
+    var CodeCell = function (kernel, options) {
+        this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.collapsed = false;
@@ -231,8 +231,8 @@ var IPython = (function (IPython) {
 
     // Kernel related calls.
 
-    CodeCell.prototype.set_session = function (session) {
-        this.session = session;
+    CodeCell.prototype.set_kernel = function (kernel) {
+        this.kernel = kernel;
     }
 
     /**
@@ -250,7 +250,7 @@ var IPython = (function (IPython) {
             'set_next_input': $.proxy(this._handle_set_next_input, this),
             'input_request': $.proxy(this._handle_input_request, this)
         };
-        this.last_msg_id = this.session.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
     };
 
     /**
