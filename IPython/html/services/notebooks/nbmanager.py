@@ -131,14 +131,18 @@ class NotebookManager(LoggingConfigurable):
         model = self.save_notebook_model(model, model['name'], model['path'])
         return model
 
-    def copy_notebook(self, name, path=''):
-        """Copy an existing notebook and return its new model."""
+    def copy_notebook(self, from_name, to_name=None, path=''):
+        """Copy an existing notebook and return its new model.
+        
+        If to_name not specified, increment `from_name-Copy#.ipynb`.
+        """
         path = path.strip('/')
-        model = self.get_notebook_model(name, path)
-        name = os.path.splitext(name)[0] + '-Copy'
-        name = self.increment_filename(name, path)
-        model['name'] = name
-        model = self.save_notebook_model(model, name, path)
+        model = self.get_notebook_model(from_name, path)
+        if not to_name:
+            base = os.path.splitext(from_name)[0] + '-Copy'
+            to_name = self.increment_filename(base, path)
+        model['name'] = to_name
+        model = self.save_notebook_model(model, to_name, path)
         return model
     
     # Checkpoint-related
