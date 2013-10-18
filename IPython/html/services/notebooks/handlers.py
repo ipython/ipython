@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -46,6 +46,14 @@ class NotebookHandler(IPythonHandler):
         """
         return url_path_join(self.base_project_url, 'api', 'notebooks', path, name)
 
+    def _finish_model(self, model, location=True):
+        """Finish a JSON request with a model, setting relevant headers, etc."""
+        if location:
+            location = self.notebook_location(model['name'], model['path'])
+            self.set_header('Location', location)
+        self.set_header('Last-Modified', model['last_modified'])
+        self.finish(json.dumps(model, default=date_default))
+    
     @web.authenticated
     @json_errors
     def get(self, path='', name=None):
@@ -63,8 +71,7 @@ class NotebookHandler(IPythonHandler):
             return
         # get and return notebook representation
         model = nbm.get_notebook_model(name, path)
-        self.set_header(u'Last-Modified', model[u'last_modified'])
-        self.finish(json.dumps(model, default=date_default))
+        self._finish_model(model, location=False)
 
     @web.authenticated
     @json_errors
@@ -77,55 +84,111 @@ class NotebookHandler(IPythonHandler):
         if model is None:
             raise web.HTTPError(400, u'JSON body missing')
         model = nbm.update_notebook_model(model, name, path)
-        location = self.notebook_location(model[u'name'], model[u'path'])
-        self.set_header(u'Location', location)
-        self.set_header(u'Last-Modified', model[u'last_modified'])
-        self.finish(json.dumps(model, default=date_default))
-
+        self._finish_model(model)
+    
+    def _copy_notebook(self, copy_from, path, copy_to=None):
+        """Copy a notebook in path, optionally specifying the new name.
+        
+        Only support copying within the same directory.
+        """
+        self.log.info(u"Copying notebook from %s/%s to %s/%s",
+            path, copy_from,
+            path, copy_to or '',
+        )
+        model = self.notebook_manager.copy_notebook(copy_from, copy_to, path)
+        self.set_status(201)
+        self._finish_model(model)
+    
+    def _upload_notebook(self, model, path, name=None):
+        """Upload a notebook
+        
+        If name specified, create it in path/name.
+        """
+        self.log.info(u"Uploading notebook to %s/%s", path, name or '')
+        if name:
+            model['name'] = name
+        
+        model = self.notebook_manager.create_notebook_model(model, path)
+        self.set_status(201)
+        self._finish_model(model)
+    
+    def _create_empty_notebook(self, path, name=None):
+        """Create an empty notebook in path
+        
+        If name specified, create it in path/name.
+        """
+        self.log.info(u"Creating new notebook in %s/%s", path, name or '')
+        model = {}
+        if name:
+            model['name'] = name
+        model = self.notebook_manager.create_notebook_model(model, path=path)
+        self.set_status(201)
+        self._finish_model(model)
+    
+    def _save_notebook(self, model, path, name):
+        """Save an existing notebook."""
+        self.log.info(u"Saving notebook at %s/%s", path, name)
+        model = self.notebook_manager.save_notebook_model(model, name, path)
+        if model['path'] != path.strip('/') or model['name'] != name:
+            # a rename happened, set Location header
+            location = True
+        else:
+            location = False
+        self._finish_model(model, location)
+    
     @web.authenticated
     @json_errors
     def post(self, path='', name=None):
         """Create a new notebook in the specified path.
         
-        POST creates new notebooks.
+        POST creates new notebooks. The server always decides on the notebook name.
         
         POST /api/notebooks/path : new untitled notebook in path
-        POST /api/notebooks/path/notebook.ipynb : new notebook with name in path
-            If content specified upload notebook, otherwise start empty.
+            If content specified, upload a notebook, otherwise start empty.
+        POST /api/notebooks/path?copy=OtherNotebook.ipynb : new copy of OtherNotebook in path
         """
-        nbm = self.notebook_manager
-        model = self.get_json_body()
-        if name is None:
-            # creating new notebook, model doesn't make sense
-            if model is not None:
-                raise web.HTTPError(400, "Model not valid when creating untitled notebooks.")
-            model = nbm.create_notebook_model(path=path)
-        else:
-            if model is None:
-                self.log.info("Creating new Notebook at %s/%s", path, name)
-                model = {}
-            else:
-                self.log.info("Uploading Notebook to %s/%s", path, name)
-            # set the model name from the URL
-            model['name'] = name
-            model = nbm.create_notebook_model(model, path)
         
-        location = self.notebook_location(model[u'name'], model[u'path'])
-        self.set_header(u'Location', location)
-        self.set_header(u'Last-Modified', model[u'last_modified'])
-        self.set_status(201)
-        self.finish(json.dumps(model, default=date_default))
+        model = self.get_json_body()
+        copy = self.get_argument("copy", default="")
+        if name is not None:
+            raise web.HTTPError(400, "Only POST to directories. Use PUT for full names")
+        
+        if copy:
+            self._copy_notebook(copy, path)
+        elif model:
+            self._upload_notebook(model, path)
+        else:
+            self._create_empty_notebook(path)
 
     @web.authenticated
     @json_errors
     def put(self, path='', name=None):
-        """saves the notebook in the location given by 'notebook_path'."""
-        nbm = self.notebook_manager
+        """Saves the notebook in the location specified by name and path.
+        
+        PUT /api/notebooks/path/Name.ipynb : Save notebook at path/Name.ipynb
+            Notebook structure is specified in `content` key of JSON request body.
+            If content is not specified, create a new empty notebook.
+        PUT /api/notebooks/path/Name.ipynb?copy=OtherNotebook.ipynb : copy OtherNotebook to Name
+        
+        POST and PUT are basically the same. The only difference:
+        
+        - with POST, server always picks the name, with PUT the requester does
+        """
+        if name is None:
+            raise web.HTTPError(400, "Only PUT to full names. Use POST for directories.")
         model = self.get_json_body()
-        if model is None:
-            raise web.HTTPError(400, u'JSON body missing')
-        nbm.save_notebook_model(model, name, path)
-        self.finish(json.dumps(model, default=date_default))
+        copy = self.get_argument("copy", default="")
+        if copy:
+            if model is not None:
+                raise web.HTTPError(400)
+            self._copy_notebook(copy, path, name)
+        elif model:
+            if self.notebook_manager.notebook_exists(name, path):
+                self._save_notebook(model, path, name)
+            else:
+                self._upload_notebook(model, path, name)
+        else:
+            self._create_empty_notebook(path, name)
 
     @web.authenticated
     @json_errors
@@ -136,29 +199,6 @@ class NotebookHandler(IPythonHandler):
         self.set_status(204)
         self.finish()
 
-class NotebookCopyHandler(IPythonHandler):
-    
-    SUPPORTED_METHODS = ('POST')
-    
-    @web.authenticated
-    @json_errors
-    def post(self, path='', name=None):
-        """Copy an existing notebook."""
-        nbm = self.notebook_manager
-        model = self.get_json_body()
-        if name is None:
-            raise web.HTTPError(400, "Notebook name required")
-        self.log.info("Copying Notebook %s/%s", path, name)
-        model = nbm.copy_notebook(name, path)
-        location =  url_path_join(
-            self.base_project_url, 'api', 'notebooks',
-            model['path'], model['name'],
-        )
-        self.set_header(u'Location', location)
-        self.set_header(u'Last-Modified', model[u'last_modified'])
-        self.set_status(201)
-        self.finish(json.dumps(model, default=date_default))
-    
 
 class NotebookCheckpointsHandler(IPythonHandler):
     
@@ -220,7 +260,6 @@ _notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
 _notebook_path_regex = "%s/%s" % (_path_regex, _notebook_name_regex)
 
 default_handlers = [
-    (r"/api/notebooks%s/copy" % _notebook_path_regex, NotebookCopyHandler),
     (r"/api/notebooks%s/checkpoints" % _notebook_path_regex, NotebookCheckpointsHandler),
     (r"/api/notebooks%s/checkpoints/%s" % (_notebook_path_regex, _checkpoint_id_regex),
         ModifyNotebookCheckpointsHandler),
