@@ -103,7 +103,6 @@ Inheritance diagram:
             Portions (c) 2009 by Robert Kern.
 :license: BSD License.
 """
-from __future__ import with_statement
 from contextlib import contextmanager
 import sys
 import types
@@ -658,7 +657,7 @@ def _type_pprint(obj, p, cycle):
         # and others may set it to None.
         return p.text(obj.__name__)
 
-    if mod in ('__builtin__', 'exceptions'):
+    if mod in ('__builtin__', 'builtins', 'exceptions'):
         name = obj.__name__
     else:
         name = mod + '.' + obj.__name__
@@ -672,7 +671,7 @@ def _repr_pprint(obj, p, cycle):
 
 def _function_pprint(obj, p, cycle):
     """Base pprint for all functions and builtin functions."""
-    if obj.__module__ in ('__builtin__', 'exceptions') or not obj.__module__:
+    if obj.__module__ in ('__builtin__', 'builtins', 'exceptions') or not obj.__module__:
         name = obj.__name__
     else:
         name = obj.__module__ + '.' + obj.__name__
