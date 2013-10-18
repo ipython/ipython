@@ -64,7 +64,7 @@ var IPython = (function (IPython) {
             data: JSON.stringify(model),
             dataType : "json",
         };
-        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.session_id);
+        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     
@@ -75,7 +75,7 @@ var IPython = (function (IPython) {
             type : "DELETE",
             dataType : "json",
         };
-        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.session_id);
+        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     
