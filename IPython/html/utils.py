@@ -15,6 +15,8 @@ Authors:
 import os
 from urllib import quote, unquote
 
+from IPython.utils import py3compat
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -54,13 +56,16 @@ def url_escape(path):
     
     Turns '/foo bar/' into '/foo%20bar/'
     """
-    parts = path.split('/')
-    return '/'.join([quote(p) for p in parts])
+    parts = py3compat.unicode_to_str(path).split('/')
+    return u'/'.join([quote(p) for p in parts])
 
 def url_unescape(path):
     """Unescape special characters in a URL path
     
     Turns '/foo%20bar/' into '/foo bar/'
     """
-    return '/'.join([unquote(p) for p in path.split('/')])
+    return u'/'.join([
+        py3compat.str_to_unicode(unquote(p))
+        for p in py3compat.unicode_to_str(path).split('/')
+    ])
 
