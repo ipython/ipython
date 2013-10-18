@@ -4,6 +4,7 @@ from bool import BoolWidget
 from container import ContainerWidget
 from float import FloatWidget
 from float_range import FloatRangeWidget
+from int import IntWidget
 from int_range import IntRangeWidget
 from selection import SelectionWidget
 from string import StringWidget
