@@ -17,8 +17,7 @@ casper.notebook_test(function () {
     this.then(function () {
         var result = this.evaluate(function () {
             var cell = IPython.notebook.get_cell(0);
-            var output = cell.output_area.outputs[0].ename;
-            return output;
+            return cell.output_area.outputs[0].ename;
         })
         this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt (mouseclick)');
     });
@@ -39,8 +38,7 @@ casper.notebook_test(function () {
     this.then(function () {
         var result = this.evaluate(function () {
             var cell = IPython.notebook.get_cell(0);
-            var output = cell.output_area.outputs[0].ename;
-            return output;
+            return cell.output_area.outputs[0].ename;
         });
         this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt (shortcut)');
     });
