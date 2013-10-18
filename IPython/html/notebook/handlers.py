@@ -67,6 +67,8 @@ class NotebookRedirectHandler(IPythonHandler):
             # otherwise, redirect to /files
             # TODO: This should check if it's actually a file
             url = url_path_join(self.base_project_url, 'files', path)
+        url = url_escape(url)
+        self.log.debug("Redirecting %s to %s", self.request.path, url)
         self.redirect(url)
 
 #-----------------------------------------------------------------------------
