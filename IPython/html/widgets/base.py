@@ -11,13 +11,21 @@ from IPython.utils.traitlets import Unicode, Dict, List
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
+def init_widget_js():
+    path = os.path.split(os.path.abspath( __file__ ))[0]
+    for filepath in glob(os.path.join(path, "*.py")):
+        filename = os.path.split(filepath)[1]
+        name = filename.rsplit('.', 1)[0]
+        if not (name == 'base' or name == '__init__'):
+            js_path = 'static/notebook/js/widgets/%s.js' % name
+            display(Javascript(data='$.getScript("%s");' % js_path))  
+
 
 class Widget(LoggingConfigurable):
 
     ### Public declarations
     target_name = Unicode('widget')
     default_view_name = Unicode()
-    js_requirements = List()
     
     
     ### Private/protected declarations
@@ -122,11 +130,6 @@ class Widget(LoggingConfigurable):
         if not view_name:
             view_name = self.default_view_name
         
-        # Require traitlet specified widget js
-        self._require_js('static/notebook/js/widget.js')
-        for requirement in self.js_requirements:
-            self._require_js(requirement)
-
         # Create a comm.
         if self.comm is None:
             self.comm = Comm(target_name=self.target_name)
@@ -159,10 +162,3 @@ class Widget(LoggingConfigurable):
                 pass # Eat errors, nom nom nom
         self.comm.send({"method": "update",
                         "state": state})
-    
-    ### Private methods
-
-    def _require_js(self, js_path):
-        # Since we are loading requirements that must be loaded before this call
-        # returns, preform async js load.
-        display(Javascript(data='$.ajax({url: "%s", async: false, dataType: "script", timeout: 1000});' % js_path))
