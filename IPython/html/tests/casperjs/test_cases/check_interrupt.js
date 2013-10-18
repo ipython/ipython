@@ -8,6 +8,8 @@ casper.notebook_test(function () {
         cell.execute();
     });
 
+
+    // interrupt using menu item (Kernel -> Interrupt)
     this.thenClick('li#int_kernel');
 
     this.wait_for_output(0);
@@ -18,6 +20,28 @@ casper.notebook_test(function () {
             var output = cell.output_area.outputs[0].ename;
             return output;
         })
-        this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt')
+        this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt (mouseclick)');
+    });
+
+    // run cell 0 again, now interrupting using keyboard shortcut
+    this.thenEvaluate(function () {
+        cell.clear_output();
+        cell.execute();
+    });
+
+    // interrupt using Ctrl-M I keyboard shortcut
+    this.thenEvaluate( function() {
+        IPython.utils.press_ghetto(IPython.utils.keycodes.I)
+    });
+    
+    this.wait_for_output(0);
+    
+    this.then(function () {
+        var result = this.evaluate(function () {
+            var cell = IPython.notebook.get_cell(0);
+            var output = cell.output_area.outputs[0].ename;
+            return output;
+        });
+        this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt (shortcut)');
     });
 });
