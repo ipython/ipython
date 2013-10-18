@@ -713,7 +713,7 @@ class HistorySavingThread(threading.Thread):
     stop_now = False
     enabled = True
     def __init__(self, history_manager):
-        super(HistorySavingThread, self).__init__()
+        super(HistorySavingThread, self).__init__(name="IPythonHistorySavingThread")
         self.history_manager = history_manager
         self.enabled = history_manager.enabled
         atexit.register(self.stop)
