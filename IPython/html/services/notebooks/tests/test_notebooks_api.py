@@ -2,6 +2,7 @@
 """Test the notebooks webservice API."""
 
 import io
+import json
 import os
 import shutil
 from unicodedata import normalize
@@ -25,11 +26,10 @@ class NBAPI(object):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def _req(self, verb, path, body=None, params=None):
+    def _req(self, verb, path, body=None):
         response = requests.request(verb,
                 url_path_join(self.base_url, 'api/notebooks', path),
                 data=body,
-                params=params,
         )
         response.raise_for_status()
         return response
@@ -47,7 +47,8 @@ class NBAPI(object):
         return self._req('POST', path, body)
 
     def copy_untitled(self, copy_from, path='/'):
-        return self._req('POST', path, params={'copy':copy_from})
+        body = json.dumps({'copy_from':copy_from})
+        return self._req('POST', path, body)
 
     def create(self, name, path='/'):
         return self._req('PUT', url_path_join(path, name))
@@ -56,7 +57,8 @@ class NBAPI(object):
         return self._req('PUT', url_path_join(path, name), body)
 
     def copy(self, copy_from, copy_to, path='/'):
-        return self._req('PUT', url_path_join(path, copy_to), params={'copy':copy_from})
+        body = json.dumps({'copy_from':copy_from})
+        return self._req('PUT', url_path_join(path, copy_to), body)
 
     def save(self, name, body, path='/'):
         return self._req('PUT', url_path_join(path, name), body)

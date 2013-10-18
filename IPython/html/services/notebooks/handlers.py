@@ -150,15 +150,19 @@ class NotebookHandler(IPythonHandler):
         POST /api/notebooks/path?copy=OtherNotebook.ipynb : new copy of OtherNotebook in path
         """
         
-        model = self.get_json_body()
-        copy = self.get_argument("copy", default="")
         if name is not None:
-            raise web.HTTPError(400, "Only POST to directories. Use PUT for full names")
+            raise web.HTTPError(400, "Only POST to directories. Use PUT for full names.")
         
-        if copy:
-            self._copy_notebook(copy, path)
-        elif model:
-            self._upload_notebook(model, path)
+        model = self.get_json_body()
+        
+        if model is not None:
+            copy_from = model.get('copy_from')
+            if copy_from:
+                if model.get('content'):
+                    raise web.HTTPError(400, "Can't upload and copy at the same time.")
+                self._copy_notebook(copy_from, path)
+            else:
+                self._upload_notebook(model, path)
         else:
             self._create_empty_notebook(path)
 
@@ -178,14 +182,15 @@ class NotebookHandler(IPythonHandler):
         """
         if name is None:
             raise web.HTTPError(400, "Only PUT to full names. Use POST for directories.")
+        
         model = self.get_json_body()
-        copy = self.get_argument("copy", default="")
-        if copy:
-            if model is not None:
-                raise web.HTTPError(400)
-            self._copy_notebook(copy, path, name)
-        elif model:
-            if self.notebook_manager.notebook_exists(name, path):
+        if model:
+            copy_from = model.get('copy_from')
+            if copy_from:
+                if model.get('content'):
+                    raise web.HTTPError(400, "Can't upload and copy at the same time.")
+                self._copy_notebook(copy_from, path, name)
+            elif self.notebook_manager.notebook_exists(name, path):
                 self._save_notebook(model, path, name)
             else:
                 self._upload_notebook(model, path, name)
