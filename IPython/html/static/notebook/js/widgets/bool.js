@@ -45,4 +45,48 @@ require(["notebook/js/widget"], function(){
     });
 
     IPython.notebook.widget_manager.register_widget_view('CheckboxView', CheckboxView);
+
+    var ToggleButtonView = IPython.WidgetView.extend({
+      
+        // Called when view is rendered.
+        render : function(){
+            this.$el
+                .html('')
+                .addClass(this.model.comm.comm_id);
+
+            this.$button = $('<button />')
+                .addClass('btn')
+                .attr('type', 'button')
+                .attr('data-toggle', 'button')
+                .appendTo(this.$el);
+
+            this.update(); // Set defaults.
+        },
+        
+        // Handles: Backend -> Frontend Sync
+        //          Frontent -> Frontend Sync
+        update : function(){
+            if (!this.user_invoked_update) {
+                if (this.model.get('value')) {
+                    this.$button.addClass('active');
+                } else {
+                    this.$button.removeClass('active');
+                }
+                this.$button.html(this.model.get('description'));
+            }
+        },
+        
+        events: {"click button" : "handleClick"},
+        
+        // Handles and validates user input.
+        handleClick: function(e) { 
+            this.user_invoked_update = true;
+            this.model.set('value', ! $(e.target).hasClass('active'));
+            this.model.apply(this);
+            this.user_invoked_update = false;
+        },
+    });
+
+    IPython.notebook.widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
+
 });
