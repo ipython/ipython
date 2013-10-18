@@ -350,6 +350,8 @@ IPython.utils = (function (IPython) {
                 DOWN_ARROW: 40,
                 DOWNARROW: 40,
                 DOWN     : 40,
+                I        : 73,
+                M        : 77,
                 // all three of these keys may be COMMAND on OS X:
                 LEFT_SUPER : 91,
                 RIGHT_SUPER : 92,
@@ -372,8 +374,12 @@ IPython.utils = (function (IPython) {
     var press_shift_enter = function() {
         $(document).trigger($.Event('keydown', {which: keycodes.ENTER, shiftKey: true}));
     };
+
     // trigger the ctrl-m shortcut followed by one of our keys
-    var press_ghetto = function(key) { presspress(key); };
+    var press_ghetto = function(key) {
+        $(document).trigger($.Event('keydown', {which: keycodes.M, ctrlKey: true}));
+        press(key);
+    };
 
 
     var points_to_pixels = function (points) {
@@ -435,6 +441,7 @@ IPython.utils = (function (IPython) {
         press_down : press_down,
         press_ctrl_enter : press_ctrl_enter,
         press_shift_enter : press_shift_enter,
+        press_ghetto : press_ghetto,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
