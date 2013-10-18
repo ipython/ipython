@@ -12,7 +12,7 @@ pjoin = os.path.join
 
 import requests
 
-from IPython.html.utils import url_path_join
+from IPython.html.utils import url_path_join, url_escape
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.current import (new_notebook, write, read, new_worksheet,
                                       new_heading_cell, to_notebook_json)
@@ -164,7 +164,7 @@ class APITest(NotebookTestBase):
     def _check_nb_created(self, resp, name, path):
         self.assertEqual(resp.status_code, 201)
         location_header = py3compat.str_to_unicode(resp.headers['Location'])
-        self.assertEqual(location_header.split('/')[-1], name)
+        self.assertEqual(location_header, url_escape(url_path_join(u'/api/notebooks', path, name)))
         self.assertEqual(resp.json()['name'], name)
         assert os.path.isfile(pjoin(self.notebook_dir.name, path, name))
 
@@ -185,7 +185,7 @@ class APITest(NotebookTestBase):
         nbmodel = {'content': nb}
         resp = self.nb_api.upload_untitled(path=u'å b',
                                               body=jsonapi.dumps(nbmodel))
-        self._check_nb_created(resp, 'Untitled0.ipynb', 'å b')
+        self._check_nb_created(resp, 'Untitled0.ipynb', u'å b')
 
     def test_upload(self):
         nb = new_notebook(name=u'ignored')

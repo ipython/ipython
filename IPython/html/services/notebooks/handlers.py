@@ -20,7 +20,7 @@ import json
 
 from tornado import web
 
-from IPython.html.utils import url_path_join
+from IPython.html.utils import url_path_join, url_escape
 from IPython.utils.jsonutil import date_default
 
 from IPython.html.base.handlers import IPythonHandler, json_errors
@@ -44,7 +44,9 @@ class NotebookHandler(IPythonHandler):
         path : unicode
             The URL path of the notebook.
         """
-        return url_path_join(self.base_project_url, 'api', 'notebooks', path, name)
+        return url_escape(url_path_join(
+            self.base_project_url, 'api', 'notebooks', path, name
+        ))
 
     def _finish_model(self, model, location=True):
         """Finish a JSON request with a model, setting relevant headers, etc."""
@@ -222,7 +224,7 @@ class NotebookCheckpointsHandler(IPythonHandler):
         data = json.dumps(checkpoint, default=date_default)
         location = url_path_join(self.base_project_url, 'api/notebooks',
             path, name, 'checkpoints', checkpoint['id'])
-        self.set_header('Location', location)
+        self.set_header('Location', url_escape(location))
         self.set_status(201)
         self.finish(data)
 
