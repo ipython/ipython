@@ -10,13 +10,10 @@ casper.notebook_test(function () {
 
     this.wait_for_output(0);
 
+    // refactor this into  just a get_output(0)
     this.then(function () {
-        var result = this.evaluate(function () {
-            var cell = IPython.notebook.get_cell(0);
-            var output = cell.output_area.outputs[0].text;
-            return output;
-        })
-        this.test.assertEquals(result, '10\n', 'cell execute (using js)')
+        var result = this.get_output_cell(0);
+        this.test.assertEquals(result.text, '10\n', 'cell execute (using js)')
     });
 
 
@@ -31,12 +28,8 @@ casper.notebook_test(function () {
     this.wait_for_output(0);
 
     this.then(function () {
-        var result = this.evaluate(function () {
-            var cell = IPython.notebook.get_cell(0);
-            var output = cell.output_area.outputs[0].text;
-            return output;
-        })
-        this.test.assertEquals(result, '11\n', 'cell execute (using ctrl-enter)')
+        var result = this.get_output_cell(0);
+        this.test.assertEquals(result.text, '11\n', 'cell execute (using ctrl-enter)')
     });
     
     // do it again with the keyboard shortcut
@@ -50,11 +43,7 @@ casper.notebook_test(function () {
     this.wait_for_output(0);
 
     this.then(function () {
-        var result = this.evaluate(function () {
-            var cell = IPython.notebook.get_cell(0);
-            var output = cell.output_area.outputs[0].text;
-            return output;
-        })
-        this.test.assertEquals(result, '12\n', 'cell execute (using shift-enter)')
+        var result = this.get_output_cell(0);
+        this.test.assertEquals(result.text, '12\n', 'cell execute (using shift-enter)')
     });
 });

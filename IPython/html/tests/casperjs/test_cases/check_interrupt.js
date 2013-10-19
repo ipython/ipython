@@ -15,11 +15,8 @@ casper.notebook_test(function () {
     this.wait_for_output(0);
 
     this.then(function () {
-        var result = this.evaluate(function () {
-            var cell = IPython.notebook.get_cell(0);
-            return cell.output_area.outputs[0].ename;
-        })
-        this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt (mouseclick)');
+        var result = this.get_output_cell(0);
+        this.test.assertEquals(result.ename, 'KeyboardInterrupt', 'keyboard interrupt (mouseclick)');
     });
 
     // run cell 0 again, now interrupting using keyboard shortcut
@@ -36,10 +33,7 @@ casper.notebook_test(function () {
     this.wait_for_output(0);
     
     this.then(function () {
-        var result = this.evaluate(function () {
-            var cell = IPython.notebook.get_cell(0);
-            return cell.output_area.outputs[0].ename;
-        });
-        this.test.assertEquals(result, 'KeyboardInterrupt', 'keyboard interrupt (shortcut)');
+        var result = this.get_output_cell(0);
+        this.test.assertEquals(result.ename, 'KeyboardInterrupt', 'keyboard interrupt (shortcut)');
     });
 });
