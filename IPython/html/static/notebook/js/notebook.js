@@ -1786,23 +1786,21 @@ var IPython = (function (IPython) {
             cache : false,
             type : "POST",
             dataType : "json",
+            data : JSON.stringify({copy_from : this.notebook_name}),
             async : false,
             success : function (data, status, xhr) {
-                var notebook_name = data.name;
                 window.open(utils.url_path_join(
                     base_project_url,
                     'notebooks',
-                    path,
-                    notebook_name
+                    data.path,
+                    data.name
                 ), '_blank');
             }
         };
         var url = utils.url_path_join(
             base_project_url,
             'api/notebooks',
-            path,
-            this.notebook_name,
-            'copy'
+            path
         );
         $.ajax(url,settings);
     };
