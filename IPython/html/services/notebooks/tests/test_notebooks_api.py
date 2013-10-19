@@ -13,8 +13,10 @@ import requests
 
 from IPython.html.utils import url_path_join, url_escape
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
+from IPython.nbformat import current
 from IPython.nbformat.current import (new_notebook, write, read, new_worksheet,
                                       new_heading_cell, to_notebook_json)
+from IPython.nbformat import v2
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 
@@ -194,6 +196,20 @@ class APITest(NotebookTestBase):
                                               body=json.dumps(nbmodel))
         self._check_nb_created(resp, u'Upload tést.ipynb', u'å b')
 
+    def test_upload_v2(self):
+        nb = v2.new_notebook()
+        ws = v2.new_worksheet()
+        nb.worksheets.append(ws)
+        ws.cells.append(v2.new_code_cell(input='print("hi")'))
+        nbmodel = {'content': nb}
+        resp = self.nb_api.upload(u'Upload tést.ipynb', path=u'å b',
+                                              body=json.dumps(nbmodel))
+        self._check_nb_created(resp, u'Upload tést.ipynb', u'å b')
+        resp = self.nb_api.read(u'Upload tést.ipynb', u'å b')
+        data = resp.json()
+        self.assertEqual(data['content']['nbformat'], current.nbformat)
+        self.assertEqual(data['content']['orig_nbformat'], 2)
+
     def test_copy_untitled(self):
         resp = self.nb_api.copy_untitled(u'ç d.ipynb', path=u'å b')
         self._check_nb_created(resp, u'ç d-Copy0.ipynb', u'å b')
@@ -293,3 +309,4 @@ class APITest(NotebookTestBase):
         self.assertEqual(r.status_code, 204)
         cps = self.nb_api.get_checkpoints('a.ipynb', 'foo').json()
         self.assertEqual(cps, [])
+    
