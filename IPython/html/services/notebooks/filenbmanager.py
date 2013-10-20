@@ -211,7 +211,7 @@ class FileNotebookManager(NotebookManager):
         model['name'] = name
         model['path'] = path
         model['last_modified'] = last_modified
-        model['created'] = last_modified
+        model['created'] = created
         if content is True:
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
