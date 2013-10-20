@@ -17,13 +17,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import datetime
 import io
+import itertools
 import os
 import glob
 import shutil
-
-from unicodedata import normalize
 
 from tornado import web
 
@@ -83,17 +81,14 @@ class FileNotebookManager(NotebookManager):
                  for name in names]
         return names
 
-    def increment_filename(self, basename, path=''):
+    def increment_filename(self, basename, path='', ext='.ipynb'):
         """Return a non-used filename of the form basename<int>."""
         path = path.strip('/')
-        i = 0
-        while True:
-            name = u'%s%i.ipynb' % (basename,i)
+        for i in itertools.count():
+            name = u'{basename}{i}{ext}'.format(basename=basename, i=i, ext=ext)
             os_path = self.get_os_path(name, path)
             if not os.path.isfile(os_path):
                 break
-            else:
-                i = i+1
         return name
 
     def path_exists(self, path):
