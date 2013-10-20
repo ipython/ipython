@@ -130,7 +130,7 @@ var IPython = (function (IPython) {
         this.element.find('#restore_checkpoint').click(function () {
         });
         this.element.find('#kill_and_exit').click(function () {
-            IPython.notebook.session.delete_session();
+            IPython.notebook.session.delete();
             setTimeout(function(){window.close();}, 500);
         });
         // Edit
