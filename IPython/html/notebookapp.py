@@ -739,8 +739,11 @@ class NotebookApp(BaseIPythonApplication):
             if f.startswith(nbdir):
                 f = f[len(nbdir):]
             else:
-                self.log.warn("Probably won't be able to open notebook %s", f)
-                self.log.warn("Because it is not in notebook_dir %s", nbdir)
+                self.log.warn(
+                    "Probably won't be able to open notebook %s "
+                    "because it is not in notebook_dir %s",
+                    f, nbdir,
+                )
 
             if os.path.isfile(self.file_to_run):
                 url = url_path_join('notebooks', f)
