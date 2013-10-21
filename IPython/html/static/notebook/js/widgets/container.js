@@ -5,14 +5,23 @@ require(["notebook/js/widget"], function(){
     var ContainerView = IPython.WidgetView.extend({
         
         render : function(){
-            this.$el.html('');
-            this.$container = $('<div />')
-                .addClass('container')
+            this.$el = $('<div />')
                 .addClass(this.model.comm.comm_id);
-            this.$el.append(this.$container);
         },
         
-        update : function(){},
+        update : function(){
+            if (this.model.get('vbox')) {
+                this.$el.addClass('vbox');
+            } else {
+                this.$el.removeClass('vbox');
+            }
+            
+            if (this.model.get('hbox')) {
+                this.$el.addClass('hbox');
+            } else {
+                this.$el.removeClass('hbox');
+            }
+        },
     });
 
     IPython.notebook.widget_manager.register_widget_view('ContainerView', ContainerView);

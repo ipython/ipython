@@ -6,18 +6,16 @@ require(["notebook/js/widget"], function(){
       
         // Called when view is rendered.
         render : function(){
-            this.$el
-                .html('');
-            this.$label = $('<div />')
-                .addClass(this.model.comm.comm_id)
-                .appendTo(this.$el);
+            this.$el = $('<div />')
+                .addClass('widget_item')
+                .addClass(this.model.comm.comm_id);
             this.update(); // Set defaults.
         },
         
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
         update : function(){
-            this.$label.html(this.model.get('value'));
+            this.$el.html(this.model.get('value'));
         },
         
     });
@@ -30,6 +28,7 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
+                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
@@ -66,6 +65,7 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
+                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$textbox = $('<input type="text" />')
                 .addClass('input')

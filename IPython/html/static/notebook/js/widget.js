@@ -169,7 +169,7 @@ define(["static/components/underscore/underscore-min.js",
 
             // Add the view's element to cell's widget div.
             widget_area
-                .append($("<div />").append(widget_view.$el))
+                .append(widget_view.$el)
                 .parent().show(); // Show the widget_area (parent of widget_subarea)
 
             // Update the view based on the model contents.
@@ -204,6 +204,7 @@ define(["static/components/underscore/underscore-min.js",
 
         // Handle when a widget is updated via the python side.
         WidgetManager.prototype.handle_update = function (comm, state) {
+            this.updating = true;
             for (var key in state) {
                 if (state.hasOwnProperty(key)) {
                     if (key=="_css"){
@@ -214,6 +215,7 @@ define(["static/components/underscore/underscore-min.js",
                 }
             }
             comm.model.save();
+            this.updating = false;
         }
 
         // Handle when a widget is closed.
@@ -233,21 +235,25 @@ define(["static/components/underscore/underscore-min.js",
 
         // Send widget state to python backend.
         WidgetManager.prototype.send_sync = function (method, model) {
-            
-            // Create a callback for the output if the widget has an output area associate with it.
-            var callbacks = {};
-            var comm = model.comm;
-            var outputarea = this._get_comm_outputarea(comm);
-            if (outputarea != null) {
-                callbacks = {
-                    iopub : {
-                    output : $.proxy(outputarea.handle_output, outputarea),
-                    clear_output : $.proxy(outputarea.handle_clear_output, outputarea)}
-                };
-            };
             var model_json = model.toJSON();
-            var data = {sync_method: method, sync_data: model_json};
-            comm.send(data, callbacks);
+
+            // Only send updated state if the state hasn't been changed during an update.
+            if (!this.updating) {
+                // Create a callback for the output if the widget has an output area associate with it.
+                var callbacks = {};
+                var comm = model.comm;
+                var outputarea = this._get_comm_outputarea(comm);
+                if (outputarea != null) {
+                    callbacks = {
+                        iopub : {
+                        output : $.proxy(outputarea.handle_output, outputarea),
+                        clear_output : $.proxy(outputarea.handle_clear_output, outputarea)}
+                    };
+                };
+                var data = {sync_method: method, sync_data: model_json};
+                comm.send(data, callbacks);    
+            }
+            
             return model_json;
         }
 

@@ -9,8 +9,10 @@ require(["notebook/js/widget"], function(){
             
             this.$el
                 .html('')
+                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$buttongroup = $('<div />')
+                                .addClass('widget_item')
                                 .addClass('btn-group')
                                 .appendTo(this.$el);
             this.$droplabel = $('<button />')
@@ -43,6 +45,7 @@ require(["notebook/js/widget"], function(){
                     .html(items[index])
                     .on('click', function(e){
                         that.model.set('value', $(e.target).html(), this );
+                        that.model.apply(that);
                     })
                 
                 this.$droplist.append($('<li />').append(item_button))
@@ -71,6 +74,7 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
+                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.update();
         },
@@ -136,8 +140,10 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
+                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$buttongroup = $('<div />')
+                .addClass('widget_item')
                 .addClass('btn-group')
                 .attr('data-toggle', 'buttons-radio')
                 .appendTo(this.$el);

@@ -6,17 +6,18 @@ require(["notebook/js/widget"], function(){
         
         // Called when view is rendered.
         render : function(){
-            this.$el.html('');
+            this.$el
+                .html('')
             this.$slider = $('<div />')
-                            .slider({})
-                            .addClass('slider');
+                .slider({})
+                .addClass('slider');
             
             // Put the slider in a container 
             this.$slider_container = $('<div />')
-                                    .css('padding-top', '4px')
-                                    .css('padding-bottom', '4px')
-                                    .addClass(this.model.comm.comm_id)
-                                    .append(this.$slider);    
+                .css('padding-top', '4px')
+                .css('padding-bottom', '4px')
+                .addClass(this.model.comm.comm_id)
+                .append(this.$slider);    
             this.$el.append(this.$slider_container);
             
             // Set defaults.
@@ -52,6 +53,7 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
+                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
