@@ -6,20 +6,22 @@ require(["notebook/js/widget"], function(){
         
         render : function(){
             this.$el = $('<div />')
+                .addClass('widget_container')
                 .addClass(this.model.comm.comm_id);
         },
         
         update : function(){
-            if (this.model.get('vbox')) {
-                this.$el.addClass('vbox');
-            } else {
-                this.$el.removeClass('vbox');
-            }
-            
-            if (this.model.get('hbox')) {
-                this.$el.addClass('hbox');
-            } else {
-                this.$el.removeClass('hbox');
+
+            // Apply flexible box model properties by adding and removing
+            // corrosponding CSS classes.
+            // Defined in IPython/html/static/base/less/flexbox.less
+            var flex_properties = ['vbox', 'hbox', 'center', 'end', 'center'];
+            for (var index in flex_properties) {
+                if (this.model.get('_' + flex_properties[index])) {
+                    this.$el.addClass(flex_properties[index]);
+                } else {
+                    this.$el.removeClass(flex_properties[index]);
+                }    
             }
         },
     });
