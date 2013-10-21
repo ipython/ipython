@@ -1,3 +1,6 @@
+import inspect
+import types
+
 from base import Widget
 from IPython.utils.traitlets import Unicode, Bool, Int
 
@@ -12,11 +15,13 @@ class ButtonWidget(Widget):
     
     _click_handlers = []
 
-    def handle_click(self, callback, remove=False):
+
+    def on_click(self, callback, remove=False):
         if remove:
             self._click_handlers.remove(callback)
         else:
             self._click_handlers.append(callback)
+
 
     def _clicks_changed(self, name, old, new):
         if new > old:

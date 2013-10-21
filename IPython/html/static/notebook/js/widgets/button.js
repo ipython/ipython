@@ -12,7 +12,8 @@ require(["notebook/js/widget"], function(){
             this.$el = $("<button />")
                 .addClass('btn')
                 .click(function() {
-                    that.model.set('clicks', that.model.get('clicks') + 1)
+                    that.model.set('clicks', that.model.get('clicks') + 1);
+                    that.model.apply(that);
                 });
 
             this.update(); // Set defaults.
