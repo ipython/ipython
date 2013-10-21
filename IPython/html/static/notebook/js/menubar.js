@@ -131,7 +131,11 @@ var IPython = (function (IPython) {
         });
         this.element.find('#kill_and_exit').click(function () {
             IPython.notebook.session.delete();
-            setTimeout(function(){window.close();}, 500);
+            setTimeout(function(){
+                // allow closing of new tabs in Chromium, impossible in FF
+                window.open('', '_self', '');
+                window.close();
+            }, 500);
         });
         // Edit
         this.element.find('#cut_cell').click(function () {
