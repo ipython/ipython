@@ -7,7 +7,6 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el = $('<div />')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.update(); // Set defaults.
         },
@@ -28,7 +27,6 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
@@ -65,7 +63,6 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$textbox = $('<input type="text" />')
                 .addClass('input')

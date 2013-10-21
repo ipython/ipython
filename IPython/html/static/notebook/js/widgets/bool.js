@@ -10,7 +10,6 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
 
             var $label = $('<label />')
@@ -20,7 +19,6 @@ require(["notebook/js/widget"], function(){
                 .attr('type', 'checkbox')
                 .appendTo($label);
             this.$checkbox_label = $('<div />')
-                .addClass('widget_item')
                 .appendTo($label);
 
             this.update(); // Set defaults.

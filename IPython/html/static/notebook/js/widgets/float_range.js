@@ -54,7 +54,6 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$textbox = $('<input type="text" />')
                 .addClass('input')

@@ -9,7 +9,6 @@ require(["notebook/js/widget"], function(){
             
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$buttongroup = $('<div />')
                                 .addClass('widget_item')
@@ -74,7 +73,6 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.update();
         },
@@ -140,10 +138,8 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('')
-                .addClass('widget_item')
                 .addClass(this.model.comm.comm_id);
             this.$buttongroup = $('<div />')
-                .addClass('widget_item')
                 .addClass('btn-group')
                 .attr('data-toggle', 'buttons-radio')
                 .appendTo(this.$el);
