@@ -1,6 +1,7 @@
 from widget import Widget, init_widget_js
 
 from widget_bool import BoolWidget
+from widget_button import ButtonWidget
 from widget_container import ContainerWidget
 from widget_float import FloatWidget
 from widget_float_range import FloatRangeWidget
