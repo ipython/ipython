@@ -524,7 +524,7 @@ class EmbeddedSphinxShell(object):
 
         return output
 
-class IpythonDirective(Directive):
+class IPythonDirective(Directive):
 
     has_content = True
     required_arguments = 0
@@ -536,7 +536,7 @@ class IpythonDirective(Directive):
                     'doctest' : directives.flag,
                   }
 
-    shell = EmbeddedSphinxShell()
+    shell = None
 
     seen_docs = set()
 
@@ -563,10 +563,11 @@ class IpythonDirective(Directive):
         return savefig_dir, source_dir, rgxin, rgxout, promptin, promptout
 
     def setup(self):
+        if self.shell is None:
+            self.shell = EmbeddedSphinxShell()
         # reset the execution count if we haven't processed this doc
         #NOTE: this may be borked if there are multiple seen_doc tmp files
         #check time stamp?
-
 
         if not self.state.document.current_source in self.seen_docs:
                 self.shell.IP.history_manager.reset()
@@ -668,7 +669,7 @@ class IpythonDirective(Directive):
 def setup(app):
     setup.app = app
 
-    app.add_directive('ipython', IpythonDirective)
+    app.add_directive('ipython', IPythonDirective)
     app.add_config_value('ipython_savefig_dir', None, True)
     app.add_config_value('ipython_rgxin',
                          re.compile('In \[(\d+)\]:\s?(.*)\s*'), True)
@@ -814,7 +815,7 @@ In [153]: grid(True)
     options = dict()
     for example in examples:
         content = example.split('\n')
-        ipython_directive('debug', arguments=None, options=options,
+        IPythonDirective('debug', arguments=None, options=options,
                           content=content, lineno=0,
                           content_offset=None, block_text=None,
                           state=None, state_machine=None,
