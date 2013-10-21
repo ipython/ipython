@@ -435,9 +435,9 @@ class HasTraits(object):
     def _notify_trait(self, name, old_value, new_value):
 
         # First dynamic ones
-        callables = self._trait_notifiers.get(name,[])
-        more_callables = self._trait_notifiers.get('anytrait',[])
-        callables.extend(more_callables)
+        callables = []
+        callables.extend(self._trait_notifiers.get(name,[]))
+        callables.extend(self._trait_notifiers.get('anytrait',[]))
 
         # Now static ones
         try:
