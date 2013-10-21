@@ -518,9 +518,9 @@ class Magics(Configurable):
             raise ValueError('Magics subclass without registration - '
                              'did you forget to apply @magics_class?')
         if shell is not None:
-            if hasattr( shell, 'configurables'):
+            if hasattr(shell, 'configurables'):
                 shell.configurables.append(self)
-            if hasattr( shell, 'config'):
+            if hasattr(shell, 'config'):
                 kwargs.setdefault('parent', shell)
             kwargs['shell'] = shell
 
