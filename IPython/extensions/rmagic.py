@@ -201,7 +201,7 @@ class RMagics(Magics):
         self.pyconverter = pyconverter
         self.Rconverter = Rconverter
 
-        self.device = device
+        self.set_R_plotting_device(device)
 
     def set_R_plotting_device(self, device):
         """
@@ -435,19 +435,19 @@ class RMagics(Magics):
     @argument_group("Plot", "Arguments to plotting device")
     @argument(
         '-w', '--width', type=int,
-        help='Width of png plotting device sent as an argument to *png* in R.'
+        help='Width of plotting device in R.'
         )
     @argument(
         '-h', '--height', type=int,
-        help='Height of png plotting device sent as an argument to *png* in R.'
+        help='Height of plotting device in R.'
         )
     @argument(
         '-p', '--pointsize', type=int,
-        help="Pointsize of png plotting device sent as an argument to plotting device in R."
+        help="Pointsize of png plotting device in R."
         )
     @argument(
         '-b', '--bg',
-        help='Background of png plotting device sent as an argument to plotting device in R.'
+        help='Background of plotting device in R.'
         )
     @argument_group("SVG", "SVG specific arguments")
     @argument(
@@ -643,9 +643,12 @@ class RMagics(Magics):
                 args.res = 72
             args.units = '"%s"' % args.units
 
-        plotting_argdict = dict([(n, getattr(args, n)) for n in ['units', 'res', 'height', 'width', 'bg', 'pointsize']])
-        if plotting_argdict['units']:
-            plotting_argdict['units'] = repr(plotting_argdict['units'])
+
+        plot_arg_names = ['width', 'height', 'pointsize', 'bg']
+        if self.device == 'png':
+            plot_arg_names += ['units', 'res']
+
+        plotting_argdict = dict([(n, getattr(args, n)) for n in plot_arg_names])
         plotting_args = ','.join(['%s=%s' % (o,v) for o, v in plotting_argdict.items() if v is not None])
 
         # execute the R code in a temporary directory
@@ -657,10 +660,7 @@ class RMagics(Magics):
         if self.device == 'png':
             self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd_fix_slashes, plotting_args))
         elif self.device == 'svg':
-            # check to see if svg is available via the CairoSVG package
-            if self.device == 'svg' and args.units is not None or args.res is not None:
-                raise RInterpreterError("CairoSVG device does not take a 'units' argument or 'res' argument")
-            self.r('library(Cairo); CairoSVG("%s/Rplot.svg", %s)' % (tmpd_fix_slashes, plotting_args))
+            self.r('CairoSVG("%s/Rplot.svg", %s)' % (tmpd_fix_slashes, plotting_args))
         elif self.device == 'X11':
             self.r('X11()')
         else:
