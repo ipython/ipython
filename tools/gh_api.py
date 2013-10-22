@@ -32,28 +32,28 @@ class Obj(dict):
             return self[name]
         except KeyError:
             raise AttributeError(name)
-    
+
     def __setattr__(self, name, val):
         self[name] = val
 
 token = None
 def get_auth_token():
     global token
-    
+
     if token is not None:
         return token
-    
+
     import keyring
     token = keyring.get_password('github', fake_username)
     if token is not None:
         return token
-    
+
     print("Please enter your github username and password. These are not "
            "stored, only used to get an oAuth token. You can revoke this at "
            "any time on Github.")
     user = input("Username: ")
     pw = getpass.getpass("Password: ")
-    
+
     auth_request = {
       "scopes": [
         "public_repo",
@@ -88,13 +88,13 @@ def post_gist(content, description='', filename='file', auth=False):
         }
       }
     }).encode('utf-8')
-    
+
     headers = make_auth_header() if auth else {}
     response = requests.post("https://api.github.com/gists", data=post_data, headers=headers)
     response.raise_for_status()
     response_data = json.loads(response.text)
     return response_data['html_url']
-    
+
 def get_pull_request(project, num, auth=False):
     """get pull request info  by number
     """
@@ -155,6 +155,23 @@ def get_issues_list(project, auth=False, **params):
         headers = None
     pages = get_paged_request(url, headers=headers, **params)
     return pages
+
+def get_milestones(project, auth=False, **params):
+    url = "https://api.github.com/repos/{project}/milestones".format(project=project)
+    if auth:
+        headers = make_auth_header()
+    else:
+        headers = None
+    pages = get_paged_request(url, headers=headers, **params)
+    return pages
+
+def get_milestone_id(project, milestone, auth=False, **params):
+    pages = get_milestones(project, auth=auth, **params)
+    for page in pages:
+        if page['title'] == milestone:
+            return page['number']
+    else:
+        raise ValueError("milestone %s not found" % milestone)
 
 def is_pull_request(issue):
     """Return True if the given issue is a pull request."""
@@ -233,16 +250,16 @@ def post_download(project, filename, name=None, description=""):
         name = os.path.basename(filename)
     with open(filename, 'rb') as f:
         filedata = f.read()
-    
+
     url = "https://api.github.com/repos/{project}/downloads".format(project=project)
-    
+
     payload = json.dumps(dict(name=name, size=len(filedata),
                     description=description))
     response = requests.post(url, data=payload, headers=make_auth_header())
     response.raise_for_status()
     reply = json.loads(response.content)
     s3_url = reply['s3_url']
-    
+
     fields = dict(
         key=reply['path'],
         acl=reply['acl'],
