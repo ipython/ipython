@@ -1,4 +1,4 @@
-from base import Widget
+from widget import Widget
 from IPython.utils.traitlets import Unicode, Float, Bool, List
 
 class FloatWidget(Widget):
