@@ -738,7 +738,7 @@ class NotebookApp(BaseIPythonApplication):
             
             nbdir = os.path.abspath(self.notebook_manager.notebook_dir)
             f = self.file_to_run
-            if f.startswith(nbdir):
+            if f and f.startswith(nbdir):
                 f = f[len(nbdir):]
             else:
                 self.log.warn(
