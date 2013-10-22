@@ -78,6 +78,14 @@ casper.get_output_cell = function (cell_num) {
     return result;
 };
 
+// return the number of cells in the notebook
+casper.get_cells_length = function () {
+    var result = casper.evaluate(function () {
+        return IPython.notebook.get_cells().length;
+    })
+    return result;
+};
+
 // Wrap a notebook test to reduce boilerplate.
 casper.notebook_test = function(test) {
     this.open_new_notebook();
