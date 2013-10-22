@@ -28,8 +28,9 @@ import subprocess
 import time
 
 from .iptest import have, test_group_names, test_sections
+from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
-from IPython.utils.sysinfo import brief_sys_info
+from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
 
@@ -205,8 +206,20 @@ def do_run(controller):
 
 def report():
     """Return a string with a summary report of test-related variables."""
+    inf = get_sys_info()
+    out = []
+    def _add(name, value):
+        out.append((name, value))
 
-    out = [ brief_sys_info(), '\n']
+    _add('IPython version', inf['ipython_version'])
+    _add('IPython commit', "{} ({})".format(inf['commit_hash'], inf['commit_source']))
+    _add('IPython package', compress_user(inf['ipython_path']))
+    _add('Python version', inf['sys_version'].replace('\n',''))
+    _add('sys.executable', compress_user(inf['sys_executable']))
+    _add('Platform', inf['platform'])
+
+    width = max(len(n) for (n,v) in out)
+    out = ["{:<{width}}: {}\n".format(n, v, width=width) for (n,v) in out]
 
     avail = []
     not_avail = []

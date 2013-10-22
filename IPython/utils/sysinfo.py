@@ -93,6 +93,11 @@ def pkg_info(pkg_path):
         default_encoding=encoding.DEFAULT_ENCODING,
         )
 
+def get_sys_info():
+    """Return useful information about IPython and the system, as a dict."""
+    p = os.path
+    path = p.dirname(p.abspath(p.join(__file__, '..')))
+    return pkg_info(path)
 
 @py3compat.doctest_refactor_print
 def sys_info():
@@ -112,39 +117,8 @@ def sys_info():
          'sys_executable': '/usr/bin/python',
          'sys_platform': 'linux2',
          'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \\n[GCC 4.4.5]'}
-   """
-    p = os.path
-    path = p.dirname(p.abspath(p.join(__file__, '..')))
-    return pprint.pformat(pkg_info(path))
-
-def _compress_user(path):
-    """Reverse of :func:`os.path.expanduser`
     """
-    home = os.path.expanduser('~')
-    if path.startswith(home):
-        path =  "~" + path[len(home):]
-    return path
-
-def brief_sys_info():
-    """Return summary information about IPython and the system, as a string.
-    """
-    p = os.path
-    path = p.dirname(p.abspath(p.join(__file__, '..')))
-    inf = pkg_info(path)
-    out = []
-    def _add(name, value):
-        out.append((name, value))
-
-    _add('IPython version', inf['ipython_version'])
-    _add('IPython commit', "{} ({})".format(inf['commit_hash'], inf['commit_source']))
-    _add('IPython package', _compress_user(inf['ipython_path']))
-    _add('Python version', inf['sys_version'].replace('\n',''))
-    _add('sys.executable', _compress_user(inf['sys_executable']))
-    _add('Platform', inf['platform'])
-
-    width = max(len(n) for (n,v) in out)
-    return '\n'.join("{:<{width}}: {}".format(n, v, width=width) for (n,v) in out)
-
+    return pprint.pformat(get_sys_info())
 
 def _num_cpus_unix():
     """Return the number of active CPUs on a Unix system."""
