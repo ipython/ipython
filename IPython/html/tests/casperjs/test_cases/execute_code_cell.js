@@ -50,4 +50,20 @@ casper.notebook_test(function () {
         this.test.assertEquals(result.text, '12\n', 'cell execute (using shift-enter)');
         this.test.assertEquals(num_cells, 2, '              ^--- adds a new cell')
     });
+
+    // press the "play" triangle button in the toolbar
+    this.thenEvaluate(function () {
+        var cell = IPython.notebook.get_cell(0);
+        IPython.notebook.select(0);
+        cell.clear_output();
+        cell.set_text('a=13; print(a)');
+        $('#run_b').click();
+    });
+    
+    this.wait_for_output(0);
+
+    this.then(function () {
+        var result = this.get_output_cell(0);
+        this.test.assertEquals(result.text, '13\n', 'cell execute (using "play" toolbar button)')
+    });
 });
