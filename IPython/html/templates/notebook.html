@@ -129,11 +129,19 @@ class="notebook_app"
                 <li id="run_all_cells_below" title="Run this cell and all cells below it">
                     <a href="#">Run All Below</a></li>
                 <li class="divider"></li>
-                <li id="change_cell_type" class="dropdown-submenu"><a href="#">Cell Type</a>
+                <li id="change_cell_type" class="dropdown-submenu"
+                    title="All cells in the notebook have a cell type. By default, new cells are created as 'Code' cells">
+                    <a href="#">Cell Type</a>
                     <ul class="dropdown-menu">
-                      <li id="to_code"><a href="#">Code</a></li>
-                      <li id="to_markdown"><a href="#">Markdown </a></li>
-                      <li id="to_raw"><a href="#">Raw Text</a></li>
+                      <li id="to_code"
+                          title="Contents will be sent to the kernel for execution, and output will display in the footer of cell">
+                          <a href="#">Code</a></li>
+                      <li id="to_markdown"
+                          title="Contents will be rendered as HTML and serve as explanatory text">
+                          <a href="#">Markdown</a></li>
+                      <li id="to_raw"
+                          title="Contents will display unmodified in a fixed-width font">
+                          <a href="#">Raw Text</a></li>
                       <li id="to_heading1"><a href="#">Heading 1</a></li>
                       <li id="to_heading2"><a href="#">Heading 2</a></li>
                       <li id="to_heading3"><a href="#">Heading 3</a></li>
@@ -143,13 +151,17 @@ class="notebook_app"
                     </ul>
                 </li>
                 <li class="divider"></li>
-                <li id="toggle_output"><a href="#">Toggle Current Output</a></li>
+                <li id="toggle_output"
+                    title="Show/Hide the output portion of a Code cell">
+                    <a href="#">Toggle Current Output</a></li>
                 <li id="all_outputs" class="dropdown-submenu"><a href="#">All Output</a>
                     <ul class="dropdown-menu">
                         <li id="expand_all_output"><a href="#">Expand</a></li>
                         <li id="scroll_all_output"><a href="#">Scroll Long</a></li>
                         <li id="collapse_all_output"><a href="#">Collapse</a></li>
-                        <li id="clear_all_output"><a href="#">Clear</a></li>
+                        <li id="clear_all_output"
+                            title="Remove the output portion of all Code cells">
+                            <a href="#">Clear</a></li>
                     </ul>
                 </li>
             </ul>
