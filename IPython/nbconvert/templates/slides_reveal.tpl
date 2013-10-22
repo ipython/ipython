@@ -63,7 +63,7 @@ html {
   opacity: 1;
 }
 .reveal .progress {
-  top: 0;
+  position: static;
 }
 div.input_area {
   padding: 0.06em;
