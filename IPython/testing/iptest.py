@@ -141,11 +141,12 @@ have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
 have['oct2py'] = test_for('oct2py')
-have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
+have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['azure'] = test_for('azure')
+have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 
 min_zmq = (2,1,11)
@@ -270,7 +271,7 @@ test_sections['qt'].requires('zmq', 'qt', 'pygments')
 
 # html:
 sec = test_sections['html']
-sec.requires('zmq', 'tornado')
+sec.requires('zmq', 'tornado', 'requests')
 # The notebook 'static' directory contains JS, css and other
 # files for web serving.  Occasionally projects may put a .py
 # file in there (MathJax ships a conf.py), so we might as
