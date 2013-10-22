@@ -51,11 +51,17 @@ class="notebook_app"
     <ul id="menus" class="nav">
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
             <ul class="dropdown-menu">
-                <li id="new_notebook"><a href="#">New</a></li>
-                <li id="open_notebook"><a href="#">Open...</a></li>
+                <li id="new_notebook"
+                    title="Make a new notebook (Opens a new window)">
+                    <a href="#">New</a></li>
+                <li id="open_notebook"
+                    title="Opens a new window with the Dashboard view">
+                    <a href="#">Open...</a></li>
                 <!-- <hr/> -->
                 <li class="divider"></li>
-                <li id="copy_notebook"><a href="#">Make a Copy...</a></li>
+                <li id="copy_notebook"
+                    title="Open a copy of this notebook's contents and start a new kernel">
+                    <a href="#">Make a Copy...</a></li>
                 <li id="rename_notebook"><a href="#">Rename...</a></li>
                 <li id="save_checkpoint"><a href="#">Save and Checkpoint</a></li>
                 <!-- <hr/> -->
@@ -78,7 +84,9 @@ class="notebook_app"
                 </li>
                 <li class="divider"></li>
                 
-                <li id="kill_and_exit"><a href="#" >Close and halt</a></li>
+                <li id="kill_and_exit"
+                    title="Shutdown this notebook's kernel, and close this window">
+                    <a href="#" >Close and halt</a></li>
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
