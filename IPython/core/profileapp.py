@@ -121,7 +121,7 @@ def list_bundled_profiles():
 
 
 class ProfileLocate(BaseIPythonApplication):
-    description = """print the path an IPython profile dir"""
+    description = """print the path to an IPython profile dir"""
     
     def parse_command_line(self, argv=None):
         super(ProfileLocate, self).parse_command_line(argv)
@@ -299,6 +299,7 @@ class ProfileApp(Application):
     subcommands = Dict(dict(
         create = (ProfileCreate, ProfileCreate.description.splitlines()[0]),
         list = (ProfileList, ProfileList.description.splitlines()[0]),
+        locate = (ProfileLocate, ProfileLocate.description.splitlines()[0]),
     ))
 
     def start(self):
@@ -310,4 +311,3 @@ class ProfileApp(Application):
             self.exit(1)
         else:
             return self.subapp.start()
-
