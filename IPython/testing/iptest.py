@@ -426,11 +426,15 @@ class SubprocessStreamCapturePlugin(Plugin):
     def formatFailure(self, test, err):
         # Show output
         ec, ev, tb = err
-        ev = safe_str(ev)
-        out = [ev, '>> begin captured subprocess output <<',
-                self.stream_capturer.get_buffer().decode('utf-8', 'replace'),
-                '>> end captured subprocess output <<']
-        return ec, '\n'.join(out), tb
+        captured = self.stream_capturer.get_buffer().decode('utf-8', 'replace')
+        if captured.strip():
+            ev = safe_str(ev)
+            out = [ev, '>> begin captured subprocess output <<',
+                    captured,
+                    '>> end captured subprocess output <<']
+            return ec, '\n'.join(out), tb
+
+        return err
     
     formatError = formatFailure
     
