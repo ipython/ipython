@@ -43,6 +43,10 @@ from IPython.external.decorator import decorator
 from IPython.utils.path import filefind
 from IPython.utils.jsonutil import date_default
 
+# UF_HIDDEN is a stat flag not defined in the stat module.
+# It is used by BSD to indicate hidden files.
+UF_HIDDEN = getattr(stat, 'UF_HIDDEN', 32768)
+
 #-----------------------------------------------------------------------------
 # Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
 #-----------------------------------------------------------------------------
@@ -263,6 +267,7 @@ class IPythonHandler(AuthenticatedHandler):
             raise web.HTTPError(400, u'Invalid JSON in body of request')
         return model
 
+
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
 
@@ -272,7 +277,39 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
             name = os.path.basename(path)
             self.set_header('Content-Type', 'application/json')
             self.set_header('Content-Disposition','attachment; filename="%s"' % name)
+        
         return web.StaticFileHandler.get(self, path)
+    
+    def validate_absolute_path(self, root, absolute_path):
+        """Validate and return the absolute path.
+        
+        Requires tornado 3.1
+        
+        Adding to tornado's own handling, forbids the serving of hidden files.
+        """
+        abs_path = super(AuthenticatedFileHandler, self).validate_absolute_path(root, absolute_path)
+        abs_root = os.path.abspath(root)
+        self.forbid_hidden(abs_root, abs_path)
+        return abs_path
+    
+    def forbid_hidden(self, absolute_root, absolute_path):
+        """Raise 403 if a file is hidden or contained in a hidden directory.
+        
+        Hidden is determined by either name starting with '.'
+        or the UF_HIDDEN flag as reported by stat
+        """
+        inside_root = absolute_path[len(absolute_root):]
+        if any(part.startswith('.') for part in inside_root.split(os.path.sep)):
+            raise web.HTTPError(403)
+        
+        # check UF_HIDDEN on any location up to root
+        path = absolute_path
+        while path and path.startswith(absolute_root):
+            if os.stat(path).st_flags & UF_HIDDEN:
+                raise web.HTTPError(403)
+            path, _ = os.path.split(path)
+        
+        return absolute_path
 
 
 def json_errors(method):
