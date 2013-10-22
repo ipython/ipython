@@ -118,12 +118,11 @@ def flush_figures():
             return show(True)
         except Exception as e:
             # safely show traceback if in IPython, else raise
-            try:
-                get_ipython
-            except NameError:
+            ip = get_ipython()
+            if ip is None:
                 raise e
             else:
-                get_ipython().showtraceback()
+                ip.showtraceback()
                 return
     try:
         # exclude any figures that were closed:
@@ -133,13 +132,12 @@ def flush_figures():
                 display(fig)
             except Exception as e:
                 # safely show traceback if in IPython, else raise
-                try:
-                    get_ipython
-                except NameError:
+                ip = get_ipython()
+                if ip is None:
                     raise e
                 else:
-                    get_ipython().showtraceback()
-                    break
+                    ip.showtraceback()
+                    return
     finally:
         # clear flags for next round
         show._to_draw = []
