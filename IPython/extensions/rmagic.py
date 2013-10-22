@@ -48,9 +48,7 @@ import sys
 import tempfile
 from glob import glob
 from shutil import rmtree
-from getopt import getopt
 from os import stat
-from copy import copy
 
 # numpy and rpy2 imports
 
@@ -221,7 +219,6 @@ class RMagics(Magics):
             with 'png' and 'svg' being most useful in the notebook,
             and 'X11' allowing interactive plots in the terminal.
 
-            
         """
         device = device.strip()
         if device not in ['png', 'X11', 'svg']:
@@ -230,7 +227,7 @@ class RMagics(Magics):
             try:
                 self.r('library(Cairo)')
             except ri.RRuntimeError:
-                raise RMagicError("unable to load Cairo package -- check to see if it has been installed")
+                raise RInterpreterError("unable to load Cairo package -- check to see if it has been installed")
         self.device = device
 
     @line_magic
@@ -445,14 +442,6 @@ class RMagics(Magics):
         help='Height of png plotting device sent as an argument to *png* in R.'
         )
     @argument(
-        '-u', '--units', type=unicode_type, choices=["px", "in", "cm", "mm"],
-        help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
-        )
-    @argument(
-        '-r', '--res', type=int,
-        help='Resolution of png plotting device sent as an argument to *png* in R. Defaults to 72 if *units* is one of ["in", "cm", "mm"].'
-        )
-    @argument(
         '-p', '--pointsize', type=int,
         help="Pointsize of png plotting device sent as an argument to plotting device in R."
         )
@@ -460,16 +449,21 @@ class RMagics(Magics):
         '-b', '--bg',
         help='Background of png plotting device sent as an argument to plotting device in R.'
         )
+    @argument_group("SVG", "SVG specific arguments")
+    @argument(
+        '--isolatesvg',
+        help='Each SVG figure namespace is isolated from the rest of the document',
+        action='store_true',
+        default=False
+        )
     @argument_group("PNG", "PNG specific arguments")
     @argument(
-        '-u', '--units',
-        help='Units of png plotting device sent as an argument to `png` in R.',
-        choices=["px", "in", "cm", "mm"]
+        '-u', '--units', type=unicode_type, choices=["px", "in", "cm", "mm"],
+        help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
         )
     @argument(
-        '--res',
-        help='Resolution for png plotting device sent as an argument to `png` in R.',
-        type=int
+        '-r', '--res', type=int,
+        help='Resolution of png plotting device sent as an argument to *png* in R. Defaults to 72 if *units* is one of ["in", "cm", "mm"].'
         )
     @argument(
         'code',
@@ -655,21 +649,22 @@ class RMagics(Magics):
         plotting_args = ','.join(['%s=%s' % (o,v) for o, v in plotting_argdict.items() if v is not None])
 
         # execute the R code in a temporary directory
-
+        tmpd = None
         if self.device in ['png', 'svg']:
             tmpd = tempfile.mkdtemp()
+            tmpd_fix_slashes = tmpd.replace('\\', '/')
 
         if self.device == 'png':
-            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd.replace('\\', '/'), plotting_args))
+            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd_fix_slashes, plotting_args))
         elif self.device == 'svg':
             # check to see if svg is available via the CairoSVG package
             if self.device == 'svg' and args.units is not None or args.res is not None:
-                raise RMagicError("CairoSVG device does not take a 'units' argument or 'res' argument")
-            self.r('library(Cairo); CairoSVG("%s/Rplot.svg", %s)' % (tmpd, plotting_args))
+                raise RInterpreterError("CairoSVG device does not take a 'units' argument or 'res' argument")
+            self.r('library(Cairo); CairoSVG("%s/Rplot.svg", %s)' % (tmpd_fix_slashes, plotting_args))
         elif self.device == 'X11':
             self.r('X11()')
         else:
-            raise RMagicError("device must be one of ['png', 'X11' 'svg']")
+            raise RInterpreterError("device must be one of ['png', 'X11' 'svg']")
 
         text_output = ''
         try:
@@ -694,7 +689,7 @@ class RMagics(Magics):
             print(e.stdout)
             if not e.stdout.endswith(e.err):
                 print(e.err)
-            rmtree(tmpd)
+            if tmpd: rmtree(tmpd)
             return
 
         if self.device in ['png', 'svg']:
@@ -746,8 +741,14 @@ class RMagics(Magics):
             for output in ','.join(args.dataframe).split(','):
                 self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
 
+        # Prepare metadata
+
+        md = {}
+        if args.isolatesvg and fmt == 'svg':
+            md = {'image/svg+xml': dict(isolated=True)}
+
         for tag, disp_d in display_data:
-            publish_display_data(tag, disp_d)
+            publish_display_data(tag, disp_d, metadata=md)
 
         # this will keep a reference to the display_data
         # which might be useful to other objects who happen to use
