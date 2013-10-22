@@ -31,7 +31,6 @@ import glob
 from io import BytesIO
 import os
 import os.path as path
-import re
 from select import select
 import sys
 from threading import Thread, Lock, Event
@@ -436,8 +435,9 @@ class SubprocessStreamCapturePlugin(Plugin):
     formatError = formatFailure
     
     def finalize(self, result):
-        self.stream_capturer.stop.set()
-        self.stream_capturer.join()
+        if self.stream_capturer.started:
+            self.stream_capturer.stop.set()
+            self.stream_capturer.join()
 
 
 def run_iptest():
