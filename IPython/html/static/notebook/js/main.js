@@ -46,8 +46,9 @@ function (marked) {
     $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
 
-    var baseProjectUrl = $('body').data('baseProjectUrl')
+    var baseProjectUrl = $('body').data('baseProjectUrl');
 
+    IPython.version = $('body').data('ipython-version');
     IPython.page = new IPython.Page();
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');

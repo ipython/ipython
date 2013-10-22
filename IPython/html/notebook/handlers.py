@@ -17,11 +17,13 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
+import json
 from tornado import web
 HTTPError = web.HTTPError
 
 from ..base.handlers import IPythonHandler
 from ..utils import url_path_join
+from ... import version_info
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -48,6 +50,7 @@ class NamedNotebookHandler(IPythonHandler):
             notebook_id=notebook_id,
             kill_kernel=False,
             mathjax_url=self.mathjax_url,
+            ipython_version="'{json}'".format(json=json.dumps(version_info))
             )
         )
 
