@@ -84,6 +84,7 @@ if sys.version_info[0] >= 3:
     cast_bytes_py2 = no_code
     
     string_types = (str,)
+    unicode_type = str
     
     def isidentifier(s, dotted=False):
         if dotted:
@@ -134,6 +135,7 @@ else:
     cast_bytes_py2 = cast_bytes
     
     string_types = (str, unicode)
+    unicode_type = unicode
     
     import re
     _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
