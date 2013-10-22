@@ -118,11 +118,16 @@ class="notebook_app"
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Cell</a>
             <ul class="dropdown-menu">
-                <li id="run_cell"><a href="#">Run</a></li>
-                <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
-                <li id="run_all_cells"><a href="#">Run All</a></li>
-                <li id="run_all_cells_above"><a href="#">Run All Above</a></li>
-                <li id="run_all_cells_below"><a href="#">Run All Below</a></li>
+                <li id="run_cell" title="Run this cell, and move cursor to the next one">
+                    <a href="#">Run</a></li>
+                <li id="run_cell_in_place" title="Run this cell, without moving to the next one">
+                    <a href="#">Run in Place</a></li>
+                <li id="run_all_cells" title="Run all cells in the notebook">
+                    <a href="#">Run All</a></li>
+                <li id="run_all_cells_above" title="Run all cells above (but not including) this cell">
+                    <a href="#">Run All Above</a></li>
+                <li id="run_all_cells_below" title="Run this cell and all cells below it">
+                    <a href="#">Run All Below</a></li>
                 <li class="divider"></li>
                 <li id="change_cell_type" class="dropdown-submenu"><a href="#">Cell Type</a>
                     <ul class="dropdown-menu">
