@@ -12,7 +12,6 @@
 #-------------------------------------------------------------------------------
 
 import os
-import tempfile
 import time
 from subprocess import Popen
 
@@ -25,9 +24,16 @@ from IPython.parallel.apps.launcher import (LocalProcessLauncher,
                                                   ProcessStateError,
 )
 
+# Environment variable set by IPython.testing.iptestcontroller
+SHOW_LOGS = 'IPTEST_PARALLEL_LOGLEVEL' in os.environ
+LOG_LEVEL = os.environ.get('IPTEST_PARALLEL_LOGLEVEL', '50')
+
 # globals
 launchers = []
-blackhole = open(os.devnull, 'w')
+if SHOW_LOGS:
+    stdstreams = None
+else:
+    stdstreams = open(os.devnull, 'w')
 
 # Launcher class
 class TestProcessLauncher(LocalProcessLauncher):
@@ -35,7 +41,7 @@ class TestProcessLauncher(LocalProcessLauncher):
     def start(self):
         if self.state == 'before':
             self.process = Popen(self.args,
-                stdout=blackhole, stderr=blackhole,
+                stdout=stdstreams, stderr=stdstreams,
                 env=os.environ,
                 cwd=self.work_dir
             )
@@ -57,7 +63,7 @@ def setup():
     
     cp = TestProcessLauncher()
     cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['--profile=iptest', '--log-level=50', '--ping=250', '--dictdb']
+                ['--profile=iptest', '--log-level='+LOG_LEVEL, '--ping=250', '--dictdb']
     cp.start()
     launchers.append(cp)
     tic = time.time()
@@ -86,7 +92,7 @@ def add_engines(n=1, profile='iptest', total=False):
         ep = TestProcessLauncher()
         ep.cmd_and_args = ipengine_cmd_argv + [
             '--profile=%s' % profile,
-            '--log-level=50',
+            '--log-level=' + LOG_LEVEL,
             '--InteractiveShell.colors=nocolor'
             ]
         ep.start()
@@ -121,5 +127,6 @@ def teardown():
                 p.signal(SIGKILL)
             except:
                 print "couldn't shutdown process: ", p
-    blackhole.close()
+    if stdstreams is not None:
+        stdstreams.close()
     

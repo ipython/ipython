@@ -158,6 +158,9 @@ class PyTestController(TestController):
         self.env['COVERAGE_PROCESS_START'] = config_file
         self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
 
+    def parallel_output(self, loglevel):
+        self.env['IPTEST_PARALLEL_LOGLEVEL'] = str(loglevel)
+
     def launch(self):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch()
@@ -177,14 +180,16 @@ def prepare_py_test_controllers(inc_slow=False):
             not_run.append(controller)
     return to_run, not_run
 
-def configure_controllers(controllers, xunit=False, coverage=False, extra_args=()):
+def configure_controllers(controllers, options):
     """Apply options for a collection of TestController objects."""
     for controller in controllers:
-        if xunit:
+        if options.xunit:
             controller.add_xunit()
-        if coverage:
+        if options.coverage:
             controller.add_coverage()
-        controller.cmd.extend(extra_args)
+        if options.parallel_stdstreams:
+            controller.parallel_output(options.parallel_loglevel)
+        controller.cmd.extend(options.extra_args)
 
 def do_run(controller):
     try:
@@ -263,6 +268,12 @@ def run_iptestall(options):
 
     extra_args : list
       Extra arguments to pass to the test subprocesses, e.g. '-v'
+
+    parallel_stdstreams : bool
+      If True, show stdout/stderr from ipcontroller and ipengine processes.
+
+    parallel_loglevel : int
+      The log level for parallel subprocesses. info = 20, debug = 10.
     """
     if options.fast != 1:
         # If running in parallel, capture output so it doesn't get interleaved
@@ -274,8 +285,7 @@ def run_iptestall(options):
     else:
         to_run, not_run = prepare_py_test_controllers(inc_slow=options.all)
 
-    configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage,
-                          extra_args=options.extra_args)
+    configure_controllers(to_run, options=options)
 
     def justify(ltext, rtext, width=70, fill='-'):
         ltext += ' '
@@ -412,6 +422,12 @@ def main():
     parser.add_argument('--coverage', nargs='?', const=True, default=False,
                         help="Measure test coverage. Specify 'html' or "
                         "'xml' to get reports.")
+    parser.add_argument('--parallel-stdstreams', action='store_true',
+                        help="Show stdout & stderr from ipcontroller and "
+                        "ipengine processes.")
+    parser.add_argument('--parallel-loglevel', type=int, default=50,
+                        help="The log level for ipcontroller and ipengine "
+                        "processes. Lower numbers give more logging.")
 
     options = parser.parse_args(to_parse)
     options.extra_args = extra_args
