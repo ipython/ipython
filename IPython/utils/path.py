@@ -277,15 +277,20 @@ def get_ipython_dir():
         # not set explicitly, use XDG_CONFIG_HOME or HOME
         home_ipdir = pjoin(home_dir, ipdir_def)
         if xdg_dir:
-            # use XDG, as long as the user isn't already
-            # using $HOME/.ipython and *not* XDG/ipython
+            # On Linux & similar systems, use the XDG dir
+            # (~/.config/ipython by default)
+            ipdir = pjoin(xdg_dir, xdg_def)
 
-            xdg_ipdir = pjoin(xdg_dir, xdg_def)
+            # Warn if we detect the old .ipython directory
+            if _writable_dir(home_ipdir):
+                if os.path.exists(ipdir):
+                    warnings.warn(('Ignoring ~/.ipython in favour of %s. '
+                    'Remove ~/.ipython to get rid of this message.') % ipdir)
+                else:
+                    warnings.warn('Moving ~/.ipython to %s.' % ipdir)
+                    os.rename(home_ipdir, ipdir)
 
-            if _writable_dir(xdg_ipdir) or not _writable_dir(home_ipdir):
-                ipdir = xdg_ipdir
-
-        if ipdir is None:
+        else:
             # not using XDG
             ipdir = home_ipdir
 
