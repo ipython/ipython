@@ -199,6 +199,13 @@ class LocateIPythonApp(BaseIPythonApplication):
             print self.ipython_dir
 
 
+class SysinfoApp(BaseIPythonApplication):
+    description = """print information about IPython and the platform."""
+    def start(self):
+        from IPython import sys_info
+        print(sys_info())
+
+
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
@@ -247,6 +254,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
         nbconvert=('IPython.nbconvert.nbconvertapp.NbConvertApp',
             "Convert notebooks to/from other formats."
+        ),
+        sysinfo=('IPython.terminal.ipapp.SysinfoApp',
+            SysinfoApp.description
         ),
     ))
 
