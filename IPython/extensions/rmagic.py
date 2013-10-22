@@ -658,7 +658,7 @@ class RMagics(Magics):
             tmpd_fix_slashes = tmpd.replace('\\', '/')
 
         if self.device == 'png':
-            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd_fix_slashes, plotting_args))
+            self.r('png("%s/Rplots%%03d.png", %s)' % (tmpd_fix_slashes, plotting_args))
         elif self.device == 'svg':
             self.r('CairoSVG("%s/Rplot.svg", %s)' % (tmpd_fix_slashes, plotting_args))
         elif self.device == 'X11':
@@ -701,9 +701,12 @@ class RMagics(Magics):
                 images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
             else:
                 # as onefile=TRUE, there is only one .svg file
+                imgfile = "%s/Rplot.svg" % tmpd
                 # by default, Cairo creates an SVG file every time R is called -- some of these are
                 # empty so we don't publish them
-                images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplot.svg" % tmpd) if stat(imgfile).st_size >= 1000]
+                images = []
+                if stat(imgfile).st_size >= 1000:
+                    images.append(open(imgfile, 'rb').read())
 
         # now publish the images
         # mimicking IPython/zmq/pylab/backend_inline.py
