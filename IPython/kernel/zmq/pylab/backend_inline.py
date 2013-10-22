@@ -1,5 +1,11 @@
-"""Produce SVG versions of active plots for display by the rich Qt frontend.
-"""
+"""A matplotlib backend for publishing figures via display_data"""
+#-----------------------------------------------------------------------------
+#       Copyright (C) 2011 The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -7,80 +13,14 @@ from __future__ import print_function
 
 # Third-party imports
 import matplotlib
-from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib._pylab_helpers import Gcf
 
-# Local imports.
-from IPython.config.configurable import SingletonConfigurable
+# Local imports
+from IPython.core.getipython import get_ipython
 from IPython.core.display import display
-from IPython.core.displaypub import publish_display_data
-from IPython.core.pylabtools import print_figure, select_figure_format
-from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, Bool
-from IPython.utils.warn import warn
 
-#-----------------------------------------------------------------------------
-# Configurable for inline backend options
-#-----------------------------------------------------------------------------
-# inherit from InlineBackendConfig for deprecation purposes
-class InlineBackendConfig(SingletonConfigurable):
-    pass
-
-class InlineBackend(InlineBackendConfig):
-    """An object to store configuration of the inline backend."""
-
-    def _config_changed(self, name, old, new):
-        # warn on change of renamed config section
-        if new.InlineBackendConfig != old.InlineBackendConfig:
-            warn("InlineBackendConfig has been renamed to InlineBackend")
-        super(InlineBackend, self)._config_changed(name, old, new)
-
-    # The typical default figure size is too large for inline use,
-    # so we shrink the figure size to 6x4, and tweak fonts to
-    # make that fit.
-    rc = Dict({'figure.figsize': (6.0,4.0),
-        # play nicely with white background in the Qt and notebook frontend
-        'figure.facecolor': 'white',
-        'figure.edgecolor': 'white',
-        # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
-        'font.size': 10,
-        # 72 dpi matches SVG/qtconsole
-        # this only affects PNG export, as SVG has no dpi setting
-        'savefig.dpi': 72,
-        # 10pt still needs a little more room on the xlabel:
-        'figure.subplot.bottom' : .125
-        }, config=True,
-        help="""Subset of matplotlib rcParams that should be different for the
-        inline backend."""
-    )
-
-    figure_format = CaselessStrEnum(['svg', 'png', 'retina'], default_value='png', config=True,
-        help="The image format for figures with the inline backend.")
-
-    def _figure_format_changed(self, name, old, new):
-        if self.shell is None:
-            return
-        else:
-            select_figure_format(self.shell, new)
-    
-    close_figures = Bool(True, config=True,
-        help="""Close all figures at the end of each cell.
-        
-        When True, ensures that each cell starts with no active figures, but it
-        also means that one must keep track of references in order to edit or
-        redraw figures in subsequent cells. This mode is ideal for the notebook,
-        where residual plots from other cells might be surprising.
-        
-        When False, one must call figure() to create new figures. This means
-        that gcf() and getfigs() can reference figures created in other cells,
-        and the active figure can continue to be edited with pylab/pyplot
-        methods that reference the current active figure. This mode facilitates
-        iterative editing of figures, and behaves most consistently with
-        other matplotlib backends, but figure barriers between cells must
-        be explicit.
-        """)
-
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-
+from .config import InlineBackend
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -105,7 +45,6 @@ def show(close=None):
         show._to_draw = []
         if close:
             matplotlib.pyplot.close('all')
-
 
 
 # This flag will be reset by draw_if_interactive when called
