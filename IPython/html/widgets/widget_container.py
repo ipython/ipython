@@ -2,7 +2,7 @@ from widget import Widget
 from IPython.utils.traitlets import Unicode, Bool
 
 class ContainerWidget(Widget):
-    target_name = Unicode('container_widget')
+    target_name = Unicode('ContainerWidgetModel')
     default_view_name = Unicode('ContainerView')
     _keys = ['_vbox', '_hbox', '_start', '_end', '_center']
     _trait_changing = False
