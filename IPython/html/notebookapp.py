@@ -500,7 +500,9 @@ class NotebookApp(BaseIPythonApplication):
         super(NotebookApp, self).parse_command_line(argv)
         
         if self.extra_args:
-            f = os.path.abspath(self.extra_args[0])
+            arg0 = self.extra_args[0]
+            f = os.path.abspath(arg0)
+            self.argv.remove(arg0)
             if not os.path.exists(f):
                 self.log.critical("No such file or directory: %s", f)
                 self.exit(1)
