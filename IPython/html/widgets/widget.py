@@ -96,11 +96,10 @@ class Widget(LoggingConfigurable):
     ### Event handlers
     def _handle_msg(self, msg):
         
-        # Handle backbone sync methods
+        # Handle backbone sync methods CREATE, PATCH, and UPDATE
         sync_method = msg['content']['data']['sync_method']
         sync_data = msg['content']['data']['sync_data']
-        if sync_method.lower() in ['create', 'update']:
-            self._handle_recieve_state(sync_data)
+        self._handle_recieve_state(sync_data) # handles all methods
     
     
     def _handle_recieve_state(self, sync_data):
@@ -119,7 +118,7 @@ class Widget(LoggingConfigurable):
         if not self._property_lock and self.comm is not None:
             # TODO: Validate properties.
             # Send new state to frontend
-            self.send_state()
+            self.send_state(key=name)
 
 
     def _handle_close(self):
@@ -154,8 +153,15 @@ class Widget(LoggingConfigurable):
         return None
 
 
-    def send_state(self):
+    def send_state(self, key=None):
         state = {}
+
+        # If a key is provided, just send the state of that key.
+        keys = []
+        if key is None:
+            keys.extend(self.keys)
+        else:
+            keys.append(key)
         for key in self.keys:
             try:
                 state[key] = getattr(self, key)

@@ -32,7 +32,7 @@ define(["static/components/underscore/underscore-min.js",
         //--------------------------------------------------------------------
         var WidgetModel = Backbone.Model.extend({
             apply: function(sender) {
-                this.save();
+                this.save(this.changedAttributes(), {patch: true});
 
                 for (var index in this.views) {
                     var view = this.views[index];
@@ -95,7 +95,7 @@ define(["static/components/underscore/underscore-min.js",
             
             var that = this;
             Backbone.sync = function(method, model, options, error) {
-                var result = that.send_sync(method, model);
+                var result = that.send_sync(method, model, options);
                 if (options.success) {
                   options.success(result);
                 }
@@ -214,6 +214,7 @@ define(["static/components/underscore/underscore-min.js",
                     }
                 }
             }
+            comm.model.id = comm.comm_id;
             comm.model.save();
             this.updating = false;
         }
@@ -234,7 +235,7 @@ define(["static/components/underscore/underscore-min.js",
         }
 
         // Send widget state to python backend.
-        WidgetManager.prototype.send_sync = function (method, model) {
+        WidgetManager.prototype.send_sync = function (method, model, options) {
             var model_json = model.toJSON();
 
             // Only send updated state if the state hasn't been changed during an update.
@@ -250,10 +251,21 @@ define(["static/components/underscore/underscore-min.js",
                         clear_output : $.proxy(outputarea.handle_clear_output, outputarea)}
                     };
                 };
-                var data = {sync_method: method, sync_data: model_json};
+
+                // If this is a patch operation, just send the changes.
+                var send_json = model_json;
+                if (method=='patch') {
+                    send_json = {};
+                    for (var attr in options.attrs) {
+                        send_json[attr] = options.attrs[attr];
+                    }
+                }
+                var data = {sync_method: method, sync_data: send_json};
                 comm.send(data, callbacks);    
             }
             
+            // Since the comm is a one-way communication, assume the message 
+            // arrived.
             return model_json;
         }
 
