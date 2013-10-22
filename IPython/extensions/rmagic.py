@@ -443,7 +443,7 @@ class RMagics(Magics):
         )
     @argument(
         '-p', '--pointsize', type=int,
-        help="Pointsize of png plotting device in R."
+        help="Pointsize of plotting device in R."
         )
     @argument(
         '-b', '--bg',
