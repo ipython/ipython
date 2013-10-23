@@ -45,6 +45,7 @@ from nose.plugins import Plugin
 from nose.util import safe_str
 
 # Our own imports
+from IPython.utils.process import is_cmd_found
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 from IPython.external.decorators import KnownFailure, knownfailureif
@@ -151,6 +152,7 @@ have['wx.aui'] = test_for('wx.aui')
 have['azure'] = test_for('azure')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
+have['casperjs'] = is_cmd_found('casperjs')
 
 min_zmq = (2,1,11)
 

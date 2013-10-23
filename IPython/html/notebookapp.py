@@ -711,8 +711,9 @@ class NotebookApp(BaseIPythonApplication):
 
     def notebook_info(self):
         "Return the current working directory and the server url information"
-        mgr_info = self.notebook_manager.info_string() + "\n"
-        return mgr_info +"The IPython Notebook is running at: %s" % self._url
+        info = self.notebook_manager.info_string() + "\n"
+        info += "%d active kernels \n" % len(self.kernel_manager._kernels)
+        return info + "The IPython Notebook is running at: %s" % self._url
 
     def start(self):
         """ Start the IPython Notebook server app, after initialization

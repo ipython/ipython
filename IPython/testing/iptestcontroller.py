@@ -20,6 +20,7 @@ from __future__ import print_function
 
 import argparse
 import multiprocessing.pool
+from multiprocessing import Process, Queue
 import os
 import shutil
 import signal
@@ -27,7 +28,7 @@ import sys
 import subprocess
 import time
 
-from .iptest import have, test_group_names, test_sections
+from .iptest import have, test_group_names as py_test_group_names, test_sections
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import sys_info
 from IPython.utils.tempdir import TemporaryDirectory
@@ -55,11 +56,6 @@ class TestController(object):
         self.cmd = []
         self.env = {}
         self.dirs = []
-    
-    @property
-    def will_run(self):
-        """Override in subclasses to check for dependencies."""
-        return False
 
     def launch(self):
         # print('*** ENV:', self.env)  # dbg
@@ -98,13 +94,13 @@ class TestController(object):
         if subp.poll() is None:
             # The process did not die...
             print('... failed. Manual cleanup may be required.')
-    
+
     def cleanup(self):
         "Kill process if it's still alive, and clean up temporary directories"
         self.cleanup_process()
         for td in self.dirs:
             td.cleanup()
-    
+
     __del__ = cleanup
 
 class PyTestController(TestController):
@@ -162,22 +158,91 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch()
 
+class JSController(TestController):
+    """Run CasperJS tests """
+    def __init__(self, section):
+        """Create new test runner."""
+        TestController.__init__(self)
+        self.section = section
 
-def prepare_py_test_controllers(inc_slow=False):
-    """Returns an ordered list of PyTestController instances to be run."""
-    to_run, not_run = [], []
-    if not inc_slow:
-        test_sections['parallel'].enabled = False
+        self.ipydir = TemporaryDirectory()
+        self.dirs.append(self.ipydir)
+        self.env['IPYTHONDIR'] = self.ipydir.name
 
-    for name in test_group_names:
-        controller = PyTestController(name)
-        if controller.will_run:
-            to_run.append(controller)
-        else:
-            not_run.append(controller)
+    def launch(self):
+        # start the ipython notebook, so we get the port number
+        self._init_server()
+
+        import IPython.html.tests as t
+        test_dir = os.path.join(os.path.dirname(t.__file__), 'casperjs')
+        includes = '--includes=' + os.path.join(test_dir,'util.js')
+        test_cases = os.path.join(test_dir, 'test_cases')
+        port = '--port=' + str(self.server_port)
+        self.cmd = ['casperjs', 'test', port, includes, test_cases]
+
+        super(JSController, self).launch()
+
+    @property
+    def will_run(self):
+        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs'])
+
+    def _init_server(self):
+        "Start the notebook server in a separate process"
+        self.queue = q = Queue()
+        self.server = Process(target=run_webapp, args=(q, self.ipydir.name))
+        self.server.start()
+        self.server_port = q.get()
+
+    def cleanup(self):
+        self.server.terminate()
+        self.server.join()
+        TestController.cleanup(self)
+
+js_test_group_names = {'js'}
+
+def run_webapp(q, nbdir, loglevel=0):
+    """start the IPython Notebook, and pass port back to the queue"""
+    import os
+    import IPython.html.notebookapp as nbapp
+    import sys
+    sys.stderr = open(os.devnull, 'w')
+    os.environ["IPYTHONDIR"] = nbdir
+    server = nbapp.NotebookApp()
+    args = ['--no-browser']
+    args.append('--notebook-dir='+nbdir)
+    args.append('--profile-dir='+nbdir)
+    args.append('--log-level='+str(loglevel))
+    server.initialize(args)
+    # communicate the port number to the parent process
+    q.put(server.port)
+    server.start()
+
+def prepare_controllers(options):
+    """Returns two lists of TestController instances, those to run, and those
+    not to run."""
+    testgroups = options.testgroups
+
+    if testgroups:
+        py_testgroups = [g for g in testgroups if g in py_test_group_names]
+        js_testgroups = [g for g in testgroups if g in js_test_group_names]
+    else:
+        py_testgroups = py_test_group_names
+        js_testgroups = js_test_group_names
+        if not options.all:
+            test_sections['parallel'].enabled = False
+
+    c_js = [JSController(name) for name in js_testgroups]
+    c_py = [PyTestController(name) for name in py_testgroups]
+
+    configure_py_controllers(c_py, xunit=options.xunit,
+            coverage=options.coverage)
+
+    controllers = c_py + c_js
+    to_run = [c for c in controllers if c.will_run]
+    not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
 
-def configure_controllers(controllers, xunit=False, coverage=False, extra_args=()):
+def configure_py_controllers(controllers, xunit=False, coverage=False, extra_args=()):
     """Apply options for a collection of TestController objects."""
     for controller in controllers:
         if xunit:
@@ -194,10 +259,10 @@ def do_run(controller):
             import traceback
             traceback.print_exc()
             return controller, 1  # signal failure
-    
+
         exitcode = controller.wait()
         return controller, exitcode
-    
+
     except KeyboardInterrupt:
         return controller, -signal.SIGINT
     finally:
@@ -236,7 +301,7 @@ def run_iptestall(options):
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
     nose.
-    
+
     Parameters
     ----------
 
@@ -268,14 +333,7 @@ def run_iptestall(options):
         # If running in parallel, capture output so it doesn't get interleaved
         TestController.buffer_output = True
 
-    if options.testgroups:
-        to_run = [PyTestController(name) for name in options.testgroups]
-        not_run = []
-    else:
-        to_run, not_run = prepare_py_test_controllers(inc_slow=options.all)
-
-    configure_controllers(to_run, xunit=options.xunit, coverage=options.coverage,
-                          extra_args=options.extra_args)
+    to_run, not_run = prepare_controllers(options)
 
     def justify(ltext, rtext, width=70, fill='-'):
         ltext += ' '
@@ -315,7 +373,7 @@ def run_iptestall(options):
                         break
         except KeyboardInterrupt:
             return
-    
+
     for controller in not_run:
         print(justify('IPython test group: ' + controller.section, 'NOT RUN'))
 

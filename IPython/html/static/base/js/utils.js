@@ -350,10 +350,35 @@ IPython.utils = (function (IPython) {
                 DOWN_ARROW: 40,
                 DOWNARROW: 40,
                 DOWN     : 40,
+                I        : 73,
+                M        : 77,
                 // all three of these keys may be COMMAND on OS X:
                 LEFT_SUPER : 91,
                 RIGHT_SUPER : 92,
                 COMMAND  : 93,
+    };
+    
+    // trigger a key press event
+    var press = function (key) {
+        var key_press =  $.Event('keydown', {which: key});
+        $(document).trigger(key_press);
+    }
+
+    var press_up = function() { press(keycodes.UP); };
+    var press_down = function() { press(keycodes.DOWN); };
+
+    var press_ctrl_enter = function() {
+        $(document).trigger($.Event('keydown', {which: keycodes.ENTER, ctrlKey: true}));
+    };
+
+    var press_shift_enter = function() {
+        $(document).trigger($.Event('keydown', {which: keycodes.ENTER, shiftKey: true}));
+    };
+
+    // trigger the ctrl-m shortcut followed by one of our keys
+    var press_ghetto = function(key) {
+        $(document).trigger($.Event('keydown', {which: keycodes.M, ctrlKey: true}));
+        press(key);
     };
 
 
@@ -411,6 +436,12 @@ IPython.utils = (function (IPython) {
         uuid : uuid,
         fixConsole : fixConsole,
         keycodes : keycodes,
+        press : press,
+        press_up : press_up,
+        press_down : press_down,
+        press_ctrl_enter : press_ctrl_enter,
+        press_shift_enter : press_shift_enter,
+        press_ghetto : press_ghetto,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,

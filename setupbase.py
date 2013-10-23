@@ -137,7 +137,6 @@ def find_package_data():
     cwd = os.getcwd()
     os.chdir(os.path.join('IPython', 'html'))
     static_walk = list(os.walk('static'))
-    os.chdir(cwd)
     static_data = []
     for parent, dirs, files in static_walk:
         if parent.startswith(excludes):
@@ -145,12 +144,17 @@ def find_package_data():
         for f in files:
             static_data.append(os.path.join(parent, f))
 
+    os.chdir(os.path.join('tests',))
+    js_tests = glob('casperjs/*.*') +  glob('casperjs/*/*')
+    os.chdir(cwd)
+
     package_data = {
         'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.core.tests' : ['*.png', '*.jpg'],
         'IPython.testing' : ['*.txt'],
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
+        'IPython.html.tests' : js_tests,
         'IPython.qt.console' : ['resources/icon/*.svg'],
         'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
             'templates/latex/skeleton/*.tplx', 'templates/skeleton/*', 
