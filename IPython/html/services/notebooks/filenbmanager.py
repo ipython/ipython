@@ -222,6 +222,10 @@ class FileNotebookManager(NotebookManager):
 
         if 'content' not in model:
             raise web.HTTPError(400, u'No notebook JSON data provided')
+        
+        # One checkpoint should always exist
+        if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):
+            self.create_checkpoint(name, path)
 
         new_path = model.get('path', path).strip('/')
         new_name = model.get('name', name)
