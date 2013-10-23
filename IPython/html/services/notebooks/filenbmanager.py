@@ -326,8 +326,9 @@ class FileNotebookManager(NotebookManager):
     def get_checkpoint_path(self, checkpoint_id, name, path=''):
         """find the path to a checkpoint"""
         path = path.strip('/')
+        basename, _ = os.path.splitext(name)
         filename = u"{name}-{checkpoint_id}{ext}".format(
-            name=name,
+            name=basename,
             checkpoint_id=checkpoint_id,
             ext=self.filename_ext,
         )
