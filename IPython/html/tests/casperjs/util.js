@@ -29,10 +29,13 @@ casper.open_new_notebook = function () {
     // initially, the cells aren't created, so wait for them to appear
     this.waitForSelector('.CodeMirror-code');
     // and make sure the kernel has started
-    this.waitFor(function kernel_ready() {
-        return this.evaluate(function kernel_ready() {
-            return IPython.notebook.kernel.running;
-        });
+    this.waitFor( this.kernel_running  );
+};
+
+// return whether or not the kernel is running
+casper.kernel_running = function kernel_running() {
+    return this.evaluate(function kernel_running() {
+        return IPython.notebook.kernel.running;
     });
 };
 
