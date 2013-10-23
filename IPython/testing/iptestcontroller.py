@@ -204,6 +204,8 @@ def run_webapp(q, nbdir, loglevel=0):
     """start the IPython Notebook, and pass port back to the queue"""
     import os
     import IPython.html.notebookapp as nbapp
+    import sys
+    sys.stderr = open(os.devnull, 'w')
     os.environ["IPYTHONDIR"] = nbdir
     server = nbapp.NotebookApp()
     args = ['--no-browser']
