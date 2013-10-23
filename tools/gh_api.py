@@ -162,14 +162,14 @@ def get_milestones(project, auth=False, **params):
         headers = make_auth_header()
     else:
         headers = None
-    pages = get_paged_request(url, headers=headers, **params)
-    return pages
+    milestones = get_paged_request(url, headers=headers, **params)
+    return milestones
 
 def get_milestone_id(project, milestone, auth=False, **params):
-    pages = get_milestones(project, auth=auth, **params)
-    for page in pages:
-        if page['title'] == milestone:
-            return page['number']
+    milestones = get_milestones(project, auth=auth, **params)
+    for mstone in milestones:
+        if mstone['title'] == milestone:
+            return mstone['number']
     else:
         raise ValueError("milestone %s not found" % milestone)
 
