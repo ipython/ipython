@@ -1,5 +1,6 @@
 """Base class for notebook tests."""
 
+import os
 import sys
 import time
 import requests
@@ -52,9 +53,13 @@ class NotebookTestBase(TestCase):
             '--port=%d' % cls.port,
             '--no-browser',
             '--ipython-dir=%s' % cls.ipython_dir.name,
-            '--notebook-dir=%s' % cls.notebook_dir.name
-        ]        
-        cls.notebook = Popen(notebook_args, stdout=PIPE, stderr=PIPE)
+            '--notebook-dir=%s' % cls.notebook_dir.name,
+        ]
+        devnull = open(os.devnull, 'w')
+        cls.notebook = Popen(notebook_args,
+            stdout=devnull,
+            stderr=devnull,
+        )
         cls.wait_until_alive()
 
     @classmethod
