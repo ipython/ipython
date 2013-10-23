@@ -75,6 +75,7 @@ var IPython = (function (IPython) {
             type : "DELETE",
             dataType : "json",
         };
+        this.kernel.running = false;
         var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
