@@ -538,7 +538,7 @@ class Magics(Configurable):
                 else:
                     # it's the real thing
                     tab[magic_name] = meth_name
-        # Configurable **need** to be initiated at the end or the config
+        # Configurable **needs** to be initiated at the end or the config
         # magics get screwed up.
         super(Magics, self).__init__(**kwargs)
 
