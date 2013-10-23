@@ -2461,7 +2461,7 @@ class InteractiveShell(SingletonConfigurable):
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
         with self.builtin_trap:
-            exec cmd in self.user_global_ns, self.user_ns
+            exec(cmd, self.user_global_ns, self.user_ns)
 
     def ev(self, expr):
         """Evaluate python expression expr in user namespace.
@@ -2842,7 +2842,7 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 self.hooks.pre_run_code_hook()
                 #rprint('Running code', repr(code_obj)) # dbg
-                exec code_obj in self.user_global_ns, self.user_ns
+                exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook

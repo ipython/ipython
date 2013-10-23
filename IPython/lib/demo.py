@@ -421,7 +421,7 @@ class Demo(object):
     def run_cell(self,source):
         """Execute a string with one or more lines of code"""
 
-        exec source in self.user_ns
+        exec(source, self.user_ns)
 
     def __call__(self,index=None):
         """run a block of the demo.

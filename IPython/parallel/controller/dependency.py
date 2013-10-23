@@ -80,7 +80,7 @@ def _require(*modules, **mapping):
     user_ns = globals()
     for name in modules:
         try:
-            exec 'import %s' % name in user_ns
+            exec('import %s' % name, user_ns)
         except ImportError:
             raise UnmetDependency(name)
             

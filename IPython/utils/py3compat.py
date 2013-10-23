@@ -98,7 +98,7 @@ if sys.version_info[0] >= 3:
     def execfile(fname, glob, loc=None):
         loc = loc if (loc is not None) else glob
         with open(fname, 'rb') as f:
-            exec compile(f.read(), fname, 'exec') in glob, loc
+            exec(compile(f.read(), fname, 'exec'), glob, loc)
     
     # Refactor print statements in doctests.
     _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
@@ -196,7 +196,7 @@ else:
                 filename = unicode_to_str(fname)
             else:
                 filename = fname
-            exec compile(scripttext, filename, 'exec') in glob, loc
+            exec(compile(scripttext, filename, 'exec'), glob, loc)
     else:
         def execfile(fname, *where):
             if isinstance(fname, unicode):
