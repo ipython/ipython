@@ -40,10 +40,10 @@ var IPython = (function (IPython) {
         }
     };
     
-    CommManager.prototype.new_comm = function (target_name, data, callbacks, metadata, comm_id) {
+    CommManager.prototype.new_comm = function (target_name, data, callbacks, metadata) {
         // Create a new Comm, register it, and open its Kernel-side counterpart
         // Mimics the auto-registration in `Comm.__init__` in the IPython Comm
-        var comm = new Comm(target_name, comm_id);
+        var comm = new Comm(target_name);
         this.register_comm(comm);
         comm.open(data, callbacks, metadata);
         return comm;
