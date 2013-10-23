@@ -92,10 +92,13 @@ define(["static/components/underscore/underscore-min.js",
             this.widget_model_types = {};
             this.widget_view_types = {};
             this.model_widget_views = {};
+            this.pending_msgs = 0;
+            this.msg_throttle = 3;
+            this.msg_buffer = {};
             
             var that = this;
             Backbone.sync = function(method, model, options, error) {
-                var result = that.send_sync(method, model, options);
+                var result = that.handle_sync(method, model, options);
                 if (options.success) {
                   options.success(result);
                 }
@@ -207,7 +210,7 @@ define(["static/components/underscore/underscore-min.js",
             this.updating = true;
             for (var key in state) {
                 if (state.hasOwnProperty(key)) {
-                    if (key=="_css"){
+                    if (key == "_css"){
                         comm.model.css = state[key];
                     } else {
                         comm.model.set(key, state[key]); 
@@ -227,6 +230,24 @@ define(["static/components/underscore/underscore-min.js",
             }
         }
 
+        // Handle when a msg status changes in the kernel.
+        WidgetManager.prototype.handle_status = function (msg) {
+            //execution_state : ('busy', 'idle', 'starting')
+            if (msg.content.execution_state=='idle') {
+                // Send buffer if this message caused another message to be
+                // throttled.
+                if (this.msg_throttle == --this.pending_msgs && 
+                    this.msg_buffer.length > 0) {
+                    var outputarea = this._get_msg_outputarea(msg);
+                    var callbacks = this._make_callbacks(outputarea);
+                    var data = {sync_method: 'patch', sync_data: this.msg_buffer};
+                    comm.send(data, callbacks);   
+                    this.pending_msgs++;
+                    this.msg_buffer = {};
+                }
+            }
+        }
+
         // Get the cell output area corresponding to the comm.
         WidgetManager.prototype._get_comm_outputarea = function (comm) {
             // TODO: get element from comm instead of guessing
@@ -234,34 +255,64 @@ define(["static/components/underscore/underscore-min.js",
             return cell.output_area;
         }
 
+        // Get the cell output area corresponding to the msg_id.
+        WidgetManager.prototype._get_msg_outputarea = function (msg) {
+            // TODO: get element from msg_id instead of guessing
+            // msg.parent_header.msg_id
+            var cell = IPython.notebook.get_cell(IPython.notebook.get_selected_index())
+            return cell.output_area;
+        }
+
+        // Build a callback dict.
+        WidgetManager.prototype._make_callbacks = function (outputarea) {
+            var callbacks = {};
+            if (outputarea != null) {
+                callbacks = {
+                    iopub : {
+                    status : $.proxy(this.handle_status, this),
+                    output : $.proxy(outputarea.handle_output, outputarea),
+                    clear_output : $.proxy(outputarea.handle_clear_output, outputarea)}
+                };
+            }
+            return callbacks;
+        }
+
         // Send widget state to python backend.
-        WidgetManager.prototype.send_sync = function (method, model, options) {
+        WidgetManager.prototype.handle_sync = function (method, model, options) {
             var model_json = model.toJSON();
 
             // Only send updated state if the state hasn't been changed during an update.
             if (!this.updating) {
                 // Create a callback for the output if the widget has an output area associate with it.
-                var callbacks = {};
+                var callbacks = this._make_callbacks(this._get_comm_outputarea(comm));
                 var comm = model.comm;
-                var outputarea = this._get_comm_outputarea(comm);
-                if (outputarea != null) {
-                    callbacks = {
-                        iopub : {
-                        output : $.proxy(outputarea.handle_output, outputarea),
-                        clear_output : $.proxy(outputarea.handle_clear_output, outputarea)}
-                    };
-                };
 
-                // If this is a patch operation, just send the changes.
-                var send_json = model_json;
-                if (method=='patch') {
-                    send_json = {};
-                    for (var attr in options.attrs) {
-                        send_json[attr] = options.attrs[attr];
+                if (this.pending_msgs >= this.msg_throttle) {
+                    // The throttle has been exceeded, buffer the current msg so
+                    // it can be sent once the kernel has finished processing 
+                    // some of the existing messages.
+                    if (method=='patch') {
+                        for (var attr in options.attrs) {
+                            this.msg_buffer[attr] = options.attrs[attr];
+                        }
+                    } else {
+                        this.msg_buffer = $.extend({}, model_json); // Copy
                     }
+                } else {
+                    // We haven't exceeded the throttle, send the message like 
+                    // normal.  If this is a patch operation, just send the 
+                    // changes.
+                    var send_json = model_json;
+                    if (method=='patch') {
+                        send_json = {};
+                        for (var attr in options.attrs) {
+                            send_json[attr] = options.attrs[attr];
+                        }
+                    }
+                    var data = {sync_method: method, sync_data: send_json};
+                    comm.send(data, callbacks);    
+                    this.pending_msgs++;
                 }
-                var data = {sync_method: method, sync_data: send_json};
-                comm.send(data, callbacks);    
             }
             
             // Since the comm is a one-way communication, assume the message 
