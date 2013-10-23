@@ -66,7 +66,6 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.collapsed = false;
         this.cell_type = "code";
-        this.last_msg_id = null;
 
 
         var cm_overwrite_options  = {
@@ -244,9 +243,6 @@ var IPython = (function (IPython) {
         this.output_area.clear_output();
         this.set_input_prompt('*');
         this.element.addClass("running");
-        if (this.last_msg_id) {
-            this.kernel.clear_callbacks_for_msg(this.last_msg_id);
-        }
         var callbacks = {
             'execute_reply': $.proxy(this._handle_execute_reply, this),
             'output': $.proxy(this.output_area.handle_output, this.output_area),

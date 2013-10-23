@@ -29,7 +29,7 @@ from IPython.nbformat.v3 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
     parse_filename, new_metadata, new_author, new_heading_cell, nbformat,
-    nbformat_minor,
+    nbformat_minor, to_notebook_json
 )
 
 #-----------------------------------------------------------------------------

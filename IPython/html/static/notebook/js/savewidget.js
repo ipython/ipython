@@ -46,6 +46,11 @@ var IPython = (function (IPython) {
             that.update_notebook_name();
             that.update_document_title();
         });
+        $([IPython.events]).on('notebook_renamed.Notebook', function () {
+            that.update_notebook_name();
+            that.update_document_title();
+            that.update_address_bar();
+        });
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
             that.set_save_status('Autosave Failed!');
         });
@@ -90,8 +95,7 @@ var IPython = (function (IPython) {
                         );
                         return false;
                     } else {
-                        IPython.notebook.set_notebook_name(new_name);
-                        IPython.notebook.save_notebook();
+                        IPython.notebook.rename(new_name);
                     }
                 }}
                 },
@@ -120,6 +124,17 @@ var IPython = (function (IPython) {
         var nbname = IPython.notebook.get_notebook_name();
         document.title = nbname;
     };
+    
+    SaveWidget.prototype.update_address_bar = function(){
+        var nbname = IPython.notebook.notebook_name;
+        var path = IPython.notebook.notebookPath();
+        var state = {path : utils.url_path_join(path,nbname)};
+        window.history.replaceState(state, "", utils.url_path_join(
+            "/notebooks",
+            path,
+            nbname)
+        );
+    }
 
 
     SaveWidget.prototype.set_save_status = function (msg) {

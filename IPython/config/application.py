@@ -38,6 +38,7 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # function for re-wrapping a helpstring
@@ -457,7 +458,7 @@ class Application(SingletonConfigurable):
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
-        self.argv = list(argv)
+        self.argv = [ py3compat.cast_unicode(arg) for arg in argv ]
         
         if argv and argv[0] == 'help':
             # turn `ipython help notebook` into `ipython notebook -h`

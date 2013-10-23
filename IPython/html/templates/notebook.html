@@ -21,10 +21,11 @@ window.mathjax_url = "{{mathjax_url}}";
 
 {% block params %}
 
-data-project={{project}}
-data-base-project-url={{base_project_url}}
-data-base-kernel-url={{base_kernel_url}}
-data-notebook-id={{notebook_id}}
+data-project="{{project}}"
+data-base-project-url="{{base_project_url}}"
+data-base-kernel-url="{{base_kernel_url}}"
+data-notebook-name="{{notebook_name}}"
+data-notebook-path="{{notebook_path}}"
 class="notebook_app"
 
 {% endblock %}
@@ -72,8 +73,8 @@ class="notebook_app"
                 <li class="divider"></li>
                 <li class="dropdown-submenu"><a href="#">Download as</a>
                     <ul class="dropdown-menu">
-                        <li id="download_ipynb"><a href="#">IPython (.ipynb)</a></li>
-                        <li id="download_py"><a href="#">Python (.py)</a></li>
+                        <li id="download_ipynb"><a href="#">IPython Notebook (.ipynb)</a></li>
+                        <!-- <li id="download_py"><a href="#">Python (.py)</a></li> -->
                     </ul>
                 </li>
                 <li class="divider"></li>
@@ -240,6 +241,7 @@ class="notebook_app"
 <script src="{{ static_url("notebook/js/completer.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("services/kernels/js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("services/sessions/js/session.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/quickhelp.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/pager.js") }}" type="text/javascript" charset="utf-8"></script>

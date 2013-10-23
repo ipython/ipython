@@ -19,12 +19,16 @@ Authors:
 
 import datetime
 import email.utils
+import functools
 import hashlib
+import json
 import logging
 import mimetypes
 import os
 import stat
+import sys
 import threading
+import traceback
 
 from tornado import web
 from tornado import websocket
@@ -37,6 +41,11 @@ except ImportError:
 from IPython.config import Application
 from IPython.external.decorator import decorator
 from IPython.utils.path import filefind
+from IPython.utils.jsonutil import date_default
+
+# UF_HIDDEN is a stat flag not defined in the stat module.
+# It is used by BSD to indicate hidden files.
+UF_HIDDEN = getattr(stat, 'UF_HIDDEN', 32768)
 
 #-----------------------------------------------------------------------------
 # Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
@@ -214,7 +223,11 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings['cluster_manager']
     
     @property
-    def project(self):
+    def session_manager(self):
+        return self.settings['session_manager']
+    
+    @property
+    def project_dir(self):
         return self.notebook_manager.notebook_dir
     
     #---------------------------------------------------------------
@@ -240,12 +253,100 @@ class IPythonHandler(AuthenticatedHandler):
             use_less=self.use_less,
         )
 
+    def get_json_body(self):
+        """Return the body of the request as JSON data."""
+        if not self.request.body:
+            return None
+        # Do we need to call body.decode('utf-8') here?
+        body = self.request.body.strip().decode(u'utf-8')
+        try:
+            model = json.loads(body)
+        except Exception:
+            self.log.debug("Bad JSON: %r", body)
+            self.log.error("Couldn't parse JSON", exc_info=True)
+            raise web.HTTPError(400, u'Invalid JSON in body of request')
+        return model
+
+
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
 
     @web.authenticated
     def get(self, path):
+        if os.path.splitext(path)[1] == '.ipynb':
+            name = os.path.basename(path)
+            self.set_header('Content-Type', 'application/json')
+            self.set_header('Content-Disposition','attachment; filename="%s"' % name)
+        
         return web.StaticFileHandler.get(self, path)
+    
+    def validate_absolute_path(self, root, absolute_path):
+        """Validate and return the absolute path.
+        
+        Requires tornado 3.1
+        
+        Adding to tornado's own handling, forbids the serving of hidden files.
+        """
+        abs_path = super(AuthenticatedFileHandler, self).validate_absolute_path(root, absolute_path)
+        abs_root = os.path.abspath(root)
+        self.forbid_hidden(abs_root, abs_path)
+        return abs_path
+    
+    def forbid_hidden(self, absolute_root, absolute_path):
+        """Raise 403 if a file is hidden or contained in a hidden directory.
+        
+        Hidden is determined by either name starting with '.'
+        or the UF_HIDDEN flag as reported by stat
+        """
+        inside_root = absolute_path[len(absolute_root):]
+        if any(part.startswith('.') for part in inside_root.split(os.sep)):
+            raise web.HTTPError(403)
+        
+        # check UF_HIDDEN on any location up to root
+        path = absolute_path
+        while path and path.startswith(absolute_root) and path != absolute_root:
+            st = os.stat(path)
+            if getattr(st, 'st_flags', 0) & UF_HIDDEN:
+                raise web.HTTPError(403)
+            path = os.path.dirname(path)
+        
+        return absolute_path
+
+
+def json_errors(method):
+    """Decorate methods with this to return GitHub style JSON errors.
+    
+    This should be used on any JSON API on any handler method that can raise HTTPErrors.
+    
+    This will grab the latest HTTPError exception using sys.exc_info
+    and then:
+    
+    1. Set the HTTP status code based on the HTTPError
+    2. Create and return a JSON body with a message field describing
+       the error in a human readable form.
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        try:
+            result = method(self, *args, **kwargs)
+        except web.HTTPError as e:
+            status = e.status_code
+            message = e.log_message
+            self.set_status(e.status_code)
+            self.finish(json.dumps(dict(message=message)))
+        except Exception:
+            self.log.error("Unhandled error in API request", exc_info=True)
+            status = 500
+            message = "Unknown server error"
+            t, value, tb = sys.exc_info()
+            self.set_status(status)
+            tb_text = ''.join(traceback.format_exception(t, value, tb))
+            reply = dict(message=message, traceback=tb_text)
+            self.finish(json.dumps(reply))
+        else:
+            return result
+    return wrapper
+
 
 
 #-----------------------------------------------------------------------------
@@ -266,7 +367,7 @@ class FileFindHandler(web.StaticFileHandler):
         if isinstance(path, basestring):
             path = [path]
         self.roots = tuple(
-            os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in path
+            os.path.abspath(os.path.expanduser(p)) + os.sep for p in path
         )
         self.default_filename = default_filename
     
@@ -284,7 +385,7 @@ class FileFindHandler(web.StaticFileHandler):
         
             # os.path.abspath strips a trailing /
             # it needs to be temporarily added back for requests to root/
-            if not (abspath + os.path.sep).startswith(roots):
+            if not (abspath + os.sep).startswith(roots):
                 raise HTTPError(403, "%s is not in root static directory", path)
         
             cls._static_paths[path] = abspath
@@ -339,7 +440,7 @@ class FileFindHandler(web.StaticFileHandler):
             if if_since >= modified:
                 self.set_status(304)
                 return
-
+        
         with open(abspath, "rb") as file:
             data = file.read()
             hasher = hashlib.sha1()
@@ -369,7 +470,7 @@ class FileFindHandler(web.StaticFileHandler):
         if isinstance(static_paths, basestring):
             static_paths = [static_paths]
         roots = tuple(
-            os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in static_paths
+            os.path.abspath(os.path.expanduser(p)) + os.sep for p in static_paths
         )
 
         try:
@@ -403,13 +504,26 @@ class FileFindHandler(web.StaticFileHandler):
         ``static_url_prefix`` removed.  The return value should be
         filesystem path relative to ``static_path``.
         """
-        if os.path.sep != "/":
-            url_path = url_path.replace("/", os.path.sep)
+        if os.sep != "/":
+            url_path = url_path.replace("/", os.sep)
         return url_path
+
+class TrailingSlashHandler(web.RequestHandler):
+    """Simple redirect handler that strips trailing slashes
+    
+    This should be the first, highest priority handler.
+    """
+    
+    SUPPORTED_METHODS = ['GET']
+    
+    def get(self):
+        self.redirect(self.request.uri.rstrip('/'))
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
 
 
-default_handlers = []
+default_handlers = [
+    (r".*/", TrailingSlashHandler)
+]

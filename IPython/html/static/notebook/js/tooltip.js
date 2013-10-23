@@ -225,8 +225,8 @@ var IPython = (function (IPython) {
         var callbacks = {
             'object_info_reply': $.proxy(this._show, this)
         }
-        var oir_token = this.extract_oir_token(line)
-        cell.kernel.object_info_request(oir_token, callbacks);
+        var oir_token = this.extract_oir_token(line);
+        var msg_id = cell.kernel.object_info_request(oir_token, callbacks);
     }
 
     // make an imediate completion request
