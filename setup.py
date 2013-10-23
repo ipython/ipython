@@ -273,7 +273,7 @@ if 'setuptools' in sys.modules:
         zmq = 'pyzmq>=2.1.11',
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
-        notebook = ['tornado>=2.0', 'pyzmq>=2.1.11', 'jinja2'],
+        notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
         nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
     )
     everything = set()

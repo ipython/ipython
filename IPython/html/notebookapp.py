@@ -42,8 +42,8 @@ from jinja2 import Environment, FileSystemLoader
 from zmq.eventloop import ioloop
 ioloop.install()
 
-# check for tornado 2.1.0
-msg = "The IPython Notebook requires tornado >= 2.1.0"
+# check for tornado 3.1.0
+msg = "The IPython Notebook requires tornado >= 3.1.0"
 try:
     import tornado
 except ImportError:
@@ -52,7 +52,7 @@ try:
     version_info = tornado.version_info
 except AttributeError:
     raise ImportError(msg + ", but you have < 1.1.0")
-if version_info < (2,1,0):
+if version_info < (3,1,0):
     raise ImportError(msg + ", but you have %s" % tornado.version)
 
 from tornado import httpserver
@@ -542,9 +542,8 @@ class NotebookApp(BaseIPythonApplication):
         # hook up tornado 3's loggers to our app handlers
         for name in ('access', 'application', 'general'):
             logger = logging.getLogger('tornado.%s' % name)
-            logger.propagate = False
+            logger.parent = self.log
             logger.setLevel(self.log.level)
-            logger.handlers = self.log.handlers
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
@@ -692,8 +691,8 @@ class NotebookApp(BaseIPythonApplication):
     
     @catch_config_error
     def initialize(self, argv=None):
-        self.init_logging()
         super(NotebookApp, self).initialize(argv)
+        self.init_logging()
         self.init_kernel_argv()
         self.init_configurables()
         self.init_components()

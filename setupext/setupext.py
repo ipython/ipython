@@ -137,8 +137,12 @@ def check_for_tornado():
         print_status('tornado', "no (required for notebook)")
         return False
     else:
-        print_status('tornado', tornado.version)
-        return True
+        if getattr(tornado, 'version_info', (0,)) < (3,1):
+            print_status('tornado', "no (have %s, but require >= 3.1.0)" % tornado.version)
+            return False
+        else:
+            print_status('tornado', tornado.version)
+            return True
 
 def check_for_readline():
     from distutils.version import LooseVersion
