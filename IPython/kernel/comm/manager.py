@@ -45,13 +45,13 @@ def with_output(method):
     def method_with_output(self, stream, ident, msg):
         parent = msg['header']
         self.shell.set_parent(parent)
-        self.shell.kernel._publish_status('busy')
+        self.shell.kernel._publish_status('busy', parent)
         try:
             return method(self, stream, ident, msg)
         finally:
             sys.stdout.flush()
             sys.stderr.flush()
-            self.shell.kernel._publish_status('idle')
+            self.shell.kernel._publish_status('idle', parent)
     
     return method_with_output
 
