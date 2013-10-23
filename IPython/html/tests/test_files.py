@@ -40,7 +40,7 @@ class FilesTest(NotebookTestBase):
             path = pjoin(nbdir, d.replace('/', os.path.sep))
             r = requests.get(url_path_join(url, 'files', d, 'foo'))
             r.raise_for_status()
-            self.assertEqual(r.content, u'foo')
+            self.assertEqual(r.content, b'foo')
             r = requests.get(url_path_join(url, 'files', d, '.foo'))
             self.assertEqual(r.status_code, 403)
             
