@@ -1,9 +1,9 @@
-import __builtin__
 import sys
 
 from IPython.core.displayhook import DisplayHook
 from IPython.kernel.inprocess.socket import SocketABC
 from IPython.utils.jsonutil import encode_images
+from IPython.utils.py3compat import builtin_mod
 from IPython.utils.traitlets import Instance, Dict
 from .session import extract_header, Session
 
@@ -21,7 +21,7 @@ class ZMQDisplayHook(object):
         if obj is None:
             return
 
-        __builtin__._ = obj
+        builtin_mod._ = obj
         sys.stdout.flush()
         sys.stderr.flush()
         msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},

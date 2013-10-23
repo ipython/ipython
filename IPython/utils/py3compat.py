@@ -1,6 +1,5 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
-import __builtin__
 import functools
 import sys
 import re
@@ -76,6 +75,7 @@ if sys.version_info[0] >= 3:
     
     input = input
     builtin_mod_name = "builtins"
+    import builtins as builtin_mod
     
     str_to_unicode = no_code
     unicode_to_str = no_code
@@ -127,6 +127,7 @@ else:
     
     input = raw_input
     builtin_mod_name = "__builtin__"
+    import __builtin__ as builtin_mod
     
     str_to_unicode = decode
     unicode_to_str = encode
@@ -189,7 +190,7 @@ else:
             # The rstrip() is necessary b/c trailing whitespace in files will
             # cause an IndentationError in Python 2.6 (this was fixed in 2.7,
             # but we still support 2.6).  See issue 1027.
-            scripttext = __builtin__.open(fname).read().rstrip() + '\n'
+            scripttext = builtin_mod.open(fname).read().rstrip() + '\n'
             # compile converts unicode filename to str assuming
             # ascii. Let's do the conversion before calling compile
             if isinstance(fname, unicode):
@@ -203,4 +204,4 @@ else:
                 filename = fname.encode(sys.getfilesystemencoding())
             else:
                 filename = fname
-            __builtin__.execfile(filename, *where)
+            builtin_mod.execfile(filename, *where)

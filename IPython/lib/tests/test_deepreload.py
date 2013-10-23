@@ -10,6 +10,7 @@ import os
 import nose.tools as nt
 
 from IPython.testing import decorators as dec
+from IPython.utils.py3compat import builtin_mod_name
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.lib.deepreload import reload as dreload
@@ -24,7 +25,7 @@ def test_deepreload_numpy():
     import numpy
     exclude = [
         # Standard exclusions:
-        'sys', 'os.path', '__builtin__', '__main__',
+        'sys', 'os.path', builtin_mod_name, '__main__',
         # Test-related exclusions:
         'unittest', 'UserDict',
         ]

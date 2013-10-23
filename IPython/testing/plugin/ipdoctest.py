@@ -19,7 +19,6 @@ Limitations:
 # Module imports
 
 # From the standard library
-import __builtin__ as builtin_mod
 import commands
 import doctest
 import inspect
@@ -48,6 +47,7 @@ from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 
 # Our own imports
+from IPython.utils.py3compat import builtin_mod
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants
@@ -296,7 +296,7 @@ class DocTestCase(doctests.DocTestCase):
         # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
         # it does look like one to me: its tearDown method tries to run
         #
-        # delattr(__builtin__, self._result_var)
+        # delattr(builtin_mod, self._result_var)
         #
         # without checking that the attribute really is there; it implicitly
         # assumes it should have been set via displayhook.  But if the

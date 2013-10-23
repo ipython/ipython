@@ -23,7 +23,6 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__ as builtin_mod
 import argparse
 import copy
 import os
@@ -33,6 +32,7 @@ import sys
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
+from IPython.utils.py3compat import builtin_mod
 from IPython.utils.traitlets import HasTraits, List, Any, TraitError
 
 #-----------------------------------------------------------------------------
