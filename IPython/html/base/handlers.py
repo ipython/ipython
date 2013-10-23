@@ -304,11 +304,11 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
         
         # check UF_HIDDEN on any location up to root
         path = absolute_path
-        while path and path.startswith(absolute_root):
+        while path and path.startswith(absolute_root) and path != absolute_root:
             st = os.stat(path)
             if getattr(st, 'st_flags', 0) & UF_HIDDEN:
                 raise web.HTTPError(403)
-            path, _ = os.path.split(path)
+            path = os.path.dirname(path)
         
         return absolute_path
 
