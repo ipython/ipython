@@ -3,6 +3,7 @@
 Note: this module is named 'osm' instead of 'os' to avoid a collision with the
 builtin.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -107,7 +108,7 @@ class OSMagics(Magics):
             # for k, v in stored:
             #     atab.append(k, v[0])
 
-            print "Total number of aliases:", len(aliases)
+            print("Total number of aliases:", len(aliases))
             sys.stdout.flush()
             return aliases
 
@@ -115,7 +116,7 @@ class OSMagics(Magics):
         try:
             alias,cmd = par.split(None, 1)
         except TypeError:
-            print(oinspect.getdoc(self.alias))
+            print((oinspect.getdoc(self.alias)))
             return
         
         try:
@@ -137,7 +138,7 @@ class OSMagics(Magics):
         
         stored = self.shell.db.get('stored_aliases', {} )
         if aname in stored:
-            print "Removing %stored alias",aname
+            print("Removing %stored alias",aname)
             del stored[aname]
             self.shell.db['stored_aliases'] = stored
 
@@ -284,7 +285,7 @@ class OSMagics(Magics):
             try:
                 ps = self.shell.user_ns['_dh'][nn]
             except IndexError:
-                print 'The requested directory does not exist in history.'
+                print('The requested directory does not exist in history.')
                 return
             else:
                 opts = {}
@@ -307,7 +308,7 @@ class OSMagics(Magics):
                 ps = fallback
 
             if ps is None:
-                print "No matching entry in directory history"
+                print("No matching entry in directory history")
                 return
             else:
                 opts = {}
@@ -331,7 +332,7 @@ class OSMagics(Magics):
 
                 if ps in bkms:
                     target = bkms[ps]
-                    print '(bookmark:%s) -> %s' % (ps, target)
+                    print('(bookmark:%s) -> %s' % (ps, target))
                     ps = target
                 else:
                     if 'b' in opts:
@@ -347,7 +348,7 @@ class OSMagics(Magics):
                 if hasattr(self.shell, 'term_title') and self.shell.term_title:
                     set_term_title('IPython: ' + abbrev_cwd())
             except OSError:
-                print sys.exc_info()[1]
+                print(sys.exc_info()[1])
             else:
                 cwd = os.getcwdu()
                 dhist = self.shell.user_ns['_dh']
@@ -366,7 +367,7 @@ class OSMagics(Magics):
                 dhist.append(cwd)
                 self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
         if not 'q' in opts and self.shell.user_ns['_dh']:
-            print self.shell.user_ns['_dh'][-1]
+            print(self.shell.user_ns['_dh'][-1])
 
 
     @line_magic
@@ -399,7 +400,7 @@ class OSMagics(Magics):
             raise UsageError("%popd on empty stack")
         top = self.shell.dir_stack.pop(0)
         self.cd(top)
-        print "popd ->",top
+        print("popd ->",top)
 
     @line_magic
     def dirs(self, parameter_s=''):
@@ -441,9 +442,9 @@ class OSMagics(Magics):
                 return
         else:
             ini,fin = 0,len(dh)
-        print 'Directory history (kept in _dh)'
+        print('Directory history (kept in _dh)')
         for i in range(ini, fin):
-            print "%d: %s" % (i, dh[i])
+            print("%d: %s" % (i, dh[i]))
 
     @skip_doctest
     @line_magic
@@ -555,7 +556,7 @@ class OSMagics(Magics):
         split = 'l' in opts
         out = self.shell.getoutput(cmd, split=split)
         if 'v' in opts:
-            print '%s ==\n%s' % (var, pformat(out))
+            print('%s ==\n%s' % (var, pformat(out)))
         if var:
             self.shell.user_ns.update({var:out})
         else:
@@ -667,9 +668,9 @@ class OSMagics(Magics):
             else:
                 size = 0
             fmt = '%-'+str(size)+'s -> %s'
-            print 'Current bookmarks:'
+            print('Current bookmarks:')
             for bk in bks:
-                print fmt % (bk, bkms[bk])
+                print(fmt % (bk, bkms[bk]))
         else:
             if not args:
                 raise UsageError("%bookmark: You must specify the bookmark name")
@@ -701,7 +702,7 @@ class OSMagics(Magics):
         try :
             cont = self.shell.find_user_code(parameter_s, skip_encoding_cookie=False)
         except (ValueError, IOError):
-            print "Error: no such file, variable, URL, history range or macro"
+            print("Error: no such file, variable, URL, history range or macro")
             return
 
         page.page(self.shell.pycolorize(source_to_unicode(cont)))
@@ -727,11 +728,11 @@ class OSMagics(Magics):
         
         if os.path.exists(filename):
             if args.append:
-                print "Appending to %s" % filename
+                print("Appending to %s" % filename)
             else:
-                print "Overwriting %s" % filename
+                print("Overwriting %s" % filename)
         else:
-            print "Writing %s" % filename
+            print("Writing %s" % filename)
         
         mode = 'a' if args.append else 'w'
         with io.open(filename, mode, encoding='utf-8') as f:

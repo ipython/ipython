@@ -17,6 +17,7 @@ Alternatively, you can add a dreload builtin alongside normal reload with::
 This code is almost entirely based on knee.py, which is a Python
 re-implementation of hierarchical module import.
 """
+from __future__ import print_function
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 #
@@ -167,7 +168,7 @@ def import_submodule(mod, subname, fullname):
     if fullname in found_now and fullname in sys.modules:
         m = sys.modules[fullname]
     else:
-        print 'Reloading', fullname
+        print('Reloading', fullname)
         found_now[fullname] = 1
         oldm = sys.modules.get(fullname, None)
 

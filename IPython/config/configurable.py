@@ -13,6 +13,7 @@ Authors:
 * Fernando Perez
 * Min RK
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -236,7 +237,7 @@ class Configurable(HasTraits):
     @classmethod
     def class_print_help(cls, inst=None):
         """Get the help string for a single trait and print it."""
-        print cls.class_get_help(inst)
+        print(cls.class_get_help(inst))
 
     @classmethod
     def class_config_section(cls):

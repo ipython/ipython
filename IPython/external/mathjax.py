@@ -38,6 +38,7 @@ To find the directory where IPython would like MathJax installed:
     $ python -m IPython.external.mathjax -d
 
 """
+from __future__ import print_function
 
 
 #-----------------------------------------------------------------------------
@@ -86,14 +87,14 @@ def prepare_dest(dest, replace=False):
     
     if os.path.exists(dest):
         if replace:
-            print "removing existing MathJax at %s" % dest
+            print("removing existing MathJax at %s" % dest)
             shutil.rmtree(dest)
             return True
         else:
             mathjax_js = os.path.join(dest, 'MathJax.js')
             if not os.path.exists(mathjax_js):
                 raise IOError("%s exists, but does not contain MathJax.js" % dest)
-            print "%s already exists" % mathjax_js
+            print("%s already exists" % mathjax_js)
             return False
     else:
         return True
@@ -156,7 +157,7 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
     try:
         anything_to_do = prepare_dest(dest, replace)
     except OSError as e:
-        print("ERROR %s, require write access to %s" % (e, dest))
+        print(("ERROR %s, require write access to %s" % (e, dest)))
         return 1
     else:
         if not anything_to_do:
@@ -165,11 +166,11 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
     if file is None:
         # download mathjax
         mathjax_url = "https://github.com/mathjax/MathJax/archive/%s.tar.gz" %tag
-        print "Downloading mathjax source from %s" % mathjax_url
+        print("Downloading mathjax source from %s" % mathjax_url)
         response = urllib2.urlopen(mathjax_url)
         file = response.fp
 
-    print "Extracting to %s" % dest
+    print("Extracting to %s" % dest)
     extractor(file, dest)
     return 0
 
@@ -205,7 +206,7 @@ def main():
     dest = os.path.join(pargs.install_dir, 'mathjax')
 
     if pargs.print_dest:
-        print dest
+        print(dest)
         return
 
     # remove/replace existing mathjax?

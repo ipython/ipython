@@ -1,4 +1,5 @@
 """toplevel setup/teardown for parallel tests."""
+from __future__ import print_function
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
@@ -118,15 +119,15 @@ def teardown():
             try:
                 p.stop()
             except Exception as e:
-                print e
+                print(e)
                 pass
         if p.poll() is None:
             time.sleep(.25)
         if p.poll() is None:
             try:
-                print 'cleaning up test process...'
+                print('cleaning up test process...')
                 p.signal(SIGKILL)
             except:
-                print "couldn't shutdown process: ", p
+                print("couldn't shutdown process: ", p)
     blackhole.close()
     

@@ -2,6 +2,7 @@
 
 This is used by a companion test case.
 """
+from __future__ import print_function
 
 import gc
 
@@ -16,4 +17,4 @@ if __name__ == '__main__':
    c_refs = gc.get_referrers(c)
    ref_ids = map(id,c_refs)
 
-   print 'c referrers:',map(type,c_refs)
+   print('c referrers:',map(type,c_refs))

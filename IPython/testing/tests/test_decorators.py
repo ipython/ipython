@@ -1,5 +1,6 @@
 """Tests for the decorators we've created for IPython.
 """
+from __future__ import print_function
 
 # Module imports
 # Std lib
@@ -67,9 +68,9 @@ def doctest_bad(x,y=1,**k):
     >>> 1+1
     3
     """
-    print 'x:',x
-    print 'y:',y
-    print 'k:',k
+    print('x:',x)
+    print('y:',y)
+    print('k:',k)
 
 
 def call_doctest_bad():
@@ -117,7 +118,7 @@ class FooClass(object):
         >>> f = FooClass(3)
         junk
         """
-        print 'Making a FooClass.'
+        print('Making a FooClass.')
         self.x = x
         
     @skip_doctest

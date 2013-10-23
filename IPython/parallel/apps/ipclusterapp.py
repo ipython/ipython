@@ -9,6 +9,7 @@ Authors:
 * MinRK
 
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -595,8 +596,8 @@ class IPClusterApp(BaseIPythonApplication):
 
     def start(self):
         if self.subapp is None:
-            print "No subcommand specified. Must specify one of: %s"%(self.subcommands.keys())
-            print
+            print("No subcommand specified. Must specify one of: %s"%(self.subcommands.keys()))
+            print()
             self.print_description()
             self.print_subcommands()
             self.exit(1)

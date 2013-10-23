@@ -21,6 +21,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import glob
 import os
@@ -248,7 +249,7 @@ class InteractiveShellApp(Configurable):
             self.log.info("Enabling GUI event loop integration, "
                       "eventloop=%s, matplotlib=%s", gui, backend)
             if key == "auto":
-                print ("Using matplotlib backend: %s" % backend)
+                print(("Using matplotlib backend: %s" % backend))
         else:
             gui = r
             self.log.info("Enabling GUI event loop integration, "

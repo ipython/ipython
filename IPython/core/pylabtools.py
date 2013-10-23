@@ -7,6 +7,7 @@ Authors
 * Fernando Perez.
 * Brian Granger
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2009  The IPython Development Team
@@ -74,7 +75,7 @@ def getfigs(*fig_nums):
         for num in fig_nums:
             f = Gcf.figs.get(num)
             if f is None:
-                print('Warning: figure %s not available.' % num)
+                print(('Warning: figure %s not available.' % num))
             else:
                 figs.append(f.canvas.figure)
         return figs

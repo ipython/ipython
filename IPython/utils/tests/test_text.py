@@ -1,5 +1,6 @@
 # encoding: utf-8
 """Tests for IPython.utils.text"""
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
@@ -45,11 +46,11 @@ def test_columnize_random():
         longer_line = max([len(x) for x in out.split('\n')])
         longer_element = max(rand_len)
         if longer_line > displaywidth:
-            print "Columnize displayed something lager than displaywidth : %s " % longer_line
-            print "longer element : %s " % longer_element
-            print "displaywidth : %s " % displaywidth
-            print "number of element : %s " % nitems
-            print "size of each element :\n %s" % rand_len
+            print("Columnize displayed something lager than displaywidth : %s " % longer_line)
+            print("longer element : %s " % longer_element)
+            print("displaywidth : %s " % displaywidth)
+            print("number of element : %s " % nitems)
+            print("size of each element :\n %s" % rand_len)
             assert False
 
 def test_columnize_medium():

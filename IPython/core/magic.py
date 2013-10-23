@@ -1,6 +1,7 @@
 # encoding: utf-8
 """Magic functions for InteractiveShell.
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -544,8 +545,8 @@ class Magics(Configurable):
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
-        print 'Error in arguments:'
-        print oinspect.getdoc(func)
+        print('Error in arguments:')
+        print(oinspect.getdoc(func))
 
     def format_latex(self, strng):
         """Format a string for latex inclusion."""

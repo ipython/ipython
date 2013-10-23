@@ -12,6 +12,7 @@ This script is meant to be called by other parts of the test suite that call it
 via %run as if it were executed interactively by the user. As of 2011-05-29,
 test_run.py calls it.
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Module imports
@@ -44,4 +45,4 @@ if __name__ == '__main__':
 
     def call_f():
         for func in cache:
-            print 'lowercased:',func().lower()
+            print('lowercased:',func().lower())

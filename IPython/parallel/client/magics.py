@@ -26,6 +26,7 @@ Usage
 {CONFIG_DOC}
 
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008 The IPython Development Team
@@ -251,7 +252,7 @@ class ParallelMagics(Magics):
         else:
             str_targets = str(targets)
         if self.verbose:
-            print base + " execution on engine(s): %s" % str_targets
+            print(base + " execution on engine(s): %s" % str_targets)
         
         result = self.view.execute(cell, silent=False, block=False)
         self.last_result = result
@@ -358,7 +359,7 @@ class ParallelMagics(Magics):
         self.shell.run_cell = self.pxrun_cell
 
         self._autopx = True
-        print "%autopx enabled"
+        print("%autopx enabled")
 
     def _disable_autopx(self):
         """Disable %autopx by restoring the original InteractiveShell.run_cell.
@@ -366,7 +367,7 @@ class ParallelMagics(Magics):
         if self._autopx:
             self.shell.run_cell = self._original_run_cell
             self._autopx = False
-            print "%autopx disabled"
+            print("%autopx disabled")
 
     def pxrun_cell(self, raw_cell, store_history=False, silent=False):
         """drop-in replacement for InteractiveShell.run_cell.

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 import argparse
@@ -79,10 +80,10 @@ if __name__ == '__main__':
                             key=args.key,
                             verbose=args.verbose)
         if nerror is 0:
-            print u"[Pass]",name
+            print(u"[Pass]",name)
         else :
-            print u"[    ]",name,'(%d)'%(nerror)
+            print(u"[    ]",name,'(%d)'%(nerror))
         if args.verbose :
-            print '=================================================='
+            print('==================================================')
 
 
