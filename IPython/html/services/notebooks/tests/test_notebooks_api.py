@@ -170,7 +170,11 @@ class APITest(NotebookTestBase):
         location_header = py3compat.str_to_unicode(resp.headers['Location'])
         self.assertEqual(location_header, url_escape(url_path_join(u'/api/notebooks', path, name)))
         self.assertEqual(resp.json()['name'], name)
-        assert os.path.isfile(pjoin(self.notebook_dir.name, path, name))
+        assert os.path.isfile(pjoin(
+            self.notebook_dir.name,
+            path.replace('/', os.path.sep),
+            name,
+        ))
 
     def test_create_untitled(self):
         resp = self.nb_api.create_untitled(path=u'å b')
@@ -182,7 +186,7 @@ class APITest(NotebookTestBase):
 
         # And two directories down
         resp = self.nb_api.create_untitled(path='foo/bar')
-        self._check_nb_created(resp, 'Untitled0.ipynb', pjoin('foo', 'bar'))
+        self._check_nb_created(resp, 'Untitled0.ipynb', 'foo/bar')
 
     def test_upload_untitled(self):
         nb = new_notebook(name='Upload test')
