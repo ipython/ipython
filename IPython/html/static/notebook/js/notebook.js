@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2013  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -1288,19 +1288,25 @@ var IPython = (function (IPython) {
      * 
      * @method start_session
      */
-    Notebook.prototype.start_kernel = function () {
-        var base_url = $('body').data('baseKernelUrl') + "kernels";
-        this.kernel = new IPython.Kernel(base_url);
-        this.kernel.start({notebook: this.notebook_id});
-        // Now that the kernel has been created, tell the CodeCells about it.
+    Notebook.prototype.start_session = function () {
+        this.session = new IPython.Session(this.notebook_name, this.notebook_path, this);
+        this.session.start($.proxy(this._session_started, this));
+    };
+
+
+    /**
+     * Once a session is started, link the code cells to the kernel
+     *
+     */
+    Notebook.prototype._session_started = function(){
+        this.kernel = this.session.kernel;
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
             if (cell instanceof IPython.CodeCell) {
                 cell.set_kernel(this.session.kernel);
             };
-        };
-        this.widget_manager = IPython.WidgetManager(this.kernel.comm_manager);
+        };  
     };
     
     /**
