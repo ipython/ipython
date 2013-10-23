@@ -71,7 +71,7 @@ def script_args(f):
     return f
 
 @magics_class
-class ScriptMagics(Magics, Configurable):
+class ScriptMagics(Magics):
     """Magics for talking to scripts
     
     This defines a base `%%script` cell magic for running a cell
@@ -116,9 +116,8 @@ class ScriptMagics(Magics, Configurable):
     )
     
     def __init__(self, shell=None):
-        Configurable.__init__(self, config=shell.config)
+        super(ScriptMagics, self).__init__(shell=shell)
         self._generate_script_magics()
-        Magics.__init__(self, shell=shell)
         self.job_manager = BackgroundJobManager()
         self.bg_processes = []
         atexit.register(self.kill_bg_processes)

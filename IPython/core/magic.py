@@ -477,7 +477,8 @@ class MagicsManager(Configurable):
 
 # Key base class that provides the central functionality for magics.
 
-class Magics(object):
+
+class Magics(Configurable):
     """Base class for implementing magic functions.
 
     Shell functions which can be reached as %function_name. All magic
@@ -506,10 +507,17 @@ class Magics(object):
     # Instance of IPython shell
     shell = None
 
-    def __init__(self, shell):
+    def __init__(self, shell=None, **kwargs):
         if not(self.__class__.registered):
             raise ValueError('Magics subclass without registration - '
                              'did you forget to apply @magics_class?')
+        if shell is not None:
+            if hasattr(shell, 'configurables'):
+                shell.configurables.append(self)
+            if hasattr(shell, 'config'):
+                kwargs.setdefault('parent', shell)
+            kwargs['shell'] = shell
+
         self.shell = shell
         self.options_table = {}
         # The method decorators are run when the instance doesn't exist yet, so
@@ -530,6 +538,9 @@ class Magics(object):
                 else:
                     # it's the real thing
                     tab[magic_name] = meth_name
+        # Configurable **need** to be initiated at the end or the config
+        # magics get screwed up.
+        super(Magics, self).__init__(**kwargs)
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -638,6 +649,7 @@ class Magics(object):
         if fn not in self.lsmagic():
             error("%s is not a magic function" % fn)
         self.options_table[fn] = optstr
+
 
 class MagicAlias(object):
     """An alias to another magic function.

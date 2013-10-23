@@ -33,6 +33,7 @@ from IPython.core.hooks import TryNext
 noop = lambda *a, **kw: None
 
 class FakeShell(object):
+
     def __init__(self):
         self.ns = {}
         self.auto_magics = AutoreloadMagics(shell=self)

@@ -60,7 +60,6 @@ def test_extract_code_ranges():
     actual = list(code.extract_code_ranges(instr))
     nt.assert_equal(actual, expected)
 
-
 def test_extract_symbols():
     source = """import foo\na = 10\ndef b():\n    return 42\n\n\nclass A: pass\n\n\n"""
     symbols_args = ["a", "b", "A", "A,b", "A,a", "z"]
@@ -82,6 +81,14 @@ def test_extract_symbols_raises_exception_with_non_python_code():
     with nt.assert_raises(SyntaxError):
         code.extract_symbols(source, "hello")
 
+def test_config():
+    """ test that config magic does not raise
+    can happen if Configurable init is moved too early into
+    Magics.__init__ as then a Config object will be registerd as a
+    magic.
+    """
+    ## should not raise.
+    _ip.magic('config')
 
 def test_rehashx():
     # clear up everything
