@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
             reader.readAsText(f);
             var name_and_ext = utils.splitext(f.name);
             var nbname = name_and_ext[0];
-            var file_ext = name_and_ext[-1];
+            var file_ext = name_and_ext[1];
             if (file_ext === '.ipynb') {
                 var item = that.new_notebook_item(0);
                 that.add_name_input(nbname, item);
@@ -326,7 +326,7 @@ var IPython = (function (IPython) {
                 var settings = {
                     processData : false,
                     cache : false,
-                    type : 'POST',
+                    type : 'PUT',
                     dataType : 'json',
                     data : JSON.stringify(model),
                     headers : {'Content-Type': content_type},
