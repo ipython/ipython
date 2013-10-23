@@ -13,7 +13,7 @@ from __future__ import print_function
 
 # Third-party imports
 import matplotlib
-from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg # analysis: ignore
 from matplotlib._pylab_helpers import Gcf
 
 # Local imports
