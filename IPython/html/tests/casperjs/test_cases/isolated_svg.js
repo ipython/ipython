@@ -1,6 +1,6 @@
 //
 // Test svg isolation
-// An object whoose metadata contains an "isolated" tag must be isolated
+// An object whose metadata contains an "isolated" tag must be isolated
 // from the rest of the document. In the case of inline SVGs, this means
 // that multiple SVGs have different scopes. This test checks that there
 // are no CSS leaks between two isolated SVGs.
