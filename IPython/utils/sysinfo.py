@@ -93,6 +93,11 @@ def pkg_info(pkg_path):
         default_encoding=encoding.DEFAULT_ENCODING,
         )
 
+def get_sys_info():
+    """Return useful information about IPython and the system, as a dict."""
+    p = os.path
+    path = p.dirname(p.abspath(p.join(__file__, '..')))
+    return pkg_info(path)
 
 @py3compat.doctest_refactor_print
 def sys_info():
@@ -112,11 +117,8 @@ def sys_info():
          'sys_executable': '/usr/bin/python',
          'sys_platform': 'linux2',
          'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \\n[GCC 4.4.5]'}
-   """
-    p = os.path
-    path = p.dirname(p.abspath(p.join(__file__, '..')))
-    return pprint.pformat(pkg_info(path))
-
+    """
+    return pprint.pformat(get_sys_info())
 
 def _num_cpus_unix():
     """Return the number of active CPUs on a Unix system."""

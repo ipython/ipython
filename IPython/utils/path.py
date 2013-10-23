@@ -88,6 +88,13 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
             name = name[1:-1]
     return name
 
+def compress_user(path):
+    """Reverse of :func:`os.path.expanduser`
+    """
+    home = os.path.expanduser('~')
+    if path.startswith(home):
+        path =  "~" + path[len(home):]
+    return path
 
 def get_py_filename(name, force_win32=None):
     """Return a valid python filename in the current directory.
