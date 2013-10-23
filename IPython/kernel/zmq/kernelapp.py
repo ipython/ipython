@@ -50,13 +50,13 @@ from IPython.utils.importstring import import_item
 from IPython.kernel import write_connection_file
 
 # local imports
-from heartbeat import Heartbeat
-from ipkernel import Kernel
-from parentpoller import ParentPollerUnix, ParentPollerWindows
-from session import (
+from .heartbeat import Heartbeat
+from .ipkernel import Kernel
+from .parentpoller import ParentPollerUnix, ParentPollerWindows
+from .session import (
     Session, session_flags, session_aliases, default_secure,
 )
-from zmqshell import ZMQInteractiveShell
+from .zmqshell import ZMQInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Flags and Aliases

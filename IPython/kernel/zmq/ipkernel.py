@@ -35,9 +35,9 @@ from IPython.utils.traitlets import (
     Type
 )
 
-from serialize import serialize_object, unpack_apply_message
-from session import Session
-from zmqshell import ZMQInteractiveShell
+from .serialize import serialize_object, unpack_apply_message
+from .session import Session
+from .zmqshell import ZMQInteractiveShell
 
 
 #-----------------------------------------------------------------------------

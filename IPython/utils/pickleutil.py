@@ -25,9 +25,9 @@ try:
 except ImportError:
     import pickle
 
-import codeutil  # This registers a hook when it's imported
-import py3compat
-from importstring import import_item
+from . import codeutil  # This registers a hook when it's imported
+from . import py3compat
+from .importstring import import_item
 
 from IPython.config import Application
 

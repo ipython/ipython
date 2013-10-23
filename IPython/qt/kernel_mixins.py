@@ -6,7 +6,7 @@ from IPython.external.qt import QtCore
 
 # IPython imports.
 from IPython.utils.traitlets import HasTraits, Type
-from util import MetaQObjectHasTraits, SuperQObject
+from .util import MetaQObjectHasTraits, SuperQObject
 
 
 class ChannelQObject(SuperQObject):

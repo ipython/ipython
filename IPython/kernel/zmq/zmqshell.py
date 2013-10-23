@@ -50,7 +50,7 @@ from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
 from IPython.kernel.comm import CommManager
-from session import Session
+from .session import Session
 
 #-----------------------------------------------------------------------------
 # Functions and classes
