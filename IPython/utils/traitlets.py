@@ -901,7 +901,7 @@ else:
     class Long(TraitType):
         """A long integer trait."""
 
-        default_value = 0L
+        default_value = 0
         info_text = 'a long'
 
         def validate(self, obj, value):

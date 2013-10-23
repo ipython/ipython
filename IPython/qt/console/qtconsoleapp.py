@@ -39,7 +39,7 @@ if os.name == 'nt':
     def gui_excepthook(exctype, value, tb):
         try:
             import ctypes, traceback
-            MB_ICONERROR = 0x00000010L
+            MB_ICONERROR = 0x00000010
             title = u'Error starting IPython QtConsole'
             msg = u''.join(traceback.format_exception(exctype, value, tb))
             ctypes.windll.user32.MessageBoxW(0, msg, title, MB_ICONERROR)
