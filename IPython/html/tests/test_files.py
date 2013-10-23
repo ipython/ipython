@@ -27,7 +27,7 @@ class FilesTest(NotebookTestBase):
         
         nbdir = self.notebook_dir.name
         for d in dirs:
-            path = pjoin(nbdir, d.replace('/', os.path.sep))
+            path = pjoin(nbdir, d.replace('/', os.sep))
             if not os.path.exists(path):
                 os.mkdir(path)
             with open(pjoin(path, 'foo'), 'w') as f:
@@ -37,7 +37,7 @@ class FilesTest(NotebookTestBase):
         url = self.base_url()
         
         for d in not_hidden:
-            path = pjoin(nbdir, d.replace('/', os.path.sep))
+            path = pjoin(nbdir, d.replace('/', os.sep))
             r = requests.get(url_path_join(url, 'files', d, 'foo'))
             r.raise_for_status()
             self.assertEqual(r.content, b'foo')
@@ -45,7 +45,7 @@ class FilesTest(NotebookTestBase):
             self.assertEqual(r.status_code, 403)
             
         for d in hidden:
-            path = pjoin(nbdir, d.replace('/', os.path.sep))
+            path = pjoin(nbdir, d.replace('/', os.sep))
             for foo in ('foo', '.foo'):
                 r = requests.get(url_path_join(url, 'files', d, foo))
                 self.assertEqual(r.status_code, 403)

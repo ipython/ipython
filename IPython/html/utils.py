@@ -38,7 +38,7 @@ def url_path_join(*pieces):
 
 def path2url(path):
     """Convert a local file path to a URL"""
-    pieces = [ quote(p) for p in path.split(os.path.sep) ]
+    pieces = [ quote(p) for p in path.split(os.sep) ]
     # preserve trailing /
     if pieces[-1] == '':
         pieces[-1] = '/'

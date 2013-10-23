@@ -102,12 +102,12 @@ class APITest(NotebookTestBase):
         nbdir = self.notebook_dir.name
 
         for d in self.dirs:
-            d.replace('/', os.path.sep)
+            d.replace('/', os.sep)
             if not os.path.isdir(pjoin(nbdir, d)):
                 os.mkdir(pjoin(nbdir, d))
 
         for d, name in self.dirs_nbs:
-            d = d.replace('/', os.path.sep)
+            d = d.replace('/', os.sep)
             with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w') as f:
                 nb = new_notebook(name=name)
                 write(nb, f, format='ipynb')
@@ -172,7 +172,7 @@ class APITest(NotebookTestBase):
         self.assertEqual(resp.json()['name'], name)
         assert os.path.isfile(pjoin(
             self.notebook_dir.name,
-            path.replace('/', os.path.sep),
+            path.replace('/', os.sep),
             name,
         ))
 

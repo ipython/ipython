@@ -299,7 +299,7 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
         or the UF_HIDDEN flag as reported by stat
         """
         inside_root = absolute_path[len(absolute_root):]
-        if any(part.startswith('.') for part in inside_root.split(os.path.sep)):
+        if any(part.startswith('.') for part in inside_root.split(os.sep)):
             raise web.HTTPError(403)
         
         # check UF_HIDDEN on any location up to root
@@ -367,7 +367,7 @@ class FileFindHandler(web.StaticFileHandler):
         if isinstance(path, basestring):
             path = [path]
         self.roots = tuple(
-            os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in path
+            os.path.abspath(os.path.expanduser(p)) + os.sep for p in path
         )
         self.default_filename = default_filename
     
@@ -385,7 +385,7 @@ class FileFindHandler(web.StaticFileHandler):
         
             # os.path.abspath strips a trailing /
             # it needs to be temporarily added back for requests to root/
-            if not (abspath + os.path.sep).startswith(roots):
+            if not (abspath + os.sep).startswith(roots):
                 raise HTTPError(403, "%s is not in root static directory", path)
         
             cls._static_paths[path] = abspath
@@ -470,7 +470,7 @@ class FileFindHandler(web.StaticFileHandler):
         if isinstance(static_paths, basestring):
             static_paths = [static_paths]
         roots = tuple(
-            os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in static_paths
+            os.path.abspath(os.path.expanduser(p)) + os.sep for p in static_paths
         )
 
         try:
@@ -504,8 +504,8 @@ class FileFindHandler(web.StaticFileHandler):
         ``static_url_prefix`` removed.  The return value should be
         filesystem path relative to ``static_path``.
         """
-        if os.path.sep != "/":
-            url_path = url_path.replace("/", os.path.sep)
+        if os.sep != "/":
+            url_path = url_path.replace("/", os.sep)
         return url_path
 
 class TrailingSlashHandler(web.RequestHandler):
