@@ -481,12 +481,22 @@ var IPython = (function (IPython) {
 
     Kernel.prototype._handle_status_message = function (msg) {
         var execution_state = msg.content.execution_state;
+        var parent_id = msg.parent_header.msg_id;
+        
+        // dispatch status msg callbacks, if any
+        var callbacks = this.get_callbacks_for_msg(parent_id);
+        if (callbacks && callbacks.iopub && callbacks.iopub.status) {
+            try {
+                callbacks.iopub.status(msg);
+            } catch (e) {
+                console.log("Exception in status msg handler", e);
+            }
+        }
+        
         if (execution_state === 'busy') {
             $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
         } else if (execution_state === 'idle') {
-            // clear callbacks
-            var parent_id = msg.parent_header.msg_id;
-            var callbacks = this.get_callbacks_for_msg(parent_id);
+            // clear callbacks on idle, there can be no more
             if (callbacks !== undefined) {
                 delete callbacks.iopub;
                 delete callbacks.input;
@@ -494,7 +504,7 @@ var IPython = (function (IPython) {
                     this.clear_callbacks_for_msg(parent_id);
                 }
             }
-        
+            // trigger status_idle event
             $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
         } else if (execution_state === 'restarting') {
             // autorestarting is distinct from restarting,
