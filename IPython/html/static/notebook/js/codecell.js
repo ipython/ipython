@@ -209,12 +209,6 @@ var IPython = (function (IPython) {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
-            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && IPython.config.tooltip_on_tab ) {
-                IPython.tooltip.request(that);
-                // Prevent the event from bubbling up.
-                event.stop();
-                // Prevent CodeMirror from handling the tab.
-                return true;
             } else {
                 event.stop();
                 this.completer.startCompletion();
