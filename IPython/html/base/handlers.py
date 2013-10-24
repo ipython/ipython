@@ -321,8 +321,8 @@ class FileFindHandler(web.StaticFileHandler):
             try:
                 abspath = os.path.abspath(filefind(path, roots))
             except IOError:
-                # empty string should always give exists=False
-                return ''
+                # IOError means not found
+                raise web.HTTPError(404)
             
             cls._static_paths[path] = abspath
             return abspath
