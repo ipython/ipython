@@ -7,7 +7,7 @@ require(["../static/notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
+                .html('');
             this.$slider = $('<div />')
                 .slider({})
                 .addClass('slider');
@@ -16,7 +16,6 @@ require(["../static/notebook/js/widget"], function(){
             this.$slider_container = $('<div />')
                 .css('padding-top', '4px')
                 .css('padding-bottom', '4px')
-                .addClass(this.model.comm.comm_id)
                 .append(this.$slider);    
             this.$el.append(this.$slider_container);
             
@@ -35,6 +34,7 @@ require(["../static/notebook/js/widget"], function(){
                     this.$slider.slider("option", key, this.model.get(key));
                 }
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         // Handles: User input
@@ -52,8 +52,7 @@ require(["../static/notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
                 .appendTo(this.$el);
@@ -73,6 +72,7 @@ require(["../static/notebook/js/widget"], function(){
             } else {
                 this.$textbox.removeAttr('disabled');
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         

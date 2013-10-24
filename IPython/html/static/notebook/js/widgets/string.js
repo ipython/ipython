@@ -14,6 +14,7 @@ require(["../static/notebook/js/widget"], function(){
         //          Frontent -> Frontend Sync
         update : function(){
             this.$el.html(this.model.get('value'));
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
     });
@@ -38,6 +39,7 @@ require(["../static/notebook/js/widget"], function(){
             if (!this.user_invoked_update) {
                 this.$textbox.val(this.model.get('value'));
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         events: {"keyup textarea" : "handleChanging",
@@ -73,6 +75,7 @@ require(["../static/notebook/js/widget"], function(){
             if (!this.user_invoked_update) {
                 this.$textbox.val(this.model.get('value'));
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         events: {"keyup input" : "handleChanging",

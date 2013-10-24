@@ -58,7 +58,7 @@ define(["../../components/underscore/underscore-min.js",
                 for (var cell_index in this.views) {
                     var view = this.views[cell_index];
                     if (view !== caller) {
-                        view.refresh();    
+                        view.update();    
                     }
                 }
             },
@@ -121,7 +121,7 @@ define(["../../components/underscore/underscore-min.js",
 
                         var data = {sync_method: method, sync_data: send_json};
                         var output_area = this._get_view_output_area(this.last_modified_view);
-                        var callbacks = this._make_callbacks();
+                        var callbacks = this._make_callbacks(output_area);
                         this.comm.send(data, callbacks);    
                         this.pending_msgs++;
                     }
@@ -134,7 +134,7 @@ define(["../../components/underscore/underscore-min.js",
 
 
             // Handle incomming comm msg.
-            handle_comm_msg: function (comm, msg) {
+            handle_comm_msg: function (msg) {
                 var method = msg.content.data.method;
                 switch (method){
                     case 'display':
@@ -150,7 +150,7 @@ define(["../../components/underscore/underscore-min.js",
                         this.handle_update(msg.content.data.state);
                         break;
                 }
-            }
+            },
 
 
             // Handle when a widget is updated via the python side.
@@ -171,7 +171,7 @@ define(["../../components/underscore/underscore-min.js",
                 } finally {
                     this.updating = false;
                 }
-            }
+            },
 
 
             // Handle when a widget is closed.
@@ -180,11 +180,11 @@ define(["../../components/underscore/underscore-min.js",
                     var view = this.views[cell_index];
                     view.remove();
                 }
-            }
+            },
 
 
             // Create view that represents the model.
-            display_view = function (view_name, parent_comm_id, cell_index) {
+            display_view: function (view_name, parent_comm_id, cell_index) {
                 var view = new this.widget_view_types[view_name]({model: this});
                 view.render();
                 this.views[cell_index] = view;
@@ -205,19 +205,18 @@ define(["../../components/underscore/underscore-min.js",
                     }
                 });
 
-                var display_child = null;
+                var displayed = false;
                 if (parent_comm_id != undefined) {
                     var parent_comm = this.comm_manager.comms[parent_comm_id];
                     var parent_model = parent_comm.model;
-                    var parent_view = parent_model.views[cell_id];
+                    var parent_view = parent_model.views[cell_index];
                     if (parent_view.display_child != undefined) {
-                        display_child = parent_view.display_child;
+                        parent_view.display_child(view.$el);
+                        displayed = true;
                     }
                 }
 
-                if (display_child != null) {
-                    display_child(view.$el);
-                } else {
+                if (!displayed) {
                     // No parent view is defined or exists.  Add the view's 
                     // element to cell's widget div.
                     var cell = IPython.notebook.get_cell(cell_index);
@@ -228,8 +227,8 @@ define(["../../components/underscore/underscore-min.js",
                 }
 
                 // Update the view based on the model contents.
-                view.refresh();
-            }
+                view.update();
+            },
 
 
             // Build a callback dict.
@@ -252,16 +251,16 @@ define(["../../components/underscore/underscore-min.js",
 
 
             // Get the cell output area corresponding to the view.
-            _get_view_output_area : function (view) {
+            _get_view_output_area: function (view) {
                 return this._get_cell_output_area(view.cell_index);
-            }
+            },
 
 
             // Get the cell output area corresponding to the cell id.
-            _get_cell_output_area : function (cell_id) {
+            _get_cell_output_area: function (cell_id) {
                 var cell = IPython.notebook.get_cell(cell_id)
                 return cell.output_area;
-            }
+            },
         });
 
 
@@ -271,12 +270,10 @@ define(["../../components/underscore/underscore-min.js",
         var WidgetView = Backbone.View.extend({
             
             initialize: function() {
-                this.model.on('change',this.refresh,this);
+                this.model.on('change',this.update,this);
             },
             
             update: function() {
-                var results = Backbone.Model.prototype.update.call(this);
-                
                 if (this.model.css != undefined) {
                     for (var selector in this.model.css) {
                         if (this.model.css.hasOwnProperty(selector)) {
@@ -300,7 +297,6 @@ define(["../../components/underscore/underscore-min.js",
                         }
                     }
                 }
-                return results;
             },
         });
 
@@ -338,7 +334,7 @@ define(["../../components/underscore/underscore-min.js",
 
         WidgetManager.prototype.handle_com_open = function (comm, msg) {
             var widget_type_name = msg.content.target_name;
-            var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, view_types);
+            var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this.widget_view_types);
         }
 
 

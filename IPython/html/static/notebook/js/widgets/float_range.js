@@ -34,6 +34,7 @@ require(["../static/notebook/js/widget"], function(){
                     this.$slider.slider("option", key, this.model.get(key));
                 }
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         // Handles: User input
@@ -72,6 +73,7 @@ require(["../static/notebook/js/widget"], function(){
             } else {
                 this.$textbox.removeAttr('disabled');
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         

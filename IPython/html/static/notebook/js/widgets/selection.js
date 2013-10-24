@@ -60,6 +60,7 @@ require(["../static/notebook/js/widget"], function(){
                 this.$dropbutton.removeAttr('disabled');
                 this.$droplist.removeAttr('disabled');
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
     });
@@ -97,7 +98,7 @@ require(["../static/notebook/js/widget"], function(){
                         .prependTo($label)
                         .on('click', function(e){
                             that.model.set('value', $(e.target).val(), this);
-                            that.model.update_other_views();
+                            that.model.update_other_views(that);
                         });
                 }
                 
@@ -123,6 +124,7 @@ require(["../static/notebook/js/widget"], function(){
                     $(obj).parent().remove();
                 }
             });
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
     });
@@ -161,7 +163,7 @@ require(["../static/notebook/js/widget"], function(){
                         .appendTo(this.$buttongroup)
                         .on('click', function(e){
                             that.model.set('value', $(e.target).html(), this);
-                            that.model.update_other_views();
+                            that.model.update_other_views(that);
                         });
                 }
                 
@@ -187,6 +189,7 @@ require(["../static/notebook/js/widget"], function(){
                     $(obj).remove();
                 }
             });
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
     });

@@ -30,6 +30,7 @@ require(["../static/notebook/js/widget"], function(){
                 this.$checkbox.prop('checked', this.model.get('value'));
                 this.$checkbox_label.html(this.model.get('description'));
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         events: {"change input" : "handleChanged"},
@@ -72,6 +73,7 @@ require(["../static/notebook/js/widget"], function(){
                 }
                 this.$button.html(this.model.get('description'));
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
         events: {"click button" : "handleClick"},

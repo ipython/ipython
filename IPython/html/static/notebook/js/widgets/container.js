@@ -22,6 +22,7 @@ require(["../static/notebook/js/widget"], function(){
                     this.$el.removeClass(flex_properties[index]);
                 }    
             }
+            return IPython.WidgetView.prototype.update.call(this);
         },
 
         display_child : function($element) {

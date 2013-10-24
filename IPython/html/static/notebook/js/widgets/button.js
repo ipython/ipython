@@ -23,6 +23,7 @@ require(["../static/notebook/js/widget"], function(){
         //          Frontent -> Frontend Sync
         update : function(){
             this.$el.html(this.model.get('description'));
+            return IPython.WidgetView.prototype.update.call(this);
         },
         
     });
