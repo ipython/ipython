@@ -308,7 +308,7 @@ else:
     UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.ClassType),
                           update_class),
                          (lambda a, b: isinstance2(a, b, types.MethodType),
-                          lambda a, b: update_function(a.im_func, b.im_func)),
+                          lambda a, b: update_function(a.__func__, b.__func__)),
                         ])
 
 

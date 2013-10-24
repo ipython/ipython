@@ -33,7 +33,7 @@ def getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     else:
         raise TypeError('arg is not a Python function')
     args, varargs, varkw = inspect.getargs(func_obj.__code__)

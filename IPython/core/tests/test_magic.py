@@ -834,9 +834,9 @@ def test_multiple_magics():
     foo2 = FooFoo(ip)
     mm = ip.magics_manager
     mm.register(foo1)
-    nt.assert_true(mm.magics['line']['foo'].im_self is foo1)
+    nt.assert_true(mm.magics['line']['foo'].__self__ is foo1)
     mm.register(foo2)
-    nt.assert_true(mm.magics['line']['foo'].im_self is foo2)
+    nt.assert_true(mm.magics['line']['foo'].__self__ is foo2)
 
 def test_alias_magic():
     """Test %alias_magic."""

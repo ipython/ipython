@@ -188,7 +188,7 @@ def getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     elif hasattr(obj, '__call__'):
         func_obj = obj.__call__
     else:

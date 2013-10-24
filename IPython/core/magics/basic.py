@@ -72,7 +72,7 @@ class MagicsDisplay(object):
             magic_dict[key] = d
             for name, obj in subdict.items():
                 try:
-                    classname = obj.im_class.__name__
+                    classname = obj.__self__.__class__.__name__
                 except AttributeError:
                     classname = 'Other'
                 

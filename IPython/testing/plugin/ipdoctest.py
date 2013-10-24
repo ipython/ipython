@@ -109,7 +109,7 @@ class DocTestFinder(doctest.DocTestFinder):
             # __module__ attribute of methods, but since the same error is easy
             # to make by extension code writers, having this safety in place
             # isn't such a bad idea
-            return module.__name__ == object.im_class.__module__
+            return module.__name__ == object.__self__.__class__.__module__
         elif inspect.getmodule(object) is not None:
             return module is inspect.getmodule(object)
         elif hasattr(object, '__module__'):
@@ -157,7 +157,7 @@ class DocTestFinder(doctest.DocTestFinder):
                 if isinstance(val, staticmethod):
                     val = getattr(obj, valname)
                 if isinstance(val, classmethod):
-                    val = getattr(obj, valname).im_func
+                    val = getattr(obj, valname).__func__
 
                 # Recurse to methods, properties, and nested classes.
                 if ((inspect.isfunction(val) or inspect.isclass(val) or

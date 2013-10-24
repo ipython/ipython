@@ -196,7 +196,7 @@ def findsource(object):
             raise IOError('could not find class definition')
 
     if ismethod(object):
-        object = object.im_func
+        object = object.__func__
     if isfunction(object):
         object = object.__code__
     if istraceback(object):
