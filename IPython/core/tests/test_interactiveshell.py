@@ -28,7 +28,7 @@ import sys
 import tempfile
 import unittest
 from os.path import join
-from StringIO import StringIO
+from io import StringIO
 
 # third-party
 import nose.tools as nt
@@ -155,7 +155,7 @@ class InteractiveShellTestCase(unittest.TestCase):
                      "        list.__init__(self,x)"))
         ip.run_cell("w=Mylist([1,2,3])")
         
-        from cPickle import dumps
+        from pickle import dumps
         
         # We need to swap in our main module - this is only necessary
         # inside the test framework, because IPython puts the interactive module

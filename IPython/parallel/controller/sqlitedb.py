@@ -13,7 +13,10 @@ Authors:
 
 import json
 import os
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 from datetime import datetime
 
 try:

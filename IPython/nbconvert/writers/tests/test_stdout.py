@@ -15,7 +15,7 @@ Module with tests for stdout
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
+from io import StringIO
 
 from ...tests.base import TestsBase
 from ..stdout import StdoutWriter

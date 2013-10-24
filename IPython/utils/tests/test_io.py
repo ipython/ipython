@@ -15,7 +15,7 @@ from __future__ import print_function
 
 import sys
 
-from StringIO import StringIO
+from io import StringIO
 from subprocess import Popen, PIPE
 import unittest
 

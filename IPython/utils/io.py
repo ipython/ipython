@@ -17,7 +17,6 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
-from StringIO import StringIO
 from .capture import CapturedIO, capture_output
 from .py3compat import string_types
 

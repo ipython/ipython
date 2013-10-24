@@ -28,7 +28,7 @@ import abc
 import sys
 import warnings
 # We must use StringIO, as cStringIO doesn't handle unicode properly.
-from StringIO import StringIO
+from io import StringIO
 
 # Our own imports
 from IPython.config.configurable import Configurable

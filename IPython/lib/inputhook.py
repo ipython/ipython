@@ -320,8 +320,8 @@ class InputHookManager(object):
         """
         self._current_gui = GUI_TK
         if app is None:
-            import Tkinter
-            app = Tkinter.Tk()
+            import tkinter
+            app = tkinter.Tk()
             app.withdraw()
             self._apps[GUI_TK] = app
             return app

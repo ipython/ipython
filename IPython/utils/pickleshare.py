@@ -37,7 +37,10 @@ from __future__ import print_function
 from IPython.external.path import path as Path
 import os,stat,time
 import collections
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import glob
 
 def gethashfile(key):

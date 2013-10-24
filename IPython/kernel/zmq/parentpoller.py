@@ -6,7 +6,10 @@ except:
 import os
 import platform
 import time
-from thread import interrupt_main
+try:
+    from _thread import interrupt_main  # Py 3
+except ImportError:
+    from thread import interrupt_main  # Py 2
 from threading import Thread
 
 from IPython.utils.warn import warn

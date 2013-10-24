@@ -20,7 +20,7 @@ import bdb
 import os
 import sys
 import time
-from StringIO import StringIO
+from io import StringIO
 
 # cProfile was added in Python2.5
 try:

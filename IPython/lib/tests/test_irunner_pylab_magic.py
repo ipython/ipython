@@ -7,7 +7,7 @@ from __future__ import print_function
 VERBOSE = True
 
 # stdlib imports
-import StringIO
+import io
 import sys
 import unittest
 import re
@@ -28,7 +28,7 @@ def pylab_not_importable():
 class RunnerTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.out = StringIO.StringIO()
+        self.out = io.StringIO()
         #self.out = sys.stdout
 
     def _test_runner(self,runner,source,output):

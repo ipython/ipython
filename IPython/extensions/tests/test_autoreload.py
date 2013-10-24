@@ -18,7 +18,7 @@ import tempfile
 import shutil
 import random
 import time
-from StringIO import StringIO
+from io import StringIO
 
 import nose.tools as nt
 import IPython.testing.tools as tt

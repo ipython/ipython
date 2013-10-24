@@ -23,7 +23,10 @@ import subprocess
 from io import BytesIO
 import base64
 
-from Queue import Empty
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
 
 from IPython.core import page
 from IPython.utils.warn import warn, error

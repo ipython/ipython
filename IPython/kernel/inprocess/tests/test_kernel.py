@@ -11,7 +11,7 @@
 from __future__ import print_function
 
 # Standard library imports
-from StringIO import StringIO
+from io import StringIO
 import sys
 import unittest
 

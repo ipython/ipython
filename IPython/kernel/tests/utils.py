@@ -15,7 +15,10 @@ import atexit
 
 from contextlib import contextmanager
 from subprocess import PIPE, STDOUT
-from Queue import Empty
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
 
 import nose
 import nose.tools as nt

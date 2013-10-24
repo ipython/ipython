@@ -9,7 +9,7 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
+from io import StringIO
 from unittest import TestCase
 
 import nose.tools as nt

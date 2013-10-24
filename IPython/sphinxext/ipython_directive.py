@@ -58,7 +58,7 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # Stdlib
-import cStringIO
+import io
 import os
 import re
 import sys
@@ -193,7 +193,7 @@ class EmbeddedSphinxShell(object):
 
     def __init__(self):
 
-        self.cout = cStringIO.StringIO()
+        self.cout = io.StringIO()
 
 
         # Create config object for IPython

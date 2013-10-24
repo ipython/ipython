@@ -1,7 +1,7 @@
 import abc
 import functools
 import re
-from StringIO import StringIO
+from io import StringIO
 
 from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2

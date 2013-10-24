@@ -19,7 +19,6 @@ Limitations:
 # Module imports
 
 # From the standard library
-import commands
 import doctest
 import inspect
 import logging
@@ -30,7 +29,7 @@ import traceback
 import unittest
 
 from inspect import getmodule
-from StringIO import StringIO
+from io import StringIO
 
 # We are overriding the default doctest runner, so we need to import a few
 # things from doctest directly

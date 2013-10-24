@@ -16,7 +16,7 @@ from __future__ import print_function
 import sys
 import tempfile
 import time
-from StringIO import StringIO
+from io import StringIO
 
 from nose import SkipTest
 

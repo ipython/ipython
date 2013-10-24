@@ -37,15 +37,21 @@ from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
 try:
-    import _winreg as wreg
+    import winreg as wreg  # Py 3
 except ImportError:
-    #Fake _winreg module on none windows platforms
-    import types
-    wr_name = "winreg" if py3compat.PY3 else "_winreg"
-    sys.modules[wr_name] = types.ModuleType(wr_name)
-    import _winreg as wreg
-    #Add entries that needs to be stubbed by the testing code
-    (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
+    try:
+        import _winreg as wreg  # Py 2
+    except ImportError:
+        #Fake _winreg module on none windows platforms
+        import types
+        wr_name = "winreg" if py3compat.PY3 else "_winreg"
+        sys.modules[wr_name] = types.ModuleType(wr_name)
+        try:
+            import winreg as wreg
+        except ImportError:
+            import _winreg as wreg
+        #Add entries that needs to be stubbed by the testing code
+        (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 
 try:
     reload

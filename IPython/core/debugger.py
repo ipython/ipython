@@ -146,7 +146,7 @@ class Tracer(object):
         # at least raise that limit to 80 chars, which should be enough for
         # most interactive uses.
         try:
-            from repr import aRepr
+            from reprlib import aRepr
             aRepr.maxstring = 80
         except:
             # This is only a user-facing convenience, so any error we encounter
@@ -331,7 +331,7 @@ class Pdb(OldPdb):
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
-        import repr
+        import reprlib
 
         ret = []
 
@@ -349,7 +349,7 @@ class Pdb(OldPdb):
         if '__return__' in frame.f_locals:
             rv = frame.f_locals['__return__']
             #return_value += '->'
-            return_value += repr.repr(rv) + '\n'
+            return_value += reprlib.repr(rv) + '\n'
         ret.append(return_value)
 
         #s = filename + '(' + `lineno` + ')'
@@ -364,7 +364,7 @@ class Pdb(OldPdb):
         call = ''
         if func != '?':
             if '__args__' in frame.f_locals:
-                args = repr.repr(frame.f_locals['__args__'])
+                args = reprlib.repr(frame.f_locals['__args__'])
             else:
                 args = '()'
             call = tpl_call % (func, args)

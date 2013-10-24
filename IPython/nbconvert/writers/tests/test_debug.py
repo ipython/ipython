@@ -15,7 +15,7 @@ Module with tests for debug
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
+from io import StringIO
 
 from ...tests.base import TestsBase
 from ..debug import DebugWriter

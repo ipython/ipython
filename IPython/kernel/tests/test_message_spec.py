@@ -9,7 +9,10 @@
 
 import re
 from subprocess import PIPE
-from Queue import Empty
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
 
 import nose.tools as nt
 
