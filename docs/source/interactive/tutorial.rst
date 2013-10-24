@@ -12,7 +12,7 @@ information, check the :ref:`tips page <tips>`, or look at examples in the
 
 If you've never used Python before, you might want to look at `the official
 tutorial <http://docs.python.org/tutorial/>`_ or an alternative, `Dive into
-Python <http://diveintopython.org/toc/index.html>`_.
+Python <http://diveintopython.net/toc/index.html>`_.
 
 The four most helpful commands 
 ===============================
