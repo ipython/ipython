@@ -368,7 +368,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         if color.value() >= 127:
             # Colors appropriate for a terminal with a light background. For
             # now, only use non-bright colors...
-            for i in xrange(8):
+            for i in range(8):
                 self.default_color_map[i + 8] = self.default_color_map[i]
 
             # ...and replace white with black.

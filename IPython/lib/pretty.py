@@ -708,10 +708,8 @@ except NameError:
 #: printers for builtin types
 _type_pprinters = {
     int:                        _repr_pprint,
-    long:                       _repr_pprint,
     float:                      _repr_pprint,
     str:                        _repr_pprint,
-    unicode:                    _repr_pprint,
     tuple:                      _seq_pprinter_factory('(', ')', tuple),
     list:                       _seq_pprinter_factory('[', ']', list),
     dict:                       _dict_pprinter_factory('{', '}', dict),
@@ -734,8 +732,10 @@ _type_pprinters = {
 try:
     _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
     _type_pprinters[types.ClassType] = _type_pprint
-except AttributeError: # Python 3
-    pass
+    _type_pprinters[long] = _repr_pprint
+    _type_pprinters[unicode] = _repr_pprint
+except (AttributeError, NameError): # Python 3
+    _type_pprinters[bytes] = _repr_pprint
     
 try:
     _type_pprinters[xrange] = _repr_pprint

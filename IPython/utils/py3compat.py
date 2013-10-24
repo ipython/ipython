@@ -92,6 +92,7 @@ if sys.version_info[0] >= 3:
         return s.isidentifier()
     
     open = orig_open
+    xrange = range
     
     MethodType = types.MethodType
     
@@ -166,6 +167,8 @@ else:
         def __exit__(self, etype, value, traceback):
             self.f.close()
     
+    xrange = xrange
+
     def MethodType(func, instance):
         return types.MethodType(func, instance, type(instance))
     

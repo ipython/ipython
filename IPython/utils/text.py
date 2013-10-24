@@ -29,7 +29,6 @@ from IPython.external.path import path
 from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
 
-
 #-----------------------------------------------------------------------------
 # Declarations
 #-----------------------------------------------------------------------------
@@ -615,7 +614,7 @@ class DollarFormatter(FullEvalFormatter):
 
 def _chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in xrange(0, len(l), n):
+    for i in py3compat.xrange(0, len(l), n):
         yield l[i:i+n]
 
 

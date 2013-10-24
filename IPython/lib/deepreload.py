@@ -93,7 +93,7 @@ def get_parent(globals, level):
             globals['__package__'] = name = modname[:lastdot]
 
     dot = len(name)
-    for x in xrange(level, 1, -1):
+    for x in range(level, 1, -1):
         try:
             dot = name.rindex('.', 0, dot)
         except ValueError:

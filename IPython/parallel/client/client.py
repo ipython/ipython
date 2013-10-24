@@ -40,7 +40,7 @@ from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.py3compat import cast_bytes, string_types
+from IPython.utils.py3compat import cast_bytes, string_types, xrange
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
@@ -55,11 +55,6 @@ from IPython.kernel.zmq import serialize
 
 from .asyncresult import AsyncResult, AsyncHubResult
 from .view import DirectView, LoadBalancedView
-
-if sys.version_info[0] >= 3:
-    # xrange is used in a couple 'isinstance' tests in py2
-    # should be just 'range' in 3k
-    xrange = range
 
 #--------------------------------------------------------------------------
 # Decorators for Client methods

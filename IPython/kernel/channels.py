@@ -445,7 +445,7 @@ class IOPubChannel(ZMQSocketChannel):
         # We do the IOLoop callback process twice to ensure that the IOLoop
         # gets to perform at least one full poll.
         stop_time = time.time() + timeout
-        for i in xrange(2):
+        for i in range(2):
             self._flushed = False
             self.ioloop.add_callback(self._flush)
             while not self._flushed and time.time() < stop_time:
