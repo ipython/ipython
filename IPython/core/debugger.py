@@ -146,7 +146,10 @@ class Tracer(object):
         # at least raise that limit to 80 chars, which should be enough for
         # most interactive uses.
         try:
-            from reprlib import aRepr
+            try:
+                from reprlib import aRepr  # Py 3
+            except ImportError:
+                from repr import aRepr  # Py 2
             aRepr.maxstring = 80
         except:
             # This is only a user-facing convenience, so any error we encounter
@@ -331,7 +334,10 @@ class Pdb(OldPdb):
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
-        import reprlib
+        try:
+            import reprlib  # Py 3
+        except ImportError:
+            import repr as reprlib  # Py 2
 
         ret = []
 
