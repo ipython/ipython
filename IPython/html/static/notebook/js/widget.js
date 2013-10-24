@@ -211,7 +211,7 @@ define(["../../components/underscore/underscore-min.js",
                     var parent_model = parent_comm.model;
                     var parent_view = parent_model.views[cell_index];
                     if (parent_view.display_child != undefined) {
-                        parent_view.display_child(view.$el);
+                        parent_view.display_child(view);
                         displayed = true;
                     }
                 }

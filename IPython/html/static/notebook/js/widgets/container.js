@@ -25,8 +25,8 @@ require(["../static/notebook/js/widget"], function(){
             return IPython.WidgetView.prototype.update.call(this);
         },
 
-        display_child : function($element) {
-            this.$el.append($element);
+        display_child : function(view) {
+            this.$el.append(view.$el);
         },
     });
 
