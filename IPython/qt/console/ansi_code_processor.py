@@ -106,7 +106,7 @@ class AnsiCodeProcessor(object):
                 self.actions = []
             start = match.end()
 
-            groups = filter(lambda x: x is not None, match.groups())
+            groups = [g for g in match.groups() if (g is not None)]
             g0 = groups[0]
             if g0 == '\a':
                 self.actions.append(BeepAction('beep'))
@@ -129,7 +129,7 @@ class AnsiCodeProcessor(object):
                 if g0.startswith('['):
                     # Case 1: CSI code.
                     try:
-                        params = map(int, params)
+                        params = list(map(int, params))
                     except ValueError:
                         # Silently discard badly formed codes.
                         pass
