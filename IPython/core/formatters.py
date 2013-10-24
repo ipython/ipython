@@ -168,7 +168,7 @@ class DisplayFormatter(Configurable):
     @property
     def format_types(self):
         """Return the format types (MIME types) of the active formatters."""
-        return self.formatters.keys()
+        return list(self.formatters.keys())
 
 
 #-----------------------------------------------------------------------------

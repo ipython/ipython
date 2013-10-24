@@ -242,7 +242,7 @@ class Config(dict):
 
     def __deepcopy__(self, memo):
         import copy
-        return type(self)(copy.deepcopy(self.items()))
+        return type(self)(copy.deepcopy(list(self.items())))
     
     def __getitem__(self, key):
         # We cannot use directly self._is_section_key, because it triggers
