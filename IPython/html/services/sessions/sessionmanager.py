@@ -133,7 +133,7 @@ class SessionManager(LoggingConfigurable):
 
         query = "SELECT * FROM session WHERE %s" % (' AND '.join(conditions))
 
-        self.cursor.execute(query, kwargs.values())
+        self.cursor.execute(query, list(kwargs.values()))
         model = self.cursor.fetchone()
         if model is None:
             q = []
@@ -170,7 +170,7 @@ class SessionManager(LoggingConfigurable):
                 raise TypeError("No such column: %r" % column)
             sets.append("%s=?" % column)
         query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
-        self.cursor.execute(query, kwargs.values() + [session_id])
+        self.cursor.execute(query, list(kwargs.values()) + [session_id])
 
     @staticmethod
     def row_factory(cursor, row):
