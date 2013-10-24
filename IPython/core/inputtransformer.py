@@ -6,6 +6,7 @@ from io import StringIO
 from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
 from IPython.utils.openpy import cookie_comment_re
+from IPython.utils.py3compat import with_metaclass
 from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
 
 #-----------------------------------------------------------------------------
@@ -33,9 +34,8 @@ ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
                  ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
 
 
-class InputTransformer(object):
+class InputTransformer(with_metaclass(abc.ABCMeta, object)):
     """Abstract base class for line-based input transformers."""
-    __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
     def push(self, line):

@@ -394,9 +394,7 @@ class MetaHasTraits(type):
                 v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
-class HasTraits(object):
-
-    __metaclass__ = MetaHasTraits
+class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts

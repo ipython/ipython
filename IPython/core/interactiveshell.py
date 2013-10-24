@@ -68,7 +68,8 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
-from IPython.utils.py3compat import builtin_mod, unicode_type, string_types
+from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
+                                     with_metaclass)
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
@@ -3157,8 +3158,7 @@ class InteractiveShell(SingletonConfigurable):
         self.restore_sys_module_state()
 
 
-class InteractiveShellABC(object):
+class InteractiveShellABC(with_metaclass(abc.ABCMeta, object)):
     """An abstract base class for InteractiveShell."""
-    __metaclass__ = abc.ABCMeta
 
 InteractiveShellABC.register(InteractiveShell)

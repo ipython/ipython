@@ -11,18 +11,17 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports.
 import abc
+
+from IPython.utils.py3compat import with_metaclass
 
 #-----------------------------------------------------------------------------
 # Channels
 #-----------------------------------------------------------------------------
 
 
-class ChannelABC(object):
+class ChannelABC(with_metaclass(abc.ABCMeta, object)):
     """A base class for all channel ABCs."""
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def start(self):
@@ -130,15 +129,13 @@ class HBChannelABC(ChannelABC):
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
-class KernelManagerABC(object):
+class KernelManagerABC(with_metaclass(abc.ABCMeta, object)):
     """KernelManager ABC.
 
     The docstrings for this class can be found in the base implementation:
 
     `IPython.kernel.kernelmanager.KernelManager`
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def kernel(self):

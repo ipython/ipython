@@ -36,7 +36,7 @@ from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
-from IPython.utils.py3compat import unicode_to_str
+from IPython.utils.py3compat import unicode_to_str, with_metaclass
 
 
 #-----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ class DisplayFormatter(Configurable):
 #-----------------------------------------------------------------------------
 
 
-class FormatterABC(object):
+class FormatterABC(with_metaclass(abc.ABCMeta, object)):
     """ Abstract base class for Formatters.
 
     A formatter is a callable class that is responsible for computing the
@@ -184,7 +184,6 @@ class FormatterABC(object):
     an HTML formatter would have a format type of `text/html` and would return
     the HTML representation of the object when called.
     """
-    __metaclass__ = abc.ABCMeta
 
     # The format type of the data returned, usually a MIME type.
     format_type = 'text/plain'
