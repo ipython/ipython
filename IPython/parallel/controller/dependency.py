@@ -56,7 +56,11 @@ class dependent(object):
 
     def __init__(self, f, df, *dargs, **dkwargs):
         self.f = f
-        self.__name__ = getattr(f, '__name__', 'f')
+        name = getattr(f, '__name__', 'f')
+        if py3compat.PY3:
+            self.__name__ = name
+        else:
+            self.func_name = name
         self.df = df
         self.dargs = dargs
         self.dkwargs = dkwargs

@@ -231,7 +231,7 @@ def _push(**ns):
     while tmp in user_ns:
         tmp = tmp + '_'
     try:
-        for name, value in iteritems(ns):
+        for name, value in ns.items():
             user_ns[tmp] = value
             exec("%s = %s" % (name, tmp), user_ns)
     finally:
@@ -241,7 +241,7 @@ def _push(**ns):
 def _pull(keys):
     """helper method for implementing `client.pull` via `client.apply`"""
     if isinstance(keys, (list,tuple, set)):
-        return map(lambda key: eval(key, globals()), keys)
+        return [eval(key, globals()) for key in keys]
     else:
         return eval(keys, globals())
 

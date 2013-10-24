@@ -32,7 +32,7 @@ from IPython.external.decorator import decorator
 
 from IPython.parallel import util
 from IPython.parallel.controller.dependency import Dependency, dependent
-from IPython.utils.py3compat import string_types, iteritems
+from IPython.utils.py3compat import string_types, iteritems, PY3
 
 from . import map as Map
 from .asyncresult import AsyncResult, AsyncMapResult
@@ -52,7 +52,7 @@ def save_ids(f, self, *args, **kwargs):
         nmsgs = len(self.client.history) - n_previous
         msg_ids = self.client.history[-nmsgs:]
         self.history.extend(msg_ids)
-        map(self.outstanding.add, msg_ids)
+        self.outstanding.update(msg_ids)
     return ret
 
 @decorator
@@ -952,8 +952,9 @@ class LoadBalancedView(View):
                     raise ValueError("Invalid dependency: %r"%value)
         if 'timeout' in kwargs:
             t = kwargs['timeout']
-            if not isinstance(t, (int, long, float, type(None))):
-                raise TypeError("Invalid type for timeout: %r"%type(t))
+            if not isinstance(t, (int, float, type(None))):
+                if (not PY3) and (not isinstance(t, long)):
+                    raise TypeError("Invalid type for timeout: %r"%type(t))
             if t is not None:
                 if t < 0:
                     raise ValueError("Invalid timeout: %s"%t)

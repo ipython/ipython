@@ -76,7 +76,7 @@ def _adapt_bufs(bufs):
     # this is *horrible*
     # copy buffers into single list and pickle it:
     if bufs and isinstance(bufs[0], (bytes, buffer)):
-        return sqlite3.Binary(pickle.dumps(map(bytes, bufs),-1))
+        return sqlite3.Binary(pickle.dumps(list(map(bytes, bufs)),-1))
     elif bufs:
         return bufs
     else:

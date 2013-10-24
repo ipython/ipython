@@ -540,7 +540,7 @@ class Client(HasTraits):
                 self._ids.append(eid)
             self._engines[eid] = v
         self._ids = sorted(self._ids)
-        if sorted(self._engines.keys()) != range(len(self._engines)) and \
+        if sorted(self._engines.keys()) != list(range(len(self._engines))) and \
                         self._task_scheme == 'pure' and self._task_socket:
             self._stop_scheduling_tasks()
 
@@ -581,7 +581,7 @@ class Client(HasTraits):
             targets = [targets]
 
         if isinstance(targets, slice):
-            indices = range(len(self._ids))[targets]
+            indices = list(range(len(self._ids))[targets])
             ids = self.ids
             targets = [ ids[i] for i in indices ]
 
@@ -1070,7 +1070,7 @@ class Client(HasTraits):
                     # index access
                     job = self.history[job]
                 elif isinstance(job, AsyncResult):
-                    map(theids.add, job.msg_ids)
+                    theids.update(job.msg_ids)
                     continue
                 theids.add(job)
         if not theids.intersection(self.outstanding):
@@ -1132,7 +1132,7 @@ class Client(HasTraits):
         msg_ids = []
         if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, string_types + (AsyncResult,)), jobs)
+        bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
             raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
         for j in jobs:
@@ -1415,8 +1415,8 @@ class Client(HasTraits):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
-        local_ids = filter(lambda msg_id: msg_id in self.outstanding or msg_id in self.results, theids)
-        remote_ids = filter(lambda msg_id: msg_id not in local_ids, theids)
+        local_ids = [msg_id for msg_id in theids if (msg_id in self.outstanding or msg_id in self.results)]
+        remote_ids = [msg_id for msg_id in theids if msg_id not in local_ids]
         
         # given single msg_id initially, get_result shot get the result itself,
         # not a length-one list
@@ -1641,7 +1641,7 @@ class Client(HasTraits):
         if not targets: # needed as _build_targets otherwise uses all engines
             return []
         target_ids = self._build_targets(targets)[0] 
-        return filter(lambda md_id: self.metadata[md_id]["engine_uuid"] in target_ids, self.metadata)
+        return [md_id for md_id in self.metadata if self.metadata[md_id]["engine_uuid"] in target_ids]
     
     def _build_msgids_from_jobs(self, jobs=None):
         """Build a list of msg_ids from "jobs" """
@@ -1650,7 +1650,7 @@ class Client(HasTraits):
         msg_ids = []
         if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
-        bad_ids = filter(lambda obj: not isinstance(obj, string_types + (AsyncResult)), jobs)
+        bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
             raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
         for j in jobs:
@@ -1701,8 +1701,9 @@ class Client(HasTraits):
             msg_ids = []
             msg_ids.extend(self._build_msgids_from_target(targets))
             msg_ids.extend(self._build_msgids_from_jobs(jobs))
-            map(self.results.pop, msg_ids)
-            map(self.metadata.pop, msg_ids)
+            for mid in msg_ids:
+                self.results.pop(mid)
+                self.metadata.pop(mid)
 
 
     @spin_first

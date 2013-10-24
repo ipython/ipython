@@ -83,7 +83,7 @@ class AsyncResultTest(ClusterTestCase):
     
     def test_get_dict_single(self):
         view = self.client[-1]
-        for v in (range(5), 5, ('abc', 'def'), 'string'):
+        for v in (list(range(5)), 5, ('abc', 'def'), 'string'):
             ar = view.apply_async(echo, v)
             self.assertEqual(ar.get(), v)
             d = ar.get_dict()
@@ -146,11 +146,11 @@ class AsyncResultTest(ClusterTestCase):
     
     def test_len(self):
         v = self.client.load_balanced_view()
-        ar = v.map_async(lambda x: x, range(10))
+        ar = v.map_async(lambda x: x, list(range(10)))
         self.assertEqual(len(ar), 10)
-        ar = v.apply_async(lambda x: x, range(10))
+        ar = v.apply_async(lambda x: x, list(range(10)))
         self.assertEqual(len(ar), 1)
-        ar = self.client[:].apply_async(lambda x: x, range(10))
+        ar = self.client[:].apply_async(lambda x: x, list(range(10)))
         self.assertEqual(len(ar), len(self.client.ids))
     
     def test_wall_time_single(self):

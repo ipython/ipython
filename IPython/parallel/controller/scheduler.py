@@ -364,7 +364,7 @@ class TaskScheduler(SessionFactory):
                 date=datetime.now(),
             )
             msg = self.session.msg('apply_reply', content, parent=parent, metadata=md)
-            raw_reply = map(zmq.Message, self.session.serialize(msg, ident=idents))
+            raw_reply = list(map(zmq.Message, self.session.serialize(msg, ident=idents)))
             # and dispatch it
             self.dispatch_result(raw_reply)
 
@@ -402,8 +402,7 @@ class TaskScheduler(SessionFactory):
         # get targets as a set of bytes objects
         # from a list of unicode objects
         targets = md.get('targets', [])
-        targets = map(cast_bytes, targets)
-        targets = set(targets)
+        targets = set(map(cast_bytes, targets))
 
         retries = md.get('retries', 0)
         self.retries[msg_id] = retries
@@ -515,7 +514,7 @@ class TaskScheduler(SessionFactory):
     def available_engines(self):
         """return a list of available engine indices based on HWM"""
         if not self.hwm:
-            return range(len(self.targets))
+            return list(range(len(self.targets)))
         available = []
         for idx in range(len(self.targets)):
             if self.loads[idx] < self.hwm:
@@ -547,7 +546,7 @@ class TaskScheduler(SessionFactory):
                 # check follow
                 return job.follow.check(self.completed[target], self.failed[target])
 
-            indices = filter(can_run, available)
+            indices = list(filter(can_run, available))
 
             if not indices:
                 # couldn't run

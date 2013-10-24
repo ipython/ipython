@@ -193,9 +193,9 @@ class HubFactory(RegistrationFactory):
         help="IP on which to listen for monitor messages. [default: loopback]")
     monitor_transport = Unicode('tcp', config=True,
         help="0MQ transport for monitor messages. [default : tcp]")
-    
+
     _client_ip_default = _monitor_ip_default = _engine_ip_default
-    
+
 
     monitor_url = Unicode('')
 
@@ -1190,7 +1190,7 @@ class Hub(SessionFactory):
             except Exception:
                 reply = error.wrap_exception()
         else:
-            pending = filter(lambda m: m in self.pending, msg_ids)
+            pending = [m for m in msg_ids if (m in self.pending)]
             if pending:
                 try:
                     raise IndexError("msg pending: %r" % pending[0])
@@ -1312,7 +1312,7 @@ class Hub(SessionFactory):
             'io' : io_dict,
         }
         if rec['result_buffers']:
-            buffers = map(bytes, rec['result_buffers'])
+            buffers = list(map(bytes, rec['result_buffers']))
         else:
             buffers = []
 

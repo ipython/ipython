@@ -271,5 +271,5 @@ class BaseParallelApplication(BaseIPythonApplication):
                     " Making the likely assumption that it is."%pid
                 )
                 return True
-            pids = map(int, re.findall(r'^\W*\d+', output, re.MULTILINE))
+            pids = list(map(int, re.findall(r'^\W*\d+', output, re.MULTILINE)))
             return pid in pids

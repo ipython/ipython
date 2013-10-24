@@ -62,7 +62,7 @@ class MongoDB(BaseDB):
     def _binary_buffers(self, rec):
         for key in ('buffers', 'result_buffers'):
             if rec.get(key, None):
-                rec[key] = map(Binary, rec[key])
+                rec[key] = list(map(Binary, rec[key]))
         return rec
     
     def add_record(self, msg_id, rec):
