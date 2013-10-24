@@ -294,18 +294,18 @@ def test_reset_out():
     _ip.run_cell("parrot = 'dead'", store_history=True)
     # test '%reset -f out', make an Out prompt
     _ip.run_cell("parrot", store_history=True)
-    nt.assert_true('dead' in [_ip.user_ns[x] for x in '_','__','___'])
+    nt.assert_true('dead' in [_ip.user_ns[x] for x in ('_','__','___')])
     _ip.magic('reset -f out')
-    nt.assert_false('dead' in [_ip.user_ns[x] for x in '_','__','___'])
+    nt.assert_false('dead' in [_ip.user_ns[x] for x in ('_','__','___')])
     nt.assert_equal(len(_ip.user_ns['Out']), 0)
 
 def test_reset_in():
     "Test '%reset in' magic"
     # test '%reset -f in'
     _ip.run_cell("parrot", store_history=True)
-    nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
+    nt.assert_true('parrot' in [_ip.user_ns[x] for x in ('_i','_ii','_iii')])
     _ip.magic('%reset -f in')
-    nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
+    nt.assert_false('parrot' in [_ip.user_ns[x] for x in ('_i','_ii','_iii')])
     nt.assert_equal(len(set(_ip.user_ns['In'])), 1)
 
 def test_reset_dhist():
