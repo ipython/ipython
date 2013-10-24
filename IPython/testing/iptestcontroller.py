@@ -237,7 +237,7 @@ def prepare_controllers(options):
     c_py = [PyTestController(name) for name in py_testgroups]
 
     configure_py_controllers(c_py, xunit=options.xunit,
-            coverage=options.coverage)
+            coverage=options.coverage, extra_args=options.extra_args)
 
     controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
