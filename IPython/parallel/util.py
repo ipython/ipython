@@ -44,7 +44,7 @@ from IPython.external.decorator import decorator
 # IPython imports
 from IPython.config.application import Application
 from IPython.utils.localinterfaces import localhost, is_public_ip, public_ips
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems, itervalues
 from IPython.kernel.zmq.log import EnginePUBHandler
 from IPython.kernel.zmq.serialize import (
     unserialize_object, serialize_object, pack_apply_message, unpack_apply_message
@@ -77,7 +77,7 @@ class ReverseDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self._reverse = dict()
-        for key, value in self.iteritems():
+        for key, value in iteritems(self):
             self._reverse[value] = key
     
     def __getitem__(self, key):
@@ -168,7 +168,7 @@ def validate_url_container(container):
         url = container
         return validate_url(url)
     elif isinstance(container, dict):
-        container = container.itervalues()
+        container = itervalues(container)
     
     for element in container:
         validate_url_container(element)
@@ -231,7 +231,7 @@ def _push(**ns):
     while tmp in user_ns:
         tmp = tmp + '_'
     try:
-        for name, value in ns.iteritems():
+        for name, value in iteritems(ns):
             user_ns[tmp] = value
             exec("%s = %s" % (name, tmp), user_ns)
     finally:

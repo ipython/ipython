@@ -69,7 +69,7 @@ from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, u
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
-                                     with_metaclass)
+                                     with_metaclass, iteritems)
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
@@ -752,7 +752,7 @@ class InteractiveShell(SingletonConfigurable):
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
         try:
-            for k, v in self._orig_sys_module_state.iteritems():
+            for k, v in iteritems(self._orig_sys_module_state):
                 setattr(sys, k, v)
         except AttributeError:
             pass
@@ -1243,7 +1243,7 @@ class InteractiveShell(SingletonConfigurable):
             # Also check in output history
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
-                to_delete = [n for n, o in ns.iteritems() if o is obj]
+                to_delete = [n for n, o in iteritems(ns) if o is obj]
                 for name in to_delete:
                     del ns[name]
 
@@ -1335,7 +1335,7 @@ class InteractiveShell(SingletonConfigurable):
         variables : dict
           A dictionary mapping object names (as strings) to the objects.
         """
-        for name, obj in variables.iteritems():
+        for name, obj in iteritems(variables):
             if name in self.user_ns and self.user_ns[name] is obj:
                 del self.user_ns[name]
                 self.user_ns_hidden.pop(name, None)
@@ -2447,7 +2447,7 @@ class InteractiveShell(SingletonConfigurable):
         user_ns = self.user_ns
         global_ns = self.user_global_ns
         
-        for key, expr in expressions.iteritems():
+        for key, expr in iteritems(expressions):
             try:
                 value = self._format_user_obj(eval(expr, global_ns, user_ns))
             except:
@@ -2687,7 +2687,7 @@ class InteractiveShell(SingletonConfigurable):
                     
                     # Execute any registered post-execution functions.
                     # unless we are silent
-                    post_exec = [] if silent else self._post_execute.iteritems()
+                    post_exec = [] if silent else iteritems(self._post_execute)
                     
                     for func, status in post_exec:
                         if self.disable_failing_post_execute and not status:

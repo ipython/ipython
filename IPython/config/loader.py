@@ -32,7 +32,7 @@ import sys
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
-from IPython.utils.py3compat import builtin_mod, unicode_type
+from IPython.utils.py3compat import builtin_mod, unicode_type, iteritems
 from IPython.utils.traitlets import HasTraits, List, Any, TraitError
 
 #-----------------------------------------------------------------------------
@@ -193,7 +193,7 @@ class Config(dict):
     def merge(self, other):
         """merge another config object into this one"""
         to_update = {}
-        for k, v in other.iteritems():
+        for k, v in iteritems(other):
             if k not in self:
                 to_update[k] = v
             else: # I have this key
@@ -485,7 +485,7 @@ class CommandLineConfigLoader(ConfigLoader):
         if isinstance(cfg, (dict, Config)):
             # don't clobber whole config sections, update
             # each section from config:
-            for sec,c in cfg.iteritems():
+            for sec,c in iteritems(cfg):
                 self.config[sec].update(c)
         else:
             raise TypeError("Invalid flag: %r" % cfg)
@@ -733,7 +733,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _convert_to_config(self):
         """self.parsed_data->self.config"""
-        for k, v in vars(self.parsed_data).iteritems():
+        for k, v in iteritems(vars(self.parsed_data)):
             exec("self.config.%s = v"%k, locals(), globals())
 
 class KVArgParseConfigLoader(ArgParseConfigLoader):
@@ -750,7 +750,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         if flags is None:
             flags = self.flags
         paa = self.parser.add_argument
-        for key,value in aliases.iteritems():
+        for key,value in iteritems(aliases):
             if key in flags:
                 # flags
                 nargs = '?'
@@ -760,7 +760,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
                 paa('-'+key, '--'+key, type=unicode_type, dest=value, nargs=nargs)
             else:
                 paa('--'+key, type=unicode_type, dest=value, nargs=nargs)
-        for key, (value, help) in flags.iteritems():
+        for key, (value, help) in iteritems(flags):
             if key in self.aliases:
                 #
                 self.alias_flags[self.aliases[key]] = value
@@ -779,7 +779,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         else:
             subcs = []
 
-        for k, v in vars(self.parsed_data).iteritems():
+        for k, v in iteritems(vars(self.parsed_data)):
             if v is None:
                 # it was a flag that shares the name of an alias
                 subcs.append(self.alias_flags[k])

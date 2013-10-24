@@ -40,7 +40,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent
 from IPython.utils import py3compat
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems
 
 #-----------------------------------------------------------------------------
 # function for re-wrapping a helpstring
@@ -216,7 +216,7 @@ class Application(SingletonConfigurable):
     flags = Dict()
     def _flags_changed(self, name, old, new):
         """ensure flags dict is valid"""
-        for key,value in new.iteritems():
+        for key,value in iteritems(new):
             assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[1], string_types), "Bad flag: %r:%s"%(key,value)
@@ -276,7 +276,7 @@ class Application(SingletonConfigurable):
             for c in cls.mro()[:-3]:
                 classdict[c.__name__] = c
 
-        for alias, longname in self.aliases.iteritems():
+        for alias, longname in iteritems(self.aliases):
             classname, traitname = longname.split('.',1)
             cls = classdict[classname]
 
@@ -296,7 +296,7 @@ class Application(SingletonConfigurable):
             return
 
         lines = []
-        for m, (cfg,help) in self.flags.iteritems():
+        for m, (cfg,help) in iteritems(self.flags):
             prefix = '--' if len(m) > 1 else '-'
             lines.append(prefix+m)
             lines.append(indent(dedent(help.strip())))
@@ -328,7 +328,7 @@ class Application(SingletonConfigurable):
         for p in wrap_paragraphs(self.subcommand_description):
             lines.append(p)
             lines.append('')
-        for subc, (cls, help) in self.subcommands.iteritems():
+        for subc, (cls, help) in iteritems(self.subcommands):
             lines.append(subc)
             if help:
                 lines.append(indent(dedent(help.strip())))
@@ -434,7 +434,7 @@ class Application(SingletonConfigurable):
         # flatten aliases, which have the form:
         # { 'alias' : 'Class.trait' }
         aliases = {}
-        for alias, cls_trait in self.aliases.iteritems():
+        for alias, cls_trait in iteritems(self.aliases):
             cls,trait = cls_trait.split('.',1)
             children = mro_tree[cls]
             if len(children) == 1:
@@ -445,9 +445,9 @@ class Application(SingletonConfigurable):
         # flatten flags, which are of the form:
         # { 'key' : ({'Cls' : {'trait' : value}}, 'help')}
         flags = {}
-        for key, (flagdict, help) in self.flags.iteritems():
+        for key, (flagdict, help) in iteritems(self.flags):
             newflag = {}
-            for cls, subdict in flagdict.iteritems():
+            for cls, subdict in iteritems(flagdict):
                 children = mro_tree[cls]
                 # exactly one descendent, promote flag section
                 if len(children) == 1:

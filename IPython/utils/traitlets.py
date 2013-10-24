@@ -66,6 +66,7 @@ except:
 
 from .importstring import import_item
 from IPython.utils import py3compat
+from IPython.utils.py3compat import iteritems
 
 SequenceTypes = (list, tuple, set, frozenset)
 
@@ -373,7 +374,7 @@ class MetaHasTraits(type):
         # print "MetaHasTraitlets (mcls, name): ", mcls, name
         # print "MetaHasTraitlets (bases): ", bases
         # print "MetaHasTraitlets (classdict): ", classdict
-        for k,v in classdict.iteritems():
+        for k,v in iteritems(classdict):
             if isinstance(v, TraitType):
                 v.name = k
             elif inspect.isclass(v):
@@ -389,7 +390,7 @@ class MetaHasTraits(type):
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         """
-        for k, v in classdict.iteritems():
+        for k, v in iteritems(classdict):
             if isinstance(v, TraitType):
                 v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
@@ -427,7 +428,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.
-        for key, value in kw.iteritems():
+        for key, value in iteritems(kw):
             setattr(self, key, value)
 
     def _notify_trait(self, name, old_value, new_value):

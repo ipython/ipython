@@ -40,7 +40,7 @@ from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.py3compat import cast_bytes, string_types, xrange
+from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
@@ -534,7 +534,7 @@ class Client(HasTraits):
 
     def _update_engines(self, engines):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
-        for k,v in engines.iteritems():
+        for k,v in iteritems(engines):
             eid = int(k)
             if eid not in self._engines:
                 self._ids.append(eid)

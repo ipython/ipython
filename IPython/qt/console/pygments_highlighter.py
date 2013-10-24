@@ -75,7 +75,7 @@ class PygmentsBlockUserData(QtGui.QTextBlockUserData):
     syntax_stack = ('root',)
 
     def __init__(self, **kwds):
-        for key, value in kwds.iteritems():
+        for key, value in kwds.items():
             setattr(self, key, value)
         QtGui.QTextBlockUserData.__init__(self)
 

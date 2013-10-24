@@ -32,7 +32,7 @@ from IPython.external.decorator import decorator
 
 from IPython.parallel import util
 from IPython.parallel.controller.dependency import Dependency, dependent
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems
 
 from . import map as Map
 from .asyncresult import AsyncResult, AsyncMapResult
@@ -164,7 +164,7 @@ class View(HasTraits):
             safely edit after arrays and buffers during non-copying
             sends.
         """
-        for name, value in kwargs.iteritems():
+        for name, value in iteritems(kwargs):
             if name not in self._flag_names:
                 raise KeyError("Invalid name: %r"%name)
             else:

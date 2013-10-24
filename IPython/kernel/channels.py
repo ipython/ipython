@@ -31,7 +31,7 @@ from .channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -62,7 +62,7 @@ def validate_string_dict(dct):
     """Validate that the input is a dict with string keys and values.
 
     Raises ValueError if not."""
-    for k,v in dct.iteritems():
+    for k,v in iteritems(dct):
         if not isinstance(k, string_types):
             raise ValueError('key %r in dict must be a string' % k)
         if not isinstance(v, string_types):

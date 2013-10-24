@@ -21,7 +21,7 @@ from IPython.kernel import KernelManager
 from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems
 
 from .utils import TIMEOUT, start_global_kernel, flush_channels, execute
 
@@ -185,7 +185,7 @@ class DisplayData(Reference):
     metadata = Dict()
     data = Dict()
     def _data_changed(self, name, old, new):
-        for k,v in new.iteritems():
+        for k,v in iteritems(new):
             assert mime_pat.match(k)
             nt.assert_is_instance(v, string_types)
 
@@ -194,7 +194,7 @@ class PyOut(Reference):
     execution_count = Integer()
     data = Dict()
     def _data_changed(self, name, old, new):
-        for k,v in new.iteritems():
+        for k,v in iteritems(new):
             assert mime_pat.match(k)
             nt.assert_is_instance(v, string_types)
 

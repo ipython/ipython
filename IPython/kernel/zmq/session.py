@@ -49,7 +49,8 @@ from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
-from IPython.utils.py3compat import str_to_bytes, str_to_unicode, unicode_type
+from IPython.utils.py3compat import (str_to_bytes, str_to_unicode, unicode_type,
+                                     iteritems)
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer,
                                         TraitError,
@@ -166,14 +167,14 @@ class Message(object):
 
     def __init__(self, msg_dict):
         dct = self.__dict__
-        for k, v in dict(msg_dict).iteritems():
+        for k, v in iteritems(dict(msg_dict)):
             if isinstance(v, dict):
                 v = Message(v)
             dct[k] = v
 
     # Having this iterator lets dict(msg_obj) work out of the box.
     def __iter__(self):
-        return iter(self.__dict__.iteritems())
+        return iter(iteritems(self.__dict__))
 
     def __repr__(self):
         return repr(self.__dict__)

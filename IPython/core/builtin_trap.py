@@ -20,7 +20,7 @@ Authors:
 
 from IPython.config.configurable import Configurable
 
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, iteritems
 from IPython.utils.traitlets import Instance
 
 #-----------------------------------------------------------------------------
@@ -98,14 +98,14 @@ class BuiltinTrap(Configurable):
         """Store ipython references in the __builtin__ namespace."""
 
         add_builtin = self.add_builtin
-        for name, func in self.auto_builtins.iteritems():
+        for name, func in iteritems(self.auto_builtins):
             add_builtin(name, func)
 
     def deactivate(self):
         """Remove any builtins which might have been added by add_builtins, or
         restore overwritten ones to their previous values."""
         remove_builtin = self.remove_builtin
-        for key, val in self._orig_builtins.iteritems():
+        for key, val in iteritems(self._orig_builtins):
             remove_builtin(key, val)
         self._orig_builtins.clear()
         self._builtins_added = False

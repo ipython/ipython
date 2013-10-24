@@ -43,7 +43,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, iteritems
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
@@ -1185,7 +1185,7 @@ python-profiler package from non-free.""")
         """
         opts,args = self.parse_options(parameter_s,'rq',mode='list')
         if not args:   # List existing macros
-            return sorted(k for k,v in self.shell.user_ns.iteritems() if\
+            return sorted(k for k,v in iteritems(self.shell.user_ns) if\
                                                         isinstance(v, Macro))
         if len(args) == 1:
             raise UsageError(

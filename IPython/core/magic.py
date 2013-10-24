@@ -30,7 +30,7 @@ from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems
 from IPython.utils.text import dedent
 from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error
@@ -349,7 +349,7 @@ class MagicsManager(Configurable):
         docs = {}
         for m_type in self.magics:
             m_docs = {}
-            for m_name, m_func in self.magics[m_type].iteritems():
+            for m_name, m_func in iteritems(self.magics[m_type]):
                 if m_func.__doc__:
                     if brief:
                         m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
@@ -533,7 +533,7 @@ class Magics(Configurable):
         for mtype in magic_kinds:
             tab = self.magics[mtype] = {}
             cls_tab = class_magics[mtype]
-            for magic_name, meth_name in cls_tab.iteritems():
+            for magic_name, meth_name in iteritems(cls_tab):
                 if isinstance(meth_name, string_types):
                     # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)

@@ -24,7 +24,7 @@ except ImportError:
     from base64 import encodestring as encodebytes
 
 from IPython.utils import py3compat
-from IPython.utils.py3compat import string_types, unicode_type
+from IPython.utils.py3compat import string_types, unicode_type, iteritems
 from IPython.utils.encoding import DEFAULT_ENCODING
 next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
@@ -67,7 +67,7 @@ def extract_dates(obj):
     """extract ISO8601 dates from unpacked JSON"""
     if isinstance(obj, dict):
         obj = dict(obj) # don't clobber
-        for k,v in obj.iteritems():
+        for k,v in iteritems(obj):
             obj[k] = extract_dates(v)
     elif isinstance(obj, (list, tuple)):
         obj = [ extract_dates(o) for o in obj ]
@@ -84,7 +84,7 @@ def squash_dates(obj):
     """squash datetime objects into ISO8601 strings"""
     if isinstance(obj, dict):
         obj = dict(obj) # don't clobber
-        for k,v in obj.iteritems():
+        for k,v in iteritems(obj):
             obj[k] = squash_dates(v)
     elif isinstance(obj, (list, tuple)):
         obj = [ squash_dates(o) for o in obj ]
@@ -219,7 +219,7 @@ def json_clean(obj):
                              'key collision would lead to dropped values')
         # If all OK, proceed by making the new dict that will be json-safe
         out = {}
-        for k,v in obj.iteritems():
+        for k,v in iteritems(obj):
             out[str(k)] = json_clean(v)
         return out
 

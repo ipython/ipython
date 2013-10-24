@@ -29,6 +29,7 @@ from zmq.eventloop import ioloop
 from IPython.utils.traitlets import Unicode, Instance, List, Dict
 from .dictdb import BaseDB
 from IPython.utils.jsonutil import date_default, extract_dates, squash_dates
+from IPython.utils.py3compat import iteritems
 
 #-----------------------------------------------------------------------------
 # SQLite operators, adapters, and converters
@@ -295,9 +296,9 @@ class SQLiteDB(BaseDB):
         if skeys:
             raise KeyError("Illegal testing key(s): %s"%skeys)
 
-        for name,sub_check in check.iteritems():
+        for name,sub_check in iteritems(check):
             if isinstance(sub_check, dict):
-                for test,value in sub_check.iteritems():
+                for test,value in iteritems(sub_check):
                     try:
                         op = operators[test]
                     except KeyError:

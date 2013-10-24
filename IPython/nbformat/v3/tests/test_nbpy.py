@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, iteritems
 
 from . import formattest
 
@@ -24,7 +24,7 @@ class TestPy(formattest.NBFormatTest, TestCase):
         elements.
         """
         if isinstance(da, dict):
-            for k,v in da.iteritems():
+            for k,v in iteritems(da):
                 if k in self.ignored_keys:
                     continue
                 self.assertTrue(k in db)

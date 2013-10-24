@@ -20,6 +20,7 @@ import nose.tools as nt
 from IPython.kernel.zmq.serialize import serialize_object, unserialize_object
 from IPython.testing import decorators as dec
 from IPython.utils.pickleutil import CannedArray, CannedClass
+from IPython.utils.py3compat import iteritems
 from IPython.parallel import interactive
 
 #-------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ class C(object):
     """dummy class for """
     
     def __init__(self, **kwargs):
-        for key,value in kwargs.iteritems():
+        for key,value in iteritems(kwargs):
             setattr(self, key, value)
 
 SHAPES = ((100,), (1024,10), (10,8,6,5), (), (0,))

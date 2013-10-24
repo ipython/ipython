@@ -26,6 +26,7 @@ from IPython.parallel.error import TimeoutError
 from IPython.parallel import error, Client
 from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
+from IPython.utils.py3compat import iteritems
 
 def setup():
     add_engines(2, total=True)
@@ -77,7 +78,7 @@ class AsyncResultTest(ClusterTestCase):
         self.assertEqual(ar.get(), [5]*n)
         d = ar.get_dict()
         self.assertEqual(sorted(d.keys()), sorted(self.client.ids))
-        for eid,r in d.iteritems():
+        for eid,r in iteritems(d):
             self.assertEqual(r, 5)
     
     def test_get_dict_single(self):
