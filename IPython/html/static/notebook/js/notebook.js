@@ -769,8 +769,6 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.before(tomove);
                 this.select(i-1);
-                this.element.focus();
-                
             };
             this.set_dirty(true);
         };
@@ -794,7 +792,6 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.after(tomove);
                 this.select(i+1);
-                this.element.focus();
             };
         };
         this.set_dirty();
@@ -830,7 +827,6 @@ var IPython = (function (IPython) {
             };
             $([IPython.events]).trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
-            this.element.focus();
         };
         return this;
     };
@@ -1141,7 +1137,6 @@ var IPython = (function (IPython) {
     Notebook.prototype.cut_cell = function () {
         this.copy_cell();
         this.delete_cell();
-        this.element.focus();
     }
 
     /**
@@ -1168,7 +1163,6 @@ var IPython = (function (IPython) {
             var old_cell = this.get_next_cell(new_cell);
             this.delete_cell(this.find_cell_index(old_cell));
             this.select(this.find_cell_index(new_cell));
-            this.element.focus();
         };
     };
 
@@ -1182,7 +1176,6 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
-            this.element.focus();
         };
     };
 
@@ -1196,7 +1189,6 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_below(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
-            this.element.focus();
         };
     };
 
@@ -1230,7 +1222,6 @@ var IPython = (function (IPython) {
             this.select(current_index);
             this.undelete_backup = null;
             this.undelete_index = null;
-            this.element.focus();
         }
         $('#undelete_cell').addClass('disabled');
     }
@@ -2003,7 +1994,6 @@ var IPython = (function (IPython) {
         } else {
             this.select(0);
             this.command_mode();
-            this.element.focus();
         };
         this.set_dirty(false);
         this.scroll_to_top();
