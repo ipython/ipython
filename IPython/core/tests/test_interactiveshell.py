@@ -28,7 +28,6 @@ import sys
 import tempfile
 import unittest
 from os.path import join
-from io import StringIO
 
 # third-party
 import nose.tools as nt
@@ -37,7 +36,12 @@ import nose.tools as nt
 from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
-from IPython.utils.py3compat import unicode_type
+from IPython.utils.py3compat import unicode_type, PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals

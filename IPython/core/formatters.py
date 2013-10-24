@@ -27,8 +27,6 @@ Authors:
 import abc
 import sys
 import warnings
-# We must use StringIO, as cStringIO doesn't handle unicode properly.
-from io import StringIO
 
 # Our own imports
 from IPython.config.configurable import Configurable
@@ -36,7 +34,12 @@ from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
-from IPython.utils.py3compat import unicode_to_str, with_metaclass
+from IPython.utils.py3compat import unicode_to_str, with_metaclass, PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 #-----------------------------------------------------------------------------

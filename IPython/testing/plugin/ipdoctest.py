@@ -29,7 +29,6 @@ import traceback
 import unittest
 
 from inspect import getmodule
-from io import StringIO
 
 # We are overriding the default doctest runner, so we need to import a few
 # things from doctest directly
@@ -46,7 +45,12 @@ from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 
 # Our own imports
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants

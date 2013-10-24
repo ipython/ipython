@@ -15,10 +15,15 @@ Module with tests for debug
 #-----------------------------------------------------------------------------
 
 import sys
-from io import StringIO
 
 from ...tests.base import TestsBase
 from ..debug import DebugWriter
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 #-----------------------------------------------------------------------------

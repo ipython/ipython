@@ -20,7 +20,6 @@ import bdb
 import os
 import sys
 import time
-from io import StringIO
 
 # cProfile was added in Python2.5
 try:
@@ -43,7 +42,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
-from IPython.utils.py3compat import builtin_mod, iteritems
+from IPython.utils.py3compat import builtin_mod, iteritems, PY3
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
@@ -52,6 +51,10 @@ from IPython.utils.path import get_py_filename, unquote_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

@@ -109,8 +109,14 @@ import sys
 import types
 import re
 import datetime
-from io import StringIO
 from collections import deque
+
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',

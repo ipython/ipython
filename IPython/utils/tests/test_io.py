@@ -15,14 +15,18 @@ from __future__ import print_function
 
 import sys
 
-from io import StringIO
 from subprocess import Popen, PIPE
 import unittest
 
 import nose.tools as nt
 
 from IPython.utils.io import Tee, capture_output
-from IPython.utils.py3compat import doctest_refactor_print
+from IPython.utils.py3compat import doctest_refactor_print, PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Tests

@@ -16,10 +16,15 @@ Module with tests for files
 
 import sys
 import os
-from io import StringIO
 
 from ...tests.base import TestsBase
 from ..files import FilesWriter
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 #-----------------------------------------------------------------------------

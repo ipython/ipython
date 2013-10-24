@@ -58,7 +58,6 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # Stdlib
-import io
 import os
 import re
 import sys
@@ -84,6 +83,12 @@ matplotlib.use('Agg')
 from IPython import Config, InteractiveShell
 from IPython.core.profiledir import ProfileDir
 from IPython.utils import io
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -193,7 +198,7 @@ class EmbeddedSphinxShell(object):
 
     def __init__(self):
 
-        self.cout = io.StringIO()
+        self.cout = StringIO()
 
 
         # Create config object for IPython
