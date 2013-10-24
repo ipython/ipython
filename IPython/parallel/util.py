@@ -59,7 +59,7 @@ class Namespace(dict):
     
     def __getattr__(self, key):
         """getattr aliased to getitem"""
-        if key in self.iterkeys():
+        if key in self:
             return self[key]
         else:
             raise NameError(key)

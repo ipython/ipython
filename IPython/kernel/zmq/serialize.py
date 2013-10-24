@@ -91,7 +91,7 @@ def serialize_object(obj, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
             buffers.extend(_extract_buffers(c, buffer_threshold))
     elif istype(obj, dict) and len(obj) < item_threshold:
         cobj = {}
-        for k in sorted(obj.iterkeys()):
+        for k in sorted(obj):
             c = can(obj[k])
             buffers.extend(_extract_buffers(c, buffer_threshold))
             cobj[k] = c
@@ -129,7 +129,7 @@ def unserialize_object(buffers, g=None):
         newobj = uncan_sequence(canned, g)
     elif istype(canned, dict) and len(canned) < MAX_ITEMS:
         newobj = {}
-        for k in sorted(canned.iterkeys()):
+        for k in sorted(canned):
             c = canned[k]
             _restore_buffers(c, bufs)
             newobj[k] = uncan(c, g)

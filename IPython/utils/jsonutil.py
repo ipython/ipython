@@ -43,7 +43,7 @@ ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)Z?([\+\-]\d{
 def rekey(dikt):
     """Rekey a dict that has been forced to use str keys where there should be
     ints by json."""
-    for k in dikt.iterkeys():
+    for k in dikt:
         if isinstance(k, string_types):
             ik=fk=None
             try:
