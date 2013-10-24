@@ -44,7 +44,7 @@ def is_type(obj, typestr_or_type):
     TODO: Should be extended for choosing more than one type."""
     if typestr_or_type == "all":
         return True
-    if type(typestr_or_type) == types.TypeType:
+    if type(typestr_or_type) == type:
         test_type = typestr_or_type
     else:
         test_type = typestr2type.get(typestr_or_type, False)
