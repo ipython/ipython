@@ -198,7 +198,7 @@ def findsource(object):
     if ismethod(object):
         object = object.im_func
     if isfunction(object):
-        object = object.func_code
+        object = object.__code__
     if istraceback(object):
         object = object.tb_frame
     if isframe(object):

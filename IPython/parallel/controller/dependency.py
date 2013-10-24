@@ -56,7 +56,7 @@ class dependent(object):
 
     def __init__(self, f, df, *dargs, **dkwargs):
         self.f = f
-        self.func_name = getattr(f, '__name__', 'f')
+        self.__name__ = getattr(f, '__name__', 'f')
         self.df = df
         self.dargs = dargs
         self.dkwargs = dkwargs
@@ -71,7 +71,7 @@ class dependent(object):
     if not py3compat.PY3:
         @property
         def __name__(self):
-            return self.func_name
+            return self.__name__
 
 @interactive
 def _require(*modules, **mapping):

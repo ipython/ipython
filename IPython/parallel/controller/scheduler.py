@@ -52,7 +52,7 @@ from .dependency import Dependency
 @decorator
 def logged(f,self,*args,**kwargs):
     # print ("#--------------------")
-    self.log.debug("scheduler::%s(*%s,**%s)", f.func_name, args, kwargs)
+    self.log.debug("scheduler::%s(*%s,**%s)", f.__name__, args, kwargs)
     # print ("#--")
     return f(self,*args, **kwargs)
 

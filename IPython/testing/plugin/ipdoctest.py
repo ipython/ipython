@@ -95,7 +95,7 @@ class DocTestFinder(doctest.DocTestFinder):
         if module is None:
             return True
         elif inspect.isfunction(object):
-            return module.__dict__ is object.func_globals
+            return module.__dict__ is object.__globals__
         elif inspect.isbuiltin(object):
             return module.__name__ == object.__module__
         elif inspect.isclass(object):

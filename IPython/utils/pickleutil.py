@@ -105,9 +105,9 @@ class CannedFunction(CannedObject):
 
     def __init__(self, f):
         self._check_type(f)
-        self.code = f.func_code
-        if f.func_defaults:
-            self.defaults = [ can(fd) for fd in f.func_defaults ]
+        self.code = f.__code__
+        if f.__defaults__:
+            self.defaults = [ can(fd) for fd in f.__defaults__ ]
         else:
             self.defaults = None
         self.module = f.__module__ or '__main__'

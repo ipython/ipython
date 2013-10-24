@@ -195,14 +195,14 @@ def _method_magic_marker(magic_kind):
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
-            name = func.func_name
+            name = func.__name__
             retval = decorator(call, func)
             record_magic(magics, magic_kind, name, name)
         elif isinstance(arg, string_types):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
-                record_magic(magics, magic_kind, name, func.func_name)
+                record_magic(magics, magic_kind, name, func.__name__)
                 return decorator(call, func)
             retval = mark
         else:
@@ -240,7 +240,7 @@ def _function_magic_marker(magic_kind):
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
-            name = func.func_name
+            name = func.__name__
             ip.register_magic_function(func, magic_kind, name)
             retval = decorator(call, func)
         elif isinstance(arg, string_types):
@@ -426,7 +426,7 @@ class MagicsManager(Configurable):
         # Create the new method in the user_magics and register it in the
         # global table
         validate_type(magic_kind)
-        magic_name = func.func_name if magic_name is None else magic_name
+        magic_name = func.__name__ if magic_name is None else magic_name
         setattr(self.user_magics, magic_name, func)
         record_magic(self.magics, magic_kind, magic_name, func)
 
