@@ -173,7 +173,7 @@ def json_clean(obj):
     --------
     >>> json_clean(4)
     4
-    >>> json_clean(range(10))
+    >>> json_clean(list(range(10)))
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     >>> sorted(json_clean(dict(x=1, y=2)).items())
     [('x', 1), ('y', 2)]

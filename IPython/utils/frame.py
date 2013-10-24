@@ -40,7 +40,7 @@ def extract_vars(*names,**kw):
 
         In [2]: def func(x):
            ...:     y = 1
-           ...:     print sorted(extract_vars('x','y').items())
+           ...:     print(sorted(extract_vars('x','y').items()))
            ...:
 
         In [3]: func('hello')

@@ -621,7 +621,7 @@ def _chunks(l, n):
 def _find_optimal(rlist , separator_size=2 , displaywidth=80):
     """Calculate optimal info to columnize a list of string"""
     for nrow in range(1, len(rlist)+1) :
-        chk = map(max,_chunks(rlist, nrow))
+        chk = list(map(max,_chunks(rlist, nrow)))
         sumlength = sum(chk)
         ncols = len(chk)
         if sumlength+separator_size*(ncols-1) <= displaywidth :
@@ -694,7 +694,7 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
         'rows_numbers': 5})
 
     """
-    info = _find_optimal(map(len, items), *args, **kwargs)
+    info = _find_optimal(list(map(len, items)), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
     return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
 

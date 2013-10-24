@@ -93,8 +93,8 @@ if sys.version_info[0] >= 3:
     
     open = orig_open
     xrange = range
-    iteritems = dict.items
-    itervalues = dict.values
+    def iteritems(d): return iter(d.items())
+    def itervalues(d): return iter(d.values())
     
     MethodType = types.MethodType
     
@@ -170,8 +170,8 @@ else:
             self.f.close()
     
     xrange = xrange
-    iteritems = dict.iteritems
-    itervalues = dict.itervalues
+    def iteritems(d): return d.iteritems()
+    def itervalues(d): return d.itervalues()
 
     def MethodType(func, instance):
         return types.MethodType(func, instance, type(instance))

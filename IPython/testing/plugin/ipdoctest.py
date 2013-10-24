@@ -117,7 +117,7 @@ class DocTestFinder(doctest.DocTestFinder):
         elif isinstance(object, property):
             return True # [XX] no way not be sure.
         else:
-            raise ValueError("object must be a class or function")
+            raise ValueError("object must be a class or function, got %r" % object)
 
     def _find(self, tests, obj, name, module, source_lines, globs, seen):
         """
