@@ -29,7 +29,7 @@ from IPython.core import inputsplitter as isp
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, input
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -489,9 +489,9 @@ if __name__ == '__main__':
             while isp.push_accepts_more():
                 indent = ' '*isp.indent_spaces
                 if autoindent:
-                    line = indent + raw_input(prompt+indent)
+                    line = indent + input(prompt+indent)
                 else:
-                    line = raw_input(prompt)
+                    line = input(prompt)
                 isp.push(line)
                 prompt = '... '
 

@@ -31,7 +31,7 @@ except ImportError:
 from IPython.core import page
 from IPython.utils.warn import warn, error
 from IPython.utils import io
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, input
 from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
@@ -330,7 +330,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             signal.signal(signal.SIGINT, double_int)
             
             try:
-                raw_data = raw_input(msg_rep["content"]["prompt"])
+                raw_data = input(msg_rep["content"]["prompt"])
             except EOFError:
                 # turn EOFError into EOF character
                 raw_data = '\x04'

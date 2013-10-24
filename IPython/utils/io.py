@@ -18,7 +18,7 @@ import os
 import sys
 import tempfile
 from .capture import CapturedIO, capture_output
-from .py3compat import string_types
+from .py3compat import string_types, input
 
 #-----------------------------------------------------------------------------
 # Code
@@ -170,7 +170,7 @@ def ask_yes_no(prompt,default=None):
     ans = None
     while ans not in answers.keys():
         try:
-            ans = raw_input(prompt+' ').lower()
+            ans = input(prompt+' ').lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:
