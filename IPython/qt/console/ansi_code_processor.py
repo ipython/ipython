@@ -11,6 +11,9 @@ import re
 # System library imports
 from IPython.external.qt import QtGui
 
+# Local imports
+from IPython.utils.py3compat import string_types
+
 #-----------------------------------------------------------------------------
 # Constants and datatypes
 #-----------------------------------------------------------------------------
@@ -318,7 +321,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
             color += 8
 
         constructor = self.color_map.get(color, None)
-        if isinstance(constructor, basestring):
+        if isinstance(constructor, string_types):
             # If this is an X11 color name, we just hope there is a close SVG
             # color name. We could use QColor's static method
             # 'setAllowX11ColorNames()', but this is global and only available

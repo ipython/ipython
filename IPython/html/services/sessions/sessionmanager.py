@@ -22,6 +22,7 @@ import sqlite3
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -66,7 +67,7 @@ class SessionManager(LoggingConfigurable):
 
     def new_session_id(self):
         "Create a uuid for a new session"
-        return unicode(uuid.uuid4())
+        return unicode_type(uuid.uuid4())
 
     def create_session(self, name=None, path=None, kernel_id=None, ws_url=None):
         """Creates a session and returns its model"""

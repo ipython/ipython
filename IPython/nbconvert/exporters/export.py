@@ -17,6 +17,7 @@ from functools import wraps
 
 from IPython.nbformat.v3.nbbase import NotebookNode
 from IPython.config import Config
+from IPython.utils.py3compat import string_types
 
 from .exporter import Exporter
 from .templateexporter import TemplateExporter
@@ -116,7 +117,7 @@ def export(exporter, nb, **kw):
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
         output, resources = exporter_instance.from_notebook_node(nb, resources)
-    elif isinstance(nb, basestring):
+    elif isinstance(nb, string_types):
         output, resources = exporter_instance.from_filename(nb, resources)
     else:
         output, resources = exporter_instance.from_file(nb, resources)

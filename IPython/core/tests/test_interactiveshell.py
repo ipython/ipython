@@ -37,6 +37,7 @@ import nose.tools as nt
 from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -140,7 +141,7 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert isinstance(ip.user_ns['byte_str'], str) # string literals are byte strings by default
             ip.run_cell('from __future__ import unicode_literals')
             ip.run_cell(u'unicode_str = "a"')
-            assert isinstance(ip.user_ns['unicode_str'], unicode) # strings literals are now unicode
+            assert isinstance(ip.user_ns['unicode_str'], unicode_type) # strings literals are now unicode
         finally:
             # Reset compiler flags so we don't mess up other tests.
             ip.compile.reset_compiler_flags()

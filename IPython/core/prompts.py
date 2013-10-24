@@ -98,7 +98,7 @@ class LazyEvaluate(object):
         return str(self())
     
     def __unicode__(self):
-        return unicode(self())
+        return py3compat.unicode_type(self())
     
     def __format__(self, format_spec):
         return format(self(), format_spec)

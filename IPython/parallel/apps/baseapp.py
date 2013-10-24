@@ -20,8 +20,6 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import with_statement
-
 import os
 import logging
 import re
@@ -38,8 +36,9 @@ from IPython.core.application import (
     base_flags as base_ip_flags
 )
 from IPython.utils.path import expand_path
+from IPython.utils.py3compat import unicode_type
 
-from IPython.utils.traitlets import Unicode, Bool, Instance, Dict, List
+from IPython.utils.traitlets import Unicode, Bool, Instance, Dict
 
 #-----------------------------------------------------------------------------
 # Module errors
@@ -110,7 +109,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         help='Set the working dir for the process.'
     )
     def _work_dir_changed(self, name, old, new):
-        self.work_dir = unicode(expand_path(new))
+        self.work_dir = unicode_type(expand_path(new))
 
     log_to_file = Bool(config=True,
         help="whether to log to a file")
@@ -157,7 +156,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         
     def to_work_dir(self):
         wd = self.work_dir
-        if unicode(wd) != os.getcwdu():
+        if unicode_type(wd) != os.getcwdu():
             os.chdir(wd)
             self.log.info("Changing to working dir: %s" % wd)
         # This is the working dir by now.

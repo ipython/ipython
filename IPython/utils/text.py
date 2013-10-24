@@ -177,7 +177,7 @@ class SList(list):
             except IndexError:
                 return ""
 
-        if isinstance(pattern, basestring):
+        if isinstance(pattern, py3compat.string_types):
             pred = lambda x : re.search(pattern, x, re.IGNORECASE)
         else:
             pred = pattern
@@ -321,7 +321,7 @@ def list_strings(arg):
         Out[9]: ['A', 'list', 'of', 'strings']
     """
 
-    if isinstance(arg,basestring): return [arg]
+    if isinstance(arg, py3compat.string_types): return [arg]
     else: return arg
 
 

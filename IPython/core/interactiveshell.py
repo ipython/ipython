@@ -68,7 +68,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, unicode_type, string_types
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
@@ -1294,8 +1294,8 @@ class InteractiveShell(SingletonConfigurable):
         # We need a dict of name/value pairs to do namespace updates.
         if isinstance(variables, dict):
             vdict = variables
-        elif isinstance(variables, (basestring, list, tuple)):
-            if isinstance(variables, basestring):
+        elif isinstance(variables, string_types+(list, tuple)):
+            if isinstance(variables, string_types):
                 vlist = variables.split()
             else:
                 vlist = variables
@@ -1589,14 +1589,14 @@ class InteractiveShell(SingletonConfigurable):
             msg = "CustomTB must return list of strings, not %r" % stb
             if stb is None:
                 return []
-            elif isinstance(stb, basestring):
+            elif isinstance(stb, string_types):
                 return [stb]
             elif not isinstance(stb, list):
                 raise TypeError(msg)
             # it's a list
             for line in stb:
                 # check every element
-                if not isinstance(line, basestring):
+                if not isinstance(line, string_types):
                     raise TypeError(msg)
             return stb
 
@@ -2200,7 +2200,7 @@ class InteractiveShell(SingletonConfigurable):
 
         from IPython.core import macro
 
-        if isinstance(themacro, basestring):
+        if isinstance(themacro, string_types):
             themacro = macro.Macro(themacro)
         if not isinstance(themacro, macro.Macro):
             raise ValueError('A macro must be a string or a Macro instance.')
@@ -2383,7 +2383,7 @@ class InteractiveShell(SingletonConfigurable):
         exc_info = {
             u'status' : 'error',
             u'traceback' : stb,
-            u'ename' : unicode(etype.__name__),
+            u'ename' : unicode_type(etype.__name__),
             u'evalue' : py3compat.safe_unicode(evalue),
         }
 
@@ -3113,7 +3113,7 @@ class InteractiveShell(SingletonConfigurable):
         except Exception:
             raise ValueError(("'%s' was not found in history, as a file, url, "
                                 "nor in the user namespace.") % target)
-        if isinstance(codeobj, basestring):
+        if isinstance(codeobj, string_types):
             return codeobj
         elif isinstance(codeobj, Macro):
             return codeobj.value

@@ -28,6 +28,7 @@ from Queue import Empty
 from IPython.core import page
 from IPython.utils.warn import warn, error
 from IPython.utils import io
+from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
@@ -387,7 +388,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if display_banner is None:
             display_banner = self.display_banner
         
-        if isinstance(display_banner, basestring):
+        if isinstance(display_banner, string_types):
             self.show_banner(display_banner)
         elif display_banner:
             self.show_banner()

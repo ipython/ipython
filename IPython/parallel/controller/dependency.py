@@ -17,6 +17,7 @@ from IPython.parallel.client.asyncresult import AsyncResult
 from IPython.parallel.error import UnmetDependency
 from IPython.parallel.util import interactive
 from IPython.utils import py3compat
+from IPython.utils.py3compat import string_types
 from IPython.utils.pickleutil import can, uncan
 
 class depend(object):
@@ -117,7 +118,7 @@ def require(*objects, **mapping):
         if isinstance(obj, ModuleType):
             obj = obj.__name__
         
-        if isinstance(obj, basestring):
+        if isinstance(obj, string_types):
             names.append(obj)
         elif hasattr(obj, '__name__'):
             mapping[obj.__name__] = obj
@@ -165,10 +166,10 @@ class Dependency(set):
         ids = []
         
         # extract ids from various sources:
-        if isinstance(dependencies, (basestring, AsyncResult)):
+        if isinstance(dependencies, string_types + (AsyncResult,)):
             dependencies = [dependencies]
         for d in dependencies:
-            if isinstance(d, basestring):
+            if isinstance(d, string_types):
                 ids.append(d)
             elif isinstance(d, AsyncResult):
                 ids.extend(d.msg_ids)

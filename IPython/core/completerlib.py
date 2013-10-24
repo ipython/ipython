@@ -31,6 +31,7 @@ from zipimport import zipimporter
 from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
 from IPython.utils._process_common import arg_split
+from IPython.utils.py3compat import string_types
 
 # FIXME: this should be pulled in with the right call via the component system
 from IPython import get_ipython
@@ -189,7 +190,7 @@ def quick_completer(cmd, completions):
         [d:\ipython]|3> foo ba
     """
 
-    if isinstance(completions, basestring):
+    if isinstance(completions, string_types):
         completions = completions.split()
 
     def do_complete(self, event):

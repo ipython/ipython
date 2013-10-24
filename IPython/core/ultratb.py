@@ -943,7 +943,7 @@ class VerboseTB(TBTools):
                                      ColorsNormal, py3compat.cast_unicode(evalue_str))]
         if (not py3compat.PY3) and type(evalue) is types.InstanceType:
             try:
-                names = [w for w in dir(evalue) if isinstance(w, basestring)]
+                names = [w for w in dir(evalue) if isinstance(w, py3compat.string_types)]
             except:
                 # Every now and then, an object with funny inernals blows up
                 # when dir() is called on it.  We do the best we can to report

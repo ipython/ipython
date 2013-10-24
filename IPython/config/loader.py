@@ -32,7 +32,7 @@ import sys
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, unicode_type
 from IPython.utils.traitlets import HasTraits, List, Any, TraitError
 
 #-----------------------------------------------------------------------------
@@ -567,7 +567,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         if enc is None:
             enc = DEFAULT_ENCODING
         for arg in argv:
-            if not isinstance(arg, unicode):
+            if not isinstance(arg, unicode_type):
                 # only decode if not already decoded
                 arg = arg.decode(enc)
             uargv.append(arg)
@@ -757,9 +757,9 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             else:
                 nargs = None
             if len(key) is 1:
-                paa('-'+key, '--'+key, type=unicode, dest=value, nargs=nargs)
+                paa('-'+key, '--'+key, type=unicode_type, dest=value, nargs=nargs)
             else:
-                paa('--'+key, type=unicode, dest=value, nargs=nargs)
+                paa('--'+key, type=unicode_type, dest=value, nargs=nargs)
         for key, (value, help) in flags.iteritems():
             if key in self.aliases:
                 #

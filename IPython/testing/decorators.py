@@ -64,6 +64,7 @@ from IPython.external.decorators import *
 
 # For onlyif_cmd_exists decorator
 from IPython.utils.process import is_cmd_found
+from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -141,7 +142,7 @@ def make_label_dec(label,ds=None):
     True
     """
 
-    if isinstance(label,basestring):
+    if isinstance(label, string_types):
         labels = [label]
     else:
         labels = label

@@ -26,7 +26,7 @@ else:
         lines = linecache.getlines(filename, module_globals=module_globals)
         
         # The bits we cache ourselves can be unicode.
-        if (not lines) or isinstance(lines[0], unicode):
+        if (not lines) or isinstance(lines[0], py3compat.unicode_type):
             return lines
         
         readline = openpy._list_readline(lines)

@@ -40,6 +40,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent
 from IPython.utils import py3compat
+from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # function for re-wrapping a helpstring
@@ -155,7 +156,7 @@ class Application(SingletonConfigurable):
                     help="Set the log level by value or name.")
     def _log_level_changed(self, name, old, new):
         """Adjust the log level when log_level is set."""
-        if isinstance(new, basestring):
+        if isinstance(new, string_types):
             new = getattr(logging, new)
             self.log_level = new
         self.log.setLevel(new)
@@ -218,7 +219,7 @@ class Application(SingletonConfigurable):
         for key,value in new.iteritems():
             assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
-            assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
+            assert isinstance(value[1], string_types), "Bad flag: %r:%s"%(key,value)
 
 
     # subcommands for launching other applications
@@ -400,7 +401,7 @@ class Application(SingletonConfigurable):
         """Initialize a subcommand with argv."""
         subapp,help = self.subcommands.get(subc)
 
-        if isinstance(subapp, basestring):
+        if isinstance(subapp, string_types):
             subapp = import_item(subapp)
 
         # clear existing instances

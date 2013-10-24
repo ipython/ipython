@@ -19,6 +19,7 @@ import sys
 import tempfile
 from StringIO import StringIO
 from .capture import CapturedIO, capture_output
+from .py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Code
@@ -57,7 +58,7 @@ class IOStream:
                       file=sys.stderr)
 
     def writelines(self, lines):
-        if isinstance(lines, basestring):
+        if isinstance(lines, string_types):
             lines = [lines]
         for line in lines:
             self.write(line)

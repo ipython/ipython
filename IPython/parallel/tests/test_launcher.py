@@ -34,6 +34,7 @@ from IPython.config import Config
 from IPython.parallel.apps import launcher
 
 from IPython.testing import decorators as dec
+from IPython.utils.py3compat import string_types
 
 
 #-------------------------------------------------------------------------------
@@ -79,7 +80,7 @@ class LauncherTest:
     def test_args(self):
         launcher = self.build_launcher()
         for arg in launcher.args:
-            self.assertTrue(isinstance(arg, basestring), str(arg))
+            self.assertTrue(isinstance(arg, string_types), str(arg))
 
 class BatchTest:
     """Tests for batch-system launchers (LSF, SGE, PBS)"""

@@ -31,6 +31,7 @@ from .channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )
+from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -53,7 +54,7 @@ def validate_string_list(lst):
     if not isinstance(lst, list):
         raise ValueError('input %r must be a list' % lst)
     for x in lst:
-        if not isinstance(x, basestring):
+        if not isinstance(x, string_types):
             raise ValueError('element %r in list must be a string' % x)
 
 
@@ -62,9 +63,9 @@ def validate_string_dict(dct):
 
     Raises ValueError if not."""
     for k,v in dct.iteritems():
-        if not isinstance(k, basestring):
+        if not isinstance(k, string_types):
             raise ValueError('key %r in dict must be a string' % k)
-        if not isinstance(v, basestring):
+        if not isinstance(v, string_types):
             raise ValueError('value %r in dict must be a string' % v)
 
 
@@ -264,7 +265,7 @@ class ShellChannel(ZMQSocketChannel):
 
 
         # Don't waste network traffic if inputs are invalid
-        if not isinstance(code, basestring):
+        if not isinstance(code, string_types):
             raise ValueError('code %r must be a string' % code)
         validate_string_list(user_variables)
         validate_string_dict(user_expressions)

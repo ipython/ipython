@@ -20,6 +20,7 @@ from base64 import encodestring, decodestring
 import warnings
 from xml.etree import ElementTree as ET
 
+from IPython.utils.py3compat import unicode_type
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import (
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
@@ -71,7 +72,7 @@ def _get_int(e, tag):
 def _set_int(nbnode, attr, parent, tag):
     if attr in nbnode:
         e = ET.SubElement(parent, tag)
-        e.text = unicode(nbnode[attr])
+        e.text = unicode_type(nbnode[attr])
 
 
 def _get_bool(e, tag):

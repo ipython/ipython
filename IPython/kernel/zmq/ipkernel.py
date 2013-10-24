@@ -28,7 +28,7 @@ from IPython.config.configurable import Configurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
 from IPython.utils import py3compat
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, unicode_type, string_types
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, List, Set, Integer, Unicode,
@@ -89,7 +89,7 @@ class Kernel(Configurable):
     ident = Unicode()
 
     def _ident_default(self):
-        return unicode(uuid.uuid4())
+        return unicode_type(uuid.uuid4())
 
 
     # Private interface
@@ -649,7 +649,7 @@ class Kernel(Configurable):
     def abort_request(self, stream, ident, parent):
         """abort a specifig msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
-        if isinstance(msg_ids, basestring):
+        if isinstance(msg_ids, string_types):
             msg_ids = [msg_ids]
         if not msg_ids:
             self.abort_queues()

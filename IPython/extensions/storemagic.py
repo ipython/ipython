@@ -30,6 +30,7 @@ from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.traitlets import Bool
+from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -193,7 +194,7 @@ class StoreMagics(Magics):
                   obj.__class__.__name__, fnam))
 
 
-                if not isinstance (obj, basestring):
+                if not isinstance (obj, string_types):
                     from pprint import pprint
                     pprint(obj, fil)
                 else:

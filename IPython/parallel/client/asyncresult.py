@@ -26,6 +26,7 @@ from zmq import MessageTracker
 from IPython.core.display import clear_output, display, display_pretty
 from IPython.external.decorator import decorator
 from IPython.parallel import error
+from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -61,7 +62,7 @@ class AsyncResult(object):
     _single_result = False
 
     def __init__(self, client, msg_ids, fname='unknown', targets=None, tracker=None):
-        if isinstance(msg_ids, basestring):
+        if isinstance(msg_ids, string_types):
             # always a list
             msg_ids = [msg_ids]
             self._single_result = True
@@ -254,7 +255,7 @@ class AsyncResult(object):
         elif isinstance(key, slice):
             self._check_ready()
             return error.collect_exceptions(self._result[key], self._fname)
-        elif isinstance(key, basestring):
+        elif isinstance(key, string_types):
             # metadata proxy *does not* require that results are done
             self.wait(0)
             values = [ md[key] for md in self._metadata ]

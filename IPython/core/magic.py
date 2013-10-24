@@ -30,6 +30,7 @@ from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
+from IPython.utils.py3compat import string_types
 from IPython.utils.text import dedent
 from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error
@@ -197,7 +198,7 @@ def _method_magic_marker(magic_kind):
             name = func.func_name
             retval = decorator(call, func)
             record_magic(magics, magic_kind, name, name)
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, string_types):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
@@ -242,7 +243,7 @@ def _function_magic_marker(magic_kind):
             name = func.func_name
             ip.register_magic_function(func, magic_kind, name)
             retval = decorator(call, func)
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, string_types):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
@@ -533,7 +534,7 @@ class Magics(Configurable):
             tab = self.magics[mtype] = {}
             cls_tab = class_magics[mtype]
             for magic_name, meth_name in cls_tab.iteritems():
-                if isinstance(meth_name, basestring):
+                if isinstance(meth_name, string_types):
                     # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)
                 else:

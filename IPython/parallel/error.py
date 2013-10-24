@@ -17,6 +17,8 @@ from __future__ import print_function
 import sys
 import traceback
 
+from IPython.utils.py3compat import unicode_type
+
 __docformat__ = "restructuredtext en"
 
 # Tell nose to skip this module
@@ -236,8 +238,8 @@ def wrap_exception(engine_info={}):
     exc_content = {
         'status' : 'error',
         'traceback' : stb,
-        'ename' : unicode(etype.__name__),
-        'evalue' : unicode(evalue),
+        'ename' : unicode_type(etype.__name__),
+        'evalue' : unicode_type(evalue),
         'engine_info' : engine_info
     }
     return exc_content

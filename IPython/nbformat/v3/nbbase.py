@@ -25,7 +25,7 @@ import pprint
 import uuid
 
 from IPython.utils.ipstruct import Struct
-from IPython.utils.py3compat import cast_unicode
+from IPython.utils.py3compat import cast_unicode, unicode_type
 
 #-----------------------------------------------------------------------------
 # Code
@@ -58,7 +58,7 @@ def new_output(output_type=None, output_text=None, output_png=None,
     """Create a new code cell with input and output"""
     output = NotebookNode()
     if output_type is not None:
-        output.output_type = unicode(output_type)
+        output.output_type = unicode_type(output_type)
 
     if metadata is None:
         metadata = {}

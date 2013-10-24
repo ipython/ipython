@@ -12,6 +12,8 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from .py3compat import string_types
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -79,5 +81,5 @@ def dir2(obj):
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
 
-    words = [w for w in words if isinstance(w, basestring)]
+    words = [w for w in words if isinstance(w, string_types)]
     return sorted(words)

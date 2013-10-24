@@ -28,6 +28,7 @@ except ImportError:
 from . import codeutil  # This registers a hook when it's imported
 from . import py3compat
 from .importstring import import_item
+from .py3compat import string_types
 
 from IPython.config import Application
 
@@ -85,7 +86,7 @@ class CannedObject(object):
 class Reference(CannedObject):
     """object for wrapping a remote reference by name."""
     def __init__(self, name):
-        if not isinstance(name, basestring):
+        if not isinstance(name, string_types):
             raise TypeError("illegal name: %r"%name)
         self.name = name
         self.buffers = []
@@ -216,7 +217,7 @@ def _import_mapping(mapping, original=None):
     log = _logger()
     log.debug("Importing canning map")
     for key,value in mapping.items():
-        if isinstance(key, basestring):
+        if isinstance(key, string_types):
             try:
                 cls = import_item(key)
             except Exception:
@@ -246,7 +247,7 @@ def can(obj):
     import_needed = False
     
     for cls,canner in can_map.iteritems():
-        if isinstance(cls, basestring):
+        if isinstance(cls, string_types):
             import_needed = True
             break
         elif istype(obj, cls):
@@ -291,7 +292,7 @@ def uncan(obj, g=None):
     
     import_needed = False
     for cls,uncanner in uncan_map.iteritems():
-        if isinstance(cls, basestring):
+        if isinstance(cls, string_types):
             import_needed = True
             break
         elif isinstance(obj, cls):

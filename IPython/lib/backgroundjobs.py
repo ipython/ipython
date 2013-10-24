@@ -37,6 +37,7 @@ import threading
 from IPython import get_ipython
 from IPython.core.ultratb import AutoFormattedTB
 from IPython.utils.warn import error
+from IPython.utils.py3compat import string_types
 
 
 class BackgroundJobManager(object):
@@ -171,7 +172,7 @@ class BackgroundJobManager(object):
         if callable(func_or_exp):
             kw  = kwargs.get('kw',{})
             job = BackgroundJobFunc(func_or_exp,*args,**kw)
-        elif isinstance(func_or_exp, basestring):
+        elif isinstance(func_or_exp, string_types):
             if not args:
                 frame = sys._getframe(1)
                 glob, loc = frame.f_globals, frame.f_locals

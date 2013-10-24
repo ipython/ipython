@@ -94,7 +94,7 @@ def class_of ( object ):
     correct indefinite article ('a' or 'an') preceding it (e.g., 'an Image',
     'a PlotValue').
     """
-    if isinstance( object, basestring ):
+    if isinstance( object, py3compat.string_types ):
         return add_article( object )
 
     return add_article( object.__class__.__name__ )
@@ -680,7 +680,7 @@ class Type(ClassBasedTraitType):
         elif klass is None:
             klass = default_value
 
-        if not (inspect.isclass(klass) or isinstance(klass, basestring)):
+        if not (inspect.isclass(klass) or isinstance(klass, py3compat.string_types)):
             raise TraitError("A Type trait must specify a class.")
 
         self.klass       = klass
@@ -701,7 +701,7 @@ class Type(ClassBasedTraitType):
 
     def info(self):
         """ Returns a description of the trait."""
-        if isinstance(self.klass, basestring):
+        if isinstance(self.klass, py3compat.string_types):
             klass = self.klass
         else:
             klass = self.klass.__name__
@@ -715,9 +715,9 @@ class Type(ClassBasedTraitType):
         super(Type, self).instance_init(obj)
 
     def _resolve_classes(self):
-        if isinstance(self.klass, basestring):
+        if isinstance(self.klass, py3compat.string_types):
             self.klass = import_item(self.klass)
-        if isinstance(self.default_value, basestring):
+        if isinstance(self.default_value, py3compat.string_types):
             self.default_value = import_item(self.default_value)
 
     def get_default_value(self):
@@ -772,7 +772,7 @@ class Instance(ClassBasedTraitType):
 
         self._allow_none = allow_none
 
-        if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, basestring))):
+        if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, py3compat.string_types))):
             raise TraitError('The klass argument must be a class'
                                 ' you gave: %r' % klass)
         self.klass = klass
@@ -809,7 +809,7 @@ class Instance(ClassBasedTraitType):
             self.error(obj, value)
 
     def info(self):
-        if isinstance(self.klass, basestring):
+        if isinstance(self.klass, py3compat.string_types):
             klass = self.klass
         else:
             klass = self.klass.__name__
@@ -824,7 +824,7 @@ class Instance(ClassBasedTraitType):
         super(Instance, self).instance_init(obj)
 
     def _resolve_classes(self):
-        if isinstance(self.klass, basestring):
+        if isinstance(self.klass, py3compat.string_types):
             self.klass = import_item(self.klass)
 
     def get_default_value(self):
@@ -1022,10 +1022,10 @@ class Unicode(TraitType):
     info_text = 'a unicode string'
 
     def validate(self, obj, value):
-        if isinstance(value, unicode):
+        if isinstance(value, py3compat.unicode_type):
             return value
         if isinstance(value, bytes):
-            return unicode(value)
+            return py3compat.unicode_type(value)
         self.error(obj, value)
 
 
@@ -1034,7 +1034,7 @@ class CUnicode(Unicode):
 
     def validate(self, obj, value):
         try:
-            return unicode(value)
+            return py3compat.unicode_type(value)
         except:
             self.error(obj, value)
 
@@ -1131,7 +1131,7 @@ class CaselessStrEnum(Enum):
             if self._allow_none:
                 return value
 
-        if not isinstance(value, basestring):
+        if not isinstance(value, py3compat.string_types):
             self.error(obj, value)
 
         for v in self.values:
@@ -1418,7 +1418,7 @@ class TCPAddress(TraitType):
     def validate(self, obj, value):
         if isinstance(value, tuple):
             if len(value) == 2:
-                if isinstance(value[0], basestring) and isinstance(value[1], int):
+                if isinstance(value[0], py3compat.string_types) and isinstance(value[1], int):
                     port = value[1]
                     if port >= 0 and port <= 65535:
                         return value

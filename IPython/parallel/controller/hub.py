@@ -31,7 +31,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 # internal:
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import localhost
-from IPython.utils.py3compat import cast_bytes
+from IPython.utils.py3compat import cast_bytes, unicode_type
 from IPython.utils.traitlets import (
         HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
         )
@@ -471,13 +471,13 @@ class Hub(SessionFactory):
             # default to all
             return self.ids
 
-        if isinstance(targets, (int,str,unicode)):
+        if isinstance(targets, (int,str,unicode_type)):
             # only one target specified
             targets = [targets]
         _targets = []
         for t in targets:
             # map raw identities to ids
-            if isinstance(t, (str,unicode)):
+            if isinstance(t, (str,unicode_type)):
                 t = self.by_ident.get(cast_bytes(t), t)
             _targets.append(t)
         targets = _targets

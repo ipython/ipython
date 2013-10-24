@@ -24,6 +24,7 @@ import nose.tools as nt
 
 from IPython.kernel import BlockingKernelClient
 from IPython.utils import path, py3compat
+from IPython.utils.py3compat import unicode_type
 
 #-------------------------------------------------------------------------------
 # Tests
@@ -183,7 +184,7 @@ def test_embed_kernel_reentrant():
             msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
             content = msg['content']
             nt.assert_true(content['found'])
-            nt.assert_equal(content['string_form'], unicode(i))
+            nt.assert_equal(content['string_form'], unicode_type(i))
             
             # exit from embed_kernel
             client.execute("get_ipython().exit_now = True")

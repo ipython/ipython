@@ -24,6 +24,8 @@ import zmq
 
 from threading import Thread
 
+from IPython.utils.py3compat import unicode_type
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ class ForwarderThread(Thread):
         """Loop through lines in self.fd, and send them over self.sock."""
         line = self.fd.readline()
         # allow for files opened in unicode mode
-        if isinstance(line, unicode):
+        if isinstance(line, unicode_type):
             send = self.sock.send_unicode
         else:
             send = self.sock.send

@@ -18,6 +18,7 @@ from IPython.kernel import KernelManager
 from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
+from IPython.utils.py3compat import string_types
 
 from .utils import TIMEOUT, start_global_kernel, flush_channels, execute
 
@@ -155,7 +156,7 @@ class KernelInfoReply(Reference):
 
     def _ipython_version_changed(self, name, old, new):
         for v in new:
-            assert isinstance(v, int) or isinstance(v, basestring), \
+            assert isinstance(v, int) or isinstance(v, string_types), \
             'expected int or string as version component, got {0!r}'.format(v)
 
 
@@ -183,7 +184,7 @@ class DisplayData(Reference):
     def _data_changed(self, name, old, new):
         for k,v in new.iteritems():
             assert mime_pat.match(k)
-            nt.assert_is_instance(v, basestring)
+            nt.assert_is_instance(v, string_types)
 
 
 class PyOut(Reference):
@@ -192,7 +193,7 @@ class PyOut(Reference):
     def _data_changed(self, name, old, new):
         for k,v in new.iteritems():
             assert mime_pat.match(k)
-            nt.assert_is_instance(v, basestring)
+            nt.assert_is_instance(v, string_types)
 
 
 references = {

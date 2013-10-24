@@ -49,7 +49,7 @@ from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
-from IPython.utils.py3compat import str_to_bytes, str_to_unicode
+from IPython.utils.py3compat import str_to_bytes, str_to_unicode, unicode_type
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer,
                                         TraitError,
@@ -65,12 +65,12 @@ def squash_unicode(obj):
     if isinstance(obj,dict):
         for key in obj.keys():
             obj[key] = squash_unicode(obj[key])
-            if isinstance(key, unicode):
+            if isinstance(key, unicode_type):
                 obj[squash_unicode(key)] = obj.pop(key)
     elif isinstance(obj, list):
         for i,v in enumerate(obj):
             obj[i] = squash_unicode(v)
-    elif isinstance(obj, unicode):
+    elif isinstance(obj, unicode_type):
         obj = obj.encode('utf8')
     return obj
 
@@ -288,7 +288,7 @@ class Session(Configurable):
     session = CUnicode(u'', config=True,
         help="""The UUID identifying this session.""")
     def _session_default(self):
-        u = unicode(uuid.uuid4())
+        u = unicode_type(uuid.uuid4())
         self.bsession = u.encode('ascii')
         return u
 
@@ -538,7 +538,7 @@ class Session(Configurable):
         elif isinstance(content, bytes):
             # content is already packed, as in a relayed message
             pass
-        elif isinstance(content, unicode):
+        elif isinstance(content, unicode_type):
             # should be bytes, but JSON often spits out unicode
             content = content.encode('utf8')
         else:

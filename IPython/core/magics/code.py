@@ -29,6 +29,7 @@ from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.py3compat import string_types
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.warn import warn, error
@@ -396,7 +397,7 @@ class CodeMagics(Magics):
 
                     #print '*** args',args,'type',type(args)  # dbg
                     data = eval(args, shell.user_ns)
-                    if not isinstance(data, basestring):
+                    if not isinstance(data, string_types):
                         raise DataIsObject
 
                 except (NameError,SyntaxError):

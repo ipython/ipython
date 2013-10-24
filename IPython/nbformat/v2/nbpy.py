@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import re
+from IPython.utils.py3compat import unicode_type
 from .rwbase import NotebookReader, NotebookWriter
 from .nbbase import new_code_cell, new_text_cell, new_worksheet, new_notebook
 
@@ -136,7 +137,7 @@ class PyWriter(NotebookWriter):
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
         lines.append('')
-        return unicode('\n'.join(lines))
+        return unicode_type('\n'.join(lines))
 
 
 _reader = PyReader()
