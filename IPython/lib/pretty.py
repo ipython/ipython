@@ -721,7 +721,6 @@ _type_pprinters = {
     type:                       _type_pprint,
     types.FunctionType:         _function_pprint,
     types.BuiltinFunctionType:  _function_pprint,
-    types.SliceType:            _repr_pprint,
     types.MethodType:           _repr_pprint,
     
     datetime.datetime:          _repr_pprint,
@@ -732,15 +731,17 @@ _type_pprinters = {
 try:
     _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
     _type_pprinters[types.ClassType] = _type_pprint
-    _type_pprinters[long] = _repr_pprint
-    _type_pprinters[unicode] = _repr_pprint
-except (AttributeError, NameError): # Python 3
-    _type_pprinters[bytes] = _repr_pprint
+    _type_pprinters[types.SliceType] = _repr_pprint
+except AttributeError: # Python 3
+    _type_pprinters[slice] = _repr_pprint
     
 try:
     _type_pprinters[xrange] = _repr_pprint
+    _type_pprinters[long] = _repr_pprint
+    _type_pprinters[unicode] = _repr_pprint
 except NameError:
     _type_pprinters[range] = _repr_pprint
+    _type_pprinters[bytes] = _repr_pprint
 
 #: printers for types specified by name
 _deferred_type_pprinters = {
