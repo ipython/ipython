@@ -9,7 +9,7 @@ IO capturing utilities.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 #-----------------------------------------------------------------------------
 # Imports

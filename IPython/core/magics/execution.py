@@ -86,6 +86,25 @@ class TimeitResult(object):
          p.text(u'<TimeitResult : '+unic+u'>')
 
 
+class TimeitTemplateFiller(ast.NodeTransformer):
+    "This is quite tightly tied to the template definition above."
+    def __init__(self, ast_setup, ast_stmt):
+        self.ast_setup = ast_setup
+        self.ast_stmt = ast_stmt
+
+    def visit_FunctionDef(self, node):
+        "Fill in the setup statement"
+        self.generic_visit(node)
+        if node.name == "inner":
+            node.body[:1] = self.ast_setup.body
+
+        return node
+
+    def visit_For(self, node):
+        "Fill in the statement to be timed"
+        if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
+            node.body = self.ast_stmt.body
+        return node
 
 
 @magics_class
@@ -949,23 +968,7 @@ python-profiler package from non-free.""")
                                         '    _t1 = _timer()\n'
                                         '    return _t1 - _t0\n')
 
-        class TimeitTemplateFiller(ast.NodeTransformer):
-            "This is quite tightly tied to the template definition above."
-            def visit_FunctionDef(self, node):
-                "Fill in the setup statement"
-                self.generic_visit(node)
-                if node.name == "inner":
-                    node.body[:1] = ast_setup.body
-
-                return node
-
-            def visit_For(self, node):
-                "Fill in the statement to be timed"
-                if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
-                    node.body = ast_stmt.body
-                return node
-
-        timeit_ast = TimeitTemplateFiller().visit(timeit_ast_template)
+        timeit_ast = TimeitTemplateFiller(ast_setup, ast_stmt).visit(timeit_ast_template)
         timeit_ast = ast.fix_missing_locations(timeit_ast)
 
         # Track compilation time so it can be reported if too long
