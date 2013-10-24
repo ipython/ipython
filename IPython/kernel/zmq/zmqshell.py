@@ -44,11 +44,12 @@ from IPython.utils import openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
-from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
+from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes, Any
 from IPython.utils.warn import error
 from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
+from IPython.kernel.comm import CommManager
 from session import Session
 
 #-----------------------------------------------------------------------------
@@ -476,6 +477,8 @@ class ZMQInteractiveShell(InteractiveShell):
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
     data_pub_class = Type(ZMQDataPublisher)
+    kernel = Any()
+    parent_header = Any()
 
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved
@@ -585,6 +588,24 @@ class ZMQInteractiveShell(InteractiveShell):
         )
         self.payload_manager.write_payload(payload)
     
+    def set_parent(self, parent):
+        """Set the parent header for associating output with its triggering input"""
+        self.parent_header = parent
+        self.displayhook.set_parent(parent)
+        self.display_pub.set_parent(parent)
+        self.data_pub.set_parent(parent)
+        try:
+            sys.stdout.set_parent(parent)
+        except AttributeError:
+            pass
+        try:
+            sys.stderr.set_parent(parent)
+        except AttributeError:
+            pass
+    
+    def get_parent(self):
+        return self.parent_header
+    
     #-------------------------------------------------------------------------
     # Things related to magics
     #-------------------------------------------------------------------------
@@ -593,7 +614,10 @@ class ZMQInteractiveShell(InteractiveShell):
         super(ZMQInteractiveShell, self).init_magics()
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias('ed', 'edit')
-
+    
+    def init_comms(self):
+        self.comm_manager = CommManager(shell=self, parent=self)
+        self.configurables.append(self.comm_manager)
 
 
 InteractiveShellABC.register(ZMQInteractiveShell)

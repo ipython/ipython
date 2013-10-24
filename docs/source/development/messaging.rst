@@ -430,7 +430,9 @@ When status is 'ok', the following extra fields are present::
       # Each execution payload is a dict with string keys that may have been
       # produced by the code being executed.  It is retrieved by the kernel at
       # the end of the execution and sent back to the front end, which can take
-      # action on it as needed.  See main text for further details.
+      # action on it as needed.
+      # The only requirement of each payload dict is that it have a 'source' key,
+      # which is a string classifying the payload (e.g. 'pager').
       'payload' : list(dict),
 
       # Results for the user_variables and user_expressions.
@@ -1058,6 +1060,79 @@ where the first part is the zmq.IDENTITY of the heart's DEALER on the engine, an
 the rest is the message sent by the monitor.  No Python code ever has any
 access to the message between the monitor's send, and the monitor's recv.
 
+Custom Messages
+===============
+
+IPython 2.0 adds a messaging system for developers to add their own objects with Frontend
+and Kernel-side components, and allow them to communicate with each other.
+To do this, IPython adds a notion of a ``Comm``, which exists on both sides,
+and can communicate in either direction.
+
+These messages are fully symmetrical - both the Kernel and the Frontend can send each message,
+and no messages expect a reply.
+The Kernel listens for these messages on the Shell channel,
+and the Frontend listens for them on the IOPub channel.
+
+.. versionadded:: 2.0
+
+Opening a Comm
+--------------
+
+Opening a Comm produces a ``comm_open`` message, to be sent to the other side::
+
+    {
+      'comm_id' : 'u-u-i-d',
+      'target_name' : 'my_comm',
+      'data' : {}
+    }
+
+Every Comm has an ID and a target name.
+The code handling the message on the receiving side is responsible for maintaining a mapping
+of target_name keys to constructors.
+After a ``comm_open`` message has been sent,
+there should be a corresponding Comm instance on both sides.
+The ``data`` key is always a dict and can be any extra JSON information used in initialization of the comm.
+
+If the ``target_name`` key is not found on the receiving side,
+then it should immediately reply with a ``comm_close`` message to avoid an inconsistent state.
+
+Comm Messages
+-------------
+
+Comm messages are one-way communications to update comm state,
+used for synchronizing widget state, or simply requesting actions of a comm's counterpart.
+
+Essentially, each comm pair defines their own message specification implemented inside the ``data`` dict.
+
+There are no expected replies (of course, one side can send another ``comm_msg`` in reply).
+
+Message type: ``comm_msg``::
+
+    {
+      'comm_id' : 'u-u-i-d',
+      'data' : {}
+    }
+
+Tearing Down Comms
+------------------
+
+Since comms live on both sides, when a comm is destroyed the other side must be notified.
+This is done with a ``comm_close`` message.
+
+Message type: ``comm_close``::
+
+    {
+      'comm_id' : 'u-u-i-d',
+      'data' : {}
+    }
+
+Output Side Effects
+-------------------
+
+Since comm messages can execute arbitrary user code,
+handlers should set the parent header and publish status busy / idle,
+just like an execute request.
+
 
 ToDo
 ====
@@ -1069,10 +1144,5 @@ Missing things include:
 * Important: ensure that we have a good solution for magics like %edit.  It's
   likely that with the payload concept we can build a full solution, but not
   100% clear yet.
-
-* Finishing the details of the heartbeat protocol.
-
-* Signal handling: specify what kind of information kernel should broadcast (or
-  not) when it receives signals.
 
 .. include:: ../links.txt

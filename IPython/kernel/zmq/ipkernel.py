@@ -1,14 +1,5 @@
 #!/usr/bin/env python
-"""A simple interactive kernel that talks to a frontend over 0MQ.
-
-Things to do:
-
-* Implement `set_parent` logic. Right before doing exec, the Kernel should
-  call set_parent on all the PUB objects with the message about to be executed.
-* Implement random port and security key logic.
-* Implement control messages.
-* Implement event loop and poll version.
-"""
+"""An interactive kernel that talks to frontends over 0MQ."""
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -145,6 +136,7 @@ class Kernel(Configurable):
             profile_dir = self.profile_dir,
             user_module = self.user_module,
             user_ns     = self.user_ns,
+            kernel      = self,
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
@@ -168,10 +160,16 @@ class Kernel(Configurable):
         for msg_type in msg_types:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
         
+        comm_msg_types = [ 'comm_open', 'comm_msg', 'comm_close' ]
+        comm_manager = self.shell.comm_manager
+        for msg_type in comm_msg_types:
+            self.shell_handlers[msg_type] = getattr(comm_manager, msg_type)
+        
         control_msg_types = msg_types + [ 'clear_request', 'abort_request' ]
         self.control_handlers = {}
         for msg_type in control_msg_types:
             self.control_handlers[msg_type] = getattr(self, msg_type)
+
 
     def dispatch_control(self, msg):
         """dispatch control requests"""
@@ -367,17 +365,7 @@ class Kernel(Configurable):
             __builtin__.input = input
 
         # Set the parent message of the display hook and out streams.
-        shell.displayhook.set_parent(parent)
-        shell.display_pub.set_parent(parent)
-        shell.data_pub.set_parent(parent)
-        try:
-            sys.stdout.set_parent(parent)
-        except AttributeError:
-            pass
-        try:
-            sys.stderr.set_parent(parent)
-        except AttributeError:
-            pass
+        shell.set_parent(parent)
 
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
@@ -583,17 +571,7 @@ class Kernel(Configurable):
 
         # Set the parent message of the display hook and out streams.
         shell = self.shell
-        shell.displayhook.set_parent(parent)
-        shell.display_pub.set_parent(parent)
-        shell.data_pub.set_parent(parent)
-        try:
-            sys.stdout.set_parent(parent)
-        except AttributeError:
-            pass
-        try:
-            sys.stderr.set_parent(parent)
-        except AttributeError:
-            pass
+        shell.set_parent(parent)
 
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_socket.send(pyin_msg)

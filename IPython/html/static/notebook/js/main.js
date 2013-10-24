@@ -96,7 +96,7 @@ function (marked) {
         // only do this once
         $([IPython.events]).off('notebook_loaded.Notebook', first_load);
     };
-
+    
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     $([IPython.events]).trigger('app_initialized.NotebookApp');
     IPython.notebook.load_notebook(notebookName, notebookPath);
