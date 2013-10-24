@@ -1,4 +1,4 @@
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     var StringWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
 
@@ -6,8 +6,7 @@ require(["notebook/js/widget"], function(){
       
         // Called when view is rendered.
         render : function(){
-            this.$el = $('<div />')
-                .addClass(this.model.comm.comm_id);
+            this.$el = $('<div />');
             this.update(); // Set defaults.
         },
         
@@ -26,8 +25,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
                 .appendTo(this.$el);
@@ -50,7 +48,7 @@ require(["notebook/js/widget"], function(){
         handleChanging: function(e) { 
             this.user_invoked_update = true;
             this.model.set('value', e.target.value);
-            this.model.apply(this);
+            this.model.update_other_views(this);
             this.user_invoked_update = false;
         },
     });
@@ -62,8 +60,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
                 .appendTo(this.$el);
@@ -86,7 +83,7 @@ require(["notebook/js/widget"], function(){
         handleChanging: function(e) { 
             this.user_invoked_update = true;
             this.model.set('value', e.target.value);
-            this.model.apply(this);
+            this.model.update_other_views(this);
             this.user_invoked_update = false;
         },
     });

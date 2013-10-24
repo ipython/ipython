@@ -1,4 +1,4 @@
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     var SelectionWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
 
@@ -8,8 +8,7 @@ require(["notebook/js/widget"], function(){
         render : function(){
             
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$buttongroup = $('<div />')
                                 .addClass('widget_item')
                                 .addClass('btn-group')
@@ -44,7 +43,7 @@ require(["notebook/js/widget"], function(){
                     .html(items[index])
                     .on('click', function(e){
                         that.model.set('value', $(e.target).html(), this );
-                        that.model.apply(that);
+                        that.model.update_other_views(that);
                     })
                 
                 this.$droplist.append($('<li />').append(item_button))
@@ -72,8 +71,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.update();
         },
         
@@ -99,7 +97,7 @@ require(["notebook/js/widget"], function(){
                         .prependTo($label)
                         .on('click', function(e){
                             that.model.set('value', $(e.target).val(), this);
-                            that.model.apply();
+                            that.model.update_other_views();
                         });
                 }
                 
@@ -137,8 +135,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$buttongroup = $('<div />')
                 .addClass('btn-group')
                 .attr('data-toggle', 'buttons-radio')
@@ -164,7 +161,7 @@ require(["notebook/js/widget"], function(){
                         .appendTo(this.$buttongroup)
                         .on('click', function(e){
                             that.model.set('value', $(e.target).html(), this);
-                            that.model.apply();
+                            that.model.update_other_views();
                         });
                 }
                 

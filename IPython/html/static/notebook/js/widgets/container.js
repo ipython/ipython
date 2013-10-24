@@ -1,4 +1,4 @@
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     var ContainerModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
 
@@ -6,8 +6,7 @@ require(["notebook/js/widget"], function(){
         
         render : function(){
             this.$el = $('<div />')
-                .addClass('widget_container')
-                .addClass(this.model.comm.comm_id);
+                .addClass('widget_container');
         },
         
         update : function(){
@@ -23,6 +22,10 @@ require(["notebook/js/widget"], function(){
                     this.$el.removeClass(flex_properties[index]);
                 }    
             }
+        },
+
+        display_child : function($element) {
+            this.$el.append($element);
         },
     });
 

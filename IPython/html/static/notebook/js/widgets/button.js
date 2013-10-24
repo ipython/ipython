@@ -1,5 +1,5 @@
 
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     
     var ButtonWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
@@ -13,7 +13,7 @@ require(["notebook/js/widget"], function(){
                 .addClass('btn')
                 .click(function() {
                     that.model.set('clicks', that.model.get('clicks') + 1);
-                    that.model.apply(that);
+                    that.model.update_other_views(that);
                 });
 
             this.update(); // Set defaults.

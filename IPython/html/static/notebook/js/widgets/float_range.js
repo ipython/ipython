@@ -1,4 +1,4 @@
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     var FloatRangeWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('FloatRangeWidgetModel', FloatRangeWidgetModel);
 
@@ -7,8 +7,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$slider = $('<div />')
                 .slider({})
                 .addClass('slider');
@@ -41,7 +40,7 @@ require(["notebook/js/widget"], function(){
         events: { "slide" : "handleSliderChange" }, 
         handleSliderChange: function(e, ui) { 
             this.model.set('value', ui.value); 
-            this.model.apply(this);
+            this.model.update_other_views(this);
         },
     });
 
@@ -53,8 +52,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
                 .appendTo(this.$el);
@@ -106,7 +104,7 @@ require(["notebook/js/widget"], function(){
                 if (numericalValue != this.model.get('value')) {
                     this.changing = true;
                     this.model.set('value', numericalValue);
-                    this.model.apply(this);
+                    this.model.update_other_views(this);
                     this.changing = false;
                 }
             }

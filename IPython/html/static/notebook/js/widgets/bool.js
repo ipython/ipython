@@ -1,5 +1,5 @@
 
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     
     var BoolWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
@@ -9,8 +9,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
 
             var $label = $('<label />')
                 .addClass('checkbox')
@@ -39,7 +38,7 @@ require(["notebook/js/widget"], function(){
         handleChanged: function(e) { 
             this.user_invoked_update = true;
             this.model.set('value', $(e.target).prop('checked'));
-            this.model.apply(this);
+            this.model.update_other_views(this);
             this.user_invoked_update = false;
         },
     });
@@ -51,8 +50,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .html('')
-                .addClass(this.model.comm.comm_id);
+                .html('');
 
             this.$button = $('<button />')
                 .addClass('btn')
@@ -82,7 +80,7 @@ require(["notebook/js/widget"], function(){
         handleClick: function(e) { 
             this.user_invoked_update = true;
             this.model.set('value', ! $(e.target).hasClass('active'));
-            this.model.apply(this);
+            this.model.update_other_views(this);
             this.user_invoked_update = false;
         },
     });

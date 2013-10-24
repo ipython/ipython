@@ -18,7 +18,7 @@ def init_widget_js():
         name = filename.rsplit('.', 1)[0]
         if not (name == 'widget' or name == '__init__') and name.startswith('widget_'):
             # Remove 'widget_' from the start of the name before compiling the path.
-            js_path = 'static/notebook/js/widgets/%s.js' % name[7:]
+            js_path = '../static/notebook/js/widgets/%s.js' % name[7:]
             display(Javascript(data='$.getScript("%s");' % js_path))  
 
 
@@ -141,13 +141,13 @@ class Widget(LoggingConfigurable):
             
         # Show view.
         if self.parent is None:
-            self.comm.send({"method": "show", "view_name": view_name})
+            self.comm.send({"method": "display", "view_name": view_name})
         else:
-            self.comm.send({"method": "show", 
+            self.comm.send({"method": "display", 
                             "view_name": view_name,
                             "parent": self.parent.comm.comm_id})
         
-        # Now show children if any.
+        # Now display children if any.
         for child in self.children:
             child._repr_widget_()
         return None

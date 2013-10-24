@@ -1,4 +1,4 @@
-require(["notebook/js/widget"], function(){
+require(["../static/notebook/js/widget"], function(){
     var IntRangeWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
 
@@ -41,7 +41,7 @@ require(["notebook/js/widget"], function(){
         events: { "slide" : "handleSliderChange" }, 
         handleSliderChange: function(e, ui) { 
             this.model.set('value', ~~ui.value); // Double bit-wise not to truncate decimel
-            this.model.apply(this);
+            this.model.update_other_views(this);
         },
     });
 
@@ -105,7 +105,7 @@ require(["notebook/js/widget"], function(){
                 if (numericalValue != this.model.get('value')) {
                     this.changing = true;
                     this.model.set('value', numericalValue);
-                    this.model.apply(this);
+                    this.model.update_other_views(this);
                     this.changing = false;
                 }
             }
