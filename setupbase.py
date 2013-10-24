@@ -357,6 +357,8 @@ class build_scripts_rename(build_scripts):
         new_outfiles = [p + self._suffix for p in outfiles]
         updated_files = [p + self._suffix for p in updated_files]
         for old, new in zip(outfiles, new_outfiles):
+            if os.path.exists(new):
+                os.unlink(new) 
             self.move_file(old, new)
         return new_outfiles, updated_files
             
