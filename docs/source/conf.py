@@ -46,6 +46,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.intersphinx',
     'IPython.sphinxext.ipython_console_highlighting',
     'IPython.sphinxext.ipython_directive',
     'numpydoc',  # to preprocess docstrings
@@ -178,6 +179,7 @@ html_additional_pages = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ipythondoc'
 
+intersphinx_mapping = {'http://docs.python.org/2/': None}
 
 # Options for LaTeX output
 # ------------------------
