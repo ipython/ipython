@@ -56,9 +56,12 @@ define(["../../components/underscore/underscore-min.js",
                 this.save(this.changedAttributes(), {patch: true});
 
                 for (var cell_index in this.views) {
-                    var view = this.views[cell_index];
-                    if (view !== caller) {
-                        view.update();    
+                    var views = this.views[cell_index];
+                    for (var view_index in views) {
+                        var view = views[view_index];
+                        if (view !== caller) {
+                            view.update();    
+                        }
                     }
                 }
             },
@@ -177,8 +180,11 @@ define(["../../components/underscore/underscore-min.js",
             // Handle when a widget is closed.
             handle_comm_closed: function (msg) {
                 for (var cell_index in this.views) {
-                    var view = this.views[cell_index];
-                    view.remove();
+                    var views = this.views[cell_index];
+                    for (var view_index in views) {
+                        var view = views[view_index];
+                        view.remove();
+                    }
                 }
             },
 
@@ -187,17 +193,23 @@ define(["../../components/underscore/underscore-min.js",
             display_view: function (view_name, parent_comm_id, cell_index) {
                 var view = new this.widget_view_types[view_name]({model: this});
                 view.render();
-                this.views[cell_index] = view;
+                if (this.views[cell_index]==undefined) {
+                    this.views[cell_index] = []
+                }
+                this.views[cell_index].push(view);
                 view.cell_index = cell_index;
 
                 // Handle when the view element is remove from the page.
                 var that = this;
                 view.$el.on("remove", function(){ 
-                    var index = that.views.indexOf(view);
+                    var index = that.views[cell_index].indexOf(view);
                     if (index > -1) {
-                        that.views.splice(index, 1);
+                        that.views[cell_index].splice(index, 1);
                     }
                     view.remove(); // Clean-up view 
+                    if (that.views[cell_index].length()==0) {
+                        delete that.views[cell_index];
+                    }
 
                     // Close the comm if there are no views left.
                     if (that.views.length()==0) {
