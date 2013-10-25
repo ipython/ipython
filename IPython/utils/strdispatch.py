@@ -17,7 +17,7 @@ class StrDispatch(object):
     >>> dis.add_s('hei',34, priority = 4)
     >>> dis.add_s('hei',123, priority = 2)
     >>> dis.add_re('h.i', 686)
-    >>> print list(dis.flat_matches('hei'))
+    >>> print(list(dis.flat_matches('hei')))
     [123, 34, 686]
     """
 
