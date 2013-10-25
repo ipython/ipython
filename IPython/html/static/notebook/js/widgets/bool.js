@@ -1,5 +1,5 @@
 
-require(["../static/notebook/js/widget"], function(){
+require(["notebook/js/widget"], function(){
     
     var BoolWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);

@@ -20,8 +20,8 @@
 // Use require.js 'define' method so that require.js is intelligent enough to
 // syncronously load everything within this file when it is being 'required' 
 // elsewhere.
-define(["../../components/underscore/underscore-min.js",
-         "../../components/backbone/backbone-min.js",
+define(["components/underscore/underscore-min",
+         "components/backbone/backbone-min",
         ], function(){
 
     // Only run once on a notebook.
@@ -188,6 +188,45 @@ define(["../../components/underscore/underscore-min.js",
 
             // Create view that represents the model.
             display_view: function (view_name, parent_comm_id, cell_index) {
+                var new_views = [];
+
+                var displayed = false;
+                if (parent_comm_id != undefined) {
+                    var parent_comm = this.comm_manager.comms[parent_comm_id];
+                    var parent_model = parent_comm.model;
+                    var parent_views = parent_model.views[cell_index];
+                    for (var parent_view_index in parent_views) {
+                        var parent_view = parent_views[parent_view_index];
+                        if (parent_view.display_child != undefined) {
+                            var view = this._create_view(view_name, cell_index);
+                            new_views.push(view);
+                            parent_view.display_child(view);
+                            displayed = true;
+                        }
+                    }
+                }
+
+                if (!displayed) {
+                    // No parent view is defined or exists.  Add the view's 
+                    // element to cell's widget div.
+                    var view = this._create_view(view_name, cell_index);
+                    new_views.push(view);
+                    var cell = IPython.notebook.get_cell(cell_index);
+                    cell.element.find('.widget_area').find('.widget_subarea')
+                        .append(view.$el)
+                        .parent().show(); // Show the widget_area (parent of widget_subarea)
+                
+                }
+
+                for (var view_index in new_views) {
+                    var view = new_views[view_index];
+                    view.update();
+                }
+            },
+
+
+            // Create a view
+            _create_view: function (view_name, cell_index) {
                 var view = new this.widget_view_types[view_name]({model: this});
                 view.render();
                 if (this.views[cell_index]==undefined) {
@@ -213,30 +252,7 @@ define(["../../components/underscore/underscore-min.js",
                         that.comm.close();     
                     }
                 });
-
-                var displayed = false;
-                if (parent_comm_id != undefined) {
-                    var parent_comm = this.comm_manager.comms[parent_comm_id];
-                    var parent_model = parent_comm.model;
-                    var parent_view = parent_model.views[cell_index];
-                    if (parent_view.display_child != undefined) {
-                        parent_view.display_child(view);
-                        displayed = true;
-                    }
-                }
-
-                if (!displayed) {
-                    // No parent view is defined or exists.  Add the view's 
-                    // element to cell's widget div.
-                    var cell = IPython.notebook.get_cell(cell_index);
-                    cell.element.find('.widget_area').find('.widget_subarea')
-                        .append(view.$el)
-                        .parent().show(); // Show the widget_area (parent of widget_subarea)
-                
-                }
-
-                // Update the view based on the model contents.
-                view.update();
+                return view;
             },
 
 
@@ -262,7 +278,7 @@ define(["../../components/underscore/underscore-min.js",
             // Get the cell index corresponding to the msg_id.
             _get_cell_index: function (msg_id) {
                 var cells = IPython.notebook.get_cells();
-                for (cell_index in cells) {
+                for (var cell_index in cells) {
                     if (cells[cell_index].last_msg_id == msg_id) {
                         return cell_index;
                     }

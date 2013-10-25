@@ -1,4 +1,4 @@
-require(["../static/notebook/js/widget"], function(){
+require(["notebook/js/widget"], function(){
     var SelectionWidgetModel = IPython.WidgetModel.extend({});
     IPython.notebook.widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
 
