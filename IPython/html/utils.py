@@ -13,7 +13,10 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
-from urllib import quote, unquote
+try:
+    from urllib.parse import quote, unquote
+except ImportError:
+    from urllib import quote, unquote
 
 from IPython.utils import py3compat
 
