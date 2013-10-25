@@ -15,12 +15,14 @@ Module with tests for Highlight
 #-----------------------------------------------------------------------------
 
 from ...tests.base import TestsBase
-from ..highlight import highlight2html, highlight2latex
+from ..highlight import Highlight2Html, highlight2latex
 
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
+
+highlight2html = Highlight2Html()
 
 class TestHighlight(TestsBase):
     """Contains test functions for highlight.py"""
