@@ -1,3 +1,17 @@
+"""Base Widget class.  Allows user to create widgets in the backend that render
+in the IPython notebook frontend.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 from copy import copy
 from glob import glob
 import uuid
@@ -11,6 +25,9 @@ from IPython.utils.traitlets import Unicode, Dict, List
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
+#-----------------------------------------------------------------------------
+# Shared
+#-----------------------------------------------------------------------------
 def init_widget_js():
     path = os.path.split(os.path.abspath( __file__ ))[0]
     for filepath in glob(os.path.join(path, "*.py")):
@@ -22,14 +39,19 @@ def init_widget_js():
             display(Javascript(data='$.getScript("%s");' % js_path))  
 
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 class Widget(LoggingConfigurable):
 
-    ### Public declarations
-    target_name = Unicode('widget')
-    default_view_name = Unicode()
+    # Public declarations
+    target_name = Unicode('widget', help="""Name of the backbone model 
+        registered in the frontend to create and sync this widget with.""")
+    default_view_name = Unicode(help="""Default view registered in the frontend
+        to use to represent the widget.""")
     
     
-    ### Private/protected declarations
+    # Private/protected declarations
     _keys = []
     _property_lock = False
     _parent = None
@@ -37,10 +59,22 @@ class Widget(LoggingConfigurable):
     _css = Dict()
     
     
-    ### Public constructor
     def __init__(self, parent=None, **kwargs):
+        """Public constructor
+
+        Parameters
+        ----------
+        parent : Widget instance (optional)
+            Widget that this widget instance is child of.  When the widget is
+            displayed in the frontend, it's corresponding view will be made
+            child of the parent's view if the parent's view exists already.  If
+            the parent's view is displayed, it will automatically display this 
+            widget's default view as it's child.  The default view can be set
+            via the default_view_name property.
+        """
         super(Widget, self).__init__(**kwargs)
         
+        # Parent/child association
         self._children = []
         if parent is not None:
             parent._children.append(self)
@@ -52,14 +86,19 @@ class Widget(LoggingConfigurable):
         
         
     def __del__(self):
+        """Object disposal"""
         self.close()
     
+
     def close(self):
+        """Close method.  Closes the widget which closes the underlying comm.
+        When the comm is closed, all of the widget views are automatically 
+        removed from the frontend."""
         self.comm.close()
         del self.comm
     
     
-    ### Properties
+    # Properties
     def _get_parent(self):
         return self._parent
     parent = property(_get_parent)
@@ -76,26 +115,10 @@ class Widget(LoggingConfigurable):
         return keys
     keys = property(_get_keys)
     
-    def _get_css(self, key, selector=""):
-        if selector in self._css and key in self._css[selector]:
-            return self._css[selector][key]
-        else:
-            return None
-    def _set_css(self, value, key, selector=""):
-        if selector not in self._css:
-            self._css[selector] = {}
-            
-        # Only update the property if it has changed.
-        if not (key in self._css[selector] and value in self._css[selector][key]):
-            self._css[selector][key] = value
-            self.send_state() # Send new state to client.
-            
-    css = property(_get_css, _set_css)
     
-    
-    ### Event handlers
+    # Event handlers
     def _handle_msg(self, msg):
-        
+        """Called when a msg is recieved from the frontend"""
         # Handle backbone sync methods CREATE, PATCH, and UPDATE
         sync_method = msg['content']['data']['sync_method']
         sync_data = msg['content']['data']['sync_data']
@@ -103,6 +126,7 @@ class Widget(LoggingConfigurable):
     
     
     def _handle_recieve_state(self, sync_data):
+        """Called when a state is recieved from the frontend."""
         self._property_lock = True
         try:
             
@@ -115,6 +139,7 @@ class Widget(LoggingConfigurable):
     
     
     def _handle_property_changed(self, name, old, new):
+        """Called when a proeprty has been changed."""
         if not self._property_lock and self.comm is not None:
             # TODO: Validate properties.
             # Send new state to frontend
@@ -122,11 +147,84 @@ class Widget(LoggingConfigurable):
 
 
     def _handle_close(self):
+        """Called when the comm is closed by the frontend."""
         self.comm = None
     
     
-    ### Public methods
+    # Public methods
+    def send_state(self, key=None):
+        """Sends the widget state, or a piece of it, to the frontend.
+
+        Parameters
+        ----------
+        key : unicode (optional)
+            A single property's name to sync with the frontend.
+        """
+        state = {}
+
+        # If a key is provided, just send the state of that key.
+        keys = []
+        if key is None:
+            keys.extend(self.keys)
+        else:
+            keys.append(key)
+        for key in self.keys:
+            try:
+                state[key] = getattr(self, key)
+            except Exception as e:
+                pass # Eat errors, nom nom nom
+        self.comm.send({"method": "update",
+                        "state": state})
+
+
+    def get_css(self, key, selector=""):
+        """Get a CSS property of the widget views (shared among all of the 
+        views)
+
+        Parameters
+        ----------
+        key: unicode
+            CSS key
+        selector: unicode (optional)
+            JQuery selector used when the CSS key/value was set.
+        """
+        if selector in self._css and key in self._css[selector]:
+            return self._css[selector][key]
+        else:
+            return None
+
+
+    def set_css(self, key, value, selector=""):
+        """Set a CSS property of the widget views (shared among all of the 
+        views)
+
+        Parameters
+        ----------
+        key: unicode
+            CSS key
+        value
+            CSS value
+        selector: unicode (optional)
+            JQuery selector to use to apply the CSS key/value.
+        """
+        if selector not in self._css:
+            self._css[selector] = {}
+            
+        # Only update the property if it has changed.
+        if not (key in self._css[selector] and value in self._css[selector][key]):
+            self._css[selector][key] = value
+            self.send_state() # Send new state to client.
+
+
+    # Support methods
     def _repr_widget_(self, view_name=None):
+        """Function that is called when `IPython.display.display` is called on
+        the widget.
+
+        Parameters
+        ----------
+        view_name: unicode (optional)
+            View to display in the frontend.  Overrides default_view_name."""
         if not view_name:
             view_name = self.default_view_name
         
@@ -151,21 +249,3 @@ class Widget(LoggingConfigurable):
         for child in self.children:
             child._repr_widget_()
         return None
-
-
-    def send_state(self, key=None):
-        state = {}
-
-        # If a key is provided, just send the state of that key.
-        keys = []
-        if key is None:
-            keys.extend(self.keys)
-        else:
-            keys.append(key)
-        for key in self.keys:
-            try:
-                state[key] = getattr(self, key)
-            except Exception as e:
-                pass # Eat errors, nom nom nom
-        self.comm.send({"method": "update",
-                        "state": state})
