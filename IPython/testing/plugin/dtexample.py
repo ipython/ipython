@@ -3,7 +3,7 @@
 This file just contains doctests both using plain python and IPython prompts.
 All tests should be loaded by nose.
 """
-from IPython.utils.py3compat import doctest_refactor_print
+from __future__ import print_function
 
 def pyfunc():
     """Some pure python tests...
@@ -24,7 +24,6 @@ def pyfunc():
     """
     return 'pyfunc'
 
-@doctest_refactor_print
 def ipfunc():
     """Some ipython tests...
 
@@ -128,7 +127,6 @@ def random_all():
     """
     pass
 
-@doctest_refactor_print
 def iprand():
     """Some ipython tests with random output.
 
@@ -143,7 +141,6 @@ def iprand():
     """
     return 'iprand'
 
-@doctest_refactor_print
 def iprand_all():
     """Some ipython tests with fully random output.
 
