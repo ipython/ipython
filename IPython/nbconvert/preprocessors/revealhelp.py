@@ -12,11 +12,8 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
-import urllib2
-
 from .base import Preprocessor
-from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes and functions

@@ -48,7 +48,7 @@ class ConvertFiguresPreprocessor(Preprocessor):
 
         # Loop through all of the datatypes of the outputs in the cell.
         for index, cell_out in enumerate(cell.get('outputs', [])):
-            for data_type, data in cell_out.items():
+            for data_type, data in list(cell_out.items()):
                 # this must run *before* extract outputs,
                 # so figure_name and filename do not exist
                 self._convert_figure(cell_out, resources, data_type, data)

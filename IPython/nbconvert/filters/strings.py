@@ -19,7 +19,10 @@ templates.
 import os
 import re
 import textwrap
-from urllib2 import quote
+try:
+    from urllib.parse import quote  # Py 3
+except ImportError:
+    from urllib2 import quote  # Py 2
 from xml.etree import ElementTree
 
 from IPython.core.interactiveshell import InteractiveShell
