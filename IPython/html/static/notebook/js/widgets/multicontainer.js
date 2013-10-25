@@ -11,19 +11,15 @@ require(["notebook/js/widget"], function(){
         },
         
         update: function() {
-            // TODO: Set tab titles
+            // Set tab titles
+            var titles = this.model.get('_titles');
+            for (var page_index in titles) {
+                var accordian_toggle = this.containers[page_index]
+                    .find('.accordion-heading')
+                    .find('.accordion-toggle');
+                accordian_toggle.html(titles[page_index]);
+            }
 
-            // // Apply flexible box model properties by adding and removing
-            // // corrosponding CSS classes.
-            // // Defined in IPython/html/static/base/less/flexbox.less
-            // var flex_properties = ['vbox', 'hbox', 'center', 'end', 'center'];
-            // for (var index in flex_properties) {
-            //     if (this.model.get('_' + flex_properties[index])) {
-            //         this.$el.addClass(flex_properties[index]);
-            //     } else {
-            //         this.$el.removeClass(flex_properties[index]);
-            //     }    
-            // }
             return IPython.WidgetView.prototype.update.call(this);
         },
 
@@ -45,7 +41,7 @@ require(["notebook/js/widget"], function(){
                 .html('Page ' + index)
                 .appendTo(accordion_heading);
             var accordion_body = $('<div />', {id: uuid})
-                .addClass('accordion-body collapse in')
+                .addClass('accordion-body collapse')
                 .appendTo(accordion_group);
             var accordion_inner = $('<div />')
                 .addClass('accordion-inner')
