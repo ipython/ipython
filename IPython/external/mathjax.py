@@ -157,7 +157,7 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
     try:
         anything_to_do = prepare_dest(dest, replace)
     except OSError as e:
-        print(("ERROR %s, require write access to %s" % (e, dest)))
+        print("ERROR %s, require write access to %s" % (e, dest))
         return 1
     else:
         if not anything_to_do:

@@ -93,7 +93,7 @@ class ServePostProcessor(PostProcessorBase):
         http_server = httpserver.HTTPServer(app)
         http_server.listen(self.port, address=self.ip)
         url = "http://%s:%i/%s" % (self.ip, self.port, filename)
-        print(("Serving your slides at %s" % url))
+        print("Serving your slides at %s" % url)
         print("Use Control-C to stop this server")
         if self.open_in_browser:
             webbrowser.open(url, new=2)

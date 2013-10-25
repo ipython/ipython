@@ -159,12 +159,12 @@ which already exists. But you must first start the logging process with
             print('Logging has not been activated.')
         else:
             state = self.log_active and 'active' or 'temporarily suspended'
-            print('Filename       :',self.logfname)
-            print('Mode           :',self.logmode)
-            print('Output logging :',self.log_output)
-            print('Raw input log  :',self.log_raw_input)
-            print('Timestamping   :',self.timestamp)
-            print('State          :',state)
+            print('Filename       :', self.logfname)
+            print('Mode           :', self.logmode)
+            print('Output logging :', self.log_output)
+            print('Raw input log  :', self.log_raw_input)
+            print('Timestamping   :', self.timestamp)
+            print('State          :', state)
 
     def log(self, line_mod, line_ori):
         """Write the sources to a log.

@@ -398,7 +398,7 @@ class Demo(object):
 
         print(self.marquee('<%s> block # %s (%s remaining)' %
                            (self.title,index,self.nblocks-index-1)), file=io.stdout)
-        print((self.src_blocks_colored[index]), file=io.stdout)
+        print(self.src_blocks_colored[index], file=io.stdout)
         sys.stdout.flush()
 
     def show_all(self):

@@ -75,7 +75,7 @@ def getfigs(*fig_nums):
         for num in fig_nums:
             f = Gcf.figs.get(num)
             if f is None:
-                print(('Warning: figure %s not available.' % num))
+                print('Warning: figure %s not available.' % num)
             else:
                 figs.append(f.canvas.figure)
         return figs

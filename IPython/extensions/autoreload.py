@@ -475,7 +475,6 @@ class AutoreloadMagics(Magics):
         if not modname:
             to_reload = sorted(self._reloader.modules.keys())
             to_skip = sorted(self._reloader.skip_modules.keys())
-            to_skip.sort()
             if stream is None:
                 stream = sys.stdout
             if self._reloader.check_all:

@@ -117,7 +117,7 @@ class OSMagics(Magics):
         try:
             alias,cmd = par.split(None, 1)
         except TypeError:
-            print((oinspect.getdoc(self.alias)))
+            print(oinspect.getdoc(self.alias))
             return
         
         try:
