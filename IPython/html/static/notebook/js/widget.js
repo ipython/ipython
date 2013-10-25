@@ -141,10 +141,7 @@ define(["../../components/underscore/underscore-min.js",
                 var method = msg.content.data.method;
                 switch (method){
                     case 'display':
-
-////////////////////////// TODO: Get cell index via currently executing cell.
-                        var cell_index = IPython.notebook.get_selected_index()-1;
-
+                        var cell_index = this._get_cell_index(msg.parent_header.msg_id);
                         this.display_view(msg.content.data.view_name, 
                             msg.content.data.parent,
                             cell_index);
@@ -262,15 +259,27 @@ define(["../../components/underscore/underscore-min.js",
             },
 
 
+            // Get the cell index corresponding to the msg_id.
+            _get_cell_index: function (msg_id) {
+                var cells = IPython.notebook.get_cells();
+                for (cell_index in cells) {
+                    if (cells[cell_index].last_msg_id == msg_id) {
+                        return cell_index;
+                    }
+                }
+                return -1;
+            },
+
+
             // Get the cell output area corresponding to the view.
             _get_view_output_area: function (view) {
                 return this._get_cell_output_area(view.cell_index);
             },
 
 
-            // Get the cell output area corresponding to the cell id.
-            _get_cell_output_area: function (cell_id) {
-                var cell = IPython.notebook.get_cell(cell_id)
+            // Get the cell output area corresponding to the cell index.
+            _get_cell_output_area: function (cell_index) {
+                var cell = IPython.notebook.get_cell(cell_index)
                 return cell.output_area;
             },
         });
