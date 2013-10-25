@@ -221,6 +221,9 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
         
         return web.StaticFileHandler.get(self, path)
     
+    def compute_etag(self):
+        return None
+    
     def validate_absolute_path(self, root, absolute_path):
         """Validate and return the absolute path.
         
@@ -311,6 +314,9 @@ class FileFindHandler(web.StaticFileHandler):
             os.path.abspath(os.path.expanduser(p)) + os.sep for p in path
         )
         self.default_filename = default_filename
+    
+    def compute_etag(self):
+        return None
     
     @classmethod
     def get_absolute_path(cls, roots, path):
