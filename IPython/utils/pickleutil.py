@@ -216,7 +216,7 @@ def _import_mapping(mapping, original=None):
     """
     log = _logger()
     log.debug("Importing canning map")
-    for key,value in mapping.items():
+    for key,value in list(mapping.items()):
         if isinstance(key, string_types):
             try:
                 cls = import_item(key)
