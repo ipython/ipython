@@ -160,21 +160,22 @@ class Widget(LoggingConfigurable):
         key : unicode (optional)
             A single property's name to sync with the frontend.
         """
-        state = {}
+        if self.comm is not None:
+            state = {}
 
-        # If a key is provided, just send the state of that key.
-        keys = []
-        if key is None:
-            keys.extend(self.keys)
-        else:
-            keys.append(key)
-        for key in self.keys:
-            try:
-                state[key] = getattr(self, key)
-            except Exception as e:
-                pass # Eat errors, nom nom nom
-        self.comm.send({"method": "update",
-                        "state": state})
+            # If a key is provided, just send the state of that key.
+            keys = []
+            if key is None:
+                keys.extend(self.keys)
+            else:
+                keys.append(key)
+            for key in self.keys:
+                try:
+                    state[key] = getattr(self, key)
+                except Exception as e:
+                    pass # Eat errors, nom nom nom
+            self.comm.send({"method": "update",
+                            "state": state})
 
 
     def get_css(self, key, selector=""):

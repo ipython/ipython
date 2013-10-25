@@ -14,10 +14,14 @@ require(["notebook/js/widget"], function(){
             // Set tab titles
             var titles = this.model.get('_titles');
             for (var page_index in titles) {
-                var accordian_toggle = this.containers[page_index]
-                    .find('.accordion-heading')
-                    .find('.accordion-toggle');
-                accordian_toggle.html(titles[page_index]);
+
+                var accordian = this.containers[page_index]
+                if (accordian != undefined) {
+                    accordian
+                        .find('.accordion-heading')
+                        .find('.accordion-toggle')
+                        .html(titles[page_index]);
+                }
             }
 
             return IPython.WidgetView.prototype.update.call(this);
@@ -49,6 +53,7 @@ require(["notebook/js/widget"], function(){
             this.containers.push(accordion_group);
 
             accordion_inner.append(view.$el);
+            this.update();
         },
     });
 
