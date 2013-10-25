@@ -68,6 +68,7 @@ from setupbase import (
     require_submodules,
     UpdateSubmodules,
     CompileCSS,
+    JavascriptVersion,
     install_symlinked,
     install_lib_symlink,
     install_scripts_for_symlink,
@@ -236,6 +237,7 @@ setup_args['cmdclass'] = {
     'symlink': install_symlinked,
     'install_lib_symlink': install_lib_symlink,
     'install_scripts_sym': install_scripts_for_symlink,
+    'jsversion' : JavascriptVersion,
 }
 
 #---------------------------------------------------------------------------

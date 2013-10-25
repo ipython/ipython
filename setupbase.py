@@ -564,3 +564,25 @@ class CompileCSS(Command):
     
     def run(self):
         call("fab css", shell=True, cwd=pjoin(repo_root, "IPython", "html"))
+
+class JavascriptVersion(Command):
+    """write the javascript version to notebook javascript"""
+    description = "Write IPython version to javascript"
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+    
+    def run(self):
+        nsfile = pjoin(repo_root, "IPython", "html", "static", "base", "js", "namespace.js")
+        with open(nsfile) as f:
+            lines = f.readlines()
+        with open(nsfile, 'w') as f:
+            for line in lines:
+                if line.startswith("IPython.version"):
+                    line = 'IPython.version = "{0}";\n'.format(version)
+                f.write(line)
+            
