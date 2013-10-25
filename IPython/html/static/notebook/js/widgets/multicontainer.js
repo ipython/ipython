@@ -1,0 +1,60 @@
+require(["notebook/js/widget"], function(){
+    var MulticontainerModel = IPython.WidgetModel.extend({});
+    IPython.notebook.widget_manager.register_widget_model('MulticontainerWidgetModel', MulticontainerModel);
+
+    var AccordionView = IPython.WidgetView.extend({
+        
+        render: function(){
+            this.$el = $('<div />', {id: IPython.utils.uuid()})
+                .addClass('accordion');
+            this.containers = [];
+        },
+        
+        update: function() {
+            // TODO: Set tab titles
+
+            // // Apply flexible box model properties by adding and removing
+            // // corrosponding CSS classes.
+            // // Defined in IPython/html/static/base/less/flexbox.less
+            // var flex_properties = ['vbox', 'hbox', 'center', 'end', 'center'];
+            // for (var index in flex_properties) {
+            //     if (this.model.get('_' + flex_properties[index])) {
+            //         this.$el.addClass(flex_properties[index]);
+            //     } else {
+            //         this.$el.removeClass(flex_properties[index]);
+            //     }    
+            // }
+            return IPython.WidgetView.prototype.update.call(this);
+        },
+
+        display_child: function(view) {
+
+            var index = this.containers.length;
+            var uuid = IPython.utils.uuid();
+            var accordion_group = $('<div />')
+                .addClass('accordion-group')
+                .appendTo(this.$el);
+            var accordion_heading = $('<div />')
+                .addClass('accordion-heading')
+                .appendTo(accordion_group);
+            var accordion_toggle = $('<a />')
+                .addClass('accordion-toggle')
+                .attr('data-toggle', 'collapse')
+                .attr('data-parent', '#' + this.$el.attr('id'))
+                .attr('href', '#' + uuid)
+                .html('Page ' + index)
+                .appendTo(accordion_heading);
+            var accordion_body = $('<div />', {id: uuid})
+                .addClass('accordion-body collapse in')
+                .appendTo(accordion_group);
+            var accordion_inner = $('<div />')
+                .addClass('accordion-inner')
+                .appendTo(accordion_body);
+            this.containers.push(accordion_group);
+
+            accordion_inner.append(view.$el);
+        },
+    });
+
+    IPython.notebook.widget_manager.register_widget_view('AccordionView', AccordionView);
+});
