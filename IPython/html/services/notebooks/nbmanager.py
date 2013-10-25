@@ -117,7 +117,7 @@ class NotebookManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
     def create_notebook_model(self, model=None, path=''):
-        """Create a new untitled notebook and return its model with no content."""
+        """Create a new notebook and return its model with no content."""
         path = path.strip('/')
         if model is None:
             model = {}

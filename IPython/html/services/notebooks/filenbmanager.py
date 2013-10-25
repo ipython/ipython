@@ -222,6 +222,10 @@ class FileNotebookManager(NotebookManager):
 
         if 'content' not in model:
             raise web.HTTPError(400, u'No notebook JSON data provided')
+        
+        # One checkpoint should always exist
+        if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):
+            self.create_checkpoint(name, path)
 
         new_path = model.get('path', path).strip('/')
         new_name = model.get('name', name)
@@ -326,8 +330,9 @@ class FileNotebookManager(NotebookManager):
     def get_checkpoint_path(self, checkpoint_id, name, path=''):
         """find the path to a checkpoint"""
         path = path.strip('/')
+        basename, _ = os.path.splitext(name)
         filename = u"{name}-{checkpoint_id}{ext}".format(
-            name=name,
+            name=basename,
             checkpoint_id=checkpoint_id,
             ext=self.filename_ext,
         )
