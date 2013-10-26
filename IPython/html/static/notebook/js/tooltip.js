@@ -221,11 +221,9 @@ var IPython = (function (IPython) {
     };
 
     Tooltip.prototype._request_tooltip = function (cell, line) {
-        var callbacks = { shell : {
-            reply : $.proxy(this._show, this)
-        }};
+        var callbacks = $.proxy(this._show, this);
         var oir_token = this.extract_oir_token(line);
-        var msg_id = cell.kernel.object_info_request(oir_token, callbacks);
+        var msg_id = cell.kernel.object_info(oir_token, callbacks);
     };
 
     // make an imediate completion request
