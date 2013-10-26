@@ -269,6 +269,11 @@ var IPython = (function (IPython) {
         return;
     };
 
+    Kernel.prototype.object_info_request = function(objname, callback){
+        console.log('Warning object_info_request is deprecated, use object_info')
+        return this.object_info(objname, callback.shell.reply)
+    }
+
     /**
      * Execute given code into kernel, and pass result to callback.
      *
