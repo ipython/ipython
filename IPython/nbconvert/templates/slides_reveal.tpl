@@ -62,6 +62,9 @@ html {
 .reveal.fade {
   opacity: 1;
 }
+.reveal .progress {
+  position: static;
+}
 div.input_area {
   padding: 0.06em;
 }
