@@ -34,7 +34,7 @@ var IPython = (function (IPython) {
 
 
     CellToolbar.prototype.create_element = function () {
-        this.inner_element = $('<div/>').addClass('celltoolbar hbox reverse')
+        this.inner_element = $('<div/>').addClass('celltoolbar')
         this.element = $('<div/>').addClass('ctb_hideshow')
             .append(this.inner_element);
     };

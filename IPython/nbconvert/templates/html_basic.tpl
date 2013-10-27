@@ -2,7 +2,7 @@
 
 
 {% block codecell %}
-<div class="cell border-box-sizing code_cell vbox">
+<div class="cell border-box-sizing code_cell">
 {{ super() }}
 </div>
 {%- endblock codecell %}
@@ -15,7 +15,7 @@
 
 {% block output_group %}
 <div class="output_wrapper">
-<div class="output vbox">
+<div class="output">
 {{ super() }}
 </div>
 </div>
