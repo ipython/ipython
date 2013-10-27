@@ -75,7 +75,7 @@ class dependent(object):
     if not py3compat.PY3:
         @property
         def __name__(self):
-            return self.__name__
+            return self.func_name
 
 @interactive
 def _require(*modules, **mapping):
