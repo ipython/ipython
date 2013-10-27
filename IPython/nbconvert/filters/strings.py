@@ -23,6 +23,10 @@ try:
     from urllib.parse import quote  # Py 3
 except ImportError:
     from urllib2 import quote  # Py 2
+try:
+    import cgi as htmltool
+except:
+    import html as htmltool
 from xml.etree import ElementTree
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -34,6 +38,7 @@ from IPython.utils import py3compat
 
 __all__ = [
     'wrap_text',
+    'escape_for_html',
     'html2text',
     'add_anchor',
     'strip_dollars',
@@ -45,6 +50,10 @@ __all__ = [
     'path2url',
     'add_prompts'
 ]
+
+
+def escape_for_html(text):
+    return htmltool.escape(text)
 
 
 def wrap_text(text, width=100):
