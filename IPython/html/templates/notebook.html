@@ -52,11 +52,17 @@ class="notebook_app"
     <ul id="menus" class="nav">
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
             <ul class="dropdown-menu">
-                <li id="new_notebook"><a href="#">New</a></li>
-                <li id="open_notebook"><a href="#">Open...</a></li>
+                <li id="new_notebook"
+                    title="Make a new notebook (Opens a new window)">
+                    <a href="#">New</a></li>
+                <li id="open_notebook"
+                    title="Opens a new window with the Dashboard view">
+                    <a href="#">Open...</a></li>
                 <!-- <hr/> -->
                 <li class="divider"></li>
-                <li id="copy_notebook"><a href="#">Make a Copy...</a></li>
+                <li id="copy_notebook"
+                    title="Open a copy of this notebook's contents and start a new kernel">
+                    <a href="#">Make a Copy...</a></li>
                 <li id="rename_notebook"><a href="#">Rename...</a></li>
                 <li id="save_checkpoint"><a href="#">Save and Checkpoint</a></li>
                 <!-- <hr/> -->
@@ -79,7 +85,9 @@ class="notebook_app"
                 </li>
                 <li class="divider"></li>
                 
-                <li id="kill_and_exit"><a href="#" >Close and halt</a></li>
+                <li id="kill_and_exit"
+                    title="Shutdown this notebook's kernel, and close this window">
+                    <a href="#" >Close and halt</a></li>
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
@@ -107,29 +115,50 @@ class="notebook_app"
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">View</a>
             <ul class="dropdown-menu">
-                <li id="toggle_header"><a href="#">Toggle Header</a></li>
-                <li id="toggle_toolbar"><a href="#">Toggle Toolbar</a></li>
+                <li id="toggle_header"
+                    title="Show/Hide the IPython Notebook logo and notebook title (above menu bar)">
+                    <a href="#">Toggle Header</a></li>
+                <li id="toggle_toolbar"
+                    title="Show/Hide the action icons (below menu bar)">
+                    <a href="#">Toggle Toolbar</a></li>
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Insert</a>
             <ul class="dropdown-menu">
-                <li id="insert_cell_above"><a href="#">Insert Cell Above</a></li>
-                <li id="insert_cell_below"><a href="#">Insert Cell Below</a></li>
+                <li id="insert_cell_above"
+                    title="Insert an empty Code cell above the currently active cell">
+                    <a href="#">Insert Cell Above</a></li>
+                <li id="insert_cell_below"
+                    title="Insert an empty Code cell below the currently active cell">
+                    <a href="#">Insert Cell Below</a></li>
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Cell</a>
             <ul class="dropdown-menu">
-                <li id="run_cell"><a href="#">Run</a></li>
-                <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
-                <li id="run_all_cells"><a href="#">Run All</a></li>
-                <li id="run_all_cells_above"><a href="#">Run All Above</a></li>
-                <li id="run_all_cells_below"><a href="#">Run All Below</a></li>
+                <li id="run_cell" title="Run this cell, and move cursor to the next one">
+                    <a href="#">Run</a></li>
+                <li id="run_cell_in_place" title="Run this cell, without moving to the next one">
+                    <a href="#">Run in Place</a></li>
+                <li id="run_all_cells" title="Run all cells in the notebook">
+                    <a href="#">Run All</a></li>
+                <li id="run_all_cells_above" title="Run all cells above (but not including) this cell">
+                    <a href="#">Run All Above</a></li>
+                <li id="run_all_cells_below" title="Run this cell and all cells below it">
+                    <a href="#">Run All Below</a></li>
                 <li class="divider"></li>
-                <li id="change_cell_type" class="dropdown-submenu"><a href="#">Cell Type</a>
+                <li id="change_cell_type" class="dropdown-submenu"
+                    title="All cells in the notebook have a cell type. By default, new cells are created as 'Code' cells">
+                    <a href="#">Cell Type</a>
                     <ul class="dropdown-menu">
-                      <li id="to_code"><a href="#">Code</a></li>
-                      <li id="to_markdown"><a href="#">Markdown </a></li>
-                      <li id="to_raw"><a href="#">Raw Text</a></li>
+                      <li id="to_code"
+                          title="Contents will be sent to the kernel for execution, and output will display in the footer of cell">
+                          <a href="#">Code</a></li>
+                      <li id="to_markdown"
+                          title="Contents will be rendered as HTML and serve as explanatory text">
+                          <a href="#">Markdown</a></li>
+                      <li id="to_raw"
+                          title="Contents will display unmodified in a fixed-width font">
+                          <a href="#">Raw Text</a></li>
                       <li id="to_heading1"><a href="#">Heading 1</a></li>
                       <li id="to_heading2"><a href="#">Heading 2</a></li>
                       <li id="to_heading3"><a href="#">Heading 3</a></li>
@@ -139,28 +168,36 @@ class="notebook_app"
                     </ul>
                 </li>
                 <li class="divider"></li>
-                <li id="toggle_output"><a href="#">Toggle Current Output</a></li>
+                <li id="toggle_output"
+                    title="Show/Hide the output portion of a Code cell">
+                    <a href="#">Toggle Current Output</a></li>
                 <li id="all_outputs" class="dropdown-submenu"><a href="#">All Output</a>
                     <ul class="dropdown-menu">
                         <li id="expand_all_output"><a href="#">Expand</a></li>
                         <li id="scroll_all_output"><a href="#">Scroll Long</a></li>
                         <li id="collapse_all_output"><a href="#">Collapse</a></li>
-                        <li id="clear_all_output"><a href="#">Clear</a></li>
+                        <li id="clear_all_output"
+                            title="Remove the output portion of all Code cells">
+                            <a href="#">Clear</a></li>
                     </ul>
                 </li>
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Kernel</a>
             <ul class="dropdown-menu">
-                <li id="int_kernel"><a href="#">Interrupt</a></li>
-                <li id="restart_kernel"><a href="#">Restart</a></li>
+                <li id="int_kernel"
+                    title="Send KeyboardInterrupt (CTRL-C) to the Kernel">
+                    <a href="#">Interrupt</a></li>
+                <li id="restart_kernel"
+                    title="Restart the Kernel">
+                    <a href="#">Restart</a></li>
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu" title="Opens in a new window">
                 <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
                 <li><a href="http://ipython.org/ipython-doc/stable/interactive/notebook.html" target="_blank">Notebook Help</a></li>
-                <li id="keyboard_shortcuts"><a href="#">Keyboard Shortcuts</a></li>
+                <li id="keyboard_shortcuts" title="Opens a tooltip with all keyboard shortcuts"><a href="#">Keyboard Shortcuts</a></li>
                 <li class="divider"></li>
                 <li><a href="http://docs.python.org" target="_blank">Python</a></li>
                 <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></li>
