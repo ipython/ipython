@@ -54,7 +54,7 @@ import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
                        r'|'.join(re.escape(s[0]) for s in imp.get_suffixes()))
 
 # RE for the ipython %run command (python + ipython scripts)
-magic_run_re = re.compile(r'.*(\.ipy|\.py[w]?)$')
+magic_run_re = re.compile(r'.*(\.ipy|\.ipynb|\.py[w]?)$')
 
 #-----------------------------------------------------------------------------
 # Local utilities
@@ -250,7 +250,7 @@ def module_completer(self,event):
 # completers, that is currently reimplemented in each.
 
 def magic_run_completer(self, event):
-    """Complete files that end in .py or .ipy for the %run command.
+    """Complete files that end in .py or .ipy or .ipynb for the %run command.
     """
     comps = arg_split(event.line, strict=False)
     relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
@@ -274,7 +274,7 @@ def magic_run_completer(self, event):
     else:
         pys =  [f.replace('\\','/')
                 for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
-                lglob(relpath + '*.pyw')]
+                lglob(relpath+'*.ipynb') + lglob(relpath + '*.pyw')]
     #print('run comp:', dirs+pys) # dbg
     return [compress_user(p, tilde_expand, tilde_val) for p in dirs+pys]
 
