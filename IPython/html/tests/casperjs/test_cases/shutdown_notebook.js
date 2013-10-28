@@ -26,6 +26,8 @@ casper.notebook_test(function () {
             'after shutdown: IPython.notebook.kernel.running is false ');
     });
 
+    this.thenOpen(this.get_notebook_server());
+
 //}); // end of test.begin
 });
 
