@@ -73,7 +73,7 @@ class OctaveMagics(Magics):
         """
         super(OctaveMagics, self).__init__(shell)
         self._oct = oct2py.Oct2Py()
-        self._plot_format = 'png'
+        self._plot_format = 'svg'
 
         # Allow publish_display_data to be overridden for
         # testing purposes.
