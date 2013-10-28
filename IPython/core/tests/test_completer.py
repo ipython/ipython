@@ -362,3 +362,31 @@ def test_line_cell_magics():
     nt.assert_not_in('%_bar_cellm', matches)
     nt.assert_in('%%_bar_cellm', matches)
 
+
+def test_magic_completion_order():
+
+    ip = get_ipython()
+    c = ip.Completer
+
+    # Test ordering of magics and non-magics with the same name
+    # We want the non-magic first
+
+    # Before importing matplotlib, there should only be one option:
+
+    text, matches = c.complete('mat')
+    nt.assert_equal(matches, ["%matplotlib"])
+
+
+    ip.run_cell("matplotlib = 1")  # introduce name into namespace
+
+    # After the import, there should be two options, ordered like this:
+    text, matches = c.complete('mat')
+    nt.assert_equal(matches, ["matplotlib", "%matplotlib"])
+
+
+    ip.run_cell("timeit = 1")  # define a user variable called 'timeit'
+
+    # Order of user variable and line and cell magics with same name:
+    text, matches = c.complete('timeit')
+    nt.assert_equal(matches, ["timeit", "%timeit","%%timeit"])
+
