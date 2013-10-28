@@ -1,4 +1,10 @@
-{%- extends 'html_full.tpl' -%}
+{%- extends 'html_basic.tpl' -%}
+
+{% block body %}
+<div class="notebook">
+{{ super() }}
+</div>
+{%- endblock body %}
 
 
 {% block input %}
