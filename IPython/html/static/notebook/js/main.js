@@ -108,8 +108,8 @@ function (marked) {
             langPrefix: "language-",
             highlight: function(code, lang) {
                 if (!lang) {
-                    // no language, no highlight
-                    return code;
+                    // no language, try auto highlight
+                    return hljs.highlightAuto(code).value;
                 }
                 var highlighted;
                 try {
