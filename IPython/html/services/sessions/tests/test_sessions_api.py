@@ -1,5 +1,6 @@
 """Test the sessions web service API."""
 
+import errno
 import io
 import os
 import json
@@ -51,7 +52,12 @@ class SessionAPITest(NotebookTestBase):
     """Test the sessions web service API"""
     def setUp(self):
         nbdir = self.notebook_dir.name
-        os.mkdir(pjoin(nbdir, 'foo'))
+        try:
+            os.mkdir(pjoin(nbdir, 'foo'))
+        except OSError as e:
+            # Deleting the folder in an earlier test may have failed
+            if e.errno != errno.EEXIST:
+                raise
 
         with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w') as f:
             nb = new_notebook(name='nb1')
@@ -62,7 +68,8 @@ class SessionAPITest(NotebookTestBase):
     def tearDown(self):
         for session in self.sess_api.list().json():
             self.sess_api.delete(session['id'])
-        shutil.rmtree(pjoin(self.notebook_dir.name, 'foo'))
+        shutil.rmtree(pjoin(self.notebook_dir.name, 'foo'),
+                      ignore_errors=True)
 
     def test_create(self):
         sessions = self.sess_api.list().json()
