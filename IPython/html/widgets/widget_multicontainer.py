@@ -22,7 +22,7 @@ from IPython.utils.traitlets import Unicode, Dict
 #-----------------------------------------------------------------------------
 class MulticontainerWidget(Widget):
     target_name = Unicode('MulticontainerWidgetModel')
-    default_view_name = Unicode('AccordionView')
+    default_view_name = Unicode('TabView')
 
     # Keys
     _keys = ['_titles']

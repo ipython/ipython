@@ -58,4 +58,69 @@ require(["notebook/js/widget"], function(){
     });
 
     IPython.notebook.widget_manager.register_widget_view('AccordionView', AccordionView);
+    
+    var TabView = IPython.WidgetView.extend({
+        
+        render: function(){
+            this.$el = $('<div />');
+            var uuid = IPython.utils.uuid();
+            this.$tabs = $('<div />', {id: uuid})
+                .addClass('nav')
+                .addClass('nav-tabs')
+                .appendTo(this.$el);
+            this.$tab_contents = $('<div />', {id: uuid + 'Content'})
+                .addClass('tab-content')
+                .appendTo(this.$el);
+
+            this.containers = [];
+        },
+        
+        update: function() {
+            // Set tab titles
+            var titles = this.model.get('_titles');
+            for (var page_index in titles) {
+                var tab_text = this.containers[page_index]
+                if (tab_text != undefined) {
+                    tab_text.html(titles[page_index]);
+                }
+            }
+
+            return IPython.WidgetView.prototype.update.call(this);
+        },
+
+        display_child: function(view) {
+
+            var index = this.containers.length;
+            var uuid = IPython.utils.uuid();
+
+            var that = this;
+            var tab = $('<li />')
+                .css('list-style-type', 'none')
+                .appendTo(this.$tabs);
+            var tab_text = $('<a />')
+                .attr('href', '#' + uuid)
+                .attr('data-toggle', 'tab') 
+                .html('Page ' + index)
+                .appendTo(tab)
+                .click(function (e) {
+                    that.$tabs.find('li')
+                        .removeClass('active');
+                });
+            this.containers.push(tab_text);
+
+            var contents_div = $('<div />', {id: uuid})
+                .addClass('tab-pane')
+                .addClass('fade')
+                .append(view.$el)
+                .appendTo(this.$tab_contents);
+
+            if (index==0) {
+                tab_text.tab('show');
+            }
+            this.update();
+        },
+    });
+
+    IPython.notebook.widget_manager.register_widget_view('TabView', TabView);
+
 });
