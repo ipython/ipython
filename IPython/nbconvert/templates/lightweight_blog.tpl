@@ -6,20 +6,7 @@
 <script type="application/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
 <script type="application/javascript">
 window.highlightAll = function() {
-    // Use either google code prettifier or highlight.js
     if ( typeof(PR) != "undefined" ) {
-	var segments = document.getElementsByTagName("pre");
-        var elements = [];
-
-	for(var i = 0; i < segments.length; i++) {
-	    if( segments[i].firstChild.tagName === "CODE")
-		elements.push(segments[i]);
-	}
-
-	for(var i = 0; i < elements.length; i++) {
-	    var el = elements[i];
-	    el.setAttribute("class", el.getAttribute("class")+" prettyprint");
-	}	    
 	PR.prettyPrint()
     }
 }
@@ -88,6 +75,11 @@ window.highlightAll();
 </script>
 {% endblock footer %}
 
+{% block markdowncell scoped %}
+<div class="text_cell_render border-box-sizing rendered_html">
+{{ cell.source  | markdown2html(True) | strip_files_prefix }}
+</div>
+{%- endblock markdowncell %}
 
 {% block body %}
 <!-- Copy/paste this part into your blog post. -->
