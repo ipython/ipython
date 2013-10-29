@@ -34,6 +34,7 @@ except ImportError:
 
 from IPython.config import Application
 from IPython.utils.path import filefind
+from IPython.utils.py3compat import string_types
 
 # UF_HIDDEN is a stat flag not defined in the stat module.
 # It is used by BSD to indicate hidden files.
@@ -307,7 +308,7 @@ class FileFindHandler(web.StaticFileHandler):
     _static_paths = {}
     
     def initialize(self, path, default_filename=None):
-        if isinstance(path, basestring):
+        if isinstance(path, string_types):
             path = [path]
         
         self.root = tuple(

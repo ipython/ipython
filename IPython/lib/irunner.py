@@ -199,7 +199,7 @@ class InteractiveRunner(object):
 
         # if the source is a string, chop it up in lines so we can iterate
         # over it just as if it were an open file.
-        if isinstance(source, basestring):
+        if isinstance(source, py3compat.string_types):
             source = source.splitlines(True)
 
         if self.echo:

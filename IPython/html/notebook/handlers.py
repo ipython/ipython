@@ -16,16 +16,12 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
-import json
-
 from tornado import web
 HTTPError = web.HTTPError
 
 from ..base.handlers import IPythonHandler
 from ..services.notebooks.handlers import _notebook_path_regex, _path_regex
-from ..utils import url_path_join, url_escape, url_unescape
-from urllib import quote
+from ..utils import url_path_join, url_escape
 
 #-----------------------------------------------------------------------------
 # Handlers

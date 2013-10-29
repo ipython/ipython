@@ -66,7 +66,6 @@ Notes:
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
 import __main__
 import glob
 import inspect
@@ -83,6 +82,7 @@ from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
+from IPython.utils.py3compat import builtin_mod, string_types
 from IPython.utils.traitlets import CBool, Enum
 
 #-----------------------------------------------------------------------------
@@ -353,7 +353,7 @@ class Completer(Configurable):
         match_append = matches.append
         n = len(text)
         for lst in [keyword.kwlist,
-                    __builtin__.__dict__.keys(),
+                    builtin_mod.__dict__.keys(),
                     self.namespace.keys(),
                     self.global_namespace.keys()]:
             for word in lst:
@@ -423,7 +423,7 @@ def get__all__entries(obj):
     except:
         return []
     
-    return [w for w in words if isinstance(w, basestring)]
+    return [w for w in words if isinstance(w, string_types)]
 
 
 class IPCompleter(Completer):

@@ -170,7 +170,10 @@ class ExtensionManager(Configurable):
             copy = copyfile
         else:
             from urllib import urlretrieve  # Deferred imports
-            from urlparse import urlparse
+            try:
+                from urllib.parse import urlparse  # Py3
+            except ImportError:
+                from urlparse import urlparse
             src_filename = urlparse(url).path.split('/')[-1]
             copy = urlretrieve
             

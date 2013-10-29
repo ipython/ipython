@@ -13,7 +13,10 @@ Useful for test suites and blocking terminal interfaces.
 # Imports
 #-----------------------------------------------------------------------------
 
-import Queue
+try:
+    from queue import Queue, Empty  # Py 3
+except ImportError:
+    from Queue import Queue, Empty  # Py 2
 
 from IPython.kernel.channels import IOPubChannel, HBChannel, \
     ShellChannel, StdInChannel
@@ -27,7 +30,7 @@ class BlockingChannelMixin(object):
 
     def __init__(self, *args, **kwds):
         super(BlockingChannelMixin, self).__init__(*args, **kwds)
-        self._in_queue = Queue.Queue()
+        self._in_queue = Queue()
 
     def call_handlers(self, msg):
         self._in_queue.put(msg)
@@ -46,7 +49,7 @@ class BlockingChannelMixin(object):
         while True:
             try:
                 msgs.append(self.get_msg(block=False))
-            except Queue.Empty:
+            except Empty:
                 break
         return msgs
 

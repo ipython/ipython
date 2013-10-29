@@ -1,5 +1,6 @@
 """Implementation of code management magic functions.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -28,6 +29,7 @@ from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.py3compat import string_types
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.warn import warn, error
@@ -189,15 +191,15 @@ class CodeMagics(Magics):
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
-                print "File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s)
+                print("File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s))
                 return
             if not overwrite :
-                print 'Operation cancelled.'
+                print('Operation cancelled.')
                 return
         try:
             cmds = self.shell.find_user_code(codefrom,raw)
         except (TypeError, ValueError) as e:
-            print e.args[0]
+            print(e.args[0])
             return
         out = py3compat.cast_unicode(cmds)
         with io.open(fname, mode, encoding="utf-8") as f:
@@ -207,8 +209,8 @@ class CodeMagics(Magics):
             # make sure we end on a newline
             if not out.endswith(u'\n'):
                 f.write(u'\n')
-        print 'The following commands were written to file `%s`:' % fname
-        print cmds
+        print('The following commands were written to file `%s`:' % fname)
+        print(cmds)
 
     @line_magic
     def pastebin(self, parameter_s=''):
@@ -230,7 +232,7 @@ class CodeMagics(Magics):
         try:
             code = self.shell.find_user_code(args)
         except (ValueError, TypeError) as e:
-            print e.args[0]
+            print(e.args[0])
             return
 
         from urllib2 import urlopen  # Deferred import
@@ -337,7 +339,7 @@ class CodeMagics(Magics):
                 ans = True
 
             if ans is False :
-                print 'Operation cancelled.'
+                print('Operation cancelled.')
                 return
 
         self.shell.set_next_input(contents)
@@ -395,7 +397,7 @@ class CodeMagics(Magics):
 
                     #print '*** args',args,'type',type(args)  # dbg
                     data = eval(args, shell.user_ns)
-                    if not isinstance(data, basestring):
+                    if not isinstance(data, string_types):
                         raise DataIsObject
 
                 except (NameError,SyntaxError):
@@ -459,7 +461,7 @@ class CodeMagics(Magics):
 
         if use_temp:
             filename = shell.mktempfile(data)
-            print 'IPython will make a temporary file named:',filename
+            print('IPython will make a temporary file named:',filename)
 
         # use last_call to remember the state of the previous call, but don't
         # let it be clobbered by successive '-p' calls.
@@ -637,7 +639,7 @@ class CodeMagics(Magics):
             self._edit_macro(args, e.args[0])
             return
         except InteractivelyDefined as e:
-            print "Editing In[%i]" % e.index
+            print("Editing In[%i]" % e.index)
             args = str(e.index)
             filename, lineno, is_temp = self._find_edit_target(self.shell, 
                                                        args, opts, last_call)
@@ -647,7 +649,7 @@ class CodeMagics(Magics):
             return
 
         # do actual editing here
-        print 'Editing...',
+        print('Editing...', end=' ')
         sys.stdout.flush()
         try:
             # Quote filenames that may have spaces in them
@@ -665,9 +667,9 @@ class CodeMagics(Magics):
                 self.shell.user_ns['pasted_block'] = f.read()
 
         if 'x' in opts:  # -x prevents actual execution
-            print
+            print()
         else:
-            print 'done. Executing edited code...'
+            print('done. Executing edited code...')
             with preserve_keys(self.shell.user_ns, '__file__'):
                 if not is_temp:
                     self.shell.user_ns['__file__'] = filename

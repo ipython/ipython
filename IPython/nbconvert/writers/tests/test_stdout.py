@@ -15,10 +15,15 @@ Module with tests for stdout
 #-----------------------------------------------------------------------------
 
 import sys
-from StringIO import StringIO
 
 from ...tests.base import TestsBase
 from ..stdout import StdoutWriter
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 #-----------------------------------------------------------------------------

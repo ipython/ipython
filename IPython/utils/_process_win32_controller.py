@@ -16,6 +16,9 @@ from __future__ import print_function
 import os, sys, threading
 import ctypes, msvcrt
 
+# local imports
+from .py3compat import unicode_type
+
 # Win32 API types needed for the API calls
 from ctypes import POINTER
 from ctypes.wintypes import HANDLE, HLOCAL, LPVOID, WORD, DWORD, BOOL, \

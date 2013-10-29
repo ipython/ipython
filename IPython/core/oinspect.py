@@ -40,7 +40,7 @@ from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
-from IPython.utils.py3compat import cast_unicode
+from IPython.utils.py3compat import cast_unicode, string_types
 
 #****************************************************************************
 # Builtin color schemes
@@ -130,7 +130,7 @@ def getdoc(obj):
         pass
     else:
         # if we get extra info, we add it to the normal docstring.
-        if isinstance(ds, basestring):
+        if isinstance(ds, string_types):
             return inspect.cleandoc(ds)
     
     try:
@@ -188,13 +188,13 @@ def getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     elif hasattr(obj, '__call__'):
         func_obj = obj.__call__
     else:
         raise TypeError('arg is not a Python function')
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
+    args, varargs, varkw = inspect.getargs(func_obj.__code__)
+    return args, varargs, varkw, func_obj.__defaults__
 
 
 def format_argspec(argspec):

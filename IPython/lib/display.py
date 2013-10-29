@@ -280,8 +280,7 @@ class FileLink(object):
             text to append at the end of link [default: '<br>']
         """
         if isdir(path):
-            raise ValueError,\
-             ("Cannot display a directory using FileLink. "
+            raise ValueError("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
         self.path = path
         self.url_prefix = url_prefix
@@ -366,8 +365,7 @@ class FileLinks(FileLink):
 
         """
         if isfile(path):
-            raise ValueError,\
-             ("Cannot display a file using FileLinks. "
+            raise ValueError("Cannot display a file using FileLinks. "
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashs for more consistent output formatting

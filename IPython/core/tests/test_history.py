@@ -43,9 +43,9 @@ def test_history():
             
             # Detailed tests for _get_range_session
             grs = ip.history_manager._get_range_session
-            nt.assert_equal(list(grs(start=2,stop=-1)), zip([0], [2], hist[1:-1]))
-            nt.assert_equal(list(grs(start=-2)), zip([0,0], [2,3], hist[-2:]))
-            nt.assert_equal(list(grs(output=True)), zip([0,0,0], [1,2,3], zip(hist, [None,None,'spam'])))
+            nt.assert_equal(list(grs(start=2,stop=-1)), list(zip([0], [2], hist[1:-1])))
+            nt.assert_equal(list(grs(start=-2)), list(zip([0,0], [2,3], hist[-2:])))
+            nt.assert_equal(list(grs(output=True)), list(zip([0,0,0], [1,2,3], zip(hist, [None,None,'spam']))))
 
             # Check whether specifying a range beyond the end of the current
             # session results in an error (gh-804)
@@ -66,10 +66,10 @@ def test_history():
             for i, cmd in enumerate(newcmds, start=1):
                 ip.history_manager.store_inputs(i, cmd)
             gothist = ip.history_manager.get_range(start=1, stop=4)
-            nt.assert_equal(list(gothist), zip([0,0,0],[1,2,3], newcmds))
+            nt.assert_equal(list(gothist), list(zip([0,0,0],[1,2,3], newcmds)))
             # Previous session:
             gothist = ip.history_manager.get_range(-1, 1, 4)
-            nt.assert_equal(list(gothist), zip([1,1,1],[1,2,3], hist))
+            nt.assert_equal(list(gothist), list(zip([1,1,1],[1,2,3], hist)))
 
             newhist = [(2, i, c) for (i, c) in enumerate(newcmds, 1)]
 

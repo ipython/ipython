@@ -13,7 +13,10 @@ Authors:
 
 import json
 import os
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 from datetime import datetime
 
 try:
@@ -26,6 +29,7 @@ from zmq.eventloop import ioloop
 from IPython.utils.traitlets import Unicode, Instance, List, Dict
 from .dictdb import BaseDB
 from IPython.utils.jsonutil import date_default, extract_dates, squash_dates
+from IPython.utils.py3compat import iteritems
 
 #-----------------------------------------------------------------------------
 # SQLite operators, adapters, and converters
@@ -72,7 +76,7 @@ def _adapt_bufs(bufs):
     # this is *horrible*
     # copy buffers into single list and pickle it:
     if bufs and isinstance(bufs[0], (bytes, buffer)):
-        return sqlite3.Binary(pickle.dumps(map(bytes, bufs),-1))
+        return sqlite3.Binary(pickle.dumps(list(map(bytes, bufs)),-1))
     elif bufs:
         return bufs
     else:
@@ -292,9 +296,9 @@ class SQLiteDB(BaseDB):
         if skeys:
             raise KeyError("Illegal testing key(s): %s"%skeys)
 
-        for name,sub_check in check.iteritems():
+        for name,sub_check in iteritems(check):
             if isinstance(sub_check, dict):
-                for test,value in sub_check.iteritems():
+                for test,value in iteritems(sub_check):
                     try:
                         op = operators[test]
                     except KeyError:

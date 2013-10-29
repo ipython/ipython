@@ -9,6 +9,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from .py3compat import xrange
+
 def uniq_stable(elems):
     """uniq_stable(elems) -> list
 

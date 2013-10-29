@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 import argparse
@@ -6,6 +7,7 @@ import json
 
 from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
 import IPython.external.jsonpointer as jsonpointer
+from IPython.utils.py3compat import iteritems
 
 def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
     v3schema = resolve_ref(json.load(open(schema,'r')))
@@ -34,7 +36,7 @@ def resolve_ref(json, base=None):
             temp.append(resolve_ref(item, base=base))
     elif type(json) is dict:
         temp = {};
-        for key,value in json.iteritems():
+        for key,value in iteritems(json):
             if key == '$ref':
                 return resolve_ref(jsonpointer.resolve_pointer(base,value), base=base)
             else :
@@ -79,10 +81,10 @@ if __name__ == '__main__':
                             key=args.key,
                             verbose=args.verbose)
         if nerror is 0:
-            print u"[Pass]",name
+            print(u"[Pass]",name)
         else :
-            print u"[    ]",name,'(%d)'%(nerror)
+            print(u"[    ]",name,'(%d)'%(nerror))
         if args.verbose :
-            print '=================================================='
+            print('==================================================')
 
 

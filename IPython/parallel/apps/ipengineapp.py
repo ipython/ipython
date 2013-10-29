@@ -355,7 +355,7 @@ class IPEngineApp(BaseParallelApplication):
             try:
                 self.log.info("Initializing MPI:")
                 self.log.info(mpi_import_statement)
-                exec mpi_import_statement in globals()
+                exec(mpi_import_statement, globals())
             except:
                 mpi = None
         else:

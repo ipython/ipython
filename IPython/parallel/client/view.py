@@ -4,6 +4,7 @@ Authors:
 
 * Min RK
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
@@ -31,6 +32,7 @@ from IPython.external.decorator import decorator
 
 from IPython.parallel import util
 from IPython.parallel.controller.dependency import Dependency, dependent
+from IPython.utils.py3compat import string_types, iteritems, PY3
 
 from . import map as Map
 from .asyncresult import AsyncResult, AsyncMapResult
@@ -50,7 +52,7 @@ def save_ids(f, self, *args, **kwargs):
         nmsgs = len(self.client.history) - n_previous
         msg_ids = self.client.history[-nmsgs:]
         self.history.extend(msg_ids)
-        map(self.outstanding.add, msg_ids)
+        self.outstanding.update(msg_ids)
     return ret
 
 @decorator
@@ -162,7 +164,7 @@ class View(HasTraits):
             safely edit after arrays and buffers during non-copying
             sends.
         """
-        for name, value in kwargs.iteritems():
+        for name, value in iteritems(kwargs):
             if name not in self._flag_names:
                 raise KeyError("Invalid name: %r"%name)
             else:
@@ -439,8 +441,8 @@ class DirectView(View):
         importing recarray from numpy on engine(s)
 
         """
-        import __builtin__
-        local_import = __builtin__.__import__
+        from IPython.utils.py3compat import builtin_mod
+        local_import = builtin_mod.__import__
         modules = set()
         results = []
         @util.interactive
@@ -462,8 +464,8 @@ class DirectView(View):
             locally as well.
             """
             # don't override nested imports
-            save_import = __builtin__.__import__
-            __builtin__.__import__ = local_import
+            save_import = builtin_mod.__import__
+            builtin_mod.__import__ = local_import
 
             if imp.lock_held():
                 # this is a side-effect import, don't do it remotely, or even
@@ -482,17 +484,17 @@ class DirectView(View):
                 modules.add(key)
                 if not quiet:
                     if fromlist:
-                        print "importing %s from %s on engine(s)"%(','.join(fromlist), name)
+                        print("importing %s from %s on engine(s)"%(','.join(fromlist), name))
                     else:
-                        print "importing %s on engine(s)"%name
+                        print("importing %s on engine(s)"%name)
                 results.append(self.apply_async(remote_import, name, fromlist, level))
             # restore override
-            __builtin__.__import__ = save_import
+            builtin_mod.__import__ = save_import
 
             return mod
 
         # override __import__
-        __builtin__.__import__ = view_import
+        builtin_mod.__import__ = view_import
         try:
             # enter the block
             yield
@@ -504,7 +506,7 @@ class DirectView(View):
                 pass
         finally:
             # always restore __import__
-            __builtin__.__import__ = local_import
+            builtin_mod.__import__ = local_import
 
         for r in results:
             # raise possible remote ImportErrors here
@@ -718,11 +720,11 @@ class DirectView(View):
         block = block if block is not None else self.block
         targets = targets if targets is not None else self.targets
         applier = self.apply_sync if block else self.apply_async
-        if isinstance(names, basestring):
+        if isinstance(names, string_types):
             pass
         elif isinstance(names, (list,tuple,set)):
             for key in names:
-                if not isinstance(key, basestring):
+                if not isinstance(key, string_types):
                     raise TypeError("keys must be str, not type %r"%type(key))
         else:
             raise TypeError("names must be strs, not %r"%names)
@@ -830,7 +832,7 @@ class DirectView(View):
             # This is injected into __builtins__.
             ip = get_ipython()
         except NameError:
-            print "The IPython parallel magics (%px, etc.) only work within IPython."
+            print("The IPython parallel magics (%px, etc.) only work within IPython.")
             return
         
         M = ParallelMagics(ip, self, suffix)
@@ -870,11 +872,11 @@ class LoadBalancedView(View):
 
         For use in `set_flags`.
         """
-        if dep is None or isinstance(dep, (basestring, AsyncResult, Dependency)):
+        if dep is None or isinstance(dep, string_types + (AsyncResult, Dependency)):
             return True
         elif isinstance(dep, (list,set, tuple)):
             for d in dep:
-                if not isinstance(d, (basestring, AsyncResult)):
+                if not isinstance(d, string_types + (AsyncResult,)):
                     return False
         elif isinstance(dep, dict):
             if set(dep.keys()) != set(Dependency().as_dict().keys()):
@@ -882,7 +884,7 @@ class LoadBalancedView(View):
             if not isinstance(dep['msg_ids'], list):
                 return False
             for d in dep['msg_ids']:
-                if not isinstance(d, basestring):
+                if not isinstance(d, string_types):
                     return False
         else:
             return False
@@ -950,8 +952,9 @@ class LoadBalancedView(View):
                     raise ValueError("Invalid dependency: %r"%value)
         if 'timeout' in kwargs:
             t = kwargs['timeout']
-            if not isinstance(t, (int, long, float, type(None))):
-                raise TypeError("Invalid type for timeout: %r"%type(t))
+            if not isinstance(t, (int, float, type(None))):
+                if (not PY3) and (not isinstance(t, long)):
+                    raise TypeError("Invalid type for timeout: %r"%type(t))
             if t is not None:
                 if t < 0:
                     raise ValueError("Invalid timeout: %s"%t)

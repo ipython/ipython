@@ -38,7 +38,8 @@ from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils.py3compat import str_to_bytes, bytes_to_str, cast_bytes_py2
+from IPython.utils.py3compat import (str_to_bytes, bytes_to_str, cast_bytes_py2,
+                                     string_types)
 from IPython.utils.traitlets import (
     Bool, Integer, Unicode, CaselessStrEnum,
 )
@@ -347,7 +348,7 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
     (shell, iopub, stdin, hb) : ints
         The four ports on localhost that have been forwarded to the kernel.
     """
-    if isinstance(connection_info, basestring):
+    if isinstance(connection_info, string_types):
         # it's a path, unpack it
         with open(connection_info) as f:
             connection_info = json.loads(f.read())

@@ -4,6 +4,7 @@ They should honor the line number argument, at least.
 
 Contributions are *very* welcome.
 """
+from __future__ import print_function
 
 import os
 import pipes
@@ -11,6 +12,7 @@ import subprocess
 
 from IPython import get_ipython
 from IPython.core.error import TryNext
+from IPython.utils import py3compat
 
 
 def install_editor(template, wait=False):
@@ -45,12 +47,12 @@ def install_editor(template, wait=False):
         if line is None:
             line = 0
         cmd = template.format(filename=pipes.quote(filename), line=line)
-        print ">", cmd
+        print(">", cmd)
         proc = subprocess.Popen(cmd, shell=True)
         if wait and proc.wait() != 0:
             raise TryNext()
         if wait:
-            raw_input("Press Enter when done editing:")
+            py3compat.input("Press Enter when done editing:")
 
     get_ipython().set_hook('editor', call_editor)
     get_ipython().editor = template

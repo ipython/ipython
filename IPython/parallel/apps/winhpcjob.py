@@ -28,6 +28,7 @@ import uuid
 from xml.etree import ElementTree as ET
 
 from IPython.config.configurable import Configurable
+from IPython.utils.py3compat import iteritems
 from IPython.utils.traitlets import (
     Unicode, Integer, List, Instance,
     Enum, Bool
@@ -215,7 +216,7 @@ class WinHPCTask(Configurable):
 
     def get_env_vars(self):
         env_vars = ET.Element('EnvironmentVariables')
-        for k, v in self.environment_variables.iteritems():
+        for k, v in iteritems(self.environment_variables):
             variable = ET.SubElement(env_vars, "Variable")
             name = ET.SubElement(variable, "Name")
             name.text = k

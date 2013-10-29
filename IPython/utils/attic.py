@@ -46,7 +46,7 @@ class EvalDict:
 
     >>> text = "python"
 
-    >>> print "%(text.capitalize())s %(number/9.0).1f rules!" % EvalDict()
+    >>> print("%(text.capitalize())s %(number/9.0).1f rules!" % EvalDict())
     Python 2.1 rules!
     """
 

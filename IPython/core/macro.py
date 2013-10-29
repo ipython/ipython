@@ -52,6 +52,6 @@ class Macro(object):
     def __add__(self, other):
         if isinstance(other, Macro):
             return Macro(self.value + other.value)
-        elif isinstance(other, basestring):
+        elif isinstance(other, py3compat.string_types):
             return Macro(self.value + other)
         raise TypeError

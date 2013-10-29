@@ -16,9 +16,10 @@ from io import StringIO, UnsupportedOperation
 
 import zmq
 
-from session import extract_header
+from .session import extract_header
 
 from IPython.utils import py3compat
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -180,7 +181,7 @@ class OutStream(object):
             raise ValueError('I/O operation on closed file')
         else:
             # Make sure that we're handling unicode
-            if not isinstance(string, unicode):
+            if not isinstance(string, unicode_type):
                 string = string.decode(self.encoding, 'replace')
             
             is_child = (self._check_mp_mode() == CHILD)

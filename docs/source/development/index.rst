@@ -24,3 +24,4 @@ on the IPython GitHub wiki.
    messaging
    parallel_messages
    parallel_connections
+   pycompat

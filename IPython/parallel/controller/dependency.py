@@ -17,6 +17,7 @@ from IPython.parallel.client.asyncresult import AsyncResult
 from IPython.parallel.error import UnmetDependency
 from IPython.parallel.util import interactive
 from IPython.utils import py3compat
+from IPython.utils.py3compat import string_types
 from IPython.utils.pickleutil import can, uncan
 
 class depend(object):
@@ -55,7 +56,11 @@ class dependent(object):
 
     def __init__(self, f, df, *dargs, **dkwargs):
         self.f = f
-        self.func_name = getattr(f, '__name__', 'f')
+        name = getattr(f, '__name__', 'f')
+        if py3compat.PY3:
+            self.__name__ = name
+        else:
+            self.func_name = name
         self.df = df
         self.dargs = dargs
         self.dkwargs = dkwargs
@@ -80,7 +85,7 @@ def _require(*modules, **mapping):
     user_ns = globals()
     for name in modules:
         try:
-            exec 'import %s' % name in user_ns
+            exec('import %s' % name, user_ns)
         except ImportError:
             raise UnmetDependency(name)
             
@@ -117,7 +122,7 @@ def require(*objects, **mapping):
         if isinstance(obj, ModuleType):
             obj = obj.__name__
         
-        if isinstance(obj, basestring):
+        if isinstance(obj, string_types):
             names.append(obj)
         elif hasattr(obj, '__name__'):
             mapping[obj.__name__] = obj
@@ -165,10 +170,10 @@ class Dependency(set):
         ids = []
         
         # extract ids from various sources:
-        if isinstance(dependencies, (basestring, AsyncResult)):
+        if isinstance(dependencies, string_types + (AsyncResult,)):
             dependencies = [dependencies]
         for d in dependencies:
-            if isinstance(d, basestring):
+            if isinstance(d, string_types):
                 ids.append(d)
             elif isinstance(d, AsyncResult):
                 ids.extend(d.msg_ids)

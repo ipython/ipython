@@ -31,6 +31,7 @@ from zipimport import zipimporter
 from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
 from IPython.utils._process_common import arg_split
+from IPython.utils.py3compat import string_types
 
 # FIXME: this should be pulled in with the right call via the component system
 from IPython import get_ipython
@@ -189,7 +190,7 @@ def quick_completer(cmd, completions):
         [d:\ipython]|3> foo ba
     """
 
-    if isinstance(completions, basestring):
+    if isinstance(completions, string_types):
         completions = completions.split()
 
     def do_complete(self, event):
@@ -268,7 +269,7 @@ def magic_run_completer(self, event):
     # should complete on all files, since after the first one other files may
     # be arguments to the input script.
 
-    if filter(magic_run_re.match, comps):
+    if any(magic_run_re.match(c) for c in comps):
         pys =  [f.replace('\\','/') for f in lglob('*')]
     else:
         pys =  [f.replace('\\','/')
@@ -323,7 +324,7 @@ def cd_completer(self, event):
             return [compress_user(relpath, tilde_expand, tilde_val)]
 
         # if no completions so far, try bookmarks
-        bks = self.db.get('bookmarks',{}).iterkeys()
+        bks = self.db.get('bookmarks',{})
         bkmatches = [s for s in bks if s.startswith(event.symbol)]
         if bkmatches:
             return bkmatches

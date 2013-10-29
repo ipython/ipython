@@ -11,6 +11,9 @@ import re
 # System library imports
 from IPython.external.qt import QtGui
 
+# Local imports
+from IPython.utils.py3compat import string_types
+
 #-----------------------------------------------------------------------------
 # Constants and datatypes
 #-----------------------------------------------------------------------------
@@ -103,7 +106,7 @@ class AnsiCodeProcessor(object):
                 self.actions = []
             start = match.end()
 
-            groups = filter(lambda x: x is not None, match.groups())
+            groups = [g for g in match.groups() if (g is not None)]
             g0 = groups[0]
             if g0 == '\a':
                 self.actions.append(BeepAction('beep'))
@@ -126,7 +129,7 @@ class AnsiCodeProcessor(object):
                 if g0.startswith('['):
                     # Case 1: CSI code.
                     try:
-                        params = map(int, params)
+                        params = list(map(int, params))
                     except ValueError:
                         # Silently discard badly formed codes.
                         pass
@@ -318,7 +321,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
             color += 8
 
         constructor = self.color_map.get(color, None)
-        if isinstance(constructor, basestring):
+        if isinstance(constructor, string_types):
             # If this is an X11 color name, we just hope there is a close SVG
             # color name. We could use QColor's static method
             # 'setAllowX11ColorNames()', but this is global and only available
@@ -365,7 +368,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         if color.value() >= 127:
             # Colors appropriate for a terminal with a light background. For
             # now, only use non-bright colors...
-            for i in xrange(8):
+            for i in range(8):
                 self.default_color_map[i + 8] = self.default_color_map[i]
 
             # ...and replace white with black.

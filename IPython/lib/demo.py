@@ -186,6 +186,7 @@ import sys
 from IPython.utils import io
 from IPython.utils.text import marquee
 from IPython.utils import openpy
+from IPython.utils import py3compat
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
 class DemoError(Exception): pass
@@ -397,7 +398,7 @@ class Demo(object):
 
         print(self.marquee('<%s> block # %s (%s remaining)' %
                            (self.title,index,self.nblocks-index-1)), file=io.stdout)
-        print((self.src_blocks_colored[index]), file=io.stdout)
+        print(self.src_blocks_colored[index], file=io.stdout)
         sys.stdout.flush()
 
     def show_all(self):
@@ -421,7 +422,7 @@ class Demo(object):
     def run_cell(self,source):
         """Execute a string with one or more lines of code"""
 
-        exec source in self.user_ns
+        exec(source, self.user_ns)
 
     def __call__(self,index=None):
         """run a block of the demo.
@@ -449,7 +450,7 @@ class Demo(object):
                     print(marquee('output:'), file=io.stdout)
                 else:
                     print(marquee('Press <q> to quit, <Enter> to execute...'), end=' ', file=io.stdout)
-                    ans = raw_input().strip()
+                    ans = py3compat.input().strip()
                     if ans:
                         print(marquee('Block NOT executed'), file=io.stdout)
                         return

@@ -79,6 +79,7 @@ Inheritance diagram:
 #*****************************************************************************
 
 from __future__ import unicode_literals
+from __future__ import print_function
 
 import inspect
 import keyword
@@ -195,9 +196,9 @@ def findsource(object):
             raise IOError('could not find class definition')
 
     if ismethod(object):
-        object = object.im_func
+        object = object.__func__
     if isfunction(object):
-        object = object.func_code
+        object = object.__code__
     if istraceback(object):
         object = object.tb_frame
     if isframe(object):
@@ -942,7 +943,7 @@ class VerboseTB(TBTools):
                                      ColorsNormal, py3compat.cast_unicode(evalue_str))]
         if (not py3compat.PY3) and type(evalue) is types.InstanceType:
             try:
-                names = [w for w in dir(evalue) if isinstance(w, basestring)]
+                names = [w for w in dir(evalue) if isinstance(w, py3compat.string_types)]
             except:
                 # Every now and then, an object with funny inernals blows up
                 # when dir() is called on it.  We do the best we can to report
@@ -1035,7 +1036,7 @@ class VerboseTB(TBTools):
         try:
             self.debugger()
         except KeyboardInterrupt:
-            print "\nKeyboardInterrupt"
+            print("\nKeyboardInterrupt")
 
 #----------------------------------------------------------------------------
 class FormattedTB(VerboseTB, ListTB):
@@ -1166,7 +1167,7 @@ class AutoFormattedTB(FormattedTB):
         try:
             self.debugger()
         except KeyboardInterrupt:
-            print "\nKeyboardInterrupt"
+            print("\nKeyboardInterrupt")
 
     def structured_traceback(self, etype=None, value=None, tb=None,
                              tb_offset=None, context=5):
@@ -1240,27 +1241,27 @@ if __name__ == "__main__":
         i = f - g
         return h / i
 
-    print ''
-    print '*** Before ***'
+    print('')
+    print('*** Before ***')
     try:
-        print spam(1, (2, 3))
+        print(spam(1, (2, 3)))
     except:
         traceback.print_exc()
-    print ''
+    print('')
 
     handler = ColorTB()
-    print '*** ColorTB ***'
+    print('*** ColorTB ***')
     try:
-        print spam(1, (2, 3))
+        print(spam(1, (2, 3)))
     except:
         handler(*sys.exc_info())
-    print ''
+    print('')
 
     handler = VerboseTB()
-    print '*** VerboseTB ***'
+    print('*** VerboseTB ***')
     try:
-        print spam(1, (2, 3))
+        print(spam(1, (2, 3)))
     except:
         handler(*sys.exc_info())
-    print ''
+    print('')
 

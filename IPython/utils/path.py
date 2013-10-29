@@ -162,7 +162,7 @@ def filefind(filename, path_dirs=None):
 
     if path_dirs is None:
         path_dirs = ("",)
-    elif isinstance(path_dirs, basestring):
+    elif isinstance(path_dirs, py3compat.string_types):
         path_dirs = (path_dirs,)
 
     for path in path_dirs:
@@ -206,7 +206,10 @@ def get_home_dir(require_writable=False):
     if not _writable_dir(homedir) and os.name == 'nt':
         # expanduser failed, use the registry to get the 'My Documents' folder.
         try:
-            import _winreg as wreg
+            try:
+                import winreg as wreg  # Py 3
+            except ImportError:
+                import _winreg as wreg  # Py 2
             key = wreg.OpenKey(
                 wreg.HKEY_CURRENT_USER,
                 "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"

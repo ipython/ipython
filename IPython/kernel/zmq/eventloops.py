@@ -92,14 +92,17 @@ def loop_wx(kernel):
 def loop_tk(kernel):
     """Start a kernel with the Tk event loop."""
 
-    import Tkinter
+    try:
+        from tkinter import Tk  # Py 3
+    except ImportError:
+        from Tkinter import Tk  # Py 2
     doi = kernel.do_one_iteration
     # Tk uses milliseconds
     poll_interval = int(1000*kernel._poll_interval)
     # For Tkinter, we create a Tk object and call its withdraw method.
     class Timer(object):
         def __init__(self, func):
-            self.app = Tkinter.Tk()
+            self.app = Tk()
             self.app.withdraw()
             self.func = func
 

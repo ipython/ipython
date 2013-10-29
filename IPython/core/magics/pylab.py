@@ -1,5 +1,6 @@
 """Implementation of magic functions for matplotlib/pylab support.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -139,5 +140,4 @@ class PylabMagics(Magics):
     def _show_matplotlib_backend(self, gui, backend):
         """show matplotlib message backend message"""
         if not gui or gui == 'auto':
-            print ("Using matplotlib backend: %s" % backend)
-    
+            print("Using matplotlib backend: %s" % backend)

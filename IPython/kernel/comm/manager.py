@@ -18,6 +18,7 @@ from IPython.core.prompts import LazyEvaluate
 from IPython.core.getipython import get_ipython
 
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import Instance, Unicode, Dict, Any
 
 from .comm import Comm
@@ -86,7 +87,7 @@ class CommManager(LoggingConfigurable):
         
         f can be a Python callable or an import string for one.
         """
-        if isinstance(f, basestring):
+        if isinstance(f, string_types):
             f = import_item(f)
         
         self.targets[target_name] = f

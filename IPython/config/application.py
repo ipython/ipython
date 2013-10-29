@@ -7,6 +7,7 @@ Authors:
 * Brian Granger
 * Min RK
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -39,6 +40,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent
 from IPython.utils import py3compat
+from IPython.utils.py3compat import string_types, iteritems
 
 #-----------------------------------------------------------------------------
 # function for re-wrapping a helpstring
@@ -154,7 +156,7 @@ class Application(SingletonConfigurable):
                     help="Set the log level by value or name.")
     def _log_level_changed(self, name, old, new):
         """Adjust the log level when log_level is set."""
-        if isinstance(new, basestring):
+        if isinstance(new, string_types):
             new = getattr(logging, new)
             self.log_level = new
         self.log.setLevel(new)
@@ -214,10 +216,10 @@ class Application(SingletonConfigurable):
     flags = Dict()
     def _flags_changed(self, name, old, new):
         """ensure flags dict is valid"""
-        for key,value in new.iteritems():
+        for key,value in iteritems(new):
             assert len(value) == 2, "Bad flag: %r:%s"%(key,value)
             assert isinstance(value[0], (dict, Config)), "Bad flag: %r:%s"%(key,value)
-            assert isinstance(value[1], basestring), "Bad flag: %r:%s"%(key,value)
+            assert isinstance(value[1], string_types), "Bad flag: %r:%s"%(key,value)
 
 
     # subcommands for launching other applications
@@ -274,7 +276,7 @@ class Application(SingletonConfigurable):
             for c in cls.mro()[:-3]:
                 classdict[c.__name__] = c
 
-        for alias, longname in self.aliases.iteritems():
+        for alias, longname in iteritems(self.aliases):
             classname, traitname = longname.split('.',1)
             cls = classdict[classname]
 
@@ -286,7 +288,7 @@ class Application(SingletonConfigurable):
                 help[0] = help[0].replace('--%s='%alias, '-%s '%alias)
             lines.extend(help)
         # lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
 
     def print_flag_help(self):
         """Print the flag part of the help."""
@@ -294,12 +296,12 @@ class Application(SingletonConfigurable):
             return
 
         lines = []
-        for m, (cfg,help) in self.flags.iteritems():
+        for m, (cfg,help) in iteritems(self.flags):
             prefix = '--' if len(m) > 1 else '-'
             lines.append(prefix+m)
             lines.append(indent(dedent(help.strip())))
         # lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
 
     def print_options(self):
         if not self.flags and not self.aliases:
@@ -310,10 +312,10 @@ class Application(SingletonConfigurable):
         for p in wrap_paragraphs(self.option_description):
             lines.append(p)
             lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
         self.print_flag_help()
         self.print_alias_help()
-        print
+        print()
 
     def print_subcommands(self):
         """Print the subcommand part of the help."""
@@ -326,12 +328,12 @@ class Application(SingletonConfigurable):
         for p in wrap_paragraphs(self.subcommand_description):
             lines.append(p)
             lines.append('')
-        for subc, (cls, help) in self.subcommands.iteritems():
+        for subc, (cls, help) in iteritems(self.subcommands):
             lines.append(subc)
             if help:
                 lines.append(indent(dedent(help.strip())))
         lines.append('')
-        print os.linesep.join(lines)
+        print(os.linesep.join(lines))
 
     def print_help(self, classes=False):
         """Print the help for each Configurable class in self.classes.
@@ -344,19 +346,19 @@ class Application(SingletonConfigurable):
 
         if classes:
             if self.classes:
-                print "Class parameters"
-                print "----------------"
-                print
+                print("Class parameters")
+                print("----------------")
+                print()
                 for p in wrap_paragraphs(self.keyvalue_description):
-                    print p
-                    print
+                    print(p)
+                    print()
 
             for cls in self.classes:
                 cls.class_print_help()
-                print
+                print()
         else:
-            print "To see all available configurables, use `--help-all`"
-            print
+            print("To see all available configurables, use `--help-all`")
+            print()
 
         self.print_examples()
 
@@ -364,8 +366,8 @@ class Application(SingletonConfigurable):
     def print_description(self):
         """Print the application description."""
         for p in wrap_paragraphs(self.description):
-            print p
-            print
+            print(p)
+            print()
 
     def print_examples(self):
         """Print usage and examples.
@@ -374,15 +376,15 @@ class Application(SingletonConfigurable):
         and should contain examples of the application's usage.
         """
         if self.examples:
-            print "Examples"
-            print "--------"
-            print
-            print indent(dedent(self.examples.strip()))
-            print
+            print("Examples")
+            print("--------")
+            print()
+            print(indent(dedent(self.examples.strip())))
+            print()
 
     def print_version(self):
         """Print the version string."""
-        print self.version
+        print(self.version)
 
     def update_config(self, config):
         """Fire the traits events when the config is updated."""
@@ -399,7 +401,7 @@ class Application(SingletonConfigurable):
         """Initialize a subcommand with argv."""
         subapp,help = self.subcommands.get(subc)
 
-        if isinstance(subapp, basestring):
+        if isinstance(subapp, string_types):
             subapp = import_item(subapp)
 
         # clear existing instances
@@ -432,7 +434,7 @@ class Application(SingletonConfigurable):
         # flatten aliases, which have the form:
         # { 'alias' : 'Class.trait' }
         aliases = {}
-        for alias, cls_trait in self.aliases.iteritems():
+        for alias, cls_trait in iteritems(self.aliases):
             cls,trait = cls_trait.split('.',1)
             children = mro_tree[cls]
             if len(children) == 1:
@@ -443,9 +445,9 @@ class Application(SingletonConfigurable):
         # flatten flags, which are of the form:
         # { 'key' : ({'Cls' : {'trait' : value}}, 'help')}
         flags = {}
-        for key, (flagdict, help) in self.flags.iteritems():
+        for key, (flagdict, help) in iteritems(self.flags):
             newflag = {}
-            for cls, subdict in flagdict.iteritems():
+            for cls, subdict in iteritems(flagdict):
                 children = mro_tree[cls]
                 # exactly one descendent, promote flag section
                 if len(children) == 1:

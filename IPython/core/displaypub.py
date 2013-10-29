@@ -31,6 +31,7 @@ from __future__ import print_function
 
 from IPython.config.configurable import Configurable
 from IPython.utils import io
+from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import List
 
 #-----------------------------------------------------------------------------
@@ -58,7 +59,7 @@ class DisplayPublisher(Configurable):
             Any metadata for the data.
         """
 
-        if not isinstance(source, basestring):
+        if not isinstance(source, string_types):
             raise TypeError('source must be a str, got: %r' % source)
         if not isinstance(data, dict):
             raise TypeError('data must be a dict, got: %r' % data)

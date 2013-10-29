@@ -30,7 +30,7 @@ from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult
 from IPython.parallel import LoadBalancedView, DirectView
 
-from clienttest import ClusterTestCase, segfault, wait, add_engines
+from .clienttest import ClusterTestCase, segfault, wait, add_engines
 
 def setup():
     add_engines(4, total=True)
@@ -95,7 +95,7 @@ class TestClient(ClusterTestCase):
         
         def double(x):
             return x*2
-        seq = range(100)
+        seq = list(range(100))
         ref = [ double(x) for x in seq ]
         
         # add some engines, which should be used

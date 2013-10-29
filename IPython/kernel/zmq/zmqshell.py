@@ -44,13 +44,14 @@ from IPython.utils import openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
+from IPython.utils.py3compat import unicode_type
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes, Any
 from IPython.utils.warn import error
 from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
 from IPython.kernel.comm import CommManager
-from session import Session
+from .session import Session
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -555,7 +556,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
         exc_content = {
             u'traceback' : stb,
-            u'ename' : unicode(etype.__name__),
+            u'ename' : unicode_type(etype.__name__),
             u'evalue' : py3compat.safe_unicode(evalue),
         }
 

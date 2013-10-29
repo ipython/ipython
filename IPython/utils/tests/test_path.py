@@ -37,15 +37,21 @@ from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
 try:
-    import _winreg as wreg
+    import winreg as wreg  # Py 3
 except ImportError:
-    #Fake _winreg module on none windows platforms
-    import types
-    wr_name = "winreg" if py3compat.PY3 else "_winreg"
-    sys.modules[wr_name] = types.ModuleType(wr_name)
-    import _winreg as wreg
-    #Add entries that needs to be stubbed by the testing code
-    (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
+    try:
+        import _winreg as wreg  # Py 2
+    except ImportError:
+        #Fake _winreg module on none windows platforms
+        import types
+        wr_name = "winreg" if py3compat.PY3 else "_winreg"
+        sys.modules[wr_name] = types.ModuleType(wr_name)
+        try:
+            import winreg as wreg
+        except ImportError:
+            import _winreg as wreg
+        #Add entries that needs to be stubbed by the testing code
+        (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
 
 try:
     reload
@@ -110,7 +116,7 @@ def teardown_environment():
     os.chdir(old_wd)
     reload(path)
 
-    for key in env.keys():
+    for key in list(env):
         if key not in oldenv:
             del env[key]
     env.update(oldenv)
@@ -499,8 +505,8 @@ class TestShellGlob(object):
 
     @classmethod
     def setUpClass(cls):
-        cls.filenames_start_with_a = map('a{0}'.format, range(3))
-        cls.filenames_end_with_b = map('{0}b'.format, range(3))
+        cls.filenames_start_with_a = ['a0', 'a1', 'a2']
+        cls.filenames_end_with_b = ['0b', '1b', '2b']
         cls.filenames = cls.filenames_start_with_a + cls.filenames_end_with_b
         cls.tempdir = TemporaryDirectory()
         td = cls.tempdir.name

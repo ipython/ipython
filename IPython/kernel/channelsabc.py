@@ -11,18 +11,17 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports
 import abc
+
+from IPython.utils.py3compat import with_metaclass
 
 #-----------------------------------------------------------------------------
 # Channels
 #-----------------------------------------------------------------------------
 
 
-class ChannelABC(object):
+class ChannelABC(with_metaclass(abc.ABCMeta, object)):
     """A base class for all channel ABCs."""
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def start(self):

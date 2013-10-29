@@ -11,22 +11,21 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports
 import abc
+
+from IPython.utils.py3compat import with_metaclass
 
 #-----------------------------------------------------------------------------
 # Main kernel client class
 #-----------------------------------------------------------------------------
 
-class KernelClientABC(object):
+class KernelClientABC(with_metaclass(abc.ABCMeta, object)):
     """KernelManager ABC.
 
     The docstrings for this class can be found in the base implementation:
 
     `IPython.kernel.client.KernelClient`
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def kernel(self):

@@ -59,9 +59,8 @@ class Tests (unittest.TestCase):
         ]
         for pat,res in tests:
             res.sort()
-            a=wildcard.list_namespace(ns,"all",pat,ignore_case=False,
-                                      show_all=False).keys()
-            a.sort()
+            a=sorted(wildcard.list_namespace(ns,"all",pat,ignore_case=False,
+                                             show_all=False).keys())
             self.assertEqual(a,res)
 
     def test_case_showall(self):
@@ -75,9 +74,8 @@ class Tests (unittest.TestCase):
         ]
         for pat,res in tests:
             res.sort()
-            a=wildcard.list_namespace(ns,"all",pat,ignore_case=False,
-                                      show_all=True).keys()
-            a.sort()
+            a=sorted(wildcard.list_namespace(ns,"all",pat,ignore_case=False,
+                                             show_all=True).keys())
             self.assertEqual(a,res)
 
 
@@ -93,9 +91,8 @@ class Tests (unittest.TestCase):
         ]
         for pat,res in tests:
             res.sort()
-            a=wildcard.list_namespace(ns,"all",pat,ignore_case=True,
-                                      show_all=False).keys()
-            a.sort()
+            a=sorted(wildcard.list_namespace(ns,"all",pat,ignore_case=True,
+                                             show_all=False).keys())
             self.assertEqual(a,res)
 
     def test_nocase_showall(self):
@@ -110,8 +107,8 @@ class Tests (unittest.TestCase):
         ]
         for pat,res in tests:
             res.sort()
-            a=wildcard.list_namespace(ns,"all",pat,ignore_case=True,
-                                      show_all=True).keys()
+            a=sorted(wildcard.list_namespace(ns,"all",pat,ignore_case=True,
+                                             show_all=True).keys())
             a.sort()
             self.assertEqual(a,res)
             
@@ -126,9 +123,8 @@ class Tests (unittest.TestCase):
         ]
         for pat, res in tests:
             res.sort()
-            a = wildcard.list_namespace(ns, "all", pat, ignore_case=False,
-                                        show_all=True).keys()
-            a.sort()
+            a = sorted(wildcard.list_namespace(ns, "all", pat, ignore_case=False,
+                                               show_all=True).keys())
             self.assertEqual(a, res)
     
     def test_dict_dir(self):

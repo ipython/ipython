@@ -18,9 +18,9 @@ Authors:
 
 import json
 
-import v1
-import v2
-import v3
+from . import v1
+from . import v2
+from . import v3
 
 versions = {
     1: v1,

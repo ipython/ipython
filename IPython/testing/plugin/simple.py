@@ -3,6 +3,7 @@
 This file just contains doctests both using plain python and IPython prompts.
 All tests should be loaded by nose.
 """
+from __future__ import print_function
 
 def pyfunc():
     """Some pure python tests...
@@ -16,10 +17,10 @@ def pyfunc():
     5
 
     >>> for i in range(3):
-    ...     print i,
-    ...     print i+1,
+    ...     print(i, end=' ')
+    ...     print(i+1, end=' ')
     ...
-    0 1 1 2 2 3
+    0 1 1 2 2 3 
     """
     return 'pyfunc'
 

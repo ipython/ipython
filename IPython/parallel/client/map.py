@@ -26,7 +26,6 @@ Authors:
 
 from __future__ import division
 
-import types
 from itertools import islice
 
 from IPython.utils.data import flatten as utils_flatten
@@ -100,7 +99,7 @@ class Map(object):
             if isinstance(testObject, m['type']):
                 return m['module'].concatenate(listOfPartitions)
         # Next try for Python sequence types
-        if isinstance(testObject, (types.ListType, types.TupleType)):
+        if isinstance(testObject, (list, tuple)):
             return utils_flatten(listOfPartitions)
         # If we have scalars, just return listOfPartitions
         return listOfPartitions
@@ -122,7 +121,7 @@ class RoundRobinMap(Map):
             #print m
             if isinstance(testObject, m['type']):
                 return self.flatten_array(m['type'], listOfPartitions)
-        if isinstance(testObject, (types.ListType, types.TupleType)):
+        if isinstance(testObject, (list, tuple)):
             return self.flatten_list(listOfPartitions)
         return listOfPartitions
     

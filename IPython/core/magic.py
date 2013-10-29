@@ -1,6 +1,7 @@
 # encoding: utf-8
 """Magic functions for InteractiveShell.
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
@@ -29,6 +30,7 @@ from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
+from IPython.utils.py3compat import string_types, iteritems
 from IPython.utils.text import dedent
 from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error
@@ -193,14 +195,14 @@ def _method_magic_marker(magic_kind):
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
-            name = func.func_name
+            name = func.__name__
             retval = decorator(call, func)
             record_magic(magics, magic_kind, name, name)
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, string_types):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
-                record_magic(magics, magic_kind, name, func.func_name)
+                record_magic(magics, magic_kind, name, func.__name__)
                 return decorator(call, func)
             retval = mark
         else:
@@ -238,10 +240,10 @@ def _function_magic_marker(magic_kind):
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
-            name = func.func_name
+            name = func.__name__
             ip.register_magic_function(func, magic_kind, name)
             retval = decorator(call, func)
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, string_types):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
@@ -347,7 +349,7 @@ class MagicsManager(Configurable):
         docs = {}
         for m_type in self.magics:
             m_docs = {}
-            for m_name, m_func in self.magics[m_type].iteritems():
+            for m_name, m_func in iteritems(self.magics[m_type]):
                 if m_func.__doc__:
                     if brief:
                         m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
@@ -424,7 +426,7 @@ class MagicsManager(Configurable):
         # Create the new method in the user_magics and register it in the
         # global table
         validate_type(magic_kind)
-        magic_name = func.func_name if magic_name is None else magic_name
+        magic_name = func.__name__ if magic_name is None else magic_name
         setattr(self.user_magics, magic_name, func)
         record_magic(self.magics, magic_kind, magic_name, func)
 
@@ -531,8 +533,8 @@ class Magics(Configurable):
         for mtype in magic_kinds:
             tab = self.magics[mtype] = {}
             cls_tab = class_magics[mtype]
-            for magic_name, meth_name in cls_tab.iteritems():
-                if isinstance(meth_name, basestring):
+            for magic_name, meth_name in iteritems(cls_tab):
+                if isinstance(meth_name, string_types):
                     # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)
                 else:
@@ -544,8 +546,8 @@ class Magics(Configurable):
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
-        print 'Error in arguments:'
-        print oinspect.getdoc(func)
+        print('Error in arguments:')
+        print(oinspect.getdoc(func))
 
     def format_latex(self, strng):
         """Format a string for latex inclusion."""

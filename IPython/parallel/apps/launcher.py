@@ -64,6 +64,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.path import get_home_dir
 from IPython.utils.process import find_cmd, FindCmdError
+from IPython.utils.py3compat import iteritems, itervalues
 
 from .win32support import forward_read_events
 
@@ -404,14 +405,14 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
 
     def signal(self, sig):
         dlist = []
-        for el in self.launchers.itervalues():
+        for el in itervalues(self.launchers):
             d = el.signal(sig)
             dlist.append(d)
         return dlist
 
     def interrupt_then_kill(self, delay=1.0):
         dlist = []
-        for el in self.launchers.itervalues():
+        for el in itervalues(self.launchers):
             d = el.interrupt_then_kill(delay)
             dlist.append(d)
         return dlist
@@ -421,7 +422,7 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
 
     def _notice_engine_stopped(self, data):
         pid = data['pid']
-        for idx,el in self.launchers.iteritems():
+        for idx,el in iteritems(self.launchers):
             if el.process.pid == pid:
                 break
         self.launchers.pop(idx)
@@ -742,7 +743,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
     def engine_count(self):
         """determine engine count from `engines` dict"""
         count = 0
-        for n in self.engines.itervalues():
+        for n in itervalues(self.engines):
             if isinstance(n, (tuple,list)):
                 n,args = n
             count += n
@@ -754,7 +755,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
         """
 
         dlist = []
-        for host, n in self.engines.iteritems():
+        for host, n in iteritems(self.engines):
             if isinstance(n, (tuple, list)):
                 n, args = n
             else:

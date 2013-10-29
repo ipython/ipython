@@ -27,6 +27,7 @@ from IPython.utils.text import format_screen, dedent, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import unquote_filename
+from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import warn, error
 
 #-----------------------------------------------------------------------------
@@ -71,7 +72,7 @@ class MagicsDisplay(object):
             magic_dict[key] = d
             for name, obj in subdict.items():
                 try:
-                    classname = obj.im_class.__name__
+                    classname = obj.__self__.__class__.__name__
                 except AttributeError:
                     classname = 'Other'
                 
@@ -599,7 +600,7 @@ Defaulting color scheme to 'NoColor'"""
              'format. The filename argument gives the name of the source file.'
     )
     @magic_arguments.argument(
-        'filename', type=unicode,
+        'filename', type=unicode_type,
         help='Notebook name or filename'
     )
     @line_magic

@@ -31,7 +31,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 # internal:
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import localhost
-from IPython.utils.py3compat import cast_bytes
+from IPython.utils.py3compat import cast_bytes, unicode_type, iteritems
 from IPython.utils.traitlets import (
         HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
         )
@@ -193,9 +193,9 @@ class HubFactory(RegistrationFactory):
         help="IP on which to listen for monitor messages. [default: loopback]")
     monitor_transport = Unicode('tcp', config=True,
         help="0MQ transport for monitor messages. [default : tcp]")
-    
+
     _client_ip_default = _monitor_ip_default = _engine_ip_default
-    
+
 
     monitor_url = Unicode('')
 
@@ -455,7 +455,7 @@ class Hub(SessionFactory):
         self._idcounter += 1
         return newid
         # newid = 0
-        # incoming = [id[0] for id in self.incoming_registrations.itervalues()]
+        # incoming = [id[0] for id in itervalues(self.incoming_registrations)]
         # # print newid, self.ids, self.incoming_registrations
         # while newid in self.ids or newid in incoming:
         #     newid += 1
@@ -471,13 +471,13 @@ class Hub(SessionFactory):
             # default to all
             return self.ids
 
-        if isinstance(targets, (int,str,unicode)):
+        if isinstance(targets, (int,str,unicode_type)):
             # only one target specified
             targets = [targets]
         _targets = []
         for t in targets:
             # map raw identities to ids
-            if isinstance(t, (str,unicode)):
+            if isinstance(t, (str,unicode_type)):
                 t = self.by_ident.get(cast_bytes(t), t)
             _targets.append(t)
         targets = _targets
@@ -611,7 +611,7 @@ class Hub(SessionFactory):
         try:
             # it's posible iopub arrived first:
             existing = self.db.get_record(msg_id)
-            for key,evalue in existing.iteritems():
+            for key,evalue in iteritems(existing):
                 rvalue = record.get(key, None)
                 if evalue and rvalue and evalue != rvalue:
                     self.log.warn("conflicting initial state for record: %r:%r <%r> %r", msg_id, rvalue, key, evalue)
@@ -717,7 +717,7 @@ class Hub(SessionFactory):
                     # still check content,header which should not change
                     # but are not expensive to compare as buffers
 
-            for key,evalue in existing.iteritems():
+            for key,evalue in iteritems(existing):
                 if key.endswith('buffers'):
                     # don't compare buffers
                     continue
@@ -892,7 +892,7 @@ class Hub(SessionFactory):
         self.log.info("client::client %r connected", client_id)
         content = dict(status='ok')
         jsonable = {}
-        for k,v in self.keytable.iteritems():
+        for k,v in iteritems(self.keytable):
             if v not in self.dead_engines:
                 jsonable[str(k)] = v
         content['engines'] = jsonable
@@ -920,7 +920,7 @@ class Hub(SessionFactory):
                 content = error.wrap_exception()
                 self.log.error("uuid %r in use", uuid, exc_info=True)
         else:
-            for h, ec in self.incoming_registrations.iteritems():
+            for h, ec in iteritems(self.incoming_registrations):
                 if uuid == h:
                     try:
                         raise KeyError("heart_id %r in use" % uuid)
@@ -1073,7 +1073,7 @@ class Hub(SessionFactory):
         self.log.debug("save engine state to %s" % self.engine_state_file)
         state = {}
         engines = {}
-        for eid, ec in self.engines.iteritems():
+        for eid, ec in iteritems(self.engines):
             if ec.uuid not in self.dead_engines:
                 engines[eid] = ec.uuid
         
@@ -1097,7 +1097,7 @@ class Hub(SessionFactory):
         
         save_notifier = self.notifier
         self.notifier = None
-        for eid, uuid in state['engines'].iteritems():
+        for eid, uuid in iteritems(state['engines']):
             heart = uuid.encode('ascii')
             # start with this heart as current and beating:
             self.heartmonitor.responses.add(heart)
@@ -1190,7 +1190,7 @@ class Hub(SessionFactory):
             except Exception:
                 reply = error.wrap_exception()
         else:
-            pending = filter(lambda m: m in self.pending, msg_ids)
+            pending = [m for m in msg_ids if (m in self.pending)]
             if pending:
                 try:
                     raise IndexError("msg pending: %r" % pending[0])
@@ -1290,7 +1290,7 @@ class Hub(SessionFactory):
         finish(dict(status='ok', resubmitted=resubmitted))
         
         # store the new IDs in the Task DB
-        for msg_id, resubmit_id in resubmitted.iteritems():
+        for msg_id, resubmit_id in iteritems(resubmitted):
             try:
                 self.db.update_record(msg_id, {'resubmitted' : resubmit_id})
             except Exception:
@@ -1312,7 +1312,7 @@ class Hub(SessionFactory):
             'io' : io_dict,
         }
         if rec['result_buffers']:
-            buffers = map(bytes, rec['result_buffers'])
+            buffers = list(map(bytes, rec['result_buffers']))
         else:
             buffers = []
 

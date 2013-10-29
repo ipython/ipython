@@ -1,5 +1,6 @@
 # coding: utf-8
 """Tests for the notebook manager."""
+from __future__ import print_function
 
 import os
 
@@ -66,7 +67,7 @@ class TestNotebookManager(TestCase):
         try:
             os.makedirs(os_path)
         except OSError:
-            print "Directory already exists."
+            print("Directory already exists.")
 
     def test_create_notebook_model(self):
         with TemporaryDirectory() as td:

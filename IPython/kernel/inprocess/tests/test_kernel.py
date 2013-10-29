@@ -11,7 +11,6 @@
 from __future__ import print_function
 
 # Standard library imports
-from StringIO import StringIO
 import sys
 import unittest
 
@@ -22,6 +21,11 @@ from IPython.kernel.inprocess.ipkernel import InProcessKernel
 from IPython.testing.decorators import skipif_not_matplotlib
 from IPython.utils.io import capture_output
 from IPython.utils import py3compat
+
+if py3compat.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Test case

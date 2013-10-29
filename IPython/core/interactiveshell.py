@@ -17,7 +17,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import __builtin__ as builtin_mod
 import __future__
 import abc
 import ast
@@ -69,6 +68,8 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
+from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
+                                     with_metaclass, iteritems)
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
@@ -751,7 +752,7 @@ class InteractiveShell(SingletonConfigurable):
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
         try:
-            for k, v in self._orig_sys_module_state.iteritems():
+            for k, v in iteritems(self._orig_sys_module_state):
                 setattr(sys, k, v)
         except AttributeError:
             pass
@@ -1242,7 +1243,7 @@ class InteractiveShell(SingletonConfigurable):
             # Also check in output history
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
-                to_delete = [n for n, o in ns.iteritems() if o is obj]
+                to_delete = [n for n, o in iteritems(ns) if o is obj]
                 for name in to_delete:
                     del ns[name]
 
@@ -1294,8 +1295,8 @@ class InteractiveShell(SingletonConfigurable):
         # We need a dict of name/value pairs to do namespace updates.
         if isinstance(variables, dict):
             vdict = variables
-        elif isinstance(variables, (basestring, list, tuple)):
-            if isinstance(variables, basestring):
+        elif isinstance(variables, string_types+(list, tuple)):
+            if isinstance(variables, string_types):
                 vlist = variables.split()
             else:
                 vlist = variables
@@ -1334,7 +1335,7 @@ class InteractiveShell(SingletonConfigurable):
         variables : dict
           A dictionary mapping object names (as strings) to the objects.
         """
-        for name, obj in variables.iteritems():
+        for name, obj in iteritems(variables):
             if name in self.user_ns and self.user_ns[name] is obj:
                 del self.user_ns[name]
                 self.user_ns_hidden.pop(name, None)
@@ -1589,14 +1590,14 @@ class InteractiveShell(SingletonConfigurable):
             msg = "CustomTB must return list of strings, not %r" % stb
             if stb is None:
                 return []
-            elif isinstance(stb, basestring):
+            elif isinstance(stb, string_types):
                 return [stb]
             elif not isinstance(stb, list):
                 raise TypeError(msg)
             # it's a list
             for line in stb:
                 # check every element
-                if not isinstance(line, basestring):
+                if not isinstance(line, string_types):
                     raise TypeError(msg)
             return stb
 
@@ -2200,7 +2201,7 @@ class InteractiveShell(SingletonConfigurable):
 
         from IPython.core import macro
 
-        if isinstance(themacro, basestring):
+        if isinstance(themacro, string_types):
             themacro = macro.Macro(themacro)
         if not isinstance(themacro, macro.Macro):
             raise ValueError('A macro must be a string or a Macro instance.')
@@ -2383,7 +2384,7 @@ class InteractiveShell(SingletonConfigurable):
         exc_info = {
             u'status' : 'error',
             u'traceback' : stb,
-            u'ename' : unicode(etype.__name__),
+            u'ename' : unicode_type(etype.__name__),
             u'evalue' : py3compat.safe_unicode(evalue),
         }
 
@@ -2446,7 +2447,7 @@ class InteractiveShell(SingletonConfigurable):
         user_ns = self.user_ns
         global_ns = self.user_global_ns
         
-        for key, expr in expressions.iteritems():
+        for key, expr in iteritems(expressions):
             try:
                 value = self._format_user_obj(eval(expr, global_ns, user_ns))
             except:
@@ -2461,7 +2462,7 @@ class InteractiveShell(SingletonConfigurable):
     def ex(self, cmd):
         """Execute a normal python statement in user namespace."""
         with self.builtin_trap:
-            exec cmd in self.user_global_ns, self.user_ns
+            exec(cmd, self.user_global_ns, self.user_ns)
 
     def ev(self, expr):
         """Evaluate python expression expr in user namespace.
@@ -2686,7 +2687,7 @@ class InteractiveShell(SingletonConfigurable):
                     
                     # Execute any registered post-execution functions.
                     # unless we are silent
-                    post_exec = [] if silent else self._post_execute.iteritems()
+                    post_exec = [] if silent else iteritems(self._post_execute)
                     
                     for func, status in post_exec:
                         if self.disable_failing_post_execute and not status:
@@ -2842,7 +2843,7 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 self.hooks.pre_run_code_hook()
                 #rprint('Running code', repr(code_obj)) # dbg
-                exec code_obj in self.user_global_ns, self.user_ns
+                exec(code_obj, self.user_global_ns, self.user_ns)
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
@@ -3113,7 +3114,7 @@ class InteractiveShell(SingletonConfigurable):
         except Exception:
             raise ValueError(("'%s' was not found in history, as a file, url, "
                                 "nor in the user namespace.") % target)
-        if isinstance(codeobj, basestring):
+        if isinstance(codeobj, string_types):
             return codeobj
         elif isinstance(codeobj, Macro):
             return codeobj.value
@@ -3157,8 +3158,7 @@ class InteractiveShell(SingletonConfigurable):
         self.restore_sys_module_state()
 
 
-class InteractiveShellABC(object):
+class InteractiveShellABC(with_metaclass(abc.ABCMeta, object)):
     """An abstract base class for InteractiveShell."""
-    __metaclass__ = abc.ABCMeta
 
 InteractiveShellABC.register(InteractiveShell)

@@ -1,6 +1,7 @@
 """
 Contains debug writer.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #Copyright (c) 2013, the IPython Development Team.
 #

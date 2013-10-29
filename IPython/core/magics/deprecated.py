@@ -1,5 +1,6 @@
 """Deprecated Magic functions.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -26,20 +27,20 @@ class DeprecatedMagics(Magics):
     @line_magic
     def install_profiles(self, parameter_s=''):
         """%install_profiles has been deprecated."""
-        print '\n'.join([
+        print('\n'.join([
             "%install_profiles has been deprecated.",
             "Use `ipython profile list` to view available profiles.",
             "Requesting a profile with `ipython profile create <name>`",
             "or `ipython --profile=<name>` will start with the bundled",
             "profile of that name if it exists."
-        ])
+        ]))
 
     @line_magic
     def install_default_config(self, parameter_s=''):
         """%install_default_config has been deprecated."""
-        print '\n'.join([
+        print('\n'.join([
             "%install_default_config has been deprecated.",
             "Use `ipython profile create <name>` to initialize a profile",
             "with the default config files.",
             "Add `--reset` to overwrite already existing config files with defaults."
-        ])
+        ]))

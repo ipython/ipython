@@ -16,7 +16,10 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import Cookie
+try:
+    from http.cookies import SimpleCookie  # Py 3
+except ImportError:
+    from Cookie import SimpleCookie  # Py 2
 import logging
 from tornado import web
 from tornado import websocket
@@ -102,7 +105,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             logging.error("First ws message didn't have the form 'identity:[cookie]' - %r", msg)
         
         try:
-            self.request._cookies = Cookie.SimpleCookie(msg)
+            self.request._cookies = SimpleCookie(msg)
         except:
             self.log.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 

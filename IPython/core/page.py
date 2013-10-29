@@ -314,7 +314,7 @@ if os.name == 'nt' and os.environ.get('TERM','dumb') != 'emacs':
         return result
 else:
     def page_more():
-        ans = raw_input('---Return to continue, q to quit--- ')
+        ans = py3compat.input('---Return to continue, q to quit--- ')
         if ans.lower().startswith('q'):
             return False
         else:
@@ -345,6 +345,6 @@ def snip_print(str,width = 75,print_full = 0,header = ''):
         print(str[:whalf] + ' <...> ' + str[-whalf:])
         snip = 1
     if snip and print_full == 2:
-        if raw_input(header+' Snipped. View (y/n)? [N]').lower() == 'y':
+        if py3compat.input(header+' Snipped. View (y/n)? [N]').lower() == 'y':
             page(str)
     return snip

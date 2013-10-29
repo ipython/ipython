@@ -28,6 +28,7 @@ try:
 except:
     from ConfigParser import ConfigParser
 from distutils.command.build_py import build_py
+from distutils.command.build_scripts import build_scripts
 from distutils.cmd import Command
 from glob import glob
 from subprocess import call
@@ -346,6 +347,21 @@ def find_scripts(entry_points=False, suffix=''):
                    pjoin(main_scripts, 'iptest')
         ]
     return scripts
+
+class build_scripts_rename(build_scripts):
+    """Use this on Python 3 to rename scripts to ipython3 etc."""
+    _suffix = '3'
+    
+    def copy_scripts(self):
+        outfiles, updated_files = super(build_scripts_rename, self).copy_scripts()
+        new_outfiles = [p + self._suffix for p in outfiles]
+        updated_files = [p + self._suffix for p in updated_files]
+        for old, new in zip(outfiles, new_outfiles):
+            if os.path.exists(new):
+                os.unlink(new) 
+            self.move_file(old, new)
+        return new_outfiles, updated_files
+            
 
 #---------------------------------------------------------------------------
 # Verify all dependencies

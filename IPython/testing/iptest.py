@@ -382,9 +382,21 @@ class StreamCapturer(Thread):
                 continue
 
             ready = select(streams, [], [], 0.5)[0]
+            dead = []
             with self.buffer_lock:
                 for fd in ready:
-                    self.buffer.write(os.read(fd, 1024))
+                    try:
+                        self.buffer.write(os.read(fd, 1024))
+                    except OSError as e:
+                        import errno
+                        if e.errno == errno.EBADF:
+                            dead.append(fd)
+                        else:
+                            raise
+
+            with self.streams_lock:
+                for fd in dead:
+                    self.streams.remove(fd)
     
     def add_stream(self, fd):
         with self.streams_lock:

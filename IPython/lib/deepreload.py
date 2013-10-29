@@ -17,6 +17,7 @@ Alternatively, you can add a dreload builtin alongside normal reload with::
 This code is almost entirely based on knee.py, which is a Python
 re-implementation of hierarchical module import.
 """
+from __future__ import print_function
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 #
@@ -24,7 +25,6 @@ re-implementation of hierarchical module import.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import __builtin__
 from contextlib import contextmanager
 import imp
 import sys
@@ -32,16 +32,18 @@ import sys
 from types import ModuleType
 from warnings import warn
 
-original_import = __builtin__.__import__
+from IPython.utils.py3compat import builtin_mod, builtin_mod_name
+
+original_import = builtin_mod.__import__
 
 @contextmanager
 def replace_import_hook(new_import):
-    saved_import = __builtin__.__import__
-    __builtin__.__import__ = new_import
+    saved_import = builtin_mod.__import__
+    builtin_mod.__import__ = new_import
     try:
         yield
     finally:
-        __builtin__.__import__ = saved_import
+        builtin_mod.__import__ = saved_import
 
 def get_parent(globals, level):
     """
@@ -91,7 +93,7 @@ def get_parent(globals, level):
             globals['__package__'] = name = modname[:lastdot]
 
     dot = len(name)
-    for x in xrange(level, 1, -1):
+    for x in range(level, 1, -1):
         try:
             dot = name.rindex('.', 0, dot)
         except ValueError:
@@ -167,7 +169,7 @@ def import_submodule(mod, subname, fullname):
     if fullname in found_now and fullname in sys.modules:
         m = sys.modules[fullname]
     else:
-        print 'Reloading', fullname
+        print('Reloading', fullname)
         found_now[fullname] = 1
         oldm = sys.modules.get(fullname, None)
 
@@ -312,12 +314,12 @@ def deep_reload_hook(m):
 
 # Save the original hooks
 try:
-    original_reload = __builtin__.reload
+    original_reload = builtin_mod.reload
 except AttributeError:
     original_reload = imp.reload    # Python 3
 
 # Replacement for reload()
-def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
+def reload(module, exclude=['sys', 'os.path', builtin_mod_name, '__main__']):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
     list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
@@ -334,4 +336,4 @@ def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
 
 # Uncomment the following to automatically activate deep reloading whenever
 # this module is imported
-#__builtin__.reload = reload
+#builtin_mod.reload = reload

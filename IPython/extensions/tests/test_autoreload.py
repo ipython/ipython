@@ -18,13 +18,18 @@ import tempfile
 import shutil
 import random
 import time
-from StringIO import StringIO
 
 import nose.tools as nt
 import IPython.testing.tools as tt
 
 from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.hooks import TryNext
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Test fixture
@@ -45,7 +50,7 @@ class FakeShell(object):
             self.auto_magics.pre_run_code_hook(self)
         except TryNext:
             pass
-        exec code in self.ns
+        exec(code, self.ns)
 
     def push(self, items):
         self.ns.update(items)

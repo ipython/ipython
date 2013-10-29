@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of execution-related magic functions.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -14,13 +15,11 @@
 #-----------------------------------------------------------------------------
 
 # Stdlib
-import __builtin__ as builtin_mod
 import ast
 import bdb
 import os
 import sys
 import time
-from StringIO import StringIO
 
 # cProfile was added in Python2.5
 try:
@@ -43,6 +42,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.py3compat import builtin_mod, iteritems, PY3
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
@@ -51,6 +51,10 @@ from IPython.utils.path import get_py_filename, unquote_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -85,6 +89,29 @@ class TimeitResult(object):
          p.text(u'<TimeitResult : '+unic+u'>')
 
 
+class TimeitTemplateFiller(ast.NodeTransformer):
+    """Fill in the AST template for timing execution.
+
+    This is quite closely tied to the template definition, which is in
+    :meth:`ExecutionMagics.timeit`.
+    """
+    def __init__(self, ast_setup, ast_stmt):
+        self.ast_setup = ast_setup
+        self.ast_stmt = ast_stmt
+
+    def visit_FunctionDef(self, node):
+        "Fill in the setup statement"
+        self.generic_visit(node)
+        if node.name == "inner":
+            node.body[:1] = self.ast_setup.body
+
+        return node
+
+    def visit_For(self, node):
+        "Fill in the statement to be timed"
+        if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
+            node.body = self.ast_stmt.body
+        return node
 
 
 @magics_class
@@ -277,22 +304,22 @@ python-profiler package from non-free.""")
 
         if 'q' not in opts:
             page.page(output)
-        print sys_exit,
+        print(sys_exit, end=' ')
 
         dump_file = opts.D[0]
         text_file = opts.T[0]
         if dump_file:
             dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
-            print '\n*** Profile stats marshalled to file',\
-                  repr(dump_file)+'.',sys_exit
+            print('\n*** Profile stats marshalled to file',\
+                  repr(dump_file)+'.',sys_exit)
         if text_file:
             text_file = unquote_filename(text_file)
             pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()
-            print '\n*** Profile printout saved to text file',\
-                  repr(text_file)+'.',sys_exit
+            print('\n*** Profile printout saved to text file',\
+                  repr(text_file)+'.',sys_exit)
 
         if 'r' in opts:
             return stats
@@ -332,7 +359,7 @@ python-profiler package from non-free.""")
 
         # set on the shell
         self.shell.call_pdb = new_pdb
-        print 'Automatic pdb calling has been turned',on_off(new_pdb)
+        print('Automatic pdb calling has been turned',on_off(new_pdb))
 
     @skip_doctest
     @magic_arguments.magic_arguments()
@@ -558,7 +585,7 @@ python-profiler package from non-free.""")
             filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
-            print '\n%run:\n', oinspect.getdoc(self.run)
+            print('\n%run:\n', oinspect.getdoc(self.run))
             return
         except IOError as e:
             try:
@@ -775,7 +802,7 @@ python-profiler package from non-free.""")
             deb.mainpyfile = deb.canonic(filename)
 
         # Start file run
-        print "NOTE: Enter 'c' at the %s prompt to continue execution." % deb.prompt
+        print("NOTE: Enter 'c' at the %s prompt to continue execution." % deb.prompt)
         try:
             if filename:
                 # save filename so it can be used by methods on the deb object
@@ -809,9 +836,9 @@ python-profiler package from non-free.""")
             t1 = clock2()
             t_usr = t1[0] - t0[0]
             t_sys = t1[1] - t0[1]
-            print "\nIPython CPU timings (estimated):"
-            print "  User   : %10.2f s." % t_usr
-            print "  System : %10.2f s." % t_sys
+            print("\nIPython CPU timings (estimated):")
+            print("  User   : %10.2f s." % t_usr)
+            print("  System : %10.2f s." % t_sys)
         else:
             runs = range(nruns)
             t0 = clock2()
@@ -820,13 +847,13 @@ python-profiler package from non-free.""")
             t1 = clock2()
             t_usr = t1[0] - t0[0]
             t_sys = t1[1] - t0[1]
-            print "\nIPython CPU timings (estimated):"
-            print "Total runs performed:", nruns
-            print "  Times  : %10s   %10s" % ('Total', 'Per run')
-            print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
-            print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
+            print("\nIPython CPU timings (estimated):")
+            print("Total runs performed:", nruns)
+            print("  Times  : %10s   %10s" % ('Total', 'Per run'))
+            print("  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns))
+            print("  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns))
         twall1 = time.time()
-        print "Wall time: %10.2f s." % (twall1 - twall0)
+        print("Wall time: %10.2f s." % (twall1 - twall0))
 
     @skip_doctest
     @line_cell_magic
@@ -948,23 +975,7 @@ python-profiler package from non-free.""")
                                         '    _t1 = _timer()\n'
                                         '    return _t1 - _t0\n')
 
-        class TimeitTemplateFiller(ast.NodeTransformer):
-            "This is quite tightly tied to the template definition above."
-            def visit_FunctionDef(self, node):
-                "Fill in the setup statement"
-                self.generic_visit(node)
-                if node.name == "inner":
-                    node.body[:1] = ast_setup.body
-
-                return node
-
-            def visit_For(self, node):
-                "Fill in the statement to be timed"
-                if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
-                    node.body = ast_stmt.body
-                return node
-
-        timeit_ast = TimeitTemplateFiller().visit(timeit_ast_template)
+        timeit_ast = TimeitTemplateFiller(ast_setup, ast_stmt).visit(timeit_ast_template)
         timeit_ast = ast.fix_missing_locations(timeit_ast)
 
         # Track compilation time so it can be reported if too long
@@ -976,7 +987,7 @@ python-profiler package from non-free.""")
         tc = clock()-t0
 
         ns = {}
-        exec code in self.shell.user_ns, ns
+        exec(code, self.shell.user_ns, ns)
         timer.inner = ns["inner"]
 
         if number == 0:
@@ -989,10 +1000,10 @@ python-profiler package from non-free.""")
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
         if not quiet :
-            print u"%d loops, best of %d: %s per loop" % (number, repeat,
-                                                              _format_time(best, precision))
+            print(u"%d loops, best of %d: %s per loop" % (number, repeat,
+                                                              _format_time(best, precision)))
             if tc > tc_min:
-                print "Compiler time: %.2f s" % tc
+                print("Compiler time: %.2f s" % tc)
         if return_result:
             return TimeitResult(number, repeat, best, all_runs, tc, precision)
 
@@ -1099,7 +1110,7 @@ python-profiler package from non-free.""")
             end = clock2()
         else:
             st = clock2()
-            exec code in glob, local_ns
+            exec(code, glob, local_ns)
             end = clock2()
             out = None
         wall_end = wtime()
@@ -1110,13 +1121,13 @@ python-profiler package from non-free.""")
         cpu_tot = cpu_user+cpu_sys
         # On windows cpu_sys is always zero, so no new information to the next print 
         if sys.platform != 'win32':
-            print "CPU times: user %s, sys: %s, total: %s" % \
-                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot))
-        print "Wall time: %s" % _format_time(wall_time)
+            print("CPU times: user %s, sys: %s, total: %s" % \
+                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot)))
+        print("Wall time: %s" % _format_time(wall_time))
         if tc > tc_min:
-            print "Compiler : %s" % _format_time(tc)
+            print("Compiler : %s" % _format_time(tc))
         if tp > tp_min:
-            print "Parser   : %s" % _format_time(tp)
+            print("Parser   : %s" % _format_time(tp))
         return out
 
     @skip_doctest
@@ -1184,7 +1195,7 @@ python-profiler package from non-free.""")
         """
         opts,args = self.parse_options(parameter_s,'rq',mode='list')
         if not args:   # List existing macros
-            return sorted(k for k,v in self.shell.user_ns.iteritems() if\
+            return sorted(k for k,v in iteritems(self.shell.user_ns) if\
                                                         isinstance(v, Macro))
         if len(args) == 1:
             raise UsageError(
@@ -1195,14 +1206,14 @@ python-profiler package from non-free.""")
         try:
             lines = self.shell.find_user_code(codefrom, 'r' in opts)
         except (ValueError, TypeError) as e:
-            print e.args[0]
+            print(e.args[0])
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
         if not ( 'q' in opts) : 
-            print 'Macro `%s` created. To execute, type its name (without quotes).' % name
-            print '=== Macro contents: ==='
-            print macro,
+            print('Macro `%s` created. To execute, type its name (without quotes).' % name)
+            print('=== Macro contents: ===')
+            print(macro, end=' ')
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',

@@ -1,5 +1,6 @@
 """Implementation of namespace-related magic functions.
 """
+from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -25,6 +26,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.openpy import read_py_file
 from IPython.utils.path import get_py_filename
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -117,7 +119,7 @@ class NamespaceMagics(Magics):
             try:
                 filename = get_py_filename(parameter_s)
             except IOError as msg:
-                print msg
+                print(msg)
                 return
             page.page(self.shell.pycolorize(read_py_file(filename, skip_encoding_cookie=False)))
 
@@ -204,7 +206,7 @@ class NamespaceMagics(Magics):
         try:
             parameter_s.encode('ascii')
         except UnicodeEncodeError:
-            print 'Python identifiers can only contain ascii characters.'
+            print('Python identifiers can only contain ascii characters.')
             return
 
         # default namespaces to be searched
@@ -327,20 +329,20 @@ class NamespaceMagics(Magics):
         varlist = self.who_ls(parameter_s)
         if not varlist:
             if parameter_s:
-                print 'No variables match your requested type.'
+                print('No variables match your requested type.')
             else:
-                print 'Interactive namespace is empty.'
+                print('Interactive namespace is empty.')
             return
 
         # if we have variables, move on...
         count = 0
         for i in varlist:
-            print i+'\t',
+            print(i+'\t', end=' ')
             count += 1
             if count > 8:
                 count = 0
-                print
-        print
+                print()
+        print()
 
     @skip_doctest
     @line_magic
@@ -378,9 +380,9 @@ class NamespaceMagics(Magics):
         varnames = self.who_ls(parameter_s)
         if not varnames:
             if parameter_s:
-                print 'No variables match your requested type.'
+                print('No variables match your requested type.')
             else:
-                print 'Interactive namespace is empty.'
+                print('Interactive namespace is empty.')
             return
 
         # if we have variables, move on...
@@ -399,8 +401,6 @@ class NamespaceMagics(Magics):
                 ndarray_type = ndarray.__name__
 
         # Find all variable names and types so we can figure out column sizes
-        def get_vars(i):
-            return self.shell.user_ns[i]
 
         # some types are well known and can be shorter
         abbrevs = {'IPython.core.macro.Macro' : 'Macro'}
@@ -408,7 +408,7 @@ class NamespaceMagics(Magics):
             tn = type(v).__name__
             return abbrevs.get(tn,tn)
 
-        varlist = map(get_vars,varnames)
+        varlist = [self.shell.user_ns[n] for n in varnames]
 
         typelist = []
         for vv in varlist:
@@ -432,15 +432,15 @@ class NamespaceMagics(Magics):
         varwidth = max(max(map(len,varnames)), len(varlabel)) + colsep
         typewidth = max(max(map(len,typelist)), len(typelabel)) + colsep
         # table header
-        print varlabel.ljust(varwidth) + typelabel.ljust(typewidth) + \
-              ' '+datalabel+'\n' + '-'*(varwidth+typewidth+len(datalabel)+1)
+        print(varlabel.ljust(varwidth) + typelabel.ljust(typewidth) + \
+              ' '+datalabel+'\n' + '-'*(varwidth+typewidth+len(datalabel)+1))
         # and the table itself
         kb = 1024
         Mb = 1048576  # kb**2
         for vname,var,vtype in zip(varnames,varlist,typelist):
-            print vformat.format(vname, vtype, varwidth=varwidth, typewidth=typewidth),
+            print(vformat.format(vname, vtype, varwidth=varwidth, typewidth=typewidth), end=' ')
             if vtype in seq_types:
-                print "n="+str(len(var))
+                print("n="+str(len(var)))
             elif vtype == ndarray_type:
                 vshape = str(var.shape).replace(',','').replace(' ','x')[1:-1]
                 if vtype==ndarray_type:
@@ -450,26 +450,26 @@ class NamespaceMagics(Magics):
                     vdtype = var.dtype
 
                 if vbytes < 100000:
-                    print aformat % (vshape, vsize, vdtype, vbytes)
+                    print(aformat % (vshape, vsize, vdtype, vbytes))
                 else:
-                    print aformat % (vshape, vsize, vdtype, vbytes),
+                    print(aformat % (vshape, vsize, vdtype, vbytes), end=' ')
                     if vbytes < Mb:
-                        print '(%s kb)' % (vbytes/kb,)
+                        print('(%s kb)' % (vbytes/kb,))
                     else:
-                        print '(%s Mb)' % (vbytes/Mb,)
+                        print('(%s Mb)' % (vbytes/Mb,))
             else:
                 try:
                     vstr = str(var)
                 except UnicodeEncodeError:
-                    vstr = unicode(var).encode(DEFAULT_ENCODING,
+                    vstr = unicode_type(var).encode(DEFAULT_ENCODING,
                                                'backslashreplace')
                 except:
                     vstr = "<object with id %d (str() failed)>" % id(var)
                 vstr = vstr.replace('\n', '\\n')
                 if len(vstr) < 50:
-                    print vstr
+                    print(vstr)
                 else:
-                    print vstr[:25] + "<...>" + vstr[-25:]
+                    print(vstr[:25] + "<...>" + vstr[-25:])
 
     @line_magic
     def reset(self, parameter_s=''):
@@ -540,7 +540,7 @@ class NamespaceMagics(Magics):
             except StdinNotImplementedError:
                 ans = True
         if not ans:
-            print 'Nothing done.'
+            print('Nothing done.')
             return
 
         if 's' in opts:                     # Soft reset
@@ -557,11 +557,11 @@ class NamespaceMagics(Magics):
         for target in args:
             target = target.lower() # make matches case insensitive
             if target == 'out':
-                print "Flushing output cache (%d entries)" % len(user_ns['_oh'])
+                print("Flushing output cache (%d entries)" % len(user_ns['_oh']))
                 self.shell.displayhook.flush()
 
             elif target == 'in':
-                print "Flushing input history"
+                print("Flushing input history")
                 pc = self.shell.displayhook.prompt_count + 1
                 for n in range(1, pc):
                     key = '_i'+repr(n)
@@ -581,19 +581,19 @@ class NamespaceMagics(Magics):
                     from numpy import ndarray
                     # This must be done with items and not iteritems because
                     # we're going to modify the dict in-place.
-                    for x,val in user_ns.items():
+                    for x,val in list(user_ns.items()):
                         if isinstance(val,ndarray):
                             del user_ns[x]
                 except ImportError:
-                    print "reset array only works if Numpy is available."
+                    print("reset array only works if Numpy is available.")
 
             elif target == 'dhist':
-                print "Flushing directory history"
+                print("Flushing directory history")
                 del user_ns['_dh'][:]
 
             else:
-                print "Don't know how to reset ",
-                print target + ", please run `%reset?` for details"
+                print("Don't know how to reset ", end=' ')
+                print(target + ", please run `%reset?` for details")
 
         gc.collect()
 
@@ -670,11 +670,11 @@ class NamespaceMagics(Magics):
             except StdinNotImplementedError:
                 ans = True
         if not ans:
-            print 'Nothing done.'
+            print('Nothing done.')
             return
         user_ns = self.shell.user_ns
         if not regex:
-            print 'No regex pattern specified. Nothing done.'
+            print('No regex pattern specified. Nothing done.')
             return
         else:
             try:
@@ -701,4 +701,4 @@ class NamespaceMagics(Magics):
         try:
             self.shell.del_var(varname, ('n' in opts))
         except (NameError, ValueError) as e:
-            print type(e).__name__ +": "+ str(e)
+            print(type(e).__name__ +": "+ str(e))

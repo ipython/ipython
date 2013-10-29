@@ -145,8 +145,11 @@ class TIMEOUT(ExceptionPexpect):
 
 PY3 = (sys.version_info[0] >= 3)
 
+unicode_type = str if PY3 else unicode
+basestring_type = str if PY3 else basestring
+
 def _cast_bytes(s, enc):
-    if isinstance(s, unicode):
+    if isinstance(s, unicode_type):
         return s.encode(enc)
     return s
 
@@ -249,16 +252,16 @@ def run (command, timeout=-1, withexitstatus=False, events=None, extra_args=None
     while 1:
         try:
             index = child.expect (patterns)
-            if isinstance(child.after, basestring):
+            if isinstance(child.after, basestring_type):
                 child_result_list.append(child.before + child.after)
             else: # child.after may have been a TIMEOUT or EOF, so don't cat those.
                 child_result_list.append(child.before)
-            if isinstance(responses[index], basestring):
+            if isinstance(responses[index], basestring_type):
                 child.send(responses[index])
             elif type(responses[index]) is types.FunctionType:
                 callback_result = responses[index](locals())
                 sys.stdout.flush()
-                if isinstance(callback_result, basestring):
+                if isinstance(callback_result, basestring_type):
                     child.send(callback_result)
                 elif callback_result:
                     break
@@ -1255,7 +1258,7 @@ class spawnb(object):
             compile_flags = compile_flags | re.IGNORECASE
         compiled_pattern_list = []
         for p in patterns:
-            if isinstance(p, (bytes, unicode)):
+            if isinstance(p, (bytes, unicode_type)):
                 p = self._cast_buffer_type(p)
                 compiled_pattern_list.append(re.compile(p, compile_flags))
             elif p is EOF:
@@ -1272,7 +1275,7 @@ class spawnb(object):
     
     def _prepare_regex_pattern(self, p):
         "Recompile unicode regexes as bytes regexes. Overridden in subclass."
-        if isinstance(p.pattern, unicode):
+        if isinstance(p.pattern, unicode_type):
             p = re.compile(p.pattern.encode('utf-8'), p.flags &~ re.UNICODE)
         return p
 
@@ -1384,7 +1387,7 @@ class spawnb(object):
         This method is also useful when you don't want to have to worry about
         escaping regular expression characters that you want to match."""
 
-        if isinstance(pattern_list, (bytes, unicode)) or pattern_list in (TIMEOUT, EOF):
+        if isinstance(pattern_list, (bytes, unicode_type)) or pattern_list in (TIMEOUT, EOF):
             pattern_list = [pattern_list]
         return self.expect_loop(searcher_string(pattern_list), timeout, searchwindowsize)
 
@@ -1465,7 +1468,7 @@ class spawnb(object):
         """This returns the terminal window size of the child tty. The return
         value is a tuple of (rows, cols). """
 
-        TIOCGWINSZ = getattr(termios, 'TIOCGWINSZ', 1074295912L)
+        TIOCGWINSZ = getattr(termios, 'TIOCGWINSZ', 1074295912)
         s = struct.pack('HHHH', 0, 0, 0, 0)
         x = fcntl.ioctl(self.fileno(), TIOCGWINSZ, s)
         return struct.unpack('HHHH', x)[0:2]
@@ -1487,7 +1490,7 @@ class spawnb(object):
         # Newer versions of Linux have totally different values for TIOCSWINSZ.
         # Note that this fix is a hack.
         TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
-        if TIOCSWINSZ == 2148037735L: # L is not required in Python >= 2.2.
+        if TIOCSWINSZ == 2148037735: # L is not required in Python >= 2.2.
             TIOCSWINSZ = -2146929561 # Same bits, but with sign.
         # Note, assume ws_xpixel and ws_ypixel are zero.
         s = struct.pack('HHHH', r, c, 0, 0)
@@ -1608,7 +1611,7 @@ class spawn(spawnb):
     """This is the main class interface for Pexpect. Use this class to start
     and control child applications."""
     
-    _buffer_type = unicode
+    _buffer_type = unicode_type
     def _cast_buffer_type(self, s):
         return _cast_unicode(s, self.encoding)
     _empty_buffer = u''

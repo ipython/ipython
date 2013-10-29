@@ -8,19 +8,23 @@ from __future__ import print_function
 VERBOSE = True
 
 # stdlib imports
-import StringIO
 import sys
 import unittest
 
 # IPython imports
 from IPython.lib import irunner
-from IPython.utils.py3compat import doctest_refactor_print
+from IPython.utils.py3compat import doctest_refactor_print, PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 # Testing code begins
 class RunnerTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.out = StringIO.StringIO()
+        self.out = StringIO()
         #self.out = sys.stdout
 
     def _test_runner(self,runner,source,output):

@@ -5,6 +5,8 @@ from pygments.lexer import RegexLexer, _TokenType, Text, Error
 from pygments.lexers import PythonLexer
 from pygments.styles import get_style_by_name
 
+# Local imports
+from IPython.utils.py3compat import string_types
 
 def get_tokens_unprocessed(self, text, stack=('root',)):
     """ Split ``text`` into (tokentype, text) pairs.
@@ -73,7 +75,7 @@ class PygmentsBlockUserData(QtGui.QTextBlockUserData):
     syntax_stack = ('root',)
 
     def __init__(self, **kwds):
-        for key, value in kwds.iteritems():
+        for key, value in kwds.items():
             setattr(self, key, value)
         QtGui.QTextBlockUserData.__init__(self)
 
@@ -129,7 +131,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
     def set_style(self, style):
         """ Sets the style to the specified Pygments style.
         """
-        if isinstance(style, basestring):
+        if isinstance(style, string_types):
             style = get_style_by_name(style)
         self._style = style
         self._clear_caches()

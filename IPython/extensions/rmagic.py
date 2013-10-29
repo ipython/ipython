@@ -35,6 +35,7 @@ To enable the magics below, execute ``%load_ext rmagic``.
 {RGET_DOC}
 
 """
+from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012 The IPython Development Team

@@ -297,9 +297,9 @@ class Containers(Configurable):
 class TestConfigContainers(TestCase):
     def test_extend(self):
         c = Config()
-        c.Containers.lis.extend(range(5))
+        c.Containers.lis.extend(list(range(5)))
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, range(-1,5))
+        self.assertEqual(obj.lis, list(range(-1,5)))
 
     def test_insert(self):
         c = Config()

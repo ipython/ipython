@@ -71,7 +71,7 @@ def ansi2html(text):
         '`': '&#96;',
     }
     
-    for c, escape in html_escapes.iteritems():
+    for c, escape in html_escapes.items():
         text = text.replace(c, escape)
 
     ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')

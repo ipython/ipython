@@ -22,6 +22,7 @@ import sqlite3
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.py3compat import unicode_type
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -66,7 +67,7 @@ class SessionManager(LoggingConfigurable):
 
     def new_session_id(self):
         "Create a uuid for a new session"
-        return unicode(uuid.uuid4())
+        return unicode_type(uuid.uuid4())
 
     def create_session(self, name=None, path=None, kernel_id=None, ws_url=None):
         """Creates a session and returns its model"""
@@ -132,7 +133,7 @@ class SessionManager(LoggingConfigurable):
 
         query = "SELECT * FROM session WHERE %s" % (' AND '.join(conditions))
 
-        self.cursor.execute(query, kwargs.values())
+        self.cursor.execute(query, list(kwargs.values()))
         model = self.cursor.fetchone()
         if model is None:
             q = []
@@ -169,7 +170,7 @@ class SessionManager(LoggingConfigurable):
                 raise TypeError("No such column: %r" % column)
             sets.append("%s=?" % column)
         query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
-        self.cursor.execute(query, kwargs.values() + [session_id])
+        self.cursor.execute(query, list(kwargs.values()) + [session_id])
 
     @staticmethod
     def row_factory(cursor, row):

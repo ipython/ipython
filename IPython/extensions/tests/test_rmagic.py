@@ -1,10 +1,14 @@
-from StringIO import StringIO
-
 import numpy as np
 from IPython.testing.decorators import skip_without
 from IPython.extensions import rmagic
+from IPython.utils.py3compat import PY3
 from rpy2 import rinterface
 import nose.tools as nt
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 ip = get_ipython()
 ip.magic('load_ext rmagic')
