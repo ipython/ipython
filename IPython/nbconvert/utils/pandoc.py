@@ -74,7 +74,7 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
 
 pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
 def get_pandoc_version():
-    out = subprocess.check_output('pandoc --version', shell=True)
+    out = subprocess.check_output(['pandoc', '--version'], universal_newlines=True)
     return pv_re.search(out).group(0)
 
 
