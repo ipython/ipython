@@ -187,7 +187,9 @@ class ProcessHandler(object):
 
         # We follow the subprocess pattern, returning either the exit status
         # as a positive number, or the terminating signal as a negative
-        # number. sh returns 128+n for signals
+        # number.
+        # on Linux, sh returns 128+n for signals terminating child processes on Linux
+        # on BSD (OS X), the signal code is set instead
         if child.exitstatus is None:
             # on WIFSIGNALED, pexpect sets signalstatus, leaving exitstatus=None
             if child.signalstatus is None:
