@@ -520,7 +520,7 @@ class Application(SingletonConfigurable):
                                 filename, exc_info=True)
             else:
                 self.log.debug("Loaded config file: %s", loader.full_filename)
-            if config is not None:
+            if config :
                 break
         if not config :
             raise ConfigFileNotFound('Neither .json, not .py file found.')
