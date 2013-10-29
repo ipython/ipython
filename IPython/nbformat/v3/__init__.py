@@ -30,7 +30,7 @@ from .nbpy import reads as reads_py, writes as writes_py
 from .nbpy import reads as read_py, writes as write_py
 from .nbpy import to_notebook as to_notebook_py
 
-from .convert import convert_to_this_nbformat
+from .convert import downgrade, upgrade
 
 #-----------------------------------------------------------------------------
 # Code

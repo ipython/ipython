@@ -3,6 +3,7 @@
 Authors:
 
 * Brian Granger
+* Jonathan Frederic
 """
 
 #-----------------------------------------------------------------------------
@@ -24,7 +25,7 @@ from .nbbase import (
 # Code
 #-----------------------------------------------------------------------------
 
-def convert_to_this_nbformat(nb, orig_version=1):
+def upgrade(nb, from_version=1):
     """Convert a notebook to the v2 format.
 
     Parameters
@@ -48,3 +49,13 @@ def convert_to_this_nbformat(nb, orig_version=1):
     else:
         raise ValueError('Cannot convert a notebook from v%s to v2' % orig_version)
 
+
+def downgrade(nb):
+    """Convert a v2 notebook to v1.
+
+    Parameters
+    ----------
+    nb : NotebookNode
+        The Python representation of the notebook to convert.
+    """
+    raise Exception("Downgrade from notebook v2 to v1 is not supported.")
