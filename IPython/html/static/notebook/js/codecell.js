@@ -134,19 +134,18 @@ var IPython = (function (IPython) {
         input.append(prompt).append(inner_cell);
 
         var widget_area = $('<div/>')
-            .addClass('widget_area')
+            .addClass('widget-area')
             .hide();
         this.widget_area = widget_area;
         var widget_prompt = $('<div/>')
             .addClass('prompt')
             .appendTo(widget_area);
         var widget_subarea = $('<div/>')
-            .addClass('widget_subarea')
+            .addClass('widget-subarea')
             .appendTo(widget_area);
         this.widget_subarea = widget_subarea;
         var widget_clear_buton = $('<button />')
             .addClass('close')
-            .addClass('widget_div_clear')
             .html('&times;')
             .click(function() {
                 widget_area.slideUp('', function(){ widget_subarea.html(''); });

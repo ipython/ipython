@@ -6,7 +6,7 @@ require(["notebook/js/widget"], function(){
         
         render : function(){
             this.$el = $('<div />')
-                .addClass('widget_container');
+                .addClass('widget-container');
         },
         
         update : function(){

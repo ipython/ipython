@@ -212,7 +212,7 @@ define(["components/underscore/underscore-min",
                     var view = this._create_view(view_name, cell_index);
                     new_views.push(view);
                     var cell = IPython.notebook.get_cell(cell_index);
-                    cell.element.find('.widget_area').find('.widget_subarea')
+                    cell.element.find('.widget-area').find('.widget-subarea')
                         .append(view.$el)
                         .parent().show(); // Show the widget_area (parent of widget_subarea)
                 
