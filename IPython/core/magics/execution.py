@@ -90,7 +90,11 @@ class TimeitResult(object):
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
-    "This is quite tightly tied to the template definition above."
+    """Fill in the AST template for timing execution.
+
+    This is quite closely tied to the template definition, which is in
+    :meth:`ExecutionMagics.timeit`.
+    """
     def __init__(self, ast_setup, ast_stmt):
         self.ast_setup = ast_setup
         self.ast_stmt = ast_stmt
