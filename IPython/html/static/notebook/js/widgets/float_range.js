@@ -8,6 +8,10 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-label')
+                .hide();
             this.$slider = $('<div />')
                 .slider({})
                 .addClass('slider');
@@ -34,6 +38,14 @@ require(["notebook/js/widget"], function(){
                     this.$slider.slider("option", key, this.model.get(key));
                 }
             }
+
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
+            }
             return IPython.WidgetView.prototype.update.call(this);
         },
         
@@ -54,6 +66,10 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-label')
+                .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
                 .appendTo(this.$el);
@@ -72,6 +88,14 @@ require(["notebook/js/widget"], function(){
                 this.$textbox.attr('disabled','disabled');
             } else {
                 this.$textbox.removeAttr('disabled');
+            }
+
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
             }
             return IPython.WidgetView.prototype.update.call(this);
         },

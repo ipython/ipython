@@ -22,7 +22,13 @@ require(["notebook/js/widget"], function(){
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
         update : function(){
-            this.$el.html(this.model.get('description'));
+            var description = this.model.get('description');
+            if (description.length==0) {
+                this.$el.html(' '); // Preserve button height
+            } else {
+                this.$el.html(description);
+            }
+            
             return IPython.WidgetView.prototype.update.call(this);
         },
         

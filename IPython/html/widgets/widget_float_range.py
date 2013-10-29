@@ -24,10 +24,11 @@ class FloatRangeWidget(Widget):
     default_view_name = Unicode('FloatSliderView')
 
     # Keys
-    _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation']
+    _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description']
     value = Float(0.0, help="Flaot value") 
     max = Float(100.0, help="Max value")
     min = Float(0.0, help="Min value")
     disabled = Bool(False, help="Enable or disable user changes")
     step = Float(0.1, help="Minimum step that the value can take (ignored by some views)")
     orientation = Unicode(u'horizontal', help="Vertical or horizontal (ignored by some views)")
+    description = Unicode(help="Description of the value this widget represents")

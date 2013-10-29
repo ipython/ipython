@@ -13,11 +13,13 @@ require(["notebook/js/widget"], function(){
 
             var $label = $('<label />')
                 .addClass('checkbox')
+                .addClass('widget-label')
                 .appendTo(this.$el);
+            this.$checkbox_label = $('<div />')
+                .appendTo($label)
+                .hide();
             this.$checkbox = $('<input />')
                 .attr('type', 'checkbox')
-                .appendTo($label);
-            this.$checkbox_label = $('<div />')
                 .appendTo($label);
 
             this.update(); // Set defaults.
@@ -28,7 +30,14 @@ require(["notebook/js/widget"], function(){
         update : function(){
             if (!this.user_invoked_update) {
                 this.$checkbox.prop('checked', this.model.get('value'));
-                this.$checkbox_label.html(this.model.get('description'));
+
+                var description = this.model.get('description');
+                if (description.length == 0) {
+                    this.$checkbox_label.hide();
+                } else {
+                    this.$checkbox_label.html(description);
+                    this.$checkbox_label.show();
+                }
             }
             return IPython.WidgetView.prototype.update.call(this);
         },
@@ -71,7 +80,13 @@ require(["notebook/js/widget"], function(){
                 } else {
                     this.$button.removeClass('active');
                 }
-                this.$button.html(this.model.get('description'));
+
+                var description = this.model.get('description');
+                if (description.length == 0) {
+                    this.$button.html(' '); // Preserve button height
+                } else {
+                    this.$button.html(description);
+                }
             }
             return IPython.WidgetView.prototype.update.call(this);
         },

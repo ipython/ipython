@@ -24,10 +24,11 @@ class IntRangeWidget(Widget):
     default_view_name = Unicode('IntSliderView')
 
     # Keys
-    _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation']
+    _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description']
     value = Int(0, help="Int value") 
     max = Int(100, help="Max value")
     min = Int(0, help="Min value")
     disabled = Bool(False, help="Enable or disable user changes")
     step = Int(1, help="Minimum step that the value can take (ignored by some views)")
     orientation = Unicode(u'horizontal', help="Vertical or horizontal (ignored by some views)")
+    description = Unicode(help="Description of the value this widget represents")

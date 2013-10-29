@@ -9,6 +9,10 @@ require(["notebook/js/widget"], function(){
             
             this.$el
                 .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-label')
+                .hide();
             this.$buttongroup = $('<div />')
                                 .addClass('widget_item')
                                 .addClass('btn-group')
@@ -42,7 +46,7 @@ require(["notebook/js/widget"], function(){
                 var item_button = $('<a href="#"/>')
                     .html(items[index])
                     .on('click', function(e){
-                        that.model.set('value', $(e.target).html(), this );
+                        that.model.set('value', $(e.target).html(), this);
                         that.model.update_other_views(that);
                     })
                 
@@ -60,6 +64,14 @@ require(["notebook/js/widget"], function(){
                 this.$dropbutton.removeAttr('disabled');
                 this.$droplist.removeAttr('disabled');
             }
+
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
+            }
             return IPython.WidgetView.prototype.update.call(this);
         },
         
@@ -73,6 +85,10 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-label')
+                .hide();
             this.update();
         },
         
@@ -124,6 +140,14 @@ require(["notebook/js/widget"], function(){
                     $(obj).parent().remove();
                 }
             });
+
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
+            }
             return IPython.WidgetView.prototype.update.call(this);
         },
         
@@ -138,6 +162,10 @@ require(["notebook/js/widget"], function(){
         render : function(){
             this.$el
                 .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-label')
+                .hide();
             this.$buttongroup = $('<div />')
                 .addClass('btn-group')
                 .attr('data-toggle', 'buttons-radio')
@@ -189,6 +217,14 @@ require(["notebook/js/widget"], function(){
                     $(obj).remove();
                 }
             });
+
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
+            }
             return IPython.WidgetView.prototype.update.call(this);
         },
         
