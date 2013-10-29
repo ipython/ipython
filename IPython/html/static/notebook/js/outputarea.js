@@ -335,8 +335,7 @@ var IPython = (function (IPython) {
             // Create an iframe to isolate the subarea from the rest of the
             // document
             var iframe = $('<iframe/>').addClass('box-flex1');
-            iframe.attr('height', 1);
-            iframe.css({'width':'100%', 'display':'block'});
+            iframe.css({'height':1, 'width':'100%', 'display':'block'});
             iframe.attr('frameborder', 0);
             iframe.attr('scrolling', 'auto');
 
