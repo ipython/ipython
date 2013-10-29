@@ -21,7 +21,7 @@ require(["notebook/js/widget"], function(){
 
     IPython.notebook.widget_manager.register_widget_view('LabelView', LabelView);
 
-    var TextareaView = IPython.WidgetView.extend({
+    var TextAreaView = IPython.WidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -55,9 +55,9 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('TextareaView', TextareaView);
+    IPython.notebook.widget_manager.register_widget_view('TextAreaView', TextAreaView);
 
-    var TextboxView = IPython.WidgetView.extend({
+    var TextBoxView = IPython.WidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -91,5 +91,5 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('TextboxView', TextboxView);
+    IPython.notebook.widget_manager.register_widget_view('TextBoxView', TextBoxView);
 });
