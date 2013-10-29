@@ -8,25 +8,39 @@ casper.notebook_test(function () {
     //      to just test.
     //this.test.begin("shutdown tests (notebook)", 2, function(test) {
 
-    this.thenEvaluate(function () {
-        $('#kill_and_exit').click();
-    });
-    
-    this.thenEvaluate(function () {
-        var cell = IPython.notebook.get_cell(0);
-        cell.set_text('a=10; print(a)');
-        cell.execute();
-    });
+    // Our shutdown test closes the browser window, which will delete the
+    // casper browser object, and the rest of the test suite will fail with
+    // errors that look like:
+    //
+    //   "Error: cannot access member `evaluate' of deleted QObject"
+    //
+    // So what we do here is make a quick popup window, and run the test inside
+    // of it.
+    this.then(function() {
+        this.evaluate(function(url){
+            window.open(url);
+        }, {url : this.getCurrentUrl()});
+    })
 
-    // refactor this into  just a get_output(0)
-    this.then(function () {
-        var result = this.get_output_cell(0);
-        this.test.assertFalsy(result, "after shutdown: no execution results");
-        this.test.assertNot(this.kernel_running(), 
-            'after shutdown: IPython.notebook.kernel.running is false ');
-    });
+    this.waitForPopup('');
+    this.withPopup('', function () {
+        this.thenEvaluate(function () {
+            $('#kill_and_exit').click();
+        });
 
-    this.thenOpen(this.get_notebook_server());
+        this.thenEvaluate(function () {
+            var cell = IPython.notebook.get_cell(0);
+            cell.set_text('a=10; print(a)');
+            cell.execute();
+        });
+
+        this.then(function () {
+            var result = this.get_output_cell(0);
+            this.test.assertFalsy(result, "after shutdown: no execution results");
+            this.test.assertNot(this.kernel_running(),
+                'after shutdown: IPython.notebook.kernel.running is false ');
+        });
+    });
 
 //}); // end of test.begin
 });
