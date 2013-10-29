@@ -270,21 +270,17 @@ following algorithm:
 
 * If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
   is used. This function will first look at the :envvar:`IPYTHONDIR`
-  environment variable and then default to a platform-specific default.
+  environment variable and then default to :file:`~/.ipython`.
   Historical support for the :envvar:`IPYTHON_DIR` environment variable will
   be removed in a future release.
 
-On posix systems (Linux, Unix, etc.), IPython respects the ``$XDG_CONFIG_HOME``
-part of the `XDG Base Directory`_ specification. If ``$XDG_CONFIG_HOME`` is
-defined and exists ( ``XDG_CONFIG_HOME`` has a default interpretation of
-:file:`$HOME/.config`), then IPython's config directory will be located in
-:file:`$XDG_CONFIG_HOME/ipython`.  If users still have an IPython directory
-in :file:`$HOME/.ipython`, then that will be used. in preference to the 
-system default.
+For most users, the configuration directory will be :file:`~/.ipython`.
 
-For most users, the default value will simply be something like 
-:file:`$HOME/.config/ipython` on Linux, or :file:`$HOME/.ipython`
-elsewhere.
+Previous versions of IPython on Linux would use the XDG config directory,
+creating :file:`~/.config/ipython` by default. We have decided to go
+back to :file:`~/.ipython` for consistency among systems. IPython will
+issue a warning if it finds the XDG location, and will move it to the new
+location if there isn't already a directory there.
 
 Once the location of the IPython directory has been determined, you need to know
 which profile you are using. For users with a single configuration, this will

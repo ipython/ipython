@@ -181,8 +181,7 @@ Configuration
 Much of IPython can be tweaked through :ref:`configuration <config_overview>`.
 To get started, use the command ``ipython profile create`` to produce the
 default config files. These will be placed in
-:file:`~/.ipython/profile_default` or
-:file:`~/.config/ipython/profile_default`, and contain comments explaining
+:file:`~/.ipython/profile_default`, and contain comments explaining
 what the various options do.
 
 Profiles allow you to use IPython for different tasks, keeping separate config
