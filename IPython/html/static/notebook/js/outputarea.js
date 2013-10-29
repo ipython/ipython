@@ -334,8 +334,9 @@ var IPython = (function (IPython) {
         if (md['isolated']) {
             // Create an iframe to isolate the subarea from the rest of the
             // document
-            var iframe = $('<iframe/>');
+            var iframe = $('<iframe/>').addClass('box-flex1');
             iframe.attr('height', 1);
+            iframe.css({'width':'100%', 'display':'block'});
             iframe.attr('frameborder', 0);
             iframe.attr('scrolling', 'auto');
 
@@ -355,8 +356,7 @@ var IPython = (function (IPython) {
                 this.contentDocument.close();
 
                 var body = this.contentDocument.body;
-                // Adjust the iframe width and height
-                iframe.width(body.scrollWidth + 'px');
+                // Adjust the iframe height automatically
                 iframe.height(body.scrollHeight + 'px');
             });
 
