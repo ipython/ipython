@@ -122,12 +122,13 @@ def single_ansi2latex(code):
         color_code = style_code.split(';')[1]
         is_normal = style_code.split(';')[0] == '0'
 
-        # regular fonts
+        # regular weight
         if (code == style_code) or (is_normal and code == color_code):
-            return '\\'+color[0].lower()+'{', 1
-        # bold fonts
+            
+            return r'{\color{'+color[0].lower()+'}', 1
+        # bold
         if code == style_code[:3]+str(1)+style_code[3:]:
-            return '\\textbf{\\textcolor{'+color[0].lower()+'}{', 2
+            return r'\textbf{\color{'+color[0].lower()+'}', 1
     return '', 0
 
 def ansi2latex(text):
@@ -149,8 +150,8 @@ def ansi2latex(text):
             texform, openbrack = single_ansi2latex(match.group())
             outstring += texform
         last_end = match.end()
-
-    #Add the remainer of the string and THEN close any remaining color brackets.
+    
+    # Add the remainer of the string and THEN close any remaining color brackets.
     outstring += text[last_end:]
     if openbrack: 
         outstring += '}'*openbrack
