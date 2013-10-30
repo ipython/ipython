@@ -74,6 +74,10 @@ class BreakingReprParent(object):
         with p.group(4,"TG: ",":"):
             p.pretty(BreakingRepr())
 
+class BadRepr(object):
+    
+    def __repr__(self):
+        return 1/0
 
 
 def test_indentation():
@@ -151,3 +155,8 @@ def test_pprint_break_repr():
     output = pretty.pretty(BreakingReprParent())
     expected = "TG: Breaking(\n    ):"
     nt.assert_equal(output, expected)
+
+def test_bad_repr():
+    """Don't raise, even when repr fails"""
+    output = pretty.pretty(BadRepr())
+    nt.assert_in("failed", output)
