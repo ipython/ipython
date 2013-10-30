@@ -996,7 +996,7 @@ class Bytes(TraitType):
     """A trait for byte strings."""
 
     default_value = b''
-    info_text = 'a string'
+    info_text = 'a bytes object'
 
     def validate(self, obj, value):
         if isinstance(value, bytes):
