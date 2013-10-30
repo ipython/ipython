@@ -125,6 +125,13 @@ __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
 
 _re_pattern_type = type(re.compile(''))
 
+def _safe_repr(obj):
+    """Don't trust repr to not be broken."""
+    try:
+        return repr(obj)
+    except Exception as e:
+        return "<repr(obj) failed: %s>" % e
+
 
 def pretty(obj, verbose=False, max_width=79, newline='\n'):
     """
@@ -495,7 +502,7 @@ def _default_pprint(obj, p, cycle):
     klass = getattr(obj, '__class__', None) or type(obj)
     if getattr(klass, '__repr__', None) not in _baseclass_reprs:
         # A user-provided repr. Find newlines and replace them with p.break_()
-        output = repr(obj)
+        output = _safe_repr(obj)
         for idx,output_line in enumerate(output.splitlines()):
             if idx:
                 p.break_()
@@ -673,7 +680,7 @@ def _type_pprint(obj, p, cycle):
 
 def _repr_pprint(obj, p, cycle):
     """A pprint that just redirects to the normal repr function."""
-    p.text(repr(obj))
+    p.text(_safe_repr(obj))
 
 
 def _function_pprint(obj, p, cycle):
