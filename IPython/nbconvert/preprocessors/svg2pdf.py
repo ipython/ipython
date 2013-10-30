@@ -92,4 +92,4 @@ class SVG2PDFPreprocessor(ConvertFiguresPreprocessor):
                     # PDF is a nb supported binary, data type, so base64 encode.
                     return base64.encodestring(f.read())
             else:
-                raise TypeError("Inkscape svg to png conversion failed")
+                raise TypeError("Inkscape svg to pdf conversion failed")
