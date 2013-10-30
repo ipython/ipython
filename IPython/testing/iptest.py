@@ -31,7 +31,6 @@ import glob
 from io import BytesIO
 import os
 import os.path as path
-from select import select
 import sys
 from threading import Thread, Lock, Event
 import warnings
@@ -365,60 +364,43 @@ class StreamCapturer(Thread):
         super(StreamCapturer, self).__init__()
         self.streams = []
         self.buffer = BytesIO()
-        self.streams_lock = Lock()
+        self.readfd, self.writefd = os.pipe()
         self.buffer_lock = Lock()
-        self.stream_added = Event()
         self.stop = Event()
 
     def run(self):
         self.started = True
+
         while not self.stop.is_set():
-            with self.streams_lock:
-                streams = self.streams
+            chunk = os.read(self.readfd, 1024)
 
-            if not streams:
-                self.stream_added.wait(timeout=1)
-                self.stream_added.clear()
-                continue
-
-            ready = select(streams, [], [], 0.5)[0]
-            dead = []
             with self.buffer_lock:
-                for fd in ready:
-                    try:
-                        self.buffer.write(os.read(fd, 1024))
-                    except OSError as e:
-                        import errno
-                        if e.errno == errno.EBADF:
-                            dead.append(fd)
-                        else:
-                            raise
+                self.buffer.write(chunk)
+    
+        os.close(self.readfd)
+        os.close(self.writefd)
 
-            with self.streams_lock:
-                for fd in dead:
-                    self.streams.remove(fd)
-    
-    def add_stream(self, fd):
-        with self.streams_lock:
-            self.streams.append(fd)
-        self.stream_added.set()
-    
-    def remove_stream(self, fd):
-        with self.streams_lock:
-            self.streams.remove(fd)
-        
     def reset_buffer(self):
         with self.buffer_lock:
             self.buffer.truncate(0)
             self.buffer.seek(0)
-    
+
     def get_buffer(self):
         with self.buffer_lock:
             return self.buffer.getvalue()
-    
+
     def ensure_started(self):
         if not self.started:
             self.start()
+
+    def halt(self):
+        """Safely stop the thread."""
+        if not self.started:
+            return
+
+        self.stop.set()
+        os.write(self.writefd, b'wake up')  # Ensure we're not locked in a read()
+        self.join()
 
 class SubprocessStreamCapturePlugin(Plugin):
     name='subprocstreams'
@@ -426,7 +408,7 @@ class SubprocessStreamCapturePlugin(Plugin):
         Plugin.__init__(self)
         self.stream_capturer = StreamCapturer()
         # This is ugly, but distant parts of the test machinery need to be able
-        # to add streams, so we make the object globally accessible.
+        # to redirect streams, so we make the object globally accessible.
         nose.ipy_stream_capturer = self.stream_capturer
     
     def configure(self, options, config):
@@ -454,9 +436,7 @@ class SubprocessStreamCapturePlugin(Plugin):
     formatError = formatFailure
     
     def finalize(self, result):
-        if self.stream_capturer.started:
-            self.stream_capturer.stop.set()
-            self.stream_capturer.join()
+        self.stream_capturer.halt()
 
 
 def run_iptest():
