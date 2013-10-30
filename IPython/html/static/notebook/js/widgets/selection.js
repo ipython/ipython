@@ -8,6 +8,7 @@ require(["notebook/js/widget"], function(){
         render : function(){
             
             this.$el
+                .addClass('widget-hbox-single')
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
@@ -19,6 +20,7 @@ require(["notebook/js/widget"], function(){
                                 .appendTo(this.$el);
             this.$droplabel = $('<button />')
                                 .addClass('btn')
+                                .addClass('widget-combo-btn')
                                 .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
                                 .addClass('btn')
@@ -84,11 +86,16 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
+                .addClass('widget-hbox')
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
+            this.$container = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-container')
+                .addClass('vbox');
             this.update();
         },
         
@@ -104,7 +111,7 @@ require(["notebook/js/widget"], function(){
                     var $label = $('<label />')
                         .addClass('radio')
                         .html(items[index])
-                        .appendTo(this.$el);
+                        .appendTo(this.$container);
                     
                     var that = this;
                     $('<input />')
@@ -119,14 +126,14 @@ require(["notebook/js/widget"], function(){
                 }
                 
                 if (this.model.get('value') == items[index]) {
-                    this.$el.find(item_query).prop('checked', true);
+                    this.$container.find(item_query).prop('checked', true);
                 } else {
-                    this.$el.find(item_query).prop('checked', false);
+                    this.$container.find(item_query).prop('checked', false);
                 }
             }
             
             // Remove items that no longer exist.
-            this.$el.find('input').each(function(i, obj) {
+            this.$container.find('input').each(function(i, obj) {
                 var value = $(obj).val();
                 var found = false;
                 for (var index in items) {
@@ -161,6 +168,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
+                .addClass('widget-hbox-single')
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)

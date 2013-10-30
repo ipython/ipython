@@ -26,6 +26,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
+                .addClass('widget-hbox')
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
@@ -33,6 +34,7 @@ require(["notebook/js/widget"], function(){
                 .hide();
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
+                .addClass('widget-text')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
         },
@@ -74,6 +76,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
+                .addClass('widget-hbox-single')
                 .html('');
             this.$label = $('<div />')
                 .addClass('widget-label')
@@ -81,6 +84,7 @@ require(["notebook/js/widget"], function(){
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
+                .addClass('widget-text')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
         },

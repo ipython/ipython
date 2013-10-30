@@ -7,6 +7,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
+                .addClass('widget-hbox-single')
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
@@ -18,8 +19,7 @@ require(["notebook/js/widget"], function(){
             
             // Put the slider in a container 
             this.$slider_container = $('<div />')
-                .css('padding-top', '4px')
-                .css('padding-bottom', '4px')
+                .addClass('widget-slider')
                 .append(this.$slider);    
             this.$el.append(this.$slider_container);
             
@@ -64,6 +64,7 @@ require(["notebook/js/widget"], function(){
         // Called when view is rendered.
         render : function(){
             this.$el
+                .addClass('widget-hbox-single')
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
@@ -71,6 +72,7 @@ require(["notebook/js/widget"], function(){
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
+                .addClass('widget-numeric-text')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
         },

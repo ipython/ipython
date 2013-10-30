@@ -165,10 +165,7 @@ h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anch
 .ipython_tooltip .tooltiptext pre{border:0;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;font-size:100%;background-color:#f7f7f7;}
 .pretooltiparrow{left:0px;margin:0px;top:-16px;width:40px;height:16px;overflow:hidden;position:absolute;}
 .pretooltiparrow:before{background-color:#f7f7f7;border:1px #ababab solid;z-index:11;content:"";position:absolute;left:15px;top:10px;width:25px;height:25px;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);}
-.hbox{display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
-.hbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;display:block;}
-.vbox{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;}
-.vbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;display:block;}
-div.widget_area{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
-div.widget_item{display:inline-block;}
-div.widget_subarea{padding:0.44em 0.4em 0.4em 1px;margin-left:6px;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;}
+.widget-label{min-width:300px;}
+div.widget-container{-webkit-box-flex:2;-moz-box-flex:2;box-flex:2;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
+div.widget-area{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
+div.widget-subarea{padding:0.44em 0.4em 0.4em 1px;margin-left:6px;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;-webkit-box-flex:2;-moz-box-flex:2;box-flex:2;}

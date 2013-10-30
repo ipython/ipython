@@ -8,19 +8,15 @@ require(["notebook/js/widget"], function(){
       
         // Called when view is rendered.
         render : function(){
-            this.$el
-                .html('');
-
-            var $label = $('<label />')
-                .addClass('checkbox')
+            this.$el = $('<div />')
+                .addClass('widget-hbox-single');
+            this.$label = $('<div />')
                 .addClass('widget-label')
-                .appendTo(this.$el);
-            this.$checkbox_label = $('<div />')
-                .appendTo($label)
+                .appendTo(this.$el)
                 .hide();
             this.$checkbox = $('<input />')
                 .attr('type', 'checkbox')
-                .appendTo($label);
+                .appendTo(this.$el);
 
             this.update(); // Set defaults.
         },
@@ -33,10 +29,10 @@ require(["notebook/js/widget"], function(){
 
                 var description = this.model.get('description');
                 if (description.length == 0) {
-                    this.$checkbox_label.hide();
+                    this.$label.hide();
                 } else {
-                    this.$checkbox_label.html(description);
-                    this.$checkbox_label.show();
+                    this.$label.html(description);
+                    this.$label.show();
                 }
             }
             return IPython.WidgetView.prototype.update.call(this);
