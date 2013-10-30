@@ -68,12 +68,12 @@ class TestAnsi(TestsBase):
     def test_ansi2latex(self):
         """ansi2latex test"""
         correct_outputs = {
-            '%s' % (TermColors.Red)  : r'\red{}',
-            'hello%s' % TermColors.Blue: r'hello\blue{}',
-            'he%s%sllo' % (TermColors.Green, TermColors.Cyan) : r'he\green{}\cyan{llo}',
-            '%shello' % TermColors.Yellow : r'\yellow{hello}',
-            '{0}h{0}e{0}l{0}l{0}o{0}'.format(TermColors.White) : r'\white{h}\white{e}\white{l}\white{l}\white{o}\white{}',
-            'hel%slo' % TermColors.Green : r'hel\green{lo}',
+            '%s' % (TermColors.Red)  : r'{\color{red}}',
+            'hello%s' % TermColors.Blue: r'hello{\color{blue}}',
+            'he%s%sllo' % (TermColors.Green, TermColors.Cyan) : r'he{\color{green}}{\color{cyan}llo}',
+            '%shello' % TermColors.Yellow : r'{\color{yellow}hello}',
+            '{0}h{0}e{0}l{0}l{0}o{0}'.format(TermColors.White) : r'{\color{white}h}{\color{white}e}{\color{white}l}{\color{white}l}{\color{white}o}{\color{white}}',
+            'hel%slo' % TermColors.Green : r'hel{\color{green}lo}',
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
