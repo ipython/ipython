@@ -172,4 +172,50 @@ require(["notebook/js/widget"], function(){
     });
 
     IPython.notebook.widget_manager.register_widget_view('FloatTextView', FloatTextView);
+
+
+    var ProgressView = IPython.WidgetView.extend({
+        
+        // Called when view is rendered.
+        render : function(){
+            this.$el
+                .addClass('widget-hbox-single')
+                .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-hlabel')
+                .hide();
+            this.$progress = $('<div />')
+                .addClass('progress')
+                .addClass('widget-progress')
+                .appendTo(this.$el);
+            this.$bar = $('<div />')
+                .addClass('bar')
+                .css('width', '50%')
+                .appendTo(this.$progress);
+            this.update(); // Set defaults.
+        },
+        
+        // Handles: Backend -> Frontend Sync
+        //          Frontent -> Frontend Sync
+        update : function(){
+            var value = this.model.get('value');
+            var max = this.model.get('max');
+            var min = this.model.get('min');
+            var percent = 100.0 * (value - min) / (max - min);
+            this.$bar.css('width', percent + '%');
+            
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
+            }
+            return IPython.WidgetView.prototype.update.call(this);
+        },
+        
+    });
+
+    IPython.notebook.widget_manager.register_widget_view('ProgressView', ProgressView);
 });
