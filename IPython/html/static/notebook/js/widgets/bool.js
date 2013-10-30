@@ -34,6 +34,9 @@ require(["notebook/js/widget"], function(){
             if (!this.user_invoked_update) {
                 this.$checkbox.prop('checked', this.model.get('value'));
 
+                var disabled = this.model.get('disabled');
+                this.$checkbox.prop('disabled', disabled);
+
                 var description = this.model.get('description');
                 if (description.length == 0) {
                     this.$label.hide();
@@ -74,6 +77,9 @@ require(["notebook/js/widget"], function(){
                 } else {
                     this.$button.removeClass('active');
                 }
+
+                var disabled = this.model.get('disabled');
+                this.$button.prop('disabled', disabled);
 
                 var description = this.model.get('description');
                 if (description.length == 0) {
