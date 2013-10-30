@@ -105,6 +105,7 @@ require(["notebook/js/widget"], function(){
             
             // Add missing items to the DOM.
             var items = this.model.get('values');
+            var disabled = this.model.get('disabled');
             for (var index in items) {
                 var item_query = ' :input[value="' + items[index] + '"]';
                 if (this.$el.find(item_query).length == 0) {
@@ -125,11 +126,13 @@ require(["notebook/js/widget"], function(){
                         });
                 }
                 
+                var $item_element = this.$container.find(item_query);
                 if (this.model.get('value') == items[index]) {
-                    this.$container.find(item_query).prop('checked', true);
+                    $item_element.prop('checked', true);
                 } else {
-                    this.$container.find(item_query).prop('checked', false);
+                    $item_element.prop('checked', false);
                 }
+                $item_element.prop('disabled', disabled);
             }
             
             // Remove items that no longer exist.
@@ -187,6 +190,7 @@ require(["notebook/js/widget"], function(){
             
             // Add missing items to the DOM.
             var items = this.model.get('values');
+            var disabled = this.model.get('disabled');
             for (var index in items) {
                 var item_query = ' :contains("' + items[index] + '")';
                 if (this.$buttongroup.find(item_query).length == 0) {
@@ -203,11 +207,13 @@ require(["notebook/js/widget"], function(){
                         });
                 }
                 
+                var $item_element = this.$buttongroup.find(item_query);
                 if (this.model.get('value') == items[index]) {
-                    this.$buttongroup.find(item_query).addClass('active');
+                    $item_element.addClass('active');
                 } else {
-                    this.$buttongroup.find(item_query).removeClass('active');
+                    $item_element.removeClass('active');
                 }
+                $item_element.prop('disabled', disabled);
             }
             
             // Remove items that no longer exist.
