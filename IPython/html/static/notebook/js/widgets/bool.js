@@ -14,8 +14,15 @@ require(["notebook/js/widget"], function(){
                 .addClass('widget-hlabel')
                 .appendTo(this.$el)
                 .hide();
+            var that = this;
             this.$checkbox = $('<input />')
                 .attr('type', 'checkbox')
+                .click(function(el) {
+                    that.user_invoked_update = true;
+                    that.model.set('value', that.$checkbox.prop('checked'));
+                    that.model.update_other_views(that);
+                    that.user_invoked_update = false;
+                })
                 .appendTo(this.$el);
 
             this.update(); // Set defaults.
@@ -38,15 +45,6 @@ require(["notebook/js/widget"], function(){
             return IPython.WidgetView.prototype.update.call(this);
         },
         
-        events: {"change input" : "handleChanged"},
-        
-        // Handles and validates user input.
-        handleChanged: function(e) { 
-            this.user_invoked_update = true;
-            this.model.set('value', $(e.target).prop('checked'));
-            this.model.update_other_views(this);
-            this.user_invoked_update = false;
-        },
     });
 
     IPython.notebook.widget_manager.register_widget_view('CheckboxView', CheckboxView);
