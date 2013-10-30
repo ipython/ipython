@@ -31,7 +31,6 @@ import glob
 from io import BytesIO
 import os
 import os.path as path
-from select import select
 import sys
 from threading import Thread, Lock, Event
 import warnings
@@ -373,27 +372,35 @@ class StreamCapturer(Thread):
         self.started = True
 
         while not self.stop.is_set():
-            ready = select([self.readfd], [], [], 1)[0]
+            chunk = os.read(self.readfd, 1024)
 
-            if ready:
-                with self.buffer_lock:
-                    self.buffer.write(os.read(self.readfd, 1024))
+            with self.buffer_lock:
+                self.buffer.write(chunk)
     
         os.close(self.readfd)
         os.close(self.writefd)
-        
+
     def reset_buffer(self):
         with self.buffer_lock:
             self.buffer.truncate(0)
             self.buffer.seek(0)
-    
+
     def get_buffer(self):
         with self.buffer_lock:
             return self.buffer.getvalue()
-    
+
     def ensure_started(self):
         if not self.started:
             self.start()
+
+    def halt(self):
+        """Safely stop the thread."""
+        if not self.started:
+            return
+
+        self.stop.set()
+        os.write(self.writefd, b'wake up')  # Ensure we're not locked in a read()
+        self.join()
 
 class SubprocessStreamCapturePlugin(Plugin):
     name='subprocstreams'
@@ -429,9 +436,7 @@ class SubprocessStreamCapturePlugin(Plugin):
     formatError = formatFailure
     
     def finalize(self, result):
-        if self.stream_capturer.started:
-            self.stream_capturer.stop.set()
-            self.stream_capturer.join()
+        self.stream_capturer.halt()
 
 
 def run_iptest():
