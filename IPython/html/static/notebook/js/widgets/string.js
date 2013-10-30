@@ -46,6 +46,9 @@ require(["notebook/js/widget"], function(){
                 this.$textbox.val(this.model.get('value'));
             }
 
+            var disabled = this.model.get('disabled');
+            this.$textbox.prop('disabled', disabled);
+
             var description = this.model.get('description');
             if (description.length == 0) {
                 this.$label.hide();
@@ -95,6 +98,9 @@ require(["notebook/js/widget"], function(){
             if (!this.user_invoked_update) {
                 this.$textbox.val(this.model.get('value'));
             }
+
+            var disabled = this.model.get('disabled');
+            this.$textbox.prop('disabled', disabled);
 
             var description = this.model.get('description');
             if (description.length == 0) {
