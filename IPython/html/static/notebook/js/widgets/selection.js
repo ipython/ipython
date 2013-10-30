@@ -12,7 +12,7 @@ require(["notebook/js/widget"], function(){
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .hide();
             this.$buttongroup = $('<div />')
                                 .addClass('widget_item')
@@ -90,7 +90,7 @@ require(["notebook/js/widget"], function(){
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .hide();
             this.$container = $('<div />')
                 .appendTo(this.$el)
@@ -172,7 +172,7 @@ require(["notebook/js/widget"], function(){
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .hide();
             this.$buttongroup = $('<div />')
                 .addClass('btn-group')

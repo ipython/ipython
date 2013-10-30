@@ -10,12 +10,18 @@
         .vbox();
         .box-flex2();
 
-        .widget-label {
+        .widget-hlabel {
             min-width: 10ex;
             padding-right: 8px;
             text-align: right;
             vertical-align: text-top;
             padding-top: 3px;
+        }
+
+        .widget-vlabel {
+            text-align: center;
+            vertical-align: text-bottom;
+            padding-bottom: 5px;
         }
 
         .widget-hslider {
@@ -47,18 +53,18 @@
         .widget-vslider {
             border: 1px solid #CCCCCC;
             background: #FFFFFF;
-            height: 100%;
             width: 5px;
             margin-left: 12px;
             padding-bottom: 14px;
             .corner-all();
+            height: 250px;
 
             .ui-slider {
                 border: 0px !important;
                 background: none !important;
                 margin-left: -4px;
-                height: 100%;
                 margin-top: 5px;
+                height: 100%;
 
                 .ui-slider-handle {
                     width: 28px !important;
@@ -86,11 +92,15 @@
             .border-box-sizing();
         }
 
-        .widget-hbox {
-            .hbox();
+        .widget-box {
             .start();
             .widget-container();
             margin: 5px;
+        }
+
+        .widget-hbox {
+            .widget-box();
+            .hbox();
         }
 
         .widget-hbox-single {
@@ -98,10 +108,10 @@
             height: 30px;
         }
 
-        .widget-hbox-vsingle {
-            .widget-hbox();
+        .widget-vbox-single {
+            .widget-box();
+            .vbox();
             width: 30px;
-            height: 250px;
         }
     }
 }

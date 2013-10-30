@@ -11,7 +11,7 @@ require(["notebook/js/widget"], function(){
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .hide();
             this.$slider = $('<div />')
                 .slider({})
@@ -46,14 +46,21 @@ require(["notebook/js/widget"], function(){
                     .addClass('widget-vslider');
                 this.$el
                     .removeClass('widget-hbox-single')
-                    .addClass('widget-hbox-vsingle');
+                    .addClass('widget-vbox-single');
+                this.$label
+                    .removeClass('widget-hlabel')
+                    .addClass('widget-vlabel');
+
             } else {
                 this.$slider_container
                     .removeClass('widget-vslider')
                     .addClass('widget-hslider');
                 this.$el
-                    .removeClass('widget-hbox-vsingle')
+                    .removeClass('widget-vbox-single')
                     .addClass('widget-hbox-single');
+                this.$label
+                    .removeClass('widget-vlabel')
+                    .addClass('widget-hlabel');
             }
 
             var description = this.model.get('description');
@@ -86,7 +93,7 @@ require(["notebook/js/widget"], function(){
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')

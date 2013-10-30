@@ -11,7 +11,7 @@ require(["notebook/js/widget"], function(){
             this.$el = $('<div />')
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .appendTo(this.$el)
                 .hide();
             this.$checkbox = $('<input />')

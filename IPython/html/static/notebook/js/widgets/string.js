@@ -30,7 +30,7 @@ require(["notebook/js/widget"], function(){
                 .html('');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .hide();
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
@@ -79,7 +79,7 @@ require(["notebook/js/widget"], function(){
                 .addClass('widget-hbox-single')
                 .html('');
             this.$label = $('<div />')
-                .addClass('widget-label')
+                .addClass('widget-hlabel')
                 .appendTo(this.$el)
                 .hide();
             this.$textbox = $('<input type="text" />')
