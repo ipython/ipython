@@ -160,3 +160,25 @@ def test_bad_repr():
     """Don't raise, even when repr fails"""
     output = pretty.pretty(BadRepr())
     nt.assert_in("failed", output)
+    nt.assert_in("at 0x", output)
+    nt.assert_in("test_pretty", output)
+
+class BadException(Exception):
+    def __str__(self):
+        return -1
+
+class ReallyBadRepr(object):
+    __module__ = 1
+    @property
+    def __class__(self):
+        raise ValueError("I am horrible")
+    
+    def __repr__(self):
+        raise BadException()
+
+def test_really_bad_repr():
+    output = pretty.pretty(ReallyBadRepr())
+    nt.assert_in("failed", output)
+    nt.assert_in("BadException: unknown", output)
+    nt.assert_in("unknown type", output)
+    

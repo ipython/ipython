@@ -170,13 +170,13 @@ def _safe_repr(obj):
         return _failed_repr(obj, e)
 
 def _safe_getattr(obj, attr, default=None):
-    """never-raise version of getattr
+    """Safe version of getattr.
     
-    catches errors other than AttributeError,
-    unlike vanilla getattr
+    Same as getattr, but will return ``default`` on any Exception,
+    rather than raising.
     """
     try:
-        return getattr(obj, attr)
+        return getattr(obj, attr, default)
     except Exception:
         return default
 
