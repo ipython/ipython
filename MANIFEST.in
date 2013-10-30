@@ -9,8 +9,6 @@ graft scripts
 
 # Load main dir but exclude things we don't want in the distro
 graft IPython
-prune IPython/deathrow
-prune IPython/external/js
 prune IPython/html/static/mathjax
 
 # Include some specific files and data resources we need
@@ -26,7 +24,6 @@ exclude docs/man/*.1.gz
 graft examples
 
 # docs subdirs we want to skip
-prune docs/attic
 prune docs/build
 prune docs/gh-pages
 prune docs/dist
