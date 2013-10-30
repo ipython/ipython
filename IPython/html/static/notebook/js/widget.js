@@ -316,10 +316,16 @@ define(["components/underscore/underscore-min",
                         if (this.model.css.hasOwnProperty(selector)) {
                             
                             // Get the elements via the css selector.  If the selector is
-                            // blank, assume the current element is the target.
+                            // blank, apply the style to the $el_to_style element.  If
+                            // the $el_to_style element is not defined, use apply the 
+                            // style to the view's element.
                             var elements = this.$el.find(selector);
                             if (selector=='') {
-                                elements = this.$el;
+                                if (this.$el_to_style == undefined) {
+                                    elements = this.$el;
+                                } else {
+                                    elements = this.$el_to_style;
+                                }
                             }
                             
                             // Apply the css traits to all elements that match the selector.
