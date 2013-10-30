@@ -24,9 +24,9 @@ try:
 except ImportError:
     from urllib2 import quote  # Py 2
 try:
-    import cgi as htmltool
+    from html import escape as html_escape
 except:
-    import html as htmltool
+    from cgi import escape as html_escape
 from xml.etree import ElementTree
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -53,7 +53,7 @@ __all__ = [
 
 
 def escape_for_html(text):
-    return htmltool.escape(text)
+    return html_escape(text)
 
 
 def wrap_text(text, width=100):
