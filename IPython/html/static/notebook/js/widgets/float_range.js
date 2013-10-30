@@ -19,7 +19,7 @@ require(["notebook/js/widget"], function(){
             
             // Put the slider in a container 
             this.$slider_container = $('<div />')
-                .addClass('widget-slider')
+                .addClass('widget-hslider')
                 .append(this.$slider);    
             this.$el.append(this.$slider_container);
             
@@ -37,6 +37,23 @@ require(["notebook/js/widget"], function(){
                 if (this.model.get(key) != undefined) {
                     this.$slider.slider("option", key, this.model.get(key));
                 }
+            }
+
+            var orientation = this.model.get('orientation');
+            if (orientation=='vertical') {
+                this.$slider_container
+                    .removeClass('widget-hslider')
+                    .addClass('widget-vslider');
+                this.$el
+                    .removeClass('widget-hbox-single')
+                    .addClass('widget-hbox-vsingle');
+            } else {
+                this.$slider_container
+                    .removeClass('widget-vslider')
+                    .addClass('widget-hslider');
+                this.$el
+                    .removeClass('widget-hbox-vsingle')
+                    .addClass('widget-hbox-single');
             }
 
             var description = this.model.get('description');
