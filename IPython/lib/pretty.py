@@ -125,13 +125,60 @@ __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
 
 _re_pattern_type = type(re.compile(''))
 
+def _failed_repr(obj, e):
+    """Render a failed repr, including the exception.
+    
+    Tries to get exception and type info
+    """
+    # get exception name
+    if e.__class__.__module__ in ('exceptions', 'builtins'):
+        ename = e.__class__.__name__
+    else:
+        ename = '{}.{}'.format(
+            e.__class__.__module__,
+            e.__class__.__name__,
+        )
+    # and exception string, which sometimes fails
+    # (usually due to unicode error message)
+    try:
+        estr = str(e)
+    except Exception:
+        estr = "unknown"
+    
+    # and class name
+    try:
+        klass = _safe_getattr(obj, '__class__', None) or type(obj)
+        mod = _safe_getattr(klass, '__module__', None)
+        if mod in (None, '__builtin__', 'builtins', 'exceptions'):
+            classname = klass.__name__
+        else:
+            classname = mod + '.' + klass.__name__
+    except Exception:
+        # this may be paranoid, but we already know repr is broken
+        classname = "unknown type"
+    
+    # the informative repr
+    return "<repr(<{} at 0x{:x}>) failed: {}: {}>".format(
+        classname, id(obj), ename, estr,
+    )
+
 def _safe_repr(obj):
-    """Don't trust repr to not be broken."""
+    """Don't assume repr is not broken."""
     try:
         return repr(obj)
     except Exception as e:
-        return "<repr(obj) failed: %s>" % e
+        return _failed_repr(obj, e)
 
+def _safe_getattr(obj, attr, default=None):
+    """never-raise version of getattr
+    
+    catches errors other than AttributeError,
+    unlike vanilla getattr
+    """
+    try:
+        return getattr(obj, attr)
+    except Exception:
+        return default
 
 def pretty(obj, verbose=False, max_width=79, newline='\n'):
     """
@@ -353,7 +400,7 @@ class RepresentationPrinter(PrettyPrinter):
         self.stack.append(obj_id)
         self.begin_group()
         try:
-            obj_class = getattr(obj, '__class__', None) or type(obj)
+            obj_class = _safe_getattr(obj, '__class__', None) or type(obj)
             # First try to find registered singleton printers for the type.
             try:
                 printer = self.singleton_pprinters[obj_id]
@@ -395,8 +442,8 @@ class RepresentationPrinter(PrettyPrinter):
         class is not in the registry. Successful matches will be moved to the
         regular type registry for future use.
         """
-        mod = getattr(cls, '__module__', None)
-        name = getattr(cls, '__name__', None)
+        mod = _safe_getattr(cls, '__module__', None)
+        name = _safe_getattr(cls, '__name__', None)
         key = (mod, name)
         printer = None
         if key in self.deferred_pprinters:
@@ -499,8 +546,8 @@ def _default_pprint(obj, p, cycle):
     The default print function.  Used if an object does not provide one and
     it's none of the builtin objects.
     """
-    klass = getattr(obj, '__class__', None) or type(obj)
-    if getattr(klass, '__repr__', None) not in _baseclass_reprs:
+    klass = _safe_getattr(obj, '__class__', None) or type(obj)
+    if _safe_getattr(klass, '__repr__', None) not in _baseclass_reprs:
         # A user-provided repr. Find newlines and replace them with p.break_()
         output = _safe_repr(obj)
         for idx,output_line in enumerate(output.splitlines()):
@@ -665,7 +712,7 @@ def _re_pattern_pprint(obj, p, cycle):
 
 def _type_pprint(obj, p, cycle):
     """The pprint for classes and types."""
-    mod = getattr(obj, '__module__', None)
+    mod = _safe_getattr(obj, '__module__', None)
     if mod is None:
         # Heap allocated types might not have the module attribute,
         # and others may set it to None.
