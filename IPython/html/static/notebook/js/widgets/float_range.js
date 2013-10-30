@@ -31,7 +31,7 @@ require(["notebook/js/widget"], function(){
         //          Frontent -> Frontend Sync
         update : function(){
             // Slider related keys.
-            var _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation'];
+            var _keys = ['step', 'max', 'min', 'disabled'];
             for (var index in _keys) {
                 var key = _keys[index];
                 if (this.model.get(key) != undefined) {
@@ -39,7 +39,22 @@ require(["notebook/js/widget"], function(){
                 }
             }
 
+            // WORKAROUND FOR JQUERY SLIDER BUG.
+            // The horizontal position of the slider handle
+            // depends on the value of the slider at the time
+            // of orientation change.  Before applying the new
+            // workaround, we set the value to the minimum to
+            // make sure that the horizontal placement of the
+            // handle in the vertical slider is always 
+            // consistent.
             var orientation = this.model.get('orientation');
+            var value = this.model.get('min');
+            this.$slider.slider('option', 'value', value);
+            this.$slider.slider('option', 'orientation', orientation);
+            var value = this.model.get('value');
+            this.$slider.slider('option', 'value', value);
+
+            // Use the right CSS classes for vertical & horizontal sliders
             if (orientation=='vertical') {
                 this.$slider_container
                     .removeClass('widget-hslider')
