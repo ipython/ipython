@@ -163,14 +163,19 @@ class LazyConfigValue(HasTraits):
         return d
 
 
+def _is_section_key(key):
+    """Is a Config key a section name (does it start with a capital)?"""
+    if key and key[0].upper()==key[0] and not key.startswith('_'):
+        return True
+    else:
+        return False
+
+
 class Config(dict):
     """An attribute based dict that can do smart merges."""
 
     def __init__(self, *args, **kwds):
         dict.__init__(self, *args, **kwds)
-        # This sets self.__dict__ = self, but it has to be done this way
-        # because we are also overriding __setattr__.
-        dict.__setattr__(self, '__dict__', self)
         self._ensure_subconfig()
     
     def _ensure_subconfig(self):
@@ -181,10 +186,10 @@ class Config(dict):
         """
         for key in self:
             obj = self[key]
-            if self._is_section_key(key) \
+            if _is_section_key(key) \
                     and isinstance(obj, dict) \
                     and not isinstance(obj, Config):
-                dict.__setattr__(self, key, Config(obj))
+                setattr(self, key, Config(obj))
     
     def _merge(self, other):
         """deprecated alias, use Config.merge()"""
@@ -206,12 +211,6 @@ class Config(dict):
 
         self.update(to_update)
 
-    def _is_section_key(self, key):
-        if key[0].upper()==key[0] and not key.startswith('_'):
-            return True
-        else:
-            return False
-
     def __contains__(self, key):
         # allow nested contains of the form `"Section.key" in config`
         if '.' in key:
@@ -221,7 +220,7 @@ class Config(dict):
             return remainder in self[first]
         
         # we always have Sections
-        if self._is_section_key(key):
+        if _is_section_key(key):
             return True
         else:
             return super(Config, self).__contains__(key)
@@ -229,11 +228,11 @@ class Config(dict):
     has_key = __contains__
 
     def _has_section(self, key):
-        if self._is_section_key(key):
+        if _is_section_key(key):
             if super(Config, self).__contains__(key):
                 return True
         return False
-
+    
     def copy(self):
         return type(self)(dict.copy(self))
 
@@ -245,20 +244,7 @@ class Config(dict):
         return type(self)(copy.deepcopy(list(self.items())))
     
     def __getitem__(self, key):
-        # We cannot use directly self._is_section_key, because it triggers
-        # infinite recursion on top of PyPy. Instead, we manually fish the
-        # bound method.
-        is_section_key = self.__class__._is_section_key.__get__(self)
-
-        # Because we use this for an exec namespace, we need to delegate
-        # the lookup of names in __builtin__ to itself.  This means
-        # that you can't have section or attribute names that are
-        # builtins.
-        try:
-            return getattr(builtin_mod, key)
-        except AttributeError:
-            pass
-        if is_section_key(key):
+        if _is_section_key(key):
             try:
                 return dict.__getitem__(self, key)
             except KeyError:
@@ -269,36 +255,37 @@ class Config(dict):
             try:
                 return dict.__getitem__(self, key)
             except KeyError:
-                if key.startswith('__'):
-                    # don't create LazyConfig on special method requests
-                    raise
                 # undefined, create lazy value, used for container methods
                 v = LazyConfigValue()
                 dict.__setitem__(self, key, v)
                 return v
-            
 
     def __setitem__(self, key, value):
-        if self._is_section_key(key):
+        if _is_section_key(key):
             if not isinstance(value, Config):
                 raise ValueError('values whose keys begin with an uppercase '
                                  'char must be Config instances: %r, %r' % (key, value))
-        else:
-            dict.__setitem__(self, key, value)
+        dict.__setitem__(self, key, value)
 
     def __getattr__(self, key):
+        if key.startswith('__'):
+            return dict.__getattr__(self, key)
         try:
             return self.__getitem__(key)
         except KeyError as e:
             raise AttributeError(e)
 
     def __setattr__(self, key, value):
+        if key.startswith('__'):
+            return dict.__setattr__(self, key, value)
         try:
             self.__setitem__(key, value)
         except KeyError as e:
             raise AttributeError(e)
 
     def __delattr__(self, key):
+        if key.startswith('__'):
+            return dict.__delattr__(self, key)
         try:
             dict.__delitem__(self, key)
         except KeyError as e:
