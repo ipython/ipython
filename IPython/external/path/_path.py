@@ -84,9 +84,9 @@ except NameError:
     unicode = str
 
 try:
-    os.getcwdu
+    getcwdu = os.getcwdu
 except AttributeError:
-    os.getcwdu = os.getcwd
+    getcwdu = os.getcwd
 
 if sys.version < '3':
     def u(x):
@@ -214,7 +214,7 @@ class path(unicode):
     @classmethod
     def getcwd(cls):
         """ Return the current working directory as a path object. """
-        return cls(os.getcwdu())
+        return cls(getcwdu())
 
     #
     # --- Operations on path strings.
