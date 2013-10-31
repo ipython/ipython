@@ -21,7 +21,7 @@ import os
 import IPython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, List
+from IPython.utils.traitlets import Unicode, Dict, List, Instance
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
@@ -49,17 +49,30 @@ class Widget(LoggingConfigurable):
         registered in the frontend to create and sync this widget with.""")
     default_view_name = Unicode(help="""Default view registered in the frontend
         to use to represent the widget.""")
-    
+    parent = Instance('IPython.html.widgets.widget.Widget')
+
+    def _parent_changed(self, name, old, new):
+        if self._displayed:
+            raise Exception('Parent cannot be set because widget has been displayed.')
+        elif new == self:
+            raise Exception('Parent cannot be set to self.')
+        else:
+
+            # Parent/child association
+            if new is not None and not self in new._children:
+                new._children.append(self)
+            if old is not None and self in old._children:
+                old._children.remove(self)                
     
     # Private/protected declarations
     _keys = []
     _property_lock = False
-    _parent = None
-    _children = []
     _css = Dict()
+    _displayed = False
+    _comm = None
     
     
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, **kwargs):
         """Public constructor
 
         Parameters
@@ -72,15 +85,9 @@ class Widget(LoggingConfigurable):
             widget's default view as it's child.  The default view can be set
             via the default_view_name property.
         """
-        super(Widget, self).__init__(**kwargs)
-        
-        # Parent/child association
         self._children = []
-        if parent is not None:
-            parent._children.append(self)
-        self._parent = parent
-        self.comm = None
-        
+        super(Widget, self).__init__(**kwargs)
+                
         # Register after init to allow default values to be specified
         self.on_trait_change(self._handle_property_changed, self.keys)
         
@@ -94,21 +101,11 @@ class Widget(LoggingConfigurable):
         """Close method.  Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically 
         removed from the frontend."""
-        self.comm.close()
-        del self.comm
+        self._comm.close()
+        del self._comm
     
     
-    # Properties
-    def _get_parent(self):
-        return self._parent
-    parent = property(_get_parent)
-    
-    
-    def _get_children(self):
-        return copy(self._children)
-    children = property(_get_children)
-    
-    
+    # Properties      
     def _get_keys(self):
         keys = ['_css']
         keys.extend(self._keys)
@@ -140,7 +137,7 @@ class Widget(LoggingConfigurable):
     
     def _handle_property_changed(self, name, old, new):
         """Called when a proeprty has been changed."""
-        if not self._property_lock and self.comm is not None:
+        if not self._property_lock and self._comm is not None:
             # TODO: Validate properties.
             # Send new state to frontend
             self.send_state(key=name)
@@ -148,7 +145,7 @@ class Widget(LoggingConfigurable):
 
     def _handle_close(self):
         """Called when the comm is closed by the frontend."""
-        self.comm = None
+        self._comm = None
     
     
     # Public methods
@@ -160,7 +157,7 @@ class Widget(LoggingConfigurable):
         key : unicode (optional)
             A single property's name to sync with the frontend.
         """
-        if self.comm is not None:
+        if self._comm is not None:
             state = {}
 
             # If a key is provided, just send the state of that key.
@@ -174,7 +171,7 @@ class Widget(LoggingConfigurable):
                     state[key] = getattr(self, key)
                 except Exception as e:
                     pass # Eat errors, nom nom nom
-            self.comm.send({"method": "update",
+            self._comm.send({"method": "update",
                             "state": state})
 
 
@@ -226,27 +223,30 @@ class Widget(LoggingConfigurable):
         ----------
         view_name: unicode (optional)
             View to display in the frontend.  Overrides default_view_name."""
+
         if not view_name:
             view_name = self.default_view_name
         
         # Create a comm.
-        if self.comm is None:
-            self.comm = Comm(target_name=self.target_name)
-            self.comm.on_msg(self._handle_msg)
-            self.comm.on_close(self._handle_close)
+        if self._comm is None:
+            self._comm = Comm(target_name=self.target_name)
+            self._comm.on_msg(self._handle_msg)
+            self._comm.on_close(self._handle_close)
         
         # Make sure model is syncronized
         self.send_state()
             
         # Show view.
-        if self.parent is None:
-            self.comm.send({"method": "display", "view_name": view_name})
+        if self.parent is None or self.parent._comm is None:
+            self._comm.send({"method": "display", "view_name": view_name})
         else:
-            self.comm.send({"method": "display", 
+            self._comm.send({"method": "display", 
                             "view_name": view_name,
-                            "parent": self.parent.comm.comm_id})
-        
+                            "parent": self.parent._comm.comm_id})
+        self._displayed = True
+
         # Now display children if any.
-        for child in self.children:
-            child._repr_widget_()
+        for child in self._children:
+            if child != self:
+                child._repr_widget_()
         return None
