@@ -20,6 +20,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
+import pickle
 import sys
 from tempfile import mkstemp
 from unittest import TestCase
@@ -289,4 +290,10 @@ class TestConfig(TestCase):
         self.assertIn('Foo.bar', c2)
         self.assertNotIn('Foo.bar', c1)
     
+    def test_pickle_config(self):
+        cfg = Config()
+        cfg.Foo.bar = 1
+        pcfg = pickle.dumps(cfg)
+        cfg2 = pickle.loads(pcfg)
+        self.assertEqual(cfg2, cfg)
 
