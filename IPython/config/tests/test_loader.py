@@ -257,8 +257,6 @@ class TestConfig(TestCase):
 
     def test_builtin(self):
         c1 = Config()
-        exec('foo = True', c1)
-        self.assertEqual(c1.foo, True)
         c1.format = "json"
     
     def test_fromdict(self):
