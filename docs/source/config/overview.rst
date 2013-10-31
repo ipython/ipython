@@ -527,5 +527,3 @@ Here are the main requirements we wanted our configuration system to have:
   dynamic language and you don't always know everything that needs to be
   configured when a program starts.
 
-
-.. _`XDG Base Directory`: http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html

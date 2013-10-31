@@ -12,8 +12,7 @@ Outdated configuration information that might still be useful
 This section will help you set various things in your environment for
 your IPython sessions to be as efficient as possible. All of IPython's
 configuration information, along with several example files, is stored
-in a directory named by default $HOME/.config/ipython if $HOME/.config 
-exists (Linux), or $HOME/.ipython as a secondary default. You can change this by
+in a directory named by default $HOME/.ipython. You can change this by
 defining the environment variable IPYTHONDIR, or at runtime with the
 command line option -ipythondir.
 
