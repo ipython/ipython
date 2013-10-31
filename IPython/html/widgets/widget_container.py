@@ -13,7 +13,7 @@ Represents a container that can be used to group other widgets.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from widget import Widget
+from .widget import Widget
 from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------

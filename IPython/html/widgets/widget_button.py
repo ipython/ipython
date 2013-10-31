@@ -17,7 +17,7 @@ click events on the button and trigger backend code when the clicks are fired.
 import inspect
 import types
 
-from widget import Widget
+from .widget import Widget
 from IPython.utils.traitlets import Unicode, Bool, Int
 
 #-----------------------------------------------------------------------------

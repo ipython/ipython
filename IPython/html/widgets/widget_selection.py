@@ -13,7 +13,7 @@ Represents an enumeration using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from widget import Widget
+from .widget import Widget
 from IPython.utils.traitlets import Unicode, List, Bool
 
 #-----------------------------------------------------------------------------

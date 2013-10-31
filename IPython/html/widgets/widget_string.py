@@ -13,7 +13,7 @@ Represents a unicode string using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from widget import Widget
+from .widget import Widget
 from IPython.utils.traitlets import Unicode, Bool, List
 
 #-----------------------------------------------------------------------------
