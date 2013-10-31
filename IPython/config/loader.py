@@ -269,7 +269,10 @@ class Config(dict):
             try:
                 return dict.__getitem__(self, key)
             except KeyError:
-                # undefined
+                if key.startswith('__'):
+                    # don't create LazyConfig on special method requests
+                    raise
+                # undefined, create lazy value, used for container methods
                 v = LazyConfigValue()
                 dict.__setitem__(self, key, v)
                 return v
