@@ -30,6 +30,7 @@ import threading
 from IPython.config.configurable import Configurable
 from IPython.external.decorator import decorator
 from IPython.utils.path import locate_profile
+from IPython.utils import py3compat
 from IPython.utils.traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
 )
@@ -423,7 +424,7 @@ class HistoryManager(HistoryAccessor):
     dir_hist = List()
     def _dir_hist_default(self):
         try:
-            return [os.getcwdu()]
+            return [py3compat.getcwd()]
         except OSError:
             return []
 
@@ -519,7 +520,7 @@ class HistoryManager(HistoryAccessor):
         optionally open a new session."""
         self.output_hist.clear()
         # The directory history can't be completely empty
-        self.dir_hist[:] = [os.getcwdu()]
+        self.dir_hist[:] = [py3compat.getcwd()]
         
         if new_session:
             if self.session_number:

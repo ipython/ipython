@@ -9,6 +9,7 @@ from IPython.testing import tools as tt, decorators as dec
 from IPython.core.prompts import PromptManager, LazyEvaluate
 from IPython.testing.globalipapp import get_ipython
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
 
 ip = get_ipython()
@@ -66,12 +67,12 @@ class PromptTests(unittest.TestCase):
     
     @dec.onlyif_unicode_paths
     def test_render_unicode_cwd(self):
-        save = os.getcwdu()
+        save = py3compat.getcwd()
         with TemporaryDirectory(u'ünicødé') as td:
             os.chdir(td)
             self.pm.in_template = r'\w [\#]'
             p = self.pm.render('in', color=False)
-            self.assertEqual(p, u"%s [%i]" % (os.getcwdu(), ip.execution_count))
+            self.assertEqual(p, u"%s [%i]" % (py3compat.getcwd(), ip.execution_count))
         os.chdir(save)
     
     def test_lazy_eval_unicode(self):
@@ -101,7 +102,7 @@ class PromptTests(unittest.TestCase):
     @dec.skip_win32
     def test_cwd_x(self):
         self.pm.in_template = r"\X0"
-        save = os.getcwdu()
+        save = py3compat.getcwd()
         os.chdir(os.path.expanduser('~'))
         p = self.pm.render('in', color=False)
         try:

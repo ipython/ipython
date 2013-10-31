@@ -36,6 +36,7 @@ import nose.tools as nt
 from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
+from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type, PY3
 
 if PY3:
@@ -406,7 +407,7 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
         os.mkdir(self.TESTDIR)
         with open(join(self.TESTDIR, u"åäötestscript.py"), "w") as sfile:
             sfile.write("pass\n")
-        self.oldpath = os.getcwdu()
+        self.oldpath = py3compat.getcwd()
         os.chdir(self.TESTDIR)
         self.fname = u"åäötestscript.py"
 

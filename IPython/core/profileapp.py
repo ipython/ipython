@@ -31,6 +31,7 @@ from IPython.core.application import (
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
+from IPython.utils import py3compat
 from IPython.utils.traitlets import Unicode, Bool, Dict
 
 #-----------------------------------------------------------------------------
@@ -180,10 +181,10 @@ class ProfileList(Application):
             print("Available profiles in %s:" % self.ipython_dir)
             self._print_profiles(profiles)
         
-        profiles = list_profiles_in(os.getcwdu())
+        profiles = list_profiles_in(py3compat.getcwd())
         if profiles:
             print()
-            print("Available profiles in current directory (%s):" % os.getcwdu())
+            print("Available profiles in current directory (%s):" % py3compat.getcwd())
             self._print_profiles(profiles)
         
         print()
@@ -248,7 +249,7 @@ class ProfileCreate(BaseIPythonApplication):
         name = app_path.rsplit('.', 1)[-1]
         try:
             app = import_item(app_path)
-        except ImportError as e:
+        except ImportError:
             self.log.info("Couldn't import %s, config file will be excluded", name)
         except Exception:
             self.log.warn('Unexpected error importing %s', name, exc_info=True)

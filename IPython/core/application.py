@@ -40,6 +40,7 @@ from IPython.config.loader import ConfigFileNotFound
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
+from IPython.utils import py3compat
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance
 
 #-----------------------------------------------------------------------------
@@ -103,7 +104,7 @@ class BaseIPythonApplication(Application):
 
     config_file_paths = List(Unicode)
     def _config_file_paths_default(self):
-        return [os.getcwdu()]
+        return [py3compat.getcwd()]
 
     extra_config_file = Unicode(config=True,
     help="""Path to an extra config file to load.
@@ -179,7 +180,7 @@ class BaseIPythonApplication(Application):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
         try:
-            directory = os.getcwdu()
+            directory = py3compat.getcwd()
         except:
             # raise exception
             self.log.error("Current working directory doesn't exist.")

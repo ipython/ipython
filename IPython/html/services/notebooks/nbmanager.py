@@ -21,7 +21,8 @@ import os
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
-from IPython.utils.traitlets import List, Dict, Unicode, TraitError
+from IPython.utils import py3compat
+from IPython.utils.traitlets import Unicode, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -35,7 +36,7 @@ class NotebookManager(LoggingConfigurable):
     # 2. The cwd of the kernel for a project.
     # Right now we use this attribute in a number of different places and
     # we are going to have to disentangle all of this.
-    notebook_dir = Unicode(os.getcwdu(), config=True, help="""
+    notebook_dir = Unicode(py3compat.getcwd(), config=True, help="""
             The directory to use for notebooks.
             """)
 

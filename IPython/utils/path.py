@@ -166,7 +166,7 @@ def filefind(filename, path_dirs=None):
         path_dirs = (path_dirs,)
 
     for path in path_dirs:
-        if path == '.': path = os.getcwdu()
+        if path == '.': path = py3compat.getcwd()
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)

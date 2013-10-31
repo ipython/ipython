@@ -13,9 +13,9 @@ def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
     wd = tempfile.mkdtemp(suffix=u"€")
     
-    old_wd = os.getcwdu()
+    old_wd = py3compat.getcwd()
     os.chdir(wd)
-    #raise Exception(repr(os.getcwdu()))
+    #raise Exception(repr(py3compat.getcwd()))
     try:
         app = BaseIPythonApplication()
         # The lines below are copied from Application.initialize()

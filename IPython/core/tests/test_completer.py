@@ -18,6 +18,7 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.generics import complete_object
+from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types, unicode_type
 
 #-----------------------------------------------------------------------------
@@ -177,7 +178,7 @@ def test_abspath_file_completions():
 
 def test_local_file_completions():
     ip = get_ipython()
-    cwd = os.getcwdu()
+    cwd = py3compat.getcwd()
     try:
         with TemporaryDirectory() as tmpdir:
             os.chdir(tmpdir)

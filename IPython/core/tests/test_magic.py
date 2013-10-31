@@ -390,9 +390,9 @@ def test_parse_options():
     
 def test_dirops():
     """Test various directory handling operations."""
-    # curpath = lambda :os.path.splitdrive(os.getcwdu())[1].replace('\\','/')
-    curpath = os.getcwdu
-    startdir = os.getcwdu()
+    # curpath = lambda :os.path.splitdrive(py3compat.getcwd())[1].replace('\\','/')
+    curpath = py3compat.getcwd
+    startdir = py3compat.getcwd()
     ipdir = os.path.realpath(_ip.ipython_dir)
     try:
         _ip.magic('cd "%s"' % ipdir)
