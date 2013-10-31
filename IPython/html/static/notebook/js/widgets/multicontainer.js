@@ -64,6 +64,7 @@ require(["notebook/js/widget"], function(){
         render: function(){
             this.$el = $('<div />');
             var uuid = IPython.utils.uuid();
+            var that = this;
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
                 .addClass('nav-tabs')
@@ -85,6 +86,11 @@ require(["notebook/js/widget"], function(){
                 }
             }
 
+            var selected_index = this.model.get('selected_index');
+            if (0 <= selected_index && selected_index < this.containers.length) {
+                this.select_page(selected_index);
+            }
+
             return IPython.WidgetView.prototype.update.call(this);
         },
 
@@ -103,8 +109,9 @@ require(["notebook/js/widget"], function(){
                 .html('Page ' + index)
                 .appendTo(tab)
                 .click(function (e) {
-                    that.$tabs.find('li')
-                        .removeClass('active');
+                    that.model.set("selected_index", index);
+                    that.model.update_other_views(that);
+                    that.select_page(index);
                 });
             this.containers.push(tab_text);
 
@@ -118,6 +125,12 @@ require(["notebook/js/widget"], function(){
                 tab_text.tab('show');
             }
             this.update();
+        },
+
+        select_page: function(index) {
+            this.$tabs.find('li')
+                .removeClass('active');
+            this.containers[index].tab('show');
         },
     });
 
