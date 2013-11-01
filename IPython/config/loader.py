@@ -399,7 +399,7 @@ class JsonFileConfigLoader(FileConfigLoader):
         if 'version' not in dictionary:
             raise ValueError('JSON config file has no version number, cowardly giving up')
         version = dictionary.pop('version')
-        if version == 1.0:
+        if version == 1:
             return dictionary
         else :
             raise ValueError('Unknown version of JSON config file : version number {n}'.format(version))
