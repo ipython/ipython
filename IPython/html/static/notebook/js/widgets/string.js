@@ -36,6 +36,7 @@ require(["notebook/js/widget"], function(){
                 .attr('rows', 5)
                 .addClass('widget-text')
                 .appendTo(this.$el);
+            this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
         },
         
@@ -89,6 +90,7 @@ require(["notebook/js/widget"], function(){
                 .addClass('input')
                 .addClass('widget-text')
                 .appendTo(this.$el);
+            this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
         },
         

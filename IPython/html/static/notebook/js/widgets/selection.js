@@ -18,6 +18,7 @@ require(["notebook/js/widget"], function(){
                                 .addClass('widget_item')
                                 .addClass('btn-group')
                                 .appendTo(this.$el);
+            this.$el_to_style = this.$buttongroup; // Set default element to style
             this.$droplabel = $('<button />')
                                 .addClass('btn')
                                 .addClass('widget-combo-btn')
@@ -96,6 +97,7 @@ require(["notebook/js/widget"], function(){
                 .appendTo(this.$el)
                 .addClass('widget-container')
                 .addClass('vbox');
+            this.$el_to_style = this.$container; // Set default element to style
             this.update();
         },
         
@@ -181,6 +183,7 @@ require(["notebook/js/widget"], function(){
                 .addClass('btn-group')
                 .attr('data-toggle', 'buttons-radio')
                 .appendTo(this.$el);
+            this.$el_to_style = this.$buttongroup; // Set default element to style
             this.update();
         },
         

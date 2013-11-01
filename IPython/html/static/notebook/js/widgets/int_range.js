@@ -21,6 +21,7 @@ require(["notebook/js/widget"], function(){
             this.$slider_container = $('<div />')
                 .addClass('widget-hslider')
                 .append(this.$slider);    
+            this.$el_to_style = this.$slider_container; // Set default element to style
             this.$el.append(this.$slider_container);
             
             // Set defaults.
@@ -113,6 +114,7 @@ require(["notebook/js/widget"], function(){
                 .addClass('input')
                 .addClass('widget-numeric-text')
                 .appendTo(this.$el);
+            this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
         },
         

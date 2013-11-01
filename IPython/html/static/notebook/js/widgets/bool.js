@@ -25,6 +25,7 @@ require(["notebook/js/widget"], function(){
                 })
                 .appendTo(this.$el);
 
+            this.$el_to_style = this.$checkbox; // Set default element to style
             this.update(); // Set defaults.
         },
         
@@ -64,6 +65,7 @@ require(["notebook/js/widget"], function(){
                 .attr('type', 'button')
                 .attr('data-toggle', 'button')
                 .appendTo(this.$el);
+            this.$el_to_style = this.$button; // Set default element to style
 
             this.update(); // Set defaults.
         },
