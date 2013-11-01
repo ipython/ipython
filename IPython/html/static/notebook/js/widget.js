@@ -141,10 +141,17 @@ define(["components/underscore/underscore-min",
                 var method = msg.content.data.method;
                 switch (method){
                     case 'display':
+
+                        // Try to get the cell index.
                         var cell_index = this._get_cell_index(msg.parent_header.msg_id);
-                        this.display_view(msg.content.data.view_name, 
+                        if (cell_index == -1) {
+                            console.log("Could not determine where the display" + 
+                                " message was from.  Widget will not be displayed")
+                        } else {
+                            this.display_view(msg.content.data.view_name, 
                             msg.content.data.parent,
                             cell_index);
+                        }
                         break;
                     case 'update':
                         this.handle_update(msg.content.data.state);
@@ -268,6 +275,14 @@ define(["components/underscore/underscore-min",
                             status : function(msg){
                                 that.handle_status(output_area, msg);
                             },
+                            get_cell_index : function() {
+                                if (that.last_modified_view != undefined && 
+                                    that.last_modified_view.cell_index != undefined) {
+                                    return that.last_modified_view.cell_index;
+                                } else {
+                                    return -1 
+                                }
+                            },
                         },
                     };
                 }
@@ -277,12 +292,25 @@ define(["components/underscore/underscore-min",
 
             // Get the cell index corresponding to the msg_id.
             _get_cell_index: function (msg_id) {
+                
+                // First, guess cell.execute triggered
                 var cells = IPython.notebook.get_cells();
                 for (var cell_index in cells) {
                     if (cells[cell_index].last_msg_id == msg_id) {
                         return cell_index;
                     }
                 }
+
+                // Second, guess widget triggered
+                var callbacks = this.comm_manager.kernel.get_callbacks_for_msg(msg_id)
+                if (callbacks != undefined && callbacks.iopub != undefined && callbacks.iopub.get_cell_index != undefined) {
+                    var cell_index = callbacks.iopub.get_cell_index();
+                    if (cell_index > -1) {
+                        return cell_index;
+                    }
+                }
+                
+                // Not triggered by a widget or a cell
                 return -1;
             },
 
