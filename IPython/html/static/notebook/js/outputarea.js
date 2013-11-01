@@ -290,7 +290,6 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
         this.expand();
-        console.log('appending output');
         // Clear the output if clear is queued.
         var needs_height_reset = false;
         if (this.clear_queued) {
@@ -473,7 +472,6 @@ var IPython = (function (IPython) {
         container.append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
         container.hide();
-        console.log('append js');
         // If the Javascript appends content to `element` that should be drawn, then
         // it must also call `container.show()`.
         try {
