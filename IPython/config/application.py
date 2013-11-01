@@ -505,10 +505,12 @@ class Application(SingletonConfigurable):
         """Load a .py based config file by filename and path."""
         pyloader = PyFileConfigLoader(filename, path=path)
         jsonloader = JsonFileConfigLoader(filename[:-2]+'json', path=path)
+        config_found = False
         config = None
-        for loader in [jsonloader, pyloader]:
+        for loader in [pyloader, jsonloader]:
             try:
                 config = loader.load_config()
+                config_found = True
             except ConfigFileNotFound:
                 pass
             except Exception:
@@ -521,11 +523,11 @@ class Application(SingletonConfigurable):
             else:
                 self.log.debug("Loaded config file: %s", loader.full_filename)
             if config :
-                break
-        if not config :
+                self.update_config(config)
+
+        if not config_found :
             raise ConfigFileNotFound('Neither .json, not .py file found.')
 
-        self.update_config(config)
 
     def generate_config_file(self):
         """generate default config file from Configurables"""
