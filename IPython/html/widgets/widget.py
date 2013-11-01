@@ -21,7 +21,7 @@ import os
 import IPython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, List, Instance
+from IPython.utils.traitlets import Unicode, Dict, List, Instance, Bool
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
@@ -50,6 +50,7 @@ class Widget(LoggingConfigurable):
     default_view_name = Unicode(help="""Default view registered in the frontend
         to use to represent the widget.""")
     parent = Instance('IPython.html.widgets.widget.Widget')
+    visible = Bool(True, help="Whether or not the widget is visible.")
 
     def _parent_changed(self, name, old, new):
         if self._displayed:
@@ -107,7 +108,7 @@ class Widget(LoggingConfigurable):
     
     # Properties      
     def _get_keys(self):
-        keys = ['_css']
+        keys = ['_css', 'visible']
         keys.extend(self._keys)
         return keys
     keys = property(_get_keys)

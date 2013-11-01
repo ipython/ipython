@@ -307,10 +307,21 @@ define(["components/underscore/underscore-min",
         var WidgetView = Backbone.View.extend({
             
             initialize: function() {
+                this.visible = true;
                 this.model.on('change',this.update,this);
             },
             
             update: function() {
+                if (this.model.get('visible') != undefined) {
+                    if (this.visible != this.model.get('visible')) {
+                        this.visible = this.model.get('visible');
+                        if (this.visible) {
+                            this.$el.show();
+                        } else {
+                            this.$el.hide();
+                        }
+                    }
+                }
                 if (this.model.css != undefined) {
                     for (var selector in this.model.css) {
                         if (this.model.css.hasOwnProperty(selector)) {
