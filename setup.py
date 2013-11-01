@@ -58,8 +58,8 @@ from setupbase import (
     setup_args,
     find_packages,
     find_package_data,
-    find_scripts,
-    build_scripts_rename,
+    find_entry_points,
+    build_scripts_entrypt,
     find_data_files,
     check_for_dependencies,
     git_prebuild,
@@ -68,6 +68,9 @@ from setupbase import (
     require_submodules,
     UpdateSubmodules,
     CompileCSS,
+    install_symlinked,
+    install_lib_symlink,
+    install_scripts_for_symlink,
 )
 from setupext import setupext
 
@@ -148,7 +151,6 @@ require_clean_submodules()
 
 # update the manuals when building a source dist
 if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
-    import textwrap
 
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
@@ -231,6 +233,9 @@ setup_args['cmdclass'] = {
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
     'css' : CompileCSS,
+    'symlink': install_symlinked,
+    'install_lib_symlink': install_lib_symlink,
+    'install_scripts_sym': install_scripts_for_symlink,
 }
 
 #---------------------------------------------------------------------------
@@ -263,7 +268,7 @@ if 'setuptools' in sys.modules:
     setup_args['cmdclass']['develop'] = require_submodules(develop)
     
     setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = find_scripts(True, suffix = '3' if PY3 else '')
+    setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.11',
         qtconsole = ['pyzmq>=2.1.11', 'pygments'],
@@ -316,10 +321,10 @@ else:
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
     check_for_dependencies()
-    setup_args['scripts'] = find_scripts(False)
-    if PY3:
-        # Rename scripts with '3' suffix
-        setup_args['cmdclass']['build_scripts'] = build_scripts_rename
+    # scripts has to be a non-empty list, or install_scripts isn't called
+    setup_args['scripts'] = [e.split('=')[0].strip() for e in find_entry_points()]
+
+    setup_args['cmdclass']['build_scripts'] = build_scripts_entrypt
 
 #---------------------------------------------------------------------------
 # Do the actual setup now
