@@ -290,7 +290,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
         this.expand();
-
+        console.log('appending output');
         // Clear the output if clear is queued.
         var needs_height_reset = false;
         if (this.clear_queued) {
@@ -425,11 +425,12 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_display_data = function (json, dynamic) {
         var toinsert = this.create_output_area();
-        this.append_mime_type(json, toinsert, dynamic);
-        this._safe_append(toinsert);
-        // If we just output latex, typeset it.
-        if ( (json.latex !== undefined) || (json.html !== undefined) ) {
-            this.typeset();
+        if (this.append_mime_type(json, toinsert, dynamic)) {
+            this._safe_append(toinsert);
+            // If we just output latex, typeset it.
+            if ( (json.latex !== undefined) || (json.html !== undefined) ) {
+                this.typeset();
+            }
         }
     };
 
@@ -446,13 +447,16 @@ var IPython = (function (IPython) {
                 if(type == 'javascript'){
                     if (dynamic) {
                         this.append_javascript(json.javascript, md, element, dynamic);
+                        return true;
                     }
                 } else {
                     this['append_'+type](json[type], md, element);
+                    return true;
                 }
-                return;
+                return false;
             }
         }
+        return false;
     };
 
 
@@ -469,6 +473,7 @@ var IPython = (function (IPython) {
         container.append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
         container.hide();
+        console.log('append js');
         // If the Javascript appends content to `element` that should be drawn, then
         // it must also call `container.show()`.
         try {
