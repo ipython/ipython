@@ -36,6 +36,7 @@ from IPython.core.application import (
     base_flags as base_ip_flags
 )
 from IPython.utils.path import expand_path
+from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
 
 from IPython.utils.traitlets import Unicode, Bool, Instance, Dict
@@ -105,7 +106,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         """override default log format to include time"""
         return u"%(asctime)s.%(msecs).03d [%(name)s]%(highlevel)s %(message)s"
 
-    work_dir = Unicode(os.getcwdu(), config=True,
+    work_dir = Unicode(py3compat.getcwd(), config=True,
         help='Set the working dir for the process.'
     )
     def _work_dir_changed(self, name, old, new):
@@ -156,7 +157,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         
     def to_work_dir(self):
         wd = self.work_dir
-        if unicode_type(wd) != os.getcwdu():
+        if unicode_type(wd) != py3compat.getcwd():
             os.chdir(wd)
             self.log.info("Changing to working dir: %s" % wd)
         # This is the working dir by now.

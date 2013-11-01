@@ -1,6 +1,7 @@
 # coding: utf-8
 """Compatibility tricks for Python 3. Mainly to do with unicode."""
 import functools
+import os
 import sys
 import re
 import types
@@ -95,6 +96,7 @@ if sys.version_info[0] >= 3:
     xrange = range
     def iteritems(d): return iter(d.items())
     def itervalues(d): return iter(d.values())
+    getcwd = os.getcwd
     
     MethodType = types.MethodType
     
@@ -172,6 +174,7 @@ else:
     xrange = xrange
     def iteritems(d): return d.iteritems()
     def itervalues(d): return d.itervalues()
+    getcwd = os.getcwdu
 
     def MethodType(func, instance):
         return types.MethodType(func, instance, type(instance))

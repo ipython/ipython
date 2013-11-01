@@ -36,6 +36,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.path import unquote_filename
 from IPython.utils.process import abbrev_cwd
+from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.terminal import set_term_title
 
@@ -180,7 +181,7 @@ class OSMagics(Magics):
                 winext += '|py'
             execre = re.compile(r'(.*)\.(%s)$' % winext,re.IGNORECASE)
             isexec = lambda fname:os.path.isfile(fname) and execre.match(fname)
-        savedir = os.getcwdu()
+        savedir = py3compat.getcwd()
 
         # Now walk the paths looking for executables to alias.
         try:
@@ -234,7 +235,7 @@ class OSMagics(Magics):
           In [9]: pwd
           Out[9]: '/home/tsuser/sprint/ipython'
         """
-        return os.getcwdu()
+        return py3compat.getcwd()
 
     @skip_doctest
     @line_magic
@@ -278,7 +279,7 @@ class OSMagics(Magics):
           /home/tsuser/parent/child
         """
 
-        oldcwd = os.getcwdu()
+        oldcwd = py3compat.getcwd()
         numcd = re.match(r'(-)(\d+)$',parameter_s)
         # jump in directory history by number
         if numcd:
@@ -351,7 +352,7 @@ class OSMagics(Magics):
             except OSError:
                 print(sys.exc_info()[1])
             else:
-                cwd = os.getcwdu()
+                cwd = py3compat.getcwd()
                 dhist = self.shell.user_ns['_dh']
                 if oldcwd != cwd:
                     dhist.append(cwd)
@@ -361,7 +362,7 @@ class OSMagics(Magics):
             os.chdir(self.shell.home_dir)
             if hasattr(self.shell, 'term_title') and self.shell.term_title:
                 set_term_title('IPython: ' + '~')
-            cwd = os.getcwdu()
+            cwd = py3compat.getcwd()
             dhist = self.shell.user_ns['_dh']
 
             if oldcwd != cwd:
@@ -387,7 +388,7 @@ class OSMagics(Magics):
 
         dir_s = self.shell.dir_stack
         tgt = os.path.expanduser(unquote_filename(parameter_s))
-        cwd = os.getcwdu().replace(self.shell.home_dir,'~')
+        cwd = py3compat.getcwd().replace(self.shell.home_dir,'~')
         if tgt:
             self.cd(parameter_s)
         dir_s.insert(0,cwd)
@@ -676,7 +677,7 @@ class OSMagics(Magics):
             if not args:
                 raise UsageError("%bookmark: You must specify the bookmark name")
             elif len(args)==1:
-                bkms[args[0]] = os.getcwdu()
+                bkms[args[0]] = py3compat.getcwd()
             elif len(args)==2:
                 bkms[args[0]] = args[1]
         self.shell.db['bookmarks'] = bkms

@@ -25,6 +25,8 @@ import struct
 import sys
 import warnings
 
+from . import py3compat
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -102,7 +104,7 @@ if sys.platform == 'win32':
 
             try:
                 # Cannot be on network share when issuing system commands
-                curr = os.getcwdu()
+                curr = py3compat.getcwd()
                 os.chdir("C:")
                 ret = os.system("title " + title)
             finally:

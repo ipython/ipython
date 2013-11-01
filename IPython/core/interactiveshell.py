@@ -578,7 +578,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # keep track of where we started running (mainly for crash post-mortem)
         # This is not being used anywhere currently.
-        self.starting_dir = os.getcwdu()
+        self.starting_dir = py3compat.getcwd()
 
         # Indentation management
         self.indent_current_nsp = 0

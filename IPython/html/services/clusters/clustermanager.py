@@ -16,8 +16,6 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
-
 from tornado import web
 from zmq.eventloop import ioloop
 
@@ -26,6 +24,7 @@ from IPython.utils.traitlets import Dict, Instance, CFloat
 from IPython.parallel.apps.ipclusterapp import IPClusterStart
 from IPython.core.profileapp import list_profiles_in
 from IPython.core.profiledir import ProfileDir
+from IPython.utils import py3compat
 from IPython.utils.path import get_ipython_dir
 
 
@@ -74,7 +73,7 @@ class ClusterManager(LoggingConfigurable):
     def update_profiles(self):
         """List all profiles in the ipython_dir and cwd.
         """
-        for path in [get_ipython_dir(), os.getcwdu()]:
+        for path in [get_ipython_dir(), py3compat.getcwd()]:
             for profile in list_profiles_in(path):
                 pd = self.get_profile_dir(profile, path)
                 if profile not in self.profiles:

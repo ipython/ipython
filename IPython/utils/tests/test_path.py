@@ -523,7 +523,7 @@ class TestShellGlob(object):
     @classmethod
     @contextmanager
     def in_tempdir(cls):
-        save = os.getcwdu()
+        save = py3compat.getcwd()
         try:
             os.chdir(cls.tempdir.name)
             yield

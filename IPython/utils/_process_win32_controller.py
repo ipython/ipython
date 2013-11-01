@@ -17,7 +17,7 @@ import os, sys, threading
 import ctypes, msvcrt
 
 # local imports
-from .py3compat import unicode_type
+from . import py3compat
 
 # Win32 API types needed for the API calls
 from ctypes import POINTER
@@ -174,7 +174,7 @@ class AvoidUNCPath(object):
             os.system(cmd)
     """
     def __enter__(self):
-        self.path = os.getcwdu()
+        self.path = py3compat.getcwd()
         self.is_unc_path = self.path.startswith(r"\\")
         if self.is_unc_path:
             # change to c drive (as cmd.exe cannot handle UNC addresses)

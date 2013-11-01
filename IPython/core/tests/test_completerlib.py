@@ -16,6 +16,7 @@ import unittest
 from os.path import join
 
 from IPython.core.completerlib import magic_run_completer, module_completion
+from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.decorators import onlyif_unicode_paths
 
@@ -33,7 +34,7 @@ class Test_magic_run_completer(unittest.TestCase):
         for fil in [u"aao.py", u"a.py", u"b.py"]:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
-        self.oldpath = os.getcwdu()
+        self.oldpath = py3compat.getcwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
@@ -86,7 +87,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
         for fil in [u"aaø.py", u"a.py", u"b.py"]:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
-        self.oldpath = os.getcwdu()
+        self.oldpath = py3compat.getcwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):

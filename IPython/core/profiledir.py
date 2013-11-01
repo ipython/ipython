@@ -27,6 +27,7 @@ import errno
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.path import get_ipython_package_dir, expand_path
+from IPython.utils import py3compat
 from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------
@@ -233,7 +234,7 @@ class ProfileDir(LoggingConfigurable):
         is not found, a :class:`ProfileDirError` exception will be raised.
 
         The search path algorithm is:
-        1. ``os.getcwdu()``
+        1. ``py3compat.getcwd()``
         2. ``ipython_dir``
 
         Parameters
@@ -245,7 +246,7 @@ class ProfileDir(LoggingConfigurable):
             will be "profile_<profile>".
         """
         dirname = u'profile_' + name
-        paths = [os.getcwdu(), ipython_dir]
+        paths = [py3compat.getcwd(), ipython_dir]
         for p in paths:
             profile_dir = os.path.join(p, dirname)
             if os.path.isdir(profile_dir):
