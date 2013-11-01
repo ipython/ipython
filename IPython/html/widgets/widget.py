@@ -44,6 +44,9 @@ def init_widget_js():
 #-----------------------------------------------------------------------------
 class Widget(LoggingConfigurable):
 
+    # Shared declarations
+    _keys = []
+    
     # Public declarations
     target_name = Unicode('widget', help="""Name of the backbone model 
         registered in the frontend to create and sync this widget with.""")
@@ -64,11 +67,12 @@ class Widget(LoggingConfigurable):
                 new._children.append(self)
             if old is not None and self in old._children:
                 old._children.remove(self)                
-    
+
     # Private/protected declarations
-    _keys = []
     _property_lock = False
-    _css = Dict()
+    _css = Dict() # Internal CSS property dict
+    _add_class = List() # Used to add a js class to a DOM element (call#, selector, class_name)
+    _remove_class = List() # Used to remove a js class from a DOM element (call#, selector, class_name)
     _displayed = False
     _comm = None
     
@@ -87,6 +91,8 @@ class Widget(LoggingConfigurable):
             via the default_view_name property.
         """
         self._children = []
+        self._add_class = [0]
+        self._remove_class = [0]
         super(Widget, self).__init__(**kwargs)
                 
         # Register after init to allow default values to be specified
@@ -108,7 +114,7 @@ class Widget(LoggingConfigurable):
     
     # Properties      
     def _get_keys(self):
-        keys = ['_css', 'visible']
+        keys = ['visible', '_css', '_add_class', '_remove_class']
         keys.extend(self._keys)
         return keys
     keys = property(_get_keys)
@@ -212,7 +218,39 @@ class Widget(LoggingConfigurable):
         # Only update the property if it has changed.
         if not (key in self._css[selector] and value in self._css[selector][key]):
             self._css[selector][key] = value
-            self.send_state() # Send new state to client.
+            self.send_state('_css') # Send new state to client.
+
+
+    def add_class(self, class_name, selector=""):
+        """Add class[es] to a DOM element
+
+        Parameters
+        ----------
+        class_name: unicode
+            Class name(s) to add to the DOM element(s).  Multiple class names 
+            must be space separated.
+        selector: unicode (optional)
+            JQuery selector to select the DOM element(s) that the class(es) will 
+            be added to.
+        """
+        self._add_class = [self._add_class[0] + 1, selector, class_name]
+        self.send_state(key='_add_class')
+
+
+    def remove_class(self, class_name, selector=""):
+        """Remove class[es] from a DOM element
+
+        Parameters
+        ----------
+        class_name: unicode
+            Class name(s) to remove from  the DOM element(s).  Multiple class 
+            names must be space separated.
+        selector: unicode (optional)
+            JQuery selector to select the DOM element(s) that the class(es) will 
+            be removed from.
+        """
+        self._remove_class = [self._remove_class[0] + 1, selector, class_name]
+        self.send_state(key='_remove_class')
 
 
     # Support methods

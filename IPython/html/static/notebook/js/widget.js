@@ -309,6 +309,8 @@ define(["components/underscore/underscore-min",
             initialize: function() {
                 this.visible = true;
                 this.model.on('change',this.update,this);
+                this._add_class_calls = this.model.get('_add_class')[0];
+                this._remove_class_calls = this.model.get('_remove_class')[0];
             },
             
             update: function() {
@@ -322,25 +324,14 @@ define(["components/underscore/underscore-min",
                         }
                     }
                 }
+
                 if (this.model.css != undefined) {
                     for (var selector in this.model.css) {
                         if (this.model.css.hasOwnProperty(selector)) {
                             
-                            // Get the elements via the css selector.  If the selector is
-                            // blank, apply the style to the $el_to_style element.  If
-                            // the $el_to_style element is not defined, use apply the 
-                            // style to the view's element.
-                            var elements = this.$el.find(selector);
-                            if (selector=='') {
-                                if (this.$el_to_style == undefined) {
-                                    elements = this.$el;
-                                } else {
-                                    elements = this.$el_to_style;
-                                }
-                            }
-                            
                             // Apply the css traits to all elements that match the selector.
-                            if (elements.length>0){
+                            var elements = this.get_selector_element(selector);
+                            if (elements.length > 0) {
                                 var css_traits = this.model.css[selector];    
                                 for (var css_key in css_traits) {
                                     if (css_traits.hasOwnProperty(css_key)) {
@@ -351,6 +342,46 @@ define(["components/underscore/underscore-min",
                         }
                     }
                 }
+
+                var add_class = this.model.get('_add_class');
+                if (add_class != undefined){
+                    var add_class_calls = add_class[0];
+                    if (add_class_calls > this._add_class_calls) {
+                        this._add_class_calls = add_class_calls;
+                        var elements = this.get_selector_element(add_class[1]);
+                        if (elements.length > 0) {
+                            elements.addClass(add_class[2]);
+                        }
+                    }    
+                }
+
+                var remove_class = this.model.get('_remove_class');
+                if (remove_class != undefined){
+                    var remove_class_calls = remove_class[0];
+                    if (remove_class_calls > this._remove_class_calls) {
+                        this._remove_class_calls = remove_class_calls;
+                        var elements = this.get_selector_element(remove_class[1]);
+                        if (elements.length > 0) {
+                            elements.removeClass(remove_class[2]);
+                        }
+                    }    
+                }
+            },
+
+            get_selector_element: function(selector) {
+                // Get the elements via the css selector.  If the selector is
+                // blank, apply the style to the $el_to_style element.  If
+                // the $el_to_style element is not defined, use apply the 
+                // style to the view's element.
+                var elements = this.$el.find(selector);
+                if (selector=='') {
+                    if (this.$el_to_style == undefined) {
+                        elements = this.$el;
+                    } else {
+                        elements = this.$el_to_style;
+                    }
+                }
+                return elements;
             },
         });
 
