@@ -97,6 +97,10 @@ external software and language, but still Python file have are the more
 powerful.  The concept exposed in Python configuration file section also apply
 to the JSON configuration file section.
 
+When both Python and JSON configuration file are present, both will be loaded,
+but the configuration in JSON will take precedence over the one int the JSON
+configuration file.
+
 Python configuration Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -193,8 +197,8 @@ JSON configuration Files
 
 A JSON configuration file is simply a file that contain a
 :class:`~IPython.config.loader.Config` Object serialized as a JSON object with
-an additional mandatory ``version`` key that is reserved for future use. JSOn
-configuration file shoudl take the same name than Python configuration file,
+an additional mandatory ``version`` key that is reserved for future use. JSON
+configuration file should take the same name than Python configuration file,
 but with a .json extension.  Be careful, JSON file do not support comment, and
 invalid JSON files will be ignored at load time.
 
