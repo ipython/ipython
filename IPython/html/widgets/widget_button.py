@@ -33,7 +33,10 @@ class ButtonWidget(Widget):
     description = Unicode('', help="Description of the button (label).")
     disabled = Bool(False, help="Enable or disable user changes.")
     
-    _click_handlers = []
+
+    def __init__(self, **kwargs):
+        self._click_handlers = []
+        super(ButtonWidget, self).__init__(**kwargs)
 
 
     def on_click(self, callback, remove=False):
