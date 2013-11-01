@@ -395,6 +395,11 @@ class JsonFileConfigLoader(FileConfigLoader):
         with open(self.full_filename) as f :
             return json.load(f)
 
+    def write_config(self, dct):
+        with open(self.full_filename,"w") as f:
+            dct.version = 1
+            json.dump(dct, f, indent=2)
+
     def _convert_to_config(self, dictionary):
         if 'version' not in dictionary:
             raise ValueError('JSON config file has no version number, cowardly giving up')
