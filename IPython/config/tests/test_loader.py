@@ -324,4 +324,14 @@ class TestConfig(TestCase):
         foo = cfg['foo']
         assert isinstance(foo, LazyConfigValue)
         self.assertIn('foo', cfg)
+    
+    def test_merge_copies(self):
+        c = Config()
+        c2 = Config()
+        c2.Foo.trait = []
+        c.merge(c2)
+        c2.Foo.trait.append(1)
+        self.assertIsNot(c.Foo, c2.Foo)
+        self.assertEqual(c.Foo.trait, [])
+        self.assertEqual(c2.Foo.trait, [1])
 

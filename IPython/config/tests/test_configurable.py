@@ -357,4 +357,19 @@ class TestConfigContainers(TestCase):
         obj = Containers(config=c)
         self.assertEqual(obj.d, {'a':'b', 'c':'d', 'e':'f'})
     
+    def test_update_twice(self):
+        c = Config()
+        c.MyConfigurable.a = 5
+        m = MyConfigurable(config=c)
+        self.assertEqual(m.a, 5)
+        
+        c2 = Config()
+        c2.MyConfigurable.a = 10
+        m.update_config(c2)
+        self.assertEqual(m.a, 10)
+        
+        c2.MyConfigurable.a = 15
+        m.update_config(c2)
+        self.assertEqual(m.a, 15)
+    
 

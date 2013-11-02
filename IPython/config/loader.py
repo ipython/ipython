@@ -200,14 +200,14 @@ class Config(dict):
         to_update = {}
         for k, v in iteritems(other):
             if k not in self:
-                to_update[k] = v
+                to_update[k] = copy.deepcopy(v)
             else: # I have this key
                 if isinstance(v, Config) and isinstance(self[k], Config):
                     # Recursively merge common sub Configs
                     self[k].merge(v)
                 else:
                     # Plain updates for non-Configs
-                    to_update[k] = v
+                    to_update[k] = copy.deepcopy(v)
 
         self.update(to_update)
 
