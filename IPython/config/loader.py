@@ -32,7 +32,7 @@ import sys
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
-from IPython.utils.py3compat import builtin_mod, unicode_type, iteritems
+from IPython.utils.py3compat import unicode_type, iteritems
 from IPython.utils.traitlets import HasTraits, List, Any, TraitError
 
 #-----------------------------------------------------------------------------
