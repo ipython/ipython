@@ -31,11 +31,12 @@ from IPython.testing.tools import mute_warn
 
 from IPython.config.loader import (
     Config,
+    LazyConfigValue,
     PyFileConfigLoader,
     KeyValueConfigLoader,
     ArgParseConfigLoader,
     KVArgParseConfigLoader,
-    ConfigError
+    ConfigError,
 )
 
 #-----------------------------------------------------------------------------
@@ -207,14 +208,15 @@ class TestConfig(TestCase):
 
     def test_auto_section(self):
         c = Config()
-        self.assertEqual('A' in c, True)
-        self.assertEqual(c._has_section('A'), False)
+        self.assertNotIn('A', c)
+        assert not c._has_section('A')
         A = c.A
         A.foo = 'hi there'
-        self.assertEqual(c._has_section('A'), True)
+        self.assertIn('A', c)
+        assert c._has_section('A')
         self.assertEqual(c.A.foo, 'hi there')
         del c.A
-        self.assertEqual(len(c.A.keys()),0)
+        self.assertEqual(c.A, Config())
 
     def test_merge_doesnt_exist(self):
         c1 = Config()
@@ -294,4 +296,32 @@ class TestConfig(TestCase):
         pcfg = pickle.dumps(cfg)
         cfg2 = pickle.loads(pcfg)
         self.assertEqual(cfg2, cfg)
+    
+    def test_getattr_section(self):
+        cfg = Config()
+        self.assertNotIn('Foo', cfg)
+        Foo = cfg.Foo
+        assert isinstance(Foo, Config)
+        self.assertIn('Foo', cfg)
+
+    def test_getitem_section(self):
+        cfg = Config()
+        self.assertNotIn('Foo', cfg)
+        Foo = cfg['Foo']
+        assert isinstance(Foo, Config)
+        self.assertIn('Foo', cfg)
+
+    def test_getattr_not_section(self):
+        cfg = Config()
+        self.assertNotIn('foo', cfg)
+        foo = cfg.foo
+        assert isinstance(foo, LazyConfigValue)
+        self.assertIn('foo', cfg)
+
+    def test_getitem_not_section(self):
+        cfg = Config()
+        self.assertNotIn('foo', cfg)
+        foo = cfg['foo']
+        assert isinstance(foo, LazyConfigValue)
+        self.assertIn('foo', cfg)
 
