@@ -219,19 +219,13 @@ class Config(dict):
                 return False
             return remainder in self[first]
         
-        # we always have Sections
-        if _is_section_key(key):
-            return True
-        else:
-            return super(Config, self).__contains__(key)
+        return super(Config, self).__contains__(key)
+    
     # .has_key is deprecated for dictionaries.
     has_key = __contains__
-
+    
     def _has_section(self, key):
-        if _is_section_key(key):
-            if super(Config, self).__contains__(key):
-                return True
-        return False
+        return _is_section_key(key) and key in self
     
     def copy(self):
         return type(self)(dict.copy(self))
