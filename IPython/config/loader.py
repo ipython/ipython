@@ -244,17 +244,14 @@ class Config(dict):
         return type(self)(copy.deepcopy(list(self.items())))
     
     def __getitem__(self, key):
-        if _is_section_key(key):
-            try:
-                return dict.__getitem__(self, key)
-            except KeyError:
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            if _is_section_key(key):
                 c = Config()
                 dict.__setitem__(self, key, c)
                 return c
-        else:
-            try:
-                return dict.__getitem__(self, key)
-            except KeyError:
+            else:
                 # undefined, create lazy value, used for container methods
                 v = LazyConfigValue()
                 dict.__setitem__(self, key, v)
