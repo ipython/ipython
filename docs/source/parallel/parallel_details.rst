@@ -180,17 +180,21 @@ flags for all views:
 
 block : bool (default: view.block)
     Whether to wait for the result, or return immediately.
+
     False:
         returns AsyncResult
     True:
-        returns actual result(s) of f(*args, **kwargs)
+        returns actual result(s) of ``f(*args, **kwargs)``
+
         if multiple targets:
             list of results, matching `targets`
+
 track : bool [default view.track]
     whether to track non-copying sends.
 
 targets : int,list of ints, 'all', None [default view.targets]
     Specify the destination of the job.
+
     if 'all' or None:
         Run on all active engines
     if list:
@@ -198,8 +202,8 @@ targets : int,list of ints, 'all', None [default view.targets]
     if int:
         Run on single engine
 
-Note that LoadBalancedView uses targets to restrict possible destinations.  LoadBalanced calls
-will always execute in just one location.
+Note that :class:`LoadBalancedView` uses targets to restrict possible destinations.
+LoadBalanced calls will always execute in just one location.
 
 flags only in LoadBalancedViews:
 

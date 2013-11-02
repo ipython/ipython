@@ -240,6 +240,6 @@ result.
 
 .. seealso::
 
-    :ref:`AsyncResult details <AsyncResult>`
+    :doc:`AsyncResult details <asyncresult>`
 
 
