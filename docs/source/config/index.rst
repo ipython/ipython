@@ -8,6 +8,7 @@ Configuration and customization
    :maxdepth: 2
 
    overview
+   options/index
    extensions/index
    ipython
    integrating
