@@ -224,6 +224,7 @@ on the cluster.  An example of ipcontroller-client.json, as created by::
       "ssh":"login.mycluster.com",
       "location":"10.0.0.2"
     }
+
 More details of how these JSON files are used are given below.
 
 A detailed description of the security model and its implementation in IPython
