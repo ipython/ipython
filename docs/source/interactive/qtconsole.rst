@@ -10,7 +10,7 @@ largely feels like a terminal, but provides a number of enhancements only
 possible in a GUI, such as inline figures, proper multiline editing with syntax
 highlighting, graphical calltips, and much more.
 
-.. figure:: ../../_images/qtconsole.png
+.. figure:: ../_images/qtconsole.png
     :width: 400px
     :alt: IPython Qt console with embedded plots
     :align: center

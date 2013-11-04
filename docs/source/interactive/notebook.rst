@@ -470,7 +470,7 @@ all the code in the ``.py`` file. You can later manually partition this into
 individual cells using the ``Edit | Split Cell`` menu option, or the 
 :kbd:`Ctrl-m -` keyboard shortcut.
 
-Note that ``.py`` scripts obtained from a notebook document using nbconvert_ 
+Note that ``.py`` scripts obtained from a notebook document using :doc:`nbconvert <nbconvert>`
 maintain the structure of the notebook in comments. Reimporting such a
 script back into a notebook will preserve this structure.
 

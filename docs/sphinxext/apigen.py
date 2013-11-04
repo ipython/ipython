@@ -45,6 +45,14 @@ class FuncClsScanner(ast.NodeVisitor):
     def has_undoc_decorator(node):
         return any(isinstance(d, ast.Name) and d.id == 'undoc' \
                                 for d in node.decorator_list)
+
+    def visit_If(self, node):
+        if isinstance(node.test, ast.Compare) \
+                and isinstance(node.test.left, ast.Name) \
+                and node.test.left.id == '__name__':
+            return   # Ignore classes defined in "if __name__ == '__main__':"
+
+        self.generic_visit(node)
     
     def visit_FunctionDef(self, node):
         if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \

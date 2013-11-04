@@ -78,7 +78,7 @@ The flags for execution have also changed.  Previously, there was only `block` d
 to wait for results.  This remains, but due to the addition of fully non-copying sends of 
 arrays and buffers, there is also a `track` flag, which instructs PyZMQ to produce a :class:`MessageTracker` that will let you know when it is safe again to edit arrays in-place.
 
-The result of a non-blocking call to `apply` is now an AsyncResult_ object, described below.
+The result of a non-blocking call to `apply` is now an :doc:`AsyncResult object <asyncresult>`.
 
 MultiEngine to DirectView
 =========================
@@ -240,6 +240,6 @@ result.
 
 .. seealso::
 
-    :ref:`AsyncResult details <AsyncResult>`
+    :doc:`AsyncResult details <asyncresult>`
 
 

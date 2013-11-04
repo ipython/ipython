@@ -568,8 +568,8 @@ Backwards incompatible changes
   :mod:`IPython.quarantine`.  All existing top-level modules have been
   moved to appropriate sub-packages.  All internal import statements
   have been updated and tests have been added.  The build system (setup.py
-  and friends) have been updated.  See :ref:`this section <module_reorg>` of the
-  documentation for descriptions of these new sub-packages.
+  and friends) have been updated. See :doc:`/api/index` for details of these
+  new sub-packages.
 
 * :mod:`IPython.ipapi` has been moved to :mod:`IPython.core.ipapi`.
   :mod:`IPython.Shell` and :mod:`IPython.iplib` have been split and removed as
@@ -580,7 +580,7 @@ Backwards incompatible changes
   :mod:`IPython.deathrow`. :mod:`IPython.quarantine` contains modules that we
   plan on keeping but that need to be updated. :mod:`IPython.deathrow` contains
   modules that are either dead or that should be maintained as third party
-  libraries. More details about this can be found :ref:`here <module_reorg>`.
+  libraries.
 
 * Previous IPython GUIs in :mod:`IPython.frontend` and :mod:`IPython.gui` are
   likely broken, and have been removed to :mod:`IPython.deathrow` because of the

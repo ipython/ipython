@@ -1,4 +1,4 @@
-.. _working_remotely.txt
+.. _working_remotely:
 
 Running a notebook server
 =========================

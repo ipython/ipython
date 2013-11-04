@@ -141,7 +141,7 @@ independent of the defaults for the View.
 
 .. seealso::
 
-    :ref:`%pxconfig` accepts these same arguments for changing the *default*
+    :ref:`pxconfig` accepts these same arguments for changing the *default*
     values of targets/blocking for the active View.
 
 
@@ -231,6 +231,8 @@ on the engines until you do %autopx again.
 
     In [35]: %autopx
     Auto Parallel Disabled
+
+.. _pxconfig:
 
 %pxconfig
 ---------

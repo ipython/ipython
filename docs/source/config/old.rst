@@ -42,7 +42,7 @@ The following terminals seem to handle the color sequences fine:
     * Linux main text console, KDE Konsole, Gnome Terminal, E-term,
       rxvt, xterm.
     * CDE terminal (tested under Solaris). This one boldfaces light colors.
-    * (X)Emacs buffers. See the emacs_ section for more details on
+    * (X)Emacs buffers. See the :ref:`emacs` section for more details on
       using IPython with (X)Emacs.
     * A Windows (XP/2k) command prompt with pyreadline_.
     * A Windows (XP/2k) CygWin shell. Although some users have reported
