@@ -20,6 +20,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
+import pickle
 import sys
 from tempfile import mkstemp
 from unittest import TestCase
@@ -30,11 +31,12 @@ from IPython.testing.tools import mute_warn
 
 from IPython.config.loader import (
     Config,
+    LazyConfigValue,
     PyFileConfigLoader,
     KeyValueConfigLoader,
     ArgParseConfigLoader,
     KVArgParseConfigLoader,
-    ConfigError
+    ConfigError,
 )
 
 #-----------------------------------------------------------------------------
@@ -206,14 +208,15 @@ class TestConfig(TestCase):
 
     def test_auto_section(self):
         c = Config()
-        self.assertEqual('A' in c, True)
-        self.assertEqual(c._has_section('A'), False)
+        self.assertNotIn('A', c)
+        assert not c._has_section('A')
         A = c.A
         A.foo = 'hi there'
-        self.assertEqual(c._has_section('A'), True)
+        self.assertIn('A', c)
+        assert c._has_section('A')
         self.assertEqual(c.A.foo, 'hi there')
         del c.A
-        self.assertEqual(len(c.A.keys()),0)
+        self.assertEqual(c.A, Config())
 
     def test_merge_doesnt_exist(self):
         c1 = Config()
@@ -256,8 +259,6 @@ class TestConfig(TestCase):
 
     def test_builtin(self):
         c1 = Config()
-        exec('foo = True', c1)
-        self.assertEqual(c1.foo, True)
         c1.format = "json"
     
     def test_fromdict(self):
@@ -289,4 +290,48 @@ class TestConfig(TestCase):
         self.assertIn('Foo.bar', c2)
         self.assertNotIn('Foo.bar', c1)
     
+    def test_pickle_config(self):
+        cfg = Config()
+        cfg.Foo.bar = 1
+        pcfg = pickle.dumps(cfg)
+        cfg2 = pickle.loads(pcfg)
+        self.assertEqual(cfg2, cfg)
+    
+    def test_getattr_section(self):
+        cfg = Config()
+        self.assertNotIn('Foo', cfg)
+        Foo = cfg.Foo
+        assert isinstance(Foo, Config)
+        self.assertIn('Foo', cfg)
+
+    def test_getitem_section(self):
+        cfg = Config()
+        self.assertNotIn('Foo', cfg)
+        Foo = cfg['Foo']
+        assert isinstance(Foo, Config)
+        self.assertIn('Foo', cfg)
+
+    def test_getattr_not_section(self):
+        cfg = Config()
+        self.assertNotIn('foo', cfg)
+        foo = cfg.foo
+        assert isinstance(foo, LazyConfigValue)
+        self.assertIn('foo', cfg)
+
+    def test_getitem_not_section(self):
+        cfg = Config()
+        self.assertNotIn('foo', cfg)
+        foo = cfg['foo']
+        assert isinstance(foo, LazyConfigValue)
+        self.assertIn('foo', cfg)
+    
+    def test_merge_copies(self):
+        c = Config()
+        c2 = Config()
+        c2.Foo.trait = []
+        c.merge(c2)
+        c2.Foo.trait.append(1)
+        self.assertIsNot(c.Foo, c2.Foo)
+        self.assertEqual(c.Foo.trait, [])
+        self.assertEqual(c2.Foo.trait, [1])
 

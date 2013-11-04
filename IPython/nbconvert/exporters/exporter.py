@@ -83,27 +83,18 @@ class Exporter(LoggingConfigurable):
         config : config
             User configuration instance.
         """
-        if not config:
-            config = self.default_config
+        with_default_config = self.default_config
+        if config:
+            with_default_config.merge(config)
+        
+        super(Exporter, self).__init__(config=with_default_config, **kw)
 
-        super(Exporter, self).__init__(config=config, **kw)
-
-        #Init
         self._init_preprocessors()
 
 
     @property
     def default_config(self):
         return Config()
-
-    def _config_changed(self, name, old, new):
-        """When setting config, make sure to start with our default_config"""
-        c = self.default_config
-        if new:
-            c.merge(new)
-        if c != old:
-            self.config = c
-        super(Exporter, self)._config_changed(name, old, c)
 
 
     def from_notebook_node(self, nb, resources=None, **kw):

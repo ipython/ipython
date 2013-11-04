@@ -140,10 +140,7 @@ class TemplateExporter(Exporter):
         template : str (optional, kw arg)
             Template to use when exporting.
         """
-        if not config:
-            config = self.default_config
-        
-        super(Exporter, self).__init__(config=config, **kw)
+        super(TemplateExporter, self).__init__(config=config, **kw)
 
         #Init
         self._init_template()
