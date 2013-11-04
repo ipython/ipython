@@ -627,7 +627,7 @@ the engines.
    .. note::
 
         The log output of ipcontroller above shows you where the json files were written.
-        They will be in :file:`~/.ipython` (or :file:`~/.config/ipython`) under
+        They will be in :file:`~/.ipython` under
         :file:`profile_default/security/ipcontroller-engine.json`
 
 3. start the engines, using the connection file::
@@ -644,7 +644,7 @@ A couple of notes:
   then you need not specify its path directly, only the profile (assumes the path exists,
   otherwise you must create it first)::
 
-    [engine.host.n] $ scp controller.host:.ipython/profile_default/security/ipcontroller-engine.json ~/.config/ipython/profile_ssh/security/
+    [engine.host.n] $ scp controller.host:.ipython/profile_default/security/ipcontroller-engine.json ~/.ipython/profile_ssh/security/
     [engine.host.n] $ ipengine --profile=ssh
 
   Of course, if you fetch the file into the default profile, no arguments must be passed to

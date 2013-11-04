@@ -26,10 +26,10 @@ the command line, simply because they are not practical here. Look into
 your configuration files for details on those. There are separate configuration 
 files for each profile, and the files look like "ipython_config.py" or 
 "ipython_config_<frontendname>.py".  Profile directories look like 
-"profile_profilename" and are typically installed in the IPYTHONDIR directory.
-For Linux users, this will be $HOME/.config/ipython, and for other users it 
-will be $HOME/.ipython.  For Windows users, $HOME resolves to C:\\Documents and
-Settings\\YourUserName in most instances.
+"profile_profilename" and are typically installed in the IPYTHONDIR directory,
+which defaults to :file:`$HOME/.ipython`. For Windows users, :envvar:`HOME`
+resolves to :file:`C:\\Documents and Settings\\YourUserName` in most
+instances.
 
 
 Eventloop integration
