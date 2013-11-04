@@ -202,7 +202,7 @@ class FormatterABC(with_metaclass(abc.ABCMeta, object)):
         """
         try:
             return repr(obj)
-        except TypeError:
+        except Exception:
             return None
 
 
@@ -465,10 +465,7 @@ class PlainTextFormatter(BaseFormatter):
     def __call__(self, obj):
         """Compute the pretty representation of the object."""
         if not self.pprint:
-            try:
-                return repr(obj)
-            except TypeError:
-                return ''
+            return pretty._safe_repr(obj)
         else:
             # This uses use StringIO, as cStringIO doesn't handle unicode.
             stream = StringIO()
