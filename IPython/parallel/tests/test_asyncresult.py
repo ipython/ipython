@@ -301,8 +301,9 @@ class AsyncResultTest(ClusterTestCase):
         # timeout after 10s
         while time.time() <= tic + 10:
             if ar.data:
-                found.add(ar.data['i'])
-                if ar.data['i'] == 4:
+                i = ar.data['i']
+                found.add(i)
+                if i == 4:
                     break
             time.sleep(0.05)
         
