@@ -289,7 +289,7 @@ define(["components/underscore/underscore-min",
 
 
             // Get the output area corresponding to the msg_id.
-            // output_area is an instance of 
+            // output_area is an instance of Ipython.OutputArea
             _get_output_area: function (msg_id) {
                 
                 // First, guess cell.execute triggered
