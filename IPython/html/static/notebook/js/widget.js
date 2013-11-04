@@ -55,8 +55,8 @@ define(["components/underscore/underscore-min",
                 this.last_modified_view = caller;
                 this.save(this.changedAttributes(), {patch: true});
 
-                for (var cell_index in this.views) {
-                    var views = this.views[cell_index];
+                for (var output_area in this.views) {
+                    var views = this.views[output_area];
                     for (var view_index in views) {
                         var view = views[view_index];
                         if (view !== caller) {
@@ -123,7 +123,7 @@ define(["components/underscore/underscore-min",
                         }
 
                         var data = {sync_method: method, sync_data: send_json};
-                        var output_area = this._get_view_output_area(this.last_modified_view);
+                        var output_area = this.last_modified_view.output_area;
                         var callbacks = this._make_callbacks(output_area);
                         this.comm.send(data, callbacks);    
                         this.pending_msgs++;
@@ -143,14 +143,14 @@ define(["components/underscore/underscore-min",
                     case 'display':
 
                         // Try to get the cell index.
-                        var cell_index = this._get_cell_index(msg.parent_header.msg_id);
-                        if (cell_index == -1) {
+                        var output_area = this._get_output_area(msg.parent_header.msg_id);
+                        if (output_area == null) {
                             console.log("Could not determine where the display" + 
                                 " message was from.  Widget will not be displayed")
                         } else {
                             this.display_view(msg.content.data.view_name, 
                             msg.content.data.parent,
-                            cell_index);
+                            output_area);
                         }
                         break;
                     case 'update':
@@ -183,8 +183,8 @@ define(["components/underscore/underscore-min",
 
             // Handle when a widget is closed.
             handle_comm_closed: function (msg) {
-                for (var cell_index in this.views) {
-                    var views = this.views[cell_index];
+                for (var output_area in this.views) {
+                    var views = this.views[output_area];
                     for (var view_index in views) {
                         var view = views[view_index];
                         view.remove();
@@ -194,18 +194,18 @@ define(["components/underscore/underscore-min",
 
 
             // Create view that represents the model.
-            display_view: function (view_name, parent_comm_id, cell_index) {
+            display_view: function (view_name, parent_comm_id, output_area) {
                 var new_views = [];
 
                 var displayed = false;
                 if (parent_comm_id != undefined) {
                     var parent_comm = this.comm_manager.comms[parent_comm_id];
                     var parent_model = parent_comm.model;
-                    var parent_views = parent_model.views[cell_index];
+                    var parent_views = parent_model.views[output_area];
                     for (var parent_view_index in parent_views) {
                         var parent_view = parent_views[parent_view_index];
                         if (parent_view.display_child != undefined) {
-                            var view = this._create_view(view_name, cell_index);
+                            var view = this._create_view(view_name, output_area);
                             new_views.push(view);
                             parent_view.display_child(view);
                             displayed = true;
@@ -216,10 +216,9 @@ define(["components/underscore/underscore-min",
                 if (!displayed) {
                     // No parent view is defined or exists.  Add the view's 
                     // element to cell's widget div.
-                    var view = this._create_view(view_name, cell_index);
+                    var view = this._create_view(view_name, output_area);
                     new_views.push(view);
-                    var cell = IPython.notebook.get_cell(cell_index);
-                    cell.element.find('.widget-area').find('.widget-subarea')
+                    output_area.element.find('.widget-area').find('.widget-subarea')
                         .append(view.$el)
                         .parent().show(); // Show the widget_area (parent of widget_subarea)
                 
@@ -233,25 +232,25 @@ define(["components/underscore/underscore-min",
 
 
             // Create a view
-            _create_view: function (view_name, cell_index) {
+            _create_view: function (view_name, output_area) {
                 var view = new this.widget_view_types[view_name]({model: this});
                 view.render();
-                if (this.views[cell_index]==undefined) {
-                    this.views[cell_index] = []
+                if (this.views[output_area]==undefined) {
+                    this.views[output_area] = []
                 }
-                this.views[cell_index].push(view);
-                view.cell_index = cell_index;
+                this.views[output_area].push(view);
+                view.output_area = output_area;
 
                 // Handle when the view element is remove from the page.
                 var that = this;
                 view.$el.on("remove", function(){ 
-                    var index = that.views[cell_index].indexOf(view);
+                    var index = that.views[output_area].indexOf(view);
                     if (index > -1) {
-                        that.views[cell_index].splice(index, 1);
+                        that.views[output_area].splice(index, 1);
                     }
                     view.remove(); // Clean-up view 
-                    if (that.views[cell_index].length()==0) {
-                        delete that.views[cell_index];
+                    if (that.views[output_area].length()==0) {
+                        delete that.views[output_area];
                     }
 
                     // Close the comm if there are no views left.
@@ -275,12 +274,12 @@ define(["components/underscore/underscore-min",
                             status : function(msg){
                                 that.handle_status(output_area, msg);
                             },
-                            get_cell_index : function() {
+                            get_output_area : function() {
                                 if (that.last_modified_view != undefined && 
-                                    that.last_modified_view.cell_index != undefined) {
-                                    return that.last_modified_view.cell_index;
+                                    that.last_modified_view.output_area != undefined) {
+                                    return that.last_modified_view.output_area;
                                 } else {
-                                    return -1 
+                                    return null
                                 }
                             },
                         },
@@ -291,41 +290,32 @@ define(["components/underscore/underscore-min",
 
 
             // Get the cell index corresponding to the msg_id.
-            _get_cell_index: function (msg_id) {
+            // output_area is a JQuery DOM element handle that has widget_area 
+            // and nested widget_subarea elements.
+            _get_output_area: function (msg_id) {
                 
                 // First, guess cell.execute triggered
                 var cells = IPython.notebook.get_cells();
                 for (var cell_index in cells) {
                     if (cells[cell_index].last_msg_id == msg_id) {
-                        return cell_index;
+                        var cell = IPython.notebook.get_cell(cell_index)
+                        return cell.output_area;
                     }
                 }
 
                 // Second, guess widget triggered
                 var callbacks = this.comm_manager.kernel.get_callbacks_for_msg(msg_id)
-                if (callbacks != undefined && callbacks.iopub != undefined && callbacks.iopub.get_cell_index != undefined) {
-                    var cell_index = callbacks.iopub.get_cell_index();
-                    if (cell_index > -1) {
-                        return cell_index;
+                if (callbacks != undefined && callbacks.iopub != undefined && callbacks.iopub.get_output_area != undefined) {
+                    var output_area = callbacks.iopub.get_output_area();
+                    if (output_area != null) {
+                        return output_area;
                     }
                 }
                 
                 // Not triggered by a widget or a cell
-                return -1;
+                return null;
             },
 
-
-            // Get the cell output area corresponding to the view.
-            _get_view_output_area: function (view) {
-                return this._get_cell_output_area(view.cell_index);
-            },
-
-
-            // Get the cell output area corresponding to the cell index.
-            _get_cell_output_area: function (cell_index) {
-                var cell = IPython.notebook.get_cell(cell_index)
-                return cell.output_area;
-            },
         });
 
 
