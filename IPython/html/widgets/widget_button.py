@@ -40,12 +40,17 @@ class ButtonWidget(Widget):
 
 
     def on_click(self, callback, remove=False):
-        """Register a callback to execute when the button is clicked.
+        """Register a callback to execute when the button is clicked.  The
+        callback can either accept no parameters or one sender parameter:
+        - callback()
+        - callback(sender)
+        If the callback has a sender parameter, the ButtonWidget instance that
+        called the callback will be passed into the method as the sender.
 
         Parameters
         ----------
         remove : bool (optional)
-            Set to tru to remove the callback from the list of callbacks."""
+            Set to true to remove the callback from the list of callbacks."""
         if remove:
             self._click_handlers.remove(callback)
         else:
