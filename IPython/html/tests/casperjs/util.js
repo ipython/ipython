@@ -67,6 +67,10 @@ casper.wait_for_output = function (cell_num) {
             },
             // pass parameter from the test suite js to the browser code js
             {c : cell_num});
+        },
+        function then() { },
+        function timeout() {
+            this.echo("wait_for_output timedout!");
         });
     });
 };

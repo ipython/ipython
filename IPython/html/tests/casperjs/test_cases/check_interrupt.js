@@ -4,8 +4,18 @@
 casper.notebook_test(function () {
     this.evaluate(function () {
         var cell = IPython.notebook.get_cell(0);
-        cell.set_text('import time\nfor x in range(3):\n    time.sleep(1)');
+        cell.set_text(
+            'import time'+
+            '\nfor x in range(3):'+
+            '\n    time.sleep(1)'
+            );
         cell.execute();
+    });
+
+    this.waitFor(function(){
+        return this.evaluate(function() {
+            return $("#notification_kernel")[0].textContent.indexOf('busy') !== -1;
+        });
     });
 
 
