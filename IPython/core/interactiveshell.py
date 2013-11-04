@@ -716,7 +716,9 @@ class InteractiveShell(SingletonConfigurable):
             # Not in a virtualenv
             return
         
-        if sys.executable.startswith(os.environ['VIRTUAL_ENV']):
+        if os.path.realpath(sys.executable).startswith(
+            os.path.realpath(os.environ['VIRTUAL_ENV'])
+        ):
             # Running properly in the virtualenv, don't need to do anything
             return
         
