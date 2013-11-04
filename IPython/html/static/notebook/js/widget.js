@@ -218,9 +218,8 @@ define(["components/underscore/underscore-min",
                     // element to cell's widget div.
                     var view = this._create_view(view_name, output_area);
                     new_views.push(view);
-                    output_area.element.find('.widget-area').find('.widget-subarea')
-                        .append(view.$el)
-                        .parent().show(); // Show the widget_area (parent of widget_subarea)
+                    this._get_widget_area_element(output_area, true)
+                        .append(view.$el);
                 
                 }
 
@@ -289,9 +288,8 @@ define(["components/underscore/underscore-min",
             },
 
 
-            // Get the cell index corresponding to the msg_id.
-            // output_area is a JQuery DOM element handle that has widget_area 
-            // and nested widget_subarea elements.
+            // Get the output area corresponding to the msg_id.
+            // output_area is an instance of 
             _get_output_area: function (msg_id) {
                 
                 // First, guess cell.execute triggered
@@ -314,6 +312,17 @@ define(["components/underscore/underscore-min",
                 
                 // Not triggered by a widget or a cell
                 return null;
+            },
+
+            // Gets widget output area (as a JQuery element) from the 
+            // output_area (Ipython.OutputArea instance)
+            _get_widget_area_element: function (output_area, show) {
+                var widget_area = output_area.element
+                    .parent() // output_wrapper
+                    .parent() // cell
+                    .find('.widget-area');
+                if (show) { widget_area.show(); }
+                return widget_area.find('.widget-subarea');
             },
 
         });
