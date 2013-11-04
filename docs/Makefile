@@ -35,8 +35,11 @@ help:
 	@echo "dist         all, and then puts the results in dist/"
 	@echo "gitwash-update update git workflow from source repo"
 
-clean:
-	-rm -rf build/* dist/* $(SRCDIR)/api/generated
+clean_api:
+	-rm -rf $(SRCDIR)/api/generated
+
+clean: clean_api
+	-rm -rf build/* dist/*
 
 pdf: latex
 	cd build/latex && make all-pdf
@@ -54,7 +57,7 @@ dist: html
 	@echo "Build finished.  Final docs are in html/"
 
 html: api 
-html_noapi: clean
+html_noapi: clean_api
 
 html html_noapi:
 	mkdir -p build/html build/doctrees
