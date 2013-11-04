@@ -67,7 +67,6 @@ var IPython = (function (IPython) {
              'diff'         :{'reg':[/^diff/]}
             },
 
-        tooltip_on_tab : true,
         };
 
     // use the same method to merge user configuration
