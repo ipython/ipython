@@ -104,6 +104,9 @@ To see all of these abbreviated options, run::
     ipython notebook --help
     # etc.
 
+Options specified at the command line, in either format, override
+options set in a configuration file.
+
 The config magic
 ----------------
 
