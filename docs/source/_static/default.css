@@ -485,6 +485,12 @@ span.linkdescr {
     font-size: 90%;
 }
 
+.search input[name=q] {
+    max-width: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
 ul.search {
     margin: 10px 0 0 20px;
     padding: 0;
