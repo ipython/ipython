@@ -15,14 +15,19 @@ Module with tests for Highlight
 #-----------------------------------------------------------------------------
 
 from ...tests.base import TestsBase
-from ..highlight import Highlight2Html, highlight2latex
-
+from ..highlight import Highlight2Html, Highlight2Latex
+from IPython.config import Config
+import xml
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
 highlight2html = Highlight2Html()
+highlight2latex = Highlight2Latex()
+c = Config()
+c.Highlight2Html.default_language='ruby'
+highlight2html_ruby = Highlight2Html(config=c)
 
 class TestHighlight(TestsBase):
     """Contains test functions for highlight.py"""
@@ -34,6 +39,8 @@ class TestHighlight(TestsBase):
 
         def say(text):
             print(text)
+
+        end
 
         say('Hello World!')
         """,
@@ -59,6 +66,20 @@ class TestHighlight(TestsBase):
         for index, test in enumerate(self.tests):
             self._try_highlight(highlight2latex, test, self.tokens[index])
 
+    def test_parse_html_many_lang(self):
+
+        ht =  highlight2html(self.tests[0])
+        rb =  highlight2html_ruby(self.tests[0])
+
+        for lang,tkns in [
+                ( ht, ('def','print') ),
+                ( rb, ('def','end'  ) )
+                ]:
+            root = xml.etree.ElementTree.fromstring(lang)
+            assert self._extract_tokens(root,'k') == set(tkns)
+
+    def _extract_tokens(self, root, cls):
+        return set(map(lambda x:x.text,root.findall(".//*[@class='"+cls+"']")))
 
     def _try_highlight(self, method, test, tokens):
         """Try highlighting source, look for key tokens"""

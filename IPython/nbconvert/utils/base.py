@@ -13,6 +13,7 @@
 
 from IPython.utils.traitlets import List
 from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -32,6 +33,8 @@ class NbConvertBase(LoggingConfigurable):
                     the others.
                     """
             )
+
+    default_language = Unicode('ipython', config=True, help='default highlight language')
 
     def __init__(self, **kw):
         super(NbConvertBase, self).__init__(**kw)

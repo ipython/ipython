@@ -44,7 +44,7 @@ default_filters = {
         'filter_data_type': filters.DataTypeFilter,
         'get_lines': filters.get_lines,
         'highlight2html': filters.Highlight2Html,
-        'highlight2latex': filters.highlight2latex,
+        'highlight2latex': filters.Highlight2Latex,
         'ipython2python': filters.ipython2python,
         'posix_path': filters.posix_path,
         'markdown2latex': filters.markdown2latex,
