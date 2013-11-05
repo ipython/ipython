@@ -35,8 +35,8 @@ def init_widget_js():
         name = filename.rsplit('.', 1)[0]
         if not (name == 'widget' or name == '__init__') and name.startswith('widget_'):
             # Remove 'widget_' from the start of the name before compiling the path.
-            js_path = '../static/notebook/js/widgets/%s.js' % name[7:]
-            display(Javascript(data='$.getScript("%s");' % js_path), exclude="text/plain")  
+            js_path = 'static/notebook/js/widgets/%s.js' % name[7:]
+            display(Javascript(data='$.getScript($("body").data("baseProjectUrl") + "%s");' % js_path), exclude="text/plain")  
 
 
 #-----------------------------------------------------------------------------
