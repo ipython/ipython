@@ -4,6 +4,7 @@ dist
 _build
 docs/man/*.gz
 docs/source/api/generated
+docs/source/config/options
 docs/gh-pages
 IPython/html/notebook/static/mathjax
 *.py[co]

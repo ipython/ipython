@@ -8,6 +8,7 @@ Configuration and customization
    :maxdepth: 2
 
    intro
+   options/index
    extensions/index
    integrating
    inputtransforms
