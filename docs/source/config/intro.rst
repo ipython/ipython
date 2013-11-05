@@ -6,7 +6,8 @@ Introduction to IPython configuration
 Setting configurable options
 ============================
 
-Many of IPython's classes have configurable attributes. These can be
+Many of IPython's classes have configurable attributes (see
+:doc:`options/index` for the list). These can be
 configured in several ways.
 
 Python config files
