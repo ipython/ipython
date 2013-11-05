@@ -9,7 +9,6 @@ Configuration and customization
 
    intro
    extensions/index
-   ipython
    integrating
    editors
    inputtransforms
