@@ -2,6 +2,7 @@
 Introduction to IPython configuration
 =====================================
 
+.. _setting_config:
 
 Setting configurable options
 ============================
