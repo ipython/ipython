@@ -195,7 +195,7 @@ class InteractiveShellApp(Configurable):
     )
     pylab_import_all = Bool(True, config=True,
         help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
-        and an 'import *' is done from numpy and pylab, when using pylab mode.
+        and an ``import *`` is done from numpy and pylab, when using pylab mode.
         
         When False, pylab mode should not import any names into the user namespace.
         """

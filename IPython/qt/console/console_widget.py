@@ -130,15 +130,18 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         help="""
         The type of paging to use. Valid values are:
 
-            'inside' : The widget pages like a traditional terminal.
-            'hsplit' : When paging is requested, the widget is split
-                       horizontally. The top pane contains the console, and the
-                       bottom pane contains the paged text.
-            'vsplit' : Similar to 'hsplit', except that a vertical splitter
-                       used.
-            'custom' : No action is taken by the widget beyond emitting a
-                       'custom_page_requested(str)' signal.
-            'none'   : The text is written directly to the console.
+        'inside'
+           The widget pages like a traditional terminal.
+        'hsplit'
+           When paging is requested, the widget is split horizontally. The top
+           pane contains the console, and the bottom pane contains the paged text.
+        'vsplit'
+           Similar to 'hsplit', except that a vertical splitter is used.
+        'custom'
+           No action is taken by the widget beyond emitting a
+           'custom_page_requested(str)' signal.
+        'none'
+           The text is written directly to the console.
         """)
 
     font_family = Unicode(config=True,

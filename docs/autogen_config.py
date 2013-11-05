@@ -38,7 +38,7 @@ def document_config_options(classes):
 
             help = trait.get_metadata('help')
             if help is not None:
-                help = '\n'.join(wrap_paragraphs(help, 76))
+                help = '\n\n'.join(wrap_paragraphs(help, 76))
                 lines.append(indent(help, 4))
             else:
                 lines.append('    No description')
