@@ -547,12 +547,12 @@ Backwards incompatible changes
 
 * Old style configuration files :file:`ipythonrc` and :file:`ipy_user_conf.py`
   are no longer supported. Users should migrate there configuration files to
-  the new format described :ref:`here <config_overview>` and :ref:`here
-  <configuring_ipython>`.
+  the new format described :doc:`here <config/intro>` and
+  :ref:`here <config_overview>`.
 
 * The old IPython extension API that relied on :func:`ipapi` has been
   completely removed. The new extension API is described :ref:`here
-  <configuring_ipython>`.
+  <extensions_overview>`.
 
 * Support for ``qt3`` has been dropped.  Users who need this should use
   previous versions of IPython.
