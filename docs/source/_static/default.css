@@ -120,6 +120,11 @@ dd {
     color: #060;
 }
 
+dt {
+    font-weight: bold;
+    padding-left: 0.5em;
+}
+
 dt:target,
 .highlight {
     background-color: #fbe54e;
