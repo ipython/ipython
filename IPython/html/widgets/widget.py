@@ -183,8 +183,9 @@ class Widget(LoggingConfigurable):
 
 
     def get_css(self, key, selector=""):
-        """Get a CSS property of the widget views (shared among all of the 
-        views)
+        """Get a CSS property of the widget.  Note, this function does not 
+        actually request the CSS from the front-end;  Only properties that have 
+        been set with set_css can be read.
 
         Parameters
         ----------
@@ -199,12 +200,16 @@ class Widget(LoggingConfigurable):
             return None
 
 
-    def set_css(self, key, value, selector=""):
-        """Set a CSS property of the widget views (shared among all of the 
-        views)
+    def set_css(self, *args, **kwargs):
+        """Set one or more CSS properties of the widget (shared among all of the 
+        views).  This function has two signatures:
+        - set_css(css_dict, [selector=''])
+        - set_css(key, value, [selector=''])
 
         Parameters
         ----------
+        css_dict : dict
+            CSS key/value pairs to apply
         key: unicode
             CSS key
         value
@@ -212,13 +217,33 @@ class Widget(LoggingConfigurable):
         selector: unicode (optional)
             JQuery selector to use to apply the CSS key/value.
         """
-        if selector not in self._css:
-            self._css[selector] = {}
-            
-        # Only update the property if it has changed.
-        if not (key in self._css[selector] and value in self._css[selector][key]):
-            self._css[selector][key] = value
-            self.send_state('_css') # Send new state to client.
+        selector = kwargs.get('selector', '')
+
+        # Signature 1: set_css(css_dict, [selector=''])
+        if len(args) == 1:
+            if isinstance(args[0], dict):
+                for (key, value) in args[0].items():
+                    self.set_css(key, value, selector=selector)
+            else:
+                raise Exception('css_dict must be a dict.')
+
+        # Signature 2: set_css(key, value, [selector=''])
+        elif len(args) == 2 or len(args) == 3:
+
+            # Selector can be a positional arg if it's the 3rd value
+            if len(args) == 3:
+                selector = args[2]
+            if selector not in self._css:
+                self._css[selector] = {}
+                
+            # Only update the property if it has changed.
+            key = args[0]
+            value = args[1]
+            if not (key in self._css[selector] and value in self._css[selector][key]):
+                self._css[selector][key] = value
+                self.send_state('_css') # Send new state to client.
+        else:
+            raise Exception('set_css only accepts 1-3 arguments')
 
 
     def add_class(self, class_name, selector=""):
