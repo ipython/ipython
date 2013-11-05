@@ -10,6 +10,5 @@ Configuration and customization
    intro
    extensions/index
    integrating
-   editors
    inputtransforms
    details
