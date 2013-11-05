@@ -13,4 +13,4 @@ Configuration and customization
    integrating
    editors
    inputtransforms
-   old
+   details
