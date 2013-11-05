@@ -6,11 +6,6 @@ Overview of the IPython configuration system
 
 This section describes the IPython configuration system. 
 
-The following discussion is for users who want to configure
-IPython to their liking.  Developers who want to know how they can
-enable their objects to take advantage of the configuration system
-should consult the :ref:`developer guide <developer_guide>`
-
 The main concepts
 =================
 
@@ -324,7 +319,7 @@ These map to the utility functions: :func:`IPython.utils.path.get_ipython_dir`
 and :func:`IPython.utils.path.locate_profile` respectively.
 
 
-.. _Profiles:
+.. _profiles_dev:
 
 Profiles
 ========

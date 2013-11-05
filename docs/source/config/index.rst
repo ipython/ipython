@@ -7,7 +7,7 @@ Configuration and customization
 .. toctree::
    :maxdepth: 2
 
-   overview
+   intro
    extensions/index
    ipython
    integrating
