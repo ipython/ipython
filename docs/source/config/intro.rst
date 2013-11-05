@@ -115,7 +115,8 @@ You can also modify config from inside IPython, using a magic command::
     %config IPCompleter.greedy = True
 
 At present, this only affects the current session - changes you make to
-config are not saved anywhere.
+config are not saved anywhere. Also, some options are only read when
+IPython starts, so they can't be changed like this.
 
 .. _profiles:
 
