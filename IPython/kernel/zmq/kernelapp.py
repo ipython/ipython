@@ -424,13 +424,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     def init_shell(self):
         self.shell = self.kernel.shell
         self.shell.configurables.append(self)
-    
-    def init_osx(self):
-        if sys.platform != 'darwin':
-            return
-        from IPython.utils.darwin import disable_app_nap
-        self._activity = disable_app_nap(self.log.warn)
-    
+
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
@@ -445,7 +439,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         self.write_connection_file()
         self.init_io()
         self.init_signal()
-        self.init_osx()
         self.init_kernel()
         # shell init steps
         self.init_path()
