@@ -62,22 +62,34 @@ def rekey(dikt):
             dikt[nk] = dikt.pop(k)
     return dikt
 
+def parse_date(s):
+    """parse an ISO8601 date string
+    
+    If it is None or not a valid ISO8601 timestamp,
+    it will be returned unmodified.
+    Otherwise, it will return a datetime object.
+    """
+    if s is None:
+        return s
+    m = ISO8601_PAT.match(s)
+    if m:
+        # FIXME: add actual timezone support
+        # this just drops the timezone info
+        notz = m.groups()[0]
+        return datetime.strptime(notz, ISO8601)
+    return s
 
 def extract_dates(obj):
     """extract ISO8601 dates from unpacked JSON"""
     if isinstance(obj, dict):
-        obj = dict(obj) # don't clobber
+        new_obj = {} # don't clobber
         for k,v in iteritems(obj):
-            obj[k] = extract_dates(v)
+            new_obj[k] = extract_dates(v)
+        obj = new_obj
     elif isinstance(obj, (list, tuple)):
         obj = [ extract_dates(o) for o in obj ]
     elif isinstance(obj, string_types):
-        m = ISO8601_PAT.match(obj)
-        if m:
-            # FIXME: add actual timezone support
-            # this just drops the timezone info
-            notz = m.groups()[0]
-            obj = datetime.strptime(notz, ISO8601)
+        obj = parse_date(obj)
     return obj
 
 def squash_dates(obj):

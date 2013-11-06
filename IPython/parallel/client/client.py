@@ -37,7 +37,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 
 from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
-from IPython.utils.jsonutil import rekey, extract_dates
+from IPython.utils.jsonutil import rekey, extract_dates, parse_date
 from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
@@ -675,7 +675,7 @@ class Client(HasTraits):
         if 'date' in parent:
             md['submitted'] = parent['date']
         if 'started' in msg_meta:
-            md['started'] = extract_dates(msg_meta['started'])
+            md['started'] = parse_date(msg_meta['started'])
         if 'date' in header:
             md['completed'] = header['date']
         return md
@@ -1580,7 +1580,7 @@ class Client(HasTraits):
                 )
                 md.update(self._extract_metadata(md_msg))
                 if rec.get('received'):
-                    md['received'] = extract_dates(rec['received'])
+                    md['received'] = parse_date(rec['received'])
                 md.update(iodict)
                 
                 if rcontent['status'] == 'ok':
@@ -1843,12 +1843,12 @@ class Client(HasTraits):
         has_rbufs = result_buffer_lens is not None
         for i,rec in enumerate(records):
             # unpack datetime objects
-            for dtkey in ('header', 'result_header',
-                        'submitted', 'started',
-                        'completed', 'received',
-                    ):
+            for hkey in ('header', 'result_header'):
+                if hkey in rec:
+                    rec[hkey] = extract_dates(rec[hkey])
+            for dtkey in ('submitted', 'started', 'completed', 'received'):
                 if dtkey in rec:
-                    rec[dtkey] = extract_dates(rec[dtkey])
+                    rec[dtkey] = parse_date(rec[dtkey])
             # relink buffers
             if has_bufs:
                 blen = buffer_lens[i]
