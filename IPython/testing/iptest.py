@@ -359,6 +359,7 @@ class ExclusionPlugin(Plugin):
 
 
 class StreamCapturer(Thread):
+    daemon = True  # Don't hang if main thread crashes
     started = False
     def __init__(self):
         super(StreamCapturer, self).__init__()
