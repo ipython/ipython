@@ -251,7 +251,7 @@ class FileNotebookManager(NotebookManager):
             self.log.debug("Writing script %s", py_path)
             try:
                 with io.open(py_path, 'w', encoding='utf-8') as f:
-                    current.write(model, f, u'py')
+                    current.write(nb, f, u'py')
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s %s' % (py_path, e))
 
