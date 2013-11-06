@@ -26,7 +26,8 @@ class ContainerWidget(Widget):
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
     _keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
-            '_pack_start', '_pack_end', '_pack_center']
+            '_pack_start', '_pack_end', '_pack_center', '_flex0', '_flex1', 
+            '_flex2']
     _hbox = Bool(False)
     _vbox = Bool(False)
     _align_start = Bool(False)
@@ -35,6 +36,9 @@ class ContainerWidget(Widget):
     _pack_start = Bool(False)
     _pack_end = Bool(False)
     _pack_center = Bool(False)
+    _flex0 = Bool(False)
+    _flex1 = Bool(False)
+    _flex2 = Bool(False)
     
     def hbox(self, enabled=True):
         """Make this container an hbox.  Automatically disables conflicting
@@ -146,3 +150,49 @@ class ContainerWidget(Widget):
         if enabled:
             self._pack_start = False
             self._pack_end = False
+
+            
+    def flex0(self, enabled=True):
+        """Put this container in flex0 mode.  Automatically disables conflicting
+        flex modes.  See the widget tutorial part 5 example notebook for more
+        information.
+
+        Parameters
+        ----------
+        enabled: bool (optional)
+            Enabled or disable the flex0 attribute of the container, defaults to 
+            True."""
+        self._flex0 = enabled
+        if enabled:
+            self._flex1 = False
+            self._flex2 = False
+            
+    def flex1(self, enabled=True):
+        """Put this container in flex1 mode.  Automatically disables conflicting
+        flex modes.  See the widget tutorial part 5 example notebook for more
+        information.
+
+        Parameters
+        ----------
+        enabled: bool (optional)
+            Enabled or disable the flex1 attribute of the container, defaults to 
+            True."""
+        self._flex1 = enabled
+        if enabled:
+            self._flex0 = False
+            self._flex2 = False
+            
+    def flex2(self, enabled=True):
+        """Put this container in flex2 mode.  Automatically disables conflicting
+        flex modes.  See the widget tutorial part 5 example notebook for more
+        information.
+
+        Parameters
+        ----------
+        enabled: bool (optional)
+            Enabled or disable the flex2 attribute of the container, defaults to 
+            True."""
+        self._flex2 = enabled
+        if enabled:
+            self._flex0 = False
+            self._flex1 = False

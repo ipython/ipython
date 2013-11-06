@@ -19,9 +19,12 @@ require(["notebook/js/widget"], function(){
             this.set_flex_property('start', this.model.get('_pack_start'));
             this.set_flex_property('center', this.model.get('_pack_center'));
             this.set_flex_property('end', this.model.get('_pack_end'));
-            this.set_flex_property('align_start', this.model.get('_align_start'));
-            this.set_flex_property('align_center', this.model.get('_align_center'));
-            this.set_flex_property('align_end', this.model.get('_align_end'));
+            this.set_flex_property('align-start', this.model.get('_align_start'));
+            this.set_flex_property('align-center', this.model.get('_align_center'));
+            this.set_flex_property('align-end', this.model.get('_align_end'));
+            this.set_flex_property('box-flex0', this.model.get('_flex0'));
+            this.set_flex_property('box-flex1', this.model.get('_flex1'));
+            this.set_flex_property('box-flex2', this.model.get('_flex2'));
 
             return IPython.WidgetView.prototype.update.call(this);
         },

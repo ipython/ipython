@@ -19,6 +19,7 @@
 .end{-webkit-box-pack:end;-moz-box-pack:end;box-pack:end;}
 .center{-webkit-box-pack:center;-moz-box-pack:center;box-pack:center;}
 <<<<<<< HEAD
+<<<<<<< HEAD
 div.error{margin:2em;text-align:center;}
 div.error>h1{font-size:500%;line-height:normal;}
 div.error>p{font-size:200%;line-height:normal;}
@@ -28,6 +29,11 @@ div.traceback-wrapper{text-align:left;max-width:800px;margin:auto;}
 .align_end{-webkit-box-align:end;-moz-box-align:end;box-align:end;}
 .align_center{-webkit-box-align:center;-moz-box-align:center;box-align:center;}
 >>>>>>> Added flexible box model align properties.
+=======
+.align-start{-webkit-box-align:start;-moz-box-align:start;box-align:start;}
+.align-end{-webkit-box-align:end;-moz-box-align:end;box-align:end;}
+.align-center{-webkit-box-align:center;-moz-box-align:center;box-align:center;}
+>>>>>>> Added flex properties to container.
 .center-nav{display:inline-block;margin-bottom:-4px;}
 .alternate_upload{background-color:none;display:inline;}
 .alternate_upload.form{padding:0;margin:0;}
