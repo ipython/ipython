@@ -37,7 +37,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 
 from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
-from IPython.utils.jsonutil import rekey
+from IPython.utils.jsonutil import rekey, extract_dates
 from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
@@ -675,7 +675,7 @@ class Client(HasTraits):
         if 'date' in parent:
             md['submitted'] = parent['date']
         if 'started' in msg_meta:
-            md['started'] = msg_meta['started']
+            md['started'] = extract_dates(msg_meta['started'])
         if 'date' in header:
             md['completed'] = header['date']
         return md
@@ -1564,8 +1564,8 @@ class Client(HasTraits):
         for msg_id in sorted(theids):
             if msg_id in content['completed']:
                 rec = content[msg_id]
-                parent = rec['header']
-                header = rec['result_header']
+                parent = extract_dates(rec['header'])
+                header = extract_dates(rec['result_header'])
                 rcontent = rec['result_content']
                 iodict = rec['io']
                 if isinstance(rcontent, str):
@@ -1580,7 +1580,7 @@ class Client(HasTraits):
                 )
                 md.update(self._extract_metadata(md_msg))
                 if rec.get('received'):
-                    md['received'] = rec['received']
+                    md['received'] = extract_dates(rec['received'])
                 md.update(iodict)
                 
                 if rcontent['status'] == 'ok':
@@ -1842,6 +1842,13 @@ class Client(HasTraits):
         has_bufs = buffer_lens is not None
         has_rbufs = result_buffer_lens is not None
         for i,rec in enumerate(records):
+            # unpack datetime objects
+            for dtkey in ('header', 'result_header',
+                        'submitted', 'started',
+                        'completed', 'received',
+                    ):
+                if dtkey in rec:
+                    rec[dtkey] = extract_dates(rec[dtkey])
             # relink buffers
             if has_bufs:
                 blen = buffer_lens[i]
