@@ -113,6 +113,18 @@ def test_extract_dates():
         nt.assert_true(isinstance(dt, datetime.datetime))
         nt.assert_equal(dt, ref)
 
+def test_parse_ms_precision():
+    base = '2013-07-03T16:34:52.'
+    digits = '1234567890'
+    
+    for i in range(len(digits)):
+        ts = base + digits[:i]
+        parsed = jsonutil.parse_date(ts)
+        if i >= 1 and i <= 6:
+            assert isinstance(parsed, datetime.datetime)
+        else:
+            assert isinstance(parsed, str)
+
 def test_date_default():
     data = dict(today=datetime.datetime.now(), utcnow=tz.utcnow())
     jsondata = json.dumps(data, default=jsonutil.date_default)
