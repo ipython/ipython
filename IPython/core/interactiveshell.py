@@ -2632,13 +2632,40 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
-        prefilter_failed = False
+        preprocessing_exc_tuple = None
         try:
+            # Static input transformations
             self.input_transformer_manager.push(raw_cell)
+            cell = self.input_transformer_manager.source_reset()
         except SyntaxError:
-            self.showtraceback()
-            prefilter_failed = True
-        cell = self.input_transformer_manager.source_reset()
+            preprocessing_exc_tuple = sys.exc_info()
+            cell = raw_cell  # cell has to exist so it can be stored/logged
+        else:
+            if len(cell.splitlines()) == 1:
+                # Dynamic transformations - only applied for single line commands
+                with self.builtin_trap:
+                    try:
+                        # use prefilter_lines to handle trailing newlines
+                        # restore trailing newline for ast.parse
+                        cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
+                    except Exception:
+                        # don't allow prefilter errors to crash IPython
+                        preprocessing_exc_tuple = sys.exc_info()
+
+        # Store raw and processed history
+        if store_history:
+            self.history_manager.store_inputs(self.execution_count,
+                                              cell, raw_cell)
+        if not silent:
+            self.logger.log(cell, raw_cell)
+
+        # Display the exception if input processing failed.
+        if preprocessing_exc_tuple is not None:
+            self.showtraceback(preprocessing_exc_tuple)
+            del preprocessing_exc_tuple  # Break reference cycle
+            if store_history:
+                self.execution_count += 1
+            return
 
         # Our own compiler remembers the __future__ environment. If we want to
         # run code with a separate __future__ environment, use the default
@@ -2646,72 +2673,53 @@ class InteractiveShell(SingletonConfigurable):
         compiler = self.compile if shell_futures else CachingCompiler()
 
         with self.builtin_trap:
-            if not prefilter_failed and len(cell.splitlines()) == 1:
+            cell_name = self.compile.cache(cell, self.execution_count)
+
+            with self.display_trap:
+                # Compile to bytecode
                 try:
-                    # use prefilter_lines to handle trailing newlines
-                    # restore trailing newline for ast.parse
-                    cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
-                except AliasError as e:
-                    error(e)
-                    prefilter_failed = True
-                except Exception:
-                    # don't allow prefilter errors to crash IPython
-                    self.showtraceback()
-                    prefilter_failed = True
+                    code_ast = compiler.ast_parse(cell, filename=cell_name)
+                except IndentationError:
+                    self.showindentationerror()
+                    if store_history:
+                        self.execution_count += 1
+                    return None
+                except (OverflowError, SyntaxError, ValueError, TypeError,
+                        MemoryError):
+                    self.showsyntaxerror()
+                    if store_history:
+                        self.execution_count += 1
+                    return None
 
-            # Store raw and processed history
-            if store_history:
-                self.history_manager.store_inputs(self.execution_count,
-                                                  cell, raw_cell)
-            if not silent:
-                self.logger.log(cell, raw_cell)
+                # Apply AST transformations
+                code_ast = self.transform_ast(code_ast)
 
-            if not prefilter_failed:
-                # don't run if prefilter failed
-                cell_name = self.compile.cache(cell, self.execution_count)
+                # Execute the user code
+                interactivity = "none" if silent else self.ast_node_interactivity
+                self.run_ast_nodes(code_ast.body, cell_name,
+                                   interactivity=interactivity, compiler=compiler)
 
-                with self.display_trap:
+                # Execute any registered post-execution functions.
+                # unless we are silent
+                post_exec = [] if silent else iteritems(self._post_execute)
+
+                for func, status in post_exec:
+                    if self.disable_failing_post_execute and not status:
+                        continue
                     try:
-                        code_ast = compiler.ast_parse(cell, filename=cell_name)
-                    except IndentationError:
-                        self.showindentationerror()
-                        if store_history:
-                            self.execution_count += 1
-                        return None
-                    except (OverflowError, SyntaxError, ValueError, TypeError,
-                            MemoryError):
-                        self.showsyntaxerror()
-                        if store_history:
-                            self.execution_count += 1
-                        return None
-                    
-                    code_ast = self.transform_ast(code_ast)
-                    
-                    interactivity = "none" if silent else self.ast_node_interactivity
-                    self.run_ast_nodes(code_ast.body, cell_name,
-                                       interactivity=interactivity, compiler=compiler)
-                    
-                    # Execute any registered post-execution functions.
-                    # unless we are silent
-                    post_exec = [] if silent else iteritems(self._post_execute)
-                    
-                    for func, status in post_exec:
-                        if self.disable_failing_post_execute and not status:
-                            continue
-                        try:
-                            func()
-                        except KeyboardInterrupt:
-                            print("\nKeyboardInterrupt", file=io.stderr)
-                        except Exception:
-                            # register as failing:
-                            self._post_execute[func] = False
-                            self.showtraceback()
-                            print('\n'.join([
-                                "post-execution function %r produced an error." % func,
-                                "If this problem persists, you can disable failing post-exec functions with:",
-                                "",
-                                "    get_ipython().disable_failing_post_execute = True"
-                            ]), file=io.stderr)
+                        func()
+                    except KeyboardInterrupt:
+                        print("\nKeyboardInterrupt", file=io.stderr)
+                    except Exception:
+                        # register as failing:
+                        self._post_execute[func] = False
+                        self.showtraceback()
+                        print('\n'.join([
+                            "post-execution function %r produced an error." % func,
+                            "If this problem persists, you can disable failing post-exec functions with:",
+                            "",
+                            "    get_ipython().disable_failing_post_execute = True"
+                        ]), file=io.stderr)
 
         if store_history:
             # Write output to the database. Does nothing unless
