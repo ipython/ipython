@@ -37,37 +37,39 @@ var IPython = (function (IPython) {
         this.inner_element = $('<div/>').addClass('celltoolbar')
         this.element = $('<div/>').addClass('ctb_hideshow')
             .append(this.inner_element);
+        this.show();
     };
 
 
     // The default css style for the outer celltoolbar div
-    // (ctb_hideshow) is display: none. We add the ctb_show
-    // class to either 1) the body to show all cell's toolbars
-    // or 2) to the individual celltoolbar divs to show just one
-    // cell's toolbar.
+    // (ctb_hideshow) is display: none.
+    // To show the cell toolbar, *both* of the following conditions must be met:
+    // - A parent container has class `ctb_global_show`
+    // - The celltoolbar has the class `ctb_show`
+    // This allows global show/hide, as well as per-cell show/hide.
 
     CellToolbar.global_hide = function () {
-        $('body').removeClass('ctb_show');
-    }
+        $('body').removeClass('ctb_global_show');
+    };
 
 
     CellToolbar.global_show = function () {
-       $('body').addClass('ctb_show');
-    }
+        $('body').addClass('ctb_global_show');
+    };
 
 
     CellToolbar.prototype.hide = function () {
         this.element.removeClass('ctb_show');
-    }
+    };
 
 
     CellToolbar.prototype.show = function () {
         this.element.addClass('ctb_show');
-    }
+    };
 
 
     /**
-     * Class variable that should contain a dict of all availlable callback
+     * Class variable that should contain a dict of all available callback
      * we need to think of wether or not we allow nested namespace
      * @property _callback_dict
      * @private
