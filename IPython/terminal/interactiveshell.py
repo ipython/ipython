@@ -545,8 +545,8 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.input_splitter.push(line)
                     more = self.input_splitter.push_accepts_more()
                 except SyntaxError:
-                    self.showsyntaxerror()
-                    self.input_splitter.reset()
+                    # Run the code directly - run_cell takes care of displaying
+                    # the exception.
                     more = False
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
