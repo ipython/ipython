@@ -33,9 +33,9 @@ var IPython = (function (IPython) {
      */
     var Cell = function (options) {
 
-        options = this.mergeopt(Cell, options)
+        options = this.mergeopt(Cell, options);
         // superclass default overwrite our default
-
+        
         this.placeholder = options.placeholder || '';
         this.read_only = options.cm_config.readOnly;
         this.selected = false;
@@ -80,6 +80,7 @@ var IPython = (function (IPython) {
     }
 
     Cell.prototype.mergeopt = function(_class, options, overwrite){
+        options = options || {};
         overwrite = overwrite || {};
         return $.extend(true, {}, _class.options_default, options, overwrite)
 

@@ -46,11 +46,11 @@ var IPython = (function (IPython) {
 
         options = this.mergeopt(TextCell,options,{cm_config:cm_overwrite_options});
 
+        this.cell_type = this.cell_type || 'text';
+
         IPython.Cell.apply(this, [options]);
 
-
         this.rendered = false;
-        this.cell_type = this.cell_type || 'text';
     };
 
     TextCell.prototype = new IPython.Cell();
@@ -278,6 +278,9 @@ var IPython = (function (IPython) {
         var data = IPython.Cell.prototype.toJSON.apply(this);
         data.cell_type = this.cell_type;
         data.source = this.get_text();
+        if (data.source == this.placeholder) {
+            data.source = "";
+        }
         return data;
     };
 
@@ -288,12 +291,10 @@ var IPython = (function (IPython) {
      * @extends IPython.HTMLCell
      */
     var MarkdownCell = function (options) {
-        var options = options || {};
-
-        options = this.mergeopt(MarkdownCell,options);
-        TextCell.apply(this, [options]);
+        options = this.mergeopt(MarkdownCell, options);
 
         this.cell_type = 'markdown';
+        TextCell.apply(this, [options]);
     };
 
     MarkdownCell.options_default = {
@@ -334,7 +335,7 @@ var IPython = (function (IPython) {
             }
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-            this.typeset()
+            this.typeset();
             this.rendered = true;
         }
     };
@@ -348,20 +349,21 @@ var IPython = (function (IPython) {
      * @extends IPython.TextCell
      */
     var RawCell = function (options) {
-
-        options = this.mergeopt(RawCell,options)
+        options = this.mergeopt(RawCell, options);
+        
+        this.cell_type = 'raw';
         TextCell.apply(this, [options]);
 
-        this.cell_type = 'raw';
-
-        var that = this
+        var that = this;
         this.element.focusout(
                 function() { that.auto_highlight(); }
             );
     };
 
     RawCell.options_default = {
-        placeholder : "Type plain text and LaTeX: $\\alpha^2$"
+        placeholder : "Write raw HTML / LaTeX here, for use with nbconvert.\n" +
+            "It will not be rendered in the notebook.\n" + 
+            "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
     };
 
 
@@ -379,7 +381,10 @@ var IPython = (function (IPython) {
     /** @method render **/
     RawCell.prototype.render = function () {
         this.rendered = true;
-        this.edit();
+        var text = this.get_text();
+        if (text === "") { text = this.placeholder; }
+        console.log('rendering', text);
+        this.set_text(text);
     };
 
 
@@ -412,8 +417,7 @@ var IPython = (function (IPython) {
     /** @method select **/
     RawCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        this.code_mirror.refresh();
-        this.code_mirror.focus();
+        this.edit();
     };
 
     /** @method at_top **/
@@ -448,16 +452,16 @@ var IPython = (function (IPython) {
      * @extends IPython.TextCell
      */
     var HeadingCell = function (options) {
+        options = this.mergeopt(HeadingCell, options);
 
-        options = this.mergeopt(HeadingCell,options)
+        this.level = 1;
+        this.cell_type = 'heading';
         TextCell.apply(this, [options]);
 
         /**
          * heading level of the cell, use getter and setter to access
          * @property level
          */
-        this.level = 1;
-        this.cell_type = 'heading';
     };
 
     HeadingCell.options_default = {
