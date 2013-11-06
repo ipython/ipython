@@ -24,6 +24,7 @@ from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.lib.clipboard import ClipboardEmpty
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
@@ -216,6 +217,8 @@ class TerminalMagics(Magics):
             else:
                 error('Could not get text from the clipboard.')
             return
+        except ClipboardEmpty:
+            raise UsageError("The clipboard appears to be empty")
 
         # By default, echo back to terminal unless quiet mode is requested
         if 'q' not in opts:
