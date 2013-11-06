@@ -25,12 +25,16 @@ class ContainerWidget(Widget):
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
-    _keys = ['_vbox', '_hbox', '_start', '_end', '_center']
+    _keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
+            '_pack_start', '_pack_end', '_pack_center']
     _hbox = Bool(False)
     _vbox = Bool(False)
-    _start = Bool(False)
-    _end = Bool(False)
-    _center = Bool(False)
+    _align_start = Bool(False)
+    _align_end = Bool(False)
+    _align_center = Bool(False)
+    _pack_start = Bool(False)
+    _pack_end = Bool(False)
+    _pack_center = Bool(False)
     
     def hbox(self, enabled=True):
         """Make this container an hbox.  Automatically disables conflicting
@@ -58,7 +62,7 @@ class ContainerWidget(Widget):
         if enabled:
             self._hbox = False
             
-    def start(self, enabled=True):
+    def align_start(self, enabled=True):
         """Make the contents of this container align to the start of the axis.  
         Automatically disables conflicting alignments.
 
@@ -67,12 +71,12 @@ class ContainerWidget(Widget):
         enabled: bool (optional)
             Enabled or disable the start alignment of the container, defaults to 
             True."""
-        self._start = enabled
+        self._align_start = enabled
         if enabled:
-            self._end = False
-            self._center = False
+            self._align_end = False
+            self._align_center = False
             
-    def end(self, enabled=True):
+    def align_end(self, enabled=True):
         """Make the contents of this container align to the end of the axis.  
         Automatically disables conflicting alignments.
 
@@ -81,12 +85,12 @@ class ContainerWidget(Widget):
         enabled: bool (optional)
             Enabled or disable the end alignment of the container, defaults to 
             True."""
-        self._end = enabled
+        self._align_end = enabled
         if enabled:
-            self._start = False
-            self._center = False
+            self._align_start = False
+            self._align_center = False
             
-    def center(self, enabled=True):
+    def align_center(self, enabled=True):
         """Make the contents of this container align to the center of the axis.  
         Automatically disables conflicting alignments.
 
@@ -95,7 +99,50 @@ class ContainerWidget(Widget):
         enabled: bool (optional)
             Enabled or disable the center alignment of the container, defaults to 
             True."""
-        self._center = enabled
+        self._align_center = enabled
         if enabled:
-            self._start = False
-            self._end = False
+            self._align_start = False
+            self._align_end = False
+
+            
+    def pack_start(self, enabled=True):
+        """Make the contents of this container pack to the start of the axis.  
+        Automatically disables conflicting packings.
+
+        Parameters
+        ----------
+        enabled: bool (optional)
+            Enabled or disable the start packing of the container, defaults to 
+            True."""
+        self._pack_start = enabled
+        if enabled:
+            self._pack_end = False
+            self._pack_center = False
+            
+    def pack_end(self, enabled=True):
+        """Make the contents of this container pack to the end of the axis.  
+        Automatically disables conflicting packings.
+
+        Parameters
+        ----------
+        enabled: bool (optional)
+            Enabled or disable the end packing of the container, defaults to 
+            True."""
+        self._pack_end = enabled
+        if enabled:
+            self._pack_start = False
+            self._pack_center = False
+            
+    def pack_center(self, enabled=True):
+        """Make the contents of this container pack to the center of the axis.  
+        Automatically disables conflicting packings.
+
+        Parameters
+        ----------
+        enabled: bool (optional)
+            Enabled or disable the center packing of the container, defaults to 
+            True."""
+        self._pack_center = enabled
+        if enabled:
+            self._pack_start = False
+            self._pack_end = False

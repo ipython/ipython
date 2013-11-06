@@ -4,28 +4,37 @@ require(["notebook/js/widget"], function(){
 
     var ContainerView = IPython.WidgetView.extend({
         
-        render : function(){
+        render: function(){
             this.$el = $('<div />')
                 .addClass('widget-container');
         },
         
-        update : function(){
+        update: function(){
 
             // Apply flexible box model properties by adding and removing
             // corrosponding CSS classes.
             // Defined in IPython/html/static/base/less/flexbox.less
-            var flex_properties = ['vbox', 'hbox', 'center', 'end', 'center'];
-            for (var index in flex_properties) {
-                if (this.model.get('_' + flex_properties[index])) {
-                    this.$el.addClass(flex_properties[index]);
-                } else {
-                    this.$el.removeClass(flex_properties[index]);
-                }    
-            }
+            this.set_flex_property('vbox', this.model.get('_vbox'));
+            this.set_flex_property('hbox', this.model.get('_hbox'));
+            this.set_flex_property('start', this.model.get('_pack_start'));
+            this.set_flex_property('center', this.model.get('_pack_center'));
+            this.set_flex_property('end', this.model.get('_pack_end'));
+            this.set_flex_property('align_start', this.model.get('_align_start'));
+            this.set_flex_property('align_center', this.model.get('_align_center'));
+            this.set_flex_property('align_end', this.model.get('_align_end'));
+
             return IPython.WidgetView.prototype.update.call(this);
         },
 
-        display_child : function(view) {
+        set_flex_property: function(property_name, enabled) {
+            if (enabled) {
+                this.$el.addClass(property_name);
+            } else {
+                this.$el.removeClass(property_name);
+            }
+        },
+
+        display_child: function(view) {
             this.$el.append(view.$el);
         },
     });
