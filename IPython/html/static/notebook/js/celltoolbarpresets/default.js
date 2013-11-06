@@ -28,7 +28,7 @@
         var button_container = div;
         var button = $('<button/>')
             .addClass("btn btn-mini")
-            .text("Raw Edit")
+            .text("Edit Metadata")
             .click( function () {
                 raw_edit(cell);
                 return false;
@@ -40,7 +40,7 @@
     var example_preset = [];
     example_preset.push('default.rawedit');
 
-    CellToolbar.register_preset('Default', example_preset);
-    console.log('Default extension for metadata editing loaded.');
+    CellToolbar.register_preset('Edit Metadata', example_preset);
+    console.log('Default extension for cell metadata editing loaded.');
 
 }(IPython));
