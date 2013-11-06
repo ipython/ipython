@@ -36,7 +36,7 @@ define(["components/underscore/underscore-min",
                 this.widget_view_types = widget_view_types;
                 this.pending_msgs = 0;
                 this.msg_throttle = 3;
-                this.msg_buffer = {};
+                this.msg_buffer = null;
                 this.views = {};
 
                 // Remember comm associated with the model.
@@ -73,19 +73,21 @@ define(["components/underscore/underscore-min",
                     
                     // Send buffer if this message caused another message to be
                     // throttled.
-                    if (this.msg_throttle == this.pending_msgs && 
-                        this.msg_buffer.length > 0) {
-                        
-                        var output_area = this._get_msg_output_area(msg);
-                        var callbacks = this._make_callbacks(output_area);
-                        var data = {sync_method: 'patch', sync_data: this.msg_buffer};
-                        comm.send(data, callbacks);   
-                        this.msg_buffer = {};
-                    } else {
+                    if (this.msg_buffer != null) {
+                        if (this.msg_throttle == this.pending_msgs && 
+                            this.msg_buffer.length > 0) {
+                            
+                            var output_area = this._get_msg_output_area(msg);
+                            var callbacks = this._make_callbacks(output_area);
+                            var data = {sync_method: 'update', sync_data: this.msg_buffer};
+                            comm.send(data, callbacks);   
+                            this.msg_buffer = null;
+                        } else {
 
-                        // Only decrease the pending message count if the buffer
-                        // doesn't get flushed (sent).
-                        --this.pending_msgs;
+                            // Only decrease the pending message count if the buffer
+                            // doesn't get flushed (sent).
+                            --this.pending_msgs;
+                        }
                     }
                 }
             },
@@ -103,6 +105,9 @@ define(["components/underscore/underscore-min",
                         // it can be sent once the kernel has finished processing 
                         // some of the existing messages.
                         if (method=='patch') {
+                            if (this.msg_buffer == null) {
+                                this.msg_buffer = $.extend({}, model_json); // Copy
+                            }
                             for (var attr in options.attrs) {
                                 this.msg_buffer[attr] = options.attrs[attr];
                             }
