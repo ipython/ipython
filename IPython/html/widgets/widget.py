@@ -282,6 +282,8 @@ class Widget(LoggingConfigurable):
     def on_displayed(self, callback, remove=False):
         """Register a callback to be called when the widget has been displayed
 
+        Parameters
+        ----------
         callback: method handler
             Can have a signature of:
             - callback()
@@ -298,6 +300,8 @@ class Widget(LoggingConfigurable):
     def handle_displayed(self, view_name):
         """Called when a view has been displayed for this widget instance
 
+        Parameters
+        ----------
         view_name: unicode
             Name of the view that was displayed."""
         for handler in self._display_callbacks:
@@ -319,7 +323,6 @@ class Widget(LoggingConfigurable):
                 else:
                     raise TypeError('Widget display callback must ' \
                         'accept 0-2 arguments, not %d.' % nargs)
-
 
 
     # Support methods
