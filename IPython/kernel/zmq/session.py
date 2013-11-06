@@ -81,9 +81,9 @@ def squash_unicode(obj):
 
 # ISO8601-ify datetime objects
 json_packer = lambda obj: jsonapi.dumps(obj, default=date_default)
-json_unpacker = lambda s: extract_dates(jsonapi.loads(s))
+json_unpacker = lambda s: jsonapi.loads(s)
 
-pickle_packer = lambda o: pickle.dumps(o,-1)
+pickle_packer = lambda o: pickle.dumps(squash_dates(o),-1)
 pickle_unpacker = pickle.loads
 
 default_packer = json_packer
@@ -429,7 +429,7 @@ class Session(Configurable):
         return str(uuid.uuid4())
 
     def _check_packers(self):
-        """check packers for binary data and datetime support."""
+        """check packers for datetime support."""
         pack = self.pack
         unpack = self.unpack
 
@@ -469,9 +469,11 @@ class Session(Configurable):
         msg = dict(t=datetime.now())
         try:
             unpacked = unpack(pack(msg))
+            if isinstance(unpacked['t'], datetime):
+                raise ValueError("Shouldn't deserialize to datetime")
         except Exception:
             self.pack = lambda o: pack(squash_dates(o))
-            self.unpack = lambda s: extract_dates(unpack(s))
+            self.unpack = lambda s: unpack(s)
 
     def msg_header(self, msg_type):
         return msg_header(self.msg_id, msg_type, self.username, self.session)
@@ -815,10 +817,10 @@ class Session(Configurable):
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
         header = self.unpack(msg_list[1])
-        message['header'] = header
+        message['header'] = extract_dates(header)
         message['msg_id'] = header['msg_id']
         message['msg_type'] = header['msg_type']
-        message['parent_header'] = self.unpack(msg_list[2])
+        message['parent_header'] = extract_dates(self.unpack(msg_list[2]))
         message['metadata'] = self.unpack(msg_list[3])
         if content:
             message['content'] = self.unpack(msg_list[4])
