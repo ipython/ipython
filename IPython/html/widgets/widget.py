@@ -93,6 +93,7 @@ class Widget(LoggingConfigurable):
         self._children = []
         self._add_class = [0]
         self._remove_class = [0]
+        self._display_callbacks = []
         super(Widget, self).__init__(**kwargs)
                 
         # Register after init to allow default values to be specified
@@ -278,6 +279,49 @@ class Widget(LoggingConfigurable):
         self.send_state(key='_remove_class')
 
 
+    def on_displayed(self, callback, remove=False):
+        """Register a callback to be called when the widget has been displayed
+
+        callback: method handler
+            Can have a signature of:
+            - callback()
+            - callback(sender)
+            - callback(sender, view_name)
+        remove: bool
+            True if the callback should be unregistered."""
+        if remove:
+            self._display_callbacks.remove(callback)
+        elif not callback in self._display_callbacks:
+            self._display_callbacks.append(callback)
+
+
+    def handle_displayed(self, view_name):
+        """Called when a view has been displayed for this widget instance
+
+        view_name: unicode
+            Name of the view that was displayed."""
+        for handler in self._display_callbacks:
+            if callable(handler):
+                argspec = inspect.getargspec(handler)
+                nargs = len(argspec[0])
+
+                # Bound methods have an additional 'self' argument
+                if isinstance(handler, types.MethodType):
+                    nargs -= 1
+
+                # Call the callback
+                if nargs == 0:
+                    handler()
+                elif nargs == 1:
+                    handler(self)
+                elif nargs == 2:
+                    handler(self, view_name)
+                else:
+                    raise TypeError('Widget display callback must ' \
+                        'accept 0-2 arguments, not %d.' % nargs)
+
+
+
     # Support methods
     def _repr_widget_(self, view_name=None):
         """Function that is called when `IPython.display.display` is called on
@@ -308,6 +352,7 @@ class Widget(LoggingConfigurable):
                             "view_name": view_name,
                             "parent": self.parent._comm.comm_id})
         self._displayed = True
+        self.handle_displayed(view_name)
 
         # Now display children if any.
         for child in self._children:
