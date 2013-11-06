@@ -53,7 +53,7 @@ class ButtonWidget(Widget):
             Set to true to remove the callback from the list of callbacks."""
         if remove:
             self._click_handlers.remove(callback)
-        else:
+        elif not callback in self._click_handlers:
             self._click_handlers.append(callback)
 
 
