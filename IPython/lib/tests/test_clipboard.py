@@ -2,8 +2,10 @@ import nose.tools as nt
 
 from IPython.core.error import TryNext
 from IPython.lib.clipboard import ClipboardEmpty
+from IPython.testing.decorators import skip_if_no_x11
 from IPython.utils.py3compat import unicode_type
 
+@skip_if_no_x11
 def test_clipboard_get():
     # Smoketest for clipboard access - we can't easily guarantee that the
     # clipboard is accessible and has something on it, but this tries to
