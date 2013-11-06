@@ -91,7 +91,7 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Class variable that should contains the CellToolbar instances for each
+     * Class variable that should contain the CellToolbar instances for each
      * cell of the notebook
      *
      * @private
@@ -99,17 +99,17 @@ var IPython = (function (IPython) {
      * @static
      * @type List
      */
-    CellToolbar._instances =[]
+    CellToolbar._instances = [];
 
 
     /**
-     * keep a list of all the availlabel presets for the toolbar
+     * keep a list of all the available presets for the toolbar
      * @private
      * @property _presets
      * @static
      * @type Dict
      */
-    CellToolbar._presets ={}
+    CellToolbar._presets = {};
 
 
     // this is by design not a prototype.
@@ -182,7 +182,7 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
     CellToolbar.register_preset = function(name, preset_list) {
-        CellToolbar._presets[name] = preset_list
+        CellToolbar._presets[name] = preset_list;
         $([IPython.events]).trigger('preset_added.CellToolbar', {name: name});
     };
 
@@ -216,14 +216,14 @@ var IPython = (function (IPython) {
      *
      *      CellToolbar.activate_preset('foo.foo_preset1');
      */
-    CellToolbar.activate_preset= function(preset_name){
+    CellToolbar.activate_preset = function(preset_name){
         var preset = CellToolbar._presets[preset_name];
 
-        if(preset != undefined){
+        if(preset !== undefined){
             CellToolbar._ui_controls_list = preset;
             CellToolbar.rebuild_all();
         }
-    }
+    };
 
 
     /**
@@ -237,29 +237,37 @@ var IPython = (function (IPython) {
         for(var i in CellToolbar._instances){
             CellToolbar._instances[i].rebuild();
         }
-    }
+    };
 
     /**
-     * Rebuild all the button on the toolbar to update it's state.
+     * Rebuild all the button on the toolbar to update its state.
      * @method rebuild
      */
     CellToolbar.prototype.rebuild = function(){
         // strip evrything from the div
-        // which is probabli metainner.
+        // which is probably inner_element
         // or this.element.
         this.inner_element.empty();
 
-        var cdict = CellToolbar._callback_dict;
+        var callbacks = CellToolbar._callback_dict;
         var preset = CellToolbar._ui_controls_list;
-        // Yes we iterate on the class varaible, not the instance one.
-        for ( var index in CellToolbar._ui_controls_list){
+        // Yes we iterate on the class variable, not the instance one.
+        for (var index in preset) {
+            var key = preset[index];
+            var callback = callbacks[key];
+            if (!callback) continue;
+            
             var local_div = $('<div/>').addClass('button_container');
-            // Note,
-            // do this the other way, wrap in try/catch and don't append if any errors.
-            this.inner_element.append(local_div)
-            cdict[preset[index]](local_div, this.cell)
+            try {
+                callback(local_div, this.cell, this);
+            } catch (e) {
+                console.log("Error in cell toolbar callback " + key, e);
+                continue;
+            }
+            // only append if callback succeeded.
+            this.inner_element.append(local_div);
         }
-    }
+    };
 
 
     /**
@@ -305,8 +313,8 @@ var IPython = (function (IPython) {
      *
      */
     CellToolbar.utils.checkbox_ui_generator = function(name, setter, getter){
-         return function(div, cell) {
-            var button_container = $(div)
+        return function(div, cell, celltoolbar) {
+            var button_container = $(div);
 
             var chkb = $('<input/>').attr('type', 'checkbox');
             var lbl = $('<label/>').append($('<span/>').text(name));
@@ -317,11 +325,10 @@ var IPython = (function (IPython) {
                         var v = getter(cell);
                         setter(cell, !v);
                         chkb.attr("checked", !v);
-                    })
-           button_container.append($('<div/>').append(lbl));
-
-        }
-    }
+            });
+            button_container.append($('<div/>').append(lbl));
+        };
+    };
 
 
     /**
@@ -367,16 +374,16 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_callback('slideshow.select', select_type);
      *
      */
-    CellToolbar.utils.select_ui_generator = function(list_list, setter, getter, label){
-        label= label? label: "";
-        return function(div, cell) {
-            var button_container = $(div)
+    CellToolbar.utils.select_ui_generator = function(list_list, setter, getter, label, cell_types){
+        label = label || "";
+        return function(div, cell, celltoolbar) {
+            var button_container = $(div);
             var lbl = $("<label/>").append($('<span/>').text(label));
             var select = $('<select/>').addClass('ui-widget ui-widget-content');
             for(var itemn in list_list){
-                var opt = $('<option/>');
-                        opt.attr('value', list_list[itemn][1])
-                        opt.text(list_list[itemn][0])
+                var opt = $('<option/>')
+                    .attr('value', list_list[itemn][1])
+                    .text(list_list[itemn][0]);
                 select.append(opt);
             }
             select.val(getter(cell));
@@ -384,8 +391,13 @@ var IPython = (function (IPython) {
                         setter(cell, select.val());
                     });
             button_container.append($('<div/>').append(lbl).append(select));
+            if (cell_types && cell_types.indexOf(cell.cell_type) == -1) {
+                celltoolbar.hide();
+            } else {
+                celltoolbar.show();
+            }
 
-        }
+        };
     };
 
 
