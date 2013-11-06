@@ -90,7 +90,21 @@ Now, we show what our configuration objects and files look like.
 Configuration objects and files
 ===============================
 
-A configuration file is simply a pure Python file that sets the attributes
+IPython can use two types of configuration file, Python configuration files,
+and since IPython 2.0, JSON configuration files. The expression of
+configuration in JSON allow simpler processing of those configuration file by
+external software and language, but still Python file have are the more
+powerful.  The concept exposed in Python configuration file section also apply
+to the JSON configuration file section.
+
+When both Python and JSON configuration file are present, both will be loaded,
+but the configuration in JSON will take precedence over the one int the JSON
+configuration file.
+
+Python configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A Python configuration file is simply a pure Python file that sets the attributes
 of a global, pre-created configuration object.  This configuration object is a 
 :class:`~IPython.config.loader.Config` instance.  While in a configuration
 file, to get a reference to this object, simply call the :func:`get_config`
@@ -178,8 +192,37 @@ attribute of ``c`` is not the actual class, but instead is another
     instance is dynamically created for that attribute. This allows deeply
     hierarchical information created easily (``c.Foo.Bar.value``) on the fly.
 
+JSON configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A JSON configuration file is simply a file that contain a
+:class:`~IPython.config.loader.Config` Object serialized as a JSON object with
+an additional mandatory ``version`` key that is reserved for future use. JSON
+configuration file should take the same name than Python configuration file,
+but with a .json extension.  Be careful, JSON file do not support comment, and
+invalid JSON files will be ignored at load time.
+
+Configuration described in previous section could be written as follow in a
+JSON configuration file:
+
+    {
+      version: 1.0,
+      MyClass: {
+        name    : 'coolname',
+        ranking : 10
+      }
+    }
+
+Despite having much less features than Python configuration files, JSON
+configuration file can be much more easily generated or processed by programs
+and edited using external software in many languages.
+
 Configuration files inheritance
 ===============================
+
+.. note::
+
+    This section only apply to python configuration files.
 
 Let's say you want to have different configuration files for various purposes.
 Our configuration system makes it easy for one configuration file to inherit

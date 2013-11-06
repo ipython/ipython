@@ -20,6 +20,10 @@ import re
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.utils.warn import error
+from IPython.core.magic_arguments import (argument, magic_arguments,
+                                          parse_argstring)
+
+from IPython.config.loader import JsonFileConfigLoader
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -33,6 +37,13 @@ class ConfigMagics(Magics):
         super(ConfigMagics, self).__init__(shell)
         self.configurables = []
 
+    @magic_arguments()
+    @argument(
+        '--persist', dest='persist', default=None,
+        help="""
+        wether to persist or not the configuration to config file
+        """)
+    @argument('other', nargs='*')
     @line_magic
     def config(self, s):
         """configure IPython
@@ -106,6 +117,9 @@ class ConfigMagics(Magics):
             In [5]: %config IPCompleter.greedy = feeling_greedy
 
         """
+
+        args = parse_argstring(self.foo, s)
+
         from IPython.config.loader import Config
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
@@ -114,7 +128,10 @@ class ConfigMagics(Magics):
                           if c.__class__.class_traits(config=True) ]
         classnames = [ c.__class__.__name__ for c in configurables ]
 
-        line = s.strip()
+        if args.other:
+            line = args.other[0].strip()
+        else :
+            line =''
         if not line:
             # print available configurable names
             print("Available objects for config:")
@@ -157,3 +174,21 @@ class ConfigMagics(Magics):
                 configurable.update_config(cfg)
             except Exception as e:
                 error(e)
+        
+        persist = args.persist
+        if persist and '=' in line:  
+            loader = JsonFileConfigLoader('ipython_'+persist+'_config.json',path=self.shell.profile_dir.location)
+            config = Config(loader.load_config())
+
+            config.merge(cfg)
+            cprime = {}
+            for k,v in config.iteritems():
+                d = Config()
+                for kk,vv in v.iteritems():
+                    if vv is not None:
+                        d[kk] = vv
+                cprime[k] = Config(d)
+            loader.write_config(Config(cprime))
+
+
+ConfigMagics.foo = ConfigMagics.config
