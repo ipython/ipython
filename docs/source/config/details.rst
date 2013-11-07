@@ -12,24 +12,24 @@ The following codes in the prompt string will be substituted into the
 prompt string:
 
 ======  ===================================  =====================================================
-Short 	Long 	                             Notes
+Short   Long                                 Notes
 ======  ===================================  =====================================================
-%n,\\# 	{color.number}{count}{color.prompt}  history counter with bolding
-\\N	    {count} 	                         history counter without bolding
-\\D	    {dots} 	                             series of dots the same width as the history counter
-\\T	    {time} 	                             current time
-\\w	    {cwd} 	                             current working directory
-\\W	    {cwd_last} 	                         basename of CWD
-\\Xn	{cwd_x[n]} 	                         Show the last n terms of the CWD. n=0 means show all.
-\\Yn	{cwd_y[n]} 	                         Like \Xn, but show '~' for $HOME
-\\h	                                         hostname, up to the first '.'
+%n,\\#  {color.number}{count}{color.prompt}  history counter with bolding
+\\N     {count}                              history counter without bolding
+\\D     {dots}                               series of dots the same width as the history counter
+\\T     {time}                               current time
+\\w     {cwd}                                current working directory
+\\W     {cwd_last}                           basename of CWD
+\\Xn    {cwd_x[n]}                           Show the last n terms of the CWD. n=0 means show all.
+\\Yn    {cwd_y[n]}                           Like \Xn, but show '~' for $HOME
+\\h                                          hostname, up to the first '.'
 \\H                                          full hostname
-\\u	                                         username (from the $USER environment variable)
-\\v	 	                                     IPython version
-\\$	 	                                     root symbol ("$" for normal user or "#" for root)
-``\\`` 	                                     escaped '\\'
-\\n	 	                                     newline
-\\r	 	                                     carriage return 
+\\u                                          username (from the $USER environment variable)
+\\v                                          IPython version
+\\$                                          root symbol ("$" for normal user or "#" for root)
+``\\``                                       escaped '\\'
+\\n                                          newline
+\\r                                          carriage return
 n/a     {color.<Name>}                       set terminal colour - see below for list of names
 ======  ===================================  =====================================================
 
@@ -158,7 +158,9 @@ new requests are handled by the original process. This means that almost no
 time is spent in handling the request (assuming an Emacs process is already
 running). For this to work, you need to set your EDITOR environment variable
 to 'emacsclient'. The code below, supplied by Francois Pinard, can then be
-used in your :file:`.emacs` file to enable the server::
+used in your :file:`.emacs` file to enable the server:
+
+.. code-block:: common-lisp
 
     (defvar server-buffer-clients)
     (when (and (fboundp 'server-start) (string-equal (getenv "TERM") 'xterm))
@@ -181,7 +183,9 @@ currently (X)Emacs and IPython get along very well in other ways.
 
 The file :file:`ipython.el` is included with the IPython distribution, in the
 directory :file:`docs/emacs`. Once you put these files in your Emacs path, all
-you need in your :file:`.emacs` file is::
+you need in your :file:`.emacs` file is:
+
+.. code-block:: common-lisp
 
     (require 'ipython)
 
@@ -190,12 +194,16 @@ IPython, opening IPython as your Python shell via ``C-c !``, etc.
 
 You can customize the arguments passed to the IPython instance at startup by
 setting the ``py-python-command-args`` variable.  For example, to start always
-with ``matplotlib`` integration and hardcoded light-background colors, you can use::
+with ``matplotlib`` integration and hardcoded light-background colors, you can use:
+
+.. code-block:: common-lisp
 
     (setq py-python-command-args '("--matplotlib" "--colors" "LightBG"))
 
 If you happen to get garbage instead of colored prompts as described in
-the previous section, you may need to set also in your :file:`.emacs` file::
+the previous section, you may need to set also in your :file:`.emacs` file:
+
+.. code-block:: common-lisp
 
     (setq ansi-color-for-comint-mode t)
 
