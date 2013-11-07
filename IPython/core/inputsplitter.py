@@ -535,8 +535,15 @@ class IPythonInputSplitter(InputSplitter):
         self.source_raw = ''
         self.transformer_accumulating = False
         self.within_python_line = False
+
+        last_exc = None
         for t in self.transforms:
-            t.reset()
+            try:
+                t.reset()
+            except SyntaxError as e:
+                last_exc = e
+        if last_exc is not None:
+            raise last_exc
     
     def flush_transformers(self):
         def _flush(transform, out):
