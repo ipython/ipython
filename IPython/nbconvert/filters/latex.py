@@ -19,6 +19,8 @@ import re
 # Globals and constants
 #-----------------------------------------------------------------------------
 
+MARKDOWN_IMAGE_RE = re.compile(r'!\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
+
 LATEX_RE_SUBS = (
     (re.compile(r'\.\.\.+'), r'\\ldots'),
 )
@@ -44,7 +46,8 @@ LATEX_SUBS = {
 # Functions
 #-----------------------------------------------------------------------------
 
-__all__ = ['escape_latex']
+__all__ = ['escape_latex', 
+           'strip_url_static_file_prefix']
 
 def escape_latex(text):
     """
@@ -61,3 +64,9 @@ def escape_latex(text):
 
     return text
 
+
+def strip_url_static_file_prefix(text):
+    text = MARKDOWN_IMAGE_RE.sub(r'![\1](\2)', text)
+    return text
+
+    
