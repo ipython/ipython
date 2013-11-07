@@ -17,6 +17,7 @@ from glob import glob
 import uuid
 import sys
 import os
+import inspect
 
 import IPython
 from IPython.kernel.comm import Comm
