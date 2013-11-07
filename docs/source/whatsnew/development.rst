@@ -31,6 +31,46 @@ clear_output changes
   user to double buffer the output.
 * The output div height is remembered when the ``wait=True`` flag is used.
 
+Extending Configurable Containers
+---------------------------------
+
+Some configurable traits are containers (list, dict, set)
+Config objects now support calling ``extend``, ``update``, ``insert``, etc.
+on traits in config files, which will ultimately result in calling
+those methods on the original object.
+
+The effect being that you can now add to containers without having to copy/paste
+the initial value::
+
+    c = get_config()
+    c.InlineBackend.rc.update({ 'figure.figsize' : (6, 4) })
+
+ * In notebook, Showing tooltip on tab has been disables to avoid conflict with
+   completion, Shift-Tab could still be used to invoke tooltip when inside
+   function signature and/or on selection.
+
+Single codebase Python 3 support
+--------------------------------
+
+IPython previously supported Python 3 by running 2to3 during setup. We
+have now switched to a single codebase which runs natively on Python 2.7
+and 3.3.
+
+For notes on how to maintain this, see :doc:`/development/pycompat`.
+
+* ``object_info_request`` as been replaced by ``object_info`` for consistency in the javascript API.
+  ``object_info`` as a simpler interface to register callback that is incompatible with ``object_info_request``.
+
+* Previous versions of IPython on Linux would use the XDG config directory,
+  creating :file:`~/.config/ipython` by default. We have decided to go
+  back to :file:`~/.ipython` for consistency among systems. IPython will
+  issue a warning if it finds the XDG location, and will move it to the new
+  location if there isn't already a directory there.
+
+* Equations, images and tables are now centered in Markdown cells.
+* Multiline equations are now centered in output areas; single line equations
+  remain left justified.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 Backwards incompatible changes
