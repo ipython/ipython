@@ -42,4 +42,19 @@ class TestLatex(TestsBase):
         """Try to remove latex from string"""
         self.assertEqual(escape_latex(test), result)
 
+    def test_strip_url_static_file_prefix(self):
+        tests = [
+            ('hello!', 'hello!'),
+            ('hello![caption]', 'hello![caption]'),
+            ('hello![caption](/url/location.gif)', 'hello![caption](/url/location.gif)'),
+            ('hello![caption](url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](files/url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](/files/url/location.gif)', 'hello![caption](url/location.gif)'),
+        ]
+        
+        for test in tests:
+            self._test_strip_url_static_file_prefix(test[0], test[1])
 
+    def _test_strip_url_static_file_prefix(self, test, result):
+        self.assertEqual(strip_url_static_file_prefix(test), result)
