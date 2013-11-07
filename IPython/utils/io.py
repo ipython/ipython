@@ -42,6 +42,11 @@ class IOStream:
         for meth in filter(clone, dir(stream)):
             setattr(self, meth, getattr(stream, meth))
 
+    def __repr__(self):
+        cls = self.__class__
+        tpl = '{mod}.{cls}({args})'
+        return tpl.format(mod=cls.__module__, cls=cls.__name__, args=self.stream)
+
     def write(self,data):
         try:
             self._swrite(data)

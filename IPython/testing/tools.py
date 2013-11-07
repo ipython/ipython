@@ -173,7 +173,7 @@ def get_ipython_cmd(as_string=False):
 
     return ipython_cmd
 
-def ipexec(fname, options=None, pipe=False):
+def ipexec(fname, options=None):
     """Utility to call 'ipython filename'.
 
     Starts IPython with a minimal and safe configuration to make startup as fast
@@ -188,9 +188,6 @@ def ipexec(fname, options=None, pipe=False):
 
     options : optional, list
       Extra command-line flags to be passed to IPython.
-
-    pipe : optional, boolean
-      Pipe fname into IPython as stdin instead of calling it as external file
 
     Returns
     -------
@@ -211,12 +208,8 @@ def ipexec(fname, options=None, pipe=False):
     ipython_cmd = get_ipython_cmd()
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
-    if pipe:
-        full_cmd = ipython_cmd + cmdargs
-        p = Popen(full_cmd, stdin=open(full_fname), stdout=PIPE, stderr=PIPE)
-    else:
-        full_cmd = ipython_cmd + cmdargs + [full_fname]
-        p = Popen(full_cmd, stdout=PIPE, stderr=PIPE)
+    full_cmd = ipython_cmd + cmdargs + [full_fname]
+    p = Popen(full_cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
     # `import readline` causes 'ESC[?1034h' to be output sometimes,
