@@ -23,7 +23,7 @@ def html_tableify(item_matrix, select=None, header=None , footer=None) :
     html_cols = []
     tds = lambda text : u'<td>'+text+u'  </td>'
     trs = lambda text : u'<tr>'+text+u'</tr>'
-    tds_items = [map(tds, row) for row in item_matrix]
+    tds_items = [list(map(tds, row)) for row in item_matrix]
     if select :
         row, col = select
         tds_items[row][col] = u'<td class="inverted">'\
@@ -315,7 +315,7 @@ class CompletionHtml(QtGui.QWidget):
         self._old_cursor = cursor
         self._index = (0, 0)
         sjoin = lambda x : [ y.ljust(w, ' ') for y, w in zip(x, ci['columns_width'])]
-        self._justified_items = map(sjoin, items_m)
+        self._justified_items = list(map(sjoin, items_m))
         self._update_list(hilight=False)
 
 
