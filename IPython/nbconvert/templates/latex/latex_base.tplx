@@ -202,7 +202,7 @@ This template does not define a docclass, the inheriting class must define this.
     ((* elif cell.level == 6 -*))
         ((* block h6 -*))\\*\textit((* endblock h6 -*))
     ((*- endif -*))
-    {((( cell.source | replace('\n', ' ') | citation2latex | markdown2latex )))}
+    {((( cell.source | replace('\n', ' ') | citation2latex | strip_url_static_file_prefix | markdown2latex )))}
 
 ((* endblock headingcell *))
 
@@ -215,7 +215,7 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Render markdown
 ((* block markdowncell scoped *))
-    ((( cell.source | citation2latex | markdown2latex )))
+    ((( cell.source | citation2latex | strip_url_static_file_prefix | markdown2latex )))
 ((* endblock markdowncell *))
 
 % Spit out the contents of raw cells unmodified

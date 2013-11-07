@@ -61,6 +61,7 @@ default_filters = {
         'citation2latex': filters.citation2latex,
         'path2url': filters.path2url,
         'add_prompts': filters.add_prompts,
+        'strip_url_static_file_prefix': filters.strip_url_static_file_prefix,
 }
 
 #-----------------------------------------------------------------------------
