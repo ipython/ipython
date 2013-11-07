@@ -1,4 +1,4 @@
-from .widget import Widget, init_widget_js
+from .widget import Widget
 
 from .widget_bool import BoolWidget
 from .widget_button import ButtonWidget

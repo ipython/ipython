@@ -1,6 +1,6 @@
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     var FloatRangeWidgetModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('FloatRangeWidgetModel', FloatRangeWidgetModel);
+    IPython.widget_manager.register_widget_model('FloatRangeWidgetModel', FloatRangeWidgetModel);
 
     var FloatSliderView = IPython.WidgetView.extend({
         
@@ -97,7 +97,7 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('FloatSliderView', FloatSliderView);
+    IPython.widget_manager.register_widget_view('FloatSliderView', FloatSliderView);
 
 
     var FloatTextView = IPython.WidgetView.extend({
@@ -188,7 +188,7 @@ require(["notebook/js/widget"], function(){
         }
     });
 
-    IPython.notebook.widget_manager.register_widget_view('FloatTextView', FloatTextView);
+    IPython.widget_manager.register_widget_view('FloatTextView', FloatTextView);
 
 
     var ProgressView = IPython.WidgetView.extend({
@@ -235,5 +235,5 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('ProgressView', ProgressView);
+    IPython.widget_manager.register_widget_view('ProgressView', ProgressView);
 });

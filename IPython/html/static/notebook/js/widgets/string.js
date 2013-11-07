@@ -1,6 +1,6 @@
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     var StringWidgetModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
+    IPython.widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
 
     var LabelView = IPython.WidgetView.extend({
       
@@ -19,7 +19,7 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('LabelView', LabelView);
+    IPython.widget_manager.register_widget_view('LabelView', LabelView);
 
     var TextAreaView = IPython.WidgetView.extend({
       
@@ -73,7 +73,7 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('TextAreaView', TextAreaView);
+    IPython.widget_manager.register_widget_view('TextAreaView', TextAreaView);
 
     var TextBoxView = IPython.WidgetView.extend({
       
@@ -127,5 +127,5 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('TextBoxView', TextBoxView);
+    IPython.widget_manager.register_widget_view('TextBoxView', TextBoxView);
 });

@@ -26,19 +26,6 @@ from IPython.utils.traitlets import Unicode, Dict, List, Instance, Bool
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
-#-----------------------------------------------------------------------------
-# Shared
-#-----------------------------------------------------------------------------
-def init_widget_js():
-    path = os.path.split(os.path.abspath( __file__ ))[0]
-    for filepath in glob(os.path.join(path, "*.py")):
-        filename = os.path.split(filepath)[1]
-        name = filename.rsplit('.', 1)[0]
-        if not (name == 'widget' or name == '__init__') and name.startswith('widget_'):
-            # Remove 'widget_' from the start of the name before compiling the path.
-            js_path = 'static/notebook/js/widgets/%s.js' % name[7:]
-            display(Javascript(data='$.getScript($("body").data("baseProjectUrl") + "%s");' % js_path), exclude="text/plain")  
-
 
 #-----------------------------------------------------------------------------
 # Classes

@@ -1,6 +1,6 @@
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     var MulticontainerModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('MulticontainerWidgetModel', MulticontainerModel);
+    IPython.widget_manager.register_widget_model('MulticontainerWidgetModel', MulticontainerModel);
 
     var AccordionView = IPython.WidgetView.extend({
         
@@ -57,7 +57,7 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('AccordionView', AccordionView);
+    IPython.widget_manager.register_widget_view('AccordionView', AccordionView);
     
     var TabView = IPython.WidgetView.extend({
         
@@ -134,6 +134,6 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('TabView', TabView);
+    IPython.widget_manager.register_widget_view('TabView', TabView);
 
 });

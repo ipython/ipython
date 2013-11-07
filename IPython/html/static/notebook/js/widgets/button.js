@@ -1,8 +1,8 @@
 
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     
     var ButtonWidgetModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
+    IPython.widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
 
     var ButtonView = IPython.WidgetView.extend({
       
@@ -34,6 +34,6 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('ButtonView', ButtonView);
+    IPython.widget_manager.register_widget_view('ButtonView', ButtonView);
 
 });

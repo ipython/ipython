@@ -1,6 +1,6 @@
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     var SelectionWidgetModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
+    IPython.widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
 
     var DropdownView = IPython.WidgetView.extend({
         
@@ -80,7 +80,7 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('DropdownView', DropdownView);
+    IPython.widget_manager.register_widget_view('DropdownView', DropdownView);
 
     var RadioButtonsView = IPython.WidgetView.extend({
         
@@ -165,7 +165,7 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
+    IPython.widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
 
 
     var ToggleButtonsView = IPython.WidgetView.extend({
@@ -247,5 +247,5 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
+    IPython.widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
 });

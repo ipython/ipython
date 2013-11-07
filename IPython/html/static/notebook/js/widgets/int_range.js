@@ -1,6 +1,6 @@
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     var IntRangeWidgetModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
+    IPython.widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
 
     var IntSliderView = IPython.WidgetView.extend({
         
@@ -97,7 +97,7 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('IntSliderView', IntSliderView);
+    IPython.widget_manager.register_widget_view('IntSliderView', IntSliderView);
 
     var IntTextView = IPython.WidgetView.extend({
         
@@ -187,5 +187,5 @@ require(["notebook/js/widget"], function(){
         }
     });
 
-    IPython.notebook.widget_manager.register_widget_view('IntTextView', IntTextView);
+    IPython.widget_manager.register_widget_view('IntTextView', IntTextView);
 });

@@ -1,8 +1,8 @@
 
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     
     var BoolWidgetModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
+    IPython.widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
 
     var CheckboxView = IPython.WidgetView.extend({
       
@@ -51,7 +51,7 @@ require(["notebook/js/widget"], function(){
         
     });
 
-    IPython.notebook.widget_manager.register_widget_view('CheckboxView', CheckboxView);
+    IPython.widget_manager.register_widget_view('CheckboxView', CheckboxView);
 
     var ToggleButtonView = IPython.WidgetView.extend({
       
@@ -104,6 +104,6 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
+    IPython.widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
 
 });

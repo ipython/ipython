@@ -1295,11 +1295,13 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Once a session is started, link the code cells to the kernel
+     * Once a session is started, link the code cells to the kernel and pass the 
+     * comm manager to the widget manager
      *
      */
     Notebook.prototype._session_started = function(){
         this.kernel = this.session.kernel;
+        IPython.widget_manager.attach_comm_manager(this.kernel.comm_manager);
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);

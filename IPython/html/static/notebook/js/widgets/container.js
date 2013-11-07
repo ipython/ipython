@@ -1,6 +1,6 @@
-require(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(){
     var ContainerModel = IPython.WidgetModel.extend({});
-    IPython.notebook.widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
+    IPython.widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
 
     var ContainerView = IPython.WidgetView.extend({
         
@@ -42,5 +42,5 @@ require(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.notebook.widget_manager.register_widget_view('ContainerView', ContainerView);
+    IPython.widget_manager.register_widget_view('ContainerView', ContainerView);
 });
