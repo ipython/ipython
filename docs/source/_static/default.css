@@ -120,6 +120,11 @@ dd {
     color: #060;
 }
 
+dt {
+    font-weight: bold;
+    padding-left: 0.5em;
+}
+
 dt:target,
 .highlight {
     background-color: #fbe54e;
@@ -478,6 +483,12 @@ span.linkdescr {
     font-style: italic;
     padding-top: 5px;
     font-size: 90%;
+}
+
+.search input[name=q] {
+    max-width: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
 }
 
 ul.search {
