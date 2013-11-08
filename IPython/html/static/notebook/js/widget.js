@@ -72,14 +72,13 @@ define(["components/underscore/underscore-min",
                 // Send buffer if this message caused another message to be
                 // throttled.
                 if (this.msg_buffer != null &&
-                    this.msg_throttle == this.pending_msgs && 
-                    this.msg_buffer.length > 0) {
-                        
-                        var output_area = this._get_msg_output_area(msg);
-                        var callbacks = this._make_callbacks(output_area);
-                        var data = {sync_method: 'update', sync_data: this.msg_buffer};
-                        comm.send(data, callbacks);   
-                        this.msg_buffer = null;
+                    this.msg_throttle == this.pending_msgs) {
+
+                    var output_area = this._get_output_area(msg.parent_header.msg_id);
+                    var callbacks = this._make_callbacks(output_area);
+                    var data = {sync_method: 'update', sync_data: this.msg_buffer};
+                    this.comm.send(data, callbacks);   
+                    this.msg_buffer = null;
                 } else {
 
                     // Only decrease the pending message count if the buffer
@@ -293,7 +292,7 @@ define(["components/underscore/underscore-min",
         // Get the output area corresponding to the msg_id.
         // output_area is an instance of Ipython.OutputArea
         _get_output_area: function (msg_id) {
-            
+
             // First, guess cell.execute triggered
             var cells = IPython.notebook.get_cells();
             for (var cell_index in cells) {
