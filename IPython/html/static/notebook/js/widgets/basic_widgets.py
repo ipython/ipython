@@ -1,0 +1,12 @@
+define([
+    "notebook/js/widgets/bool",
+    "notebook/js/widgets/button",
+    "notebook/js/widgets/container",
+    "notebook/js/widgets/float",
+    "notebook/js/widgets/float_range",
+    "notebook/js/widgets/int",
+    "notebook/js/widgets/int_range",
+    "notebook/js/widgets/multicontainer",
+    "notebook/js/widgets/selection",
+    "notebook/js/widgets/string",
+]);
