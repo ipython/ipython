@@ -20,6 +20,7 @@ import bdb
 import os
 import sys
 import time
+from pdb import Restart
 
 # cProfile was added in Python2.5
 try:
@@ -665,7 +666,11 @@ python-profiler package from non-free.""")
                     'modulename': modulename,
                 }
             else:
-                code = 'execfile(filename, prog_ns)'
+                if 'd' in opts:
+                    # allow exceptions to raise in debug mode
+                    code = 'execfile(filename, prog_ns, raise_exceptions=True)'
+                else:
+                    code = 'execfile(filename, prog_ns)'
                 code_ns = {
                     'execfile': self.shell.safe_execfile,
                     'prog_ns': prog_ns,
@@ -807,7 +812,18 @@ python-profiler package from non-free.""")
             if filename:
                 # save filename so it can be used by methods on the deb object
                 deb._exec_filename = filename
-            deb.run(code, code_ns)
+            while True:
+                try:
+                    deb.run(code, code_ns)
+                except Restart:
+                    print("Restarting")
+                    if filename:
+                        deb._wait_for_mainpyfile = True
+                        deb.mainpyfile = deb.canonic(filename)
+                    continue
+                else:
+                    break
+            
 
         except:
             etype, value, tb = sys.exc_info()
