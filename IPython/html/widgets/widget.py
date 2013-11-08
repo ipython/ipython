@@ -18,6 +18,7 @@ import uuid
 import sys
 import os
 import inspect
+import types
 
 import IPython
 from IPython.kernel.comm import Comm
