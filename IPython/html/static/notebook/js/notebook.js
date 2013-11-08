@@ -790,7 +790,7 @@ var IPython = (function (IPython) {
      * @return cell {cell|null} created cell or null
      **/
     Notebook.prototype.insert_cell_at_index = function(type, index, opts){
-        var opts = opts || {select:false};
+        var opts = opts || {select:true};
         var ncells = this.ncells();
         var index = Math.min(index,ncells);
             index = Math.max(index,0);
