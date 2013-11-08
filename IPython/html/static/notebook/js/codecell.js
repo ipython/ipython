@@ -62,10 +62,16 @@ var IPython = (function (IPython) {
      */
     var CodeCell = function (kernel, options) {
         this.kernel = kernel || null;
-        this.code_mirror = null;
-        this.input_prompt_number = null;
         this.collapsed = false;
         this.cell_type = "code";
+
+        // create all attributed in constructor function
+        // even if null for V8 VM optimisation
+        this.input_prompt_number = null;
+        this.celltoolbar = null;
+        this.output_area = null;
+        this.last_msg_id = null;
+        this.completer = null;
 
 
         var cm_overwrite_options  = {
@@ -129,13 +135,7 @@ var IPython = (function (IPython) {
         cell.append(input).append(output);
         this.element = cell;
         this.output_area = new IPython.OutputArea(output, true);
-
-        // construct a completer only if class exist
-        // otherwise no print view
-        if (IPython.Completer !== undefined)
-        {
-            this.completer = new IPython.Completer(this);
-        }
+        this.completer = new IPython.Completer(this);
     };
 
     /**
