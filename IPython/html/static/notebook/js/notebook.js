@@ -789,8 +789,8 @@ var IPython = (function (IPython) {
      *
      * @return cell {cell|null} created cell or null
      **/
-    Notebook.prototype.insert_cell_at_index = function(type, index, opts){
-        var opts = opts || {select:true};
+    Notebook.prototype.insert_cell_at_index = function(type, index){
+
         var ncells = this.ncells();
         var index = Math.min(index,ncells);
             index = Math.max(index,0);
@@ -810,9 +810,7 @@ var IPython = (function (IPython) {
 
             if(this._insert_element_at_index(cell.element,index)){
                 cell.render();
-                if(opts.select){
-                    this.select(this.find_cell_index(cell));
-                }
+                this.select(this.find_cell_index(cell));
                 $([IPython.events]).trigger('create.Cell', {'cell': cell, 'index': index});
                 this.set_dirty(true);
             }
@@ -888,9 +886,9 @@ var IPython = (function (IPython) {
      * @return handle to created cell or null
      *
      **/
-    Notebook.prototype.insert_cell_below = function (type, index, opts) {
+    Notebook.prototype.insert_cell_below = function (type, index) {
         index = this.index_or_selected(index);
-        return this.insert_cell_at_index(type, index+1, opts);
+        return this.insert_cell_at_index(type, index+1);
     };
 
 
@@ -902,9 +900,9 @@ var IPython = (function (IPython) {
      *
      * @return the added cell; or null
      **/
-    Notebook.prototype.insert_cell_at_bottom = function (type, opts){
+    Notebook.prototype.insert_cell_at_bottom = function (type){
         var len = this.ncells();
-        return this.insert_cell_below(type,len-1, opts);
+        return this.insert_cell_below(type,len-1);
     };
 
     /**
@@ -1590,7 +1588,7 @@ var IPython = (function (IPython) {
                     cell_data.cell_type = 'raw';
                 }
 
-                new_cell = this.insert_cell_at_bottom(cell_data.cell_type,{select:false});
+                new_cell = this.insert_cell_at_bottom(cell_data.cell_type);
                 new_cell.fromJSON(cell_data);
             };
         };
