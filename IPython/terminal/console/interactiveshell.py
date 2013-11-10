@@ -141,6 +141,11 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if self.has_readline:
             self.set_readline_completer()
     
+    def ask_exit(self):
+        super(ZMQTerminalInteractiveShell, self).ask_exit()
+        if self.exit_now:
+            self.client.shutdown()
+    
     def run_cell(self, cell, store_history=True):
         """Run a complete IPython cell.
         
