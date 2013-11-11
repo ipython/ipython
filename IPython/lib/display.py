@@ -67,7 +67,8 @@ class Audio(DisplayObject):
     Audio(data=b'RAW_WAV_DATA..)
 
     """
-        
+    _read_flags = 'rb'
+
     def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False):
         if filename is None and url is None and data is None:
             raise ValueError("No image data found. Expecting filename, url, or data.")
