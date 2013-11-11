@@ -207,7 +207,17 @@ class IPEngineApp(BaseParallelApplication):
         config = self.config
         
         with open(self.url_file) as f:
-            d = json.loads(f.read())
+            num_tries = 0
+            max_tries = 5
+            d = ""
+            while not d:
+                try:
+                    d = json.loads(f.read())
+                except ValueError:
+                    if num_tries > max_tries:
+                        raise
+                    num_tries += 1
+                    time.sleep(0.5)
         
         # allow hand-override of location for disambiguation
         # and ssh-server
