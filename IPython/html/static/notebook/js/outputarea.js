@@ -57,7 +57,7 @@ var IPython = (function (IPython) {
         this.prompt_overlay.hide();
         
         this.wrapper.addClass('output_wrapper');
-        this.element.addClass('output vbox');
+        this.element.addClass('output');
         
         this.collapse_button.addClass("btn output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
