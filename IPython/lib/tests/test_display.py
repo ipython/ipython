@@ -14,13 +14,14 @@
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 from tempfile import NamedTemporaryFile, mkdtemp
-from os.path import split
+from os.path import split, join as pjoin, dirname
 
 # Third-party imports
 import nose.tools as nt
 
 # Our own imports
 from IPython.lib import display
+from IPython.testing.decorators import skipif_not_numpy
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -155,3 +156,7 @@ def test_error_on_file_to_FileLinks():
     tf1 = NamedTemporaryFile(dir=td)
     nt.assert_raises(ValueError,display.FileLinks,tf1.name)
 
+@skipif_not_numpy
+def test_audio_from_file():
+    path = pjoin(dirname(__file__), 'test.wav')
+    display.Audio(filename=path)
