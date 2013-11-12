@@ -19,8 +19,10 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from pygments.formatters import LatexFormatter
 
+
 # Our own imports
 from IPython.nbconvert.utils.lexers import IPythonLexer
+from IPython.nbconvert.utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -33,49 +35,58 @@ MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 #-----------------------------------------------------------------------------
 
 __all__ = [
-    'highlight2html',
-    'highlight2latex'
+    'Highlight2Html',
+    'Highlight2Latex'
 ]
 
 
-def highlight2html(source, language='ipython', metadata=None):
-    """
-    Return a syntax-highlighted version of the input source as html output.
+class Highlight2Html(NbConvertBase):
 
-    Parameters
-    ----------
-    source : str
-        source of the cell to highlight
-    language : str
-        language to highlight the syntax of
-    metadata : NotebookNode cell metadata
-        metadata of the cell to highlight
-    """
+    def __call__(self, source, language=None, metadata=None):
+        """
+        Return a syntax-highlighted version of the input source as html output.
 
-    return _pygment_highlight(source, HtmlFormatter(), language, metadata)
+        Parameters
+        ----------
+        source : str
+            source of the cell to highlight
+        language : str
+            language to highlight the syntax of
+        metadata : NotebookNode cell metadata
+            metadata of the cell to highlight
+        """
+        if not language:
+            language=self.default_language
+
+        return _pygment_highlight(source, HtmlFormatter(), language, metadata)
 
 
-def highlight2latex(source, language='ipython', metadata=None, strip_verbatim=False):
-    """
-    Return a syntax-highlighted version of the input source as latex output.
+class Highlight2Latex(NbConvertBase):
 
-    Parameters
-    ----------
-    source : str
-        source of the cell to highlight
-    language : str
-        language to highlight the syntax of
-    metadata : NotebookNode cell metadata
-        metadata of the cell to highlight
-    strip_verbatim : bool
-        remove the Verbatim environment that pygments provides by default
-    """
-    latex = _pygment_highlight(source, LatexFormatter(), language, metadata)
-    if strip_verbatim:
-        latex = latex.replace(r'\begin{Verbatim}[commandchars=\\\{\}]' + '\n', '')
-        return latex.replace('\n\\end{Verbatim}\n', '')
-    else:
-        return latex
+    def __call__(self, source, language=None, metadata=None, strip_verbatim=False):
+        """
+        Return a syntax-highlighted version of the input source as latex output.
+
+        Parameters
+        ----------
+        source : str
+            source of the cell to highlight
+        language : str
+            language to highlight the syntax of
+        metadata : NotebookNode cell metadata
+            metadata of the cell to highlight
+        strip_verbatim : bool
+            remove the Verbatim environment that pygments provides by default
+        """
+        if not language:
+            language=self.default_language
+
+        latex = _pygment_highlight(source, LatexFormatter(), language, metadata)
+        if strip_verbatim:
+            latex = latex.replace(r'\begin{Verbatim}[commandchars=\\\{\}]' + '\n', '')
+            return latex.replace('\n\\end{Verbatim}\n', '')
+        else:
+            return latex
 
 
 
