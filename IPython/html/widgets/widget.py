@@ -98,8 +98,11 @@ class Widget(LoggingConfigurable):
         """Close method.  Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically 
         removed from the frontend."""
-        self._comm.close()
-        del self._comm
+        try:
+            self._comm.close()
+            del self._comm
+        except:
+            pass # Comm doesn't exist and/or is already closed.
     
     
     # Properties      
