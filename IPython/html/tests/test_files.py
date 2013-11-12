@@ -17,11 +17,11 @@ class FilesTest(NotebookTestBase):
     def test_hidden_files(self):
         not_hidden = [
             u'å b',
-            pjoin(u'å b/ç. d')
+            u'å b/ç. d',
         ]
         hidden = [
             u'.å b',
-            pjoin(u'å b/.ç d')
+            u'å b/.ç d',
         ]
         dirs = not_hidden + hidden
         
@@ -49,3 +49,37 @@ class FilesTest(NotebookTestBase):
             for foo in ('foo', '.foo'):
                 r = requests.get(url_path_join(url, 'files', d, foo))
                 self.assertEqual(r.status_code, 403)
+    
+    def test_old_files_redirect(self):
+        """pre-2.0 'files/' prefixed links are properly redirected"""
+        nbdir = self.notebook_dir.name
+        base = self.base_url()
+        
+        os.mkdir(pjoin(nbdir, 'files'))
+        os.makedirs(pjoin(nbdir, 'sub', 'files'))
+        
+        for prefix in ('', 'sub'):
+            with open(pjoin(nbdir, prefix, 'files', 'f1.txt'), 'w') as f:
+                f.write(prefix + '/files/f1')
+            with open(pjoin(nbdir, prefix, 'files', 'f2.txt'), 'w') as f:
+                f.write(prefix + '/files/f2')
+            with open(pjoin(nbdir, prefix, 'f2.txt'), 'w') as f:
+                f.write(prefix + '/f2')
+            with open(pjoin(nbdir, prefix, 'f3.txt'), 'w') as f:
+                f.write(prefix + '/f3')
+            
+            url = url_path_join(base, 'notebooks', prefix, 'files', 'f1.txt')
+            r = requests.get(url)
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(r.content, prefix + '/files/f1')
+
+            url = url_path_join(base, 'notebooks', prefix, 'files', 'f2.txt')
+            r = requests.get(url)
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(r.content, prefix + '/files/f2')
+
+            url = url_path_join(base, 'notebooks', prefix, 'files', 'f3.txt')
+            r = requests.get(url)
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(r.content, prefix + '/f3')
+
