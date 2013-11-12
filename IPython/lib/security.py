@@ -113,6 +113,6 @@ def passwd_check(hashed_passphrase, passphrase):
     if len(pw_digest) == 0:
         return False
 
-    h.update(cast_bytes(passphrase, 'utf-8') + str_to_bytes(salt, 'ascii'))
+    h.update(cast_bytes(passphrase, 'utf-8') + cast_bytes(salt, 'ascii'))
 
     return h.hexdigest() == pw_digest
