@@ -22,5 +22,5 @@ def test_bad():
 
 def test_passwd_check_unicode():
     # GH issue #4524
-    phash = u'sha1:9dc18846ca26:6bb62badc41fde529c258a8a7fbe259a91313df8'
-    assert passwd_check(phash, u'mypassword³')
+    phash = u'sha1:23862bc21dd3:7a415a95ae4580582e314072143d9c382c491e4f'
+    assert passwd_check(phash, u"łe¶ŧ←↓→")
