@@ -47,22 +47,18 @@ _ipython()
         opts="list create"
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ ${cur} == -* ]]; then
-        if [[ $mode == "notebook" ]]; then
-            _ipython_get_flags notebook
-            opts=$"${opts} ${baseopts}"
-        elif [[ $mode == "qtconsole" ]]; then
-            _ipython_get_flags qtconsole
-            opts="${opts} ${baseopts}"
-        elif [[ $mode == "console" ]]; then
-            _ipython_get_flags console
-        elif [[ $mode == "kernel" ]]; then
-            _ipython_get_flags kernel
-            opts="${opts} ${baseopts}"
-        elif [[ $mode == "locate" ]]; then
-            opts=""
-        else
-            opts=$baseopts
-        fi
+        case $mode in
+            "notebook" | "qtconsole" | "console" | "kernel")
+                _ipython_get_flags $mode
+                opts=$"${opts} ${baseopts}"
+                ;;
+            "locate" | "history" | "profile")
+                _ipython_get_flags $mode
+                opts=$"${opts}"
+                ;;
+            *)
+                opts=$baseopts
+        esac
         # don't drop the trailing space
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
