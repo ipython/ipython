@@ -22,21 +22,23 @@ casper.notebook_test(function () {
     };
 
     // Test widget dependencies ////////////////////////////////////////////////
-    run_python_code('from IPython.html import widgets\n' + 
-                    'from IPython.display import display, clear_output\n' + 
-                    'widgets.init_widget_js()');
-    this.wait(500); // Wait for require.js async callbacks to load dependencies.
-    
     this.then(function () {
     
         // Check if the WidgetManager class is defined.
         this.test.assert(this.evaluate(function() {
             return IPython.WidgetManager != undefined; 
         }), 'WidgetManager class is defined');
-    
+    });
+
+    run_python_code('from IPython.html import widgets\n' + 
+                    'from IPython.display import display, clear_output\n' +
+                    'print("Success")');
+    this.wait(500); // Wait for require.js async callbacks to load dependencies.
+
+    this.then(function () {
         // Check if the widget manager has been instanciated.
         this.test.assert(this.evaluate(function() {
-            return IPython.notebook.widget_manager != undefined; 
+            return IPython.widget_manager != undefined; 
         }), 'Notebook widget manager instanciated');
     });
 
@@ -53,7 +55,7 @@ casper.notebook_test(function () {
         // suffixed).
         var javascript_names = this.evaluate(function () {
             names = [];
-            for (var name in IPython.notebook.widget_manager.widget_model_types) {
+            for (var name in IPython.widget_manager.widget_model_types) {
                 names.push(name.replace('Model',''));
             }
             return names;
