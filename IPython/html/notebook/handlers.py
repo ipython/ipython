@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 from tornado import web
 HTTPError = web.HTTPError
 
@@ -61,7 +62,18 @@ class NotebookRedirectHandler(IPythonHandler):
             url = url_path_join(self.base_project_url, 'tree', path)
         else:
             # otherwise, redirect to /files
-            # TODO: This should check if it's actually a file
+            if '/files/' in path:
+                # redirect without files/ iff it would 404
+                # this preserves pre-2.0-style 'files/' links
+                # FIXME: this is hardcoded based on notebook_path,
+                # but so is the files handler itself,
+                # so it should work until both are cleaned up.
+                parts = path.split('/')
+                files_path = os.path.join(nbm.notebook_dir, *parts)
+                self.log.warn("filespath: %s", files_path)
+                if not os.path.exists(files_path):
+                    path = path.replace('/files/', '/', 1)
+            
             url = url_path_join(self.base_project_url, 'files', path)
         url = url_escape(url)
         self.log.debug("Redirecting %s to %s", self.request.path, url)
