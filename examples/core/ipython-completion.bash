@@ -24,7 +24,7 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate"
+    local subcommands="notebook qtconsole console kernel profile locate history nbconvert"
     local opts=""
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
