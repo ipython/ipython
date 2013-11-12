@@ -40,7 +40,7 @@ class FilesTest(NotebookTestBase):
             path = pjoin(nbdir, d.replace('/', os.sep))
             r = requests.get(url_path_join(url, 'files', d, 'foo'))
             r.raise_for_status()
-            self.assertEqual(r.content, b'foo')
+            self.assertEqual(r.text, 'foo')
             r = requests.get(url_path_join(url, 'files', d, '.foo'))
             self.assertEqual(r.status_code, 403)
             
@@ -71,15 +71,15 @@ class FilesTest(NotebookTestBase):
             url = url_path_join(base, 'notebooks', prefix, 'files', 'f1.txt')
             r = requests.get(url)
             self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.content, prefix + '/files/f1')
+            self.assertEqual(r.text, prefix + '/files/f1')
 
             url = url_path_join(base, 'notebooks', prefix, 'files', 'f2.txt')
             r = requests.get(url)
             self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.content, prefix + '/files/f2')
+            self.assertEqual(r.text, prefix + '/files/f2')
 
             url = url_path_join(base, 'notebooks', prefix, 'files', 'f3.txt')
             r = requests.get(url)
             self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.content, prefix + '/f3')
+            self.assertEqual(r.text, prefix + '/f3')
 
