@@ -317,12 +317,12 @@ class Kernel(Configurable):
             new_md.update(other)
         return new_md
     
-    def _publish_pyin(self, code, parent, execution_count):
-        """Publish the code request on the pyin stream."""
+    def _publish_execute_input(self, code, parent, execution_count):
+        """Publish the code request on the iopub stream."""
 
-        self.session.send(self.iopub_socket, u'pyin',
+        self.session.send(self.iopub_socket, u'execute_input',
                             {u'code':code, u'execution_count': execution_count},
-                            parent=parent, ident=self._topic('pyin')
+                            parent=parent, ident=self._topic('execute_input')
         )
     
     def _publish_status(self, status, parent=None):
@@ -377,7 +377,7 @@ class Kernel(Configurable):
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
         if not silent:
-            self._publish_pyin(code, parent, shell.execution_count)
+            self._publish_execute_input(code, parent, shell.execution_count)
 
         reply_content = {}
         # FIXME: the shell calls the exception handler itself.
@@ -581,9 +581,9 @@ class Kernel(Configurable):
         shell = self.shell
         shell.set_parent(parent)
 
-        # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        # self.iopub_socket.send(pyin_msg)
-        # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
+        # execute_input_msg = self.session.msg(u'execute_input',{u'code':code}, parent=parent)
+        # self.iopub_socket.send(execute_input_msg)
+        # self.session.send(self.iopub_socket, u'execute_input', {u'code':code},parent=parent)
         md = self._make_metadata(parent['metadata'])
         try:
             working = shell.user_ns

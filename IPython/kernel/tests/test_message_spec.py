@@ -160,7 +160,7 @@ class KernelInfoReply(Reference):
 
 # IOPub messages
 
-class PyIn(Reference):
+class ExecuteInput(Reference):
     code = Unicode()
     execution_count = Integer()
 
@@ -200,7 +200,7 @@ references = {
     'status' : Status(),
     'complete_reply' : CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
-    'pyin' : PyIn(),
+    'execute_input' : ExecuteInput(),
     'pyout' : PyOut(),
     'pyerr' : PyErr(),
     'stream' : Stream(),

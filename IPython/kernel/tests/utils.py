@@ -1,15 +1,7 @@
 """utilities for testing IPython kernels"""
 
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import atexit
 
@@ -84,9 +76,9 @@ def execute(code='', kc=None, **kwargs):
     nt.assert_equal(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
-        pyin = kc.get_iopub_msg(timeout=TIMEOUT)
-        validate_message(pyin, 'pyin', msg_id)
-        nt.assert_equal(pyin['content']['code'], code)
+        execute_input = kc.get_iopub_msg(timeout=TIMEOUT)
+        validate_message(execute_input, 'execute_input', msg_id)
+        nt.assert_equal(execute_input['content']['code'], code)
     
     return msg_id, reply['content']
 

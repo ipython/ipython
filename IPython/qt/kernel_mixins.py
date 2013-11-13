@@ -1,10 +1,10 @@
-""" Defines a KernelManager that provides signals and slots.
-"""
+"""Defines a KernelManager that provides signals and slots."""
 
-# System library imports.
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from IPython.external.qt import QtCore
 
-# IPython imports.
 from IPython.utils.traitlets import HasTraits, Type
 from .util import MetaQObjectHasTraits, SuperQObject
 
@@ -85,8 +85,8 @@ class QtIOPubChannelMixin(ChannelQObject):
     # Emitted when a message of type 'stream' is received.
     stream_received = QtCore.Signal(object)
 
-    # Emitted when a message of type 'pyin' is received.
-    pyin_received = QtCore.Signal(object)
+    # Emitted when a message of type 'execute_input' is received.
+    execute_input_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'pyout' is received.
     pyout_received = QtCore.Signal(object)

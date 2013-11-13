@@ -1,20 +1,9 @@
-"""A semi-synchronous Client for the ZMQ cluster
+"""A semi-synchronous Client for IPython parallel"""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* MinRK
-"""
 from __future__ import print_function
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import os
 import json
@@ -29,7 +18,6 @@ from pprint import pprint
 pjoin = os.path.join
 
 import zmq
-# from zmq.eventloop import ioloop, zmqstream
 
 from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
@@ -181,7 +169,7 @@ class Metadata(dict):
               'after' : None,
               'status' : None,
 
-              'pyin' : None,
+              'execute_input' : None,
               'pyout' : None,
               'pyerr' : None,
               'stdout' : '',
@@ -883,8 +871,8 @@ class Client(HasTraits):
                 md[name] = s + content['data']
             elif msg_type == 'pyerr':
                 md.update({'pyerr' : self._unwrap_exception(content)})
-            elif msg_type == 'pyin':
-                md.update({'pyin' : content['code']})
+            elif msg_type == 'execute_input':
+                md.update({'execute_input' : content['code']})
             elif msg_type == 'display_data':
                 md['outputs'].append(content)
             elif msg_type == 'pyout':
