@@ -118,6 +118,12 @@ def display(*objs, **kwargs):
         for obj in objs:
             format_dict, md_dict = format(obj, include=include, exclude=exclude)
             if metadata:
+                # publish_display_data exepects metadata dict that is keyed by
+                # mimetype, so this ensures we recreate such a dict for it, if
+                # one is not already passed to us
+                if set(metadata.keys()) != set(format_dict.keys()):
+                    _md = metadata.copy()
+                    metadata = {mt: _md for mt in format_dict}
                 # kwarg-specified metadata gets precedence
                 _merge(md_dict, metadata)
             publish_display_data('display', format_dict, md_dict)
