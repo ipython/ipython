@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """An interactive kernel that talks to frontends over 0MQ."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Standard library imports
 import sys
 import time
 import traceback
@@ -18,12 +17,10 @@ from signal import (
         signal, default_int_handler, SIGINT
 )
 
-# System library imports
 import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
-# Local imports
 from IPython.config.configurable import Configurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
@@ -44,9 +41,9 @@ from .zmqshell import ZMQInteractiveShell
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-protocol_version = list(release.kernel_protocol_version_info)
-ipython_version = list(release.version_info)
-language_version = list(sys.version_info[:3])
+protocol_version = release.kernel_protocol_version
+ipython_version = release.version
+language_version = sys.version.split()[0]
 
 
 class Kernel(Configurable):

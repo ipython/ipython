@@ -1,13 +1,10 @@
-"""Test suite for our zeromq-based message specification.
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+"""Test suite for our zeromq-based message specification."""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import re
+from distutils.version import LooseVersion as V
 from subprocess import PIPE
 try:
     from queue import Empty  # Py 3
@@ -60,8 +57,13 @@ class Reference(HasTraits):
             try:
                 setattr(self, key, d[key])
             except TraitError as e:
-                nt.assert_true(False, str(e))
+                assert False, str(e)
 
+class Version(Unicode):
+    def validate(self, obj, value):
+        min_version = self.default_value
+        if V(value) < V(min_version):
+            raise TraitError("bad version: %s < %s" % (value, min_version))
 
 class RMessage(Reference):
     msg_id = Unicode()
@@ -69,15 +71,18 @@ class RMessage(Reference):
     header = Dict()
     parent_header = Dict()
     content = Dict()
+    
+    def check(self, d):
+        super(RMessage, self).check(d)
+        RHeader().check(self.header)
+        RHeader().check(self.parent_header)
 
 class RHeader(Reference):
     msg_id = Unicode()
     msg_type = Unicode()
     session = Unicode()
     username = Unicode()
-
-class RContent(Reference):
-    status = Enum((u'ok', u'error'))
+    version = Version('5.0')
 
 
 class ExecuteReply(Reference):
@@ -126,7 +131,7 @@ class OInfoReply(Reference):
     source = Unicode()
     
     def check(self, d):
-        Reference.check(self, d)
+        super(OInfoReply, self).check(d)
         if d['argspec'] is not None:
             ArgSpec().check(d['argspec'])
 
@@ -146,21 +151,11 @@ class CompleteReply(Reference):
     matches = List(Unicode)
 
 
-def Version(num, trait=Integer):
-    return List(trait, default_value=[0] * num, minlen=num, maxlen=num)
-
-
 class KernelInfoReply(Reference):
-
-    protocol_version = Version(2)
-    ipython_version = Version(4, Any)
-    language_version = Version(3)
+    protocol_version = Version('5.0')
+    ipython_version = Version('2.0')
+    language_version = Version('2.7')
     language = Unicode()
-
-    def _ipython_version_changed(self, name, old, new):
-        for v in new:
-            assert isinstance(v, int) or isinstance(v, string_types), \
-            'expected int or string as version component, got {0!r}'.format(v)
 
 
 # IOPub messages
@@ -210,6 +205,7 @@ references = {
     'pyerr' : PyErr(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
+    'header' : RHeader(),
 }
 """
 Specifications of `content` part of the reply messages.
