@@ -43,10 +43,8 @@ _ipython()
         fi
     done
 
-    if [[ $mode == "profile" ]]; then
-        opts="list create"
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-    elif [[ ${cur} == -* ]]; then
+
+    if [[ ${cur} == -* ]]; then
         case $mode in
             "notebook" | "qtconsole" | "console" | "kernel")
                 _ipython_get_flags $mode
@@ -63,6 +61,15 @@ _ipython()
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
+    elif [[ $mode == "profile" ]]; then
+        opts="list create locate"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ $mode == "history" ]]; then
+        opts="trim"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ $mode == "locate" ]]; then
+        opts="profile"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
         if [ -z "$__ipython_complete_pylab" ]; then
             __ipython_complete_pylab=`cat <<EOF | python -
