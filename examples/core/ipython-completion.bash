@@ -103,7 +103,9 @@ EOF
         COMPREPLY=( $(compgen -W "${__ipython_complete_profiles}" -- ${cur}) )
     else
         if [ "$COMP_CWORD" == 1 ]; then
-            COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+            local IFS=$'\t\n'
+            local sub=$(echo $subcommands | sed -e "s/ / \t/g")
+            COMPREPLY=( $(compgen -W "${sub}" -- ${cur}) )
         else
             COMPREPLY=( $(compgen -f -- ${cur}) )
         fi
