@@ -102,8 +102,8 @@ EOF
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${__ipython_complete_profiles}" -- ${cur}) )
     else
-        if [ -z "$mode" ]; then
-            COMPREPLY=( $(compgen -f -W "${subcommands}" -- ${cur}) )
+        if [ "$COMP_CWORD" == 1 ]; then
+            COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
         else
             COMPREPLY=( $(compgen -f -- ${cur}) )
         fi
