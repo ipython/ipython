@@ -10,20 +10,18 @@ implementation that doesn't rely on so much monkeypatching.
 But this lets us maintain a fully working IPython as we develop the new
 machinery.  This should thus be thought of as scaffolding.
 """
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Stdlib
 import os
 import sys
 import time
 
-# System library imports
 from zmq.eventloop import ioloop
 
-# Our own
 from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
@@ -512,7 +510,7 @@ class ZMQInteractiveShell(InteractiveShell):
         # to pick up
         topic = None
         if dh.topic:
-            topic = dh.topic.replace(b'pyout', b'pyerr')
+            topic = dh.topic.replace(b'execute_result', b'pyerr')
         
         exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
 

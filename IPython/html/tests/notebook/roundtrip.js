@@ -33,7 +33,7 @@ function assert_has(short_name, json, result, result2) {
 }
           
 // helper function for checkout that the first two cells have a particular
-// output_type (either 'pyout' or 'display_data'), and checks the to/fromJSON
+// output_type (either 'execute_result' or 'display_data'), and checks the to/fromJSON
 // for a set of mimetype keys, using their short names ('javascript', 'text',
 // 'png', etc).
 function check_output_area(output_type, keys) {
@@ -109,7 +109,7 @@ casper.notebook_test(function () {
     });
    
     this.then(function () {
-        check_output_area.apply(this, ['pyout', ['text', 'json']]);
+        check_output_area.apply(this, ['execute_result', ['text', 'json']]);
     });
 
     this.then(function() {
@@ -127,7 +127,7 @@ casper.notebook_test(function () {
     });
     
     this.then(function ( ) {
-        check_output_area.apply(this, ['pyout', ['text', 'latex']]);
+        check_output_area.apply(this, ['execute_result', ['text', 'latex']]);
     });
 
     this.then(function() {
@@ -145,7 +145,7 @@ casper.notebook_test(function () {
     });
     
     this.then(function ( ) {
-        check_output_area.apply(this, ['pyout', ['text', 'html']]);
+        check_output_area.apply(this, ['execute_result', ['text', 'html']]);
     });
 
     this.then(function() {
@@ -165,7 +165,7 @@ casper.notebook_test(function () {
     this.thenEvaluate(function() { IPython.notebook.save_notebook(); });
     
     this.then(function ( ) {
-        check_output_area.apply(this, ['pyout', ['text', 'png']]);
+        check_output_area.apply(this, ['execute_result', ['text', 'png']]);
     });
     
     this.then(function() {
@@ -184,7 +184,7 @@ casper.notebook_test(function () {
     });
     
     this.then(function ( ) {
-        check_output_area.apply(this, ['pyout', ['text', 'jpeg']]);
+        check_output_area.apply(this, ['execute_result', ['text', 'jpeg']]);
     });
     
     this.then(function() {
@@ -202,7 +202,7 @@ casper.notebook_test(function () {
     });
     
     this.then(function ( ) {
-        check_output_area.apply(this, ['pyout', ['text', 'svg']]);
+        check_output_area.apply(this, ['execute_result', ['text', 'svg']]);
     });
 
     this.then(function() {
@@ -238,7 +238,7 @@ casper.notebook_test(function () {
             'display_data custom mimetype ' + long_name);
         var result = this.get_output_cell(0, 1);
         this.test.assertTrue(result.hasOwnProperty(long_name),
-            'pyout custom mimetype ' + long_name);
+            'execute_result custom mimetype ' + long_name);
     
     });
     

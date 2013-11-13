@@ -1,17 +1,19 @@
+"""Frontend widget for the Qt Console"""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Standard library imports
 from collections import namedtuple
 import sys
 import uuid
 
-# System library imports
 from IPython.external import qt
 from IPython.external.qt import QtCore, QtGui
 from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 
-# Local imports
 from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
 from IPython.core.inputtransformer import classic_prompt
 from IPython.core.oinspect import call_tip
@@ -526,10 +528,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             if call_info or doc:
                 self._call_tip_widget.show_call_info(call_info, doc)
 
-    def _handle_pyout(self, msg):
+    def _handle_execute_result(self, msg):
         """ Handle display hook output.
         """
-        self.log.debug("pyout: %s", msg.get('content', ''))
+        self.log.debug("execute_result: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             self.flush_clearoutput()
             text = msg['content']['data']

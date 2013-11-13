@@ -143,7 +143,7 @@ class Kernel(Configurable):
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
-        self.shell.displayhook.topic = self._topic('pyout')
+        self.shell.displayhook.topic = self._topic('execute_result')
         self.shell.display_pub.session = self.session
         self.shell.display_pub.pub_socket = self.iopub_socket
         self.shell.data_pub.session = self.session

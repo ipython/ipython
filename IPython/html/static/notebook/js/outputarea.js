@@ -1,9 +1,5 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 //============================================================================
 // OutputArea
@@ -221,9 +217,12 @@ var IPython = (function (IPython) {
             json = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
-        } else if (msg_type === "pyout") {
+        } else if (msg_type === "execute_result") {
             json = content.data;
-            json.output_type = msg_type;
+            // pyout message has been renamed to execute_result,
+            // but the nbformat has not been updated,
+            // so transform back to pyout for json.
+            json.output_type = "pyout";
             json.metadata = content.metadata;
             json.prompt_number = content.execution_count;
         } else if (msg_type === "pyerr") {
@@ -284,7 +283,7 @@ var IPython = (function (IPython) {
         }
 
         if (json.output_type === 'pyout') {
-            this.append_pyout(json);
+            this.append_execute_result(json);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
         } else if (json.output_type === 'stream') {
@@ -406,7 +405,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pyout = function (json) {
+    OutputArea.prototype.append_execute_result = function (json) {
         var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {

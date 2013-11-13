@@ -1,5 +1,8 @@
-"""Replacements for sys.displayhook that publish over ZMQ.
-"""
+"""Replacements for sys.displayhook that publish over ZMQ."""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import sys
 
 from IPython.core.displayhook import DisplayHook
@@ -12,7 +15,7 @@ from .session import extract_header, Session
 class ZMQDisplayHook(object):
     """A simple displayhook that publishes the object's repr over a ZeroMQ
     socket."""
-    topic=b'pyout'
+    topic=b'execute_result'
 
     def __init__(self, session, pub_socket):
         self.session = session
@@ -26,7 +29,7 @@ class ZMQDisplayHook(object):
         builtin_mod._ = obj
         sys.stdout.flush()
         sys.stderr.flush()
-        msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},
+        msg = self.session.send(self.pub_socket, u'execute_result', {u'data':repr(obj)},
                                parent=self.parent_header, ident=self.topic)
 
     def set_parent(self, parent):
@@ -48,7 +51,7 @@ class ZMQShellDisplayHook(DisplayHook):
         self.parent_header = extract_header(parent)
 
     def start_displayhook(self):
-        self.msg = self.session.msg(u'pyout', {}, parent=self.parent_header)
+        self.msg = self.session.msg(u'execute_result', {}, parent=self.parent_header)
 
     def write_output_prompt(self):
         """Write the output prompt."""

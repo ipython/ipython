@@ -185,7 +185,7 @@ class DisplayData(Reference):
             nt.assert_is_instance(v, string_types)
 
 
-class PyOut(Reference):
+class ExecuteResult(Reference):
     execution_count = Integer()
     data = Dict()
     def _data_changed(self, name, old, new):
@@ -201,7 +201,7 @@ references = {
     'complete_reply' : CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
     'execute_input' : ExecuteInput(),
-    'pyout' : PyOut(),
+    'execute_result' : ExecuteResult(),
     'pyerr' : PyErr(),
     'stream' : Stream(),
     'display_data' : DisplayData(),

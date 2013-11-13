@@ -72,21 +72,21 @@ class ExecuteReply(RichOutput):
     
     @property
     def source(self):
-        pyout = self.metadata['pyout']
-        if pyout:
-            return pyout.get('source', '')
+        execute_result = self.metadata['execute_result']
+        if execute_result:
+            return execute_result.get('source', '')
     
     @property
     def data(self):
-        pyout = self.metadata['pyout']
-        if pyout:
-            return pyout.get('data', {})
+        execute_result = self.metadata['execute_result']
+        if execute_result:
+            return execute_result.get('data', {})
     
     @property
     def _metadata(self):
-        pyout = self.metadata['pyout']
-        if pyout:
-            return pyout.get('metadata', {})
+        execute_result = self.metadata['execute_result']
+        if execute_result:
+            return execute_result.get('metadata', {})
     
     def display(self):
         from IPython.display import publish_display_data
@@ -110,16 +110,16 @@ class ExecuteReply(RichOutput):
         return self.metadata[key]
     
     def __repr__(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        text_out = pyout['data'].get('text/plain', '')
+        execute_result = self.metadata['execute_result'] or {'data':{}}
+        text_out = execute_result['data'].get('text/plain', '')
         if len(text_out) > 32:
             text_out = text_out[:29] + '...'
         
         return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
     
     def _repr_pretty_(self, p, cycle):
-        pyout = self.metadata['pyout'] or {'data':{}}
-        text_out = pyout['data'].get('text/plain', '')
+        execute_result = self.metadata['execute_result'] or {'data':{}}
+        text_out = execute_result['data'].get('text/plain', '')
         
         if not text_out:
             return
@@ -170,7 +170,7 @@ class Metadata(dict):
               'status' : None,
 
               'execute_input' : None,
-              'pyout' : None,
+              'execute_result' : None,
               'pyerr' : None,
               'stdout' : '',
               'stderr' : '',
@@ -875,8 +875,8 @@ class Client(HasTraits):
                 md.update({'execute_input' : content['code']})
             elif msg_type == 'display_data':
                 md['outputs'].append(content)
-            elif msg_type == 'pyout':
-                md['pyout'] = content
+            elif msg_type == 'execute_result':
+                md['execute_result'] = content
             elif msg_type == 'data_message':
                 data, remainder = serialize.unserialize_object(msg['buffers'])
                 md['data'].update(data)

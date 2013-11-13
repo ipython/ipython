@@ -3,11 +3,9 @@
 This supports the additional functionality provided by the IPython kernel.
 """
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-# Standard library imports
 from collections import namedtuple
 import os.path
 import re
@@ -16,10 +14,8 @@ import sys
 import time
 from textwrap import dedent
 
-# System library imports
 from IPython.external.qt import QtCore, QtGui
 
-# Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.inputtransformer import ipy_prompt
 from IPython.utils.traitlets import Bool, Unicode
@@ -217,10 +213,10 @@ class IPythonWidget(FrontendWidget):
                 last_cell = cell
         self._set_history(items)
 
-    def _handle_pyout(self, msg):
+    def _handle_execute_result(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
-        self.log.debug("pyout: %s", msg.get('content', ''))
+        self.log.debug("execute_result: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             self.flush_clearoutput()
             content = msg['content']

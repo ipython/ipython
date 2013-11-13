@@ -1,17 +1,9 @@
 # -*- coding: utf-8 -*-
-"""terminal client to the IPython kernel
+"""terminal client to the IPython kernel"""
 
-"""
-#-----------------------------------------------------------------------------
-# Copyright (C) 2013 The IPython Development Team
-#
-# Distributed under the terms of the BSD License. The full license is in
-# the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import bdb
@@ -228,7 +220,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """Process messages on the IOPub channel
 
            This method consumes and processes messages on the IOPub channel,
-           such as stdout, stderr, pyout and status.
+           such as stdout, stderr, execute_result and status.
            
            It only displays output that is caused by this session.
         """
@@ -254,7 +246,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                         print(sub_msg["content"]["data"], file=io.stderr, end="")
                         io.stderr.flush()
 
-                elif msg_type == 'pyout':
+                elif msg_type == 'execute_result':
                     if self._pending_clearoutput:
                         print("\r", file=io.stdout, end="")
                         self._pending_clearoutput = False

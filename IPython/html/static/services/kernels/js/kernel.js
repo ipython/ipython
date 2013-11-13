@@ -76,7 +76,7 @@ var IPython = (function (IPython) {
     // Initialize the iopub handlers
     
     Kernel.prototype.init_iopub_handlers = function () {
-        var output_types = ['stream', 'display_data', 'pyout', 'pyerr'];
+        var output_types = ['stream', 'display_data', 'execute_result', 'pyerr'];
         this._iopub_handlers = {};
         this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
         this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
@@ -573,7 +573,7 @@ var IPython = (function (IPython) {
     };
 
 
-    // handle an output message (pyout, display_data, etc.)
+    // handle an output message (execute_result, display_data, etc.)
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {
