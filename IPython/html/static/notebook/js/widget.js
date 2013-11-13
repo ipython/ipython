@@ -124,7 +124,12 @@ define(["components/underscore/underscore-min",
                     }
 
                     var data = {sync_method: method, sync_data: send_json};
-                    var output_area = this.last_modified_view.output_area;
+
+                    var output_area = null;
+                    if (this.last_modified_view != undefined && this.last_modified_view != null) {
+                        output_area = this.last_modified_view.output_area;    
+                    }
+                    
                     var callbacks = this._make_callbacks(output_area);
                     this.comm.send(data, callbacks);    
                     this.pending_msgs++;
