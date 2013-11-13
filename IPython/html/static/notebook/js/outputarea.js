@@ -576,12 +576,13 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_png = function (png, md, element) {
         var toinsert = this.create_output_subarea(md, "output_png");
-        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        var img = $("<img/>");
+        img[0].setAttribute('src','data:image/png;base64,'+png);
         if (md['height']) {
-            img.attr('height', md['height']);
+            img[0].setAttribute('height', md['height']);
         }
         if (md['width']) {
-            img.attr('width', md['width']);
+            img[0].setAttribute('width', md['width']);
         }
         this._dblclick_to_reset_size(img);
         toinsert.append(img);

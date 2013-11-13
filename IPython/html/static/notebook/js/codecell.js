@@ -62,10 +62,16 @@ var IPython = (function (IPython) {
      */
     var CodeCell = function (kernel, options) {
         this.kernel = kernel || null;
-        this.code_mirror = null;
-        this.input_prompt_number = null;
         this.collapsed = false;
         this.cell_type = "code";
+
+        // create all attributed in constructor function
+        // even if null for V8 VM optimisation
+        this.input_prompt_number = null;
+        this.celltoolbar = null;
+        this.output_area = null;
+        this.last_msg_id = null;
+        this.completer = null;
 
 
         var cm_overwrite_options  = {
@@ -129,13 +135,7 @@ var IPython = (function (IPython) {
         cell.append(input).append(output);
         this.element = cell;
         this.output_area = new IPython.OutputArea(output, true);
-
-        // construct a completer only if class exist
-        // otherwise no print view
-        if (IPython.Completer !== undefined)
-        {
-            this.completer = new IPython.Completer(this);
-        }
+        this.completer = new IPython.Completer(this);
     };
 
     /**
@@ -202,8 +202,10 @@ var IPython = (function (IPython) {
                 return true;
         } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
-            //Do not trim here because of tooltip
-            if (editor.somethingSelected()) { return false; }
+            IPython.tooltip.remove_and_cancel_tooltip();
+            if (editor.somethingSelected()) {
+                return false;
+            }
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
             if (pre_cursor.trim() === "") {
                 // Don't autocomplete if the part of the line before the cursor
@@ -443,7 +445,8 @@ var IPython = (function (IPython) {
         var data = IPython.Cell.prototype.toJSON.apply(this);
         data.input = this.get_text();
         data.cell_type = 'code';
-        if (this.input_prompt_number) {
+        // is finite protect against undefined and '*' value
+        if (isFinite(this.input_prompt_number)) {
             data.prompt_number = this.input_prompt_number;
         }
         var outputs = this.output_area.toJSON();

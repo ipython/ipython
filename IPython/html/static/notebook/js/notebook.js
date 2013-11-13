@@ -1588,7 +1588,7 @@ var IPython = (function (IPython) {
                     cell_data.cell_type = 'raw';
                 }
 
-                new_cell = this.insert_cell_below(cell_data.cell_type);
+                new_cell = this.insert_cell_at_bottom(cell_data.cell_type);
                 new_cell.fromJSON(cell_data);
             };
         };

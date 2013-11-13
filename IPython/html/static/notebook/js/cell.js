@@ -39,18 +39,28 @@ var IPython = (function (IPython) {
         this.placeholder = options.placeholder || '';
         this.read_only = options.cm_config.readOnly;
         this.selected = false;
-        this.element = null;
         this.metadata = {};
         // load this from metadata later ?
         this.user_highlight = 'auto';
         this.cm_config = options.cm_config;
+        this.cell_id = utils.uuid();
+        this._options = options;
+
+        // For JS VM engines optimisation, attributes should be all set (even
+        // to null) in the constructor, and if possible, if different subclass
+        // have new attributes with same name, they should be created in the
+        // same order. Easiest is to create and set to null in parent class.
+
+        this.element = null;
+        this.cell_type = null;
+        this.code_mirror = null;
+
+
         this.create_element();
         if (this.element !== null) {
             this.element.data("cell", this);
             this.bind_events();
         }
-        this.cell_id = utils.uuid();
-        this._options = options;
     };
 
     Cell.options_default = {
@@ -295,6 +305,7 @@ var IPython = (function (IPython) {
             this.code_mirror.setOption('mode', mode);
             return;
         }
+        var current_mode = this.code_mirror.getOption('mode', mode);
         var first_line = this.code_mirror.getLine(0);
         // loop on every pairs
         for( var mode in modes) {
@@ -303,6 +314,9 @@ var IPython = (function (IPython) {
             for(var reg in regs ) {
                 // here we handle non magic_modes
                 if(first_line.match(regs[reg]) != null) {
+                    if(current_mode == mode){
+                        return;
+                    }
                     if (mode.search('magic_') != 0) {
                         this.code_mirror.setOption('mode', mode);
                         CodeMirror.autoLoadMode(this.code_mirror, mode);
@@ -312,6 +326,9 @@ var IPython = (function (IPython) {
                     var close = modes[mode]['close']|| "%%end";
                     var mmode = mode;
                     mode = mmode.substr(6);
+                    if(current_mode == mode){
+                        return;
+                    }
                     CodeMirror.autoLoadMode(this.code_mirror, mode);
                     // create on the fly a mode that swhitch between
                     // plain/text and smth else otherwise `%%` is
@@ -338,6 +355,9 @@ var IPython = (function (IPython) {
             default_mode = this._options.cm_config.mode;
         } catch(e) {
             default_mode = 'text/plain';
+        }
+        if( current_mode === default_mode){
+            return
         }
         this.code_mirror.setOption('mode', default_mode);
     };
