@@ -254,44 +254,26 @@ var IPython = (function (IPython) {
         this.append_output(json, true);
     };
 
-    var mime_types = ['application/javascript', 'application/json',
-               'image/jpeg', 'image/png', 'image/svg+xml', 'text/html',
-               'text/latex', 'text/plain'];
+    OutputArea.mime_map = {
+        "text/plain" : "text",
+        "text/html" : "html",
+        "image/svg+xml" : "svg",
+        "image/png" : "png",
+        "image/jpeg" : "jpeg",
+        "text/latex" : "latex",
+        "application/json" : "json",
+        "application/javascript" : "javascript",
+    };
 
     OutputArea.prototype.convert_mime_types = function (json, data) {
-        if (data === undefined) {
+        if (!data) {
             return json;
-        }
-        if (data['text/plain'] !== undefined) {
-            json.text = data['text/plain'];
-        }
-        if (data['text/html'] !== undefined) {
-            json.html = data['text/html'];
-        }
-        if (data['image/svg+xml'] !== undefined) {
-            json.svg = data['image/svg+xml'];
-        }
-        if (data['image/png'] !== undefined) {
-            json.png = data['image/png'];
-        }
-        if (data['image/jpeg'] !== undefined) {
-            json.jpeg = data['image/jpeg'];
-        }
-        if (data['text/latex'] !== undefined) {
-            json.latex = data['text/latex'];
-        }
-        if (data['application/json'] !== undefined) {
-            json.json = data['application/json'];
-        }
-        if (data['application/javascript'] !== undefined) {
-            json.javascript = data['application/javascript'];
         }
         // non-mimetype-keyed metadata used to get dropped here, this code
         // re-injects it into the json.
-        for (x in data){
-            if( !(x in mime_types) ) {
-                json[x] = data[x];
-            }
+        for (var key in data) {
+            var json_key = OutputArea.mime_map[key] || key;
+            json[json_key] = data[key];
         }
         return json;
     };
