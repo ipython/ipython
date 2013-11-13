@@ -68,7 +68,7 @@ def empty_record():
         'queue' : None,
         'execute_input' : None,
         'execute_result': None,
-        'pyerr': None,
+        'error': None,
         'stdout': '',
         'stderr': '',
     }
@@ -96,7 +96,7 @@ def init_record(msg):
         'queue' : None,
         'execute_input' : None,
         'execute_result': None,
-        'pyerr': None,
+        'error': None,
         'stdout': '',
         'stderr': '',
     }
@@ -865,8 +865,8 @@ class Hub(SessionFactory):
             s = rec[name] or ''
             d[name] = s + content['data']
 
-        elif msg_type == 'pyerr':
-            d['pyerr'] = content
+        elif msg_type == 'error':
+            d['error'] = content
         elif msg_type == 'execute_input':
             d['execute_input'] = content['code']
         elif msg_type in ('display_data', 'execute_result'):
@@ -1316,7 +1316,7 @@ class Hub(SessionFactory):
     def _extract_record(self, rec):
         """decompose a TaskRecord dict into subsection of reply for get_result"""
         io_dict = {}
-        for key in ('execute_input', 'execute_result', 'pyerr', 'stdout', 'stderr'):
+        for key in ('execute_input', 'execute_result', 'error', 'stdout', 'stderr'):
                 io_dict[key] = rec[key]
         content = { 
             'header': rec['header'],

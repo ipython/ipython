@@ -91,8 +91,8 @@ class QtIOPubChannelMixin(ChannelQObject):
     # Emitted when a message of type 'execute_result' is received.
     execute_result_received = QtCore.Signal(object)
 
-    # Emitted when a message of type 'pyerr' is received.
-    pyerr_received = QtCore.Signal(object)
+    # Emitted when a message of type 'error' is received.
+    error_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'display_data' is received
     display_data_received = QtCore.Signal(object)

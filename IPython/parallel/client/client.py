@@ -171,7 +171,7 @@ class Metadata(dict):
 
               'execute_input' : None,
               'execute_result' : None,
-              'pyerr' : None,
+              'error' : None,
               'stdout' : '',
               'stderr' : '',
               'outputs' : [],
@@ -869,8 +869,8 @@ class Client(HasTraits):
                 name = content['name']
                 s = md[name] or ''
                 md[name] = s + content['data']
-            elif msg_type == 'pyerr':
-                md.update({'pyerr' : self._unwrap_exception(content)})
+            elif msg_type == 'error':
+                md.update({'error' : self._unwrap_exception(content)})
             elif msg_type == 'execute_input':
                 md.update({'execute_input' : content['code']})
             elif msg_type == 'display_data':

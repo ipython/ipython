@@ -76,13 +76,13 @@ var IPython = (function (IPython) {
     // Initialize the iopub handlers
     
     Kernel.prototype.init_iopub_handlers = function () {
-        var output_types = ['stream', 'display_data', 'execute_result', 'pyerr'];
+        var output_msg_types = ['stream', 'display_data', 'execute_result', 'error'];
         this._iopub_handlers = {};
         this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
         this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
         
-        for (var i=0; i < output_types.length; i++) {
-            this.register_iopub_handler(output_types[i], $.proxy(this._handle_output_message, this));
+        for (var i=0; i < output_msg_types.length; i++) {
+            this.register_iopub_handler(output_msg_types[i], $.proxy(this._handle_output_message, this));
         }
     };
 

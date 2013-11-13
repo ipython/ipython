@@ -628,8 +628,8 @@ class Kernel(Configurable):
                 # reset after use
                 shell._reply_content = None
             
-            self.session.send(self.iopub_socket, u'pyerr', reply_content, parent=parent,
-                                ident=self._topic('pyerr'))
+            self.session.send(self.iopub_socket, u'error', reply_content, parent=parent,
+                                ident=self._topic('error'))
             self.log.info("Exception in apply request:\n%s", '\n'.join(reply_content['traceback']))
             result_buf = []
 

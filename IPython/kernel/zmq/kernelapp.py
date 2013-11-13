@@ -1,26 +1,19 @@
-"""An Application for launching a kernel
-"""
+"""An Application for launching a kernel"""
+
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 from __future__ import print_function
 
-# Standard library imports
 import atexit
 import os
 import sys
 import signal
 
-# System library imports
 import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
-# IPython imports
 from IPython.core.ultratb import FormattedTB
 from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases, catch_config_error
@@ -353,7 +346,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         shell = self.shell
         _showtraceback = shell._showtraceback
         try:
-            # replace pyerr-sending traceback with stderr
+            # replace error-sending traceback with stderr
             def print_tb(etype, evalue, stb):
                 print ("GUI event loop or pylab initialization failed",
                        file=io.stderr)
