@@ -1,11 +1,7 @@
 """Abstract base class for kernel managers."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import abc
 
@@ -22,54 +18,6 @@ class KernelManagerABC(with_metaclass(abc.ABCMeta, object)):
 
     @abc.abstractproperty
     def kernel(self):
-        pass
-
-    @abc.abstractproperty
-    def shell_channel_class(self):
-        pass
-
-    @abc.abstractproperty
-    def iopub_channel_class(self):
-        pass
-
-    @abc.abstractproperty
-    def hb_channel_class(self):
-        pass
-
-    @abc.abstractproperty
-    def stdin_channel_class(self):
-        pass
-
-    #--------------------------------------------------------------------------
-    # Channel management methods
-    #--------------------------------------------------------------------------
-
-    @abc.abstractmethod
-    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
-        pass
-
-    @abc.abstractmethod
-    def stop_channels(self):
-        pass
-
-    @abc.abstractproperty
-    def channels_running(self):
-        pass
-
-    @abc.abstractproperty
-    def shell_channel(self):
-        pass
-
-    @abc.abstractproperty
-    def iopub_channel(self):
-        pass
-
-    @abc.abstractproperty
-    def stdin_channel(self):
-        pass
-
-    @abc.abstractproperty
-    def hb_channel(self):
         pass
 
     #--------------------------------------------------------------------------
