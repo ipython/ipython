@@ -4,22 +4,11 @@
 Historically the main classes in interactiveshell have been under-tested.  This
 module should grow as many single-method tests as possible to trap many of the
 recurring bugs we seem to encounter with high-level interaction.
-
-Authors
--------
-* Fernando Perez
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-# stdlib
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import ast
 import os
 import signal
@@ -33,10 +22,8 @@ except ImportError:
     import mock
 from os.path import join
 
-# third-party
 import nose.tools as nt
 
-# Our own
 from IPython.core.inputtransformer import InputTransformer
 from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
@@ -645,7 +632,7 @@ def test_user_variables():
     
     ip.user_ns['dummy'] = d = DummyRepr()
     keys = set(['dummy', 'doesnotexist'])
-    r = ip.user_variables(keys)
+    r = ip.user_expressions({ key:key for key in keys})
 
     nt.assert_equal(keys, set(r.keys()))
     dummy = r['dummy']
@@ -660,7 +647,7 @@ def test_user_variables():
     
     dne = r['doesnotexist']
     nt.assert_equal(dne['status'], 'error')
-    nt.assert_equal(dne['ename'], 'KeyError')
+    nt.assert_equal(dne['ename'], 'NameError')
     
     # back to text only
     ip.display_formatter.active_types = ['text/plain']

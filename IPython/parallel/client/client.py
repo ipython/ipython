@@ -1285,7 +1285,7 @@ class Client(HasTraits):
         if not isinstance(metadata, dict):
             raise TypeError("metadata must be dict, not %s" % type(metadata))
         
-        content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
+        content = dict(code=code, silent=bool(silent), user_expressions={})
 
 
         msg = self.session.send(socket, "execute_request", content=content, ident=ident,

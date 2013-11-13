@@ -2395,7 +2395,7 @@ class InteractiveShell(SingletonConfigurable):
     def _user_obj_error(self):
         """return simple exception dict
         
-        for use in user_variables / expressions
+        for use in user_expressions
         """
         
         etype, evalue, tb = self._get_exc_info()
@@ -2413,7 +2413,7 @@ class InteractiveShell(SingletonConfigurable):
     def _format_user_obj(self, obj):
         """format a user object to display dict
         
-        for use in user_expressions / variables
+        for use in user_expressions
         """
         
         data, md = self.display_formatter.format(obj)
@@ -2424,30 +2424,6 @@ class InteractiveShell(SingletonConfigurable):
         }
         return value
     
-    def user_variables(self, names):
-        """Get a list of variable names from the user's namespace.
-
-        Parameters
-        ----------
-        names : list of strings
-          A list of names of variables to be read from the user namespace.
-
-        Returns
-        -------
-        A dict, keyed by the input names and with the rich mime-type repr(s) of each value.
-        Each element will be a sub-dict of the same form as a display_data message.
-        """
-        out = {}
-        user_ns = self.user_ns
-        
-        for varname in names:
-            try:
-                value = self._format_user_obj(user_ns[varname])
-            except:
-                value = self._user_obj_error()
-            out[varname] = value
-        return out
-
     def user_expressions(self, expressions):
         """Evaluate a dict of expressions in the user's namespace.
 

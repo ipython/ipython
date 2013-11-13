@@ -75,7 +75,8 @@ class RMessage(Reference):
     def check(self, d):
         super(RMessage, self).check(d)
         RHeader().check(self.header)
-        RHeader().check(self.parent_header)
+        if self.parent_header:
+            RHeader().check(self.parent_header)
 
 class RHeader(Reference):
     msg_id = Unicode()
@@ -99,7 +100,6 @@ class ExecuteReply(Reference):
 
 class ExecuteReplyOkay(Reference):
     payload = List(Dict)
-    user_variables = Dict()
     user_expressions = Dict()
 
 
@@ -292,28 +292,6 @@ def test_execute_inc():
     msg_id, reply = execute(code='x=2')
     count_2 = reply['execution_count']
     nt.assert_equal(count_2, count+1)
-
-
-def test_user_variables():
-    flush_channels()
-
-    msg_id, reply = execute(code='x=1', user_variables=['x'])
-    user_variables = reply['user_variables']
-    nt.assert_equal(user_variables, {u'x': {
-        u'status': u'ok',
-        u'data': {u'text/plain': u'1'},
-        u'metadata': {},
-    }})
-
-
-def test_user_variables_fail():
-    flush_channels()
-
-    msg_id, reply = execute(code='x=1', user_variables=['nosuchname'])
-    user_variables = reply['user_variables']
-    foo = user_variables['nosuchname']
-    nt.assert_equal(foo['status'], 'error')
-    nt.assert_equal(foo['ename'], 'KeyError')
 
 
 def test_user_expressions():

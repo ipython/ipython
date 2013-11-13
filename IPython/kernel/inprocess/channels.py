@@ -1,23 +1,13 @@
-""" A kernel client for in-process kernels. """
+"""A kernel client for in-process kernels."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2012  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# IPython imports
 from IPython.kernel.channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )
 
-# Local imports
 from .socket import DummySocket
 
 #-----------------------------------------------------------------------------
@@ -94,11 +84,10 @@ class InProcessShellChannel(InProcessChannel):
     #--------------------------------------------------------------------------
 
     def execute(self, code, silent=False, store_history=True,
-                user_variables=[], user_expressions={}, allow_stdin=None):
+                user_expressions={}, allow_stdin=None):
         if allow_stdin is None:
             allow_stdin = self.allow_stdin
         content = dict(code=code, silent=silent, store_history=store_history,
-                       user_variables=user_variables,
                        user_expressions=user_expressions,
                        allow_stdin=allow_stdin)
         msg = self.client.session.msg('execute_request', content)

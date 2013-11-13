@@ -424,16 +424,12 @@ class Kernel(Configurable):
         
 
         # At this point, we can tell whether the main code execution succeeded
-        # or not.  If it did, we proceed to evaluate user_variables/expressions
+        # or not.  If it did, we proceed to evaluate user_expressions
         if reply_content['status'] == 'ok':
-            reply_content[u'user_variables'] = \
-                         shell.user_variables(content.get(u'user_variables', []))
             reply_content[u'user_expressions'] = \
                          shell.user_expressions(content.get(u'user_expressions', {}))
         else:
-            # If there was an error, don't even try to compute variables or
-            # expressions
-            reply_content[u'user_variables'] = {}
+            # If there was an error, don't even try to compute expressions
             reply_content[u'user_expressions'] = {}
 
         # Payloads should be retrieved regardless of outcome, so we can both

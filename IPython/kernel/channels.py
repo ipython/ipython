@@ -1,20 +1,10 @@
-"""Base classes to manage a Client's interaction with a running kernel
-"""
+"""Base classes to manage a Client's interaction with a running kernel"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
 
-# Standard library imports
 import atexit
 import errno
 from threading import Thread
@@ -227,7 +217,7 @@ class ShellChannel(ZMQSocketChannel):
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def execute(self, code, silent=False, store_history=True,
-                user_variables=None, user_expressions=None, allow_stdin=None):
+                user_expressions=None, allow_stdin=None):
         """Execute code in the kernel.
 
         Parameters
@@ -242,11 +232,6 @@ class ShellChannel(ZMQSocketChannel):
         store_history : bool, optional (default True)
             If set, the kernel will store command history.  This is forced
             to be False if silent is True.
-
-        user_variables : list, optional
-            A list of variable names to pull from the user's namespace.  They
-            will come back as a dict with these names as keys and their
-            :func:`repr` as values.
 
         user_expressions : dict, optional
             A dict mapping names to expressions to be evaluated in the user's
@@ -264,8 +249,6 @@ class ShellChannel(ZMQSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        if user_variables is None:
-            user_variables = []
         if user_expressions is None:
             user_expressions = {}
         if allow_stdin is None:
@@ -275,13 +258,11 @@ class ShellChannel(ZMQSocketChannel):
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, string_types):
             raise ValueError('code %r must be a string' % code)
-        validate_string_list(user_variables)
         validate_string_dict(user_expressions)
 
         # Create class for content/msg creation. Related to, but possibly
         # not in Session.
         content = dict(code=code, silent=silent, store_history=store_history,
-                       user_variables=user_variables,
                        user_expressions=user_expressions,
                        allow_stdin=allow_stdin,
                        )
