@@ -1020,7 +1020,15 @@ Message type: ``input_reply``::
 
     content = { 'value' : str }
     
-.. Note::
+.. note::
+
+    The stdin socket of the client is required to have the same zmq IDENTITY
+    as the client's shell socket.
+    Because of this, the ``input_request`` must be sent with the same IDENTITY
+    routing prefix as the ``execute_reply`` in order for the frontend to receive
+    the message.
+
+.. note::
 
    We do not explicitly try to forward the raw ``sys.stdin`` object, because in
    practice the kernel should behave like an interactive program.  When a
