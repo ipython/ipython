@@ -15,25 +15,25 @@ define(["notebook/js/widget"], function(){
                 .addClass('widget-hlabel')
                 .hide();
             this.$buttongroup = $('<div />')
-                                .addClass('widget_item')
-                                .addClass('btn-group')
-                                .appendTo(this.$el);
+                .addClass('widget_item')
+                .addClass('btn-group')
+                .appendTo(this.$el);
             this.$el_to_style = this.$buttongroup; // Set default element to style
             this.$droplabel = $('<button />')
-                                .addClass('btn')
-                                .addClass('widget-combo-btn')
-                                .html('&nbsp;')
-                                .appendTo(this.$buttongroup);
+                .addClass('btn')
+                .addClass('widget-combo-btn')
+                .html('&nbsp;')
+                .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
-                                .addClass('btn')
-                                .addClass('dropdown-toggle')
-                                .addClass('widget-combo-carrot-btn')
-                                .attr('data-toggle', 'dropdown')
-                                .html('<span class="caret"></span>')
-                                .appendTo(this.$buttongroup);
+                .addClass('btn')
+                .addClass('dropdown-toggle')
+                .addClass('widget-combo-carrot-btn')
+                .attr('data-toggle', 'dropdown')
+                .html('<span class="caret"></span>')
+                .appendTo(this.$buttongroup);
             this.$droplist = $('<ul />')
-                                .addClass('dropdown-menu')
-                                .appendTo(this.$buttongroup);
+                .addClass('dropdown-menu')
+                .appendTo(this.$buttongroup);
             
             // Set defaults.
             this.update();
