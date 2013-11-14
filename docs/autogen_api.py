@@ -28,6 +28,7 @@ if __name__ == '__main__':
     # main API is in the inputhook module, which is documented.
     docwriter.module_skip_patterns += [ r'\.lib\.inputhook.+',
                                         r'\.ipdoctest',
+                                        r'\.testing\.plugin',
                                         # This just prints a deprecation msg:
                                         r'\.frontend',
                                         ]

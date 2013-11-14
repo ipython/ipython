@@ -110,10 +110,10 @@ class SList(list):
 
     These are normal lists, but with the special attributes:
 
-        .l (or .list) : value as list (the list itself).
-        .n (or .nlstr): value as a string, joined on newlines.
-        .s (or .spstr): value as a string, joined on spaces.
-        .p (or .paths): list of path objects
+    * .l (or .list) : value as list (the list itself).
+    * .n (or .nlstr): value as a string, joined on newlines.
+    * .s (or .spstr): value as a string, joined on spaces.
+    * .p (or .paths): list of path objects
 
     Any values which require transformations are computed only once and
     cached."""
@@ -191,13 +191,14 @@ class SList(list):
         Allows quick awk-like usage of string lists.
 
         Example data (in var a, created by 'a = !ls -l')::
+
             -rwxrwxrwx  1 ville None      18 Dec 14  2006 ChangeLog
             drwxrwxrwx+ 6 ville None       0 Oct 24 18:05 IPython
 
-        a.fields(0) is ['-rwxrwxrwx', 'drwxrwxrwx+']
-        a.fields(1,0) is ['1 -rwxrwxrwx', '6 drwxrwxrwx+']
-        (note the joining by space).
-        a.fields(-1) is ['ChangeLog', 'IPython']
+        * ``a.fields(0)`` is ``['-rwxrwxrwx', 'drwxrwxrwx+']``
+        * ``a.fields(1,0)`` is ``['1 -rwxrwxrwx', '6 drwxrwxrwx+']``
+          (note the joining by space).
+        * ``a.fields(-1)`` is ``['ChangeLog', 'IPython']``
 
         IndexErrors are ignored.
 
