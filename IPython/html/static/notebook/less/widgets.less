@@ -1,4 +1,19 @@
 
+/*
+LESS file that styles IPython notebook widgets and the area they sit in.
+
+The widget area typically looks something like this:
+ +------------------------------------------+
+ | widget-area                              |
+ |  +--------+---------------------------+  |
+ |  | prompt | widget-subarea            |  |
+ |  |        | +--------+  +--------+    |  |
+ |  |        | | widget |  | widget |    |  |
+ |  |        | +--------+  +--------+    |  |
+ |  +--------+---------------------------+  |
+ +------------------------------------------+
+*/
+
 .widget-area {
     page-break-inside: avoid;
     .hbox();
@@ -10,45 +25,76 @@
         .vbox();
         .box-flex2();
 
+        /* Horizontal Label */
         .widget-hlabel {
             min-width: 10ex;
             padding-right: 8px;
+            padding-top: 3px;
             text-align: right;
             vertical-align: text-top;
-            padding-top: 3px;
         }
 
+        /* Vertical Label */
         .widget-vlabel {
+            padding-bottom: 5px;
             text-align: center;
             vertical-align: text-bottom;
-            padding-bottom: 5px;
         }
 
-        .widget-hslider {
-            padding-left: 8px;
-            padding-right: 5px;
-            margin-top: 11px;
 
-            width: 348px;
-            height: 5px;
-            max-height: 5px;
-            overflow: visible;
-
+        /* Slider Track */
+        .slide-track {
             border: 1px solid #CCCCCC;
             background: #FFFFFF;
-            .corner-all();
+            .corner-all(); /* Round the corners of the slide track */
+        }
 
-            display: -moz-box;
-            display: -webkit-box;
+        /* Horizontal jQuery Slider 
 
+        Both the horizontal and vertical versions of the slider are characterized
+        by a styled div that contains an invisible jQuery slide div which 
+        contains a visible slider handle div.  This is requred so we can control
+        how the slider is drawn and 'fix' the issue where the slide handle 
+        doesn't stop at the end of the slide.
+
+        Both horizontal and vertical sliders have this div nesting:
+        +------------------------------------------+
+        | widget-(h/v)slider                       |
+        |  +--------+---------------------------+  |
+        |  | ui-slider                          |  |
+        |  |          +------------------+      |  |
+        |  |          | ui-slider-handle |      |  |
+        |  |          +------------------+      |  |
+        |  +--------+---------------------------+  |
+        +------------------------------------------+
+        */
+        .widget-hslider {
+
+            /* Fix the padding of the slide track so the ui-slider is sized 
+            correctly. */
+            padding-left: 8px;
+            padding-right: 5px;
+            overflow: visible;
+
+            /* Default size of the slider */
+            width: 348px; 
+            height: 5px;
+            max-height: 5px;
+            margin-top: 11px;
+            
+            /* Style the slider track */
+            .slide-track();
+
+            /* Make the div a flex box (makes FF behave correctly). */
+            .hbox();
+
+            /* Inner, invisible slide div */
             .ui-slider {
                 border: 0px !important;
                 background: none !important;
                 
-                display: -moz-box;
-                display: -webkit-box;
-                -moz-box-flex: 1;      /* Mozilla */
-                -webkit-box-flex: 1;   /* WebKit */
+                .hbox();
+                .box-flex1();
 
                 .ui-slider-handle {
                     width: 14px !important;
@@ -59,19 +105,27 @@
             }
         }
 
+        /* Vertical jQuery Slider */
         .widget-vslider {
-            border: 1px solid #CCCCCC;
-            background: #FFFFFF;
+            
+            /* Fix the padding of the slide track so the ui-slider is sized 
+            correctly. */
+            padding-bottom: 8px;
+            overflow: visible; 
+
+            /* Default size of the slider */
             width: 5px;
             max-width: 5px;
-            margin-left: 12px;
-
-            padding-bottom: 8px;
-            .vbox();
-            .corner-all();
-
             height: 250px;
+            margin-left: 12px;
+            
+            /* Style the slider track */
+            .slide-track();
 
+            /* Make the div a flex box (makes FF behave correctly). */
+            .vbox();
+            
+            /* Inner, invisible slide div */
             .ui-slider {
                 border: 0px !important;
                 background: none !important;
@@ -81,9 +135,6 @@
                 .vbox();
                 .box-flex1();
 
-                /* height: 100%;
-                min-height: 100%; */
-
                 .ui-slider-handle {
                     width: 28px !important;
                     height: 14px !important;
@@ -92,15 +143,18 @@
             }
         }
 
+        /* String Textbox - used for TextBoxView and TextAreaView */
         .widget-text {
             width: 350px;
             margin-bottom: 0px;
         }
 
+        /* Single Line Textbox - used for IntTextView and FloatTextView */
         .widget-numeric-text {
             width: 150px;
         }
 
+        /* Progress Bar */
         .widget-progress {
             width: 363px;
 
@@ -114,31 +168,41 @@
             }
         }
 
+        /* ComboBox Main Button */
         .widget-combo-btn {
             min-width: 138px; /* + 26px drop arrow btn = 164px */
         }
 
+        /* ContainerWidget */
         .widget-container {
             .border-box-sizing();
         }
 
+        /* The following section sets the style for the invisible div that
+        hold widgets and their accompanying labels.
+
+        Looks like this:
+        +-----------------------------+
+        | widget-box (or similar)     |
+        |  +-------+---------------+  |
+        |  | Label | Actual Widget |  |
+        |  +-------+---------------+  |
+        +-----------------------------+
+        */
         .widget-box {
             .start();
             .widget-container();
             margin: 5px;
         }
-
-        .widget-hbox {
+        .widget-hbox { /* Horizontal widgets */
             .widget-box();
             .hbox();
         }
-
-        .widget-hbox-single {
+        .widget-hbox-single { /* Single line horizontal widgets */
             .widget-hbox();
             height: 30px;
         }
-
-        .widget-vbox-single {
+        .widget-vbox-single { /* For vertical slides */
             .widget-box();
             .vbox();
             width: 30px;
