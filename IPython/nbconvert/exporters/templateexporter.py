@@ -193,10 +193,11 @@ class TemplateExporter(Exporter):
     
         Parameters
         ----------
-        nb : Notebook node
-        resources : dict (**kw) 
-            of additional resources that can be accessed read/write by 
-            preprocessors and filters.
+        nb : :class:`~IPython.nbformat.v3.nbbase.NotebookNode`
+          Notebook node
+        resources : dict
+          Additional resources that can be accessed read/write by
+          preprocessors and filters.
         """
         nb_copy, resources = super(TemplateExporter, self).from_notebook_node(nb, resources, **kw)
 

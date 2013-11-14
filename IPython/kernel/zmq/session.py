@@ -527,11 +527,13 @@ class Session(Configurable):
         Returns
         -------
         msg_list : list
-            The list of bytes objects to be sent with the format:
-            [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_metadata,p_content,
-             buffer1,buffer2,...]. In this list, the p_* entities are
-            the packed or serialized versions, so if JSON is used, these
-            are utf8 encoded JSON strings.
+            The list of bytes objects to be sent with the format::
+
+                [ident1, ident2, ..., DELIM, HMAC, p_header, p_parent,
+                 p_metadata, p_content, buffer1, buffer2, ...]
+
+            In this list, the ``p_*`` entities are the packed or serialized
+            versions, so if JSON is used, these are utf8 encoded JSON strings.
         """
         content = msg.get('content', {})
         if content is None:

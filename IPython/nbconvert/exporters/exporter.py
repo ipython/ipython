@@ -103,10 +103,13 @@ class Exporter(LoggingConfigurable):
 
         Parameters
         ----------
-        nb : Notebook node
-        resources : dict (**kw)
-            of additional resources that can be accessed read/write by
-            preprocessors.
+        nb : :class:`~IPython.nbformat.v3.nbbase.NotebookNode`
+          Notebook node
+        resources : dict
+          Additional resources that can be accessed read/write by
+          preprocessors and filters.
+        **kw
+          Ignored (?)
         """
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)

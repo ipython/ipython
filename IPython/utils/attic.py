@@ -81,11 +81,12 @@ def belong(candidates,checklist):
 def with_obj(object, **args):
     """Set multiple attributes for an object, similar to Pascal's with.
 
-    Example:
-    with_obj(jim,
-             born = 1960,
-             haircolour = 'Brown',
-             eyecolour = 'Green')
+    Example::
+
+        with_obj(jim,
+                 born = 1960,
+                 haircolour = 'Brown',
+                 eyecolour = 'Green')
 
     Credit: Greg Ewing, in
     http://mail.python.org/pipermail/python-list/2001-May/040703.html.

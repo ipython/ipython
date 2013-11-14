@@ -31,7 +31,6 @@ ipython_promptin:
     The default is 'In [%d]:'. This expects that the line numbers are used
     in the prompt.
 ipython_promptout:
-
     The string to represent the IPython prompt in the generated ReST. The
     default is 'Out [%d]:'. This expects that the line numbers are used
     in the prompt.
