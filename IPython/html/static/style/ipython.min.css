@@ -171,7 +171,7 @@ h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anch
 .widget-area .widget-subarea .widget-text{width:350px;margin-bottom:0px;}
 .widget-area .widget-subarea .widget-numeric-text{width:150px;}
 .widget-area .widget-subarea .widget-progress{width:363px;}.widget-area .widget-subarea .widget-progress .bar{-webkit-transition:none;-moz-transition:none;-ms-transition:none;-o-transition:none;transition:none;}
-.widget-area .widget-subarea .widget-combo-btn{min-width:138px;height:30px;}
+.widget-area .widget-subarea .widget-combo-btn{min-width:138px;}
 .widget-area .widget-subarea .widget-container{box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
 .widget-area .widget-subarea .widget-box{-webkit-box-pack:start;-moz-box-pack:start;box-pack:start;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;margin:5px;}
 .widget-area .widget-subarea .widget-hbox{-webkit-box-pack:start;-moz-box-pack:start;box-pack:start;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;margin:5px;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
