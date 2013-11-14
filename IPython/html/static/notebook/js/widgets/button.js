@@ -38,11 +38,12 @@ define(["notebook/js/widget"], function(){
         //          Frontent -> Frontend Sync
         update : function(){
             var description = this.model.get('description');
-            description.replace(' ', '&nbsp;')
+            description = description.replace(' ', '&nbsp;');
+            description = description.replace('\n', '<br>\n');
             if (description.length == 0) {
                 this.$el.html('&nbsp;'); // Preserve button height
             } else {
-                this.$el.html(this.model.get('description'));
+                this.$el.html(description);
             }
             
             return IPython.WidgetView.prototype.update.call(this);
