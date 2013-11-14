@@ -6,37 +6,42 @@ Authors:
 * Min RK
 
 
-TaskRecords are dicts of the form:
-{
-    'msg_id' : str(uuid),
-    'client_uuid' : str(uuid),
-    'engine_uuid' : str(uuid) or None,
-    'header' : dict(header),
-    'content': dict(content),
-    'buffers': list(buffers),
-    'submitted': datetime,
-    'started': datetime or None,
-    'completed': datetime or None,
-    'resubmitted': datetime or None,
-    'result_header' : dict(header) or None,
-    'result_content' : dict(content) or None,
-    'result_buffers' : list(buffers) or None,
-}
-With this info, many of the special categories of tasks can be defined by query:
+TaskRecords are dicts of the form::
 
-pending:  completed is None
-client's outstanding: client_uuid = uuid && completed is None
-MIA: arrived is None (and completed is None)
-etc.
+    {
+        'msg_id' : str(uuid),
+        'client_uuid' : str(uuid),
+        'engine_uuid' : str(uuid) or None,
+        'header' : dict(header),
+        'content': dict(content),
+        'buffers': list(buffers),
+        'submitted': datetime,
+        'started': datetime or None,
+        'completed': datetime or None,
+        'resubmitted': datetime or None,
+        'result_header' : dict(header) or None,
+        'result_content' : dict(content) or None,
+        'result_buffers' : list(buffers) or None,
+    }
 
-EngineRecords are dicts of the form:
-{
-    'eid' : int(id),
-    'uuid': str(uuid)
-}
+With this info, many of the special categories of tasks can be defined by query,
+e.g.:
+
+* pending: completed is None
+* client's outstanding: client_uuid = uuid && completed is None
+* MIA: arrived is None (and completed is None)
+
+EngineRecords are dicts of the form::
+
+    {
+        'eid' : int(id),
+        'uuid': str(uuid)
+    }
+
 This may be extended, but is currently.
 
-We support a subset of mongodb operators:
+We support a subset of mongodb operators::
+
     $lt,$gt,$lte,$gte,$ne,$in,$nin,$all,$mod,$exists
 """
 #-----------------------------------------------------------------------------

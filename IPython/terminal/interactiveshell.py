@@ -560,12 +560,11 @@ class TerminalInteractiveShell(InteractiveShell):
         The returned line does not include the trailing newline.
         When the user enters the EOF key sequence, EOFError is raised.
 
-        Optional inputs:
+        Parameters
+        ----------
 
-          - prompt(''): a string to be printed to prompt the user.
-
-          - continue_prompt(False): whether this line is the first one or a
-          continuation in a sequence of inputs.
+        prompt : str, optional
+          A string to be printed to prompt the user.
         """
         # Code run by the user may have modified the readline completer state.
         # We must ensure that our completer is back in place.

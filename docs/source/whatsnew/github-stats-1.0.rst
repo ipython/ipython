@@ -643,7 +643,7 @@ Pull Requests (793):
 * :ghpull:`3223`: add missing mathjax_url to new settings dict
 * :ghpull:`3089`: add stdin to the notebook
 * :ghpull:`3221`: Remove references to HTMLCell (dead code)
-* :ghpull:`3205`: add ignored *args to HasTraits constructor
+* :ghpull:`3205`: add ignored ``*args`` to HasTraits constructor
 * :ghpull:`3088`: cleanup IPython handler settings
 * :ghpull:`3201`: use much faster regexp for ansi coloring
 * :ghpull:`3220`: avoid race condition in profile creation
@@ -1064,7 +1064,7 @@ Pull Requests (793):
 * :ghpull:`2140`: 2to3: Apply `has_key` fixer.
 * :ghpull:`2131`: Add option append (-a) to %save
 * :ghpull:`2117`: use explicit url in notebook example
-* :ghpull:`2133`: Tell git that *.py files contain Python code, for use in word-diffs.
+* :ghpull:`2133`: Tell git that ``*.py`` files contain Python code, for use in word-diffs.
 * :ghpull:`2134`: Apply 2to3 `next` fix.
 * :ghpull:`2126`: ipcluster broken with any batch launcher (PBS/LSF/SGE)
 * :ghpull:`2104`: Windows make file for Sphinx documentation
@@ -1423,7 +1423,7 @@ Issues (691):
 * :ghissue:`3207`: [Feature] folders for ipython notebook dashboard
 * :ghissue:`3178`: cell magics do not work with empty lines after #2447
 * :ghissue:`3204`: Default plot() colors unsuitable for red-green colorblind users
-* :ghissue:`1789`: :\n/*foo turns into :\n*(foo) in triple-quoted strings.
+* :ghissue:`1789`: ``:\n/*foo`` turns into ``:\n*(foo)`` in triple-quoted strings.
 * :ghissue:`3202`: File cell magic fails with blank lines
 * :ghissue:`3199`: %%cython -a stopped working?
 * :ghissue:`2688`: obsolete imports in import autocompletion
@@ -1649,7 +1649,7 @@ Issues (691):
 * :ghissue:`1308`: ipython qtconsole  --ssh=server --existing ... hangs
 * :ghissue:`1679`: List command doesn't work in ipdb debugger the first time
 * :ghissue:`2545`: pypi win32 installer creates 64bit executibles
-* :ghissue:`2080`: Event loop issues with IPython 0.12 and PyQt4 (QDialog.exec_ and more)
+* :ghissue:`2080`: Event loop issues with IPython 0.12 and PyQt4 (``QDialog.exec_`` and more)
 * :ghissue:`2541`: Allow `python -m IPython`
 * :ghissue:`2508`: subplots_adjust() does not work correctly in ipython notebook
 * :ghissue:`2289`: Incorrect mathjax rendering of certain arrays of equations

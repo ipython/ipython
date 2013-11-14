@@ -199,7 +199,8 @@ def disambiguate_url(url, location=None):
     """turn multi-ip interfaces '0.0.0.0' and '*' into connectable
     ones, based on the location (default interpretation is localhost).
     
-    This is for zeromq urls, such as tcp://*:10101."""
+    This is for zeromq urls, such as ``tcp://*:10101``.
+    """
     try:
         proto,ip,port = split_url(url)
     except AssertionError:
