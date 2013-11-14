@@ -87,7 +87,13 @@ class TestStrings(TestsBase):
             ('/files', '/files'), 
             ('test="/files"', 'test="/files"'), 
             ('My files are in `files/`', 'My files are in `files/`'),
-            ('<a href="files/test.html">files/test.html</a>', '<a href="test.html">files/test.html</a>')]
+            ('<a href="files/test.html">files/test.html</a>', '<a href="test.html">files/test.html</a>'),
+            ('hello![caption]', 'hello![caption]'),
+            ('hello![caption](/url/location.gif)', 'hello![caption](/url/location.gif)'),
+            ('hello![caption](url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](files/url/location.gif)', 'hello![caption](url/location.gif)'),
+            ('hello![caption](/files/url/location.gif)', 'hello![caption](url/location.gif)'),]
         for test in tests:
             self._try_files_prefix(test[0], test[1])
 
