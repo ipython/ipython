@@ -179,7 +179,7 @@ html_additional_pages = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ipythondoc'
 
-intersphinx_mapping = {'http://docs.python.org/2/': None}
+intersphinx_mapping = {'python': ('http://docs.python.org/2/', None)}
 
 # Options for LaTeX output
 # ------------------------
