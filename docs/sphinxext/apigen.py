@@ -415,7 +415,8 @@ class ApiDocWriter(object):
         idx = open(path,'wt')
         w = idx.write
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
-        w('.. toctree::\n\n')
-        for f in self.written_modules:
-            w('   %s\n' % os.path.join(relpath,f))
+        w('.. autosummary::\n'
+          '   :toctree: %s\n\n' % relpath)
+        for mod in self.written_modules:
+            w('   %s\n' % mod)
         idx.close()

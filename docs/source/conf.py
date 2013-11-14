@@ -44,6 +44,7 @@ extensions = [
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.intersphinx',
