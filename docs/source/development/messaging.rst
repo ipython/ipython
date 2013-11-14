@@ -103,6 +103,8 @@ A message is defined by the following four-dictionary structure::
                     'session' : uuid,
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
+                    # the message protocol version
+                    'version' : '5.0.0',
          },
 
       # In a chain of messages, the header from the parent is copied so that
@@ -151,14 +153,14 @@ The front of the message is the ZeroMQ routing prefix,
 which can be zero or more socket identities.
 This is every piece of the message prior to the delimiter key ``<IDS|MSG>``.
 In the case of IOPub, there should be just one prefix component,
-which is the topic for IOPub subscribers, e.g. ``pyout``, ``display_data``.
+which is the topic for IOPub subscribers, e.g. ``execute_result``, ``display_data``.
 
 .. note::
 
     In most cases, the IOPub topics are irrelevant and completely ignored,
     because frontends just subscribe to all topics.
     The convention used in the IPython kernel is to use the msg_type as the topic,
-    and possibly extra information about the message, e.g. ``pyout`` or ``stream.stdout``
+    and possibly extra information about the message, e.g. ``execute_result`` or ``stream.stdout``
 
 After the delimiter is the `HMAC`_ signature of the message, used for authentication.
 If authentication is disabled, this should be an empty string.
@@ -263,20 +265,15 @@ Message type: ``execute_request``::
     # is forced to be False.
     'store_history' : bool,
 
-    # A list of variable names from the user's namespace to be retrieved.
-    # What returns is a rich representation of each variable (dict keyed by name).
-    # See the display_data content for the structure of the representation data.
-    'user_variables' : list,
-
     # Similarly, a dict mapping names to expressions to be evaluated in the
-    # user's dict.
+    # user's dict. The rich display-data representation of each will be evaluated after execution.
+    # See the display_data content for the structure of the representation data.
     'user_expressions' : dict,
 
-    # Some frontends (e.g. the Notebook) do not support stdin requests. If
-    # raw_input is called from code executed from such a frontend, a
-    # StdinNotImplementedError will be raised.
+    # Some frontends do not support stdin requests.
+    # If raw_input is called from code executed from such a frontend,
+    # a StdinNotImplementedError will be raised.
     'allow_stdin' : True,
-
     }
 
 The ``code`` field contains a single string (possibly multiline).  The kernel
@@ -284,27 +281,23 @@ is responsible for splitting this into one or more independent execution blocks
 and deciding whether to compile these in 'single' or 'exec' mode (see below for
 detailed execution semantics).
 
-The ``user_`` fields deserve a detailed explanation.  In the past, IPython had
+The ``user_expressions`` fields deserve a detailed explanation.  In the past, IPython had
 the notion of a prompt string that allowed arbitrary code to be evaluated, and
 this was put to good use by many in creating prompts that displayed system
 status, path information, and even more esoteric uses like remote instrument
 status acquired over the network.  But now that IPython has a clean separation
 between the kernel and the clients, the kernel has no prompt knowledge; prompts
-are a frontend-side feature, and it should be even possible for different
+are a frontend feature, and it should be even possible for different
 frontends to display different prompts while interacting with the same kernel.
 
-The kernel now provides the ability to retrieve data from the user's namespace
+The kernel provides the ability to retrieve data from the user's namespace
 after the execution of the main ``code``, thanks to two fields in the
 ``execute_request`` message:
-
-- ``user_variables``: If only variables from the user's namespace are needed, a
-  list of variable names can be passed and a dict with these names as keys and
-  their :func:`repr()` as values will be returned.
 
 - ``user_expressions``: For more complex expressions that require function
   evaluations, a dict can be provided with string keys and arbitrary python
   expressions as values.  The return message will contain also a dict with the
-  same keys and the :func:`repr()` of the evaluated expressions as value.
+  same keys and the rich representations of the evaluated expressions as value.
 
 With this information, frontends can display any status information they wish
 in the form that best suits each frontend (a status line, a popup, inline for a
@@ -326,9 +319,8 @@ following phases (in silent mode, only the ``code`` field is executed):
 
 2. Execute the ``code`` field, see below for details.
 
-3. If #2 succeeds, compute ``user_variables`` and ``user_expressions`` are
-   computed.  This ensures that any error in the latter don't harm the main
-   code execution.
+3. If #2 succeeds, expressions in ``user_expressions`` are computed.
+   This ensures that any error in the expressions don't affect the main code execution.
 
 4. Call any method registered with :meth:`register_post_execute`.
 
@@ -383,16 +375,17 @@ execution in 'single' mode, and then:
   * otherwise (last one is also multiline), run all in 'exec' mode as a single
     unit.
 
-Any error in retrieving the ``user_variables`` or evaluating the
-``user_expressions`` will result in a simple error message in the return fields
-of the form::
+Any error in evaluating any expression in ``user_expressions`` will result in
+only that key containing a standard error message, of the form::
 
-   [ERROR] ExceptionType: Exception message
+    {
+        'status' : 'error',
+        'ename' : 'NameError',
+        'evalue' : 'foo',
+        'traceback' : ...
+    }
 
-The user can simply send the same variable name or expression for evaluation to
-see a regular traceback.
-
-Errors in any registered post_execute functions are also reported similarly,
+Errors in any registered post_execute functions are also reported,
 and the failing function is removed from the post_execution set so that it does
 not continue triggering failures.
 
@@ -404,8 +397,8 @@ codes and associated data.
 
 .. _execution_counter:
 
-Execution counter (old prompt number)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Execution counter (prompt number)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The kernel has a single, monotonically increasing counter of all execution
 requests that are made with ``store_history=True``.  This counter is used to populate
@@ -444,15 +437,14 @@ When status is 'ok', the following extra fields are present::
       # which is a string classifying the payload (e.g. 'pager').
       'payload' : list(dict),
 
-      # Results for the user_variables and user_expressions.
-      'user_variables' : dict,
+      # Results for the user_expressions.
       'user_expressions' : dict,
     }
 
 .. admonition:: Execution payloads
     
    The notion of an 'execution payload' is different from a return value of a
-   given set of code, which normally is just displayed on the pyout stream
+   given set of code, which normally is just displayed on the execute_result stream
    through the PUB socket.  The idea of a payload is to allow special types of
    code, typically magics, to populate a data container in the IPython kernel
    that will be shipped back to the caller via this channel.  The kernel
@@ -748,24 +740,27 @@ Message type: ``kernel_info_reply``::
         # there is any backward incompatible change.
         # The second integer indicates minor version.  It is incremented when
         # there is any backward compatible change.
-        'protocol_version': [int, int],
+        'protocol_version': 'X.Y.Z',
 
         # IPython version number (optional).
         # Non-python kernel backend may not have this version number.
-        # The last component is an extra field, which may be 'dev' or
-        # 'rc1' in development version.  It is an empty string for
-        # released version.
-        'ipython_version': [int, int, int, str],
+        # could be '2.0.0-dev' for development version
+        'ipython_version': 'X.Y.Z', 
 
         # Language version number (mandatory).
-        # It is Python version number (e.g., [2, 7, 3]) for the kernel
+        # It is Python version number (e.g., '2.7.3') for the kernel
         # included in IPython.
-        'language_version': [int, ...],
+        'language_version': 'X.Y.Z',
 
         # Programming language in which kernel is implemented (mandatory).
         # Kernel included in IPython returns 'python'.
         'language': str,
     }
+
+.. versionchanged:: 5.0
+
+    In protocol version 4.0, versions were given as lists of numbers,
+    not version strings.
 
 
 Kernel shutdown
@@ -833,6 +828,12 @@ Each message can have multiple representations of the data; it is up to the
 frontend to decide which to use and how. A single message should contain all
 possible representations of the same information. Each representation should
 be a JSON'able data structure, and should be a valid MIME type.
+
+Some questions remain about this design:
+
+* Do we use this message type for execute_result/displayhook? Probably not, because
+  the displayhook also has to handle the Out prompt display. On the other hand
+  we could put that information into the metadata secion.
 
 Message type: ``display_data``::
 
@@ -936,7 +937,7 @@ the Python interactive prompt is to print to ``sys.stdout`` the :func:`repr` of
 the value as long as it is not ``None`` (which isn't printed at all).  In our
 case, the kernel instantiates as ``sys.displayhook`` an object which has
 similar behavior, but which instead of printing to stdout, broadcasts these
-values as ``pyout`` messages for clients to display appropriately.
+values as ``execute_result`` messages for clients to display appropriately.
 
 IPython's displayhook can handle multiple simultaneous formats depending on its
 configuration. The default pretty-printed repr text is always given with the
@@ -950,7 +951,7 @@ frontend how to interpret the data. It is often, but not always a MIME type.
 Frontends should ignore types that it does not understand. The data itself is
 any JSON object and depends on the format. It is often, but not always a string.
 
-Message type: ``pyout``::
+Message type: ``execute_result``::
 
     content = {
 
@@ -971,7 +972,7 @@ Python errors
 
 When an error occurs during code execution
 
-Message type: ``pyerr``::
+Message type: ``error``::
 
     content = {
        # Similar content to the execute_reply messages for the 'error' case,
