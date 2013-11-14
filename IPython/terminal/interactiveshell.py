@@ -191,8 +191,7 @@ class TerminalMagics(Magics):
         This assigns the pasted block to variable 'foo' as string, without
         executing it (preceding >>> and + is still stripped).
 
-        Options
-        -------
+        Options:
 
           -r: re-executes the block previously entered by cpaste.
 

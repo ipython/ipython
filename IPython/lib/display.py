@@ -49,22 +49,23 @@ class Audio(DisplayObject):
 
     Examples
     --------
-  
-    # Generate a sound
-    import numpy as np
-    framerate = 44100
-    t = np.linspace(0,5,framerate*5)
-    data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t))
-    Audio(data,rate=framerate)
+    ::
 
-    Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")
-    Audio(url="http://www.w3schools.com/html/horse.ogg")
-    
-    Audio('/path/to/sound.wav')
-    Audio(filename='/path/to/sound.ogg')
-    
-    Audio(b'RAW_WAV_DATA..)
-    Audio(data=b'RAW_WAV_DATA..)
+        # Generate a sound
+        import numpy as np
+        framerate = 44100
+        t = np.linspace(0,5,framerate*5)
+        data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t))
+        Audio(data,rate=framerate)
+
+        Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # From URL
+        Audio(url="http://www.w3schools.com/html/horse.ogg")
+
+        Audio('/path/to/sound.wav')  # From file
+        Audio(filename='/path/to/sound.ogg')
+
+        Audio(b'RAW_WAV_DATA..)  # From bytes
+        Audio(data=b'RAW_WAV_DATA..)
 
     """
     _read_flags = 'rb'
@@ -195,22 +196,21 @@ class IFrame(object):
 class YouTubeVideo(IFrame):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
 
-    e.g. to embed the video on this page:
+    e.g. to embed the video from http://www.youtube.com/watch?v=foo , you would
+    do::
 
-    http://www.youtube.com/watch?v=foo
+        vid = YouTubeVideo("foo")
+        display(vid)
 
-    you would do:
+    To start from 30 seconds::
 
-    vid = YouTubeVideo("foo")
-    display(vid)
+        vid = YouTubeVideo("abc", start=30)
+        display(vid)
 
-    To start from 30 seconds:
+    To calculate seconds from time as hours, minutes, seconds use
+    :class:`datetime.timedelta`::
 
-    vid = YouTubeVideo("abc", start=30)
-    display(vid)
-
-    To calculate seconds from time as hours, minutes, seconds use:
-    start=int(timedelta(hours=1, minutes=46, seconds=40).total_seconds())
+        start=int(timedelta(hours=1, minutes=46, seconds=40).total_seconds())
 
     Other parameters can be provided as documented at
     https://developers.google.com/youtube/player_parameters#parameter-subheader
@@ -313,17 +313,15 @@ class FileLink(object):
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
 
-    e.g. to embed links to files that were generated in the IPython notebook under my/data
+    e.g. to embed links to files that were generated in the IPython notebook
+    under ``my/data``, you would do::
 
-    you would do:
+        local_files = FileLinks("my/data")
+        display(local_files)
 
-    local_files = FileLinks("my/data")
-    display(local_files)
+    or in the HTML notebook, just::
 
-    or in the HTML notebook, just
-
-    FileLinks("my/data")
-
+        FileLinks("my/data")
     """
     def __init__(self,
                  path,
@@ -334,35 +332,38 @@ class FileLinks(FileLink):
                  notebook_display_formatter=None,
                  terminal_display_formatter=None):
         """
-            included_suffixes : list of filename suffixes to include when
-             formatting output [default: include all files]
+        See :class:`FileLink` for the ``path``, ``url_prefix``,
+        ``result_html_prefix`` and ``result_html_suffix`` parameters.
 
-            See the FileLink (baseclass of LocalDirectory) docstring for
-             information on additional parameters.
+        included_suffixes : list
+          Filename suffixes to include when formatting output [default: include
+          all files]
 
-            notebook_display_formatter : func used to format links for display
-             in the notebook. See discussion of formatter function below.
+        notebook_display_formatter : function
+          Used to format links for display in the notebook. See discussion of
+          formatter functions below.
 
-            terminal_display_formatter : func used to format links for display
-             in the terminal. See discussion of formatter function below.
+        terminal_display_formatter : function
+          Used to format links for display in the terminal. See discussion of
+          formatter functions below.
 
+        Formatter functions must be of the form::
 
-            Passing custom formatter functions
-            ----------------------------------
-             Formatter functions must be of the form:
-              f(dirname, fnames, included_suffixes)
-               dirname : the name of a directory (a string),
-               fnames :  a list of the files in that directory
-               included_suffixes : a list of the file suffixes that should be
-                                   included in the output (passing None means
-                                   to include all suffixes in the output in
-                                   the built-in formatters)
+            f(dirname, fnames, included_suffixes)
 
-               returns a list of lines that should will be print in the
-               notebook (if passing notebook_display_formatter) or the terminal
-               (if passing terminal_display_formatter). This function is iterated
-               over for each directory in self.path. Default formatters are in
-               place, can be passed here to support alternative formatting.
+        dirname : str
+          The name of a directory
+        fnames : list
+          The files in that directory
+        included_suffixes : list
+          The file suffixes that should be included in the output (passing None
+          meansto include all suffixes in the output in the built-in formatters)
+
+        The function should return a list of lines that will be printed in the
+        notebook (if passing notebook_display_formatter) or the terminal (if
+        passing terminal_display_formatter). This function is iterated over for
+        each directory in self.path. Default formatters are in place, can be
+        passed here to support alternative formatting.
 
         """
         if isfile(path):

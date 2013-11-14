@@ -3035,15 +3035,17 @@ class InteractiveShell(SingletonConfigurable):
             arguments as strings. The number before the / is the session
             number: ~n goes n back from the current session.
 
-        Optional Parameters:
-          - raw(False): by default, the processed input is used.  If this is
-            true, the raw input history is used instead.
+        raw : bool, optional
+            By default, the processed input is used.  If this is true, the raw
+            input history is used instead.
 
-        Note that slices can be called with two notations:
+        Notes
+        -----
 
-        N:M -> standard python form, means including items N...(M-1).
+        Slices can be described with two notations:
 
-        N-M -> include items N..M (closed endpoint).
+        * ``N:M`` -> standard python form, means including items N...(M-1).
+        * ``N-M`` -> include items N..M (closed endpoint).
         """
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)

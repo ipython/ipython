@@ -781,8 +781,8 @@ class Session(Configurable):
         methods work with full message lists, whereas pack/unpack work with
         the individual message parts in the message list.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         msg_list : list of bytes or Message objects
             The list of message parts of the form [HMAC,p_header,p_parent,
             p_metadata,p_content,buffer1,buffer2,...].

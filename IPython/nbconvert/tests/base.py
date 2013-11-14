@@ -88,8 +88,8 @@ class TestsBase(unittest.TestCase):
            Replace "ii" with "i" in the string "Hiiii" yields "Hii"
            Another replacement cds "Hi" (the desired output)
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         text : string
             Text to replace in.
         search : string
@@ -141,8 +141,8 @@ class TestsBase(unittest.TestCase):
         Execute a, IPython shell command, listening for both Errors and non-zero
         return codes.
 
-        PARAMETERS:
-        -----------
+        Parameters
+        ----------
         parameters : str
             List of parameters to pass to IPython.
         ignore_return_code : optional bool (default False)

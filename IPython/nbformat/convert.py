@@ -31,8 +31,8 @@ def convert(nb, to_version):
     a v4.  Also assumes that all conversions can be made in one step increments
     between major versions and ignores minor revisions.
 
-    PARAMETERS:
-    -----------
+    Parameters
+    ----------
     nb : NotebookNode
     to_version : int
         Major revision to convert the notebook to.  Can either be an upgrade or

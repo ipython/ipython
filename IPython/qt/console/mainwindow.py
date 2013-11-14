@@ -673,8 +673,8 @@ class MainWindow(QtGui.QMainWindow):
     def _get_magic_menu(self,menuidentifier, menulabel=None):
         """return a submagic menu by name, and create it if needed
        
-        parameters:
-        -----------
+        Parameters
+        ----------
 
         menulabel : str
             Label for the menu

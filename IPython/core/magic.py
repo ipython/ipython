@@ -579,24 +579,36 @@ class Magics(Configurable):
     def parse_options(self, arg_str, opt_str, *long_opts, **kw):
         """Parse options passed to an argument string.
 
-        The interface is similar to that of getopt(), but it returns back a
-        Struct with the options as keys and the stripped argument string still
-        as a string.
+        The interface is similar to that of :func:`getopt.getopt`, but it
+        returns a :class:`~IPython.utils.struct.Struct` with the options as keys
+        and the stripped argument string still as a string.
 
         arg_str is quoted as a true sys.argv vector by using shlex.split.
         This allows us to easily expand variables, glob files, quote
         arguments, etc.
 
-        Options:
-          -mode: default 'string'. If given as 'list', the argument string is
-          returned as a list (split on whitespace) instead of a string.
+        Parameters
+        ----------
 
-          -list_all: put all option values in lists. Normally only options
+        arg_str : str
+          The arguments to parse.
+
+        opt_str : str
+          The options specification.
+
+        mode : str, default 'string'
+          If given as 'list', the argument string is returned as a list (split
+          on whitespace) instead of a string.
+
+        list_all : bool, default False
+          Put all option values in lists. Normally only options
           appearing more than once are put in a list.
 
-          -posix (True): whether to split the input line in POSIX mode or not,
-          as per the conventions outlined in the shlex module from the
-          standard library."""
+        posix : bool, default True
+          Whether to split the input line in POSIX mode or not, as per the
+          conventions outlined in the :mod:`shlex` module from the standard
+          library.
+        """
 
         # inject default options at the beginning of the input line
         caller = sys._getframe(1).f_code.co_name

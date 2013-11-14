@@ -48,8 +48,8 @@ class ParentPollerWindows(Thread):
         """ Create the poller. At least one of the optional parameters must be
         provided.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         interrupt_handle : HANDLE (int), optional
             If provided, the program will generate a Ctrl+C event when this
             handle is signaled.
