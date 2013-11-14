@@ -22,10 +22,12 @@ define(["notebook/js/widget"], function(){
             this.$droplabel = $('<button />')
                                 .addClass('btn')
                                 .addClass('widget-combo-btn')
+                                .html('&nbsp;')
                                 .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
                                 .addClass('btn')
                                 .addClass('dropdown-toggle')
+                                .addClass('widget-combo-carrot-btn')
                                 .attr('data-toggle', 'dropdown')
                                 .html('<span class="caret"></span>')
                                 .appendTo(this.$buttongroup);
@@ -40,7 +42,14 @@ define(["notebook/js/widget"], function(){
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
         update : function(){
-            this.$droplabel.html(this.model.get('value'));
+
+            var selected_item_text = this.model.get('value');
+            selected_item_text.replace(' ', '');
+            if (selected_item_text == '') {
+                this.$droplabel.html('&nbsp;');
+            } else {
+                this.$droplabel.html(this.model.get('value'));    
+            }
             
             var items = this.model.get('values');
             this.$droplist.html('');
