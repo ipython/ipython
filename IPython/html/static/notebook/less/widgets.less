@@ -30,16 +30,25 @@
             margin-top: 11px;
 
             width: 348px;
-            height: 5px !important;
-            overflow: visible !important;
+            height: 5px;
+            max-height: 5px;
+            overflow: visible;
 
             border: 1px solid #CCCCCC;
             background: #FFFFFF;
             .corner-all();
 
+            display: -moz-box;
+            display: -webkit-box;
+
             .ui-slider {
                 border: 0px !important;
                 background: none !important;
+                
+                display: -moz-box;
+                display: -webkit-box;
+                -moz-box-flex: 1;      /* Mozilla */
+                -webkit-box-flex: 1;   /* WebKit */
 
                 .ui-slider-handle {
                     width: 14px !important;
@@ -54,9 +63,13 @@
             border: 1px solid #CCCCCC;
             background: #FFFFFF;
             width: 5px;
+            max-width: 5px;
             margin-left: 12px;
-            padding-bottom: 14px;
+
+            padding-bottom: 8px;
+            .vbox();
             .corner-all();
+
             height: 250px;
 
             .ui-slider {
@@ -64,7 +77,12 @@
                 background: none !important;
                 margin-left: -4px;
                 margin-top: 5px;
-                height: 100%;
+                
+                .vbox();
+                .box-flex1();
+
+                /* height: 100%;
+                min-height: 100%; */
 
                 .ui-slider-handle {
                     width: 28px !important;
