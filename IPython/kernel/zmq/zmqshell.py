@@ -217,11 +217,6 @@ class KernelMagics(Magics):
           used instead.  When you exit the editor, it will be executed by
           IPython's own processor.
 
-        -x
-          Do not execute the edited code immediately upon exit. This is mainly
-          useful if you are editing programs which need to be called with
-          command line arguments, which you can then do using %run.
-
         Arguments:
 
         If arguments are given, the following possibilites exist:
@@ -255,58 +250,11 @@ class KernelMagics(Magics):
           editor. It will execute its contents with execfile() when you exit,
           loading any code in the file into your interactive namespace.
 
-        After executing your code, %edit will return as output the code you
-        typed in the editor (except when it was an existing file). This way
-        you can reload the code in further invocations of %edit as a variable,
-        via ``_<NUMBER>` or ``Out[<NUMBER>]``, where <NUMBER> is the prompt number of
-        the output.
+        Unlike in the terminal, this is designed to use a GUI editor, and we do
+        not know when it has closed. So the file you edit will not be
+        automatically executed or printed.
 
         Note that %edit is also available through the alias %ed.
-
-        This is an example of creating a simple function inside the editor and
-        then modifying it. First, start up the editor::
-
-            In [1]: ed
-            Editing... done. Executing edited code...
-            Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
-
-        We can then call the function foo()::
-
-            In [2]: foo()
-            foo() was defined in an editing session
-
-        Now we edit foo. IPython automatically loads the editor with the
-        (temporary) file where foo() was previously defined::
-
-            In [3]: ed foo
-            Editing... done. Executing edited code...
-
-        And if we call foo() again we get the modified version::
-
-            In [4]: foo()
-            foo() has now been changed!
-
-        Here is an example of how to edit a code snippet successive
-        times. First we call the editor::
-
-            In [5]: ed
-            Editing... done. Executing edited code...
-            hello
-            Out[5]: "print 'hello'n"
-
-        Now we call it again with the previous output (stored in _)::
-
-            In [6]: ed _
-            Editing... done. Executing edited code...
-            hello world
-            Out[6]: "print 'hello world'n"
-
-        Now we call it with the output #8 (stored in ``_8``, also as Out[8])::
-
-            In [7]: ed _8
-            Editing... done. Executing edited code...
-            hello again
-            Out[7]: "print 'hello again'n"
         """
 
         opts,args = self.parse_options(parameter_s,'prn:')
