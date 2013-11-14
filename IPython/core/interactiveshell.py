@@ -131,9 +131,9 @@ def get_default_colors():
 
 
 class SeparateUnicode(Unicode):
-    """A Unicode subclass to validate separate_in, separate_out, etc.
+    r"""A Unicode subclass to validate separate_in, separate_out, etc.
 
-    This is a Unicode based trait that converts '0'->'' and '\\n'->'\n'.
+    This is a Unicode based trait that converts '0'->'' and ``'\\n'->'\n'``.
     """
 
     def validate(self, obj, value):

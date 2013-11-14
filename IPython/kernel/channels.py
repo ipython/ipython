@@ -133,9 +133,9 @@ class ZMQSocketChannel(Thread):
     def stop(self):
         """Stop the channel's event loop and join its thread.
 
-        This calls :method:`Thread.join` and returns when the thread
+        This calls :meth:`~threading.Thread.join` and returns when the thread
         terminates. :class:`RuntimeError` will be raised if
-        :method:`self.start` is called again.
+        :meth:`~threading.Thread.start` is called again.
         """
         self.join()
 
@@ -430,7 +430,7 @@ class IOPubChannel(ZMQSocketChannel):
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the iopub channel.
 
-        Callers should use this method to ensure that :method:`call_handlers`
+        Callers should use this method to ensure that :meth:`call_handlers`
         has been called for all messages that have been received on the
         0MQ SUB socket of this channel.
 
