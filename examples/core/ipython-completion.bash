@@ -24,7 +24,7 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate"
+    local subcommands="notebook qtconsole console kernel profile locate history nbconvert"
     local opts=""
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
@@ -43,30 +43,33 @@ _ipython()
         fi
     done
 
-    if [[ $mode == "profile" ]]; then
-        opts="list create"
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-    elif [[ ${cur} == -* ]]; then
-        if [[ $mode == "notebook" ]]; then
-            _ipython_get_flags notebook
-            opts=$"${opts} ${baseopts}"
-        elif [[ $mode == "qtconsole" ]]; then
-            _ipython_get_flags qtconsole
-            opts="${opts} ${baseopts}"
-        elif [[ $mode == "console" ]]; then
-            _ipython_get_flags console
-        elif [[ $mode == "kernel" ]]; then
-            _ipython_get_flags kernel
-            opts="${opts} ${baseopts}"
-        elif [[ $mode == "locate" ]]; then
-            opts=""
-        else
-            opts=$baseopts
-        fi
+
+    if [[ ${cur} == -* ]]; then
+        case $mode in
+            "notebook" | "qtconsole" | "console" | "kernel")
+                _ipython_get_flags $mode
+                opts=$"${opts} ${baseopts}"
+                ;;
+            "locate" | "history" | "profile")
+                _ipython_get_flags $mode
+                opts=$"${opts}"
+                ;;
+            *)
+                opts=$baseopts
+        esac
         # don't drop the trailing space
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
+    elif [[ $mode == "profile" ]]; then
+        opts="list create locate"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ $mode == "history" ]]; then
+        opts="trim"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ $mode == "locate" ]]; then
+        opts="profile"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
         if [ -z "$__ipython_complete_pylab" ]; then
             __ipython_complete_pylab=`cat <<EOF | python -
@@ -99,8 +102,10 @@ EOF
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${__ipython_complete_profiles}" -- ${cur}) )
     else
-        if [ -z "$mode" ]; then
-            COMPREPLY=( $(compgen -f -W "${subcommands}" -- ${cur}) )
+        if [ "$COMP_CWORD" == 1 ]; then
+            local IFS=$'\t\n'
+            local sub=$(echo $subcommands | sed -e "s/ / \t/g")
+            COMPREPLY=( $(compgen -W "${sub}" -- ${cur}) )
         else
             COMPREPLY=( $(compgen -f -- ${cur}) )
         fi
