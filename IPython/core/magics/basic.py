@@ -114,6 +114,7 @@ class BasicMagics(Magics):
         Examples
         --------
         ::
+
           In [1]: %alias_magic t timeit
           Created `%t` as an alias for `%timeit`.
           Created `%%t` as an alias for `%%timeit`.
