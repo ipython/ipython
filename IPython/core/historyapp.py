@@ -30,7 +30,7 @@ class HistoryTrim(BaseIPythonApplication):
     
     flags = Dict(dict(
         backup = ({'HistoryTrim' : {'backup' : True}},
-            "Set Application.log_level to 0, maximizing log output."
+            "Keep the old history file as history.sqlite.<N>"
         )
     ))
     
