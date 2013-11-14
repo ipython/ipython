@@ -30,8 +30,12 @@ class HistoryTrim(BaseIPythonApplication):
     
     flags = Dict(dict(
         backup = ({'HistoryTrim' : {'backup' : True}},
-            "Keep the old history file as history.sqlite.<N>"
+            backup.get_metadata('help')
         )
+    ))
+
+    aliases=Dict(dict(
+        keep = 'HistoryTrim.keep'
     ))
     
     def start(self):
@@ -44,7 +48,7 @@ class HistoryTrim(BaseIPythonApplication):
                                 'history ORDER BY session DESC, line DESC LIMIT ?', (self.keep+1,)))
         if len(inputs) <= self.keep:
             print("There are already at most %d entries in the history database." % self.keep)
-            print("Not doing anything.")
+            print("Not doing anything. Use --keep= argument to keep fewer entries")
             return
         
         print("Trimming history to the most recent %d entries." % self.keep)
