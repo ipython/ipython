@@ -60,8 +60,8 @@ define(["notebook/js/widget"], function(){
         update : function(){
 
             var selected_item_text = this.model.get('value');
-            selected_item_text.replace(' ', '');
-            if (selected_item_text == '') {
+            selected_item_text.replace(' ', '&nbsp;');
+            if (selected_item_text.length == 0) {
                 this.$droplabel.html('&nbsp;');
             } else {
                 this.$droplabel.html(this.model.get('value'));    
