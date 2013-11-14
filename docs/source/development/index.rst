@@ -26,3 +26,4 @@ on the IPython GitHub wiki.
    parallel_connections
    pycompat
    config
+   inputhook_app
