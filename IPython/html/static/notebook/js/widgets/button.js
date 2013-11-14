@@ -38,8 +38,8 @@ define(["notebook/js/widget"], function(){
         //          Frontent -> Frontend Sync
         update : function(){
             var description = this.model.get('description');
-            description = description.replace(' ', '&nbsp;');
-            description = description.replace('\n', '<br>\n');
+            description = description.replace(/ /g, '&nbsp;', 'm');
+            description = description.replace(/\n/g, '<br>\n', 'm');
             if (description.length == 0) {
                 this.$el.html('&nbsp;'); // Preserve button height
             } else {
