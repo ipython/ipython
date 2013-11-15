@@ -14,9 +14,9 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager){
     var SelectionWidgetModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
+    widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
 
     var DropdownView = IPython.WidgetView.extend({
         
@@ -106,7 +106,7 @@ define(["notebook/js/widget"], function(){
         
     });
 
-    IPython.widget_manager.register_widget_view('DropdownView', DropdownView);
+    widget_manager.register_widget_view('DropdownView', DropdownView);
 
     var RadioButtonsView = IPython.WidgetView.extend({
         
@@ -191,7 +191,7 @@ define(["notebook/js/widget"], function(){
         
     });
 
-    IPython.widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
+    widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
 
 
     var ToggleButtonsView = IPython.WidgetView.extend({
@@ -273,5 +273,5 @@ define(["notebook/js/widget"], function(){
         
     });
 
-    IPython.widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
+    widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
 });

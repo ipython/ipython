@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager){
     var FloatWidgetModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('FloatWidgetModel', FloatWidgetModel);
+    widget_manager.register_widget_model('FloatWidgetModel', FloatWidgetModel);
 });

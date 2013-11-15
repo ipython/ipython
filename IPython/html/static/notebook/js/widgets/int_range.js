@@ -14,9 +14,9 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager){
     var IntRangeWidgetModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
+    widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
 
     var IntSliderView = IPython.WidgetView.extend({
         
@@ -113,7 +113,7 @@ define(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.widget_manager.register_widget_view('IntSliderView', IntSliderView);
+    widget_manager.register_widget_view('IntSliderView', IntSliderView);
 
     var IntTextView = IPython.WidgetView.extend({
         
@@ -203,5 +203,5 @@ define(["notebook/js/widget"], function(){
         }
     });
 
-    IPython.widget_manager.register_widget_view('IntTextView', IntTextView);
+    widget_manager.register_widget_view('IntTextView', IntTextView);
 });

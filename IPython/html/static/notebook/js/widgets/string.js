@@ -14,9 +14,9 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager){
     var StringWidgetModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
+    widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
 
     var LabelView = IPython.WidgetView.extend({
       
@@ -35,7 +35,7 @@ define(["notebook/js/widget"], function(){
         
     });
 
-    IPython.widget_manager.register_widget_view('LabelView', LabelView);
+    widget_manager.register_widget_view('LabelView', LabelView);
 
     var TextAreaView = IPython.WidgetView.extend({
       
@@ -89,7 +89,7 @@ define(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.widget_manager.register_widget_view('TextAreaView', TextAreaView);
+    widget_manager.register_widget_view('TextAreaView', TextAreaView);
 
     var TextBoxView = IPython.WidgetView.extend({
       
@@ -143,5 +143,5 @@ define(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.widget_manager.register_widget_view('TextBoxView', TextBoxView);
+    widget_manager.register_widget_view('TextBoxView', TextBoxView);
 });

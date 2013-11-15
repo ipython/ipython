@@ -20,4 +20,4 @@ define([
     "notebook/js/widgets/multicontainer",
     "notebook/js/widgets/selection",
     "notebook/js/widgets/string",
-]);
+], function(){ return true; });

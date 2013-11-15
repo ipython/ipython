@@ -14,10 +14,10 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager){
     
     var ButtonWidgetModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
+    widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
 
     var ButtonView = IPython.WidgetView.extend({
       
@@ -51,6 +51,6 @@ define(["notebook/js/widget"], function(){
         
     });
 
-    IPython.widget_manager.register_widget_view('ButtonView', ButtonView);
+    widget_manager.register_widget_view('ButtonView', ButtonView);
 
 });

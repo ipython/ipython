@@ -14,10 +14,10 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager){
     
     var BoolWidgetModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
+    widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
 
     var CheckboxView = IPython.WidgetView.extend({
       
@@ -66,7 +66,7 @@ define(["notebook/js/widget"], function(){
         
     });
 
-    IPython.widget_manager.register_widget_view('CheckboxView', CheckboxView);
+    widget_manager.register_widget_view('CheckboxView', CheckboxView);
 
     var ToggleButtonView = IPython.WidgetView.extend({
       
@@ -119,6 +119,6 @@ define(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
+    widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
 
 });

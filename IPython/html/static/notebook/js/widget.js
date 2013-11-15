@@ -22,7 +22,7 @@
 // elsewhere.
 define(["components/underscore/underscore-min",
          "components/backbone/backbone-min",
-        ], function(){
+        ], function(underscore, backbone){
 
 
     //--------------------------------------------------------------------
@@ -480,6 +480,9 @@ define(["components/underscore/underscore-min",
     IPython.WidgetModel = WidgetModel;
     IPython.WidgetView = WidgetView;
 
-    IPython.widget_manager = new WidgetManager();
-
+    if (IPython.widget_manager==undefined || IPython.widget_manager==null) {
+        IPython.widget_manager = new WidgetManager();    
+    }
+    
+    return IPython.widget_manager;
 });

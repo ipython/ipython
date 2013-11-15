@@ -14,9 +14,9 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(){
+define(["notebook/js/widget"], function(widget_manager) {
     var ContainerModel = IPython.WidgetModel.extend({});
-    IPython.widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
+    widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
 
     var ContainerView = IPython.WidgetView.extend({
         
@@ -58,5 +58,5 @@ define(["notebook/js/widget"], function(){
         },
     });
 
-    IPython.widget_manager.register_widget_view('ContainerView', ContainerView);
+    widget_manager.register_widget_view('ContainerView', ContainerView);
 });
