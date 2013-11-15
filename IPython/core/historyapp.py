@@ -12,6 +12,7 @@ import sqlite3
 from IPython.config.application import Application
 from IPython.core.application import BaseIPythonApplication
 from IPython.utils.traitlets import Bool, Int, Dict
+from IPython.utils.io import ask_yes_no
 
 trim_hist_help = """Trim the IPython history database to the last 1000 entries.
 
@@ -19,6 +20,16 @@ This actually copies the last 1000 entries to a new database, and then replaces
 the old file with the new. Use the `--keep=` argument to specify a number
 other than 1000.
 """
+
+clear_hist_help = """Clear the IPython history database, deleting all entries.
+
+Because this is a destructive operation, IPython will prompt the user if they
+really want to do this. Passing a `-f` flag will force clearing without a
+prompt.
+
+This is an handy alias to `ipython history trim --keep=0`
+"""
+
 
 class HistoryTrim(BaseIPythonApplication):
     description = trim_hist_help
@@ -105,6 +116,27 @@ class HistoryTrim(BaseIPythonApplication):
         
         os.rename(new_hist_file, hist_file)
 
+class HistoryClear(HistoryTrim):
+    description = clear_hist_help
+    keep = Int(0, config=False,
+        help="Number of recent lines to keep in the database.")
+    
+    force = Bool(False, config=True,
+        help="Don't prompt user for confirmation")
+    
+    flags = Dict(dict(
+        force = ({'HistoryClear' : {'force' : True}},
+            force.get_metadata('help')),
+        f = ({'HistoryTrim' : {'force' : True}},
+            force.get_metadata('help')
+        )
+    ))
+    aliases = Dict()
+
+    def start(self):
+        if self.force or ask_yes_no("Really delete all ipython history? ",
+                default="no", interrupt="no"):
+            HistoryTrim.start(self)
 
 class HistoryApp(Application):
     name = u'ipython-history'
@@ -112,6 +144,7 @@ class HistoryApp(Application):
 
     subcommands = Dict(dict(
         trim = (HistoryTrim, HistoryTrim.description.splitlines()[0]),
+        clear = (HistoryClear, HistoryClear.description.splitlines()[0]),
     ))
 
     def start(self):
