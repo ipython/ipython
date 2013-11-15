@@ -122,7 +122,7 @@ def require_clean_submodules():
     this is not a distutils command.
     """
     # PACKAGERS: Add a return here to skip checks for git submodules
-    
+
     # don't do anything if nothing is actually supposed to happen
     for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
         if do_nothing in sys.argv:
@@ -248,7 +248,7 @@ setup_args['cmdclass'] = {
 # If you want a setuptools-enhanced install, just run 'setupegg.py install'
 needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
            'bdist', 'bdist_dumb', 'bdist_wininst', 'install_egg_info',
-           'egg_info', 'easy_install', 'upload',
+           'egg_info', 'easy_install', 'upload', 'bdist_wheel',
             ))
 if sys.platform == 'win32':
     # Depend on setuptools for install on *Windows only*
@@ -268,7 +268,7 @@ if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
-    
+
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
     setup_args['extras_require'] = dict(
@@ -287,7 +287,7 @@ if 'setuptools' in sys.modules:
         for dep in deps:
             everything.add(dep)
     setup_args['extras_require']['all'] = everything
-    
+
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
     if not setupext.check_for_readline():
