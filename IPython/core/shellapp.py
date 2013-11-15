@@ -163,6 +163,11 @@ class InteractiveShellApp(Configurable):
     
     # Extensions that are always loaded (not configurable)
     default_extensions = List(Unicode, [u'storemagic'], config=False)
+    
+    hide_initial_ns = Bool(True, config=True,
+        help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
+        be hidden from tools like %who?"""
+    )
 
     exec_files = List(Unicode, config=True,
         help="""List of files to run at IPython startup."""
@@ -282,15 +287,19 @@ class InteractiveShellApp(Configurable):
         self._run_startup_files()
         self._run_exec_lines()
         self._run_exec_files()
+        
+        # Hide variables defined here from %who etc.
+        if self.hide_initial_ns:
+            self.shell.user_ns_hidden.update(self.shell.user_ns)
+        
+        # command-line execution (ipython -i script.py, ipython -m module)
+        # should *not* be excluded from %whos
         self._run_cmd_line_code()
         self._run_module()
         
         # flush output, so itwon't be attached to the first cell
         sys.stdout.flush()
         sys.stderr.flush()
-        
-        # Hide variables defined here from %who etc.
-        self.shell.user_ns_hidden.update(self.shell.user_ns)
 
     def _run_exec_lines(self):
         """Run lines of code in IPythonApp.exec_lines in the user's namespace."""
