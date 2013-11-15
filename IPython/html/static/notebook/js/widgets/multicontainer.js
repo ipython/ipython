@@ -40,6 +40,19 @@ define(["notebook/js/widget"], function(){
                 }
             }
 
+            // Set selected page
+            var selected_index = this.model.get("selected_index");
+            if (0 <= selected_index && selected_index < this.containers.length) {
+                for (var index in this.containers) {
+                    if (index==selected_index) {
+                        this.containers[index].find('.accordion-body').collapse('show');    
+                    } else {
+                        this.containers[index].find('.accordion-body').collapse('hide');    
+                    }
+                    
+                }
+            }
+            
             return IPython.WidgetView.prototype.update.call(this);
         },
 
@@ -53,11 +66,16 @@ define(["notebook/js/widget"], function(){
             var accordion_heading = $('<div />')
                 .addClass('accordion-heading')
                 .appendTo(accordion_group);
+            var that = this;
             var accordion_toggle = $('<a />')
                 .addClass('accordion-toggle')
                 .attr('data-toggle', 'collapse')
                 .attr('data-parent', '#' + this.$el.attr('id'))
                 .attr('href', '#' + uuid)
+                .click(function(evt){ 
+                    that.model.set("selected_index", index);
+                    that.model.update_other_views(that);
+                 })
                 .html('Page ' + index)
                 .appendTo(accordion_heading);
             var accordion_body = $('<div />', {id: uuid})
@@ -67,9 +85,15 @@ define(["notebook/js/widget"], function(){
                 .addClass('accordion-inner')
                 .appendTo(accordion_body);
             this.containers.push(accordion_group);
-
             accordion_inner.append(view.$el);
+
             this.update();
+
+            // Stupid workaround to close the bootstrap accordion tabs which
+            // open by default even though they don't have the `in` class
+            // attached to them.  For some reason a delay is required.  
+            // TODO: Better fix.
+            setTimeout(function(){that.update()}, 500);
         },
     });
 
@@ -91,7 +115,7 @@ define(["notebook/js/widget"], function(){
 
             this.containers = [];
         },
-        
+
         update: function() {
             // Set tab titles
             var titles = this.model.get('_titles');
@@ -151,5 +175,4 @@ define(["notebook/js/widget"], function(){
     });
 
     IPython.widget_manager.register_widget_view('TabView', TabView);
-
 });
