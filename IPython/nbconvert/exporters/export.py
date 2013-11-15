@@ -37,7 +37,7 @@ def DocDecorator(f):
     
     #Set docstring of function
     f.__doc__ = f.__doc__ + """
-    nb : :class:`~IPython.nbformat.v3.nbbase.NotebookNode`
+    nb : :class:`~{nbnode_mod}.NotebookNode`
       The notebook to export.
     config : config (optional, keyword arg)
         User configuration instance.
@@ -60,7 +60,7 @@ def DocDecorator(f):
     Notes
     -----
     WARNING: API WILL CHANGE IN FUTURE RELEASES OF NBCONVERT
-    """
+    """.format(nbnode_mod=NotebookNode.__module__)
             
     @wraps(f)
     def decorator(*args, **kwargs):
