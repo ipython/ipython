@@ -274,4 +274,82 @@ define(["notebook/js/widget"], function(widget_manager){
     });
 
     widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
+
+    var ListBoxView = IPython.WidgetView.extend({
+        
+        // Called when view is rendered.
+        render : function(){
+            this.$el
+                .addClass('widget-hbox')
+                .html('');
+            this.$label = $('<div />')
+                .appendTo(this.$el)
+                .addClass('widget-hlabel')
+                .hide();
+            this.$listbox = $('<select />')
+                .addClass('widget-listbox')
+                .attr('size', 6)
+                .appendTo(this.$el);
+            this.$el_to_style = this.$listbox; // Set default element to style
+            this.update();
+        },
+        
+        // Handles: Backend -> Frontend Sync
+        //          Frontent -> Frontend Sync
+        update : function(){
+            
+            // Add missing items to the DOM.
+            var items = this.model.get('values');
+            for (var index in items) {
+                var item_query = ' :contains("' + items[index] + '")';
+                if (this.$listbox.find(item_query).length == 0) {
+                    
+                    var that = this;
+                    $('<option />')
+                        .html(items[index])
+                        .attr('value', items[index])
+                        .appendTo(this.$listbox)
+                        .on('click', function(e){
+                            that.model.set('value', $(e.target).html(), this);
+                            that.model.update_other_views(that);
+                        });
+                }
+            }
+
+            // Select the correct element
+            this.$listbox.val(this.model.get('value'));
+            
+            // Disable listbox if needed
+            var disabled = this.model.get('disabled');
+            this.$listbox.prop('disabled', disabled);
+
+            // Remove items that no longer exist.
+            this.$listbox.find('option').each(function(i, obj) {
+                var value = $(obj).html();
+                var found = false;
+                for (var index in items) {
+                    if (items[index] == value) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    $(obj).remove();
+                }
+            });
+
+            var description = this.model.get('description');
+            if (description.length == 0) {
+                this.$label.hide();
+            } else {
+                this.$label.html(description);
+                this.$label.show();
+            }
+            return IPython.WidgetView.prototype.update.call(this);
+        },
+        
+    });
+
+    widget_manager.register_widget_view('ListBoxView', ListBoxView);
 });
