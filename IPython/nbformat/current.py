@@ -30,6 +30,7 @@ from IPython.nbformat.v3 import (
     parse_filename, new_metadata, new_author, new_heading_cell, nbformat,
     nbformat_minor, to_notebook_json
 )
+from IPython.nbformat import v3 as _v_latest
 
 from .reader import reads as reader_reads
 from .reader import versions
@@ -41,6 +42,16 @@ from .convert import convert
 
 current_nbformat = nbformat
 current_nbformat_minor = nbformat_minor
+current_nbformat_module = _v_latest.__name__
+
+def docstring_nbformat_mod(func):
+    """Decorator for docstrings referring to classes/functions accessed through
+    nbformat.current.
+
+    Put {nbformat_mod} in the docstring in place of 'IPython.nbformat.v3'.
+    """
+    func.__doc__ = func.__doc__.format(nbformat_mod=current_nbformat_module)
+    return func
 
 
 class NBFormatError(ValueError):

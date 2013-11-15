@@ -32,9 +32,6 @@ from IPython.utils.traitlets import MetaHasTraits, Unicode, List
 from IPython.utils.importstring import import_item
 from IPython.utils import text, py3compat
 
-from IPython.nbconvert import preprocessors as nbpreprocessors
-
-
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
@@ -96,14 +93,14 @@ class Exporter(LoggingConfigurable):
     def default_config(self):
         return Config()
 
-
+    @nbformat.docstring_nbformat_mod
     def from_notebook_node(self, nb, resources=None, **kw):
         """
         Convert a notebook from a notebook node instance.
 
         Parameters
         ----------
-        nb : :class:`~IPython.nbformat.v3.nbbase.NotebookNode`
+        nb : :class:`~{nbformat_mod}.nbbase.NotebookNode`
           Notebook node
         resources : dict
           Additional resources that can be accessed read/write by
