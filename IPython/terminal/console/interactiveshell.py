@@ -121,7 +121,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
         This creates completion machinery that can be used by client code,
         either interactively in-process (typically triggered by the readline
-        library), programatically (such as in test suites) or out-of-prcess
+        library), programmatically (such as in test suites) or out-of-process
         (typically over the network by remote frontends).
         """
         from IPython.core.completerlib import (module_completer,
@@ -140,6 +140,11 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # itself may be absent
         if self.has_readline:
             self.set_readline_completer()
+    
+    def ask_exit(self):
+        super(ZMQTerminalInteractiveShell, self).ask_exit()
+        if self.exit_now and self.manager:
+            self.client.shutdown()
     
     def run_cell(self, cell, store_history=True):
         """Run a complete IPython cell.
