@@ -50,8 +50,16 @@ _ipython()
                 _ipython_get_flags $mode
                 opts=$"${opts} ${baseopts}"
                 ;;
-            "locate" | "history" | "profile")
+            "locate" | "profile")
                 _ipython_get_flags $mode
+                ;;
+            "history")
+                if [[ "${COMP_WORDS[2]}" == "trim" ]]; then
+                    _ipython_get_flags "history trim"
+                else
+                    _ipython_get_flags $mode
+
+                fi
                 opts=$"${opts}"
                 ;;
             *)
@@ -65,8 +73,11 @@ _ipython()
         opts="list create locate"
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ $mode == "history" ]]; then
-        opts="trim"
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        if [[ "${COMP_WORDS[2]}" == "trim" ]]; then
+            COMPREPLY="--"
+        else
+            COMPREPLY="trim "
+        fi
     elif [[ $mode == "locate" ]]; then
         opts="profile"
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
