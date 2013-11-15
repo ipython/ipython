@@ -299,7 +299,7 @@ define(["components/underscore/underscore-min",
         _get_output_area: function (msg_id) {
 
             // First, check to see if the msg was triggered by cell execution.
-            var cell = IPython.notebook.get_msg_cell();
+            var cell = IPython.notebook.get_msg_cell(msg_id);
             if (cell != null) {
                 return cell.output_area;
             }
