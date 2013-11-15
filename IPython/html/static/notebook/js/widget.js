@@ -298,25 +298,30 @@ define(["components/underscore/underscore-min",
         // output_area is an instance of Ipython.OutputArea
         _get_output_area: function (msg_id) {
 
-            // First, guess cell.execute triggered
-            var cells = IPython.notebook.get_cells();
-            for (var cell_index in cells) {
-                if (cells[cell_index].last_msg_id == msg_id) {
-                    var cell = IPython.notebook.get_cell(cell_index)
-                    return cell.output_area;
-                }
+            // First, check to see if the msg was triggered by cell execution.
+            var cell = IPython.notebook.get_msg_cell();
+            if (cell != null) {
+                return cell.output_area;
             }
 
-            // Second, guess widget triggered
-            var callbacks = this.comm_manager.kernel.get_callbacks_for_msg(msg_id)
-            if (callbacks != undefined && callbacks.iopub != undefined && callbacks.iopub.get_output_area != undefined) {
+            // Second, check to see if a get_output_area callback was defined
+            // for the message.  get_output_area callbacks are registered for
+            // widget messages, so this block is actually checking to see if the
+            // message was triggered by a widget.
+            var kernel = this.comm_manager.kernel;
+            var callbacks = kernel.get_callbacks_for_msg(msg_id);
+            if (callbacks != undefined && 
+                callbacks.iopub != undefined && 
+                callbacks.iopub.get_output_area != undefined) {
+
                 var output_area = callbacks.iopub.get_output_area();
                 if (output_area != null) {
                     return output_area;
                 }
             }
             
-            // Not triggered by a widget or a cell
+            // Not triggered by a cell or widget (no get_output_area callback 
+            // exists).
             return null;
         },
 
