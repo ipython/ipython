@@ -54,7 +54,7 @@ _ipython()
                 _ipython_get_flags $mode
                 ;;
             "history")
-                if [[ $COMP_CWORD -ge 2 ]]; then
+                if [[ $COMP_CWORD -ge 3 ]]; then
                     # 'history trim' and 'history clear' covered by next line
                     _ipython_get_flags history\ "${COMP_WORDS[2]}"
                 else
