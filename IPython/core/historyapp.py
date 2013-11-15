@@ -56,11 +56,12 @@ class HistoryTrim(BaseIPythonApplication):
         
         inputs.pop() # Remove the extra element we got to check the length.
         inputs.reverse()
-        first_session = inputs[0][0]
-        outputs = list(con.execute('SELECT session, line, output FROM '
-                                   'output_history WHERE session >= ?', (first_session,)))
-        sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
-                                    'sessions WHERE session >= ?', (first_session,)))
+        if inputs:
+            first_session = inputs[0][0]
+            outputs = list(con.execute('SELECT session, line, output FROM '
+                                       'output_history WHERE session >= ?', (first_session,)))
+            sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
+                                        'sessions WHERE session >= ?', (first_session,)))
         con.close()
         
         # Create the new history database.
@@ -83,11 +84,12 @@ class HistoryTrim(BaseIPythonApplication):
         new_db.commit()
 
 
-        with new_db:
-            # Add the recent history into the new database.
-            new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
-            new_db.executemany('insert into history values (?,?,?,?)', inputs)
-            new_db.executemany('insert into output_history values (?,?,?)', outputs)
+        if inputs:
+            with new_db:
+                # Add the recent history into the new database.
+                new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
+                new_db.executemany('insert into history values (?,?,?,?)', inputs)
+                new_db.executemany('insert into output_history values (?,?,?)', outputs)
         new_db.close()
 
         if self.backup:
