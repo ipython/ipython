@@ -128,7 +128,7 @@ def _load_ips_ipconfig():
         raise IOError("no ipconfig: %s" % err)
     
     lines = out.splitlines()
-    addrs = ['127.0.0.1']
+    addrs = []
     for line in lines:
         m = _ipconfig_ipv4_pat.match(line.strip())
         if m:
