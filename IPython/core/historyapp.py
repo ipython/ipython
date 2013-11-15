@@ -16,7 +16,8 @@ from IPython.utils.traitlets import Bool, Int, Dict
 trim_hist_help = """Trim the IPython history database to the last 1000 entries.
 
 This actually copies the last 1000 entries to a new database, and then replaces
-the old file with the new.
+the old file with the new. Use the `--keep=` argument to specify a number
+other than 1000.
 """
 
 class HistoryTrim(BaseIPythonApplication):
