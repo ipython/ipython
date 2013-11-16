@@ -38,7 +38,8 @@ from pygments.token import (
 )
 from pygments.util import get_bool_opt
 
-
+# Local
+from IPython.testing.skipdoctest import skip_doctest
 
 line_re = re.compile('.*?\n')
 
@@ -170,34 +171,36 @@ class IPythonTracebackLexer(DelegatingLexer):
         DelegatingLexer.__init__(self, IPyLexer,
                                  IPythonPartialTracebackLexer, **options)
 
-
+@skip_doctest
 class IPythonConsoleLexer(Lexer):
     """
-    An IPython console lexer for IPython code-blocks and doctests, such as:
+    An IPython console lexer for IPython code-blocks and doctests, such as::
 
-    .. sourcecode:: ipythoncon
+        .. sourcecode:: ipythoncon
 
-        In [1]: a = 'foo'
+            In [1]: a = 'foo'
 
-        In [2]: a
-        Out[2]: 'foo'
+            In [2]: a
+            Out[2]: 'foo'
 
-        In [3]: print a
-        foo
+            In [3]: print a
+            foo
 
-        In [4]: 1 / 0
+            In [4]: 1 / 0
 
-    Support is also provided for IPython exceptions.
 
-    .. code-block:: ipythoncon
 
-        In [1]: raise Exception
-        ---------------------------------------------------------------------------
-        Exception                                 Traceback (most recent call last)
-        <ipython-input-1-fca2ab0ca76b> in <module>()
-        ----> 1 raise Exception
+    Support is also provided for IPython exceptions. ::
 
-        Exception:
+        .. code-block:: ipythoncon
+
+            In [1]: raise Exception
+            ---------------------------------------------------------------------------
+            Exception                                 Traceback (most recent call last)
+            <ipython-input-1-fca2ab0ca76b> in <module>()
+            ----> 1 raise Exception
+
+            Exception:
 
     """
     name = 'IPython console session'
