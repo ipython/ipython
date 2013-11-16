@@ -174,9 +174,11 @@ class IPythonTracebackLexer(DelegatingLexer):
 @skip_doctest
 class IPythonConsoleLexer(Lexer):
     """
-    An IPython console lexer for IPython code-blocks and doctests, such as::
+    An IPython console lexer for IPython code-blocks and doctests, such as:
 
-        .. sourcecode:: ipythoncon
+    .. code-block:: rst
+
+        .. code-block:: ipythoncon
 
             In [1]: a = 'foo'
 
@@ -189,8 +191,9 @@ class IPythonConsoleLexer(Lexer):
             In [4]: 1 / 0
 
 
+    Support is also provided for IPython exceptions:
 
-    Support is also provided for IPython exceptions. ::
+    .. code-block:: rst
 
         .. code-block:: ipythoncon
 
