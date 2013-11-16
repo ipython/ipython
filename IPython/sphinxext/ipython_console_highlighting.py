@@ -23,5 +23,5 @@ ipy = IPyLexer(python3=False)
 ipy3 = IPyLexer(python3=True)
 ipy3.aliases = ['ipy3']
 
-highlighting.lexers['ipy'] = ipy
-highlighting.lexers['ipy3'] = ipy3
+highlighting.lexers['ipython'] = ipy
+highlighting.lexers['ipython3'] = ipy3

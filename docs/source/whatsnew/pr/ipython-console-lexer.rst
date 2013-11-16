@@ -2,7 +2,7 @@ New IPython Console Lexer
 -------------------------
 
 The IPython console lexer has been rewritten and now supports tracebacks
-and customized input/output prompts. An entire suite of lexers are now
+and customized input/output prompts. An entire suite of lexers is now
 available at :module:`IPython.nbconvert.utils.lexers`. These include:
 
     IPythonLexer
