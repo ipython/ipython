@@ -312,8 +312,11 @@ class DisplayObject(object):
                 self.data = f.read()
         elif self.url is not None:
             try:
-                import urllib2
-                response = urllib2.urlopen(self.url)
+                try:
+                    from urllib.request import urlopen  # Py3
+                except ImportError:
+                    from urllib2 import urlopen
+                response = urlopen(self.url)
                 self.data = response.read()
                 # extract encoding from header, if there is one:
                 encoding = None

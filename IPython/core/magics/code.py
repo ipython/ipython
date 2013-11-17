@@ -235,7 +235,11 @@ class CodeMagics(Magics):
             print(e.args[0])
             return
 
-        from urllib2 import urlopen  # Deferred import
+        # Deferred import
+        try:
+            from urllib.request import urlopen # Py 3
+        except ImportError:
+            from urllib2 import urlopen
         import json
         post_data = json.dumps({
           "description": opts.get('d', "Pasted from IPython"),
