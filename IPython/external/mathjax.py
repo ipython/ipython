@@ -58,10 +58,14 @@ import os
 import shutil
 import sys
 import tarfile
-import urllib2
 import zipfile
 
 from IPython.utils.path import get_ipython_dir
+
+try:
+    from urllib.request import urlopen # Py 3
+except ImportError:
+    from urllib2 import urlopen
 
 #-----------------------------------------------------------------------------
 #
@@ -167,7 +171,7 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
         # download mathjax
         mathjax_url = "https://github.com/mathjax/MathJax/archive/%s.tar.gz" %tag
         print("Downloading mathjax source from %s" % mathjax_url)
-        response = urllib2.urlopen(mathjax_url)
+        response = urlopen(mathjax_url)
         file = response.fp
 
     print("Extracting to %s" % dest)

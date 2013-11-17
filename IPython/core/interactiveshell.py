@@ -3088,7 +3088,11 @@ class InteractiveShell(SingletonConfigurable):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError:
             if not py_only :
-                from urllib import urlopen  # Deferred import
+                # Deferred import
+                try:
+                    from urllib.request import urlopen  # Py3
+                except ImportError:
+                    from urllib import urlopen
                 response = urlopen(target)
                 return response.read().decode('latin1')
             raise ValueError(("'%s' seem to be unreadable.") % utarget)

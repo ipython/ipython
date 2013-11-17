@@ -183,7 +183,10 @@ class IFrame(object):
     def _repr_html_(self):
         """return the embed iframe"""
         if self.params:
-            from urllib import urlencode
+            try:
+                from urllib.parse import urlencode # Py 3
+            except ImportError:
+                from urllib import urlencode
             params = "?" + urlencode(self.params)
         else:
             params = ""
