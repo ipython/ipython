@@ -84,6 +84,7 @@ define(["components/underscore/underscore-min",
                     view.remove();
                 }
             }
+            delete this.comm.model; // Delete ref so GC will collect widget model.
         },
 
 
@@ -308,6 +309,7 @@ define(["components/underscore/underscore-min",
                             }
                         }
                         that.comm.close();     
+                        delete that.comm.model; // Delete ref so GC will collect widget model.
                     }
                 });
                 return view;    
