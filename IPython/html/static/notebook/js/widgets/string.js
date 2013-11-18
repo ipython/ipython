@@ -113,7 +113,7 @@ define(["notebook/js/widget"], function(widget_manager){
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
         update : function(){
-            if (!this.user_invoked_update) {
+            if (this.$textbox.val() != this.model.get('value')) {
                 this.$textbox.val(this.model.get('value'));
             }
 
@@ -137,19 +137,15 @@ define(["notebook/js/widget"], function(widget_manager){
         
         // Handles and validates user input.
         handleChanging: function(e) { 
-            this.user_invoked_update = true;
             this.model.set('value', e.target.value);
             this.model.update_other_views(this);
-            this.user_invoked_update = false;
         },
         
         // Handles text submition
         handleKeypress: function(e) { 
             if (e.keyCode == 13) { // Return key
-                this.user_invoked_update = true;
                 this.model.set('submits', this.model.get('submits') + 1);
                 this.model.update_other_views(this);
-                this.user_invoked_update = false;
             }
         },
     });

@@ -58,7 +58,7 @@ class Widget(LoggingConfigurable):
                 old._children.remove(self)                
 
     # Private/protected declarations
-    _property_lock = False
+    _property_lock = (None, None) # Last updated (key, value) from the front-end.  Prevents echo.
     _css = Dict() # Internal CSS property dict
     _add_class = List() # Used to add a js class to a DOM element (call#, selector, class_name)
     _remove_class = List() # Used to remove a js class from a DOM element (call#, selector, class_name)
@@ -153,20 +153,21 @@ class Widget(LoggingConfigurable):
     
     def _handle_recieve_state(self, sync_data):
         """Called when a state is recieved from the frontend."""
-        self._property_lock = True
-        try:
-            
-            # Use _keys instead of keys - Don't get retrieve the css from the client side.
-            for name in self._keys:
-                if name in sync_data:
+        # Use _keys instead of keys - Don't get retrieve the css from the client side.
+        for name in self._keys:
+            if name in sync_data:
+                try:
+                    self._property_lock = (name, sync_data[name])
                     setattr(self, name, sync_data[name])
-        finally:
-            self._property_lock = False
+                finally:
+                    self._property_lock = (None, None)
     
     
     def _handle_property_changed(self, name, old, new):
         """Called when a proeprty has been changed."""
-        if not self._property_lock and self._comm is not None:
+        # Make sure this isn't information that the front-end just sent us.
+        if self._property_lock[0] != name and self._property_lock[1] != new \
+        and self._comm is not None:
             # TODO: Validate properties.
             # Send new state to frontend
             self.send_state(key=name)
