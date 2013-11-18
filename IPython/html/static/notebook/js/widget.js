@@ -63,16 +63,47 @@ define(["components/underscore/underscore-min",
                 }
             }
         },
+    
+        send = function (content) {
+
+            // Used the last modified view as the sender of the message.  This
+            // will insure that any python code triggered by the sent message
+            // can create and display widgets and output.
+            var cell = null;
+            if (this.last_modified_view != undefined && 
+                this.last_modified_view.cell != undefined) {
+                cell = this.last_modified_view.cell;
+            }
+            var callbacks = this._make_callbacks(cell);
+            var data = {custom_content: content};
+            this.comm.send(data, callbacks);   
+        },
 
 
         on_view_displayed: function (callback) {
             this._view_displayed_callback = callback;
-        }
+        },
 
 
         on_close: function (callback) {
             this._close_callback = callback;
-        }
+        },
+
+
+        on_msg: function (callback) {
+            this._msg_callback = callback;
+        },
+
+
+        _handle_custom_msg: function (content) {
+            if (this._msg_callback) {
+                try {
+                    this._msg_callback(content);
+                } catch (e) {
+                    console.log("Exception in widget model msg callback", e, content);
+                }
+            }
+        },
 
 
         // Handle when a widget is closed.
@@ -107,6 +138,9 @@ define(["components/underscore/underscore-min",
                     break;
                 case 'update':
                     this._handle_update(msg.content.data.state);
+                    break;
+                case 'custom':
+                    this._handle_custom_msg(msg.content.data.custom_content);
                     break;
             }
         },
@@ -225,7 +259,7 @@ define(["components/underscore/underscore-min",
                     console.log("Exception in widget model view displayed callback", e, view, this);
                 }
             }
-        }
+        },
 
 
         // Create view that represents the model.

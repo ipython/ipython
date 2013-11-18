@@ -83,6 +83,7 @@ class Widget(LoggingConfigurable):
         self._add_class = [0]
         self._remove_class = [0]
         self._display_callbacks = []
+        self._msg_callbacks = []
         super(Widget, self).__init__(**kwargs)
                 
         # Register after init to allow default values to be specified
@@ -116,10 +117,38 @@ class Widget(LoggingConfigurable):
     # Event handlers
     def _handle_msg(self, msg):
         """Called when a msg is recieved from the frontend"""
+        data = msg['content']['data']
+
         # Handle backbone sync methods CREATE, PATCH, and UPDATE
-        sync_method = msg['content']['data']['sync_method']
-        sync_data = msg['content']['data']['sync_data']
-        self._handle_recieve_state(sync_data) # handles all methods
+        if 'sync_method' in data and 'sync_data' in data:
+            sync_method = data['sync_method']
+            sync_data = data['sync_data']
+            self._handle_recieve_state(sync_data) # handles all methods
+
+        # Handle a custom msg from the front-end
+        if 'custom_content' in data:
+            self._handle_custom_msg(data['custom_content'])
+
+
+    def _handle_custom_msg(self, content):
+        """Called when a custom msg is recieved."""
+        for handler in self._msg_callbacks:
+            if callable(handler):
+                argspec = inspect.getargspec(handler)
+                nargs = len(argspec[0])
+
+                # Bound methods have an additional 'self' argument
+                if isinstance(handler, types.MethodType):
+                    nargs -= 1
+
+                # Call the callback
+                if nargs == 1:
+                    handler(content)
+                elif nargs == 2:
+                    handler(self, content)
+                else:
+                    raise TypeError('Widget msg callback must ' \
+                        'accept 1 or 2 arguments, not %d.' % nargs)
     
     
     def _handle_recieve_state(self, sync_data):
@@ -146,6 +175,34 @@ class Widget(LoggingConfigurable):
     def _handle_close(self):
         """Called when the comm is closed by the frontend."""
         self._comm = None
+
+
+    def _handle_displayed(self, view_name):
+        """Called when a view has been displayed for this widget instance
+
+        Parameters
+        ----------
+        view_name: unicode
+            Name of the view that was displayed."""
+        for handler in self._display_callbacks:
+            if callable(handler):
+                argspec = inspect.getargspec(handler)
+                nargs = len(argspec[0])
+
+                # Bound methods have an additional 'self' argument
+                if isinstance(handler, types.MethodType):
+                    nargs -= 1
+
+                # Call the callback
+                if nargs == 0:
+                    handler()
+                elif nargs == 1:
+                    handler(self)
+                elif nargs == 2:
+                    handler(self, view_name)
+                else:
+                    raise TypeError('Widget display callback must ' \
+                        'accept 0-2 arguments, not %d.' % nargs)
     
     
     # Public methods
@@ -271,6 +328,36 @@ class Widget(LoggingConfigurable):
         self.send_state(key='_remove_class')
 
 
+    def send(self, content):
+        """Sends a custom msg to the widget model in the front-end.
+
+        Parameters
+        ----------
+        content : dict
+            Content of the message to send.
+        """
+        if self._comm is not None:
+            self._comm.send({"method": "custom",
+                            "custom_content": content})
+
+
+    def on_msg(self, callback, remove=False):
+        """Register a callback for when a custom msg is recieved from the front-end
+
+        Parameters
+        ----------
+        callback: method handler
+            Can have a signature of:
+            - callback(content)
+            - callback(sender, content)
+        remove: bool
+            True if the callback should be unregistered."""
+        if remove and callback in self._msg_callbacks:
+            self._msg_callbacks.remove(callback)
+        elif not remove and not callback in self._msg_callbacks:
+            self._msg_callbacks.append(callback)
+
+
     def on_displayed(self, callback, remove=False):
         """Register a callback to be called when the widget has been displayed
 
@@ -283,38 +370,10 @@ class Widget(LoggingConfigurable):
             - callback(sender, view_name)
         remove: bool
             True if the callback should be unregistered."""
-        if remove:
+        if remove and callback in self._display_callbacks:
             self._display_callbacks.remove(callback)
-        elif not callback in self._display_callbacks:
+        elif not remove and not callback in self._display_callbacks:
             self._display_callbacks.append(callback)
-
-
-    def handle_displayed(self, view_name):
-        """Called when a view has been displayed for this widget instance
-
-        Parameters
-        ----------
-        view_name: unicode
-            Name of the view that was displayed."""
-        for handler in self._display_callbacks:
-            if callable(handler):
-                argspec = inspect.getargspec(handler)
-                nargs = len(argspec[0])
-
-                # Bound methods have an additional 'self' argument
-                if isinstance(handler, types.MethodType):
-                    nargs -= 1
-
-                # Call the callback
-                if nargs == 0:
-                    handler()
-                elif nargs == 1:
-                    handler(self)
-                elif nargs == 2:
-                    handler(self, view_name)
-                else:
-                    raise TypeError('Widget display callback must ' \
-                        'accept 0-2 arguments, not %d.' % nargs)
 
 
     # Support methods
@@ -347,7 +406,7 @@ class Widget(LoggingConfigurable):
                             "view_name": view_name,
                             "parent": self.parent._comm.comm_id})
         self._displayed = True
-        self.handle_displayed(view_name)
+        self._handle_displayed(view_name)
 
         # Now display children if any.
         for child in self._children:
