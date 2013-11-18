@@ -1,0 +1,1 @@
+* You can now run notebooks in an interactive session via ``%run notebook.ipynb``.
