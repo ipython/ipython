@@ -460,13 +460,30 @@ define(["components/underscore/underscore-min",
             return IPython.notebook.get_msg_cell(msg_id);
         }
     }
+    
+    
+    WidgetManager.prototype.on_create_widget = function (callback) {
+        this._create_widget_callback = callback;
+    }
+
+
+    WidgetManager.prototype._handle_create_widget = function (widget_model) {
+        if (this._create_widget_callback) {
+            try {
+                this._create_widget_callback(widget_model);
+            } catch (e) {
+                console.log("Exception in WidgetManager callback", e, widget_model);
+            }
+        }
+    }
 
 
     WidgetManager.prototype._handle_com_open = function (comm, msg) {
         var widget_type_name = msg.content.target_name;
         var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this);
+        this._handle_create_widget(widget_model);
     }
-
+    
 
     //--------------------------------------------------------------------
     // Init code
