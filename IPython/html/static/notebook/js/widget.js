@@ -435,7 +435,7 @@ define(["components/underscore/underscore-min",
 
         // Register already register widget model types with the comm manager.
         for (var widget_model_name in this.widget_model_types) {
-            this.comm_manager.register_target(widget_model_name, $.proxy(this.handle_com_open, this));
+            this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_com_open, this));
         }
     }
 
@@ -444,7 +444,7 @@ define(["components/underscore/underscore-min",
         // Register the widget with the comm manager.  Make sure to pass this object's context
         // in so `this` works in the call back.
         if (this.comm_manager!=null) {
-            this.comm_manager.register_target(widget_model_name, $.proxy(this.handle_com_open, this));
+            this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_com_open, this));
         }
         this.widget_model_types[widget_model_name] = widget_model_type;
     }
@@ -455,16 +455,16 @@ define(["components/underscore/underscore-min",
     }
 
 
-    WidgetManager.prototype.handle_com_open = function (comm, msg) {
-        var widget_type_name = msg.content.target_name;
-        var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this);
-    }
-
-
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
         if (IPython.notebook != undefined && IPython.notebook != null) {
             return IPython.notebook.get_msg_cell(msg_id);
         }
+    }
+
+
+    WidgetManager.prototype._handle_com_open = function (comm, msg) {
+        var widget_type_name = msg.content.target_name;
+        var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this);
     }
 
 
