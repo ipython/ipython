@@ -203,6 +203,7 @@ define(["components/underscore/underscore-min",
         _display_view: function (view_name, parent_comm_id, cell) {
             var new_views = [];
 
+            // Try creating and adding the view to it's parent.
             var displayed = false;
             if (parent_comm_id != undefined) {
                 var parent_comm = this.comm_manager.comms[parent_comm_id];
@@ -221,9 +222,9 @@ define(["components/underscore/underscore-min",
                 }
             }
 
+            // If no parent view is defined or exists.  Add the view's 
+            // element to cell's widget div.
             if (!displayed) {
-                // No parent view is defined or exists.  Add the view's 
-                // element to cell's widget div.
                 var view = this._create_view(view_name, cell);
                 if (view != null) {
                     new_views.push(view);
@@ -235,6 +236,7 @@ define(["components/underscore/underscore-min",
                 }
             }
 
+            // Force the new view(s) to update their selves
             for (var view_index in new_views) {
                 var view = new_views[view_index];
                 view.update();
