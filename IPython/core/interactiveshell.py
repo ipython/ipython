@@ -2536,13 +2536,13 @@ class InteractiveShell(SingletonConfigurable):
                 self.showtraceback()
 
     def safe_execfile_ipy(self, fname):
-        """Like safe_execfile, but for .ipy files with IPython syntax.
+        """Like safe_execfile, but for .ipy or .ipynb files with IPython syntax.
 
         Parameters
         ----------
         fname : str
             The name of the file to execute.  The filename must have a
-            .ipy extension.
+            .ipy or .ipynb extension.
         """
         fname = os.path.abspath(os.path.expanduser(fname))
 
@@ -2558,15 +2558,29 @@ class InteractiveShell(SingletonConfigurable):
         # behavior of running a script from the system command line, where
         # Python inserts the script's directory into sys.path
         dname = os.path.dirname(fname)
+        
+        def get_cells():
+            """generator for sequence of code blocks to run"""
+            if fname.endswith('.ipynb'):
+                from IPython.nbformat import current
+                with open(fname) as f:
+                    nb = current.read(f, 'json')
+                    if not nb.worksheets:
+                        return
+                    for cell in nb.worksheets[0].cells:
+                        yield cell.input
+            else:
+                with open(fname) as f:
+                    yield f.read()
 
         with prepended_to_syspath(dname):
             try:
-                with open(fname) as thefile:
+                for cell in get_cells():
                     # self.run_cell currently captures all exceptions
                     # raised in user code.  It would be nice if there were
-                    # versions of runlines, execfile that did raise, so
+                    # versions of run_cell that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read(), store_history=False, shell_futures=False)
+                    self.run_cell(cell, store_history=False, shell_futures=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)

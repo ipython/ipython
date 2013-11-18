@@ -552,7 +552,7 @@ python-profiler package from non-free.""")
           details on the options available specifically for profiling.
 
         There is one special usage for which the text above doesn't apply:
-        if the filename ends with .ipy, the file is run as ipython script,
+        if the filename ends with .ipy[nb], the file is run as ipython script,
         just as if the commands were written on IPython prompt.
 
         -m
@@ -596,7 +596,7 @@ python-profiler package from non-free.""")
             error(msg)
             return
 
-        if filename.lower().endswith('.ipy'):
+        if filename.lower().endswith(('.ipy', '.ipynb')):
             with preserve_keys(self.shell.user_ns, '__file__'):
                 self.shell.user_ns['__file__'] = filename
                 self.shell.safe_execfile_ipy(filename)

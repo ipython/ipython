@@ -370,6 +370,23 @@ tclass.py: deleting object: C-third
         
         with tt.AssertNotPrints('SystemExit'):
             _ip.magic('run -e %s' % self.fname)
+    
+    def test_run_nb(self):
+        """Test %run notebook.ipynb"""
+        from IPython.nbformat import current
+        nb = current.new_notebook(
+            worksheets=[
+                current.new_worksheet(cells=[
+                    current.new_code_cell("answer=42")
+                ])
+            ]
+        )
+        src = current.writes(nb, 'json')
+        self.mktmp(src, ext='.ipynb')
+        
+        _ip.magic("run %s" % self.fname)
+        
+        nt.assert_equal(_ip.user_ns['answer'], 42)
         
 
 
