@@ -371,7 +371,7 @@ define(["components/underscore/underscore-min",
                     iopub : {
                         output : handle_output,
                         clear_output : handle_clear_output,
-                        
+
                         status : function(msg){
                             that._handle_status(cell, msg);
                         },
@@ -447,7 +447,7 @@ define(["components/underscore/underscore-min",
             if (this.model.css != undefined) {
                 for (var selector in this.model.css) {
                     if (this.model.css.hasOwnProperty(selector)) {
-                        
+
                         // Apply the css traits to all elements that match the selector.
                         var elements = this._get_selector_element(selector);
                         if (elements.length > 0) {
@@ -588,6 +588,6 @@ define(["components/underscore/underscore-min",
     if (IPython.widget_manager==undefined || IPython.widget_manager==null) {
         IPython.widget_manager = new WidgetManager();    
     }
-    
+
     return IPython.widget_manager;
 });
