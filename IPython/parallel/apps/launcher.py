@@ -1308,9 +1308,10 @@ class HTCondorLauncher(BatchSystemLauncher):
     this - the mechanism of shebanged scripts means that the python binary will be 
     launched with argv[0] set to the *location of the ip{cluster, engine, controller} 
     scripts on the remote node*. This means you need to take care that:
-      a. Your remote nodes have their paths configured correctly, with the ipengine and ipcontroller
-         of the python environment you wish to execute code in having top precedence.
-      b. This functionality is untested on Windows.
+
+    a. Your remote nodes have their paths configured correctly, with the ipengine and ipcontroller
+       of the python environment you wish to execute code in having top precedence.
+    b. This functionality is untested on Windows.
 
     If you need different behavior, consider making you own template.
     """

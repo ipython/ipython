@@ -77,7 +77,7 @@ nbconvert_flags.update({
 
 
 class NbConvertApp(BaseIPythonApplication):
-    """Application used to convert to and from notebook file type (*.ipynb)"""
+    """Application used to convert from notebook file type (``*.ipynb``)"""
 
     name = 'ipython-nbconvert'
     aliases = nbconvert_aliases

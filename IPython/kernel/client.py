@@ -102,7 +102,7 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
         This will create the channels if they do not exist and then start
         them (their activity runs in a thread). If port numbers of 0 are
         being used (random ports) then you must first call
-        :method:`start_kernel`. If the channels have been stopped and you
+        :meth:`start_kernel`. If the channels have been stopped and you
         call this, :class:`RuntimeError` will be raised.
         """
         if shell:

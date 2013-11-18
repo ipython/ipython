@@ -761,8 +761,8 @@ class Instance(ClassBasedTraitType):
         allow_none : bool
             Indicates whether None is allowed as a value.
 
-        Default Value
-        -------------
+        Notes
+        -----
         If both ``args`` and ``kw`` are None, then the default value is None.
         If ``args`` is a tuple and ``kw`` is a dict, then the default is
         created as ``klass(*args, **kw)``.  If either ``args`` or ``kw`` is

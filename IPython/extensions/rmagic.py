@@ -75,6 +75,7 @@ from IPython.core.magic_arguments import (
 from IPython.external.simplegeneric import generic
 from IPython.utils.py3compat import (str_to_unicode, unicode_to_str, PY3,
                                      unicode_type)
+from IPython.utils.text import dedent
 
 class RInterpreterError(ri.RRuntimeError):
     """An error when running R code in a %%R magic cell."""
@@ -679,10 +680,10 @@ class RMagics(Magics):
                 return self.Rconverter(result, dataframe=False)
 
 __doc__ = __doc__.format(
-                R_DOC = ' '*8 + RMagics.R.__doc__,
-                RPUSH_DOC = ' '*8 + RMagics.Rpush.__doc__,
-                RPULL_DOC = ' '*8 + RMagics.Rpull.__doc__,
-                RGET_DOC = ' '*8 + RMagics.Rget.__doc__
+                R_DOC = dedent(RMagics.R.__doc__),
+                RPUSH_DOC = dedent(RMagics.Rpush.__doc__),
+                RPULL_DOC = dedent(RMagics.Rpull.__doc__),
+                RGET_DOC = dedent(RMagics.Rget.__doc__)
 )
 
 

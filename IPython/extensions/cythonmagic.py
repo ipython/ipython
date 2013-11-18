@@ -68,6 +68,7 @@ from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, cell_magic
 from IPython.utils import py3compat
 from IPython.utils.path import get_ipython_cache_dir
+from IPython.utils.text import dedent
 
 import Cython
 from Cython.Compiler.Errors import CompileError
@@ -331,9 +332,12 @@ class CythonMagics(Magics):
         return html
 
 __doc__ = __doc__.format(
-                CYTHON_DOC = ' '*8 + CythonMagics.cython.__doc__,
-                CYTHON_INLINE_DOC = ' '*8 + CythonMagics.cython_inline.__doc__,
-                CYTHON_PYXIMPORT_DOC = ' '*8 + CythonMagics.cython_pyximport.__doc__,
+                # rST doesn't see the -+ flag as part of an option list, so we
+                # hide it from the module-level docstring.
+                CYTHON_DOC = dedent(CythonMagics.cython.__doc__\
+                            .replace('-+, --cplus','--cplus    ')),
+                CYTHON_INLINE_DOC = dedent(CythonMagics.cython_inline.__doc__),
+                CYTHON_PYXIMPORT_DOC = dedent(CythonMagics.cython_pyximport.__doc__),
 )
 
 def load_ipython_extension(ip):

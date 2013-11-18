@@ -152,8 +152,10 @@ class ParallelFunction(RemoteFunction):
     dist : str [default: 'b']
         The key for which mapObject to use to distribute sequences
         options are:
-          * 'b' : use contiguous chunks in order
-          * 'r' : use round-robin striping
+
+        * 'b' : use contiguous chunks in order
+        * 'r' : use round-robin striping
+
     block : bool [default: None]
         Whether to wait for results or not.  The default behavior is
         to use the current `block` attribute of `view`
@@ -162,7 +164,8 @@ class ParallelFunction(RemoteFunction):
     ordered : bool [default: True]
         Whether the result should be kept in order. If False,
         results become available as they arrive, regardless of submission order.
-    **flags : remaining kwargs are passed to View.temp_flags
+    **flags
+        remaining kwargs are passed to View.temp_flags
     """
 
     chunksize = None

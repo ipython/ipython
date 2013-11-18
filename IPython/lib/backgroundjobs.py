@@ -360,13 +360,14 @@ class BackgroundJobBase(threading.Thread):
     The derived classes must implement:
 
     - Their own __init__, since the one here raises NotImplementedError.  The
-    derived constructor must call self._init() at the end, to provide common
-    initialization.
+      derived constructor must call self._init() at the end, to provide common
+      initialization.
 
     - A strform attribute used in calls to __str__.
 
     - A call() method, which will make the actual execution call and must
-    return a value to be held in the 'result' field of the job object."""
+      return a value to be held in the 'result' field of the job object.
+    """
 
     # Class constants for status, in string and as numerical codes (when
     # updating jobs lists, we don't want to do string comparisons).  This will
@@ -378,6 +379,10 @@ class BackgroundJobBase(threading.Thread):
     stat_dead_c = -1
 
     def __init__(self):
+        """Must be implemented in subclasses.
+
+        Subclasses must call :meth:`_init` for standard initialisation.
+        """
         raise NotImplementedError("This class can not be instantiated directly.")
 
     def _init(self):

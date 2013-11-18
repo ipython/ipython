@@ -32,8 +32,8 @@ class KillRing(object):
     def yank(self):
         """ Yank back the most recently killed text.
 
-        Returns:
-        --------
+        Returns
+        -------
         A text string or None.
         """
         self._index = len(self._ring)
@@ -42,8 +42,8 @@ class KillRing(object):
     def rotate(self):
         """ Rotate the kill ring, then yank back the new top.
 
-        Returns:
-        --------
+        Returns
+        -------
         A text string or None.
         """
         self._index -= 1

@@ -26,17 +26,20 @@ from IPython.utils import py3compat
 def extract_vars(*names,**kw):
     """Extract a set of variables by name from another frame.
 
-    :Parameters:
-      - `*names`: strings
+    Parameters
+    ----------
+    *names : str
         One or more variable names which will be extracted from the caller's
-    frame.
+        frame.
 
-    :Keywords:
-      - `depth`: integer (0)
+    depth : integer, optional
         How many frames in the stack to walk when looking for your variables.
+        The default is 0, which will use the frame where the call was made.
 
 
-    Examples:
+    Examples
+    --------
+    ::
 
         In [2]: def func(x):
            ...:     y = 1

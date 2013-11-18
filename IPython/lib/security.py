@@ -49,8 +49,8 @@ def passwd(passphrase=None, algorithm='sha1'):
 
     Examples
     --------
-    In [1]: passwd('mypassword')
-    Out[1]: 'sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12'
+    >>> passwd('mypassword')
+    'sha1:7cf3:b7d6da294ea9592a9480c8f52e63cd42cfb9dd12'
 
     """
     if passphrase is None:
@@ -89,16 +89,14 @@ def passwd_check(hashed_passphrase, passphrase):
 
     Examples
     --------
-    In [1]: from IPython.lib.security import passwd_check
+    >>> from IPython.lib.security import passwd_check
+    >>> passwd_check('sha1:0e112c3ddfce:a68df677475c2b47b6e86d0467eec97ac5f4b85a',
+    ...              'mypassword')
+    True
 
-    In [2]: passwd_check('sha1:0e112c3ddfce:a68df677475c2b47b6e86d0467eec97ac5f4b85a',
-       ...:              'mypassword')
-    Out[2]: True
-
-    In [3]: passwd_check('sha1:0e112c3ddfce:a68df677475c2b47b6e86d0467eec97ac5f4b85a',
-       ...:              'anotherpassword')
-    Out[3]: False
-
+    >>> passwd_check('sha1:0e112c3ddfce:a68df677475c2b47b6e86d0467eec97ac5f4b85a',
+    ...              'anotherpassword')
+    False
     """
     try:
         algorithm, salt, pw_digest = hashed_passphrase.split(':', 2)

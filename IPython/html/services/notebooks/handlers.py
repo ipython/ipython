@@ -145,9 +145,11 @@ class NotebookHandler(IPythonHandler):
         
         POST creates new notebooks. The server always decides on the notebook name.
         
-        POST /api/notebooks/path : new untitled notebook in path
-            If content specified, upload a notebook, otherwise start empty.
-        POST /api/notebooks/path?copy=OtherNotebook.ipynb : new copy of OtherNotebook in path
+        POST /api/notebooks/path
+          New untitled notebook in path. If content specified, upload a
+          notebook, otherwise start empty.
+        POST /api/notebooks/path?copy=OtherNotebook.ipynb
+          New copy of OtherNotebook in path
         """
         
         if name is not None:
@@ -171,14 +173,15 @@ class NotebookHandler(IPythonHandler):
     def put(self, path='', name=None):
         """Saves the notebook in the location specified by name and path.
         
-        PUT /api/notebooks/path/Name.ipynb : Save notebook at path/Name.ipynb
-            Notebook structure is specified in `content` key of JSON request body.
-            If content is not specified, create a new empty notebook.
-        PUT /api/notebooks/path/Name.ipynb?copy=OtherNotebook.ipynb : copy OtherNotebook to Name
+        PUT is very similar to POST, but the requester specifies the name,
+        whereas with POST, the server picks the name.
         
-        POST and PUT are basically the same. The only difference:
-        
-        - with POST, server always picks the name, with PUT the requester does
+        PUT /api/notebooks/path/Name.ipynb
+          Save notebook at ``path/Name.ipynb``. Notebook structure is specified
+          in `content` key of JSON request body. If content is not specified,
+          create a new empty notebook.
+        PUT /api/notebooks/path/Name.ipynb?copy=OtherNotebook.ipynb
+          Copy OtherNotebook to Name
         """
         if name is None:
             raise web.HTTPError(400, "Only PUT to full names. Use POST for directories.")

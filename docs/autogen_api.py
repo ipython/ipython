@@ -17,45 +17,29 @@ if __name__ == '__main__':
     docwriter = ApiDocWriter(package,rst_extension='.rst')
     # You have to escape the . here because . is a special char for regexps.
     # You must do make clean if you change this!
-    docwriter.package_skip_patterns += [r'\.fixes$',
-                                        r'\.external$',
+    docwriter.package_skip_patterns += [r'\.external$',
+                                        # Extensions are documented elsewhere.
                                         r'\.extensions',
-                                        r'\.kernel\.config',
-                                        r'\.attic',
-                                        r'\.quarantine',
-                                        r'\.deathrow',
-                                        r'\.config\.default',
                                         r'\.config\.profile',
-                                        r'\.frontend',
-                                        r'\.gui',
-                                        r'\.kernel',
-                                        # For now, the zmq code has
-                                        # unconditional top-level code so it's
-                                        # not import safe.  This needs fixing
-                                        r'\.zmq',
                                         ]
 
-    docwriter.module_skip_patterns += [
-                                        r'\.testing\.iptest',
-                                        # Keeping these disabled is OK
-                                        r'\.parallel\.controller\.mongodb',
-                                        r'\.lib\.inputhookwx',
-                                        r'\.lib\.inputhookgtk',
-                                        r'\.cocoa',
+    # The inputhook* modules often cause problems on import, such as trying to
+    # load incompatible Qt bindings. It's easiest to leave them all out. The
+    # main API is in the inputhook module, which is documented.
+    docwriter.module_skip_patterns += [ r'\.lib\.inputhook.+',
                                         r'\.ipdoctest',
-                                        r'\.Gnuplot',
-                                        r'\.frontend\.process\.winprocess',
+                                        r'\.testing\.plugin',
+                                        # This just prints a deprecation msg:
                                         r'\.frontend',
-                                        r'\.Shell',
                                         ]
     
-    # If we don't have pexpect, we can't load irunner, so skip any code that
-    # depends on it
+    # We're rarely working on machines with the Azure SDK installed, so we
+    # skip the module that needs it in that case.
     try:
-        import pexpect
+        import azure  # analysis:ignore
     except ImportError:
-        docwriter.module_skip_patterns += [r'\.lib\.irunner',
-                                           r'\.testing\.mkdoctests']
+        docwriter.module_skip_patterns.append(r'\.html\.services\.notebooks\.azurenbmanager')
+
     # Now, generate the outputs
     docwriter.write_api_docs(outdir)
     # Write index with .txt extension - we can include it, but Sphinx won't try

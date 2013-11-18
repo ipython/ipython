@@ -2,7 +2,8 @@
 """
 ultratb.py -- Spice up your tracebacks!
 
-* ColorTB
+**ColorTB**
+
 I've always found it a bit hard to visually parse tracebacks in Python.  The
 ColorTB class is a solution to that problem.  It colors the different parts of a
 traceback in a manner similar to what you would expect from a syntax-highlighting
@@ -13,7 +14,8 @@ Installation instructions for ColorTB::
     import sys,ultratb
     sys.excepthook = ultratb.ColorTB()
 
-* VerboseTB
+**VerboseTB**
+
 I've also included a port of Ka-Ping Yee's "cgitb.py" that produces all kinds
 of useful info when a traceback occurs.  Ping originally had it spit out HTML
 and intended it for CGI programmers, but why should they have all the fun?  I

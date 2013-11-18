@@ -140,7 +140,7 @@ Pull requests (257):
 * `1126 <https://github.com/ipython/ipython/issues/1126>`_: Totally remove pager when read only (notebook)
 * `1091 <https://github.com/ipython/ipython/issues/1091>`_: qtconsole : allow copy with shortcut in pager
 * `1114 <https://github.com/ipython/ipython/issues/1114>`_: fix magics history in two-process ipython console
-* `1113 <https://github.com/ipython/ipython/issues/1113>`_: Fixing #1112 removing failing asserts for test_carriage_return and test_...
+* `1113 <https://github.com/ipython/ipython/issues/1113>`_: Fixing #1112 removing failing asserts for test_carriage_return and test_beep
 * `1089 <https://github.com/ipython/ipython/issues/1089>`_: Support carriage return ('\r') and beep ('\b') characters in the qtconsole
 * `1108 <https://github.com/ipython/ipython/issues/1108>`_: Completer usability 2 (rebased of  pr #1082)
 * `864 <https://github.com/ipython/ipython/issues/864>`_: Two-process terminal frontend (ipython core branch)

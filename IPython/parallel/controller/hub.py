@@ -1149,11 +1149,15 @@ class Hub(SessionFactory):
 
     def queue_status(self, client_id, msg):
         """Return the Queue status of one or more targets.
-        if verbose: return the msg_ids
-        else: return len of each type.
-        keys: queue (pending MUX jobs)
-            tasks (pending Task jobs)
-            completed (finished jobs from both queues)"""
+
+        If verbose, return the msg_ids, else return len of each type.
+
+        Keys:
+
+        * queue (pending MUX jobs)
+        * tasks (pending Task jobs)
+        * completed (finished jobs from both queues)
+        """
         content = msg['content']
         targets = content['targets']
         try:

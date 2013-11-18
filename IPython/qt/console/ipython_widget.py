@@ -438,8 +438,8 @@ class IPythonWidget(FrontendWidget):
     def set_default_style(self, colors='lightbg'):
         """ Sets the widget style to the class defaults.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         colors : str, optional (default lightbg)
             Whether to use the default IPython light background or dark
             background or B&W style.
@@ -464,8 +464,8 @@ class IPythonWidget(FrontendWidget):
     def _edit(self, filename, line=None):
         """ Opens a Python script for editing.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         filename : str
             A path to a local system file.
 

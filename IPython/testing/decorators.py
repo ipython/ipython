@@ -175,20 +175,21 @@ def skipif(skip_condition, msg=None):
 
     Parameters
     ----------
-    skip_condition : bool or callable.
-        Flag to determine whether to skip test.  If the condition is a
-        callable, it is used at runtime to dynamically make the decision.  This
-        is useful for tests that may require costly imports, to delay the cost
-        until the test suite is actually executed.
-    msg : string
-        Message to give on raising a SkipTest exception
 
-   Returns
-   -------
-   decorator : function
-       Decorator, which, when applied to a function, causes SkipTest
-       to be raised when the skip_condition was True, and the function
-       to be called normally otherwise.
+    skip_condition : bool or callable
+      Flag to determine whether to skip test. If the condition is a
+      callable, it is used at runtime to dynamically make the decision. This
+      is useful for tests that may require costly imports, to delay the cost
+      until the test suite is actually executed.
+    msg : string
+      Message to give on raising a SkipTest exception.
+
+    Returns
+    -------
+    decorator : function
+      Decorator, which, when applied to a function, causes SkipTest
+      to be raised when the skip_condition was True, and the function
+      to be called normally otherwise.
 
     Notes
     -----

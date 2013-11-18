@@ -105,17 +105,16 @@ def require(*objects, **mapping):
     and will be pushed to the engine with their __name__.
     Other objects can be passed by keyword arg.
     
-    Examples
-    --------
+    Examples::
     
-    In [1]: @require('numpy')
-       ...: def norm(a):
-       ...:     return numpy.linalg.norm(a,2)
+        In [1]: @require('numpy')
+           ...: def norm(a):
+           ...:     return numpy.linalg.norm(a,2)
 
-    In [2]: foo = lambda x: x*x
-    In [3]: @require(foo)
-       ...: def bar(a):
-       ...:     return foo(1-a)
+        In [2]: foo = lambda x: x*x
+        In [3]: @require(foo)
+           ...: def bar(a):
+           ...:     return foo(1-a)
     """
     names = []
     for obj in objects:

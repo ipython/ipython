@@ -116,8 +116,7 @@ The generated comparison, is between your feature branch
 ``my-new-feature``, and the place in ``master`` from which you branched
 ``my-new-feature``.  In other words, you can keep updating ``master``
 without interfering with the output from the comparison.  More detail?
-Note the three dots in the URL above (``master...my-new-feature``) and
-see :ref:`dot2-dot3`.
+Note the three dots in the URL above (``master...my-new-feature``).
 
 Asking for your changes to be merged with the main repo
 =======================================================

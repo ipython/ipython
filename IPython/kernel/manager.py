@@ -185,8 +185,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         If random ports (port=0) are being used, this method must be called
         before the channels are created.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         **kw : optional
              keyword arguments that are passed down to build the kernel_cmd
              and launching the kernel (e.g. Popen kwargs).
@@ -227,8 +227,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         2. If that fails, the kernel is shutdown forcibly by sending it
            a signal.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         now : bool
             Should the kernel be forcible killed *now*. This skips the
             first, nice shutdown attempt.

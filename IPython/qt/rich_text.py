@@ -126,8 +126,8 @@ class HtmlExporter(object):
 def export_html(html, filename, image_tag = None, inline = True):
     """ Export the contents of the ConsoleWidget as HTML.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     html : unicode,
         A Python unicode string containing the Qt HTML to export.
 
@@ -162,8 +162,8 @@ def export_html(html, filename, image_tag = None, inline = True):
 def export_xhtml(html, filename, image_tag=None):
     """ Export the contents of the ConsoleWidget as XHTML with inline SVGs.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     html : unicode,
         A Python unicode string containing the Qt HTML to export.
 
@@ -216,8 +216,8 @@ def default_image_tag(match, path = None, format = "png"):
 def fix_html(html):
     """ Transforms a Qt-generated HTML string into a standards-compliant one.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     html : unicode,
         A Python unicode string containing the Qt HTML.
     """

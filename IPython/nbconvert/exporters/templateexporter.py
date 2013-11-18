@@ -27,6 +27,7 @@ from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat, text
 
+from IPython.nbformat.current import docstring_nbformat_mod
 from IPython.nbconvert import filters
 from .exporter import Exporter
 
@@ -186,17 +187,19 @@ class TemplateExporter(Exporter):
             else:
                 self.log.info("Loaded template %s", try_name)
                 break
-    
+
+    @docstring_nbformat_mod
     def from_notebook_node(self, nb, resources=None, **kw):
         """
         Convert a notebook from a notebook node instance.
     
         Parameters
         ----------
-        nb : Notebook node
-        resources : dict (**kw) 
-            of additional resources that can be accessed read/write by 
-            preprocessors and filters.
+        nb : :class:`~{nbformat_mod}.nbbase.NotebookNode`
+          Notebook node
+        resources : dict
+          Additional resources that can be accessed read/write by
+          preprocessors and filters.
         """
         nb_copy, resources = super(TemplateExporter, self).from_notebook_node(nb, resources, **kw)
 
