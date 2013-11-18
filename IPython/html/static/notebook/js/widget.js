@@ -29,9 +29,9 @@ define(["components/underscore/underscore-min",
     // WidgetModel class
     //--------------------------------------------------------------------
     var WidgetModel = Backbone.Model.extend({
-        constructor: function(comm_manager, comm, widget_view_types) {
+        constructor: function(comm_manager, comm, widget_manager) {
             this.comm_manager = comm_manager;
-            this.widget_view_types = widget_view_types;
+            this.widget_manager = widget_manager;
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
@@ -53,8 +53,8 @@ define(["components/underscore/underscore-min",
             this.last_modified_view = caller;
             this.save(this.changedAttributes(), {patch: true});
 
-            for (var output_area in this.views) {
-                var views = this.views[output_area];
+            for (var cell in this.views) {
+                var views = this.views[cell];
                 for (var view_index in views) {
                     var view = views[view_index];
                     if (view !== caller) {
@@ -65,7 +65,7 @@ define(["components/underscore/underscore-min",
         },
 
 
-        handle_status: function (output_area, msg) {
+        handle_status: function (cell, msg) {
             //execution_state : ('busy', 'idle', 'starting')
             if (msg.content.execution_state=='idle') {
                 
@@ -74,8 +74,8 @@ define(["components/underscore/underscore-min",
                 if (this.msg_buffer != null &&
                     this.msg_throttle == this.pending_msgs) {
 
-                    var output_area = this._get_output_area(msg.parent_header.msg_id);
-                    var callbacks = this._make_callbacks(output_area);
+                    var cell = this._get_msg_cell(msg.parent_header.msg_id);
+                    var callbacks = this._make_callbacks(cell);
                     var data = {sync_method: 'update', sync_data: this.msg_buffer};
                     this.comm.send(data, callbacks);   
                     this.msg_buffer = null;
@@ -125,12 +125,12 @@ define(["components/underscore/underscore-min",
 
                     var data = {sync_method: method, sync_data: send_json};
 
-                    var output_area = null;
+                    var cell = null;
                     if (this.last_modified_view != undefined && this.last_modified_view != null) {
-                        output_area = this.last_modified_view.output_area;    
+                        cell = this.last_modified_view.cell;    
                     }
                     
-                    var callbacks = this._make_callbacks(output_area);
+                    var callbacks = this._make_callbacks(cell);
                     this.comm.send(data, callbacks);    
                     this.pending_msgs++;
                 }
@@ -149,14 +149,14 @@ define(["components/underscore/underscore-min",
                 case 'display':
 
                     // Try to get the cell index.
-                    var output_area = this._get_output_area(msg.parent_header.msg_id);
-                    if (output_area == null) {
+                    var cell = this._get_msg_cell(msg.parent_header.msg_id);
+                    if (cell == null) {
                         console.log("Could not determine where the display" + 
                             " message was from.  Widget will not be displayed")
                     } else {
                         this.display_view(msg.content.data.view_name, 
                         msg.content.data.parent,
-                        output_area);
+                        cell);
                     }
                     break;
                 case 'update':
@@ -189,8 +189,8 @@ define(["components/underscore/underscore-min",
 
         // Handle when a widget is closed.
         handle_comm_closed: function (msg) {
-            for (var output_area in this.views) {
-                var views = this.views[output_area];
+            for (var cell in this.views) {
+                var views = this.views[cell];
                 for (var view_index in views) {
                     var view = views[view_index];
                     view.remove();
@@ -200,18 +200,18 @@ define(["components/underscore/underscore-min",
 
 
         // Create view that represents the model.
-        display_view: function (view_name, parent_comm_id, output_area) {
+        display_view: function (view_name, parent_comm_id, cell) {
             var new_views = [];
 
             var displayed = false;
             if (parent_comm_id != undefined) {
                 var parent_comm = this.comm_manager.comms[parent_comm_id];
                 var parent_model = parent_comm.model;
-                var parent_views = parent_model.views[output_area];
+                var parent_views = parent_model.views[cell];
                 for (var parent_view_index in parent_views) {
                     var parent_view = parent_views[parent_view_index];
                     if (parent_view.display_child != undefined) {
-                        var view = this._create_view(view_name, output_area);
+                        var view = this._create_view(view_name, cell);
                         new_views.push(view);
                         parent_view.display_child(view);
                         displayed = true;
@@ -222,11 +222,13 @@ define(["components/underscore/underscore-min",
             if (!displayed) {
                 // No parent view is defined or exists.  Add the view's 
                 // element to cell's widget div.
-                var view = this._create_view(view_name, output_area);
+                var view = this._create_view(view_name, cell);
                 new_views.push(view);
-                this._get_widget_area_element(output_area, true)
-                    .append(view.$el);
-            
+
+                if (cell.widget_subarea != undefined && cell.widget_subarea != null) {
+                    cell.widget_area.show();
+                    cell.widget_subarea.append(view.$el);
+                }
             }
 
             for (var view_index in new_views) {
@@ -237,25 +239,25 @@ define(["components/underscore/underscore-min",
 
 
         // Create a view
-        _create_view: function (view_name, output_area) {
-            var view = new this.widget_view_types[view_name]({model: this});
+        _create_view: function (view_name, cell) {
+            var view = new this.widget_manager.widget_view_types[view_name]({model: this});
             view.render();
-            if (this.views[output_area]==undefined) {
-                this.views[output_area] = []
+            if (this.views[cell]==undefined) {
+                this.views[cell] = []
             }
-            this.views[output_area].push(view);
-            view.output_area = output_area;
+            this.views[cell].push(view);
+            view.cell = cell;
 
             // Handle when the view element is remove from the page.
             var that = this;
             view.$el.on("remove", function(){ 
-                var index = that.views[output_area].indexOf(view);
+                var index = that.views[cell].indexOf(view);
                 if (index > -1) {
-                    that.views[output_area].splice(index, 1);
+                    that.views[cell].splice(index, 1);
                 }
                 view.remove(); // Clean-up view 
-                if (that.views[output_area].length()==0) {
-                    delete that.views[output_area];
+                if (that.views[cell].length()==0) {
+                    delete that.views[cell];
                 }
 
                 // Close the comm if there are no views left.
@@ -268,21 +270,21 @@ define(["components/underscore/underscore-min",
 
 
         // Build a callback dict.
-        _make_callbacks: function (output_area) {
+        _make_callbacks: function (cell) {
             var callbacks = {};
-            if (output_area != null) {
+            if (cell != null && cell.output_area != undefined && cell.output_area != null) {
                 var that = this;
                 callbacks = {
                     iopub : {
-                        output : $.proxy(output_area.handle_output, output_area),
-                        clear_output : $.proxy(output_area.handle_clear_output, output_area),
+                        output : $.proxy(cell.output_area.handle_output, cell.output_area),
+                        clear_output : $.proxy(cell.output_area.handle_clear_output, cell.output_area),
                         status : function(msg){
-                            that.handle_status(output_area, msg);
+                            that.handle_status(cell, msg);
                         },
-                        get_output_area : function() {
+                        get_cell : function() {
                             if (that.last_modified_view != undefined && 
-                                that.last_modified_view.output_area != undefined) {
-                                return that.last_modified_view.output_area;
+                                that.last_modified_view.cell != undefined) {
+                                return that.last_modified_view.cell;
                             } else {
                                 return null
                             }
@@ -295,45 +297,31 @@ define(["components/underscore/underscore-min",
 
 
         // Get the output area corresponding to the msg_id.
-        // output_area is an instance of Ipython.OutputArea
-        _get_output_area: function (msg_id) {
+        // cell is an instance of IPython.Cell
+        _get_msg_cell: function (msg_id) {
 
             // First, check to see if the msg was triggered by cell execution.
-            var cell = IPython.notebook.get_msg_cell(msg_id);
+            var cell = this.widget_manager.get_msg_cell(msg_id);
             if (cell != null) {
-                return cell.output_area;
+                return cell;
             }
 
-            // Second, check to see if a get_output_area callback was defined
-            // for the message.  get_output_area callbacks are registered for
+            // Second, check to see if a get_cell callback was defined
+            // for the message.  get_cell callbacks are registered for
             // widget messages, so this block is actually checking to see if the
             // message was triggered by a widget.
             var kernel = this.comm_manager.kernel;
             var callbacks = kernel.get_callbacks_for_msg(msg_id);
             if (callbacks != undefined && 
                 callbacks.iopub != undefined && 
-                callbacks.iopub.get_output_area != undefined) {
+                callbacks.iopub.get_cell != undefined) {
 
-                var output_area = callbacks.iopub.get_output_area();
-                if (output_area != null) {
-                    return output_area;
-                }
+                return callbacks.iopub.get_cell();
             }
             
-            // Not triggered by a cell or widget (no get_output_area callback 
+            // Not triggered by a cell or widget (no get_cell callback 
             // exists).
             return null;
-        },
-
-        // Gets widget output area (as a JQuery element) from the 
-        // output_area (Ipython.OutputArea instance)
-        _get_widget_area_element: function (output_area, show) {
-            var widget_area = output_area.element
-                .parent() // output_wrapper
-                .parent() // cell
-                .find('.widget-area');
-            if (show) { widget_area.show(); }
-            return widget_area.find('.widget-subarea');
         },
 
     });
@@ -469,7 +457,14 @@ define(["components/underscore/underscore-min",
 
     WidgetManager.prototype.handle_com_open = function (comm, msg) {
         var widget_type_name = msg.content.target_name;
-        var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this.widget_view_types);
+        var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this);
+    }
+
+
+    WidgetManager.prototype.get_msg_cell = function (msg_id) {
+        if (IPython.notebook != undefined && IPython.notebook != null) {
+            return IPython.notebook.get_msg_cell(msg_id);
+        }
     }
 
 
