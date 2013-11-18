@@ -64,7 +64,7 @@ define(["components/underscore/underscore-min",
             }
         },
     
-        send = function (content) {
+        send: function(content) {
 
             // Used the last modified view as the sender of the message.  This
             // will insure that any python code triggered by the sent message
