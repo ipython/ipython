@@ -108,6 +108,13 @@ define(["components/underscore/underscore-min",
                 for (var key in state) {
                     if (state.hasOwnProperty(key)) {
                         if (key == "_css"){
+
+                            // Set the css value of the model as an attribute
+                            // instead of a backbone trait because we are only 
+                            // interested in backend css -> frontend css.  In
+                            // other words, if the css dict changes in the
+                            // frontend, we don't need to push the changes to
+                            // the backend.
                             this.css = state[key];
                         } else {
                             this.set(key, state[key]); 
@@ -291,6 +298,10 @@ define(["components/underscore/underscore-min",
                         status : function(msg){
                             that._handle_status(cell, msg);
                         },
+
+                        // Special function only registered by widget messages.
+                        // Allows us to get the cell for a message so we know
+                        // where to add widgets if the code requires it.
                         get_cell : function() {
                             if (that.last_modified_view != undefined && 
                                 that.last_modified_view.cell != undefined) {
