@@ -212,9 +212,11 @@ define(["components/underscore/underscore-min",
                     var parent_view = parent_views[parent_view_index];
                     if (parent_view.display_child != undefined) {
                         var view = this._create_view(view_name, cell);
-                        new_views.push(view);
-                        parent_view.display_child(view);
-                        displayed = true;
+                        if (view != null) {
+                            new_views.push(view);
+                            parent_view.display_child(view);
+                            displayed = true;
+                        }
                     }
                 }
             }
@@ -223,11 +225,13 @@ define(["components/underscore/underscore-min",
                 // No parent view is defined or exists.  Add the view's 
                 // element to cell's widget div.
                 var view = this._create_view(view_name, cell);
-                new_views.push(view);
+                if (view != null) {
+                    new_views.push(view);
 
-                if (cell.widget_subarea != undefined && cell.widget_subarea != null) {
-                    cell.widget_area.show();
-                    cell.widget_subarea.append(view.$el);
+                    if (cell.widget_subarea != undefined && cell.widget_subarea != null) {
+                        cell.widget_area.show();
+                        cell.widget_subarea.append(view.$el);
+                    }
                 }
             }
 
@@ -240,32 +244,36 @@ define(["components/underscore/underscore-min",
 
         // Create a view
         _create_view: function (view_name, cell) {
-            var view = new this.widget_manager.widget_view_types[view_name]({model: this});
-            view.render();
-            if (this.views[cell]==undefined) {
-                this.views[cell] = []
+            var view_type = this.widget_manager.widget_view_types[view_name]; 
+            if (view_type != undefined && view_type != null) {
+                var view = new view_type({model: this});
+                view.render();
+                if (this.views[cell]==undefined) {
+                    this.views[cell] = []
+                }
+                this.views[cell].push(view);
+                view.cell = cell;
+
+                // Handle when the view element is remove from the page.
+                var that = this;
+                view.$el.on("remove", function(){ 
+                    var index = that.views[cell].indexOf(view);
+                    if (index > -1) {
+                        that.views[cell].splice(index, 1);
+                    }
+                    view.remove(); // Clean-up view 
+                    if (that.views[cell].length()==0) {
+                        delete that.views[cell];
+                    }
+
+                    // Close the comm if there are no views left.
+                    if (that.views.length()==0) {
+                        that.comm.close();     
+                    }
+                });
+                return view;    
             }
-            this.views[cell].push(view);
-            view.cell = cell;
-
-            // Handle when the view element is remove from the page.
-            var that = this;
-            view.$el.on("remove", function(){ 
-                var index = that.views[cell].indexOf(view);
-                if (index > -1) {
-                    that.views[cell].splice(index, 1);
-                }
-                view.remove(); // Clean-up view 
-                if (that.views[cell].length()==0) {
-                    delete that.views[cell];
-                }
-
-                // Close the comm if there are no views left.
-                if (that.views.length()==0) {
-                    that.comm.close();     
-                }
-            });
-            return view;
+            return null;
         },
 
 
