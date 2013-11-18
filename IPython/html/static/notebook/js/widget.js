@@ -42,8 +42,8 @@ define(["components/underscore/underscore-min",
             comm.model = this;
 
             // Hook comm messages up to model.
-            comm.on_close($.proxy(this.handle_comm_closed, this));
-            comm.on_msg($.proxy(this.handle_comm_msg, this));
+            comm.on_close($.proxy(this._handle_comm_closed, this));
+            comm.on_msg($.proxy(this._handle_comm_msg, this));
 
             return Backbone.Model.apply(this);
         },
@@ -65,7 +65,64 @@ define(["components/underscore/underscore-min",
         },
 
 
-        handle_status: function (cell, msg) {
+        // Handle when a widget is closed.
+        _handle_comm_closed: function (msg) {
+            for (var cell in this.views) {
+                var views = this.views[cell];
+                for (var view_index in views) {
+                    var view = views[view_index];
+                    view.remove();
+                }
+            }
+        },
+
+
+        // Handle incomming comm msg.
+        _handle_comm_msg: function (msg) {
+            var method = msg.content.data.method;
+            switch (method){
+                case 'display':
+
+                    // Try to get the cell index.
+                    var cell = this._get_msg_cell(msg.parent_header.msg_id);
+                    if (cell == null) {
+                        console.log("Could not determine where the display" + 
+                            " message was from.  Widget will not be displayed")
+                    } else {
+                        this._display_view(msg.content.data.view_name, 
+                        msg.content.data.parent,
+                        cell);
+                    }
+                    break;
+                case 'update':
+                    this._handle_update(msg.content.data.state);
+                    break;
+            }
+        },
+
+
+        // Handle when a widget is updated via the python side.
+        _handle_update: function (state) {
+            this.updating = true;
+            try {
+                for (var key in state) {
+                    if (state.hasOwnProperty(key)) {
+                        if (key == "_css"){
+                            this.css = state[key];
+                        } else {
+                            this.set(key, state[key]); 
+                        }
+                    }
+                }
+                this.id = this.comm.comm_id;
+                this.save();
+            } finally {
+                this.updating = false;
+            }
+        },
+
+
+        _handle_status: function (cell, msg) {
             //execution_state : ('busy', 'idle', 'starting')
             if (msg.content.execution_state=='idle') {
                 
@@ -90,7 +147,7 @@ define(["components/underscore/underscore-min",
 
 
         // Custom syncronization logic.
-        handle_sync: function (method, options) {
+        _handle_sync: function (method, options) {
             var model_json = this.toJSON();
 
             // Only send updated state if the state hasn't been changed 
@@ -142,65 +199,8 @@ define(["components/underscore/underscore-min",
         },
 
 
-        // Handle incomming comm msg.
-        handle_comm_msg: function (msg) {
-            var method = msg.content.data.method;
-            switch (method){
-                case 'display':
-
-                    // Try to get the cell index.
-                    var cell = this._get_msg_cell(msg.parent_header.msg_id);
-                    if (cell == null) {
-                        console.log("Could not determine where the display" + 
-                            " message was from.  Widget will not be displayed")
-                    } else {
-                        this.display_view(msg.content.data.view_name, 
-                        msg.content.data.parent,
-                        cell);
-                    }
-                    break;
-                case 'update':
-                    this.handle_update(msg.content.data.state);
-                    break;
-            }
-        },
-
-
-        // Handle when a widget is updated via the python side.
-        handle_update: function (state) {
-            this.updating = true;
-            try {
-                for (var key in state) {
-                    if (state.hasOwnProperty(key)) {
-                        if (key == "_css"){
-                            this.css = state[key];
-                        } else {
-                            this.set(key, state[key]); 
-                        }
-                    }
-                }
-                this.id = this.comm.comm_id;
-                this.save();
-            } finally {
-                this.updating = false;
-            }
-        },
-
-
-        // Handle when a widget is closed.
-        handle_comm_closed: function (msg) {
-            for (var cell in this.views) {
-                var views = this.views[cell];
-                for (var view_index in views) {
-                    var view = views[view_index];
-                    view.remove();
-                }
-            }
-        },
-
-
         // Create view that represents the model.
-        display_view: function (view_name, parent_comm_id, cell) {
+        _display_view: function (view_name, parent_comm_id, cell) {
             var new_views = [];
 
             var displayed = false;
@@ -279,7 +279,7 @@ define(["components/underscore/underscore-min",
                         output : $.proxy(cell.output_area.handle_output, cell.output_area),
                         clear_output : $.proxy(cell.output_area.handle_clear_output, cell.output_area),
                         status : function(msg){
-                            that.handle_status(cell, msg);
+                            that._handle_status(cell, msg);
                         },
                         get_cell : function() {
                             if (that.last_modified_view != undefined && 
@@ -356,7 +356,7 @@ define(["components/underscore/underscore-min",
                     if (this.model.css.hasOwnProperty(selector)) {
                         
                         // Apply the css traits to all elements that match the selector.
-                        var elements = this.get_selector_element(selector);
+                        var elements = this._get_selector_element(selector);
                         if (elements.length > 0) {
                             var css_traits = this.model.css[selector];    
                             for (var css_key in css_traits) {
@@ -374,7 +374,7 @@ define(["components/underscore/underscore-min",
                 var add_class_calls = add_class[0];
                 if (add_class_calls > this._add_class_calls) {
                     this._add_class_calls = add_class_calls;
-                    var elements = this.get_selector_element(add_class[1]);
+                    var elements = this._get_selector_element(add_class[1]);
                     if (elements.length > 0) {
                         elements.addClass(add_class[2]);
                     }
@@ -386,7 +386,7 @@ define(["components/underscore/underscore-min",
                 var remove_class_calls = remove_class[0];
                 if (remove_class_calls > this._remove_class_calls) {
                     this._remove_class_calls = remove_class_calls;
-                    var elements = this.get_selector_element(remove_class[1]);
+                    var elements = this._get_selector_element(remove_class[1]);
                     if (elements.length > 0) {
                         elements.removeClass(remove_class[2]);
                     }
@@ -394,7 +394,7 @@ define(["components/underscore/underscore-min",
             }
         },
 
-        get_selector_element: function(selector) {
+        _get_selector_element: function(selector) {
             // Get the elements via the css selector.  If the selector is
             // blank, apply the style to the $el_to_style element.  If
             // the $el_to_style element is not defined, use apply the 
@@ -422,7 +422,7 @@ define(["components/underscore/underscore-min",
         
         var that = this;
         Backbone.sync = function(method, model, options, error) {
-            var result = model.handle_sync(method, options);
+            var result = model._handle_sync(method, options);
             if (options.success) {
               options.success(result);
             }
