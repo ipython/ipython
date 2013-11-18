@@ -65,6 +65,16 @@ define(["components/underscore/underscore-min",
         },
 
 
+        on_view_displayed: function (callback) {
+            this._view_displayed_callback = callback;
+        }
+
+
+        on_close: function (callback) {
+            this._close_callback = callback;
+        }
+
+
         // Handle when a widget is closed.
         _handle_comm_closed: function (msg) {
             for (var cell in this.views) {
@@ -83,7 +93,7 @@ define(["components/underscore/underscore-min",
             switch (method){
                 case 'display':
 
-                    // Try to get the cell index.
+                    // Try to get the cell.
                     var cell = this._get_msg_cell(msg.parent_header.msg_id);
                     if (cell == null) {
                         console.log("Could not determine where the display" + 
@@ -206,6 +216,17 @@ define(["components/underscore/underscore-min",
         },
 
 
+        _handle_view_displayed: function(view) {
+            if (this._view_displayed_callback) {
+                try {
+                    this._view_displayed_callback(view)
+                } catch (e) {
+                    console.log("Exception in widget model view displayed callback", e, view, this);
+                }
+            }
+        }
+
+
         // Create view that represents the model.
         _display_view: function (view_name, parent_comm_id, cell) {
             var new_views = [];
@@ -224,6 +245,7 @@ define(["components/underscore/underscore-min",
                             new_views.push(view);
                             parent_view.display_child(view);
                             displayed = true;
+                            this._handle_view_displayed(view);
                         }
                     }
                 }
@@ -239,6 +261,7 @@ define(["components/underscore/underscore-min",
                     if (cell.widget_subarea != undefined && cell.widget_subarea != null) {
                         cell.widget_area.show();
                         cell.widget_subarea.append(view.$el);
+                        this._handle_view_displayed(view);
                     }
                 }
             }
@@ -277,6 +300,13 @@ define(["components/underscore/underscore-min",
 
                     // Close the comm if there are no views left.
                     if (that.views.length()==0) {
+                        if (that._close_callback) {
+                            try {
+                                that._close_callback(that)
+                            } catch (e) {
+                                console.log("Exception in widget model close callback", e, that);
+                            }
+                        }
                         that.comm.close();     
                     }
                 });
