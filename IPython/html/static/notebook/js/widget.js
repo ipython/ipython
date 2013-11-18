@@ -355,12 +355,23 @@ define(["components/underscore/underscore-min",
         // Build a callback dict.
         _make_callbacks: function (cell) {
             var callbacks = {};
-            if (cell != null && cell.output_area != undefined && cell.output_area != null) {
+            if (cell != null) {
+                
+                // Try to get output handlers
+                var handle_output = null;
+                var handle_clear_output = null;
+                if (cell.output_area != undefined && cell.output_area != null) {
+                    handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
+                    handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
+                }
+
+                // Create callback dict usign what is known
                 var that = this;
                 callbacks = {
                     iopub : {
-                        output : $.proxy(cell.output_area.handle_output, cell.output_area),
-                        clear_output : $.proxy(cell.output_area.handle_clear_output, cell.output_area),
+                        output : handle_output,
+                        clear_output : handle_clear_output,
+                        
                         status : function(msg){
                             that._handle_status(cell, msg);
                         },
@@ -369,12 +380,7 @@ define(["components/underscore/underscore-min",
                         // Allows us to get the cell for a message so we know
                         // where to add widgets if the code requires it.
                         get_cell : function() {
-                            if (that.last_modified_view != undefined && 
-                                that.last_modified_view.cell != undefined) {
-                                return that.last_modified_view.cell;
-                            } else {
-                                return null
-                            }
+                            return cell;
                         },
                     },
                 };
