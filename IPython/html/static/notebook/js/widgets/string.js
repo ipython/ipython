@@ -132,7 +132,8 @@ define(["notebook/js/widget"], function(widget_manager){
         
         events: {"keyup input" : "handleChanging",
                 "paste input" : "handleChanging",
-                "cut input" : "handleChanging"},
+                "cut input" : "handleChanging",
+                "keypress input" : "handleKeypress"},
         
         // Handles and validates user input.
         handleChanging: function(e) { 
@@ -140,6 +141,16 @@ define(["notebook/js/widget"], function(widget_manager){
             this.model.set('value', e.target.value);
             this.model.update_other_views(this);
             this.user_invoked_update = false;
+        },
+        
+        // Handles text submition
+        handleKeypress: function(e) { 
+            if (e.keyCode == 13) { // Return key
+                this.user_invoked_update = true;
+                this.model.set('submits', this.model.get('submits') + 1);
+                this.model.update_other_views(this);
+                this.user_invoked_update = false;
+            }
         },
     });
 
