@@ -56,14 +56,14 @@ def use_dill():
     # tell the two relevant modules to use plain pickle
     
     global pickle
-    import pickle
+    pickle = dill
 
     try:
         from IPython.kernel.zmq import serialize
     except ImportError:
         pass
     else:
-        serialize.pickle = pickle
+        serialize.pickle = dill
     
     # disable special function handling, let dill take care of it
     can_map.pop(FunctionType, None)
