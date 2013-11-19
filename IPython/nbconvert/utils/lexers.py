@@ -226,10 +226,6 @@ class IPythonConsoleLexer(Lexer):
     #     c.PromptManager.in2_template = '   .\D.: '
     #     c.PromptManager.out_template = 'Out[\#]: '
     #
-    # Note, we do not include the trailing whitespace in the regex since
-    # we want to allow blank prompts (and editors often remove trailing
-    # whitespace).
-    #
     in1_regex = r'In \[[0-9]+\]: '
     in2_regex = r'   \.\.+\.: '
     out_regex = r'Out\[[0-9]+\]: '
@@ -272,7 +268,8 @@ class IPythonConsoleLexer(Lexer):
         # The reason can't just use the rstrip'd variants instead is because
         # we want any whitespace associated with the prompt to be inserted
         # with the token. This allows formatted code to be modified so as hide
-        # the appearance of prompts.  For example, see copybutton.js.
+        # the appearance of prompts, with the whitespace included. One example
+        # use of this is in copybutton.js from the standard lib Python docs.
         in1_regex_rstrip = in1_regex.rstrip() + '\n'
         in2_regex_rstrip = in2_regex.rstrip() + '\n'
         out_regex_rstrip = out_regex.rstrip() + '\n'
