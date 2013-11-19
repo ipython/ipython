@@ -15,7 +15,7 @@ def setup(app):
     # suppresses the sphinx warning we'd get without it.
     pass
 
-# Register the extension as a valid pygments lexerself.
+# Register the extension as a valid pygments lexer.
 # Alternatively, we could register the lexer with pygments instead. This would
 # require using setuptools entrypoints: http://pygments.org/docs/plugins
 
