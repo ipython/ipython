@@ -27,32 +27,36 @@ available at :module:`IPython.nbconvert.utils.lexers`. These include:
 Previously, the :class:`IPythonConsoleLexer` class was available at
 :module:`IPython.sphinxext.ipython_console_hightlight`.  It was inserted
 into Pygments' list of available lexers under the name `ipython`.  It should
-be mentioned that this name is inaccurate.  An IPython console session
+be mentioned that this name is inaccurate, since an IPython console session
 is not the same as IPython code (which itself is a superset of the Python
 language).
 
-Now, the Sphinx extension inserts two console lexers into Pygment's list of
-available lexers.  Both are IPyLexer instances under the names:  `ipython` and
-`ipython3`. As mentioned above, these names are misleading, but they are kept
-for backwards compatibility and typical usage.  If a project needs to make
-Pygments aware of more than just the IPyLexer class, then one should not
-make the IPyLexer class available under the name `ipython` and use `ipy` or
-some other non-conflicting value.
+Now, the Sphinx extension inserts two console lexers into Pygments' list of
+available lexers. Both are IPyLexer instances under the names: `ipython` and
+`ipython3`. Although the names can be confusing (as mentioned above), their
+continued use is, in part, to maintain backwards compatibility and to
+aid typical usage. If a project needs to make Pygments aware of more than just
+the IPyLexer class, then one should not make the IPyLexer class available under
+the name `ipython` and use `ipy` or some other non-conflicting value.
 
-Code blocks such as::
+Code blocks such as:
+
+.. code-block:: rst
 
     .. code-block:: ipython
 
-       In [1]: 2**2
-       Out[1]: 4
+        In [1]: 2**2
+        Out[1]: 4
 
 will continue to work as before, but now, they will also properly highlight
-tracebacks.  For pure IPython code, the same lexer will work::
+tracebacks.  For pure IPython code, the same lexer will also work:
+
+.. code-block:: rst
 
     .. code-block:: ipython
 
-       x = ''.join(map(str, range(10)))
-       !echo $x
+        x = ''.join(map(str, range(10)))
+        !echo $x
 
 Since the first line of the block did not begin with a standard IPython console
-prompt, the entire block is assumed to be IPython code instead.
+prompt, the entire block is assumed to consist of IPython code instead.

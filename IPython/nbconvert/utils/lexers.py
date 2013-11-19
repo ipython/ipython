@@ -217,10 +217,8 @@ class IPythonConsoleLexer(Lexer):
     aliases = ['ipythoncon']
     mimetypes = ['text/x-ipython-console']
 
-    # The regexps used to determine what is input and what is output. The
-    # input regex should be consistent with and also be the combination of
-    # the values of the `in_template` and `in2_templates`. For example, the
-    # defaults prompts are:
+    # The regexps used to determine what is input and what is output.
+    # The default prompts for IPython are:
     #
     #     c.PromptManager.in_template  = 'In [\#]: '
     #     c.PromptManager.in2_template = '   .\D.: '
@@ -322,11 +320,24 @@ class IPythonConsoleLexer(Lexer):
         self.buffer = u''
         self.insertions = []
 
-    def get_modecode(self, line):
+    def get_mci(self, line):
         """
-        Returns the next mode and code to be added to the next mode's buffer.
+        Parses the line and returns a 3-tuple: (mode, code, insertion).
 
-        The next mode depends on current mode and contents of line.
+        `mode` is the next mode (or state) of the lexer, and is always equal
+        to 'input', 'output', or 'tb'.
+
+        `code` is a portion of the line that should be added to the buffer
+        corresponding to the next mode and eventually lexed by another lexer.
+        For example, `code` could be Python code if `mode` were 'input'.
+
+        `insertion` is a 3-tuple (index, token, text) representing an
+        unprocessed "token" that will be inserted into the stream of tokens
+        that are created from the buffer once we change modes. This is usually
+        the input or output prompt.
+
+        In general, the next mode depends on current mode and on the contents
+        of `line`.
 
         """
         # To reduce the number of regex match checks, we have multiple
@@ -436,7 +447,7 @@ class IPythonConsoleLexer(Lexer):
         self.reset()
         for match in line_re.finditer(text):
             line = match.group()
-            mode, code, insertion = self.get_modecode(line)
+            mode, code, insertion = self.get_mci(line)
 
             if mode != self.mode:
                 # Yield buffered tokens before transitioning to new mode.
