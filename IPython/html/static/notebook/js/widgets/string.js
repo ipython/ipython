@@ -63,6 +63,14 @@ define(["notebook/js/widget"], function(widget_manager){
                 this.$textbox.val(this.model.get('value'));
             }
 
+            if (this.last_scroll_to_bottom == undefined) {
+                this.last_scroll_to_bottom = 0;
+            }
+            if (this.last_scroll_to_bottom < this.model.get('scroll_to_bottoms')) {
+                this.last_scroll_to_bottom < this.model.get('scroll_to_bottoms');
+                this.$textbox.scrollTop(this.$textbox[0].scrollHeight);
+            }
+
             var disabled = this.model.get('disabled');
             this.$textbox.prop('disabled', disabled);
 

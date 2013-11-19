@@ -27,16 +27,21 @@ class StringWidget(Widget):
     default_view_name = Unicode('TextBoxView')
 
     # Keys
-    _keys = ['value', 'disabled', 'description', 'submits']
+    _keys = ['value', 'disabled', 'description', 'submits', 'scroll_to_bottoms']
     value = Unicode(help="String value")
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")
     submits = Int(0, help="Used to capture and fire submission ")
+    scroll_to_bottoms = Int(0, help="Used to scroll a TextAreaView to the bottom")
 
 
     def __init__(self, **kwargs):
         super(StringWidget, self).__init__(**kwargs)
         self._submission_callbacks = []
+
+
+    def scroll_to_bottom(self):
+        self.scroll_to_bottoms += 1
 
 
     def on_submit(self, callback, remove=False):
