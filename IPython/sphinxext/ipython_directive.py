@@ -44,6 +44,11 @@ ipython_mplbackend:
     to '' or 'None', then `matplotlib` will not be automatically imported. If
     not `None`, then the value should specify a backend that is passed to
     `matplotlib.use()`. The default value is 'agg'.
+ipython_execlines:
+    A list of strings to be exec'd for each embedded Sphinx shell.  Typical
+    usage is to make certain packages always available.  If None, then
+    `['import numpy as np', 'from pylab import *']` is used. Set this to an
+    empty list if you wish to have no imports always available.
 
 As an example, to use the IPython directive when `matplotlib` is not available,
 one sets the backend to `None`::
@@ -208,17 +213,17 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 class EmbeddedSphinxShell(object):
     """An embedded IPython instance to run inside Sphinx"""
 
-    def __init__(self):
+    def __init__(self, exec_lines=None):
 
         self.cout = StringIO()
 
+        if exec_lines is None:
+            exec_lines = ['import numpy as np', 'from pylab import *']
 
         # Create config object for IPython
         config = Config()
         config.Global.display_banner = False
-        config.Global.exec_lines = ['import numpy as np',
-                                    'from pylab import *'
-                                    ]
+        config.Global.exec_lines = exec_lines
         config.InteractiveShell.autocall = False
         config.InteractiveShell.autoindent = False
         config.InteractiveShell.colors = 'NoColor'
@@ -578,17 +583,18 @@ class IPythonDirective(Directive):
         promptin   = config.ipython_promptin
         promptout  = config.ipython_promptout
         mplbackend = config.ipython_mplbackend
+        exec_lines = config.ipython_execlines
 
         return (savefig_dir, source_dir, rgxin, rgxout,
-                promptin, promptout, mplbackend)
+                promptin, promptout, mplbackend, exec_lines)
 
     def setup(self):
         # Get configuration values.
-        (savefig_dir, source_dir, rgxin, rgxout,
-            promptin, promptout, mplbackend) = self.get_config_options()
+        (savefig_dir, source_dir, rgxin, rgxout, promptin,
+         promptout, mplbackend, exec_lines) = self.get_config_options()
 
         if self.shell is None:
-            self.shell = EmbeddedSphinxShell()
+            self.shell = EmbeddedSphinxShell(exec_lines)
             if mplbackend:
                 # Each ipython code-block is run in a separate process.
                 import matplotlib
@@ -687,7 +693,7 @@ def setup(app):
     app.add_config_value('ipython_promptin', 'In [%d]:', 'env')
     app.add_config_value('ipython_promptout', 'Out[%d]:', 'env')
     app.add_config_value('ipython_mplbackend', 'agg', 'env')
-
+    app.add_config_value('ipython_execlines', None, 'env')
 
 # Simple smoke test, needs to be converted to a proper automatic test.
 def test():
