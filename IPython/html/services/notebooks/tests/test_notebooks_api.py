@@ -108,7 +108,8 @@ class APITest(NotebookTestBase):
 
         for d, name in self.dirs_nbs:
             d = d.replace('/', os.sep)
-            with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w') as f:
+            with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w',
+                         encoding='utf-8') as f:
                 nb = new_notebook(name=name)
                 write(nb, f, format='ipynb')
 

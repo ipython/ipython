@@ -59,7 +59,8 @@ class SessionAPITest(NotebookTestBase):
             if e.errno != errno.EEXIST:
                 raise
 
-        with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w') as f:
+        with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w',
+                     encoding='utf-8') as f:
             nb = new_notebook(name='nb1')
             write(nb, f, format='ipynb')
 
