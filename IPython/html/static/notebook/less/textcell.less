@@ -1,5 +1,6 @@
 div.text_cell {
     padding: 5px 5px 5px 5px;
+    .hbox();
 }
 
 div.text_cell_input {
@@ -30,3 +31,8 @@ h1,h2,h3,h4,h5,h6 {
         visibility: visible;
     }
 }
+
+.code_cell + .text_cell .inner_cell {
+    border-top: 1px solid @border_color;
+}
+

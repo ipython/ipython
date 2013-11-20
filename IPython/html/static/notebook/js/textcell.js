@@ -72,19 +72,22 @@ var IPython = (function (IPython) {
      */
     TextCell.prototype.create_element = function () {
         IPython.Cell.prototype.create_element.apply(this, arguments);
+
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
 
+        var prompt = $('<div/>').addClass('prompt input_prompt');
+        cell.append(prompt);
+        var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new IPython.CellToolbar(this);
-        cell.append(this.celltoolbar.element);
-
+        inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
-
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
-        cell.append(input_area).append(render_area);
+        inner_cell.append(input_area).append(render_area);
+        cell.append(inner_cell);
         this.element = cell;
     };
 
