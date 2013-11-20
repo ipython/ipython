@@ -21,7 +21,7 @@ define(["notebook/js/widget"], function(widget_manager) {
     var ContainerView = IPython.WidgetView.extend({
         
         render: function(){
-            this.$el =
+            this.$el
                 .addClass('widget-container');
         },
         
