@@ -46,6 +46,7 @@ else:
 # The main DisplayFormatter class
 #-----------------------------------------------------------------------------
 
+_current = object()
 
 class DisplayFormatter(Configurable):
 
@@ -286,28 +287,41 @@ class BaseFormatter(Configurable):
         else:
             return None
 
-    def for_type(self, typ, func):
+    def for_type(self, typ, func=_current):
         """Add a format function for a given type.
-
+        
         Parameters
         -----------
         typ : class
             The class of the object that will be formatted using `func`.
         func : callable
-            The callable that will be called to compute the format data. The
-            call signature of this function is simple, it must take the
-            object to be formatted and return the raw data for the given
-            format. Subclasses may use a different call signature for the
+            A callable for computing the format data.
+            `func` will be called with the object to be formatted,
+            and will return the raw data in this formatter's format.
+            Subclasses may use a different call signature for the
             `func` argument.
+            
+            If None is given, the current formatter for the type, if any,
+            will be cleared.
+            
+            If `func` is not specified, there will be no change,
+            only returning the current value.
+        
+        Returns
+        -------
+        oldfunc : callable
+            The currently registered callable.
+            If you are registering a new formatter,
+            this will be the previous value (to enable restoring later).
         """
         oldfunc = self.type_printers.get(typ, None)
-        if func is not None:
-            # To support easy restoration of old printers, we need to ignore
-            # Nones.
+        if func is None:
+            self.type_printers.pop(typ, None)
+        elif func is not _current:
             self.type_printers[typ] = func
         return oldfunc
 
-    def for_type_by_name(self, type_module, type_name, func):
+    def for_type_by_name(self, type_module, type_name, func=_current):
         """Add a format function for a type specified by the full dotted
         module and name of the type, rather than the type of the object.
 
@@ -319,17 +333,30 @@ class BaseFormatter(Configurable):
         type_name : str
             The name of the type (the class name), like ``dtype``
         func : callable
-            The callable that will be called to compute the format data. The
-            call signature of this function is simple, it must take the
-            object to be formatted and return the raw data for the given
-            format. Subclasses may use a different call signature for the
+            A callable for computing the format data.
+            `func` will be called with the object to be formatted,
+            and will return the raw data in this formatter's format.
+            Subclasses may use a different call signature for the
             `func` argument.
+            
+            If None is given, the current formatter for the type, if any,
+            will be cleared.
+            
+            If `func` is not specified, there will be no change,
+            only returning the current value.
+        
+        Returns
+        -------
+        oldfunc : callable
+            The currently registered callable.
+            If you are registering a new formatter,
+            this will be the previous value (to enable restoring later).
         """
         key = (type_module, type_name)
         oldfunc = self.deferred_printers.get(key, None)
-        if func is not None:
-            # To support easy restoration of old printers, we need to ignore
-            # Nones.
+        if func is None:
+            self.deferred_printers.pop(key, None)
+        elif func is not _current:
             self.deferred_printers[key] = func
         return oldfunc
 
