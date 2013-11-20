@@ -239,8 +239,6 @@ class EmbeddedSphinxShell(object):
 
         # Create config object for IPython
         config = Config()
-        config.Global.display_banner = False
-        config.Global.exec_lines = exec_lines
         config.InteractiveShell.autocall = False
         config.InteractiveShell.autoindent = False
         config.InteractiveShell.colors = 'NoColor'
@@ -251,8 +249,10 @@ class EmbeddedSphinxShell(object):
         pdir = os.path.join(tmp_profile_dir,profname)
         profile = ProfileDir.create_profile_dir(pdir)
 
-        # Create and initialize ipython, but don't start its mainloop
+        # Create and initialize global ipython, but don't start its mainloop.
+        # This will persist across different EmbededSphinxShell instances.
         IP = InteractiveShell.instance(config=config, profile_dir=profile)
+
         # io.stdout redirect must be done *after* instantiating InteractiveShell
         io.stdout = self.cout
         io.stderr = self.cout
@@ -277,6 +277,10 @@ class EmbeddedSphinxShell(object):
         # on the first call to the savefig decorator, we'll import
         # pyplot as plt so we can make a call to the plt.gcf().savefig
         self._pyplot_imported = False
+
+        # Prepopulate the namespace.
+        for line in exec_lines:
+            self.process_input_line(line, store_history=False)
 
     def clear_cout(self):
         self.cout.seek(0)
@@ -611,11 +615,16 @@ class IPythonDirective(Directive):
          promptout, mplbackend, exec_lines) = self.get_config_options()
 
         if self.shell is None:
-            self.shell = EmbeddedSphinxShell(exec_lines)
+
             if mplbackend:
-                # Each ipython code-block is run in a separate process.
                 import matplotlib
+                # Repeated calls to use() will not hurt us since `mplbackend`
+                # is the same each time.
                 matplotlib.use(mplbackend)
+
+            # Must be called after (potentially) importing matplotlib and
+            # setting its backend since exec_lines might import pylab.
+            self.shell = EmbeddedSphinxShell(exec_lines)
 
         # reset the execution count if we haven't processed this doc
         #NOTE: this may be borked if there are multiple seen_doc tmp files
