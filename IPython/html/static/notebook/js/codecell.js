@@ -63,7 +63,6 @@ var IPython = (function (IPython) {
     var CodeCell = function (kernel, options) {
         this.kernel = kernel || null;
         this.collapsed = false;
-        this.cell_type = "code";
 
         // create all attributed in constructor function
         // even if null for V8 VM optimisation
@@ -81,6 +80,9 @@ var IPython = (function (IPython) {
         options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
 
         IPython.Cell.apply(this,[options]);
+
+        // Attributes we want to override in this subclass.
+        this.cell_type = "code";
 
         var that = this;
         this.element.focusout(
