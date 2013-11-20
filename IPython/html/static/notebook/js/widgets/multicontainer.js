@@ -21,7 +21,8 @@ define(["notebook/js/widget"], function(widget_manager){
     var AccordionView = IPython.WidgetView.extend({
         
         render: function(){
-            this.$el = $('<div />', {id: IPython.utils.uuid()})
+            var guid = 'accordion' + IPython.utils.uuid();
+            this.$el = $('<div />', {id: guid})
                 .addClass('accordion');
             this._ensureElement();
             this.containers = [];
@@ -103,7 +104,7 @@ define(["notebook/js/widget"], function(widget_manager){
     var TabView = IPython.WidgetView.extend({
         
         render: function(){
-            var uuid = IPython.utils.uuid();
+            var uuid = 'tabs'+IPython.utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
