@@ -911,7 +911,7 @@ def _run_edit_test(arg_s, exp_filename=None,
     if exp_filename is not None:
         nt.assert_equal(exp_filename, filename)
     if exp_contents is not None:
-        with io.open(filename, 'r') as f:
+        with io.open(filename, 'r', encoding='utf-8') as f:
             contents = f.read()
         nt.assert_equal(exp_contents, contents)
     if exp_lineno != -1:

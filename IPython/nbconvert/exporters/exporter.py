@@ -139,7 +139,7 @@ class Exporter(LoggingConfigurable):
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
         resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
 
-        with io.open(filename) as f:
+        with io.open(filename, encoding='utf-8') as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources, **kw)
 
 
