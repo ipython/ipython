@@ -15,9 +15,11 @@ and the IPython directive::
     extensions = ['IPython.sphinxext.ipython_console_highlighting',
                   'IPython.sphinxext.ipython_directive']
 
-By default this directive assumes that your prompts are unchanged IPython ones,
-but this can be customized. The configurable options that can be placed in
-conf.py are:
+The IPython directive outputs code-blocks with the language 'ipython'. So
+if you do not have the syntax highlighting extension enabled as well, then
+all rendered code-blocks will be uncolored. By default this directive assumes
+that your prompts are unchanged IPython ones, but this can be customized.
+The configurable options that can be placed in conf.py are:
 
 ipython_savefig_dir:
     The directory in which to save the figures. This is relative to the
@@ -55,6 +57,21 @@ one sets the backend to `None`::
 
     ipython_mplbacked = None
 
+An example usage of the directive is:
+
+.. code-block:: rst
+
+    .. ipython::
+
+        In [1]: x = 1
+
+        In [2]: y = x**2
+
+        In [3]: print(y)
+
+
+See http://matplotlib.org/sampledoc/ipython_directive.html for more additional
+documentation.
 
 ToDo
 ----
