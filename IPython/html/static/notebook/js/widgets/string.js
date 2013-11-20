@@ -22,7 +22,6 @@ define(["notebook/js/widget"], function(widget_manager){
       
         // Called when view is rendered.
         render : function(){
-            this.$el = $('<div />');
             this.update(); // Set defaults.
         },
         

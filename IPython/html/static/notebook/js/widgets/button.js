@@ -30,6 +30,7 @@ define(["notebook/js/widget"], function(widget_manager){
                     that.model.set('clicks', that.model.get('clicks') + 1);
                     that.model.update_other_views(that);
                 });
+            this._ensureElement();
 
             this.update(); // Set defaults.
         },

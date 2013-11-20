@@ -23,7 +23,7 @@ define(["notebook/js/widget"], function(widget_manager){
       
         // Called when view is rendered.
         render : function(){
-            this.$el = $('<div />')
+            this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
                 .addClass('widget-hlabel')
@@ -74,7 +74,6 @@ define(["notebook/js/widget"], function(widget_manager){
         render : function(){
             this.$el
                 .html('');
-
             this.$button = $('<button />')
                 .addClass('btn')
                 .attr('type', 'button')

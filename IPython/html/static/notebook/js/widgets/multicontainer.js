@@ -23,6 +23,7 @@ define(["notebook/js/widget"], function(widget_manager){
         render: function(){
             this.$el = $('<div />', {id: IPython.utils.uuid()})
                 .addClass('accordion');
+            this._ensureElement();
             this.containers = [];
         },
         
@@ -102,7 +103,6 @@ define(["notebook/js/widget"], function(widget_manager){
     var TabView = IPython.WidgetView.extend({
         
         render: function(){
-            this.$el = $('<div />');
             var uuid = IPython.utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})
