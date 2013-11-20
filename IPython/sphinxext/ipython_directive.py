@@ -9,11 +9,15 @@ like an interactive ipython section.
 
 To enable this directive, simply list it in your Sphinx ``conf.py`` file
 (making sure the directory where you placed it is visible to sphinx, as is
-needed for all Sphinx directives).
+needed for all Sphinx directives). For example, to enable syntax highlighting
+and the IPython directive::
+
+    extensions = ['IPython.sphinxext.ipython_console_highlighting',
+                  'IPython.sphinxext.ipython_directive']
 
 By default this directive assumes that your prompts are unchanged IPython ones,
 but this can be customized. The configurable options that can be placed in
-conf.py are
+conf.py are:
 
 ipython_savefig_dir:
     The directory in which to save the figures. This is relative to the
@@ -31,10 +35,21 @@ ipython_promptin:
     The default is 'In [%d]:'. This expects that the line numbers are used
     in the prompt.
 ipython_promptout:
-
     The string to represent the IPython prompt in the generated ReST. The
     default is 'Out [%d]:'. This expects that the line numbers are used
     in the prompt.
+ipython_mplbackend:
+    The string which specifies if the embedded Sphinx shell should import
+    Matplotlib and set the backend for each code-block. If `None`, or equal
+    to '' or 'None', then `matplotlib` will not be automatically imported. If
+    not `None`, then the value should specify a backend that is passed to
+    `matplotlib.use()`. The default value is 'agg'.
+
+As an example, to use the IPython directive when `matplotlib` is not available,
+one sets the backend to `None`::
+
+    ipython_mplbacked = None
+
 
 ToDo
 ----
@@ -71,13 +86,10 @@ except ImportError:
     from md5 import md5
 
 # Third-party
-import matplotlib
 import sphinx
 from docutils.parsers.rst import directives
 from docutils import nodes
 from sphinx.util.compat import Directive
-
-matplotlib.use('Agg')
 
 # Our own
 from IPython import Config, InteractiveShell
@@ -119,8 +131,8 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 
 
       OUTPUT: the output string, possibly multi-line
-    """
 
+    """
     block = []
     lines = part.split('\n')
     N = len(lines)
@@ -561,30 +573,34 @@ class IPythonDirective(Directive):
         savefig_dir = os.path.join(confdir, savefig_dir)
 
         # get regex and prompt stuff
-        rgxin     = config.ipython_rgxin
-        rgxout    = config.ipython_rgxout
-        promptin  = config.ipython_promptin
-        promptout = config.ipython_promptout
+        rgxin      = config.ipython_rgxin
+        rgxout     = config.ipython_rgxout
+        promptin   = config.ipython_promptin
+        promptout  = config.ipython_promptout
+        mplbackend = config.ipython_mplbackend
 
-        return savefig_dir, source_dir, rgxin, rgxout, promptin, promptout
+        return (savefig_dir, source_dir, rgxin, rgxout,
+                promptin, promptout, mplbackend)
 
     def setup(self):
+        # Get configuration values.
+        (savefig_dir, source_dir, rgxin, rgxout,
+            promptin, promptout, mplbackend) = self.get_config_options()
+
         if self.shell is None:
             self.shell = EmbeddedSphinxShell()
+            if mplbackend:
+                # Each ipython code-block is run in a separate process.
+                import matplotlib
+                matplotlib.use(mplbackend)
+
         # reset the execution count if we haven't processed this doc
         #NOTE: this may be borked if there are multiple seen_doc tmp files
         #check time stamp?
-
         if not self.state.document.current_source in self.seen_docs:
-                self.shell.IP.history_manager.reset()
-                self.shell.IP.execution_count = 1
-                self.seen_docs.add(self.state.document.current_source)
-
-
-
-        # get config values
-        (savefig_dir, source_dir, rgxin,
-                rgxout, promptin, promptout) = self.get_config_options()
+            self.shell.IP.history_manager.reset()
+            self.shell.IP.execution_count = 1
+            self.seen_docs.add(self.state.document.current_source)
 
         # and attach to shell so we don't have to pass them around
         self.shell.rgxin = rgxin
@@ -595,7 +611,6 @@ class IPythonDirective(Directive):
         self.shell.source_dir = source_dir
 
         # setup bookmark for saving figures directory
-
         self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
                                       store_history=False)
         self.shell.clear_cout()
@@ -621,7 +636,6 @@ class IPythonDirective(Directive):
         self.shell.is_doctest = 'doctest' in options
         self.shell.is_verbatim = 'verbatim' in options
 
-
         # handle pure python code
         if 'python' in self.arguments:
             content = self.content
@@ -633,9 +647,7 @@ class IPythonDirective(Directive):
         figures = []
 
         for part in parts:
-
             block = block_parser(part, rgxin, rgxout, promptin, promptout)
-
             if len(block):
                 rows, figure = self.shell.process_block(block)
                 for row in rows:
@@ -644,27 +656,18 @@ class IPythonDirective(Directive):
                 if figure is not None:
                     figures.append(figure)
 
-        #text = '\n'.join(lines)
-        #figs = '\n'.join(figures)
-
         for figure in figures:
             lines.append('')
             lines.extend(figure.split('\n'))
             lines.append('')
 
-        #print lines
         if len(lines)>2:
             if debug:
                 print('\n'.join(lines))
-            else: #NOTE: this raises some errors, what's it for?
-                #print 'INSERTING %d lines'%len(lines)
+            else:
+                # This is what makes the lines appear in the final output.
                 self.state_machine.insert_input(
                     lines, self.state_machine.input_lines.source(0))
-
-        text = '\n'.join(lines)
-        txtnode = nodes.literal_block(text, text)
-        txtnode['language'] = 'ipython'
-        #imgnode = nodes.image(figs)
 
         # cleanup
         self.teardown()
@@ -676,13 +679,14 @@ def setup(app):
     setup.app = app
 
     app.add_directive('ipython', IPythonDirective)
-    app.add_config_value('ipython_savefig_dir', None, True)
+    app.add_config_value('ipython_savefig_dir', None, 'env')
     app.add_config_value('ipython_rgxin',
-                         re.compile('In \[(\d+)\]:\s?(.*)\s*'), True)
+                         re.compile('In \[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_rgxout',
-                         re.compile('Out\[(\d+)\]:\s?(.*)\s*'), True)
-    app.add_config_value('ipython_promptin', 'In [%d]:', True)
-    app.add_config_value('ipython_promptout', 'Out[%d]:', True)
+                         re.compile('Out\[(\d+)\]:\s?(.*)\s*'), 'env')
+    app.add_config_value('ipython_promptin', 'In [%d]:', 'env')
+    app.add_config_value('ipython_promptout', 'Out[%d]:', 'env')
+    app.add_config_value('ipython_mplbackend', 'agg', 'env')
 
 
 # Simple smoke test, needs to be converted to a proper automatic test.
