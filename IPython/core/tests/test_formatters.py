@@ -88,3 +88,47 @@ def test_bad_precision():
     nt.assert_raises(ValueError, set_fp, -1)
 
 
+def test_for_type():
+    f = PlainTextFormatter()
+    class C():
+        pass
+    
+    def foo(c, p, cycle):
+        p.text('C')
+    
+    # initial return is None
+    assert f.for_type(C, foo) is None
+    # no func queries
+    assert f.for_type(C) is foo
+    # shouldn't change anything
+    assert f.for_type(C) is foo
+    # None should clear and return foo
+    assert f.for_type(C, None) is foo
+    # verify clear
+    assert C not in f.type_printers
+    assert f.for_type(C) is None
+
+
+def test_for_type_by_name():
+    f = PlainTextFormatter()
+    class C():
+        pass
+    
+    mod = C.__module__
+    
+    def foo(c, p, cycle):
+        p.text('C')
+    
+    # initial return is None
+    assert f.for_type_by_name(mod, 'C', foo) is None
+    # no func queries
+    assert f.for_type_by_name(mod, 'C') is foo
+    # shouldn't change anything
+    assert f.for_type_by_name(mod, 'C') is foo
+    # None should clear and return foo
+    assert f.for_type_by_name(mod, 'C', None) is foo
+    # verify clear
+    assert (mod, 'C') not in f.deferred_printers
+    assert f.for_type_by_name(mod, 'C') is None
+
+
