@@ -191,11 +191,12 @@ def warn_format_error(method, self, *args, **kwargs):
     except Exception as e:
         warn("Exception in %s formatter: %s" % (self.format_type, e))
         return None
-    if r is None or isinstance(r, self._return_type):
+    if r is None or isinstance(r, self._return_type) or \
+        (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
         return r
     else:
         warn("%s formatter returned invalid type %s for object: %s" % (
-            self.format_type, type(r), pretty._safe_repr(obj)
+            self.format_type, type(r), pretty._safe_repr(args[0])
         ))
     
 
