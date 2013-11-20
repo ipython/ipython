@@ -304,6 +304,11 @@ class DisplayObject(object):
         self.filename = None if filename is None else unicode_type(filename)
 
         self.reload()
+        self._check_data()
+    
+    def _check_data(self):
+        """Override in subclasses if there's something to check."""
+        pass
 
     def reload(self):
         """Reload the raw data from file or URL."""
@@ -331,13 +336,19 @@ class DisplayObject(object):
             except:
                 self.data = None
 
-class Pretty(DisplayObject):
+class TextDisplayObject(DisplayObject):
+    """Validate that display data is text"""
+    def _check_data(self):
+        if self.data is not None and not isinstance(self.data, string_types):
+            raise TypeError("%s xpects text, not %r" % (self.__class__.__name__, self.data))
+
+class Pretty(TextDisplayObject):
 
     def _repr_pretty_(self):
         return self.data
 
 
-class HTML(DisplayObject):
+class HTML(TextDisplayObject):
 
     def _repr_html_(self):
         return self.data
@@ -351,14 +362,14 @@ class HTML(DisplayObject):
         return self._repr_html_()
 
 
-class Math(DisplayObject):
+class Math(TextDisplayObject):
 
     def _repr_latex_(self):
         s = self.data.strip('$')
         return "$$%s$$" % s
 
 
-class Latex(DisplayObject):
+class Latex(TextDisplayObject):
 
     def _repr_latex_(self):
         return self.data
@@ -398,7 +409,7 @@ class SVG(DisplayObject):
         return self.data
 
 
-class JSON(DisplayObject):
+class JSON(TextDisplayObject):
 
     def _repr_json_(self):
         return self.data
@@ -415,7 +426,7 @@ lib_t1 = """$.getScript("%s", function () {
 lib_t2 = """});
 """
 
-class Javascript(DisplayObject):
+class Javascript(TextDisplayObject):
 
     def __init__(self, data=None, url=None, filename=None, lib=None, css=None):
         """Create a Javascript display object given raw data.
