@@ -24,13 +24,12 @@ define(["notebook/js/widget"], function(widget_manager){
         // Called when view is rendered.
         render : function(){
             var that = this;
-            this.$el = $("<button />")
+            this.setElement($("<button />")
                 .addClass('btn')
                 .click(function() {
                     that.model.set('clicks', that.model.get('clicks') + 1);
                     that.model.update_other_views(that);
-                });
-            this._ensureElement();
+                }));
 
             this.update(); // Set defaults.
         },
