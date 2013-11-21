@@ -151,8 +151,8 @@ define(["notebook/js/widget"], function(widget_manager){
         // Handles text submition
         handleKeypress: function(e) { 
             if (e.keyCode == 13) { // Return key
-                this.model.set('submits', this.model.get('submits') + 1);
-                this.model.update_other_views(this);
+                this.model.last_modified_view = this; // For callbacks.
+                this.model.send({event: 'submit'});
             }
         },
     });

@@ -27,21 +27,50 @@ class StringWidget(Widget):
     default_view_name = Unicode('TextBoxView')
 
     # Keys
-    _keys = ['value', 'disabled', 'description', 'submits', 'scroll_to_bottoms']
+    _keys = ['value', 'disabled', 'description', 'scroll_to_bottoms']
     value = Unicode(help="String value")
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")
-    submits = Int(0, help="Used to capture and fire submission ")
     scroll_to_bottoms = Int(0, help="Used to scroll a TextAreaView to the bottom")
 
 
     def __init__(self, **kwargs):
         super(StringWidget, self).__init__(**kwargs)
-        self._submission_callbacks = []
+        self._submission_callbacks = []        
+        self.on_msg(self._handle_string_msg)
 
 
     def scroll_to_bottom(self):
         self.scroll_to_bottoms += 1
+
+
+    def on_click(self, callback, remove=False):
+        """Register a callback to execute when the button is clicked.  The
+        callback can either accept no parameters or one sender parameter:
+        - callback()
+        - callback(sender)
+        If the callback has a sender parameter, the ButtonWidget instance that
+        called the callback will be passed into the method as the sender.
+
+        Parameters
+        ----------
+        remove : bool (optional)
+            Set to true to remove the callback from the list of callbacks."""
+        if remove:
+            self._click_handlers.remove(callback)
+        elif not callback in self._click_handlers:
+            self._click_handlers.append(callback)
+
+
+    def _handle_string_msg(self, content):
+        """Handle a msg from the front-end
+
+        Parameters
+        ----------
+        content: dict
+            Content of the msg."""
+        if 'event' in content and content['event'] == 'submit':
+            self._handle_submit()
 
 
     def on_submit(self, callback, remove=False):
@@ -62,23 +91,22 @@ class StringWidget(Widget):
             self._submission_callbacks.append(callback)
 
 
-    def _submits_changed(self, name, old_value, new_value):
+    def _handle_submit(self):
         """Handles when a string widget view is submitted."""
-        if new_value > old_value:
-            for handler in self._submission_callbacks:
-                if callable(handler):
-                    argspec = inspect.getargspec(handler)
-                    nargs = len(argspec[0])
+        for handler in self._submission_callbacks:
+            if callable(handler):
+                argspec = inspect.getargspec(handler)
+                nargs = len(argspec[0])
 
-                    # Bound methods have an additional 'self' argument
-                    if isinstance(handler, types.MethodType):
-                        nargs -= 1
+                # Bound methods have an additional 'self' argument
+                if isinstance(handler, types.MethodType):
+                    nargs -= 1
 
-                    # Call the callback
-                    if nargs == 0:
-                        handler()
-                    elif nargs == 1:
-                        handler(self)
-                    else:
-                        raise TypeError('StringWidget submit callback must ' \
-                            'accept 0 or 1 arguments.')
+                # Call the callback
+                if nargs == 0:
+                    handler()
+                elif nargs == 1:
+                    handler(self)
+                else:
+                    raise TypeError('StringWidget submit callback must ' \
+                        'accept 0 or 1 arguments.')
