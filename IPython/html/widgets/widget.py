@@ -27,7 +27,6 @@ from IPython.utils.traitlets import Unicode, Dict, List, Instance, Bool
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
-
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
@@ -114,7 +113,7 @@ class Widget(LoggingConfigurable):
     def _handle_msg(self, msg):
         """Called when a msg is recieved from the frontend"""
         data = msg['content']['data']
-
+        
         # Handle backbone sync methods CREATE, PATCH, and UPDATE
         if 'sync_method' in data and 'sync_data' in data:
             sync_method = data['sync_method']
@@ -384,7 +383,6 @@ class Widget(LoggingConfigurable):
         ----------
         view_name: unicode (optional)
             View to display in the frontend.  Overrides default_view_name."""
-
         if not view_name:
             view_name = self.default_view_name
         

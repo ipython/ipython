@@ -25,11 +25,7 @@ define(["notebook/js/widget"], function(widget_manager){
         render : function(){
             var that = this;
             this.setElement($("<button />")
-                .addClass('btn')
-                .click(function() {
-                    that.model.set('clicks', that.model.get('clicks') + 1);
-                    that.model.update_other_views(that);
-                }));
+                .addClass('btn'));
 
             this.update(); // Set defaults.
         },
@@ -48,7 +44,15 @@ define(["notebook/js/widget"], function(widget_manager){
             
             return IPython.WidgetView.prototype.update.call(this);
         },
+
+        events: {
+            'click': '_handle_click',
+        },
         
+        _handle_click: function(){
+            this.model.last_modified_view = this; // For callbacks.
+            this.model.send({event: 'click'});
+        },
     });
 
     widget_manager.register_widget_view('ButtonView', ButtonView);

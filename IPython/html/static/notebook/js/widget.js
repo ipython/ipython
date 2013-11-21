@@ -75,7 +75,7 @@ define(["components/underscore/underscore-min",
                 cell = this.last_modified_view.cell;
             }
             var callbacks = this._make_callbacks(cell);
-            var data = {custom_content: content};
+            var data = {'custom_content': content};
             this.comm.send(data, callbacks);   
         },
 

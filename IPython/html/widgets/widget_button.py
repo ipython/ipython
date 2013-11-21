@@ -28,15 +28,16 @@ class ButtonWidget(Widget):
     default_view_name = Unicode('ButtonView')
 
     # Keys
-    _keys = ['clicks', 'description', 'disabled']
-    clicks = Int(0, help="Number of times the button has been clicked.")
+    _keys = ['description', 'disabled']
     description = Unicode('', help="Description of the button (label).")
     disabled = Bool(False, help="Enable or disable user changes.")
     
 
     def __init__(self, **kwargs):
-        self._click_handlers = []
         super(ButtonWidget, self).__init__(**kwargs)
+        
+        self._click_handlers = []
+        self.on_msg(self._handle_button_msg)
 
 
     def on_click(self, callback, remove=False):
@@ -57,24 +58,36 @@ class ButtonWidget(Widget):
             self._click_handlers.append(callback)
 
 
-    def _clicks_changed(self, name, old, new):
-        """Handles when the clicks property has been changed.  Fires on_click
+    def _handle_button_msg(self, content):
+        """Hanlde a msg from the front-end
+
+        Parameters
+        ----------
+        content: dict
+            Content of the msg."""
+        if 'event' in content and content['event'] == 'click':
+            self._handle_click()
+
+
+    def _handle_click(self):
+        """Handles when the button has been clicked.  Fires on_click
         callbacks when appropriate."""
-        if new > old:
-            for handler in self._click_handlers:
-                if callable(handler):
-                    argspec = inspect.getargspec(handler)
-                    nargs = len(argspec[0])
+        
+        for handler in self._click_handlers:
+            if callable(handler):
+                argspec = inspect.getargspec(handler)
+                nargs = len(argspec[0])
 
-                    # Bound methods have an additional 'self' argument
-                    if isinstance(handler, types.MethodType):
-                        nargs -= 1
+                # Bound methods have an additional 'self' argument
+                if isinstance(handler, types.MethodType):
+                    nargs -= 1
 
-                    # Call the callback
-                    if nargs == 0:
-                        handler()
-                    elif nargs == 1:
-                        handler(self)
-                    else:
-                        raise TypeError('ButtonWidget click callback must ' \
-                            'accept 0 or 1 arguments.')
+                # Call the callback
+                if nargs == 0:
+                    handler()
+                elif nargs == 1:
+                    handler(self)
+                else:
+                    raise TypeError('ButtonWidget click callback must ' \
+                        'accept 0 or 1 arguments.')
+        
