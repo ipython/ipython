@@ -39,8 +39,8 @@ class HTMLExporter(TemplateExporter):
     default_template = Unicode('full', config=True, help="""Flavor of the data 
         format to use.  I.E. 'full' or 'basic'""")
     
-    def _raw_format_default(self):
-        return 'html'
+    def _raw_mimetype_default(self):
+        return 'text/html'
     
     @property
     def default_config(self):

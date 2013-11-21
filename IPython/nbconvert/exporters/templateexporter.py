@@ -126,12 +126,12 @@ class TemplateExporter(Exporter):
         help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
 
-    raw_format = Unicode('')
-    raw_formats = List(config=True,
+    raw_mimetype = Unicode('')
+    raw_mimetypes = List(config=True,
         help="""formats of raw cells to be included in this Exporter's output."""
     )
-    def _raw_formats_default(self):
-        return [self.raw_format]
+    def _raw_mimetypes_default(self):
+        return [self.raw_mimetype]
 
 
     def __init__(self, config=None, extra_loaders=None, **kw):
@@ -209,8 +209,8 @@ class TemplateExporter(Exporter):
           preprocessors and filters.
         """
         nb_copy, resources = super(TemplateExporter, self).from_notebook_node(nb, resources, **kw)
-        resources.setdefault('raw_format', self.raw_format)
-        resources.setdefault('raw_formats', self.raw_formats)
+        resources.setdefault('raw_mimetype', self.raw_mimetype)
+        resources.setdefault('raw_mimetypes', self.raw_mimetypes)
 
         self._load_template()
 

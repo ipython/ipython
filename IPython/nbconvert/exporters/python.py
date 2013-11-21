@@ -29,9 +29,6 @@ class PythonExporter(TemplateExporter):
         'py', config=True, 
         help="Extension of the file that should be written to disk")
 
-    def _raw_format_default(self):
-        return 'python'
-    
-    def _raw_formats_default(self):
-        return ['py', 'python']
+    def _raw_mimetype_default(self):
+        return 'application/x-python'
 

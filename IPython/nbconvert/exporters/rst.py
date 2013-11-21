@@ -30,12 +30,9 @@ class RSTExporter(TemplateExporter):
         'rst', config=True, 
         help="Extension of the file that should be written to disk")
 
-    def _raw_format_default(self):
-        return 'rst'
+    def _raw_mimetype_default(self):
+        return 'text/restructuredtext'
     
-    def _raw_formats_default(self):
-        return ['rst', 'restructuredtext']
-
     @property
     def default_config(self):
         c = Config({'ExtractOutputPreprocessor':{'enabled':True}})
