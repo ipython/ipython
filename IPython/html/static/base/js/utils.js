@@ -419,6 +419,19 @@ IPython.utils = (function (IPython) {
         }
         return url;
     };
+    
+    
+    var encode_uri_components = function (uri) {
+        // encode just the components of a multi-segment uri,
+        // leaving '/' separators
+        return uri.split('/').map(encodeURIComponent).join('/');
+    }
+    
+    var url_join_encode = function () {
+        // join a sequence of url components with '/',
+        // encoding each component with encodeURIComponent
+        return encode_uri_components(url_path_join.apply(null, arguments));
+    };
 
 
     var splitext = function (filename) {
@@ -458,6 +471,8 @@ IPython.utils = (function (IPython) {
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
         url_path_join : url_path_join,
+        url_join_encode : url_join_encode,
+        encode_uri_components : encode_uri_components,
         splitext : splitext,
         always_new : always_new,
         browser : browser
