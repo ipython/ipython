@@ -305,7 +305,13 @@ Currently the magic system has the following functions:""",
 
     @line_magic
     def profile(self, parameter_s=''):
-        """Print your currently active IPython profile."""
+        """Print your currently active IPython profile.
+       
+        See Also
+        --------
+        prun : run code using the Python profiler
+               (:class:`~IPython.core.magics.execution.ExecutionMagics.prun`)
+        """
         from IPython.core.application import BaseIPythonApplication
         if BaseIPythonApplication.initialized():
             print(BaseIPythonApplication.instance().profile)
