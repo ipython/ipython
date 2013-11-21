@@ -147,9 +147,11 @@ var IPython = (function (IPython) {
                 var val = $(this).val()
                 if (val =='') {
                     IPython.CellToolbar.global_hide();
+                    delete IPython.notebook.metadata.celltoolbar;
                 } else {
                     IPython.CellToolbar.global_show();
                     IPython.CellToolbar.activate_preset(val);
+                    IPython.notebook.metadata.celltoolbar = val;
                 }
             });
         // Setup the currently registered presets.

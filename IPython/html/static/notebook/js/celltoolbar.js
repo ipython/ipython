@@ -214,7 +214,7 @@ var IPython = (function (IPython) {
      *
      *      CellToolbar.activate_preset('foo.foo_preset1');
      */
-    CellToolbar.activate_preset= function(preset_name){
+    CellToolbar.activate_preset = function(preset_name){
         var preset = CellToolbar._presets[preset_name];
 
         if(preset != undefined){
