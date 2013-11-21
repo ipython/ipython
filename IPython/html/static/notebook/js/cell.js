@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
         // same order. Easiest is to create and set to null in parent class.
 
         this.element = null;
-        this.cell_type = null;
+        this.cell_type = this.cell_type || null;
         this.code_mirror = null;
 
 
@@ -201,6 +201,7 @@ var IPython = (function (IPython) {
     Cell.prototype.toJSON = function () {
         var data = {};
         data.metadata = this.metadata;
+        data.cell_type = this.cell_type;
         return data;
     };
 

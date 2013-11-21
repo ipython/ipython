@@ -276,7 +276,6 @@ var IPython = (function (IPython) {
      */
     TextCell.prototype.toJSON = function () {
         var data = IPython.Cell.prototype.toJSON.apply(this);
-        data.cell_type = this.cell_type;
         data.source = this.get_text();
         if (data.source == this.placeholder) {
             data.source = "";
@@ -357,7 +356,7 @@ var IPython = (function (IPython) {
         var that = this;
         this.element.focusout(
                 function() { that.auto_highlight(); }
-            );
+        );
     };
 
     RawCell.options_default = {
