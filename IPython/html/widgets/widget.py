@@ -60,8 +60,6 @@ class Widget(LoggingConfigurable):
     # Private/protected declarations
     _property_lock = (None, None) # Last updated (key, value) from the front-end.  Prevents echo.
     _css = Dict() # Internal CSS property dict
-    _add_class = List() # Used to add a js class to a DOM element (call#, selector, class_name)
-    _remove_class = List() # Used to remove a js class from a DOM element (call#, selector, class_name)
     _displayed = False
     _comm = None
     
@@ -80,8 +78,6 @@ class Widget(LoggingConfigurable):
             via the default_view_name property.
         """
         self._children = []
-        self._add_class = [0]
-        self._remove_class = [0]
         self._display_callbacks = []
         self._msg_callbacks = []
         super(Widget, self).__init__(**kwargs)
@@ -108,7 +104,7 @@ class Widget(LoggingConfigurable):
     
     # Properties      
     def _get_keys(self):
-        keys = ['visible', '_css', '_add_class', '_remove_class']
+        keys = ['visible', '_css']
         keys.extend(self._keys)
         return keys
     keys = property(_get_keys)
@@ -309,8 +305,9 @@ class Widget(LoggingConfigurable):
             JQuery selector to select the DOM element(s) that the class(es) will 
             be added to.
         """
-        self._add_class = [self._add_class[0] + 1, selector, class_name]
-        self.send_state(key='_add_class')
+        self._comm.send({"method": "add_class",
+                        "class_list": class_name,
+                        "selector": selector})
 
 
     def remove_class(self, class_name, selector=""):
@@ -325,8 +322,9 @@ class Widget(LoggingConfigurable):
             JQuery selector to select the DOM element(s) that the class(es) will 
             be removed from.
         """
-        self._remove_class = [self._remove_class[0] + 1, selector, class_name]
-        self.send_state(key='_remove_class')
+        self._comm.send({"method": "remove_class",
+                        "class_list": class_name,
+                        "selector": selector})
 
 
     def send(self, content):

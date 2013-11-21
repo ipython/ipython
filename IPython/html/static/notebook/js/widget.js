@@ -108,13 +108,7 @@ define(["components/underscore/underscore-min",
 
         // Handle when a widget is closed.
         _handle_comm_closed: function (msg) {
-            for (var cell in this.views) {
-                var views = this.views[cell];
-                for (var view_index in views) {
-                    var view = views[view_index];
-                    view.remove();
-                }
-            }
+            this._execute_views_method('remove');
             delete this.comm.model; // Delete ref so GC will collect widget model.
         },
 
@@ -138,6 +132,12 @@ define(["components/underscore/underscore-min",
                     break;
                 case 'update':
                     this._handle_update(msg.content.data.state);
+                    break;
+                case 'add_class':
+                case 'remove_class':
+                    var selector = msg.content.data.selector;
+                    var class_list = msg.content.data.class_list;
+                    this._execute_views_method(method, selector, class_list);
                     break;
                 case 'custom':
                     this._handle_custom_msg(msg.content.data.custom_content);
@@ -257,6 +257,28 @@ define(["components/underscore/underscore-min",
                     this._view_displayed_callback(view)
                 } catch (e) {
                     console.log("Exception in widget model view displayed callback", e, view, this);
+                }
+            }
+        },
+
+
+        _execute_views_method: function (/* method_name, [argument0], [argument1], [...] */) {
+            var method_name = arguments[0];
+            var args = null;
+            if (arguments.length > 1) {
+                args = [].splice.call(arguments,1);
+            }
+
+            for (var cell in this.views) {
+                var views = this.views[cell];
+                for (var view_index in views) {
+                    var view = views[view_index];
+                    var method = view[method_name];
+                    if (args === null) {
+                        method.apply(view);
+                    } else {
+                        method.apply(view, args);
+                    }
                 }
             }
         },
@@ -428,10 +450,22 @@ define(["components/underscore/underscore-min",
         initialize: function() {
             this.visible = true;
             this.model.on('change',this.update,this);
-            this._add_class_calls = this.model.get('_add_class')[0];
-            this._remove_class_calls = this.model.get('_remove_class')[0];
         },
         
+        add_class: function(selector, class_list){
+            var elements = this._get_selector_element(selector);
+            if (elements.length > 0) {
+                elements.addClass(class_list);
+            }
+        },
+        
+        remove_class: function(selector, class_list){
+            var elements = this._get_selector_element(selector);
+            if (elements.length > 0) {
+                elements.removeClass(class_list);
+            }
+        },
+
         update: function() {
             if (this.model.get('visible') != undefined) {
                 if (this.visible != this.model.get('visible')) {
@@ -461,30 +495,6 @@ define(["components/underscore/underscore-min",
                     }
                 }
             }
-
-            var add_class = this.model.get('_add_class');
-            if (add_class != undefined){
-                var add_class_calls = add_class[0];
-                if (add_class_calls > this._add_class_calls) {
-                    this._add_class_calls = add_class_calls;
-                    var elements = this._get_selector_element(add_class[1]);
-                    if (elements.length > 0) {
-                        elements.addClass(add_class[2]);
-                    }
-                }    
-            }
-
-            var remove_class = this.model.get('_remove_class');
-            if (remove_class != undefined){
-                var remove_class_calls = remove_class[0];
-                if (remove_class_calls > this._remove_class_calls) {
-                    this._remove_class_calls = remove_class_calls;
-                    var elements = this._get_selector_element(remove_class[1]);
-                    if (elements.length > 0) {
-                        elements.removeClass(remove_class[2]);
-                    }
-                }    
-            }
         },
 
         _get_selector_element: function(selector) {
@@ -493,7 +503,7 @@ define(["components/underscore/underscore-min",
             // the $el_to_style element is not defined, use apply the 
             // style to the view's element.
             var elements = this.$el.find(selector);
-            if (selector=='') {
+            if (selector===undefined || selector===null || selector=='') {
                 if (this.$el_to_style == undefined) {
                     elements = this.$el;
                 } else {
