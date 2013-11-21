@@ -183,6 +183,7 @@ var IPython = (function (IPython) {
             } else {
                 this.add_shutdown_button(item,this.sessions[name]);
             }
+            this.add_copy_button(item);
         }
     };
 
@@ -309,6 +310,35 @@ var IPython = (function (IPython) {
                 return false;
             });
         item.find(".item_buttons").html("").append(delete_button);
+    };
+
+
+    NotebookList.prototype.add_copy_button = function (item) {
+        var notebooklist = this;
+        var copy_button = $("<button/>").text("Make a Copy...").addClass("btn btn-mini").
+            click(function (e) {
+                var parent_item = $(this).parents('div.list_item');
+                var nbname = parent_item.data('nbname');
+                var settings = {
+                    processData : false,
+                    cache : false,
+                    type : "POST",
+                    dataType : "json",
+                    data : JSON.stringify({copy_from : nbname + '.ipynb' }),
+                    async : false,
+                    success : function (data, status, xhr) {
+                        notebooklist.load_list();
+                    }
+                };
+                var url = utils.url_path_join(
+                    notebooklist.baseProjectUrl(),
+                    'api/notebooks',
+                    notebooklist.notebookPath()
+                );
+                $.ajax(url, settings);
+                return false;
+            });
+        item.find(".item_buttons").append(copy_button);
     };
 
 
