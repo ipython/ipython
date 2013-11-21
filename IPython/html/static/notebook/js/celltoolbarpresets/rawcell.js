@@ -22,7 +22,7 @@
     ["restructuredText", "text/restructuredtext"],
     ["HTML", "text/html"],
     ["markdown", "text/markdown"],
-    ["Python", "text/python"],
+    ["Python", "application/x-python"],
     ["Custom", "dialog"],
 
     ],
