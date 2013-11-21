@@ -69,7 +69,6 @@ An example usage of the directive is:
 
         In [3]: print(y)
 
-
 See http://matplotlib.org/sampledoc/ipython_directive.html for more additional
 documentation.
 
@@ -133,6 +132,28 @@ COMMENT, INPUT, OUTPUT =  range(3)
 #-----------------------------------------------------------------------------
 # Functions and class declarations
 #-----------------------------------------------------------------------------
+def str_to_array(s):
+    """
+    Simplistic converter of strings from repr to float NumPy arrays.
+
+    """
+    import numpy as np
+
+    # Handle infs (assumes default printoptions for NumPy)
+    s = s.replace(u'inf', u'np.inf')
+    s = s.replace(u'nan', u'np.nan')
+
+    if s.startswith(u'array'):
+        # Remove array( and )
+        s = s[6:-1]
+
+    if s.startswith(u'['):
+        a = np.array(eval(s), dtype=float)
+    else:
+        # Assume its a regular float. Force 1D so we can index into it.
+        a = np.atleast_1d(float(s))
+    return a
+
 def block_parser(part, rgxin, rgxout, fmtin, fmtout):
     """
     part is a string of ipython text, comprised of at most one
@@ -339,7 +360,8 @@ class EmbeddedSphinxShell(object):
         image_directive = None
         #print 'INPUT:', data  # dbg
         is_verbatim = decorator=='@verbatim' or self.is_verbatim
-        is_doctest = decorator=='@doctest' or self.is_doctest
+        is_doctest = (decorator is not None and \
+                     decorator.startswith('@doctest')) or self.is_doctest
         is_suppress = decorator=='@suppress' or self.is_suppress
         is_savefig = decorator is not None and \
                      decorator.startswith('@savefig')
@@ -396,38 +418,38 @@ class EmbeddedSphinxShell(object):
             ret.append('')
 
         self.cout.truncate(0)
-        return (ret, input_lines, output, is_doctest, image_file,
+        return (ret, input_lines, output, is_doctest, decorator, image_file,
                     image_directive)
         #print 'OUTPUT', output  # dbg
 
     def process_output(self, data, output_prompt,
-                       input_lines, output, is_doctest, image_file):
+                       input_lines, output, is_doctest, decorator, image_file):
         """Process data block for OUTPUT token."""
-        if is_doctest:
-            submitted = data.strip()
+        if is_doctest and output is not None:
+
             found = output
-            if found is not None:
-                found = found.strip()
+            found = found.strip()
+            submitted = data.strip()
 
-                # XXX - fperez: in 0.11, 'output' never comes with the prompt
-                # in it, just the actual output text.  So I think all this code
-                # can be nuked...
+            # Make sure the output contains the output prompt.
+            ind = found.find(output_prompt)
+            if ind < 0:
+                e = ('output prompt="{0}" does '
+                     'not match out line={1}'.format(output_prompt, found))
+                raise RuntimeError(e)
+            found = found[len(output_prompt):].strip()
 
-                # the above comment does not appear to be accurate... (minrk)
-
-                ind = found.find(output_prompt)
-                if ind<0:
-                    e='output prompt="%s" does not match out line=%s' % \
-                       (output_prompt, found)
+            # Handle the actual doctest comparison.
+            if decorator.strip() == '@doctest':
+                # Standard doctest
+                if found != submitted:
+                    e = ('doctest failure for input_lines="{0}" with '
+                         'found_output="{1}" and submitted '
+                         'output="{2}"'.format(input_lines, found, submitted) )
                     raise RuntimeError(e)
-                found = found[len(output_prompt):].strip()
-
-                if found!=submitted:
-                    e = ('doctest failure for input_lines="%s" with '
-                         'found_output="%s" and submitted output="%s"' %
-                         (input_lines, found, submitted) )
-                    raise RuntimeError(e)
-                #print 'doctest PASSED for input_lines="%s" with found_output="%s" and submitted output="%s"'%(input_lines, found, submitted)
+            else:
+                self.specialized_doctest(decorator, input_lines,
+                                         found, submitted)
 
     def process_comment(self, data):
         """Process data fPblock for COMMENT token."""
@@ -448,7 +470,6 @@ class EmbeddedSphinxShell(object):
         self.process_input_line('bookmark -d ipy_thisdir', store_history=False)
         self.clear_cout()
 
-
     def process_block(self, block):
         """
         process block from the block_parser and return a list of processed lines
@@ -467,14 +488,14 @@ class EmbeddedSphinxShell(object):
             if token==COMMENT:
                 out_data = self.process_comment(data)
             elif token==INPUT:
-                (out_data, input_lines, output, is_doctest, image_file,
-                    image_directive) = \
+                (out_data, input_lines, output, is_doctest, decorator,
+                    image_file, image_directive) = \
                           self.process_input(data, input_prompt, lineno)
             elif token==OUTPUT:
                 out_data = \
                     self.process_output(data, output_prompt,
                                         input_lines, output, is_doctest,
-                                        image_file)
+                                        decorator, image_file)
             if out_data:
                 ret.extend(out_data)
 
@@ -489,10 +510,11 @@ class EmbeddedSphinxShell(object):
             return
         self.process_input_line('import matplotlib.pyplot as plt',
                                 store_history=False)
+        self._pyplot_imported = True
 
     def process_pure_python(self, content):
         """
-        content is a list of strings. it is unedited directive conent
+        content is a list of strings. it is unedited directive content
 
         This runs it line by line in the InteractiveShell, prepends
         prompts as needed capturing stderr and stdout, then returns
@@ -567,6 +589,57 @@ class EmbeddedSphinxShell(object):
                 savefig = False
 
         return output
+
+    def specialized_doctest(self, decorator, input_lines, found, submitted):
+        """
+        Perform a specialized doctest.
+
+        """
+        # Requires NumPy
+        import numpy as np
+
+        valid_types = set(['float'])
+
+        args = decorator.split()
+
+        doctest_type = args[1]
+        if doctest_type not in valid_types:
+            e = "Invalid option to @doctest: {0}".format(doctest_type)
+            raise Exception(e)
+
+        if len(args) == 2:
+            rtol = 1e-05
+            atol = 1e-08
+        else:
+            # Both must be specified if any are specified.
+            try:
+                rtol = float(args[2])
+                atol = float(args[3])
+            except IndexError:
+                e = ("Both `rtol` and `atol` must be specified "
+                     "if either are specified: {0}".format(args))
+                raise IndexError(e)
+
+        try:
+            submitted = str_to_array(submitted)
+            found = str_to_array(found)
+        except:
+            # For example, if the array is huge and there are ellipsis in it.
+            error = True
+        else:
+            found_isnan = np.isnan(found)
+            submitted_isnan = np.isnan(submitted)
+            error = not np.allclose(found_isnan, submitted_isnan)
+            error |= not np.allclose(found[~found_isnan],
+                                     submitted[~submitted_isnan],
+                                     rtol=rtol, atol=atol)
+
+        if error:
+            e = ('doctest float comparison failure for input_lines="{0}" with '
+                 'found_output="{1}" and submitted '
+                 'output="{2}"'.format(input_lines, found, submitted) )
+            raise RuntimeError(e)
+
 
 class IPythonDirective(Directive):
 
@@ -846,6 +919,33 @@ In [152]: title('normal distribution')
 
 @savefig hist_with_text.png
 In [153]: grid(True)
+
+@doctest float
+In [154]: 0.1 + 0.2
+Out[154]: 0.3
+
+@doctest float
+In [155]: np.arange(16).reshape(4,4)
+Out[155]:
+array([[ 0,  1,  2,  3],
+       [ 4,  5,  6,  7],
+       [ 8,  9, 10, 11],
+       [12, 13, 14, 15]])
+
+In [1]: x = np.arange(16, dtype=float).reshape(4,4)
+
+In [2]: x[0,0] = np.inf
+
+In [3]: x[0,1] = np.nan
+
+@doctest float
+In [4]: x
+Out[4]:
+array([[ inf,  nan,   2.,   3.],
+       [  4.,   5.,   6.,   7.],
+       [  8.,   9.,  10.,  11.],
+       [ 12.,  13.,  14.,  15.]])
+
 
         """,
         ]
