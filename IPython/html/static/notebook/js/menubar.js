@@ -77,7 +77,7 @@ var IPython = (function (IPython) {
             IPython.notebook.new_notebook();
         });
         this.element.find('#open_notebook').click(function () {
-            window.open(utils.url_path_join(
+            window.open(utils.url_join_encode(
                 that.baseProjectUrl(),
                 'tree',
                 that.notebookPath()
@@ -93,7 +93,7 @@ var IPython = (function (IPython) {
                 IPython.notebook.save_notebook({async : false});
             }
             
-            var url = utils.url_path_join(
+            var url = utils.url_join_encode(
                 that.baseProjectUrl(),
                 'files',
                 that.notebookPath(),
