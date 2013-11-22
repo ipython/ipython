@@ -485,7 +485,7 @@ define(["components/underscore/underscore-min",
     
     
         send: function(content) {
-            this.model.send({event: 'click'}, this.cell);
+            this.model.send(content, this.cell);
         },
 
         update: function() {
