@@ -10,15 +10,17 @@ IO related utilities.
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
+from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import codecs
 import os
 import sys
 import tempfile
 from .capture import CapturedIO, capture_output
-from .py3compat import string_types, input
+from .py3compat import string_types, input, PY3
 
 #-----------------------------------------------------------------------------
 # Code
@@ -227,3 +229,26 @@ def raw_print_err(*args, **kw):
 # Short aliases for quick debugging, do NOT use these in production code.
 rprint = raw_print
 rprinte = raw_print_err
+
+def unicode_std_stream(stream='stdout'):
+    """Get a wrapper to write unicode to stdout/stderr as UTF-8.
+
+    This ignores environment variables and default encodings, to reliably write
+    unicode to stdout or stderr.
+
+    ::
+
+        unicode_std_stream().write(u'ł@e¶ŧ←')
+    """
+    assert stream in ('stdout', 'stderr')
+    stream  = getattr(sys, stream)
+    if PY3:
+        try:
+            stream_b = stream.buffer
+        except AttributeError:
+            # sys.stdout has been replaced - use it directly
+            return stream
+    else:
+        stream_b = stream
+
+    return codecs.getwriter('utf-8')(stream_b)
