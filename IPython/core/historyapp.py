@@ -12,12 +12,24 @@ import sqlite3
 from IPython.config.application import Application
 from IPython.core.application import BaseIPythonApplication
 from IPython.utils.traitlets import Bool, Int, Dict
+from IPython.utils.io import ask_yes_no
 
 trim_hist_help = """Trim the IPython history database to the last 1000 entries.
 
 This actually copies the last 1000 entries to a new database, and then replaces
-the old file with the new.
+the old file with the new. Use the `--keep=` argument to specify a number
+other than 1000.
 """
+
+clear_hist_help = """Clear the IPython history database, deleting all entries.
+
+Because this is a destructive operation, IPython will prompt the user if they
+really want to do this. Passing a `-f` flag will force clearing without a
+prompt.
+
+This is an handy alias to `ipython history trim --keep=0`
+"""
+
 
 class HistoryTrim(BaseIPythonApplication):
     description = trim_hist_help
@@ -30,8 +42,12 @@ class HistoryTrim(BaseIPythonApplication):
     
     flags = Dict(dict(
         backup = ({'HistoryTrim' : {'backup' : True}},
-            "Set Application.log_level to 0, maximizing log output."
+            backup.get_metadata('help')
         )
+    ))
+
+    aliases=Dict(dict(
+        keep = 'HistoryTrim.keep'
     ))
     
     def start(self):
@@ -44,18 +60,19 @@ class HistoryTrim(BaseIPythonApplication):
                                 'history ORDER BY session DESC, line DESC LIMIT ?', (self.keep+1,)))
         if len(inputs) <= self.keep:
             print("There are already at most %d entries in the history database." % self.keep)
-            print("Not doing anything.")
+            print("Not doing anything. Use --keep= argument to keep fewer entries")
             return
         
         print("Trimming history to the most recent %d entries." % self.keep)
         
         inputs.pop() # Remove the extra element we got to check the length.
         inputs.reverse()
-        first_session = inputs[0][0]
-        outputs = list(con.execute('SELECT session, line, output FROM '
-                                   'output_history WHERE session >= ?', (first_session,)))
-        sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
-                                    'sessions WHERE session >= ?', (first_session,)))
+        if inputs:
+            first_session = inputs[0][0]
+            outputs = list(con.execute('SELECT session, line, output FROM '
+                                       'output_history WHERE session >= ?', (first_session,)))
+            sessions = list(con.execute('SELECT session, start, end, num_cmds, remark FROM '
+                                        'sessions WHERE session >= ?', (first_session,)))
         con.close()
         
         # Create the new history database.
@@ -78,11 +95,12 @@ class HistoryTrim(BaseIPythonApplication):
         new_db.commit()
 
 
-        with new_db:
-            # Add the recent history into the new database.
-            new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
-            new_db.executemany('insert into history values (?,?,?,?)', inputs)
-            new_db.executemany('insert into output_history values (?,?,?)', outputs)
+        if inputs:
+            with new_db:
+                # Add the recent history into the new database.
+                new_db.executemany('insert into sessions values (?,?,?,?,?)', sessions)
+                new_db.executemany('insert into history values (?,?,?,?)', inputs)
+                new_db.executemany('insert into output_history values (?,?,?)', outputs)
         new_db.close()
 
         if self.backup:
@@ -98,6 +116,27 @@ class HistoryTrim(BaseIPythonApplication):
         
         os.rename(new_hist_file, hist_file)
 
+class HistoryClear(HistoryTrim):
+    description = clear_hist_help
+    keep = Int(0, config=False,
+        help="Number of recent lines to keep in the database.")
+    
+    force = Bool(False, config=True,
+        help="Don't prompt user for confirmation")
+    
+    flags = Dict(dict(
+        force = ({'HistoryClear' : {'force' : True}},
+            force.get_metadata('help')),
+        f = ({'HistoryTrim' : {'force' : True}},
+            force.get_metadata('help')
+        )
+    ))
+    aliases = Dict()
+
+    def start(self):
+        if self.force or ask_yes_no("Really delete all ipython history? ",
+                default="no", interrupt="no"):
+            HistoryTrim.start(self)
 
 class HistoryApp(Application):
     name = u'ipython-history'
@@ -105,6 +144,7 @@ class HistoryApp(Application):
 
     subcommands = Dict(dict(
         trim = (HistoryTrim, HistoryTrim.description.splitlines()[0]),
+        clear = (HistoryClear, HistoryClear.description.splitlines()[0]),
     ))
 
     def start(self):

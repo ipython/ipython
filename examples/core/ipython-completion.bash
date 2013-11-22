@@ -24,7 +24,7 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate history nbconvert"
+    local subcommands="notebook qtconsole console kernel profile locate history nbconvert "
     local opts=""
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
@@ -46,12 +46,21 @@ _ipython()
 
     if [[ ${cur} == -* ]]; then
         case $mode in
-            "notebook" | "qtconsole" | "console" | "kernel")
+            "notebook" | "qtconsole" | "console" | "kernel" | "nbconvert")
                 _ipython_get_flags $mode
                 opts=$"${opts} ${baseopts}"
                 ;;
-            "locate" | "history" | "profile")
+            "locate" | "profile")
                 _ipython_get_flags $mode
+                ;;
+            "history")
+                if [[ $COMP_CWORD -ge 3 ]]; then
+                    # 'history trim' and 'history clear' covered by next line
+                    _ipython_get_flags history\ "${COMP_WORDS[2]}"
+                else
+                    _ipython_get_flags $mode
+
+                fi
                 opts=$"${opts}"
                 ;;
             *)
@@ -62,10 +71,17 @@ _ipython()
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
     elif [[ $mode == "profile" ]]; then
-        opts="list create locate"
+        opts="list 	create 	locate "
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ $mode == "history" ]]; then
-        opts="trim"
+        if [[ $COMP_CWORD -ge 3 ]]; then
+            # drop into flags
+            opts="--"
+        else
+            opts="trim 	clear "
+        fi
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ $mode == "locate" ]]; then
         opts="profile"
