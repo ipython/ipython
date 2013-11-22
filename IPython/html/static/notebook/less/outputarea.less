@@ -1,6 +1,4 @@
 div.output_wrapper {
-    /* This is a spacer between the input and output of each cell */
-    margin-top: 5px;
     /* this position must be relative to enable descendents to be absolute within it */
     position: relative;
     .vbox()
@@ -27,7 +25,7 @@ div.output_collapsed {
 
 div.out_prompt_overlay {
   height: 100%;
-  padding: 0px 0.4em;
+  padding: 0px @code_padding;
   position: absolute;
   .corner-all;
 }
@@ -89,8 +87,7 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
-    padding: 0.44em 0.4em 0.4em 1px;
-    margin-left: 6px;
+    padding: @code_padding @code_padding 0.0em @code_padding;
     .box-flex1();
 }
 
@@ -108,11 +105,11 @@ div.output_text {
 
 /* stdout/stderr are 'text' as well as 'stream', but pyout/pyerr are *not* streams */
 div.output_stream {
-    padding-top: 0.0em;
-    padding-bottom: 0.0em;
 }
+
 div.output_stdout {
 }
+
 div.output_stderr {
     background: #fdd; /* very light red background for stderr */
 }

@@ -33,11 +33,11 @@
 .CodeMirror-lines {
   /* In CM2, this used to be 0.4em, but in CM3 it went to 4px. We need the em value because */
   /* we have set a different line-height and want this to scale with that. */
-  padding: 0.4em;
+  padding: @code_padding;
 }
 
 .CodeMirror-linenumber {
-	// This is needed to fine tune the position of the line numbers because we use the 0.4em
+	// This is needed to fine tune the position of the line numbers because we use the 0.4em in @code_padding
 	// spacing in various places. Fine tuned to look right.
   	padding: 0 8px 0 4px;
 }
