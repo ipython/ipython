@@ -43,24 +43,6 @@ class StringWidget(Widget):
         self._comm.send({"method": "scroll_to_bottom"})
 
 
-    def on_click(self, callback, remove=False):
-        """Register a callback to execute when the button is clicked.  The
-        callback can either accept no parameters or one sender parameter:
-        - callback()
-        - callback(sender)
-        If the callback has a sender parameter, the ButtonWidget instance that
-        called the callback will be passed into the method as the sender.
-
-        Parameters
-        ----------
-        remove : bool (optional)
-            Set to true to remove the callback from the list of callbacks."""
-        if remove:
-            self._click_handlers.remove(callback)
-        elif not callback in self._click_handlers:
-            self._click_handlers.append(callback)
-
-
     def _handle_string_msg(self, content):
         """Handle a msg from the front-end
 
