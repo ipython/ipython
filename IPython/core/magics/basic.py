@@ -310,7 +310,7 @@ Currently the magic system has the following functions:""",
         See Also
         --------
         prun : run code using the Python profiler
-               (:class:`~IPython.core.magics.execution.ExecutionMagics.prun`)
+               (:meth:`~IPython.core.magics.execution.ExecutionMagics.prun`)
         """
         from IPython.core.application import BaseIPythonApplication
         if BaseIPythonApplication.initialized():
