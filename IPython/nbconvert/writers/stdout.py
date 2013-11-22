@@ -13,6 +13,7 @@ Contains Stdout writer
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils import io
 from .base import WriterBase
 
 #-----------------------------------------------------------------------------
@@ -30,5 +31,4 @@ class StdoutWriter(WriterBase):
 
         See base for more...
         """
-
-        print(output)
+        io.unicode_std_stream().write(output)

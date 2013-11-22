@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Module with tests for stdout
 """
@@ -43,9 +44,11 @@ class TestStdout(TestsBase):
 
         # Create stdout writer, test output
         writer = StdoutWriter()
-        writer.write('a', {'b': 'c'})
+        writer.write(u'a×', {'b': 'c'})
         output = stream.getvalue()
-        self.fuzzy_compare(output, 'a')
+        if not PY3:
+            output = output.decode('utf-8')
+        self.fuzzy_compare(output, u'a×')
 
         # Revert stdout
         sys.stdout = stdout
