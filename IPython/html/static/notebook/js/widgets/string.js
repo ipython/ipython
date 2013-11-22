@@ -54,7 +54,7 @@ define(["notebook/js/widget"], function(widget_manager){
             this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
 
-            this.on_msg();
+            this.model.on_msg($.proxy(this._handle_textarea_msg, this));
         },
 
 

@@ -40,7 +40,7 @@ class StringWidget(Widget):
 
 
     def scroll_to_bottom(self):
-        self._comm.send({"method": "scroll_to_bottom"})
+        self.send({"method": "scroll_to_bottom"})
 
 
     def _handle_string_msg(self, content):
