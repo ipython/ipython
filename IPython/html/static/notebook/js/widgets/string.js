@@ -39,7 +39,7 @@ define(["notebook/js/widget"], function(widget_manager){
     var TextAreaView = IPython.WidgetView.extend({
       
         // Called when view is rendered.
-        render : function(){
+        render: function(){
             this.$el
                 .addClass('widget-hbox')
                 .html('');
@@ -53,21 +53,28 @@ define(["notebook/js/widget"], function(widget_manager){
                 .appendTo(this.$el);
             this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
+
+            this.on_msg();
         },
+
+
+        _handle_textarea_msg: function (content){
+            if (content.method == "scroll_to_bottom") {
+                this.scroll_to_bottom();                
+            }
+        },
+
+
+        scroll_to_bottom: function (){
+            this.$textbox.scrollTop(this.$textbox[0].scrollHeight);
+        },
+
         
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
-        update : function(){
+        update: function(){
             if (!this.user_invoked_update) {
                 this.$textbox.val(this.model.get('value'));
-            }
-
-            if (this.last_scroll_to_bottom == undefined) {
-                this.last_scroll_to_bottom = 0;
-            }
-            if (this.last_scroll_to_bottom < this.model.get('scroll_to_bottoms')) {
-                this.last_scroll_to_bottom < this.model.get('scroll_to_bottoms');
-                this.$textbox.scrollTop(this.$textbox[0].scrollHeight);
             }
 
             var disabled = this.model.get('disabled');
@@ -83,9 +90,9 @@ define(["notebook/js/widget"], function(widget_manager){
             return IPython.WidgetView.prototype.update.call(this);
         },
         
-        events: {"keyup textarea" : "handleChanging",
-                "paste textarea" : "handleChanging",
-                "cut textarea" : "handleChanging"},
+        events: {"keyup textarea": "handleChanging",
+                "paste textarea": "handleChanging",
+                "cut textarea": "handleChanging"},
         
         // Handles and validates user input.
         handleChanging: function(e) { 
@@ -101,7 +108,7 @@ define(["notebook/js/widget"], function(widget_manager){
     var TextBoxView = IPython.WidgetView.extend({
       
         // Called when view is rendered.
-        render : function(){
+        render: function(){
             this.$el
                 .addClass('widget-hbox-single')
                 .html('');
@@ -119,7 +126,7 @@ define(["notebook/js/widget"], function(widget_manager){
         
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
-        update : function(){
+        update: function(){
             if (this.$textbox.val() != this.model.get('value')) {
                 this.$textbox.val(this.model.get('value'));
             }
@@ -137,10 +144,10 @@ define(["notebook/js/widget"], function(widget_manager){
             return IPython.WidgetView.prototype.update.call(this);
         },
         
-        events: {"keyup input" : "handleChanging",
-                "paste input" : "handleChanging",
-                "cut input" : "handleChanging",
-                "keypress input" : "handleKeypress"},
+        events: {"keyup input": "handleChanging",
+                "paste input": "handleChanging",
+                "cut input": "handleChanging",
+                "keypress input": "handleKeypress"},
         
         // Handles and validates user input.
         handleChanging: function(e) { 
@@ -151,8 +158,7 @@ define(["notebook/js/widget"], function(widget_manager){
         // Handles text submition
         handleKeypress: function(e) { 
             if (e.keyCode == 13) { // Return key
-                this.model.last_modified_view = this; // For callbacks.
-                this.model.send({event: 'submit'});
+                this.send({event: 'submit'});
             }
         },
     });

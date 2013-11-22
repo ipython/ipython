@@ -36,6 +36,7 @@ define(["components/underscore/underscore-min",
             this.msg_throttle = 3;
             this.msg_buffer = null;
             this.views = {};
+            this._custom_msg_callbacks = [];
 
             // Remember comm associated with the model.
             this.comm = comm;
@@ -64,15 +65,17 @@ define(["components/underscore/underscore-min",
             }
         },
     
-        send: function(content) {
+
+        send: function(content, cell) {
 
             // Used the last modified view as the sender of the message.  This
             // will insure that any python code triggered by the sent message
             // can create and display widgets and output.
-            var cell = null;
-            if (this.last_modified_view != undefined && 
-                this.last_modified_view.cell != undefined) {
-                cell = this.last_modified_view.cell;
+            if (cell === undefined) {
+                if (this.last_modified_view != undefined && 
+                    this.last_modified_view.cell != undefined) {
+                    cell = this.last_modified_view.cell;
+                }
             }
             var callbacks = this._make_callbacks(cell);
             var data = {'custom_content': content};
@@ -90,15 +93,29 @@ define(["components/underscore/underscore-min",
         },
 
 
-        on_msg: function (callback) {
-            this._msg_callback = callback;
+        on_msg: function (callback, remove) {
+            if (remove) {
+                var found_index = -1;
+                for (var index in this._custom_msg_callbacks) {
+                    if (callback === this._custom_msg_callbacks[index]) {
+                        found_index = index;
+                        break;
+                    }
+                }
+
+                if (found_index >= 0) {
+                    this._custom_msg_callbacks.splice(found_index, 1);
+                }
+            } else {
+                this._custom_msg_callbacks.push(callback)    
+            }
         },
 
 
         _handle_custom_msg: function (content) {
-            if (this._msg_callback) {
+            for (var index in this._custom_msg_callbacks) {
                 try {
-                    this._msg_callback(content);
+                    this._custom_msg_callbacks[index](content);
                 } catch (e) {
                     console.log("Exception in widget model msg callback", e, content);
                 }
@@ -464,6 +481,11 @@ define(["components/underscore/underscore-min",
             if (elements.length > 0) {
                 elements.removeClass(class_list);
             }
+        },
+    
+    
+        send: function(content) {
+            this.model.send({event: 'click'}, this.cell);
         },
 
         update: function() {

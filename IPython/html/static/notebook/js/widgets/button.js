@@ -50,8 +50,7 @@ define(["notebook/js/widget"], function(widget_manager){
         },
         
         _handle_click: function(){
-            this.model.last_modified_view = this; // For callbacks.
-            this.model.send({event: 'click'});
+            this.send({event: 'click'});
         },
     });
 

@@ -27,11 +27,10 @@ class StringWidget(Widget):
     default_view_name = Unicode('TextBoxView')
 
     # Keys
-    _keys = ['value', 'disabled', 'description', 'scroll_to_bottoms']
+    _keys = ['value', 'disabled', 'description']
     value = Unicode(help="String value")
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")
-    scroll_to_bottoms = Int(0, help="Used to scroll a TextAreaView to the bottom")
 
 
     def __init__(self, **kwargs):
@@ -41,7 +40,7 @@ class StringWidget(Widget):
 
 
     def scroll_to_bottom(self):
-        self.scroll_to_bottoms += 1
+        self._comm.send({"method": "scroll_to_bottom"})
 
 
     def on_click(self, callback, remove=False):
