@@ -497,7 +497,7 @@ class NamespaceMagics(Magics):
 
         See Also
         --------
-        magic_reset_selective : invoked as ``%reset_selective``
+        reset_selective : invoked as ``%reset_selective``
 
         Examples
         --------
@@ -612,7 +612,7 @@ class NamespaceMagics(Magics):
 
         See Also
         --------
-        magic_reset : invoked as ``%reset``
+        reset : invoked as ``%reset``
 
         Examples
         --------
