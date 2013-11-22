@@ -13,6 +13,7 @@ Contains Stdout writer
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 from .base import WriterBase
 
 #-----------------------------------------------------------------------------
@@ -30,5 +31,4 @@ class StdoutWriter(WriterBase):
 
         See base for more...
         """
-
-        print(output)
+        sys.stdout.write(output)
