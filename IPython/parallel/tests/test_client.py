@@ -325,7 +325,7 @@ class TestClient(ClusterTestCase):
         # timeout 5s, polling every 100ms
         qs = rc.queue_status()
         for i in range(50):
-            if qs['unassigned'] or any(qs[eid]['tasks'] + qs[eid]['queue'] for eid in rc.ids):
+            if qs['unassigned'] or any(qs[eid]['tasks'] + qs[eid]['queue'] for eid in qs if eid != 'unassigned'):
                 time.sleep(0.1)
                 qs = rc.queue_status()
             else:
