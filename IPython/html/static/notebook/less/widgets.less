@@ -179,11 +179,6 @@ The widget area typically looks something like this:
             min-width: 138px; /* + 26px drop arrow btn = 164px */
         }
 
-        /* ContainerWidget */
-        .widget-container {
-            .border-box-sizing();
-        }
-
         /* The following section sets the style for the invisible div that
         hold widgets and their accompanying labels.
 
@@ -214,4 +209,20 @@ The widget area typically looks something like this:
             width: 30px;
         }
     }
+}
+
+/* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM */
+
+/* ContainerWidget - ModalView */
+.widget-modal {
+    overflow: hidden; 
+    position: absolute !important;
+    top: 0px; 
+    left: 0px; 
+    margin-left: 0px !important;
+}
+
+/* ContainerWidget */
+.widget-container {
+    .border-box-sizing();
 }
