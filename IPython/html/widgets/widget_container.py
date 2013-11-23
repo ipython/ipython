@@ -27,7 +27,9 @@ class ContainerWidget(Widget):
     # classes...
     _keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
             '_pack_start', '_pack_end', '_pack_center', '_flex0', '_flex1', 
-            '_flex2']
+            '_flex2', 'description', 'button_text']
+    description = Unicode()
+    button_text = Unicode()
     _hbox = Bool(False)
     _vbox = Bool(False)
     _align_start = Bool(False)
