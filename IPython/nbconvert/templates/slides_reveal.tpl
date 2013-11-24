@@ -30,6 +30,9 @@ document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/cs
 <script src="{{resources.reveal.url_prefix}}/lib/js/html5shiv.js"></script>
 <![endif]-->
 
+<!-- Get Font-awesome from cdn -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css">
+
 {% for css in resources.inlining.css -%}
     <style type="text/css">
     {{ css }}
@@ -55,6 +58,11 @@ html {
 .reveal section img {
   border: 0px solid black;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+}
+reveal i {
+  font-style: normal;
+  font-family: FontAwesome;
+  font-size: 2em;
 }
 .reveal .slides {
   text-align: left;
