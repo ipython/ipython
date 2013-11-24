@@ -59,7 +59,7 @@ html {
   border: 0px solid black;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0);
 }
-reveal i {
+.reveal i {
   font-style: normal;
   font-family: FontAwesome;
   font-size: 2em;
