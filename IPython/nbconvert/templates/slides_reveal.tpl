@@ -45,7 +45,7 @@ html {
   font-size: 20px;
 }
 .reveal pre {
-  width: 95%;
+  width: inherit;
   padding: 0.4em;
   margin: 0px;
   font-family: monospace, sans-serif;
