@@ -115,6 +115,7 @@ define(["notebook/js/widget"], function(widget_manager) {
                 that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
             })
 
+            this.$el_to_style = this.$body;
             this._shown_once = false;
         },
         
@@ -165,6 +166,25 @@ define(["notebook/js/widget"], function(widget_manager) {
             this.$body.append(view.$el);
         },
         
+        _get_selector_element: function(selector) {
+
+            // Since the modal actually isn't within the $el in the DOM, we need to extend
+            // the selector logic to allow the user to set css on the modal if need be.
+            // The convention used is:
+            // "modal" - select the modal div
+            // "modal [selector]" - select element(s) within the modal div.
+            // "[selector]" - select elements within $el
+            // "" - select the $el_to_style
+            if (selector.substring(0, 5) == 'modal') {
+                if (selector == 'modal') {
+                    return this.$window;
+                } else {
+                    return this.$window.find(selector.substring(6));
+                }
+            } else {
+                return IPython.WidgetView.prototype._get_selector_element.call(this, selector);
+            }
+        },
         
     });
 
