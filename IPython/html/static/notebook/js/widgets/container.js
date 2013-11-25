@@ -15,6 +15,35 @@
  **/
 
 define(["notebook/js/widget"], function(widget_manager) {
+
+    var set_flex_property = function(element, property_name, enabled) {
+        if (enabled) {
+            element.addClass(property_name);
+        } else {
+            element.removeClass(property_name);
+        }
+    };
+
+    var set_flex_properties = function(context, element) {
+
+        // Apply flexible box model properties by adding and removing
+        // corrosponding CSS classes.
+        // Defined in IPython/html/static/base/less/flexbox.less
+        set_flex_property(element, 'vbox', context.model.get('_vbox'));
+        set_flex_property(element, 'hbox', context.model.get('_hbox'));
+        set_flex_property(element, 'start', context.model.get('_pack_start'));
+        set_flex_property(element, 'center', context.model.get('_pack_center'));
+        set_flex_property(element, 'end', context.model.get('_pack_end'));
+        set_flex_property(element, 'align-start', context.model.get('_align_start'));
+        set_flex_property(element, 'align-center', context.model.get('_align_center'));
+        set_flex_property(element, 'align-end', context.model.get('_align_end'));
+        set_flex_property(element, 'box-flex0', context.model.get('_flex0'));
+        set_flex_property(element, 'box-flex1', context.model.get('_flex1'));
+        set_flex_property(element, 'box-flex2', context.model.get('_flex2'));
+    };
+
+
+
     var ContainerModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
 
@@ -26,31 +55,8 @@ define(["notebook/js/widget"], function(widget_manager) {
         },
         
         update: function(){
-
-            // Apply flexible box model properties by adding and removing
-            // corrosponding CSS classes.
-            // Defined in IPython/html/static/base/less/flexbox.less
-            this.set_flex_property('vbox', this.model.get('_vbox'));
-            this.set_flex_property('hbox', this.model.get('_hbox'));
-            this.set_flex_property('start', this.model.get('_pack_start'));
-            this.set_flex_property('center', this.model.get('_pack_center'));
-            this.set_flex_property('end', this.model.get('_pack_end'));
-            this.set_flex_property('align-start', this.model.get('_align_start'));
-            this.set_flex_property('align-center', this.model.get('_align_center'));
-            this.set_flex_property('align-end', this.model.get('_align_end'));
-            this.set_flex_property('box-flex0', this.model.get('_flex0'));
-            this.set_flex_property('box-flex1', this.model.get('_flex1'));
-            this.set_flex_property('box-flex2', this.model.get('_flex2'));
-
+            set_flex_properties(this, this.$el);
             return IPython.WidgetView.prototype.update.call(this);
-        },
-
-        set_flex_property: function(property_name, enabled) {
-            if (enabled) {
-                this.$el.addClass(property_name);
-            } else {
-                this.$el.removeClass(property_name);
-            }
         },
 
         display_child: function(view) {
@@ -127,21 +133,7 @@ define(["notebook/js/widget"], function(widget_manager) {
         },
         
         update: function(){
-
-            // Apply flexible box model properties by adding and removing
-            // corrosponding CSS classes.
-            // Defined in IPython/html/static/base/less/flexbox.less
-            this.set_flex_property('vbox', this.model.get('_vbox'));
-            this.set_flex_property('hbox', this.model.get('_hbox'));
-            this.set_flex_property('start', this.model.get('_pack_start'));
-            this.set_flex_property('center', this.model.get('_pack_center'));
-            this.set_flex_property('end', this.model.get('_pack_end'));
-            this.set_flex_property('align-start', this.model.get('_align_start'));
-            this.set_flex_property('align-center', this.model.get('_align_center'));
-            this.set_flex_property('align-end', this.model.get('_align_end'));
-            this.set_flex_property('box-flex0', this.model.get('_flex0'));
-            this.set_flex_property('box-flex1', this.model.get('_flex1'));
-            this.set_flex_property('box-flex2', this.model.get('_flex2'));
+            set_flex_properties(this, this.$body);
             
             var description = this.model.get('description');
             description = description.replace(/ /g, '&nbsp;', 'm');
@@ -167,14 +159,6 @@ define(["notebook/js/widget"], function(widget_manager) {
             }
             
             return IPython.WidgetView.prototype.update.call(this);
-        },
-
-        set_flex_property: function(property_name, enabled) {
-            if (enabled) {
-                this.$body.addClass(property_name);
-            } else {
-                this.$body.removeClass(property_name);
-            }
         },
 
         display_child: function(view) {
