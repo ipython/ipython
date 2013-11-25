@@ -91,6 +91,7 @@ define(["notebook/js/widget"], function(widget_manager) {
                 .appendTo(this.$title_bar);
             this.$body = $('<div />')
                 .addClass('modal-body')
+                .addClass('widget-modal-body')
                 .addClass('widget-container')
                 .appendTo(this.$window);
             
