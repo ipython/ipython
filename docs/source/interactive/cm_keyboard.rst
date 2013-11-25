@@ -9,27 +9,36 @@ write and manipulate your content in an easier way.
 
 Below, you will find a table listing the available shortcuts:
 
-==========  ==================  ============  =================  =============
-Codemirror shortcuts                                                          
-------------------------------------------------------------------------------
-Basic       Action              pcDefault     Action             macDefault   
-==========  ==================  ============  =================  =============
-Left        go to char left     Ctrl-A        select all         Cmd-A        
-Right       go to char right    Ctrl-D        delete line        Cmd-D        
-Up          go to line up       Ctrl-Z        undo               Cmd-Z        
-Down        go to line down     Shift-Ctrl-Z  redo               Shift-Cmd-Z  
-End         go to line end      Ctrl-Y        redo               Cmd-Y        
-Home        go to line start    Ctrl-Home     go to cell start   Cmd-Up       
-PageUp      go to cell start    Alt-Up        go to cell start   Cmd-End      
-PageDown    go to cell end      Ctrl-End      go to cell end     -            
-Delete      del char after      Ctrl-Down     go to cell end     Cmd-Down     
-Backspace   del char before     Ctrl-Left     go one word left   Alt-Left     
-Enter       newline and indent  Ctrl-Right    go one word right  Alt-Right    
-Insert      toggle overwrite    Alt-Left      go to line start   Cmd-Left     
--           -                   Alt-Right     go to line end     Cmd-Right    
--           -                   Ctrl-Back     del word before    Alt-Back     
--           -                   -             del word after     Ctrl-Alt-Back
--           -                   Ctrl-Delete   del word after     Alt-Delete   
--           -                   Ctrl-]        indent             Cmd-]        
--           -                   Ctrl-[        dedent             Cmd-[        
-==========  ==================  ============  =================  =============
+=================  ==============  ===============
+Action             PC shortcut     Mac shortcut   
+=================  ==============  ===============
+newline & indent   Enter           Enter          
+toggle overwrite   Insert          Insert         
+indent             Ctrl-]          Cmd-]          
+dedent             Ctrl-[          Cmd-[          
+select all         Ctrl-A          Cmd-A          
+delete line        Ctrl-D          Cmd-D          
+undo               Ctrl-Z          Cmd-Z          
+redo               Shift-Ctrl-Z    Shift-Cmd-Z    
+redo               Ctrl-Y          Cmd-Y          
+go to cell start   Ctrl-Home       Cmd-Up         
+go to cell start   Alt-Up          Cmd-End        
+go to cell start   PageUp          PageUp         
+go to cell end     Ctrl-End        -              
+go to cell end     Ctrl-Down       Cmd-Down       
+go to cell end     PageDown        PageDown       
+go one word left   Ctrl-Left       Alt-Left       
+go one word right  Ctrl-Right      Alt-Right      
+go to line start   Alt-Left        Cmd-Left       
+go to line start   Home            Home           
+go to line end     Alt-Right       Cmd-Right      
+go to line end     End             End            
+del word before    Ctrl-Back       Alt-Back       
+del word after     -               Ctrl-Alt-Back  
+del word after     Ctrl-Delete     Alt-Delete     
+=================  ==============  ===============
+
+.. note::
+
+     These shorcuts are valid for US keyboards, so some shortcuts can change
+     for non-US keyboards.
