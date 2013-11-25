@@ -73,14 +73,14 @@ define(["notebook/js/widget"], function(widget_manager) {
             this.$window = $('<div />')
                 .addClass('modal widget-modal')
                 .appendTo($('#notebook-container'));
-            var title_bar = $('<div />')
+            this.$title_bar = $('<div />')
                 .addClass('popover-title')
                 .appendTo(this.$window);
             var that = this;
             $('<button />')
                 .addClass('close')
                 .html('&times;')
-                .appendTo(title_bar)
+                .appendTo(this.$title_bar)
                 .click(function(){
                     that.hide();
                     event.stopPropagation();
@@ -88,7 +88,7 @@ define(["notebook/js/widget"], function(widget_manager) {
             this.$title = $('<div />')
                 .addClass('widget-modal-title')
                 .html('&nbsp;')
-                .appendTo(title_bar);
+                .appendTo(this.$title_bar);
             this.$body = $('<div />')
                 .addClass('modal-body')
                 .addClass('widget-container')
@@ -104,6 +104,10 @@ define(["notebook/js/widget"], function(widget_manager) {
             
             this.$window.draggable({handle: '.popover-title', snap: '#notebook, .modal', snapMode: 'both'});
             this.$window.resizable();
+            this.$window.on('resize', function(){
+                that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
+            })
+
             this._shown_once = false;
         },
         
