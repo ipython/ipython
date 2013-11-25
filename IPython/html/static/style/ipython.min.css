@@ -179,4 +179,5 @@ h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anch
 .widget-area .widget-subarea .widget-hbox-single{-webkit-box-pack:start;-moz-box-pack:start;box-pack:start;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;margin:5px;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;height:30px;}
 .widget-area .widget-subarea .widget-vbox-single{-webkit-box-pack:start;-moz-box-pack:start;box-pack:start;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;margin:5px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;width:30px;}
 .widget-modal{overflow:hidden;position:absolute !important;top:0px;left:0px;margin-left:0px !important;}
+.widget-modal-body{max-height:none !important;}
 .widget-container{box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
