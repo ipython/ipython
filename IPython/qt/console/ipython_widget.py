@@ -539,7 +539,7 @@ class IPythonWidget(FrontendWidget):
         self.exit_requested.emit(self)
 
     def _handle_payload_next_input(self, item):
-        self.input_buffer = dedent(item['text'].rstrip())
+        self.input_buffer = item['text']
 
     def _handle_payload_page(self, item):
         # Since the plain text widget supports only a very small subset of HTML
