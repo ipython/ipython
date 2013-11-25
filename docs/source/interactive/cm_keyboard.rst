@@ -17,7 +17,7 @@ dedent             Ctrl-[          Cmd-[
 select all         Ctrl-A          Cmd-A             
 delete line        Ctrl-D          Cmd-D             
 undo               Ctrl-Z          Cmd-Z             
-redo               Shift-Ctrl-Z    Shift-Cmd-Z       
+redo               Ctrl-Shift-Z    Cmd-Shift-Z       
 redo               Ctrl-Y          Cmd-Y             
 go to cell start   Ctrl-Home       Cmd-Up            
 go to cell start   Alt-Up          Cmd-End           
