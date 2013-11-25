@@ -26,6 +26,9 @@ from ..py3compat import unicode_to_str, str_to_bytes, iteritems
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
+class Int(int):
+    def __str__(self):
+        return 'Int(%i)' % self
 
 def test():
     # list of input/expected output.  Use None for the expected output if it
@@ -48,6 +51,7 @@ def test():
              # More exotic objects
              ((x for x in range(3)), [0, 1, 2]),
              (iter([1, 2]), [1, 2]),
+             (Int(5), 5),
              ]
     
     for val, jval in pairs:
