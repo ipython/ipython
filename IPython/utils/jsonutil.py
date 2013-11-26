@@ -194,9 +194,8 @@ def json_clean(obj):
     >>> json_clean(True)
     True
     """
-    # types that are 'atomic' and ok in json as-is.  bool doesn't need to be
-    # listed explicitly because bools pass as int instances
-    atomic_ok = (unicode_type, int, type(None))
+    # types that are 'atomic' and ok in json as-is.
+    atomic_ok = (unicode_type, type(None))
 
     # containers that we need to convert into lists
     container_to_list = (tuple, set, types.GeneratorType)
@@ -205,7 +204,14 @@ def json_clean(obj):
         # cast out-of-range floats to their reprs
         if math.isnan(obj) or math.isinf(obj):
             return repr(obj)
-        return obj
+        return float(obj)
+    
+    if isinstance(obj, int):
+        # cast int to int, in case subclasses override __str__ (e.g. boost enum, #4598)
+        if isinstance(obj, bool):
+            # bools are ints, but we don't want to cast them to 0,1
+            return obj
+        return int(obj)
 
     if isinstance(obj, atomic_ok):
         return obj
