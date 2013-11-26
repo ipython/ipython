@@ -245,6 +245,10 @@ class APITest(NotebookTestBase):
         self.assertIn('z.ipynb', nbnames)
         self.assertNotIn('a.ipynb', nbnames)
 
+    def test_rename_existing(self):
+        with assert_http_error(409):
+            self.nb_api.rename('a.ipynb', 'foo', 'b.ipynb')
+
     def test_save(self):
         resp = self.nb_api.read('a.ipynb', 'foo')
         nbcontent = json.loads(resp.text)['content']
