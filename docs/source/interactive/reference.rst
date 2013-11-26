@@ -766,18 +766,14 @@ execute at startup the file referenced by this variable. If you put the
 following code at the end of that file, then IPython will be your working
 environment anytime you start Python::
 
-    from IPython.frontend.terminal.ipapp import launch_new_instance
-    launch_new_instance()
+    import os, IPython
+    os.environ['PYTHONSTARTUP'] = ''  # Prevent running this again
+    IPython.start_ipython()
     raise SystemExit
 
 The ``raise SystemExit`` is needed to exit Python when
 it finishes, otherwise you'll be back at the normal Python '>>>'
 prompt.
-
-You'll also need to set the config option
-``InteractiveShellApp.exec_PYTHONSTARTUP = False``, otherwise IPython
-will try to run :envvar:`PYTHONSTARTUP` again, sending it into an
-infinite loop.
 
 This is probably useful to developers who manage multiple Python
 versions and don't want to have correspondingly multiple IPython
