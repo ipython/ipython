@@ -14,10 +14,12 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import codecs
 import os
 import sys
 import tempfile
 from StringIO import StringIO
+from .py3compat import PY3
 
 #-----------------------------------------------------------------------------
 # Code
@@ -285,4 +287,25 @@ class capture_output(object):
         sys.stdout = self.sys_stdout
         sys.stderr = self.sys_stderr
 
+def unicode_std_stream(stream='stdout'):
+    """Get a wrapper to write unicode to stdout/stderr as UTF-8.
 
+    This ignores environment variables and default encodings, to reliably write
+    unicode to stdout or stderr.
+
+    ::
+
+        unicode_std_stream().write(u'ł@e¶ŧ←')
+    """
+    assert stream in ('stdout', 'stderr')
+    stream  = getattr(sys, stream)
+    if PY3:
+        try:
+            stream_b = stream.buffer
+        except AttributeError:
+            # sys.stdout has been replaced - use it directly
+            return stream
+    else:
+        stream_b = stream
+
+    return codecs.getwriter('utf-8')(stream_b)
