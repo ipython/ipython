@@ -80,7 +80,11 @@ try:
     import traceback
     import signal
 except ImportError as e:
-    raise ImportError (str(e) + """
+    if os.name == 'java':
+        #Temporariy ignore the lack of some key imports 
+        pass
+    else:
+        raise ImportError (str(e) + """
 
 A critical module was not found. Probably this operating system does not
 support it. Pexpect is intended for UNIX-like operating systems.""")

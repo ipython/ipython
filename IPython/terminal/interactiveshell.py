@@ -42,7 +42,14 @@ def get_default_editor():
     try:
         ed = os.environ['EDITOR']
     except KeyError:
-        if os.name == 'posix':
+        if os.name == 'java':
+            from java.lang import System
+            java_os = System.getProperty('os.name')
+            if 'Windows' in java_os:
+                ed = 'notepad'
+            else:
+                ed = 'vi'
+        elif os.name == 'posix':
             ed = 'vi'  # the only one guaranteed to be there!
         else:
             ed = 'notepad' # same in Windows!
@@ -363,11 +370,22 @@ class TerminalInteractiveShell(InteractiveShell):
         # Now define aliases that only make sense on the terminal, because they
         # need direct access to the console in a way that we can't emulate in
         # GUI or web frontend
-        if os.name == 'posix':
-            aliases = [('clear', 'clear'), ('more', 'more'), ('less', 'less'),
-                       ('man', 'man')]
+        posix_aliases = [('clear', 'clear'), ('more', 'more'), ('less', 'less'),
+                   ('man', 'man')]
+        nt_aliases = [('cls', 'cls')]
+        
+        if os.name == 'java':
+            from java.lang import System
+            java_os = System.getProperty('os.name')
+            if 'Windows' in java_os:
+                aliases = nt_aliases
+            else:
+                aliases = posix_aliases
+        elif os.name == 'posix':
+            aliases = posix_aliases
         elif os.name == 'nt':
-            aliases = [('cls', 'cls')]
+            aliases = nt_aliases
+        
 
 
         for name, cmd in aliases:
