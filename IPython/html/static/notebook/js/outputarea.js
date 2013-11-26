@@ -254,6 +254,9 @@ var IPython = (function (IPython) {
         this.append_output(json, true);
     };
 
+    var mime_types = ['application/javascript', 'application/json',
+               'image/jpeg', 'image/png', 'image/svg+xml', 'text/html',
+               'text/latex', 'text/plain'];
 
     OutputArea.prototype.convert_mime_types = function (json, data) {
         if (data === undefined) {
@@ -282,6 +285,13 @@ var IPython = (function (IPython) {
         }
         if (data['application/javascript'] !== undefined) {
             json.javascript = data['application/javascript'];
+        }
+        // non-mimetype-keyed metadata used to get dropped here, this code
+        // re-injects it into the json.
+        for (x in data){
+            if( !(x in mime_types) ) {
+                json[x] = data[x];
+            }
         }
         return json;
     };
