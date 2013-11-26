@@ -498,9 +498,19 @@ var IPython = (function (IPython) {
             var type = OutputArea.display_order[type_i];
             if(json[type] != undefined ){
                 var md = {};
-                if (json.metadata && json.metadata[type]) {
-                    md = json.metadata[type];
-                };
+                if (json.metadata) {
+                    md = json.metadata;
+                    if (json.metadata[type]) {
+                        // XXX: need some sort of dict.update, style here if
+                        // we want to support the merging of the overall
+                        // metadata with the mimetype specific metadata.  For
+                        // now, they are mutually exclusive - if the
+                        // mimetype-keyed metadata exists, *it* is used,
+                        // otherwise, only the message-wide metadata is
+                        // available.
+                        md = json.metadata[type];
+                    }
+                }
                 if(type == 'javascript'){
                     if (dynamic) {
                         this.append_javascript(json.javascript, md, element, dynamic);
