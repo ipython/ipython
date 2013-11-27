@@ -304,9 +304,10 @@ class Widget(LoggingConfigurable):
             JQuery selector to select the DOM element(s) that the class(es) will 
             be added to.
         """
-        self._comm.send({"method": "add_class",
-                        "class_list": class_name,
-                        "selector": selector})
+        if self._comm is not None:
+            self._comm.send({"method": "add_class",
+                            "class_list": class_name,
+                            "selector": selector})
 
 
     def remove_class(self, class_name, selector=""):
@@ -321,9 +322,10 @@ class Widget(LoggingConfigurable):
             JQuery selector to select the DOM element(s) that the class(es) will 
             be removed from.
         """
-        self._comm.send({"method": "remove_class",
-                        "class_list": class_name,
-                        "selector": selector})
+        if self._comm is not None:
+            self._comm.send({"method": "remove_class",
+                            "class_list": class_name,
+                            "selector": selector})
 
 
     def send(self, content):
