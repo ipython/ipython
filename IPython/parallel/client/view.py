@@ -25,6 +25,7 @@ from types import ModuleType
 import zmq
 
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import pickleutil
 from IPython.utils.traitlets import (
     HasTraits, Any, Bool, List, Dict, Set, Instance, CFloat, Integer
 )
@@ -507,6 +508,16 @@ class DirectView(View):
         for r in results:
             # raise possible remote ImportErrors here
             r.get()
+    
+    def use_dill(self):
+        """Expand serialization support with dill
+        
+        adds support for closures, etc.
+        
+        This calls IPython.utils.pickleutil.use_dill() here and on each engine.
+        """
+        pickleutil.use_dill()
+        return self.apply(pickleutil.use_dill)
 
 
     @sync_results

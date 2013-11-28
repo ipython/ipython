@@ -40,6 +40,36 @@ else:
     class_type = (type, ClassType)
 
 #-------------------------------------------------------------------------------
+# Functions
+#-------------------------------------------------------------------------------
+
+
+def use_dill():
+    """use dill to expand serialization support
+    
+    adds support for object methods and closures to serialization.
+    """
+    # import dill causes most of the magic
+    import dill
+    
+    # dill doesn't work with cPickle,
+    # tell the two relevant modules to use plain pickle
+    
+    global pickle
+    pickle = dill
+
+    try:
+        from IPython.kernel.zmq import serialize
+    except ImportError:
+        pass
+    else:
+        serialize.pickle = dill
+    
+    # disable special function handling, let dill take care of it
+    can_map.pop(FunctionType, None)
+
+
+#-------------------------------------------------------------------------------
 # Classes
 #-------------------------------------------------------------------------------
 
