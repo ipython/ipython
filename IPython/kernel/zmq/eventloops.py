@@ -16,10 +16,10 @@
 
 import sys
 
-# System library imports.
+# System library imports
 import zmq
 
-# Local imports.
+# Local imports
 from IPython.config.application import Application
 from IPython.utils import io
 
@@ -28,18 +28,40 @@ from IPython.utils import io
 # Eventloops for integrating the Kernel into different GUIs
 #------------------------------------------------------------------------------
 
+def _on_os_x_10_9():
+    import platform
+    from distutils.version import LooseVersion as V
+    return sys.platform == 'darwin' and V(platform.mac_ver()[0]) >= V('10.9')
+
+def _notify_stream_qt(kernel, stream):
+    
+    from IPython.external.qt_for_kernel import QtCore
+    
+    if _on_os_x_10_9() and kernel._darwin_app_nap:
+        from IPython.external.appnope import nope_scope as context
+    else:
+        from IPython.core.interactiveshell import no_op_context as context
+        
+    def process_stream_events():
+        while stream.getsockopt(zmq.EVENTS) & zmq.POLLIN:
+            with context():
+                kernel.do_one_iteration()
+    
+    fd = stream.getsockopt(zmq.FD)
+    notifier = QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, kernel.app)
+    notifier.activated.connect(process_stream_events)
+
 def loop_qt4(kernel):
     """Start a kernel with PyQt4 event loop integration."""
 
-    from IPython.external.qt_for_kernel import QtCore
     from IPython.lib.guisupport import get_app_qt4, start_event_loop_qt4
 
     kernel.app = get_app_qt4([" "])
     kernel.app.setQuitOnLastWindowClosed(False)
-    kernel.timer = QtCore.QTimer()
-    kernel.timer.timeout.connect(kernel.do_one_iteration)
-    # Units for the timer are in milliseconds
-    kernel.timer.start(1000*kernel._poll_interval)
+    
+    for s in kernel.shell_streams:
+        _notify_stream_qt(kernel, s)
+    
     start_event_loop_qt4(kernel.app)
 
 
@@ -48,6 +70,12 @@ def loop_wx(kernel):
 
     import wx
     from IPython.lib.guisupport import start_event_loop_wx
+    
+    if _on_os_x_10_9() and kernel._darwin_app_nap:
+        # we don't hook up App Nap contexts for Wx,
+        # just disable it outright.
+        from IPython.external.appnope import nope
+        nope()
 
     doi = kernel.do_one_iteration
      # Wx uses milliseconds
