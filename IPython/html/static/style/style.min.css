@@ -1422,6 +1422,7 @@ input.nbname_input{height:15px;}
 .highlight_text{color:blue;}
 #project_name>.breadcrumb{padding:0px;margin-bottom:0px;background-color:transparent;font-weight:bold;}
 input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:60px;}
+.warn_duplicate{margin-left:8px;font-size:13px;color:#CC0000;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;position:absolute;}
 .ansibold{font-weight:bold;}
 .ansiblack{color:black;}
 .ansired{color:darkred;}

@@ -82,6 +82,7 @@ var IPython = (function (IPython) {
                     var nbitem = $(event.target).data('item');
                     that.add_notebook_data(event.target.result, nbitem);
                     that.add_upload_button(nbitem);
+                    that.add_warning_if_duplicate(nbitem);
                 };
             } else {
                 var dialog = 'Uploaded notebooks must be .ipynb files';
@@ -198,7 +199,7 @@ var IPython = (function (IPython) {
         ).append(
             $('<div/>').addClass("item_buttons btn-group pull-right")
         ));
-        
+
         if (index === -1) {
             this.element.append(item);
         } else {
@@ -323,6 +324,7 @@ var IPython = (function (IPython) {
                 var model = {
                     content : JSON.parse(nbdata),
                 };
+                that.load_list();
                 var settings = {
                     processData : false,
                     cache : false,
@@ -358,6 +360,20 @@ var IPython = (function (IPython) {
         item.find(".item_buttons").empty()
             .append(upload_button)
             .append(cancel_button);
+    };
+
+
+    NotebookList.prototype.add_warning_if_duplicate = function (item) {
+        // Get all the divs, excluding the newly imported notebook
+        var all_notebook_divs = $(".item_name").slice(1);
+        // Get the name of the newly imported notebook
+        var potential_duplicate_book = $(".item_name .nbname_input").attr("value");
+        for (var i in all_notebook_divs) {
+            if (potential_duplicate_book==$(all_notebook_divs[i]).html()) {
+                item.find(".item_name")
+                    .append("<span class='alert alert-danger'>This will overwrite an existing notebook! If you don't want to do that, choose a different name.</span>");
+            }
+        }
     };
 
 
