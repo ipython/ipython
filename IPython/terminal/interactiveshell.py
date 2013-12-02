@@ -41,13 +41,19 @@ from IPython.utils.traitlets import Integer, CBool, Unicode
 def get_default_editor():
     try:
         ed = os.environ['EDITOR']
+        if not py3compat.PY3:
+            ed = ed.decode()
+        return ed
     except KeyError:
-        if os.name == 'posix':
-            ed = 'vi'  # the only one guaranteed to be there!
-        else:
-            ed = 'notepad' # same in Windows!
-    return ed
+        pass
+    except UnicodeError:
+        warn("$EDITOR environment variable is not pure ASCII. Using platform "
+             "default editor.")
 
+    if os.name == 'posix':
+        return 'vi'  # the only one guaranteed to be there!
+    else:
+        return 'notepad' # same in Windows!
 
 def get_pasted_lines(sentinel, l_input=py3compat.input):
     """ Yield pasted lines until the user enters the given sentinel value.
