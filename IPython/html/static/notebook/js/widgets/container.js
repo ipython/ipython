@@ -125,12 +125,14 @@ define(["notebook/js/widget"], function(widget_manager) {
         },
         
         show: function() {
-            this.$window.show();
             this.$show_button.addClass('btn-info');
-            this.$window.css("top", Math.max(0, (($(window).height() - this.$window.outerHeight()) / 2) + 
-                                                $(window).scrollTop()) + "px");
-            this.$window.css("left", Math.max(0, (($(window).width() - this.$window.outerWidth()) / 2) + 
-                                                        $(window).scrollLeft()) + "px");
+
+            this.$window.show();
+            this.$window.css("positon", "absolute")
+            this.$window.css("top", Math.max(0, (($('body').outerHeight() - this.$window.outerHeight()) / 2) + 
+                $(window).scrollTop()) + "px");
+            this.$window.css("left", Math.max(0, (($('body').outerWidth() - this.$window.outerWidth()) / 2) + 
+                $(window).scrollLeft()) + "px");
         },
         
         update: function(){
