@@ -1024,7 +1024,11 @@ class Unicode(TraitType):
         if isinstance(value, py3compat.unicode_type):
             return value
         if isinstance(value, bytes):
-            return py3compat.unicode_type(value)
+            try:
+                return value.decode('ascii', 'strict')
+            except UnicodeDecodeError:
+                msg = "Could not decode {!r} for unicode trait '{}' of {} instance."
+                raise TraitError(msg.format(value, self.name, class_of(obj)))
         self.error(obj, value)
 
 
