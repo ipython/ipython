@@ -466,7 +466,7 @@ define(["components/underscore/underscore-min",
         
         initialize: function() {
             this.visible = true;
-            this.model.on('change',this.update,this);
+            this.model.on('sync',this.update,this);
         },
         
         add_class: function(selector, class_list){
