@@ -129,8 +129,7 @@ define(["notebook/js/widget"], function(widget_manager) {
 
             this.$window.show();
             this.$window.css("positon", "absolute")
-            this.$window.css("top", Math.max(0, (($('body').outerHeight() - this.$window.outerHeight()) / 2) + 
-                $(window).scrollTop()) + "px");
+            this.$window.css("top", "0px");
             this.$window.css("left", Math.max(0, (($('body').outerWidth() - this.$window.outerWidth()) / 2) + 
                 $(window).scrollLeft()) + "px");
         },
