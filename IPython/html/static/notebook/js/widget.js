@@ -78,7 +78,7 @@ define(["components/underscore/underscore-min",
                 }
             }
             var callbacks = this._make_callbacks(cell);
-            var data = {'custom_content': content};
+            var data = {method: 'custom', custom_content: content};
             this.comm.send(data, callbacks);   
         },
 
@@ -156,7 +156,7 @@ define(["components/underscore/underscore-min",
                     if (selector === undefined) {
                         selector = '';
                     }
-                    
+
                     var class_list = msg.content.data.class_list;
                     this._execute_views_method(method, selector, class_list);
                     break;
@@ -253,7 +253,7 @@ define(["components/underscore/underscore-min",
                         }
                     }
 
-                    var data = {sync_method: method, sync_data: send_json};
+                    var data = {method: 'backbone', sync_method: method, sync_data: send_json};
 
                     var cell = null;
                     if (this.last_modified_view != undefined && this.last_modified_view != null) {

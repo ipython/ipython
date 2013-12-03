@@ -113,16 +113,19 @@ class Widget(LoggingConfigurable):
     def _handle_msg(self, msg):
         """Called when a msg is recieved from the frontend"""
         data = msg['content']['data']
-        
+        method = data['method']
+
         # Handle backbone sync methods CREATE, PATCH, and UPDATE
-        if 'sync_method' in data and 'sync_data' in data:
-            sync_method = data['sync_method']
-            sync_data = data['sync_data']
-            self._handle_recieve_state(sync_data) # handles all methods
+        if method == 'backbone':
+            if 'sync_method' in data and 'sync_data' in data:
+                sync_method = data['sync_method']
+                sync_data = data['sync_data']
+                self._handle_recieve_state(sync_data) # handles all methods
 
         # Handle a custom msg from the front-end
-        if 'custom_content' in data:
-            self._handle_custom_msg(data['custom_content'])
+        elif method == 'custom':
+            if 'custom_content' in data:
+                self._handle_custom_msg(data['custom_content'])
 
 
     def _handle_custom_msg(self, content):
