@@ -18,7 +18,7 @@ def test(**kwargs):
 
     Any of the options for run_iptestall() may be passed as keyword arguments.
 
-    For example:
+    For example::
     
         IPython.test(testgroups=['lib', 'config', 'utils'], fast=2)
     
