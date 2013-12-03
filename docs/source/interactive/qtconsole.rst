@@ -594,6 +594,29 @@ garbage collected until the application itself is destroyed.
 
 .. _Gotchas: http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/gotchas.html#garbage-collection
 
+Embedding the QtConsole in a Qt application
+*******************************************
+
+In order to make the QtConsole available to an external Qt application (just as
+:func:`IPython.embed` enables one to embed a terminal session of IPython in a
+command-line application), there are a few options:
+
+* First start IPython, and then start the external Qt application from IPython,
+  as described above.
+
+* From the external Qt application, start an IPython kernel in a new process,
+  and connect to it.  See :file:`examples/lib/ipkernel_qtapp.py` for an
+  example.  In that case, objects are not shared between the Qt application and
+  the kernel.
+
+* From the Qt application, start an IPython kernel in the *same* process, and
+  connect to it.  See :file:`examples/inprocess/embedded_qtconsole.py` for an
+  example.  In that case, the objects available in the QtConsole are the
+  actual objects that live in the Qt application.  However, long-running
+  calculations in the QtConsole will block the GUI.  Moreover, the default
+  configuration will not be loaded automatically, but you can do it manually,
+  as demonstrated in the example.
+
 Regressions
 ===========
 
