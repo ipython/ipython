@@ -153,6 +153,10 @@ define(["components/underscore/underscore-min",
                 case 'add_class':
                 case 'remove_class':
                     var selector = msg.content.data.selector;
+                    if (selector === undefined) {
+                        selector = '';
+                    }
+                    
                     var class_list = msg.content.data.class_list;
                     this._execute_views_method(method, selector, class_list);
                     break;
