@@ -112,7 +112,7 @@ def system(cmd):
 
     Parameters
     ----------
-    cmd : str
+    cmd : str or list
       A command to be executed in the system shell.
 
     Returns
@@ -138,7 +138,7 @@ def getoutput(cmd):
 
     Parameters
     ----------
-    cmd : str
+    cmd : str or list
       A command to be executed in the system shell.
 
     Returns

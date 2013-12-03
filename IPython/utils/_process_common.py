@@ -47,9 +47,10 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
 
     Parameters
     ----------
-    cmd : str
-      A string to be executed with the underlying system shell (by calling
-    :func:`Popen` with ``shell=True``.
+    cmd : str or list
+      A command to be executed by the system, using :class:`subprocess.Popen`.
+      If a string is passed, it will be run in the system shell. If a list is
+      passed, it will be used directly as arguments.
 
     callback : callable
       A one-argument function that will be called with the Popen object.
@@ -68,7 +69,7 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     sys.stderr.flush()
     # On win32, close_fds can't be true when using pipes for stdin/out/err
     close_fds = sys.platform != 'win32'
-    p = subprocess.Popen(cmd, shell=True,
+    p = subprocess.Popen(cmd, shell=isinstance(cmd, py3compat.string_types),
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=stderr,
@@ -107,7 +108,7 @@ def getoutput(cmd):
 
     Parameters
     ----------
-    cmd : str
+    cmd : str or list
       A command to be executed in the system shell.
 
     Returns
@@ -131,7 +132,7 @@ def getoutputerror(cmd):
 
     Parameters
     ----------
-    cmd : str
+    cmd : str or list
       A command to be executed in the system shell.
 
     Returns
@@ -149,7 +150,7 @@ def get_output_error_code(cmd):
 
     Parameters
     ----------
-    cmd : str
+    cmd : str or list
       A command to be executed in the system shell.
 
     Returns
