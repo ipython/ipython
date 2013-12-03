@@ -42,6 +42,12 @@ define(["notebook/js/widget"], function(widget_manager){
                 this.$el.html(description);
             }
             
+            if (this.model.get('disabled')) {
+                this.$el.attr('disabled','disabled');
+            } else {
+                this.$el.removeAttr('disabled');
+            }
+
             return IPython.WidgetView.prototype.update.call(this);
         },
 
