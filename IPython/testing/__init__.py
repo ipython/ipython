@@ -21,8 +21,10 @@ def test(all=False):
 
     # Do the import internally, so that this function doesn't increase total
     # import time
-    from .iptest import run_iptestall
-    run_iptestall(inc_slow=all)
+    from .iptestcontroller import run_iptestall, default_options
+    options = default_options()
+    options.all = all
+    run_iptestall(options)
 
 # So nose doesn't try to run this as a test itself and we end up with an
 # infinite test loop

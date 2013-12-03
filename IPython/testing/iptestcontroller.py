@@ -456,6 +456,27 @@ def run_iptestall(options):
         # Ensure that our exit code indicates failure
         sys.exit(1)
 
+argparser = argparse.ArgumentParser(description='Run IPython test suite')
+argparser.add_argument('testgroups', nargs='*',
+                    help='Run specified groups of tests. If omitted, run '
+                    'all tests.')
+argparser.add_argument('--all', action='store_true',
+                    help='Include slow tests not run by default.')
+argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
+                    help='Run test sections in parallel.')
+argparser.add_argument('--xunit', action='store_true',
+                    help='Produce Xunit XML results')
+argparser.add_argument('--coverage', nargs='?', const=True, default=False,
+                    help="Measure test coverage. Specify 'html' or "
+                    "'xml' to get reports.")
+
+def default_options():
+    """Get an argparse Namespace object with the default arguments, to pass to
+    :func:`run_iptestall`.
+    """
+    options = argparser.parse_args([])
+    options.extra_args = []
+    return options
 
 def main():
     # Arguments after -- should be passed through to nose. Argparse treats
@@ -470,21 +491,7 @@ def main():
         to_parse = sys.argv[1:ix]
         extra_args = sys.argv[ix+1:]
 
-    parser = argparse.ArgumentParser(description='Run IPython test suite')
-    parser.add_argument('testgroups', nargs='*',
-                        help='Run specified groups of tests. If omitted, run '
-                        'all tests.')
-    parser.add_argument('--all', action='store_true',
-                        help='Include slow tests not run by default.')
-    parser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
-                        help='Run test sections in parallel.')
-    parser.add_argument('--xunit', action='store_true',
-                        help='Produce Xunit XML results')
-    parser.add_argument('--coverage', nargs='?', const=True, default=False,
-                        help="Measure test coverage. Specify 'html' or "
-                        "'xml' to get reports.")
-
-    options = parser.parse_args(to_parse)
+    options = argparser.parse_args(to_parse)
     options.extra_args = extra_args
 
     run_iptestall(options)
