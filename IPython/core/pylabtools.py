@@ -30,6 +30,7 @@ from IPython.utils.decorators import flag_calls
 # user's mpl default from the mpl rc structure
 backends = {'tk': 'TkAgg',
             'gtk': 'GTKAgg',
+            'gtk3': 'GTK3Agg',
             'wx': 'WXAgg',
             'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
@@ -46,6 +47,7 @@ backend2gui['Qt4Agg'] = 'qt'
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
 backend2gui['GTK'] = backend2gui['GTKCairo'] = 'gtk'
+backend2gui['GTK3Cairo'] = 'gtk3'
 backend2gui['WX'] = 'wx'
 backend2gui['CocoaAgg'] = 'osx'
 
