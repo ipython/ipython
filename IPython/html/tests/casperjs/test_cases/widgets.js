@@ -81,7 +81,7 @@ casper.notebook_test(function () {
 
     // Test bool widget ////////////////////////////////////////////////////////
     var bool_index = this.append_cell(
-        'bool_widget = widgets.BoolWidget(description="Title")\n' +
+        'bool_widget = widgets.BoolWidget(description="Title", value=True)\n' +
         'display(bool_widget)\n'+
         'display(bool_widget, view_name="ToggleButtonView")\n' +
         'print("Success")');
@@ -99,6 +99,10 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea .widget-hbox-single input'),
             'Checkbox exists.');
 
+        this.test.assert(this.cell_element_function(index, 
+            '.widget-area .widget-subarea .widget-hbox-single input', 'val')==true,
+            'Checkbox is checked.');
+
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel'),
             'Checkbox label exists.');
@@ -114,6 +118,10 @@ casper.notebook_test(function () {
         this.test.assert(this.cell_element_function(index, 
             '.widget-area .widget-subarea div button', 'html')=="Title",
             'Toggle button labeled correctly.');
+
+        this.test.assert(this.cell_element_function(index, 
+            '.widget-area .widget-subarea div button', 'hasClass', ['active']),
+            'Toggle button is toggled.');
 
     });
 
