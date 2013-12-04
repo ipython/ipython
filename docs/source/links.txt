@@ -7,7 +7,7 @@
    NOTE: this file must have an extension *opposite* to that of the main reST
    files in the manuals, so that we can include it with ".. include::"
    directives, but without triggering warnings from Sphinx for not being listed
-   in any toctree.  Since IPython uses .txt for the main files, this wone will
+   in any toctree.  Since IPython uses .txt for the main files, this one will
    use .rst.
    
    NOTE: reST targets are
