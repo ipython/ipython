@@ -1,10 +1,8 @@
 import os
 
-from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.inprocess import QtInProcessKernelManager
 from IPython.lib import guisupport
-from IPython.utils import path
 
 
 def print_process_id():
@@ -38,17 +36,8 @@ def main():
     control.kernel_manager = kernel_manager
     control.kernel_client = kernel_client
     control.exit_requested.connect(stop)
-
-    iapp = IPythonQtConsoleApp.instance()
-    iapp.config_file_paths = [path.locate_profile("default")]
-    iapp.config_files = ["ipython_qtconsole_config.py"]
-    iapp.load_config_file()
-    for cls_name, d in iapp.config.items():
-        for k, v in d.items():
-            setattr(control, k, v)
-    iapp.init_colors(control)
-
     control.show()
+
     guisupport.start_event_loop_qt4(app)
 
 
