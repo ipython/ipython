@@ -40,8 +40,8 @@ def _notify_stream_qt(kernel, stream):
     if _on_os_x_10_9() and kernel._darwin_app_nap:
         from IPython.external.appnope import nope_scope as context
     else:
-        from IPython.core.interactiveshell import no_op_context as context
-        
+        from IPython.core.interactiveshell import NoOpContext as context
+
     def process_stream_events():
         while stream.getsockopt(zmq.EVENTS) & zmq.POLLIN:
             with context():
