@@ -1,25 +1,6 @@
-//
 // Test the widget framework.
-//
 casper.notebook_test(function () {
-    //this.test.begin("widget tests (notebook)", 2, function(test) {
-
-
-    // Utility function that allows us to easily execute a cell of python code
-    // and wait for the results.
-    var that = this;
-    var run_python_code = function(code){
-        var index = that.evaluate(function (code) {
-            var index = IPython.notebook.ncells();
-            var cell = IPython.notebook.insert_cell_at_index('code', index);
-            cell.set_text(code);
-            cell.execute();
-            return index;
-        }, code);
-
-        that.wait_for_output(index);
-        return index;
-    };
+    var index;
 
     // Test widget dependencies ////////////////////////////////////////////////
     this.then(function () {
@@ -30,9 +11,12 @@ casper.notebook_test(function () {
         }), 'WidgetManager class is defined');
     });
 
-    run_python_code('from IPython.html import widgets\n' + 
-                    'from IPython.display import display, clear_output\n' +
-                    'print("Success")');
+    index = append_cell(
+        'from IPython.html import widgets\n' + 
+        'from IPython.display import display, clear_output\n' +
+        'print("Success")');
+    execute_cell_then(index);
+
     this.wait(500); // Wait for require.js async callbacks to load dependencies.
 
     this.then(function () {
@@ -44,12 +28,13 @@ casper.notebook_test(function () {
 
 
     // Check widget mapping ////////////////////////////////////////////////////
-    var names_cell_index = run_python_code('names = [name for name in dir(widgets)' + 
+    index = append_cell(
+        'names = [name for name in dir(widgets)' + 
         ' if name.endswith("Widget") and name!= "Widget"]\n' +
         'for name in names:\n' +
         '    print(name)\n');
+    execute_cell_then(index, function(index){
 
-    this.then(function () {
         // Get the widget names that are registered with the widget manager.  Assume
         // a 1 to 1 mapping of model and widgets names (model names just have 'model'
         // suffixed).
@@ -62,7 +47,7 @@ casper.notebook_test(function () {
         });
 
         // Get the widget names registered in python.
-        var python_names = this.get_output_cell(names_cell_index).text.split('\n');
+        var python_names = this.get_output_cell(index).text.split('\n');
 
         // Make sure the two lists have the same items.
         for (var i in javascript_names) {
@@ -92,53 +77,57 @@ casper.notebook_test(function () {
             }
         }
     });
-    
 
 
     // Test button widget //////////////////////////////////////////////////////
-    button_cell_index = run_python_code('button = widgets.ButtonWidget(description="Title")\n' +
+    var button_cell_index = append_cell(
+        'button = widgets.ButtonWidget(description="Title")\n' +
         'display(button)\n'+
         'print("Success")\n' +
         'def handle_click(sender):\n' +
         '    print("Clicked")\n' +
         'button.on_click(handle_click)');
+    execute_cell_then(button_cell_index, function(index){
 
-    this.then(function () {
-        var button_output = this.get_output_cell(button_cell_index).text;
-        this.test.assert(button_output == 'Success\n', 'Create button widget, cell executed with correct output.');
+        var button_output = this.get_output_cell(index).text;
+        this.test.assert(button_output == 'Success\n', 
+            'Create button widget, cell executed with correct output.');
 
-        this.test.assert(casper.evaluate(function (i) {
-            var $cell = IPython.notebook.get_cell(i).element;
-            return $cell.find('.widget-area').find('.widget-subarea').length > 0;
-        },
-        {i : button_cell_index}), 'Create button widget, widget subarea exist.');
+        this.test.assert(cell_element_exists(index, 
+            '.widget-area .widget-subarea'),
+            'Create button widget, widget subarea exist.');
 
-        this.test.assert(casper.evaluate(function (i) {
-            var $cell = IPython.notebook.get_cell(i).element;
-            return $cell.find('.widget-area').find('.widget-subarea').find('button').length > 0;
-        },
-        {i : button_cell_index}), 'Create button widget, widget button exist.');
+        this.test.assert(cell_element_exists(index, 
+            '.widget-area .widget-subarea button'),
+            'Create button widget, widget button exist.');
 
-        this.test.assert(casper.evaluate(function (i) {
-            var $cell = IPython.notebook.get_cell(i).element;
-            return $cell.find('.widget-area').find('.widget-subarea').find('button').html() == 'Title';
-        },
-        {i : button_cell_index}), 'Set button description.');
+        this.test.assert(cell_element_function(index, 
+            '.widget-area .widget-subarea button', 'html')=='Title',
+            'Set button description.');
 
-        casper.evaluate(function (i) {
-            var $cell = IPython.notebook.get_cell(i).element;
-            $cell.find('.widget-area').find('.widget-subarea').find('button').click();
-        },
-        {i : button_cell_index});        
+        cell_element_function(index, 
+            '.widget-area .widget-subarea button', 'click');
     });
 
-    this.wait(1000); // Wait for click to execute in kernel and write output
+    this.wait(500); // Wait for click to execute in kernel and write output
 
     this.then(function () {
-        var button_output = this.get_output_cell(button_cell_index, 1).text;
-        this.test.assert(button_output == 'Clicked\n', 'Button click event fires.');
+        this.test.assert(this.get_output_cell(button_cell_index, 1).text == 'Clicked\n', 
+            'Button click event fires.');
     });
 
-    //}); // end of test.begin
+    index = append_cell(
+        'button.close()\n'+
+        'print("Success")\n');
+    execute_cell_then(index, function(index){
+
+        var button_output = this.get_output_cell(index).text;
+        this.test.assert(button_output == 'Success\n', 
+            'Close button, cell executed with correct output.');
+
+        this.test.assert(! cell_element_exists(button_cell_index, 
+            '.widget-area .widget-subarea button'),
+            'Remove button, widget button doesn\'t exist.');
+    });
 });
 
