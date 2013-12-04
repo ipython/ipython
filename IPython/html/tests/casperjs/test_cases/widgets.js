@@ -44,7 +44,7 @@ casper.notebook_test(function () {
 
 
     // Check widget mapping ////////////////////////////////////////////////////
-    var cell_index = run_python_code('names = [name for name in dir(widgets)' + 
+    var names_cell_index = run_python_code('names = [name for name in dir(widgets)' + 
         ' if name.endswith("Widget") and name!= "Widget"]\n' +
         'for name in names:\n' +
         '    print(name)\n');
@@ -62,7 +62,7 @@ casper.notebook_test(function () {
         });
 
         // Get the widget names registered in python.
-        var python_names = this.get_output_cell(cell_index).text.split('\n');
+        var python_names = this.get_output_cell(names_cell_index).text.split('\n');
 
         // Make sure the two lists have the same items.
         for (var i in javascript_names) {
@@ -91,29 +91,53 @@ casper.notebook_test(function () {
                 this.test.assert(found, python_name + ' exists in javascript');
             }
         }
+    });
+    
 
-        // Try to create a button widget
-        cell_index = run_python_code('button = widgets.ButtonWidget()\n' +
-            'display(button)\n'+
-            'print("Success")');
 
-        this.then(function () {
+    // Test button widget //////////////////////////////////////////////////////
+    button_cell_index = run_python_code('button = widgets.ButtonWidget(description="Title")\n' +
+        'display(button)\n'+
+        'print("Success")\n' +
+        'def handle_click(sender):\n' +
+        '    print("Clicked")\n' +
+        'button.on_click(handle_click)');
 
-            // Check if the WidgetManager class is defined.
-            var $widget_subarea = this.evaluate(function() {
-                var $cell = IPython.notebook.get_cell_element(cell_index);
-                return $cell.find('.widget-area.widget-subarea');
-            });
+    this.then(function () {
+        var button_output = this.get_output_cell(button_cell_index).text;
+        this.test.assert(button_output == 'Success\n', 'Create button widget, cell executed with correct output.');
 
-            // Make sure the widget subarea was found.
-            this.test.assert($widget_subarea.length > 0, 'Create button widget, widget subarea exist?');
+        this.test.assert(casper.evaluate(function (i) {
+            var $cell = IPython.notebook.get_cell(i).element;
+            return $cell.find('.widget-area').find('.widget-subarea').length > 0;
+        },
+        {i : button_cell_index}), 'Create button widget, widget subarea exist.');
 
-            var $widget_button = $widget_subarea.find('button');
-            this.test.assert($$widget_button.length > 0, 'Create button widget, widget button exist?');
-        }
-        
+        this.test.assert(casper.evaluate(function (i) {
+            var $cell = IPython.notebook.get_cell(i).element;
+            return $cell.find('.widget-area').find('.widget-subarea').find('button').length > 0;
+        },
+        {i : button_cell_index}), 'Create button widget, widget button exist.');
+
+        this.test.assert(casper.evaluate(function (i) {
+            var $cell = IPython.notebook.get_cell(i).element;
+            return $cell.find('.widget-area').find('.widget-subarea').find('button').html() == 'Title';
+        },
+        {i : button_cell_index}), 'Set button description.');
+
+        casper.evaluate(function (i) {
+            var $cell = IPython.notebook.get_cell(i).element;
+            $cell.find('.widget-area').find('.widget-subarea').find('button').click();
+        },
+        {i : button_cell_index});        
     });
 
+    this.wait(1000); // Wait for click to execute in kernel and write output
+
+    this.then(function () {
+        var button_output = this.get_output_cell(button_cell_index, 1).text;
+        this.test.assert(button_output == 'Clicked\n', 'Button click event fires.');
+    });
 
     //}); // end of test.begin
 });
