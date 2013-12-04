@@ -146,8 +146,6 @@ have['cython'] = test_for('Cython')
 have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
-have['wx'] = test_for('wx')
-have['wx.aui'] = test_for('wx.aui')
 have['azure'] = test_for('azure')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
@@ -203,8 +201,6 @@ if not have['matplotlib']:
 
 # lib:
 sec = test_sections['lib']
-if not have['wx']:
-    sec.exclude('inputhookwx')
 if not have['pexpect']:
     sec.exclude('irunner')
     sec.exclude('tests.test_irunner')
@@ -213,6 +209,9 @@ if not have['zmq']:
 # We do this unconditionally, so that the test suite doesn't import
 # gtk, changing the default encoding and masking some unicode bugs.
 sec.exclude('inputhookgtk')
+# We also do this unconditionally, because wx can interfere with Unix signals.
+# There are currently no tests for it anyway.
+sec.exclude('inputhookwx')
 # Testing inputhook will need a lot of thought, to figure out
 # how to have tests that don't lock up with the gui event
 # loops in the picture
