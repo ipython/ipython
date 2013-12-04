@@ -33,6 +33,18 @@ var IPython = (function (IPython) {
                         }
                 }
             ]);
+
+        this.add_buttons_group([
+                {
+                    id : 'insert_below_b',
+                    label : 'Insert Cell Below',
+                    icon : 'icon-plus-sign',
+                    callback : function () {
+                        IPython.notebook.insert_cell_below('code');
+                        }
+                }
+            ],'insert_above_below');
+
         this.add_buttons_group([
                 {
                     id : 'cut_b',
@@ -79,24 +91,6 @@ var IPython = (function (IPython) {
                 }
             ],'move_up_down');
         
-        this.add_buttons_group([
-                {
-                    id : 'insert_above_b',
-                    label : 'Insert Cell Above',
-                    icon : 'icon-circle-arrow-up',
-                    callback : function () {
-                        IPython.notebook.insert_cell_above('code');
-                        }
-                },
-                {
-                    id : 'insert_below_b',
-                    label : 'Insert Cell Below',
-                    icon : 'icon-circle-arrow-down',
-                    callback : function () {
-                        IPython.notebook.insert_cell_below('code');
-                        }
-                }
-            ],'insert_above_below');
 
         this.add_buttons_group([
                 {
