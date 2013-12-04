@@ -79,6 +79,44 @@ casper.notebook_test(function () {
     });
 
 
+    // Test bool widget ////////////////////////////////////////////////////////
+    var bool_index = this.append_cell(
+        'bool_widget = widgets.BoolWidget(description="Title")\n' +
+        'display(bool_widget)\n'+
+        'display(bool_widget, view_name="ToggleButtonView")\n' +
+        'print("Success")');
+    this.execute_cell_then(bool_index, function(index){
+
+        var button_output = this.get_output_cell(index).text;
+        this.test.assert(button_output == 'Success\n', 
+            'Create bool widget cell executed with correct output.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea'),
+            'Widget subarea exists.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea .widget-hbox-single input'),
+            'Checkbox exists.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel'),
+            'Checkbox label exists.');
+
+        this.test.assert(this.cell_element_function(index, 
+            '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel', 'html')=="Title",
+            'Checkbox labeled correctly.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea div button'),
+            'Toggle button exists.');
+
+        this.test.assert(this.cell_element_function(index, 
+            '.widget-area .widget-subarea div button', 'html')=="Title",
+            'Toggle button labeled correctly.');
+
+    });
+
     // Test button widget //////////////////////////////////////////////////////
     var button_index = this.append_cell(
         'button = widgets.ButtonWidget(description="Title")\n' +
@@ -91,15 +129,15 @@ casper.notebook_test(function () {
 
         var button_output = this.get_output_cell(index).text;
         this.test.assert(button_output == 'Success\n', 
-            'Create button widget, cell executed with correct output.');
+            'Create button cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea'),
-            'Create button widget, widget subarea exist.');
+            'Widget subarea exists.');
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea button'),
-            'Create button widget, widget button exist.');
+            'Widget button exists.');
 
         this.test.assert(this.cell_element_function(index, 
             '.widget-area .widget-subarea button', 'html')=='Title',
@@ -123,11 +161,11 @@ casper.notebook_test(function () {
 
         var button_output = this.get_output_cell(index).text;
         this.test.assert(button_output == 'Success\n', 
-            'Close button, cell executed with correct output.');
+            'Close button cell executed with correct output.');
 
         this.test.assert(! this.cell_element_exists(button_index, 
             '.widget-area .widget-subarea button'),
-            'Remove button, widget button doesn\'t exist.');
+            'Widget button doesn\'t exists.');
     });
 });
 
