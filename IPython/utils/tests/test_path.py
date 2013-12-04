@@ -453,8 +453,8 @@ def test_get_ipython_module_path():
 def test_get_long_path_name_win32():
     with TemporaryDirectory() as tmpdir:
 
-        # Make a long path. Expands the path of tmpdir prematurely to make sure only the 
-        # last part is different later on.
+        # Make a long path. Expands the path of tmpdir prematurely as it may already have a long 
+        # path component, so ensure we include the long form of it
         long_path = os.path.join(path.get_long_path_name(tmpdir), u'this is my long path name')
         os.makedirs(long_path)
 
