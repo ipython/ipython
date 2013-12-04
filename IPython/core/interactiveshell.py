@@ -2568,7 +2568,8 @@ class InteractiveShell(SingletonConfigurable):
                     if not nb.worksheets:
                         return
                     for cell in nb.worksheets[0].cells:
-                        yield cell.input
+                        if cell.cell_type == 'code':
+                            yield cell.input
             else:
                 with open(fname) as f:
                     yield f.read()

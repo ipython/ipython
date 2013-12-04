@@ -377,6 +377,7 @@ tclass.py: deleting object: C-third
         nb = current.new_notebook(
             worksheets=[
                 current.new_worksheet(cells=[
+                    current.new_text_cell("The Ultimate Question of Everything"),
                     current.new_code_cell("answer=42")
                 ])
             ]
