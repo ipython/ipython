@@ -93,19 +93,6 @@ casper.get_cells_length = function () {
     return result;
 };
 
-// Inserts a cell at an index (see Notebook.insert_cell_at_index).
-// Returns the new cell's index.
-casper.insert_cell_at_index = function(cell_type, index){
-    if (cell_type===undefined) {
-        cell_type = 'code';
-    }
-    
-    return this.evaluate(function (cell_type, index) {
-        var cell = IPython.notebook.insert_cell_at_index(cell_type, index);
-        return IPython.notebook.find_cell_index(cell);
-    }, cell_type, index);        
-};
-
 // Set the text content of a cell.
 casper.set_cell_text = function(index, text){
     this.evaluate(function (index, text) {
@@ -114,12 +101,25 @@ casper.set_cell_text = function(index, text){
     }, index, text);        
 };
 
+// Inserts a cell at the bottom of the notebook
+// Returns the new cell's index.
+casper.insert_cell_at_bottom = function(cell_type){
+    if (cell_type===undefined) {
+        cell_type = 'code';
+    }
+
+    return this.evaluate(function (cell_type) {
+        var cell = IPython.notebook.insert_cell_at_bottom(cell_type);
+        return IPython.notebook.find_cell_index(cell);
+    }, cell_type);        
+};
+
 // Insert a cell at the bottom of the notebook and set the cells text.
 // Returns the new cell's index.
 casper.append_cell = function(text, cell_type) { 
-    var index = insert_cell_at_index(cell_type);
+    var index = this.insert_cell_at_bottom(cell_type);
     if (text !== undefined) {
-        set_cell_text(index, text);
+        this.set_cell_text(index, text);
     }
     return index;
 };
@@ -142,7 +142,7 @@ casper.execute_cell = function(index){
 // when the cell  has finished executing.
 // Returns the cell's index.
 casper.execute_cell_then = function(index, then_callback) {
-    var return_val = execute_cell(index);
+    var return_val = this.execute_cell(index);
 
     this.wait_for_output(index);
 
