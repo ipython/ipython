@@ -1,7 +1,7 @@
 // Test the widget framework.
 casper.notebook_test(function () {
     var index;
-
+    
     // Test widget dependencies ////////////////////////////////////////////////
     this.then(function () {
     
@@ -11,11 +11,11 @@ casper.notebook_test(function () {
         }), 'WidgetManager class is defined');
     });
 
-    index = append_cell(
+    index = this.append_cell(
         'from IPython.html import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'print("Success")');
-    execute_cell_then(index);
+    this.execute_cell_then(index);
 
     this.wait(500); // Wait for require.js async callbacks to load dependencies.
 
@@ -28,12 +28,12 @@ casper.notebook_test(function () {
 
 
     // Check widget mapping ////////////////////////////////////////////////////
-    index = append_cell(
+    index = this.append_cell(
         'names = [name for name in dir(widgets)' + 
         ' if name.endswith("Widget") and name!= "Widget"]\n' +
         'for name in names:\n' +
         '    print(name)\n');
-    execute_cell_then(index, function(index){
+    this.execute_cell_then(index, function(index){
 
         // Get the widget names that are registered with the widget manager.  Assume
         // a 1 to 1 mapping of model and widgets names (model names just have 'model'
@@ -80,52 +80,52 @@ casper.notebook_test(function () {
 
 
     // Test button widget //////////////////////////////////////////////////////
-    var button_cell_index = append_cell(
+    var button_index = this.append_cell(
         'button = widgets.ButtonWidget(description="Title")\n' +
         'display(button)\n'+
         'print("Success")\n' +
         'def handle_click(sender):\n' +
         '    print("Clicked")\n' +
         'button.on_click(handle_click)');
-    execute_cell_then(button_cell_index, function(index){
+    this.execute_cell_then(button_index, function(index){
 
         var button_output = this.get_output_cell(index).text;
         this.test.assert(button_output == 'Success\n', 
             'Create button widget, cell executed with correct output.');
 
-        this.test.assert(cell_element_exists(index, 
+        this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea'),
             'Create button widget, widget subarea exist.');
 
-        this.test.assert(cell_element_exists(index, 
+        this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea button'),
             'Create button widget, widget button exist.');
 
-        this.test.assert(cell_element_function(index, 
+        this.test.assert(this.cell_element_function(index, 
             '.widget-area .widget-subarea button', 'html')=='Title',
             'Set button description.');
 
-        cell_element_function(index, 
+        this.cell_element_function(index, 
             '.widget-area .widget-subarea button', 'click');
     });
 
     this.wait(500); // Wait for click to execute in kernel and write output
 
     this.then(function () {
-        this.test.assert(this.get_output_cell(button_cell_index, 1).text == 'Clicked\n', 
+        this.test.assert(this.get_output_cell(button_index, 1).text == 'Clicked\n', 
             'Button click event fires.');
     });
 
-    index = append_cell(
+    index = this.append_cell(
         'button.close()\n'+
         'print("Success")\n');
-    execute_cell_then(index, function(index){
+    this.execute_cell_then(index, function(index){
 
         var button_output = this.get_output_cell(index).text;
         this.test.assert(button_output == 'Success\n', 
             'Close button, cell executed with correct output.');
 
-        this.test.assert(! cell_element_exists(button_cell_index, 
+        this.test.assert(! this.cell_element_exists(button_index, 
             '.widget-area .widget-subarea button'),
             'Remove button, widget button doesn\'t exist.');
     });
