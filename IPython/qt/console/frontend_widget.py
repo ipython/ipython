@@ -6,16 +6,17 @@ import sys
 import uuid
 
 # System library imports
-from pygments.lexers import PythonLexer
 from IPython.external import qt
 from IPython.external.qt import QtCore, QtGui
+from IPython.utils import py3compat
+from IPython.utils.importstring import import_item
 
 # Local imports
 from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
 from IPython.core.inputtransformer import classic_prompt
 from IPython.core.oinspect import call_tip
 from IPython.qt.base_frontend_mixin import BaseFrontendMixin
-from IPython.utils.traitlets import Bool, Instance, Unicode
+from IPython.utils.traitlets import Any, Bool, Instance, Unicode, DottedObjectName
 from .bracket_matcher import BracketMatcher
 from .call_tip_widget import CallTipWidget
 from .completion_lexer import CompletionLexer
@@ -27,8 +28,8 @@ class FrontendHighlighter(PygmentsHighlighter):
     """ A PygmentsHighlighter that understands and ignores prompts.
     """
 
-    def __init__(self, frontend):
-        super(FrontendHighlighter, self).__init__(frontend._control.document())
+    def __init__(self, frontend, lexer=None):
+        super(FrontendHighlighter, self).__init__(frontend._control.document(), lexer=lexer)
         self._current_offset = 0
         self._frontend = frontend
         self.highlighting_on = False
@@ -100,6 +101,24 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     confirm_restart = Bool(True, config=True,
         help="Whether to ask for user confirmation when restarting kernel")
+    
+    lexer_class = DottedObjectName(config=True,
+        help="The pygments lexer class to use."
+    )
+    def _lexer_class_changed(self, name, old, new):
+        lexer_class = import_item(new)
+        self.lexer = lexer_class()
+    
+    def _lexer_class_default(self):
+        if py3compat.PY3:
+            return 'pygments.lexers.Python3Lexer'
+        else:
+            return 'pygments.lexers.PythonLexer'
+    
+    lexer = Any()
+    def _lexer_default(self):
+        lexer_class = import_item(self.lexer_class)
+        return lexer_class()
 
     # Emitted when a user visible 'execute_request' has been submitted to the
     # kernel from the FrontendWidget. Contains the code to be executed.
@@ -141,10 +160,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # FrontendWidget protected variables.
         self._bracket_matcher = BracketMatcher(self._control)
         self._call_tip_widget = CallTipWidget(self._control)
-        self._completion_lexer = CompletionLexer(PythonLexer())
+        self._completion_lexer = CompletionLexer(self.lexer)
         self._copy_raw_action = QtGui.QAction('Copy (Raw Text)', None)
         self._hidden = False
-        self._highlighter = FrontendHighlighter(self)
+        self._highlighter = FrontendHighlighter(self, lexer=self.lexer)
         self._input_splitter = self._input_splitter_class()
         self._kernel_manager = None
         self._kernel_client = None
