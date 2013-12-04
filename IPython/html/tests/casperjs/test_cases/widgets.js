@@ -91,6 +91,27 @@ casper.notebook_test(function () {
                 this.test.assert(found, python_name + ' exists in javascript');
             }
         }
+
+        // Try to create a button widget
+        cell_index = run_python_code('button = widgets.ButtonWidget()\n' +
+            'display(button)\n'+
+            'print("Success")');
+
+        this.then(function () {
+
+            // Check if the WidgetManager class is defined.
+            var $widget_subarea = this.evaluate(function() {
+                var $cell = IPython.notebook.get_cell_element(cell_index);
+                return $cell.find('.widget-area.widget-subarea');
+            });
+
+            // Make sure the widget subarea was found.
+            this.test.assert($widget_subarea.length > 0, 'Create button widget, widget subarea exist?');
+
+            var $widget_button = $widget_subarea.find('button');
+            this.test.assert($$widget_button.length > 0, 'Create button widget, widget button exist?');
+        }
+        
     });
 
 
