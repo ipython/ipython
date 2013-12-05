@@ -65,13 +65,16 @@ IPython.dialog = (function (IPython) {
                 dialog.remove();
             });
         }
-        if (options.reselect_cell !== false) {
-            dialog.on("hidden", function () {
-                if (IPython.notebook) {
-                    var cell = IPython.notebook.get_selected_cell();
-                    if (cell) cell.select();
-                }
-            });
+        dialog.on("hidden", function () {
+            if (IPython.notebook) {
+                var cell = IPython.notebook.get_selected_cell();
+                if (cell) cell.select();
+                IPython.keyboard_manager.command_mode();
+            }
+        });
+        
+        if (IPython.keyboard_manager) {
+            IPython.keyboard_manager.null_mode();
         }
         
         return dialog.modal(options);

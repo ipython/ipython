@@ -244,21 +244,28 @@ var IPython = (function (IPython) {
 
         //build the container
         var that = this;
-        this.sel.dblclick(function () {
-            that.pick();
-        });
-        this.sel.blur(this.close);
-        this.sel.keydown(function (event) {
-            that.keydown(event);
-        });
+        // this.sel.dblclick(function () {
+        //     that.pick();
+        // });
+        // this.sel.blur(this.close);
+        // this.sel.keydown(function (event) {
+        //     that.keydown(event);
+        // });
 
         this.build_gui_list(this.raw_result);
 
-        this.sel.focus();
-        // Opera sometimes ignores focusing a freshly created node
-        if (window.opera) setTimeout(function () {
-            if (!this.done) this.sel.focus();
+        setTimeout(function () {
+            console.log('doing it');
+            that.sel.focus();
         }, 100);
+        // this.sel.focus();
+        // This needs to be after the focus() call because that puts the notebook into
+        // command mode.
+        // IPython.keyboard_manager.null_mode();
+        // Opera sometimes ignores focusing a freshly created node
+        // if (window.opera) setTimeout(function () {
+        //     if (!this.done) this.sel.focus();
+        // }, 100);
         return true;
     }
 
@@ -279,6 +286,8 @@ var IPython = (function (IPython) {
         if (this.done) return;
         this.done = true;
         $('.completions').remove();
+        console.log('closing...')
+        IPython.keyboard_manager.edit_mode();
     }
 
     Completer.prototype.pick = function () {
@@ -292,6 +301,7 @@ var IPython = (function (IPython) {
 
 
     Completer.prototype.keydown = function (event) {
+        console.log('keydown', event.keyCode);
         var code = event.keyCode;
         var that = this;
         var special_key = false;

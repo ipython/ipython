@@ -13,7 +13,6 @@ var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
-    var key   = IPython.utils.keycodes;
 
     /**
      * A notebook contains and manages cells.
@@ -51,7 +50,6 @@ var IPython = (function (IPython) {
         this.minimum_autosave_interval = 120000;
         // single worksheet for now
         this.worksheet_metadata = {};
-        this.control_key_active = false;
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
         this.nbformat_minor = 0 // Increment this when changing the nbformat
@@ -94,7 +92,6 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.create_elements = function () {
         var that = this;
-        // We need the notebook div to be focusable so it can watch for keyboard events.
         this.element.attr('tabindex','-1');
         this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         // We add this end_space div to the end of the notebook div to:
@@ -156,210 +153,6 @@ var IPython = (function (IPython) {
             });
         });
 
-        $(document).keydown(function (event) {
-            if (event.which === key.ESC) {
-                // Intercept escape at highest level to avoid closing
-                // websocket connection with firefox
-                event.preventDefault();
-            }
-        });
-
-        this.element.keydown(function (event) {
-            // console.log(event);
-
-            // Event handlers for both command and edit mode
-            if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-                // Save (CTRL+S) or (Command+S on Mac)
-                that.save_checkpoint();
-                event.preventDefault();
-                return false;
-            } else if (event.which === key.ESC) {
-                // Intercept escape at highest level to avoid closing
-                // websocket connection with firefox
-                event.preventDefault();
-                // Don't return yet to allow edit/command modes to handle
-            } else if (event.which === key.SHIFT) {
-                // ignore shift keydown
-                return true;
-            } else if (event.which === key.ENTER && event.shiftKey) {
-                that.execute_selected_cell('shift');
-                return false;
-            } else if (event.which === key.ENTER && event.altKey) {
-                // Execute code cell, and insert new in place
-                that.execute_selected_cell('alt');
-                return false;
-            } else if (event.which === key.ENTER && event.ctrlKey) {
-                that.execute_selected_cell('ctrl');
-                return false;
-            }
-
-            // Event handlers for edit mode
-            if (that.mode === 'edit') {
-                if (event.which === key.ESC) {
-                    // ESC
-                    that.command_mode();
-                    return false;
-                } else if (event.which === 77 && event.ctrlKey) {
-                    // Ctrl-m
-                    that.command_mode();
-                    return false;
-                } else if (event.which === key.UPARROW && !event.shiftKey) {
-                    var cell = that.get_selected_cell();
-                    if (cell && cell.at_top()) {
-                        event.preventDefault();
-                        that.command_mode()
-                        that.select_prev();
-                        that.edit_mode();
-                        return false;
-                    };
-                } else if (event.which === key.DOWNARROW && !event.shiftKey) {
-                    var cell = that.get_selected_cell();
-                    if (cell && cell.at_bottom()) {
-                        event.preventDefault();
-                        that.command_mode()
-                        that.select_next();
-                        that.edit_mode();
-                        return false;
-                    };
-                };
-            // Event handlers for command mode
-            } else if (that.mode === 'command' && !(event.ctrlKey || event.altKey || event.metaKey)) {
-                if (event.which === key.ENTER && !(event.ctrlKey || event.altKey || event.shiftKey)) {
-                    // Enter edit mode = ENTER alone
-                    that.edit_mode();
-                    return false;
-                } else if (event.which === key.UPARROW && !event.shiftKey) {
-                    var index = that.get_selected_index();
-                    if (index !== 0 && index !== null) {
-                        that.select_prev();
-                        var cell = that.get_selected_cell();
-                        cell.focus_cell();
-                    };
-                    return false;
-                } else if (event.which === key.DOWNARROW && !event.shiftKey) {
-                    var index = that.get_selected_index();
-                    if (index !== (that.ncells()-1) && index !== null) {
-                        that.select_next();
-                        var cell = that.get_selected_cell();
-                        cell.focus_cell();
-                    };
-                    return false;
-                } else if (event.which === 88) {
-                    // Cut selected cell = x
-                    that.cut_cell();
-                    return false;
-                } else if (event.which === 67) {
-                    // Copy selected cell = c
-                    that.copy_cell();
-                    return false;
-                } else if (event.which === 86) {
-                    // Paste below selected cell = v
-                    that.paste_cell_below();
-                    return false;
-                } else if (event.which === 68) {
-                    // Delete selected cell = d
-                    that.delete_cell();
-                    return false;
-                } else if (event.which === 65) {
-                    // Insert code cell above selected = a
-                    that.insert_cell_above('code');
-                    that.select_prev();
-                    return false;
-                } else if (event.which === 66) {
-                    // Insert code cell below selected = b
-                    that.insert_cell_below('code');
-                    that.select_next();
-                    return false;
-                } else if (event.which === 89) {
-                    // To code = y
-                    that.to_code();
-                    return false;
-                } else if (event.which === 77) {
-                    // To markdown = m
-                    that.to_markdown();
-                    return false;
-                } else if (event.which === 84) {
-                    // To Raw = t
-                    that.to_raw();
-                    return false;
-                } else if (event.which === 49) {
-                    // To Heading 1 = 1
-                    that.to_heading(undefined, 1);
-                    return false;
-                } else if (event.which === 50) {
-                    // To Heading 2 = 2
-                    that.to_heading(undefined, 2);
-                    return false;
-                } else if (event.which === 51) {
-                    // To Heading 3 = 3
-                    that.to_heading(undefined, 3);
-                    return false;
-                } else if (event.which === 52) {
-                    // To Heading 4 = 4
-                    that.to_heading(undefined, 4);
-                    return false;
-                } else if (event.which === 53) {
-                    // To Heading 5 = 5
-                    that.to_heading(undefined, 5);
-                    return false;
-                } else if (event.which === 54) {
-                    // To Heading 6 = 6
-                    that.to_heading(undefined, 6);
-                    return false;
-                } else if (event.which === 79) {
-                    // Toggle output = o
-                    if (event.shiftKey) {
-                        that.toggle_output_scroll();
-                    } else {
-                        that.toggle_output();
-                    };
-                    return false;
-                } else if (event.which === 83) {
-                    // Save notebook = s
-                    that.save_checkpoint();
-                    return false;
-                } else if (event.which === 74) {
-                    // Move cell down = j
-                    that.move_cell_down();
-                    return false;
-                } else if (event.which === 75) {
-                    // Move cell up = k
-                    that.move_cell_up();
-                    return false;
-                } else if (event.which === 80) {
-                    // Select previous = p
-                    that.select_prev();
-                    return false;
-                } else if (event.which === 78) {
-                    // Select next = n
-                    that.select_next();
-                    return false;
-                } else if (event.which === 76) {
-                    // Toggle line numbers = l
-                    that.cell_toggle_line_numbers();
-                    return false;
-                } else if (event.which === 73) {
-                    // Interrupt kernel = i
-                    that.kernel.interrupt();
-                    return false;
-                } else if (event.which === 190) {
-                    // Restart kernel = .  # matches qt console
-                    that.restart_kernel();
-                    return false;
-                } else if (event.which === 72) {
-                    // Show keyboard shortcuts = h
-                    IPython.quick_help.show_keyboard_shortcuts();
-                    return false;
-                } else if (event.which === 90) {
-                    // Undo last cell delete = z
-                    that.undelete();
-                    return false;
-                };
-            };
-            // If we havn't handled it, let someone else.
-            return true;
-        });
-        
         var collapse_time = function (time) {
             var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
@@ -735,6 +528,7 @@ var IPython = (function (IPython) {
                 this.mode = 'command';
             };
         };
+        IPython.keyboard_manager.command_mode();
     };
 
     Notebook.prototype.edit_mode = function () {
@@ -747,6 +541,7 @@ var IPython = (function (IPython) {
                 cell.edit_mode();
                 this.mode = 'edit';
             };
+            IPython.keyboard_manager.edit_mode();
         };
     };
 

@@ -160,7 +160,7 @@ var IPython = (function (IPython) {
         var that = this;
 
         if (this.mode === 'command') {
-            return false
+            return true;
         } else if (this.mode === 'edit') {
             // whatever key is pressed, first, cancel the tooltip request before
             // they are sent, and remove tooltip if any, except for tab again
