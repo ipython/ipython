@@ -924,7 +924,7 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher, ClusterAppMixin):
     def write_job_file(self, n):
         job = IPControllerJob(parent=self)
 
-        t = IPControllerTask(parent=self)
+        t = IPControllerTask(config=self.config)
         # The tasks work directory is *not* the actual work directory of
         # the controller. It is used as the base path for the stdout/stderr
         # files that the scheduler redirects to.
@@ -957,7 +957,7 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher, ClusterAppMixin):
         job = IPEngineSetJob(parent=self)
 
         for i in range(n):
-            t = IPEngineTask(parent=self)
+            t = IPEngineTask(config=self.config)
             # The tasks work directory is *not* the actual work directory of
             # the engine. It is used as the base path for the stdout/stderr
             # files that the scheduler redirects to.
