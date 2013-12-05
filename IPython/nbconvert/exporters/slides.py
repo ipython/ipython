@@ -1,5 +1,5 @@
 """
-Contains slide show exporter
+Defines the reveal.js IPython notebook exporter.
 """
 
 #-----------------------------------------------------------------------------
@@ -26,9 +26,7 @@ from .templateexporter import TemplateExporter
 #-----------------------------------------------------------------------------
 
 class SlidesExporter(TemplateExporter):
-    """
-    Exports slides
-    """
+    """Exports reveal.js compatible html."""
     
     file_extension = Unicode(
         'slides.html', config=True, 
@@ -42,14 +40,14 @@ class SlidesExporter(TemplateExporter):
     def default_config(self):
         c = Config({
             'CSSHTMLHeaderPreprocessor':{
-                'enabled':True
+                'enabled': True
                 },
             'RevealHelpPreprocessor':{
-                'enabled':True,
+                'enabled': True,
                 },                
             'HighlightMagicsPreprocessor': {
-                'enabled':True
+                'enabled': True
                 }
             })
-        c.merge(super(SlidesExporter,self).default_config)
+        c.merge(super(SlidesExporter, self).default_config)
         return c

@@ -45,10 +45,10 @@ class HTMLExporter(TemplateExporter):
     def default_config(self):
         c = Config({
             'CSSHTMLHeaderPreprocessor':{
-                'enabled':True
+                'enabled': True
                 },
             'HighlightMagicsPreprocessor': {
-                'enabled':True
+                'enabled': True
                 }
             })
         c.merge(super(HTMLExporter,self).default_config)

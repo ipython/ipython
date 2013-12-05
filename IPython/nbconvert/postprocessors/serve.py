@@ -48,8 +48,6 @@ class ServePostProcessor(PostProcessorBase):
     
     Proxies reveal.js requests to a CDN if no local reveal.js is present
     """
-
-
     open_in_browser = Bool(True, config=True,
         help="""Should the browser be opened automatically?"""
     )

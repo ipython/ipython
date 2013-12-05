@@ -1,6 +1,5 @@
 {%- extends 'reveal_internals/reveal_cells.tpl' -%}
 
-
 {%- block any_cell scoped -%}
 {%- if cell.metadata.align_type in ['Left'] -%}  
     {{ super() }}

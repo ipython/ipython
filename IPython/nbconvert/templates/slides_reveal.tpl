@@ -107,7 +107,7 @@ div.output_prompt {
 {% endblock header%}
 
 
-{% block body %}
+{%- block body %}
 <body>
 <div class="reveal">
 <div class="slides">
@@ -177,7 +177,7 @@ Reveal.addEventListener( 'slidechanged', function( event ) {
 </script>
 
 </body>
-{% endblock body %}
+{% endblock body -%}
 
 {% block footer %}
 </html>
