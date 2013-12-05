@@ -3,7 +3,6 @@ from IPython.utils.text import indent, wrap_paragraphs
 from IPython.terminal.ipapp import TerminalIPythonApp
 from IPython.kernel.zmq.kernelapp import IPKernelApp
 from IPython.html.notebookapp import NotebookApp
-from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
 
 def document_config_options(classes):
     lines = []
@@ -66,9 +65,16 @@ if __name__ == '__main__':
     nbclasses = set(NotebookApp().classes) - set(kernel_classes)
     write_doc('notebook', 'IPython notebook options', nbclasses,
               preamble="Any of the :doc:`kernel` can also be used.")
-    qtclasses = set(IPythonQtConsoleApp().classes) - set(kernel_classes)
-    write_doc('qtconsole', 'IPython Qt console options', qtclasses,
-              preamble="Any of the :doc:`kernel` can also be used.")
+
+    try:
+        from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
+    except ImportError:
+        print("WARNING: Could not import qtconsoleapp. Config options for the "
+              "Qt Console will not be documented.")
+    else:
+        qtclasses = set(IPythonQtConsoleApp().classes) - set(kernel_classes)
+        write_doc('qtconsole', 'IPython Qt console options', qtclasses,
+                  preamble="Any of the :doc:`kernel` can also be used.")
 
     with open('source/config/options/generated', 'w'):
         pass
