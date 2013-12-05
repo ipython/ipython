@@ -122,17 +122,16 @@ var IPython = (function (IPython) {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell');
         cell.attr('tabindex','2');
 
-        this.celltoolbar = new IPython.CellToolbar(this);
-
         var input = $('<div></div>').addClass('input');
-        var vbox = $('<div/>').addClass('vbox box-flex1');
-        input.append($('<div/>').addClass('prompt input_prompt'));
-        vbox.append(this.celltoolbar.element);
+        var prompt = $('<div/>').addClass('prompt input_prompt');
+        var inner_cell = $('<div/>').addClass('inner_cell');
+        this.celltoolbar = new IPython.CellToolbar(this);
+        inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
-        vbox.append(input_area);
-        input.append(vbox);
+        inner_cell.append(input_area);
+        input.append(prompt).append(inner_cell);
         var output = $('<div></div>');
         cell.append(input).append(output);
         this.element = cell;
