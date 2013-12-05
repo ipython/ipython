@@ -1526,7 +1526,6 @@ div.text_cell_input{color:#000000;border:1px solid #cfcfcf;border-radius:4px;bac
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
 h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
-.code_cell+.text_cell .inner_cell{border-top:1px solid #ababab;}
 body{background-color:#ffffff;}
 body.notebook_app{overflow:hidden;}
 span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%;}
