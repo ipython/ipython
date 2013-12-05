@@ -360,7 +360,7 @@ var IPython = (function (IPython) {
     };
 
     RawCell.options_default = {
-        placeholder : "Write raw HTML / LaTeX here, for use with nbconvert.\n" +
+        placeholder : "Write raw LaTeX or other formats here, for use with nbconvert.\n" +
             "It will not be rendered in the notebook.\n" + 
             "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
     };
