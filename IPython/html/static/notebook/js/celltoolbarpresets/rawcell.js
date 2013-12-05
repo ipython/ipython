@@ -19,9 +19,9 @@
   var select_type = CellToolbar.utils.select_ui_generator([
     ["None", "-"],
     ["LaTeX", "text/latex"],
-    ["restructuredText", "text/restructuredtext"],
+    ["reST", "text/restructuredtext"],
     ["HTML", "text/html"],
-    ["markdown", "text/markdown"],
+    ["Markdown", "text/markdown"],
     ["Python", "application/x-python"],
     ["Custom", "dialog"],
 
