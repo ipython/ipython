@@ -42,6 +42,7 @@ To enable the magics below, execute ``%load_ext octavemagic``.
 import tempfile
 from glob import glob
 from shutil import rmtree
+import sys
 
 import numpy as np
 import oct2py
@@ -78,7 +79,11 @@ class OctaveMagics(Magics):
         """
         super(OctaveMagics, self).__init__(shell)
         self._oct = oct2py.Oct2Py()
-        self._plot_format = 'png'
+        if sys.platform == 'win32':
+            # Use svg by default due to lack of Ghostscript on Windows Octave
+            self._plot_format = 'svg'
+        else:
+            self._plot_format = 'png'
 
         # Allow publish_display_data to be overridden for
         # testing purposes.
@@ -273,6 +278,9 @@ class OctaveMagics(Magics):
 
         if args.format is not None:
             plot_format = args.format
+        elif sys.platform == 'win32':
+            # Use svg by default due to lack of Ghostscript on Windows Octave
+            plot_format = 'svg'
         else:
             plot_format = 'png'
 
