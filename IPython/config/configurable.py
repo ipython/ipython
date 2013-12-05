@@ -26,7 +26,6 @@ from __future__ import print_function
 # Imports
 #-----------------------------------------------------------------------------
 
-import datetime
 from copy import deepcopy
 
 from .loader import Config, LazyConfigValue
@@ -55,7 +54,6 @@ class Configurable(HasTraits):
 
     config = Instance(Config, (), {})
     parent = Instance('IPython.config.configurable.Configurable')
-    created = None
 
     def __init__(self, **kwargs):
         """Create a configurable given a config config.
@@ -102,7 +100,6 @@ class Configurable(HasTraits):
         # This should go second so individual keyword arguments override
         # the values in config.
         super(Configurable, self).__init__(**kwargs)
-        self.created = datetime.datetime.now()
 
     #-------------------------------------------------------------------------
     # Static trait notifiations
