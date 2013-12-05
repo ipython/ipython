@@ -425,7 +425,7 @@ def monkeypatch(obj, name, attr):
 
 def help_output_test(subcommand=''):
     """test that `ipython [subcommand] -h` works"""
-    cmd = ' '.join(get_ipython_cmd() + [subcommand, '-h'])
+    cmd = get_ipython_cmd() + [subcommand, '-h']
     out, err, rc = get_output_error_code(cmd)
     nt.assert_equal(rc, 0, err)
     nt.assert_not_in("Traceback", err)
@@ -436,7 +436,7 @@ def help_output_test(subcommand=''):
 
 def help_all_output_test(subcommand=''):
     """test that `ipython [subcommand] --help-all` works"""
-    cmd = ' '.join(get_ipython_cmd() + [subcommand, '--help-all'])
+    cmd = get_ipython_cmd() + [subcommand, '--help-all']
     out, err, rc = get_output_error_code(cmd)
     nt.assert_equal(rc, 0, err)
     nt.assert_not_in("Traceback", err)
