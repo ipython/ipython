@@ -87,8 +87,7 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(bool_index, function(index){
 
-        var button_output = this.get_output_cell(index).text;
-        this.test.assert(button_output == 'Success\n', 
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Create bool widget cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -130,15 +129,14 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(index, function(index){
 
-        var button_output = this.get_output_cell(index).text;
-        this.test.assert(button_output == 'Success\n', 
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Change bool widget value cell executed with correct output.');
 
-        this.test.assert(!this.cell_element_function(bool_index, 
+        this.test.assert(! this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea .widget-hbox-single input', 'prop', ['checked']),
             'Checkbox is not checked. (1)');
 
-        this.test.assert(!this.cell_element_function(bool_index, 
+        this.test.assert(! this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea div button', 'hasClass', ['active']),
             'Toggle button is not toggled. (1)');
 
@@ -156,11 +154,11 @@ casper.notebook_test(function () {
         // Try toggling the bool by clicking on the checkbox.
         this.cell_element_function(bool_index, '.widget-area .widget-subarea .widget-hbox-single input', 'click');
 
-        this.test.assert(!this.cell_element_function(bool_index, 
+        this.test.assert(! this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea .widget-hbox-single input', 'prop', ['checked']),
             'Checkbox is not checked. (3)');
 
-        this.test.assert(!this.cell_element_function(bool_index, 
+        this.test.assert(! this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea div button', 'hasClass', ['active']),
             'Toggle button is not toggled. (3)');
 
@@ -176,8 +174,7 @@ casper.notebook_test(function () {
         'button.on_click(handle_click)');
     this.execute_cell_then(button_index, function(index){
 
-        var button_output = this.get_output_cell(index).text;
-        this.test.assert(button_output == 'Success\n', 
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Create button cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -205,16 +202,87 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'button.close()\n'+
-        'print("Success")\n');
+        'print("Success")');
     this.execute_cell_then(index, function(index){
 
-        var button_output = this.get_output_cell(index).text;
-        this.test.assert(button_output == 'Success\n', 
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Close button cell executed with correct output.');
 
         this.test.assert(! this.cell_element_exists(button_index, 
             '.widget-area .widget-subarea button'),
             'Widget button doesn\'t exists.');
+    });
+
+    // Test container widget ///////////////////////////////////////////////////
+    var container_index = this.append_cell(
+        'container = widgets.ContainerWidget()\n' +
+        'button = widgets.ButtonWidget(parent=container)\n'+
+        'display(container)\n'+
+        'container.add_class("my-test-class")\n'+
+        'print("Success")\n');
+    this.execute_cell_then(container_index, function(index){
+
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Create container cell executed with correct output.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea'),
+            'Widget subarea exists.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea .widget-container'),
+            'Widget container exists.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea .my-test-class'),
+            'add_class works.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea .my-test-class button'),
+            'Container parent/child relationship works.');
+    });
+
+    index = this.append_cell(
+        'container.set_css("display", "none")\n'+
+        'print("Success")\n');
+    this.execute_cell_then(index, function(index){
+
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Set container class CSS cell executed with correct output.');
+
+        this.test.assert(this.cell_element_function(container_index, 
+            '.widget-area .widget-subarea .my-test-class', 'css', ['display'])=='none',
+            'set_css works.');
+    });
+
+    index = this.append_cell(
+        'container.remove_class("my-test-class")\n'+
+        'print("Success")\n');
+    this.execute_cell_then(index, function(index){
+
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Remove container class cell executed with correct output.');
+
+        this.test.assert(! this.cell_element_exists(container_index, 
+            '.widget-area .widget-subarea .my-test-class'),
+            'remove_class works.');
+    });
+
+    index = this.append_cell(
+        'display(button)\n'+
+        'print("Success")\n');
+    this.execute_cell_then(index, function(index){
+
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Display container child executed with correct output.');
+
+        this.test.assert(! this.cell_element_exists(index, 
+            '.widget-area .widget-subarea .widget-container'),
+            'Parent container not displayed.');
+
+        // this.test.assert(this.cell_element_exists(index, 
+        //     '.widget-area .widget-subarea button'),
+        //     'Child displayed.');
     });
 });
 
