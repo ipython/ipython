@@ -120,8 +120,37 @@ var IPython = (function (IPython) {
             };
         });
         that.element.focusout(function (event) {
+            var is_or_has = function (a, b) {
+                // Is b a child of a or a itself?
+                return a.has(b).length !==0 || a.is(b);
+            }
             if (that.mode === 'edit') {
-               $([IPython.events]).trigger('command_mode.Cell', {'cell':that});
+                setTimeout(function () {
+                    var trigger = true;
+                    var target = $(document.activeElement);
+                    var completer = that.element.find($('div.completions'));
+                    var tooltip = $('div#tooltip')
+                    if (target.length > 0) {
+                        // If the focused element (target) is inside the cell
+                        // (that.element) don't enter command mode.
+                        if (is_or_has(that.element, target)) {
+                            trigger = false;
+                        // The focused element is outside the cell
+                        } else {
+                            // If the focused element is the tooltip or completer
+                            // don't enter command mode, otherwise do.
+                            trigger = true;
+                            if (tooltip.length > 0 && is_or_has(tooltip, target)) {
+                                trigger = false;
+                            } else if (completer.length > 0 && is_or_has(completer, target)) {
+                                trigger = false;
+                            }
+                        }
+                    }
+                    if (trigger) {
+                        $([IPython.events]).trigger('command_mode.Cell', {'cell':that});
+                    }
+                }, 1);
             };
         });
         if (this.code_mirror) {

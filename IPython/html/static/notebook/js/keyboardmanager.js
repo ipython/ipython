@@ -15,8 +15,8 @@ var IPython = (function (IPython) {
     var key   = IPython.utils.keycodes;
 
     var KeyboardManager = function () {
-        this.mode = 'null';
-        this.last_mode = 'null';
+        this.mode = 'command';
+        this.last_mode = 'command';
         this.bind_events();
     };
 
@@ -30,7 +30,7 @@ var IPython = (function (IPython) {
     KeyboardManager.prototype.handle_keydown = function (event) {
         var notebook = IPython.notebook;
         
-        console.log('keyboard_manager', this.mode, event);
+        console.log('keyboard_manager', this.mode, event.keyCode);
         
         if (event.which === key.ESC) {
             // Intercept escape at highest level to avoid closing
@@ -39,7 +39,7 @@ var IPython = (function (IPython) {
         }
         
         if (this.mode === 'null') {
-            return this.handle_edit_mode(event);
+            return this.handle_null_mode(event);
         }
         
         // Event handlers for both command and edit mode
@@ -252,16 +252,19 @@ var IPython = (function (IPython) {
     };
 
     KeyboardManager.prototype.edit_mode = function () {
+        console.log('KeyboardManager', 'changing to edit mode');
         this.last_mode = this.mode;
         this.mode = 'edit';
     }
 
     KeyboardManager.prototype.command_mode = function () {
+        console.log('KeyboardManager', 'changing to command mode');
         this.last_mode = this.mode;
         this.mode = 'command';
     }
 
     KeyboardManager.prototype.null_mode = function () {
+        console.log('KeyboardManager', 'changing to null mode');
         this.last_mode = this.mode;
         this.mode = 'null';
     }

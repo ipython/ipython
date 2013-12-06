@@ -41,7 +41,7 @@ var IPython = (function (IPython) {
 
         // we cannot put this as a class key as it has handle to "this".
         var cm_overwrite_options  = {
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
+            onKeyEvent: $.proxy(this.handle_keyevent,this)
         };
 
         options = this.mergeopt(TextCell,options,{cm_config:cm_overwrite_options});
@@ -109,6 +109,16 @@ var IPython = (function (IPython) {
         });
     };
 
+    TextCell.prototype.handle_keyevent = function (editor, event) {
+
+        console.log('CM', this.mode, event.which, event.type)
+
+        if (this.mode === 'command') {
+            return true;
+        } else if (this.mode === 'edit') {
+            return this.handle_codemirror_keyevent(editor, event);
+        }
+    };
 
     /**
      * This method gets called in CodeMirror's onKeyDown/onKeyPress
@@ -123,33 +133,29 @@ var IPython = (function (IPython) {
      */
     TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var that = this;
-        if (this.mode === 'command') {
-            return false
-        } else if (this.mode === 'edit') {
-            if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey || event.altKey)) {
-                // Always ignore shift-enter in CodeMirror as we handle it.
+
+        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey || event.altKey)) {
+            // Always ignore shift-enter in CodeMirror as we handle it.
+            return true;
+        } else if (event.which === key.UPARROW && event.type === 'keydown') {
+            // If we are not at the top, let CM handle the up arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_top()) {
+                event.stop();
+                return false;
+            } else {
                 return true;
-            } else if (event.which === key.UPARROW && event.type === 'keydown') {
-                // If we are not at the top, let CM handle the up arrow and
-                // prevent the global keydown handler from handling it.
-                if (!that.at_top()) {
-                    event.stop();
-                    return false;
-                } else {
-                    return true;
-                };
-            } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
-                // If we are not at the bottom, let CM handle the down arrow and
-                // prevent the global keydown handler from handling it.
-                if (!that.at_bottom()) {
-                    event.stop();
-                    return false;
-                } else {
-                    return true;
-                };
-            }
-            return false;
-        };
+            };
+        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+            // If we are not at the bottom, let CM handle the down arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_bottom()) {
+                event.stop();
+                return false;
+            } else {
+                return true;
+            };
+        }
         return false;
     };
 

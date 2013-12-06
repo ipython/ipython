@@ -38,6 +38,8 @@ var IPython = (function (IPython) {
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
+        // It is important to start out in command mode to match the intial mode
+        // of the KeyboardManager.
         this.mode = 'command';
         this.set_dirty(false);
         this.metadata = {};
@@ -521,27 +523,27 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.command_mode = function () {
         if (this.mode !== 'command') {
+            console.log('\nNotebook', 'changing to command mode');
             var index = this.get_edit_index();
             var cell = this.get_cell(index);
             if (cell) {
                 cell.command_mode();
-                this.mode = 'command';
             };
+            this.mode = 'command';
+            IPython.keyboard_manager.command_mode();
         };
-        IPython.keyboard_manager.command_mode();
     };
 
     Notebook.prototype.edit_mode = function () {
         if (this.mode !== 'edit') {
-            // We are in command mode so get_edit_index() is null!!!
-            var index = this.get_selected_index();
-            if (index === null) {return;}  // No cell is selected
-            var cell = this.get_cell(index);
-            if (cell) {
-                cell.edit_mode();
-                this.mode = 'edit';
-            };
+            console.log('\nNotebook', 'changing to edit mode');
+            var cell = this.get_selected_cell();
+            if (cell === null) {return;}  // No cell is selected
+            // We need to set the mode to edit to prevent reentering this method
+            // when cell.edit_mode() is called below.
+            this.mode = 'edit';
             IPython.keyboard_manager.edit_mode();
+            cell.edit_mode();
         };
     };
 
