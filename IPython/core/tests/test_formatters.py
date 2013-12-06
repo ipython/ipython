@@ -9,7 +9,7 @@ except:
     numpy = None
 import nose.tools as nt
 
-from IPython.core.formatters import PlainTextFormatter
+from IPython.core.formatters import PlainTextFormatter, _mod_name_key
 
 class A(object):
     def __repr__(self):
@@ -18,6 +18,9 @@ class A(object):
 class B(A):
     def __repr__(self):
         return 'B()'
+
+class C:
+    pass
 
 class BadPretty(object):
     _repr_pretty_ = None
@@ -90,45 +93,61 @@ def test_bad_precision():
 
 def test_for_type():
     f = PlainTextFormatter()
-    class C():
-        pass
-    
-    def foo(c, p, cycle):
-        p.text('C')
     
     # initial return is None
-    assert f.for_type(C, foo) is None
+    assert f.for_type(C, foo_printer) is None
     # no func queries
-    assert f.for_type(C) is foo
+    assert f.for_type(C) is foo_printer
     # shouldn't change anything
-    assert f.for_type(C) is foo
-    # None should clear and return foo
-    assert f.for_type(C, None) is foo
-    # verify clear
-    assert C not in f.type_printers
-    assert f.for_type(C) is None
+    assert f.for_type(C) is foo_printer
+    # None should do the same
+    assert f.for_type(C, None) is foo_printer
+    assert f.for_type(C, None) is foo_printer
+
+
+def test_for_type_string():
+    f = PlainTextFormatter()
+    
+    mod = C.__module__
+    
+    type_str = '%s.%s' % (C.__module__, 'C')
+    
+    # initial return is None
+    assert f.for_type(type_str, foo_printer) is None
+    # no func queries
+    assert f.for_type(type_str) is foo_printer
+    assert _mod_name_key(C) in f.deferred_printers
+    assert f.for_type(C) is foo_printer
+    assert _mod_name_key(C) not in f.deferred_printers
+    assert C in f.type_printers
 
 
 def test_for_type_by_name():
     f = PlainTextFormatter()
-    class C():
-        pass
     
     mod = C.__module__
     
-    def foo(c, p, cycle):
-        p.text('C')
+    # initial return is None
+    assert f.for_type_by_name(mod, 'C', foo_printer) is None
+    # no func queries
+    assert f.for_type_by_name(mod, 'C') is foo_printer
+    # shouldn't change anything
+    assert f.for_type_by_name(mod, 'C') is foo_printer
+    # None should do the same
+    assert f.for_type_by_name(mod, 'C', None) is foo_printer
+    assert f.for_type_by_name(mod, 'C', None) is foo_printer
+
+
+def test_lookup():
+    f = PlainTextFormatter()
+    
+    mod = C.__module__
+    c = C()
+    
+    type_str = '%s.%s' % (C.__module__, 'C')
     
     # initial return is None
-    assert f.for_type_by_name(mod, 'C', foo) is None
+    assert f.for_type(type_str, foo_printer) is None
     # no func queries
-    assert f.for_type_by_name(mod, 'C') is foo
-    # shouldn't change anything
-    assert f.for_type_by_name(mod, 'C') is foo
-    # None should clear and return foo
-    assert f.for_type_by_name(mod, 'C', None) is foo
-    # verify clear
-    assert (mod, 'C') not in f.deferred_printers
-    assert f.for_type_by_name(mod, 'C') is None
-
+    assert f.lookup(c) is foo_printer
 
