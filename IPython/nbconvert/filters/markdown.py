@@ -16,10 +16,14 @@ markdown within Jinja templates.
 from __future__ import print_function
 
 # Stdlib imports
-import sys
 import subprocess
+from io import TextIOWrapper, BytesIO
 
+# IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
+from IPython.nbconvert.utils.exceptions import ConversionException
+from IPython.utils.process import find_cmd, FindCmdError
+from IPython.utils.py3compat import cast_bytes
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -27,9 +31,15 @@ from IPython.nbconvert.utils.pandoc import pandoc
 
 __all__ = [
     'markdown2html',
+    'markdown2html_pandoc',
+    'markdown2html_marked',
     'markdown2latex',
-    'markdown2rst'
+    'markdown2rst',
 ]
+
+class MarkedMissing(ConversionException):
+    """Exception raised when Marked is missing."""
+    pass
 
 def markdown2latex(source):
     """Convert a markdown string to LaTeX via pandoc.
@@ -49,10 +59,26 @@ def markdown2latex(source):
     """
     return pandoc(source, 'markdown', 'latex')
 
-
-def markdown2html(source):
+def markdown2html_pandoc(source):
     """Convert a markdown string to HTML via pandoc"""
     return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+
+def markdown2html_marked(source, encoding='utf-8'):
+    """Convert a markdown string to HTML via marked"""
+    command = ['marked', '--gfm', '--tables']
+    try:
+        p = subprocess.Popen(command,
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        )
+    except OSError as e:
+        raise MarkedMissing(
+            "The command '%s' returned an error: %s.\n" % (" ".join(command), e) +
+            "Please check that marked is installed:\n" +
+            "    npm install -g marked"
+        )
+    out, _ = p.communicate(cast_bytes(source, encoding))
+    out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
+    return out.rstrip('\n')
 
 def markdown2rst(source):
     """Convert a markdown string to LaTeX via pandoc.
@@ -72,3 +98,9 @@ def markdown2rst(source):
     """
     return pandoc(source, 'markdown', 'rst')
 
+try:
+    find_cmd('marked')
+except FindCmdError:
+    markdown2html = markdown2html_pandoc
+else:
+    markdown2html = markdown2html_marked
