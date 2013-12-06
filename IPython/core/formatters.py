@@ -431,7 +431,7 @@ class BaseFormatter(Configurable):
                 else:
                     raise KeyError("No registered value for {0!r}".format(typ_key))
             else:
-                old = self.deferred_printers.pop(typ)
+                old = self.deferred_printers.pop(typ_key)
         else:
             if typ in self.type_printers:
                 old = self.type_printers.pop(typ)
