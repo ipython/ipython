@@ -28,6 +28,10 @@ class NbconvertFileHandler(IPythonHandler):
 
         info = os.stat(os_path)
         self.set_header('Last-Modified', tz.utcfromtimestamp(info.st_mtime))
+        if self.get_argument('download', 'false').lower() == 'true':
+            filename = os.path.splitext(name)[0] + '.' + exporter.file_extension
+            self.set_header('Content-Disposition',
+                            'attachment; filename="%s"' % filename)
         
         output, resources = exporter.from_filename(os_path)
         
