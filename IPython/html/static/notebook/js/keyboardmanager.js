@@ -258,6 +258,15 @@ var IPython = (function (IPython) {
         this.mode = 'command';
     }
 
+    KeyboardManager.prototype.enable = function () {
+        this.enable = true;
+    }
+
+    KeyboardManager.prototype.disable = function () {
+        this.enable = false;
+    }
+
+
     IPython.KeyboardManager = KeyboardManager;
 
     return IPython;
