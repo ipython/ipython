@@ -113,8 +113,8 @@ class ProfileStartupTest(TestCase):
 
     @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
     def test_startup_ipy(self):
-        self.init('00-start.ipy', '%profile\n', '')
-        self.validate('test')
+        self.init('00-start.ipy', '%xmode plain\n', '')
+        self.validate('Exception reporting mode: Plain')
 
     
 def test_list_profiles_in():
