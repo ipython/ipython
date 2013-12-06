@@ -169,22 +169,44 @@ def test_lookup_by_type_string():
     nt.assert_in(_mod_name_key(C), f.deferred_printers)
     nt.assert_not_in(C, f.type_printers)
     
+    nt.assert_is(f.lookup_by_type(type_str), foo_printer)
+    # lookup by string doesn't cause import
+    nt.assert_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_not_in(C, f.type_printers)
+    
     nt.assert_is(f.lookup_by_type(C), foo_printer)
     # should move from deferred to imported dict
     nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
     nt.assert_in(C, f.type_printers)
 
+def test_in_formatter():
+    f = PlainTextFormatter()
+    f.for_type(C, foo_printer)
+    type_str = '%s.%s' % (C.__module__, 'C')
+    nt.assert_in(C, f)
+    nt.assert_in(type_str, f)
+
+def test_string_in_formatter():
+    f = PlainTextFormatter()
+    type_str = '%s.%s' % (C.__module__, 'C')
+    f.for_type(type_str, foo_printer)
+    nt.assert_in(type_str, f)
+    nt.assert_in(C, f)
+
 def test_pop():
     f = PlainTextFormatter()
     f.for_type(C, foo_printer)
     nt.assert_is(f.lookup_by_type(C), foo_printer)
-    f.pop(C)
+    nt.assert_is(f.pop(C, None), foo_printer)
+    f.for_type(C, foo_printer)
+    nt.assert_is(f.pop(C), foo_printer)
     with nt.assert_raises(KeyError):
         f.lookup_by_type(C)
     with nt.assert_raises(KeyError):
         f.pop(C)
     with nt.assert_raises(KeyError):
         f.pop(A)
+    nt.assert_is(f.pop(A, None), None)
 
 def test_pop_string():
     f = PlainTextFormatter()
@@ -201,10 +223,12 @@ def test_pop_string():
         f.pop(type_str)
 
     f.for_type(C, foo_printer)
-    f.pop(type_str)
+    nt.assert_is(f.pop(type_str, None), foo_printer)
     with nt.assert_raises(KeyError):
         f.lookup_by_type(C)
     with nt.assert_raises(KeyError):
         f.pop(type_str)
+    nt.assert_is(f.pop(type_str, None), None)
+    
 
 

@@ -173,22 +173,13 @@ def select_figure_format(shell, fmt):
     png_formatter = shell.display_formatter.formatters['image/png']
 
     if fmt == 'png':
-        try:
-            svg_formatter.pop(Figure)
-        except KeyError:
-            pass
+        svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
     elif fmt in ('png2x', 'retina'):
-        try:
-            svg_formatter.pop(Figure)
-        except KeyError:
-            pass
+        svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, retina_figure)
     elif fmt == 'svg':
-        try:
-            svg_formatter.pop(Figure)
-        except KeyError:
-            pass
+        png_formatter.pop(Figure, None)
         svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
     else:
         raise ValueError("supported formats are: 'png', 'retina', 'svg', not %r" % fmt)
