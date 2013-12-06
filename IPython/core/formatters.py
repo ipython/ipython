@@ -324,7 +324,7 @@ class BaseFormatter(Configurable):
 
         Parameters
         ----------
-        typ  : type
+        typ  : type or '__module__.__name__' string for a type
 
         Returns
         -------
@@ -358,7 +358,7 @@ class BaseFormatter(Configurable):
         
         Parameters
         -----------
-        typ : class
+        typ : type or '__module__.__name__' string for a type
             The class of the object that will be formatted using `func`.
         func : callable
             A callable for computing the format data.
