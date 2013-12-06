@@ -280,9 +280,9 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea .widget-container'),
             'Parent container not displayed.');
 
-        // this.test.assert(this.cell_element_exists(index, 
-        //     '.widget-area .widget-subarea button'),
-        //     'Child displayed.');
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea button'),
+            'Child displayed.');
     });
 });
 
