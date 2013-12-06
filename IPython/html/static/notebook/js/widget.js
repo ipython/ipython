@@ -35,7 +35,7 @@ define(["components/underscore/underscore-min",
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
-            this.views = {};
+            this.views = [];
             this._custom_msg_callbacks = [];
 
             // Remember comm associated with the model.
@@ -54,13 +54,10 @@ define(["components/underscore/underscore-min",
             this.last_modified_view = caller;
             this.save(this.changedAttributes(), {patch: true});
 
-            for (var cell in this.views) {
-                var views = this.views[cell];
-                for (var view_index in views) {
-                    var view = views[view_index];
-                    if (view !== caller) {
-                        view.update();    
-                    }
+            for (var view_index in this.views) {
+                var view = this.views[view_index];
+                if (view !== caller) {
+                    view.update();    
                 }
             }
         },
@@ -290,16 +287,13 @@ define(["components/underscore/underscore-min",
                 args = [].splice.call(arguments,1);
             }
 
-            for (var cell in this.views) {
-                var views = this.views[cell];
-                for (var view_index in views) {
-                    var view = views[view_index];
-                    var method = view[method_name];
-                    if (args === null) {
-                        method.apply(view);
-                    } else {
-                        method.apply(view, args);
-                    }
+            for (var view_index in this.views) {
+                var view = this.views[view_index];
+                var method = view[method_name];
+                if (args === null) {
+                    method.apply(view);
+                } else {
+                    method.apply(view, args);
                 }
             }
         },
@@ -314,17 +308,19 @@ define(["components/underscore/underscore-min",
             if (parent_comm_id != undefined) {
                 var parent_comm = this.comm_manager.comms[parent_comm_id];
                 var parent_model = parent_comm.model;
-                var parent_views = parent_model.views[cell];
+                var parent_views = parent_model.views; 
                 for (var parent_view_index in parent_views) {
                     var parent_view = parent_views[parent_view_index];
-                    if (parent_view.display_child != undefined) {
-                        var view = this._create_view(view_name, cell);
-                        if (view != null) {
-                            new_views.push(view);
-                            parent_view.display_child(view);
-                            displayed = true;
-                            this._handle_view_displayed(view);
-                        }
+                    if (parent_view.cell === cell) {
+                        if (parent_view.display_child != undefined) {
+                            var view = this._create_view(view_name, cell);
+                            if (view != null) {
+                                new_views.push(view);
+                                parent_view.display_child(view);
+                                displayed = true;
+                                this._handle_view_displayed(view);
+                            }
+                        }    
                     }
                 }
             }
@@ -358,23 +354,17 @@ define(["components/underscore/underscore-min",
             if (view_type != undefined && view_type != null) {
                 var view = new view_type({model: this});
                 view.render();
-                if (this.views[cell]==undefined) {
-                    this.views[cell] = []
-                }
-                this.views[cell].push(view);
+                this.views.push(view);
                 view.cell = cell;
 
                 // Handle when the view element is remove from the page.
                 var that = this;
                 view.$el.on("remove", function(){ 
-                    var index = that.views[cell].indexOf(view);
+                    var index = that.views.indexOf(view);
                     if (index > -1) {
-                        that.views[cell].splice(index, 1);
+                        that.views.splice(index, 1);
                     }
                     view.remove(); // Clean-up view 
-                    if (that.views[cell].length()==0) {
-                        delete that.views[cell];
-                    }
 
                     // Close the comm if there are no views left.
                     if (that.views.length()==0) {
