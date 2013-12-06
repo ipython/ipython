@@ -36,6 +36,29 @@ define(["notebook/js/widget"], function(widget_manager){
 
     widget_manager.register_widget_view('HTMLView', HTMLView);
 
+
+    var LatexView = IPython.WidgetView.extend({
+      
+        // Called when view is rendered.
+        render : function(){
+            this.update(); // Set defaults.
+        },
+        
+        // Handles: Backend -> Frontend Sync
+        //          Frontent -> Frontend Sync
+        update : function(){
+            var that=this;
+            this.$el.html(this.model.get('value'));
+            var math_el = that.$el.get(0);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,math_el]);
+            
+            return IPython.WidgetView.prototype.update.call(this);
+        },
+        
+    });
+
+    widget_manager.register_widget_view('LatexView', LatexView);
+
     var TextAreaView = IPython.WidgetView.extend({
       
         // Called when view is rendered.
