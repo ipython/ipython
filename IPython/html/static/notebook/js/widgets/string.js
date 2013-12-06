@@ -18,7 +18,7 @@ define(["notebook/js/widget"], function(widget_manager){
     var StringWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
 
-    var LabelView = IPython.WidgetView.extend({
+    var HTMLView = IPython.WidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -34,7 +34,7 @@ define(["notebook/js/widget"], function(widget_manager){
         
     });
 
-    widget_manager.register_widget_view('LabelView', LabelView);
+    widget_manager.register_widget_view('HTMLView', HTMLView);
 
     var TextAreaView = IPython.WidgetView.extend({
       
