@@ -28,11 +28,17 @@ class NbconvertFileHandler(IPythonHandler):
 
         info = os.stat(os_path)
         self.set_header('Last-Modified', tz.utcfromtimestamp(info.st_mtime))
+
+        # Force download if requested
         if self.get_argument('download', 'false').lower() == 'true':
             filename = os.path.splitext(name)[0] + '.' + exporter.file_extension
             self.set_header('Content-Disposition',
                             'attachment; filename="%s"' % filename)
         
+        # MIME type
+        if exporter.mime_type:
+            self.set_header('Content-Type', '%s; charset=utf-8' % exporter.mime_type)
+
         output, resources = exporter.from_filename(os_path)
         
         # TODO: If there are resources, combine them into a zip file
@@ -49,8 +55,13 @@ class NbconvertPostHandler(IPythonHandler):
         
         model = self.get_json_body()
         nbnode = to_notebook_json(model['content'])
-        output, resources = exporter.from_notebook_node(nbnode)
         
+        # MIME type
+        if exporter.mime_type:
+            self.set_header('Content-Type', '%s; charset=utf-8' % exporter.mime_type)
+
+        output, resources = exporter.from_notebook_node(nbnode)
+
         # TODO: If there are resources, combine them into a zip file
         assert not has_resource_files(resources)
         

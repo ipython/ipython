@@ -36,6 +36,10 @@ class MarkdownExporter(TemplateExporter):
     def _raw_mimetypes_default(self):
         return ['text/markdown', 'text/html']
 
+    mime_type = Unicode('text/x-markdown', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )
+
     @property
     def default_config(self):
         c = Config({'ExtractOutputPreprocessor':{'enabled':True}})

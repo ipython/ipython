@@ -36,6 +36,10 @@ class HTMLExporter(TemplateExporter):
         help="Extension of the file that should be written to disk"
         )
 
+    mime_type = Unicode('text/html', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )
+
     default_template = Unicode('full', config=True, help="""Flavor of the data 
         format to use.  I.E. 'full' or 'basic'""")
     

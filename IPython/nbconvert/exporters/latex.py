@@ -40,6 +40,10 @@ class LatexExporter(TemplateExporter):
         'tex', config=True, 
         help="Extension of the file that should be written to disk")
 
+    mime_type = Unicode('application/x-tex', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )
+
     default_template = Unicode('article', config=True, help="""Template of the 
         data format to use.  I.E. 'article' or 'report'""")
 

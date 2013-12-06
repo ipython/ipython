@@ -32,3 +32,6 @@ class PythonExporter(TemplateExporter):
     def _raw_mimetype_default(self):
         return 'application/x-python'
 
+    mime_type = Unicode('text/x-python', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )

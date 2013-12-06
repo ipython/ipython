@@ -61,10 +61,12 @@ class APITest(NotebookTestBase):
     def test_from_file(self):
         r = self.nbconvert_api.from_file('html', 'foo', 'testnb.ipynb')
         self.assertEqual(r.status_code, 200)
+        self.assertIn(u'text/html', r.headers['Content-Type'])
         self.assertIn(u'Created by test', r.text)
         self.assertIn(u'print', r.text)
-        
+
         r = self.nbconvert_api.from_file('python', 'foo', 'testnb.ipynb')
+        self.assertIn(u'text/x-python', r.headers['Content-Type'])
         self.assertIn(u'print(2*6)', r.text)
 
     def test_from_file_404(self):
@@ -74,8 +76,8 @@ class APITest(NotebookTestBase):
     def test_from_file_download(self):
         r = self.nbconvert_api.from_file('python', 'foo', 'testnb.ipynb', download=True)
         content_disposition = r.headers['Content-Disposition']
-        assert 'attachment' in content_disposition
-        assert 'testnb.py' in content_disposition
+        self.assertIn('attachment', content_disposition)
+        self.assertIn('testnb.py', content_disposition)
 
     def test_from_post(self):
         nbmodel_url = url_path_join(self.base_url(), 'api/notebooks/foo/testnb.ipynb')
@@ -83,8 +85,10 @@ class APITest(NotebookTestBase):
         
         r = self.nbconvert_api.from_post(format='html', nbmodel=nbmodel)
         self.assertEqual(r.status_code, 200)
+        self.assertIn(u'text/html', r.headers['Content-Type'])
         self.assertIn(u'Created by test', r.text)
         self.assertIn(u'print', r.text)
         
         r = self.nbconvert_api.from_post(format='python', nbmodel=nbmodel)
+        self.assertIn(u'text/x-python', r.headers['Content-Type'])
         self.assertIn(u'print(2*6)', r.text)

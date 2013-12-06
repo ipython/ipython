@@ -32,7 +32,11 @@ class RSTExporter(TemplateExporter):
 
     def _raw_mimetype_default(self):
         return 'text/restructuredtext'
-    
+
+    mime_type = Unicode('text/x-rst', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )
+
     @property
     def default_config(self):
         c = Config({'ExtractOutputPreprocessor':{'enabled':True}})

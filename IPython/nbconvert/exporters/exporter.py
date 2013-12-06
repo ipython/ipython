@@ -53,6 +53,10 @@ class Exporter(LoggingConfigurable):
         help="Extension of the file that should be written to disk"
         )
 
+    mime_type = Unicode('', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )
+
     #Configurability, allows the user to easily add filters and preprocessors.
     preprocessors = List(config=True,
         help="""List of preprocessors, by name or namespace, to enable.""")
