@@ -1,0 +1,19 @@
+DisplayFormatter changes
+========================
+
+There was no official way to query or remove callbacks in the Formatter API.
+To remedy this, the following methods are added to :class:`BaseFormatter`:
+
+- ``lookup(instance)`` - return appropriate callback or a given object
+- ``lookup_by_type(type_or_str)`` - return appropriate callback for a given type or ``'mod.name'`` type string
+- ``pop(type_or_str)`` - remove an type (by type or string)
+
+All of the above methods raise a KeyError if no match is found.
+
+And the following methods are changed:
+
+- ``for_type(type_or_str)`` - behaves the same as before, only adding support for ``'mod.name'``
+  type strings in addition to plain types. This removes the need for ``for_type_by_name()``,
+  but it remains for backward compatibility.
+
+
