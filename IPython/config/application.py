@@ -500,8 +500,11 @@ class Application(SingletonConfigurable):
         self.extra_args = loader.extra_args
 
     @classmethod
-    def _load_config_file(cls, basefilename, path=None, log=None):
-        """Load config files (json/py) by filename and path."""
+    def _load_config_files(cls, basefilename, path=None, log=None):
+        """Load config files (py,json) by filename and path.
+
+        yield each config object in turn.
+        """
 
         pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
         jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
@@ -534,7 +537,7 @@ class Application(SingletonConfigurable):
     def load_config_file(self, filename, path=None):
         """Load config files (json/py) by filename and path."""
         filename, ext = os.path.splitext(filename)
-        for config in self._load_config_file(filename, path=path , log=self.log):
+        for config in self._load_config_files(filename, path=path , log=self.log):
             self.update_config(config)
 
 

@@ -375,7 +375,7 @@ def load_default_config(ipython_dir=None):
     profile_dir = os.path.join(ipython_dir, 'profile_default')
 
     config = Config()
-    for cf in Application._load_config_file(filename[:-3], path=profile_dir, log=None):
+    for cf in Application._load_config_files("ipython_config", path=profile_dir):
         config.update(cf)
 
     return config
