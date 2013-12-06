@@ -78,17 +78,60 @@ define(["notebook/js/widget"], function(widget_manager) {
                 });
             this.$window = $('<div />')
                 .addClass('modal widget-modal')
-                .appendTo($('#notebook-container'));
+                .appendTo($('#notebook-container'))
+                .mousedown(function(){
+                    that.bring_to_front();
+                });
             this.$title_bar = $('<div />')
                 .addClass('popover-title')
-                .appendTo(this.$window);
-            var that = this;
-            $('<button />')
-                .addClass('close')
-                .html('&times;')
+                .appendTo(this.$window)
+                .mousedown(function(){
+                    that.bring_to_front();
+                });;
+            this.$close = $('<button />')
+                .addClass('close icon-remove')
+                .css('margin-left', '5px')
                 .appendTo(this.$title_bar)
                 .click(function(){
                     that.hide();
+                    event.stopPropagation();
+                });
+            this.$minimize = $('<button />')
+                .addClass('close icon-arrow-down')
+                .appendTo(this.$title_bar)
+                .click(function(){
+                    that.popped_out = !that.popped_out;
+                    if (!that.popped_out) {
+                        that.$minimize
+                            .removeClass('icon-arrow-down')
+                            .addClass('icon-arrow-up');
+                            
+                        that.$window
+                            .draggable('destroy')
+                            .resizable('destroy')
+                            .removeClass('widget-modal modal')
+                            .addClass('docked-widget-modal')
+                            .detach()
+                            .insertBefore(that.$show_button);
+                        that.$show_button.hide();
+                        that.$close.hide();
+                    } else {
+                        that.$minimize
+                            .addClass('icon-arrow-down')
+                            .removeClass('icon-arrow-up');
+
+                        that.$window
+                            .removeClass('docked-widget-modal')
+                            .addClass('widget-modal modal')
+                            .detach()
+                            .appendTo($('#notebook-container'))
+                            .draggable({handle: '.popover-title', snap: '#notebook, .modal', snapMode: 'both'})
+                            .resizable()
+                            .children('.ui-resizable-handle').show();
+                        that.show();
+                        that.$show_button.show();
+                        that.$close.show();
+                    }
                     event.stopPropagation();
                 });
             this.$title = $('<div />')
@@ -117,6 +160,7 @@ define(["notebook/js/widget"], function(widget_manager) {
 
             this.$el_to_style = this.$body;
             this._shown_once = false;
+            this.popped_out = true;
         },
         
         hide: function() {
@@ -128,10 +172,32 @@ define(["notebook/js/widget"], function(widget_manager) {
             this.$show_button.addClass('btn-info');
 
             this.$window.show();
-            this.$window.css("positon", "absolute")
-            this.$window.css("top", "0px");
-            this.$window.css("left", Math.max(0, (($('body').outerWidth() - this.$window.outerWidth()) / 2) + 
-                $(window).scrollLeft()) + "px");
+            if (this.popped_out) {
+                this.$window.css("positon", "absolute")
+                this.$window.css("top", "0px");
+                this.$window.css("left", Math.max(0, (($('body').outerWidth() - this.$window.outerWidth()) / 2) + 
+                    $(window).scrollLeft()) + "px");
+                this.bring_to_front();
+            }
+        },
+        
+        bring_to_front: function() {
+            var $widget_modals = $(".widget-modal");
+            var max_zindex = 0;
+            $widget_modals.each(function (index, el){
+                max_zindex = Math.max(max_zindex, parseInt($(el).css('z-index')));
+            });
+            
+            // Start z-index of widget modals at 2000
+            max_zindex = Math.max(max_zindex, 2000);
+
+            $widget_modals.each(function (index, el){
+                $el = $(el)
+                if (max_zindex == parseInt($el.css('z-index'))) {
+                    $el.css('z-index', max_zindex - 1);
+                }
+            });
+            this.$window.css('z-index', max_zindex);
         },
         
         update: function(){
