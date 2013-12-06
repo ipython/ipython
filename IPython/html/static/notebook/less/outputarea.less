@@ -1,3 +1,45 @@
+div.output_wrapper {
+    /* this position must be relative to enable descendents to be absolute within it */
+    position: relative;
+    .vbox()
+}
+
+/* class for the output area when it should be height-limited */
+div.output_scroll {
+    /* ideally, this would be max-height, but FF barfs all over that */
+    height: 24em;
+    /* FF needs this *and the wrapper* to specify full width, or it will shrinkwrap */
+    width: 100%;
+
+    overflow: auto;
+    .corner-all;
+    .box-shadow(inset 0 2px 8px rgba(0, 0, 0, .8));
+}
+
+/* output div while it is collapsed */
+div.output_collapsed {
+    margin: 0px;
+    padding: 0px;
+    .vbox();
+}
+
+div.out_prompt_overlay {
+    height: 100%;
+    padding: 0px @code_padding;
+    position: absolute;
+    .corner-all;
+}
+
+div.out_prompt_overlay:hover {
+    /* use inner shadow to get border that is computed the same on WebKit/FF */
+    .box-shadow(inset 0 0 1px #000);
+    background: rgba(240, 240, 240, 0.5);
+}
+
+div.output_prompt {
+    color: darkred;
+}
+
 /* This class is the outer container of all output sections. */
 div.output_area {
     padding: 0px;
@@ -23,15 +65,14 @@ div.output_area {
     }
 }
 
-
 /* This is needed to protect the pre formating from global settings such
    as that of bootstrap */
 .output {
     .vbox();
 }
 
-div.output_area pre {	
-    font-family: @monoFontFamily;	
+div.output_area pre {   
+    font-family: @monoFontFamily;
     margin: 0;
     padding: 0;
     border: 0;
@@ -46,8 +87,7 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
-    padding: 0.44em 0.4em 0.4em 1px;
-    margin-left: 6px;
+    padding: @code_padding @code_padding 0.0em @code_padding;
     .box-flex1();
 }
 
@@ -59,17 +99,17 @@ div.output_text {
     text-align: left;
     color: @textColor;
     font-family: @monoFontFamily;
-    /* This has to match that of the the CodeMirror class line-height below */	
+    /* This has to match that of the the CodeMirror class line-height below */  
     line-height: @code_line_height;
 }
 
 /* stdout/stderr are 'text' as well as 'stream', but pyout/pyerr are *not* streams */
 div.output_stream {
-    padding-top: 0.0em;
-    padding-bottom: 0.0em;
 }
+
 div.output_stdout {
 }
+
 div.output_stderr {
     background: #fdd; /* very light red background for stderr */
 }
@@ -94,26 +134,28 @@ div.output_jpeg {
 /* raw_input styles */
 
 div.raw_input {
-  padding-top: 0px;
-  padding-bottom: 0px;
-  height: 1em;
-  line-height: 1em;
-  font-family: @monoFontFamily;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    height: 1em;
+    line-height: 1em;
+    font-family: @monoFontFamily;
 }
+
 span.input_prompt {
-  font-family: inherit;
+    font-family: inherit;
 }
+
 input.raw_input {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  width: auto;
-  margin: -2px 0px 0px 1px;
-  padding-left: 1px;
-  padding-top: 2px;
-  height: 1em;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    width: auto;
+    margin: -2px 0px 0px 1px;
+    padding-left: 1px;
+    padding-top: 2px;
+    height: 1em;
 }
 
 p.p-space {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
