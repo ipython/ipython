@@ -6,7 +6,8 @@ To remedy this, the following methods are added to :class:`BaseFormatter`:
 
 - ``lookup(instance)`` - return appropriate callback or a given object
 - ``lookup_by_type(type_or_str)`` - return appropriate callback for a given type or ``'mod.name'`` type string
-- ``pop(type_or_str)`` - remove an type (by type or string)
+- ``pop(type_or_str)`` - remove a type (by type or string).
+  Pass a second argument to avoid KeyError (like dict).
 
 All of the above methods raise a KeyError if no match is found.
 
