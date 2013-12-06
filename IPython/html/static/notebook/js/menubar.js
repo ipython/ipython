@@ -133,7 +133,11 @@ var IPython = (function (IPython) {
         this.element.find('#download_html').click(function () {
             that._nbconvert('html', true);
         });
-        
+
+        this.element.find('#download_rst').click(function () {
+            that._nbconvert('rst', true);
+        });
+
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
         });
