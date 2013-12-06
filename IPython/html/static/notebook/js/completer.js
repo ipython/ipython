@@ -257,7 +257,7 @@ var IPython = (function (IPython) {
         this.build_gui_list(this.raw_result);
 
         this.sel.focus();
-        IPython.keyboard_manager.null_mode();
+        IPython.keyboard_manager.disable();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function () {
             if (!this.done) this.sel.focus();
@@ -282,7 +282,7 @@ var IPython = (function (IPython) {
         if (this.done) return;
         this.done = true;
         $('.completions').remove();
-        IPython.keyboard_manager.edit_mode();
+        IPython.keyboard_manager.enable();
     }
 
     Completer.prototype.pick = function () {

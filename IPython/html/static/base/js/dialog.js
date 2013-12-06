@@ -69,12 +69,13 @@ IPython.dialog = (function (IPython) {
             if (IPython.notebook) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell) cell.select();
+                IPython.keyboard_manager.enable();
                 IPython.keyboard_manager.command_mode();
             }
         });
         
         if (IPython.keyboard_manager) {
-            IPython.keyboard_manager.null_mode();
+            IPython.keyboard_manager.disable();
         }
         
         return dialog.modal(options);

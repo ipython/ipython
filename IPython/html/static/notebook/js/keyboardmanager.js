@@ -16,7 +16,7 @@ var IPython = (function (IPython) {
 
     var KeyboardManager = function () {
         this.mode = 'command';
-        this.last_mode = 'command';
+        this.enabled = true;
         this.bind_events();
     };
 
@@ -38,8 +38,8 @@ var IPython = (function (IPython) {
             event.preventDefault();
         }
         
-        if (this.mode === 'null') {
-            return this.handle_null_mode(event);
+        if (!this.enabled) {
+            return true;
         }
         
         // Event handlers for both command and edit mode
@@ -74,11 +74,6 @@ var IPython = (function (IPython) {
             return this.handle_command_mode(event);
         }
     }
-
-    KeyboardManager.prototype.handle_null_mode = function (event) {
-        return true;
-    }
-
 
     KeyboardManager.prototype.handle_edit_mode = function (event) {
         var notebook = IPython.notebook;
@@ -262,19 +257,6 @@ var IPython = (function (IPython) {
         this.last_mode = this.mode;
         this.mode = 'command';
     }
-
-    KeyboardManager.prototype.null_mode = function () {
-        console.log('KeyboardManager', 'changing to null mode');
-        this.last_mode = this.mode;
-        this.mode = 'null';
-    }
-
-    KeyboardManager.prototype.last_mode = function () {
-        var lm = this.last_mode;
-        this.last_mode = this.mode;
-        this.mode = lm;
-    }
-
 
     IPython.KeyboardManager = KeyboardManager;
 
