@@ -218,6 +218,8 @@ var IPython = (function (IPython) {
         this.complete = $('<div/>').addClass('completions');
         this.complete.attr('id', 'complete');
 
+        // Currently webkit doesn't use the size attr correctly. See:
+        // https://code.google.com/p/chromium/issues/detail?id=4579
         this.sel = $('<select style="width: auto"/>')
             .attr('multiple', 'true')
             .attr('size', Math.min(10, this.raw_result.length));
@@ -255,8 +257,6 @@ var IPython = (function (IPython) {
         this.build_gui_list(this.raw_result);
 
         this.sel.focus();
-        // This needs to be after the focus() call because that puts the notebook into
-        // command mode.
         IPython.keyboard_manager.null_mode();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function () {

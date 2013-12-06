@@ -125,11 +125,14 @@ var IPython = (function (IPython) {
                 return a.has(b).length !==0 || a.is(b);
             }
             if (that.mode === 'edit') {
+                // Most of the time, when a cell is in edit mode and focusout
+                // fires, it means we should enter command mode. But there are cases
+                // when we should not enter command mode.
                 setTimeout(function () {
                     var trigger = true;
                     var target = $(document.activeElement);
-                    var completer = that.element.find($('div.completions'));
-                    var tooltip = $('div#tooltip')
+                    var completer = $('div.completions');
+                    var tooltip = $('div#tooltip');
                     if (target.length > 0) {
                         // If the focused element (target) is inside the cell
                         // (that.element) don't enter command mode.
