@@ -172,6 +172,10 @@ class InteractiveShellApp(Configurable):
     exec_files = List(Unicode, config=True,
         help="""List of files to run at IPython startup."""
     )
+    exec_PYTHONSTARTUP = Bool(True, config=True,
+        help="""Run the file referenced by the PYTHONSTARTUP environment
+        variable at IPython startup."""
+    )
     file_to_run = Unicode('', config=True,
         help="""A file to be run""")
 
@@ -354,8 +358,9 @@ class InteractiveShellApp(Configurable):
         """Run files from profile startup directory"""
         startup_dir = self.profile_dir.startup_dir
         startup_files = []
-        if os.environ.get('PYTHONSTARTUP', False):
-            startup_files.append(os.environ['PYTHONSTARTUP'])
+        if self.exec_PYTHONSTARTUP:
+            if os.environ.get('PYTHONSTARTUP', False):
+                startup_files.append(os.environ['PYTHONSTARTUP'])
         startup_files += glob.glob(os.path.join(startup_dir, '*.py'))
         startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))
         if not startup_files:

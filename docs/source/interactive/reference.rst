@@ -761,13 +761,14 @@ won't work::
 IPython as your default Python environment
 ==========================================
 
-Python honors the environment variable PYTHONSTARTUP and will execute at
-startup the file referenced by this variable. If you put the following code at
-the end of that file, then IPython will be your working environment anytime you
-start Python::
+Python honors the environment variable :envvar:`PYTHONSTARTUP` and will
+execute at startup the file referenced by this variable. If you put the
+following code at the end of that file, then IPython will be your working
+environment anytime you start Python::
 
-    from IPython.frontend.terminal.ipapp import launch_new_instance
-    launch_new_instance()
+    import os, IPython
+    os.environ['PYTHONSTARTUP'] = ''  # Prevent running this again
+    IPython.start_ipython()
     raise SystemExit
 
 The ``raise SystemExit`` is needed to exit Python when
