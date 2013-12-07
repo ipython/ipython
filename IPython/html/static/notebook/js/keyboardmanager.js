@@ -267,11 +267,11 @@ var IPython = (function (IPython) {
     }
 
     KeyboardManager.prototype.enable = function () {
-        this.enable = true;
+        this.enabled = true;
     }
 
     KeyboardManager.prototype.disable = function () {
-        this.enable = false;
+        this.enabled = false;
     }
 
 
