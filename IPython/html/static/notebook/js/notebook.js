@@ -888,9 +888,9 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
-                this.set_dirty(true);
             };
+            this.edit_mode();
+            this.set_dirty(true);
             $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
             );
