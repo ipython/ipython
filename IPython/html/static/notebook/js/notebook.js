@@ -668,8 +668,10 @@ var IPython = (function (IPython) {
                 cell.render();
                 $([IPython.events]).trigger('create.Cell', {'cell': cell, 'index': index});
                 cell.refresh();
-                // TODO: should we really get rid of this?
-                //this.select(this.find_cell_index(cell));
+                // We used to select the cell after we refresh it, but there
+                // are now cases were this method is called where select is
+                // not appropriate. The selection logic should be handled by the
+                // caller of the the top level insert_cell methods.
                 this.set_dirty(true);
             }
         }

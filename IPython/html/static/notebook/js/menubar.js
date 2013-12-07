@@ -200,9 +200,11 @@ var IPython = (function (IPython) {
         // Insert
         this.element.find('#insert_cell_above').click(function () {
             IPython.notebook.insert_cell_above('code');
+            IPython.notebook.select_prev();
         });
         this.element.find('#insert_cell_below').click(function () {
             IPython.notebook.insert_cell_below('code');
+            IPython.notebook.select_next();
         });
         // Cell
         this.element.find('#run_cell').click(function () {
