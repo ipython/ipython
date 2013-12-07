@@ -1073,6 +1073,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.merge_cell_above = function () {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
+        var render = cell.rendered;
         if (!cell.is_mergeable()) {
             return;
         }
@@ -1086,9 +1087,13 @@ var IPython = (function (IPython) {
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
             } else if (cell instanceof IPython.MarkdownCell) {
-                cell.unrender();
+                cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(upper_text+'\n\n'+text);
-                cell.render();
+                if (render) {
+                    // The rendered state of the final cell should match
+                    // that of the original selected cell;
+                    cell.render();
+                }
             };
             this.delete_cell(index-1);
             this.select(this.find_cell_index(cell));
@@ -1103,6 +1108,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.merge_cell_below = function () {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
+        var render = cell.rendered;
         if (!cell.is_mergeable()) {
             return;
         }
@@ -1116,9 +1122,13 @@ var IPython = (function (IPython) {
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
             } else if (cell instanceof IPython.MarkdownCell) {
-                cell.unrender();
+                cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(text+'\n\n'+lower_text);
-                cell.render();
+                if (render) {
+                    // The rendered state of the final cell should match
+                    // that of the original selected cell;
+                    cell.render();
+                }
             };
             this.delete_cell(index+1);
             this.select(this.find_cell_index(cell));
