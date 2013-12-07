@@ -1079,7 +1079,7 @@ var IPython = (function (IPython) {
                 cell.set_text(upper_text+'\n'+text);
             } else if (cell instanceof IPython.MarkdownCell) {
                 cell.unrender();
-                cell.set_text(upper_text+'\n'+text);
+                cell.set_text(upper_text+'\n\n'+text);
                 cell.render();
             };
             this.delete_cell(index-1);
@@ -1109,7 +1109,7 @@ var IPython = (function (IPython) {
                 cell.set_text(text+'\n'+lower_text);
             } else if (cell instanceof IPython.MarkdownCell) {
                 cell.unrender();
-                cell.set_text(text+'\n'+lower_text);
+                cell.set_text(text+'\n\n'+lower_text);
                 cell.render();
             };
             this.delete_cell(index+1);

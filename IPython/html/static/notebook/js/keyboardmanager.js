@@ -241,6 +241,11 @@ var IPython = (function (IPython) {
             // Undo last cell delete = z
             notebook.undelete();
             return false;
+        } else if (event.which === 189 || event.which === 173) {
+            // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
+            // Split cell = -
+            notebook.split_cell();
+            return false;     
         };
         // If we havn't handled it, let someone else.
         return true;
