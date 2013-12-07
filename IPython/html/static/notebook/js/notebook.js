@@ -615,9 +615,18 @@ var IPython = (function (IPython) {
         this.undelete_backup = cell.toJSON();
         $('#undelete_cell').removeClass('disabled');
         if (this.is_valid_cell_index(i)) {
+            var old_ncells = this.ncells();
             var ce = this.get_cell_element(i);
             ce.remove();
-            if (i === (this.ncells())) {
+            if (i === 0) {
+                // Always make sure we have at least one cell.
+                if (old_ncells === 1) {
+                    this.insert_cell_below('code');
+                }
+                this.select(0);
+                this.undelete_index = 0;
+                this.undelete_below = false;
+            } else if (i === old_ncells-1 && i !== 0) {
                 this.select(i-1);
                 this.undelete_index = i - 1;
                 this.undelete_below = true;
@@ -631,6 +640,42 @@ var IPython = (function (IPython) {
         };
         return this;
     };
+
+    /**
+     * Restore the most recently deleted cell.
+     * 
+     * @method undelete
+     */
+    Notebook.prototype.undelete_cell = function() {
+        if (this.undelete_backup !== null && this.undelete_index !== null) {
+            var current_index = this.get_selected_index();
+            if (this.undelete_index < current_index) {
+                current_index = current_index + 1;
+            }
+            if (this.undelete_index >= this.ncells()) {
+                this.select(this.ncells() - 1);
+            }
+            else {
+                this.select(this.undelete_index);
+            }
+            var cell_data = this.undelete_backup;
+            var new_cell = null;
+            if (this.undelete_below) {
+                new_cell = this.insert_cell_below(cell_data.cell_type);
+            } else {
+                new_cell = this.insert_cell_above(cell_data.cell_type);
+            }
+            new_cell.fromJSON(cell_data);
+            if (this.undelete_below) {
+                this.select(current_index+1);
+            } else {
+                this.select(current_index);
+            }
+            this.undelete_backup = null;
+            this.undelete_index = null;
+        }
+        $('#undelete_cell').addClass('disabled');
+    }
 
     /**
      * Insert a cell so that after insertion the cell is at given index.
@@ -994,40 +1039,6 @@ var IPython = (function (IPython) {
             new_cell.fromJSON(cell_data);
         };
     };
-
-    // Cell undelete
-
-    /**
-     * Restore the most recently deleted cell.
-     * 
-     * @method undelete
-     */
-    Notebook.prototype.undelete = function() {
-        if (this.undelete_backup !== null && this.undelete_index !== null) {
-            var current_index = this.get_selected_index();
-            if (this.undelete_index < current_index) {
-                current_index = current_index + 1;
-            }
-            if (this.undelete_index >= this.ncells()) {
-                this.select(this.ncells() - 1);
-            }
-            else {
-                this.select(this.undelete_index);
-            }
-            var cell_data = this.undelete_backup;
-            var new_cell = null;
-            if (this.undelete_below) {
-                new_cell = this.insert_cell_below(cell_data.cell_type);
-            } else {
-                new_cell = this.insert_cell_above(cell_data.cell_type);
-            }
-            new_cell.fromJSON(cell_data);
-            this.select(current_index);
-            this.undelete_backup = null;
-            this.undelete_index = null;
-        }
-        $('#undelete_cell').addClass('disabled');
-    }
 
     // Split/merge
 

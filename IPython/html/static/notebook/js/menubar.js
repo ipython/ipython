@@ -161,7 +161,7 @@ var IPython = (function (IPython) {
             IPython.notebook.delete_cell();
         });
         this.element.find('#undelete_cell').click(function () {
-            IPython.notebook.undelete();
+            IPython.notebook.undelete_cell();
         });
         this.element.find('#split_cell').click(function () {
             IPython.notebook.split_cell();

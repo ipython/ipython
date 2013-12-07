@@ -239,7 +239,7 @@ var IPython = (function (IPython) {
             return false;
         } else if (event.which === 90) {
             // Undo last cell delete = z
-            notebook.undelete();
+            notebook.undelete_cell();
             return false;
         } else if (event.which === 189 || event.which === 173) {
             // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
