@@ -15,6 +15,7 @@ define([
     "notebook/js/widgets/container",
     "notebook/js/widgets/float",
     "notebook/js/widgets/float_range",
+    "notebook/js/widgets/image",
     "notebook/js/widgets/int",
     "notebook/js/widgets/int_range",
     "notebook/js/widgets/multicontainer",
