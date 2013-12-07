@@ -267,13 +267,6 @@ var IPython = (function (IPython) {
         this.element.find('#clear_all_output').click(function () {
             IPython.notebook.clear_all_output();
         });
-        // Kernel
-        this.element.find('#int_kernel').click(function () {
-            IPython.notebook.session.interrupt_kernel();
-        });
-        this.element.find('#restart_kernel').click(function () {
-            IPython.notebook.restart_kernel();
-        });
         // Help
         this.element.find('#keyboard_shortcuts').click(function () {
             IPython.quick_help.show_keyboard_shortcuts();
