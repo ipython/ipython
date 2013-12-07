@@ -418,26 +418,30 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.collapse = function () {
+    CodeCell.prototype.collapse_output = function () {
         this.collapsed = true;
         this.output_area.collapse();
     };
 
 
-    CodeCell.prototype.expand = function () {
+    CodeCell.prototype.expand_output = function () {
         this.collapsed = false;
         this.output_area.expand();
+        this.output_area.unscroll_area();
     };
 
+    CodeCell.prototype.scroll_output = function () {
+        this.output_area.expand();
+        this.output_area.scroll_if_long();
+    };
 
     CodeCell.prototype.toggle_output = function () {
         this.collapsed = Boolean(1 - this.collapsed);
         this.output_area.toggle_output();
     };
 
-
     CodeCell.prototype.toggle_output_scroll = function () {
-    this.output_area.toggle_scroll();
+        this.output_area.toggle_scroll();
     };
 
 
@@ -510,6 +514,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.clear_output = function (wait) {
         this.output_area.clear_output(wait);
+        this.set_input_prompt();
     };
 
 
@@ -533,9 +538,9 @@ var IPython = (function (IPython) {
             this.output_area.fromJSON(data.outputs);
             if (data.collapsed !== undefined) {
                 if (data.collapsed) {
-                    this.collapse();
+                    this.collapse_output();
                 } else {
-                    this.expand();
+                    this.expand_output();
                 }
             }
         }

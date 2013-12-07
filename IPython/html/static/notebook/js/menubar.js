@@ -225,35 +225,17 @@ var IPython = (function (IPython) {
         this.element.find('#run_all_cells_below').click(function () {
             IPython.notebook.execute_cells_below();
         });
-        this.element.find('#to_code').click(function () {
-            IPython.notebook.to_code();
+        this.element.find('#collapse_current_output').click(function () {
+            IPython.notebook.collapse_output();
         });
-        this.element.find('#to_markdown').click(function () {
-            IPython.notebook.to_markdown();
+        this.element.find('#scroll_current_output').click(function () {
+            IPython.notebook.scroll_output();
         });
-        this.element.find('#to_raw').click(function () {
-            IPython.notebook.to_raw();
+        this.element.find('#expand_current_output').click(function () {
+            IPython.notebook.expand_output();
         });
-        this.element.find('#to_heading1').click(function () {
-            IPython.notebook.to_heading(undefined, 1);
-        });
-        this.element.find('#to_heading2').click(function () {
-            IPython.notebook.to_heading(undefined, 2);
-        });
-        this.element.find('#to_heading3').click(function () {
-            IPython.notebook.to_heading(undefined, 3);
-        });
-        this.element.find('#to_heading4').click(function () {
-            IPython.notebook.to_heading(undefined, 4);
-        });
-        this.element.find('#to_heading5').click(function () {
-            IPython.notebook.to_heading(undefined, 5);
-        });
-        this.element.find('#to_heading6').click(function () {
-            IPython.notebook.to_heading(undefined, 6);
-        });
-        this.element.find('#toggle_output').click(function () {
-            IPython.notebook.toggle_output();
+        this.element.find('#clear_current_output').click(function () {
+            IPython.notebook.clear_output();
         });
         this.element.find('#collapse_all_output').click(function () {
             IPython.notebook.collapse_all_output();

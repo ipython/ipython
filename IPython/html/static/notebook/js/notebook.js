@@ -1165,47 +1165,16 @@ var IPython = (function (IPython) {
     /**
      * Hide a cell's output.
      * 
-     * @method collapse
+     * @method collapse_output
      * @param {Number} index A cell's numeric index
      */
-    Notebook.prototype.collapse = function (index) {
+    Notebook.prototype.collapse_output = function (index) {
         var i = this.index_or_selected(index);
-        this.get_cell(i).collapse();
-        this.set_dirty(true);
-    };
-
-    /**
-     * Show a cell's output.
-     * 
-     * @method expand
-     * @param {Number} index A cell's numeric index
-     */
-    Notebook.prototype.expand = function (index) {
-        var i = this.index_or_selected(index);
-        this.get_cell(i).expand();
-        this.set_dirty(true);
-    };
-
-    /** Toggle whether a cell's output is collapsed or expanded.
-     * 
-     * @method toggle_output
-     * @param {Number} index A cell's numeric index
-     */
-    Notebook.prototype.toggle_output = function (index) {
-        var i = this.index_or_selected(index);
-        this.get_cell(i).toggle_output();
-        this.set_dirty(true);
-    };
-
-    /**
-     * Toggle a scrollbar for long cell outputs.
-     * 
-     * @method toggle_output_scroll
-     * @param {Number} index A cell's numeric index
-     */
-    Notebook.prototype.toggle_output_scroll = function (index) {
-        var i = this.index_or_selected(index);
-        this.get_cell(i).toggle_output_scroll();
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.collapse_output();
+            this.set_dirty(true);
+        }
     };
 
     /**
@@ -1218,7 +1187,7 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].output_area.collapse();
+                cells[i].collapse_output();
             }
         };
         // this should not be set if the `collapse` key is removed from nbformat
@@ -1226,21 +1195,18 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Expand each code cell's output area, and add a scrollbar for long output.
+     * Show a cell's output.
      * 
-     * @method scroll_all_output
+     * @method expand_output
+     * @param {Number} index A cell's numeric index
      */
-    Notebook.prototype.scroll_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].output_area.expand();
-                cells[i].output_area.scroll_if_long();
-            }
-        };
-        // this should not be set if the `collapse` key is removed from nbformat
-        this.set_dirty(true);
+    Notebook.prototype.expand_output = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.expand_output();
+            this.set_dirty(true);
+        }
     };
 
     /**
@@ -1253,12 +1219,26 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].output_area.expand();
-                cells[i].output_area.unscroll_area();
+                cells[i].expand_output();
             }
         };
         // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
+    };
+
+    /**
+     * Clear the selected CodeCell's output area.
+     * 
+     * @method clear_output
+     * @param {Number} index A cell's numeric index
+     */
+    Notebook.prototype.clear_output = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.clear_output();
+            this.set_dirty(true);
+        }
     };
 
     /**
@@ -1272,12 +1252,70 @@ var IPython = (function (IPython) {
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
                 cells[i].clear_output();
-                // Make all In[] prompts blank, as well
-                // TODO: make this configurable (via checkbox?)
-                cells[i].set_input_prompt();
             }
         };
         this.set_dirty(true);
+    };
+
+    /**
+     * Scroll the selected CodeCell's output area.
+     * 
+     * @method scroll_output
+     * @param {Number} index A cell's numeric index
+     */
+    Notebook.prototype.scroll_output = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.scroll_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Expand each code cell's output area, and add a scrollbar for long output.
+     * 
+     * @method scroll_all_output
+     */
+    Notebook.prototype.scroll_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].scroll_output();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.set_dirty(true);
+    };
+
+    /** Toggle whether a cell's output is collapsed or expanded.
+     * 
+     * @method toggle_output
+     * @param {Number} index A cell's numeric index
+     */
+    Notebook.prototype.toggle_output = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.toggle_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Toggle a scrollbar for long cell outputs.
+     * 
+     * @method toggle_output_scroll
+     * @param {Number} index A cell's numeric index
+     */
+    Notebook.prototype.toggle_output_scroll = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.toggle_output_scroll();
+            this.set_dirty(true);
+        }
     };
 
 
