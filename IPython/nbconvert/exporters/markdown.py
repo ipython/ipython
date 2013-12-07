@@ -1,6 +1,5 @@
-"""
-Exporter that will export your ipynb to Markdown.
-"""
+"""Markdown Exporter class"""
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -30,6 +29,12 @@ class MarkdownExporter(TemplateExporter):
     file_extension = Unicode(
         'md', config=True, 
         help="Extension of the file that should be written to disk")
+
+    def _raw_mimetype_default(self):
+        return 'text/markdown'
+    
+    def _raw_mimetypes_default(self):
+        return ['text/markdown', 'text/html']
 
     @property
     def default_config(self):

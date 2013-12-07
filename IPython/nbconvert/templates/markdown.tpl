@@ -63,10 +63,6 @@
 {{ '#' * cell.level }} {{ cell.source | replace('\n', ' ') }}
 {% endblock headingcell %}
 
-{% block rawcell scoped %}
-{{ cell.source }}
-{% endblock rawcell %}
-
 {% block unknowncell scoped %}
 unknown type  {{ cell.type }}
 {% endblock unknowncell %}

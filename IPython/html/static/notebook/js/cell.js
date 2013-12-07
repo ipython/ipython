@@ -33,9 +33,9 @@ var IPython = (function (IPython) {
      */
     var Cell = function (options) {
 
-        options = this.mergeopt(Cell, options)
+        options = this.mergeopt(Cell, options);
         // superclass default overwrite our default
-
+        
         this.placeholder = options.placeholder || '';
         this.read_only = options.cm_config.readOnly;
         this.selected = false;
@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
         // same order. Easiest is to create and set to null in parent class.
 
         this.element = null;
-        this.cell_type = null;
+        this.cell_type = this.cell_type || null;
         this.code_mirror = null;
 
 
@@ -80,6 +80,7 @@ var IPython = (function (IPython) {
     }
 
     Cell.prototype.mergeopt = function(_class, options, overwrite){
+        options = options || {};
         overwrite = overwrite || {};
         return $.extend(true, {}, _class.options_default, options, overwrite)
 
@@ -200,6 +201,7 @@ var IPython = (function (IPython) {
     Cell.prototype.toJSON = function () {
         var data = {};
         data.metadata = this.metadata;
+        data.cell_type = this.cell_type;
         return data;
     };
 

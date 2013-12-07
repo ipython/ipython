@@ -445,7 +445,6 @@ var IPython = (function (IPython) {
     CodeCell.prototype.toJSON = function () {
         var data = IPython.Cell.prototype.toJSON.apply(this);
         data.input = this.get_text();
-        data.cell_type = 'code';
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
             data.prompt_number = this.input_prompt_number;

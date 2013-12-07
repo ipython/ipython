@@ -1,6 +1,4 @@
-"""
-Module with tests for rst.py
-"""
+"""Tests for RSTExporter"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -23,7 +21,10 @@ from IPython.testing.decorators import onlyif_cmds_exist
 #-----------------------------------------------------------------------------
 
 class TestRSTExporter(ExportersTestsBase):
-    """Contains test functions for rst.py"""
+    """Tests for RSTExporter"""
+
+    exporter_class = RSTExporter
+    should_include_raw = ['rst']
 
     def test_constructor(self):
         """

@@ -1,6 +1,4 @@
-"""
-Contains slide show exporter
-"""
+"""HTML slide show Exporter class"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -19,16 +17,14 @@ from IPython.utils.traitlets import Unicode
 from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
-from .templateexporter import TemplateExporter
+from .html import HTMLExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class SlidesExporter(TemplateExporter):
-    """
-    Exports slides
-    """
+class SlidesExporter(HTMLExporter):
+    """Exports HTML slides with reveal.js"""
     
     file_extension = Unicode(
         'slides.html', config=True, 
@@ -41,15 +37,9 @@ class SlidesExporter(TemplateExporter):
     @property
     def default_config(self):
         c = Config({
-            'CSSHTMLHeaderPreprocessor':{
-                'enabled':True
+            'RevealHelpPreprocessor': {
+                'enabled': True,
                 },
-            'RevealHelpPreprocessor':{
-                'enabled':True,
-                },                
-            'HighlightMagicsPreprocessor': {
-                'enabled':True
-                }
             })
         c.merge(super(SlidesExporter,self).default_config)
         return c

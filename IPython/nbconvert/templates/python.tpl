@@ -46,10 +46,6 @@ it introduces a new line
 {{ '#' * cell.level }}{{ cell.source | replace('\n', ' ') | comment_lines }}
 {% endblock headingcell %}
 
-{% block rawcell scoped %}
-{{ cell.source | comment_lines }}
-{% endblock rawcell %}
-
 {% block unknowncell scoped %}
 unknown type  {{ cell.type }}
 {% endblock unknowncell %}

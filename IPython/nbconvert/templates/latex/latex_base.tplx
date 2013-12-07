@@ -218,11 +218,6 @@ This template does not define a docclass, the inheriting class must define this.
     ((( cell.source | citation2latex | markdown2latex )))
 ((* endblock markdowncell *))
 
-% Spit out the contents of raw cells unmodified
-((* block rawcell scoped *))
-    ((( cell.source )))
-((* endblock rawcell *))
-
 % Don't display unknown types
 ((* block unknowncell scoped *))
 ((* endblock unknowncell *))

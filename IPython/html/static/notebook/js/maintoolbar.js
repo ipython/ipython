@@ -119,7 +119,7 @@ var IPython = (function (IPython) {
                 // .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
-                .append($('<option/>').attr('value','raw').text('Raw Text'))
+                .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
                 .append($('<option/>').attr('value','heading1').text('Heading 1'))
                 .append($('<option/>').attr('value','heading2').text('Heading 2'))
                 .append($('<option/>').attr('value','heading3').text('Heading 3'))

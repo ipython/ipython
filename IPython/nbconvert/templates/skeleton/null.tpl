@@ -76,7 +76,10 @@ consider calling super even if it is a leave block, we might insert more blocks 
                 {%- block headingcell scoped-%}
                 {%- endblock headingcell -%}
             {%- elif cell.cell_type in ['raw'] -%}
-                {%- block rawcell scoped-%}
+                {%- block rawcell scoped -%}
+                {% if cell.metadata.get('raw_mimetype', resources.get('raw_mimetype', '')).lower() in resources.get('raw_mimetypes', ['']) %}
+                {{ cell.source }}
+                {% endif %}
                 {%- endblock rawcell -%}
             {%- else -%}
                 {%- block unknowncell scoped-%}

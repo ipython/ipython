@@ -25,6 +25,9 @@ from IPython.testing.decorators import onlyif_cmds_exist
 class TestLatexExporter(ExportersTestsBase):
     """Contains test functions for latex.py"""
 
+    exporter_class = LatexExporter
+    should_include_raw = ['latex']
+
     def test_constructor(self):
         """
         Can a LatexExporter be constructed?

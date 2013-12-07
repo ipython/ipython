@@ -1,6 +1,5 @@
-"""
-Python exporter which exports Notebook code into a PY file.
-"""
+"""Python script Exporter class"""
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -29,3 +28,7 @@ class PythonExporter(TemplateExporter):
     file_extension = Unicode(
         'py', config=True, 
         help="Extension of the file that should be written to disk")
+
+    def _raw_mimetype_default(self):
+        return 'application/x-python'
+

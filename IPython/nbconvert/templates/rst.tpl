@@ -75,10 +75,6 @@
 {{ ("#" * cell.level + cell.source) | replace('\n', ' ') | markdown2rst }}
 {% endblock headingcell %}
 
-{% block rawcell scoped %}
-{{ cell.source }}
-{% endblock rawcell %}
-
 {% block unknowncell scoped %}
 unknown type  {{cell.type}}
 {% endblock unknowncell %}
