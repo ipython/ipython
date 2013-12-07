@@ -217,6 +217,8 @@ var IPython = (function (IPython) {
         }
         // remove everything after last open bracket
         line = line.replace(endBracket, "");
+	// reset the regex object
+	Tooltip.last_token_re.lastIndex = 0;
         return Tooltip.last_token_re.exec(line)
     };
 
@@ -266,7 +268,9 @@ var IPython = (function (IPython) {
         this.tabs_functions[this._consecutive_counter](cell, text);
 
         // then if we are at the end of list function, reset
-        if (this._consecutive_counter == this.tabs_functions.length) this.reset_tabs_function (cell, text);
+        if (this._consecutive_counter == this.tabs_functions.length) {
+	    this.reset_tabs_function (cell, text);
+	}
 
         return;
     }
