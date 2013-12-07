@@ -566,6 +566,8 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.before(tomove);
                 this.select(i-1);
+                var cell = this.get_selected_cell();
+                cell.focus_cell();
             };
             this.set_dirty(true);
         };
@@ -589,6 +591,8 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.after(tomove);
                 this.select(i+1);
+                var cell = this.get_selected_cell();
+                cell.focus_cell();
             };
         };
         this.set_dirty();
