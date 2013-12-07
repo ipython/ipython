@@ -178,12 +178,6 @@ var IPython = (function (IPython) {
         this.element.find('#move_cell_down').click(function () {
             IPython.notebook.move_cell_down();
         });
-        this.element.find('#select_previous').click(function () {
-            IPython.notebook.select_prev();
-        });
-        this.element.find('#select_next').click(function () {
-            IPython.notebook.select_next();
-        });
         this.element.find('#edit_nb_metadata').click(function () {
             IPython.notebook.edit_metadata();
         });
