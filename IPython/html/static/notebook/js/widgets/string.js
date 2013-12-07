@@ -47,11 +47,9 @@ define(["notebook/js/widget"], function(widget_manager){
         // Handles: Backend -> Frontend Sync
         //          Frontent -> Frontend Sync
         update : function(){
-            var that=this;
             this.$el.html(this.model.get('value'));
-            var math_el = that.$el.get(0);
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub,math_el]);
-            
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
+
             return IPython.WidgetView.prototype.update.call(this);
         },
         
