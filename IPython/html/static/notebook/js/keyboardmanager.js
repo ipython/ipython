@@ -245,7 +245,10 @@ var IPython = (function (IPython) {
             // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
             // Split cell = -
             notebook.split_cell();
-            return false;     
+            return false;
+        } else if ((event.which === 61 || event.which === 187) && event.shiftKey) {
+            notebook.merge_cell_below();
+            return false;
         };
         // If we havn't handled it, let someone else.
         return true;

@@ -1046,6 +1046,7 @@ var IPython = (function (IPython) {
                 new_cell.set_text(texta);
                 this.select_next();
             } else if (cell instanceof IPython.MarkdownCell) {
+                var render = cell.rendered;
                 cell.set_text(textb);
                 cell.render();
                 var new_cell = this.insert_cell_above('markdown');
@@ -1053,6 +1054,13 @@ var IPython = (function (IPython) {
                 new_cell.set_text(texta);
                 new_cell.render();
                 this.select_next();
+                if (!render) {
+                    // The final rendered state of the split cells should
+                    // match the original cell's state. The order matters
+                    // here as we want the lower cell (cell) to be selected.
+                    new_cell.unrender();
+                    cell.unrender();
+                }
             }
         };
     };
