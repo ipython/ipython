@@ -455,6 +455,26 @@ IPython.utils = (function (IPython) {
         return M;
     })();
 
+    var is_or_has = function (a, b) {
+        // Is b a child of a or a itself?
+        return a.has(b).length !==0 || a.is(b);
+    }
+
+    var is_focused = function (e) {
+        // Is element e, or one of its children focused?
+        e = $(e);
+        var target = $(document.activeElement);
+        if (target.length > 0) {
+            if (is_or_has(e, target)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
 
     return {
         regex_split : regex_split,
@@ -475,7 +495,9 @@ IPython.utils = (function (IPython) {
         encode_uri_components : encode_uri_components,
         splitext : splitext,
         always_new : always_new,
-        browser : browser
+        browser : browser,
+        is_or_has : is_or_has,
+        is_focused : is_focused
     };
 
 }(IPython));

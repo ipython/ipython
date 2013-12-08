@@ -110,50 +110,13 @@ var IPython = (function (IPython) {
         var that = this;
         // We trigger events so that Cell doesn't have to depend on Notebook.
         that.element.click(function (event) {
-            if (that.selected === false) {
+            if (!that.selected) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
             };
         });
         that.element.focusin(function (event) {
-            if (that.selected === false) {
+            if (!that.selected) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            };
-        });
-        that.element.focusout(function (event) {
-            var is_or_has = function (a, b) {
-                // Is b a child of a or a itself?
-                return a.has(b).length !==0 || a.is(b);
-            }
-            if (that.mode === 'edit') {
-                // Most of the time, when a cell is in edit mode and focusout
-                // fires, it means we should enter command mode. But there are cases
-                // when we should not enter command mode.
-                setTimeout(function () {
-                    var trigger = true;
-                    var target = $(document.activeElement);
-                    var completer = $('div.completions');
-                    var tooltip = $('div#tooltip');
-                    if (target.length > 0) {
-                        // If the focused element (target) is inside the cell
-                        // (that.element) don't enter command mode.
-                        if (is_or_has(that.element, target)) {
-                            trigger = false;
-                        // The focused element is outside the cell
-                        } else {
-                            // If the focused element is the tooltip or completer
-                            // don't enter command mode, otherwise do.
-                            trigger = true;
-                            if (tooltip.length > 0 && is_or_has(tooltip, target)) {
-                                trigger = false;
-                            } else if (completer.length > 0 && is_or_has(completer, target)) {
-                                trigger = false;
-                            }
-                        }
-                    }
-                    if (trigger) {
-                        $([IPython.events]).trigger('command_mode.Cell', {'cell':that});
-                    }
-                }, 1);
             };
         });
         if (this.code_mirror) {
@@ -164,6 +127,22 @@ var IPython = (function (IPython) {
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
                 $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+            });
+        };
+        if (this.code_mirror) {
+            this.code_mirror.on('blur', function(cm, change) {
+                if (that.mode === 'edit') {
+                    setTimeout(function () {
+                        var isf = IPython.utils.is_focused;
+                        var trigger = true;
+                        if (isf('div#tooltip') || isf('div.completions')) {
+                            trigger = false;
+                        }
+                        if (trigger) {
+                            $([IPython.events]).trigger('command_mode.Cell', {cell: that});
+                        }
+                    }, 1);
+                }
             });
         };
     };
