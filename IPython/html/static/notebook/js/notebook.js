@@ -1183,13 +1183,11 @@ var IPython = (function (IPython) {
      * @method collapse_all_output
      */
     Notebook.prototype.collapse_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].collapse_output();
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.collapse_output();
             }
-        };
+        });
         // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
@@ -1215,13 +1213,11 @@ var IPython = (function (IPython) {
      * @method expand_all_output
      */
     Notebook.prototype.expand_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].expand_output();
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.expand_output();
             }
-        };
+        });
         // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
@@ -1247,13 +1243,11 @@ var IPython = (function (IPython) {
      * @method clear_all_output
      */
     Notebook.prototype.clear_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].clear_output();
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.clear_output();
             }
-        };
+        });
         this.set_dirty(true);
     };
 
@@ -1278,13 +1272,11 @@ var IPython = (function (IPython) {
      * @method scroll_all_output
      */
     Notebook.prototype.scroll_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].scroll_output();
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.scroll_output();
             }
-        };
+        });
         // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
