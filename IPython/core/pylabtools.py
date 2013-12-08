@@ -94,8 +94,8 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png'):
-    """Convert a figure to svg or png for inline display."""
+def print_figure(fig, fmt='png', quality=90):
+    """Convert a figure to svg, jpg (if PIL is installed) or png for inline display."""
     from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
@@ -110,7 +110,7 @@ def print_figure(fig, fmt='png'):
         dpi = dpi * 2
         fmt = 'png'
     fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
-                            facecolor=fc, edgecolor=ec, dpi=dpi)
+                            facecolor=fc, edgecolor=ec, dpi=dpi, quality=quality)
     data = bytes_io.getvalue()
     return data
     
@@ -163,7 +163,7 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
-def select_figure_format(shell, fmt):
+def select_figure_format(shell, fmt, quality):
     """Select figure format for inline backend, can be 'png', 'retina', or 'svg'.
 
     Using this method ensures only one figure format is active at a time.
@@ -173,10 +173,14 @@ def select_figure_format(shell, fmt):
 
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
+    jpg_formatter = shell.display_formatter.formatters['image/jpeg']
 
     if fmt == 'png':
         svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
+    elif fmt in ('jpg', 'jpeg'):
+        svg_formatter.type_printers.pop(Figure, None)
+        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
     elif fmt in ('png2x', 'retina'):
         svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, retina_figure)
@@ -338,5 +342,5 @@ def configure_inline_support(shell, backend):
             del shell._saved_rcParams
 
     # Setup the default figure format
-    select_figure_format(shell, cfg.figure_format)
+    select_figure_format(shell, cfg.figure_format, cfg.quality)
 
