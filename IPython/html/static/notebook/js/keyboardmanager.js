@@ -17,6 +17,7 @@ var IPython = (function (IPython) {
     var KeyboardManager = function () {
         this.mode = 'command';
         this.enabled = true;
+        this.delete_count = 0;
         this.bind_events();
     };
 
@@ -109,6 +110,7 @@ var IPython = (function (IPython) {
     }
 
     KeyboardManager.prototype.handle_command_mode = function (event) {
+        var that = this;
         var notebook = IPython.notebook;
         
         if (event.which === key.ENTER && !(event.ctrlKey || event.altKey || event.shiftKey)) {
@@ -145,7 +147,16 @@ var IPython = (function (IPython) {
             return false;
         } else if (event.which === 68) {
             // Delete selected cell = d
-            notebook.delete_cell();
+            var dc = this.delete_count;
+            console.log('delete_count', dc);
+            if (dc === 0) {
+                this.delete_count = 1;
+                setTimeout(function () {
+                    that.delete_count = 0;
+                }, 1000);
+            } else if (dc === 1) {
+                notebook.delete_cell();
+            }
             return false;
         } else if (event.which === 65) {
             // Insert code cell above selected = a
