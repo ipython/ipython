@@ -320,9 +320,21 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.create_output_subarea = function(md, classes) {
+    function _get_metadata_key(metadata, key, mime) {
+        var mime_md = metadata[mime];
+        // mime-specific higher priority
+        if (mime_md && mime_md[key] !== undefined) {
+            console.log("got" + key + "   "+ mime_md[key]);
+            return mime_md[key];
+        }
+        // fallback on global
+        console.log("fallback" + key + "   "+ metadata[key]);
+        return metadata[key];
+    }
+
+    OutputArea.prototype.create_output_subarea = function(md, classes, mime) {
         var subarea = $('<div/>').addClass('output_subarea').addClass(classes);
-        if (md['isolated']) {
+        if (_get_metadata_key(md, 'isolated', mime)) {
             // Create an iframe to isolate the subarea from the rest of the
             // document
             var iframe = $('<iframe/>').addClass('box-flex1');
@@ -476,22 +488,13 @@ var IPython = (function (IPython) {
     OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','text'];
 
     OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
+
         for(var type_i in OutputArea.display_order){
             var type = OutputArea.display_order[type_i];
             if(json[type] != undefined ){
                 var md = {};
                 if (json.metadata) {
                     md = json.metadata;
-                    if (json.metadata[type]) {
-                        // XXX: need some sort of dict.update, style here if
-                        // we want to support the merging of the overall
-                        // metadata with the mimetype specific metadata.  For
-                        // now, they are mutually exclusive - if the
-                        // mimetype-keyed metadata exists, *it* is used,
-                        // otherwise, only the message-wide metadata is
-                        // available.
-                        md = json.metadata[type];
-                    }
                 }
                 if(type == 'javascript'){
                     if (dynamic) {
@@ -509,17 +512,17 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_html = function (html, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_html rendered_html");
+    OutputArea.prototype.append_html = function (html, md, element, type) {
+        var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
     };
 
 
-    OutputArea.prototype.append_javascript = function (js, md, container) {
+    OutputArea.prototype.append_javascript = function (js, md, container, type) {
         // We just eval the JS code, element appears in the local scope.
-        var element = this.create_output_subarea(md, "output_javascript");
+        var element = this.create_output_subarea(md, "output_javascript", type);
         IPython.keyboard_manager.register_events(element);
         container.append(element);
         try {
@@ -531,8 +534,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_text = function (data, md, element, extra_class) {
-        var toinsert = this.create_output_subarea(md, "output_text");
+    OutputArea.prototype.append_text = function (data, md, element, extra_class, type) {
+        var toinsert = this.create_output_subarea(md, "output_text", type);
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
@@ -545,8 +548,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_svg = function (svg, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_svg");
+    OutputArea.prototype.append_svg = function (svg, md, element, type) {
+        var toinsert = this.create_output_subarea(md, "output_svg", type);
         toinsert.append(svg);
         element.append(toinsert);
     };
@@ -579,10 +582,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_png = function (png, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_png");
-        var img = $("<img/>");
-        img[0].setAttribute('src','data:image/png;base64,'+png);
+    OutputArea.prototype.append_png = function (png, md, element, type) {
+        var toinsert = this.create_output_subarea(md, "output_png", type);
+        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
         if (md['height']) {
             img[0].setAttribute('height', md['height']);
         }
@@ -595,8 +597,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_jpeg");
+    OutputArea.prototype.append_jpeg = function (jpeg, md, element, type) {
+        var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         if (md['height']) {
             img.attr('height', md['height']);
@@ -610,10 +612,10 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_latex = function (latex, md, element) {
+    OutputArea.prototype.append_latex = function (latex, md, element, type) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
-        var toinsert = this.create_output_subarea(md, "output_latex");
+        var toinsert = this.create_output_subarea(md, "output_latex", type);
         toinsert.append(latex);
         element.append(toinsert);
     };
