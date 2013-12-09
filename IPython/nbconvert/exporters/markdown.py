@@ -30,8 +30,7 @@ class MarkdownExporter(TemplateExporter):
         'md', config=True, 
         help="Extension of the file that should be written to disk")
 
-    def _output_mimetype_default(self):
-        return 'text/markdown'
+    output_mimetype = 'text/markdown'
     
     def _raw_mimetypes_default(self):
         return ['text/markdown', 'text/html', '']

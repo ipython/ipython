@@ -30,8 +30,7 @@ class RSTExporter(TemplateExporter):
         'rst', config=True, 
         help="Extension of the file that should be written to disk")
 
-    def _output_mimetype_default(self):
-        return 'text/restructuredtext'
+    output_mimetype = 'text/restructuredtext'
 
     @property
     def default_config(self):

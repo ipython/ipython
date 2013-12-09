@@ -31,8 +31,7 @@ class SlidesExporter(HTMLExporter):
         help="Extension of the file that should be written to disk"
         )
 
-    def _output_mimetype_default(self):
-        return 'text/html'
+    output_mimetype = 'text/html'
 
     default_template = Unicode('reveal', config=True, help="""Template of the 
         data format to use.  I.E. 'reveal'""")

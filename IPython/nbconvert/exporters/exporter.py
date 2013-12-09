@@ -53,9 +53,10 @@ class Exporter(LoggingConfigurable):
         help="Extension of the file that should be written to disk"
         )
 
-    output_mimetype = Unicode('', config=True,
-        help="MIME type of the result file, for HTTP response headers."
-        )
+    # MIME type of the result file, for HTTP response headers.
+    # This is *not* a traitlet, because we want to be able to access it from
+    # the class, not just on instances.
+    output_mimetype = ''
 
     #Configurability, allows the user to easily add filters and preprocessors.
     preprocessors = List(config=True,

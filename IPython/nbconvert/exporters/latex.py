@@ -63,8 +63,7 @@ class LatexExporter(TemplateExporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
-    def _output_mimetype_default(self):
-        return 'text/latex'
+    output_mimetype = 'text/latex'
 
 
     @property

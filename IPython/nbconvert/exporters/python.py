@@ -29,5 +29,4 @@ class PythonExporter(TemplateExporter):
         'py', config=True, 
         help="Extension of the file that should be written to disk")
 
-    def _output_mimetype_default(self):
-        return 'text/x-python'
+    output_mimetype = 'text/x-python'

@@ -126,8 +126,6 @@ class TemplateExporter(Exporter):
         help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
 
-    output_mimetype = Unicode('')
-
     raw_mimetypes = List(config=True,
         help="""formats of raw cells to be included in this Exporter's output."""
     )
