@@ -32,6 +32,9 @@ class NbconvertAPI(object):
         body = json.dumps(nbmodel)
         return self._req('POST', format, body)
 
+    def list_formats(self):
+        return self._req('GET', '')
+
 class APITest(NotebookTestBase):
     def setUp(self):
         nbdir = self.notebook_dir.name
@@ -92,3 +95,10 @@ class APITest(NotebookTestBase):
         r = self.nbconvert_api.from_post(format='python', nbmodel=nbmodel)
         self.assertIn(u'text/x-python', r.headers['Content-Type'])
         self.assertIn(u'print(2*6)', r.text)
+
+    def test_list_formats(self):
+        formats = self.nbconvert_api.list_formats().json()
+        self.assertIsInstance(formats, dict)
+        self.assertIn('python', formats)
+        self.assertIn('html', formats)
+        self.assertEqual(formats['python']['output_mimetype'], 'text/x-python')
