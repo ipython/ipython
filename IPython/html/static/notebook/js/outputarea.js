@@ -371,18 +371,16 @@ var IPython = (function (IPython) {
     }
 
 
-    OutputArea.prototype._append_javascript_error = function (err, container) {
+    OutputArea.prototype._append_javascript_error = function (err, element) {
         // display a message when a javascript error occurs in display output
         var msg = "Javascript error adding output!"
-        console.log(msg, err);
-        if ( container === undefined ) return;
-        container.append(
+        if ( element === undefined ) return;
+        element.append(
             $('<div/>').html(msg + "<br/>" +
                 err.toString() +
                 '<br/>See your browser Javascript console for more details.'
             ).addClass('js-error')
         );
-        container.show();
     };
     
     OutputArea.prototype._safe_append = function (toinsert) {
@@ -394,7 +392,13 @@ var IPython = (function (IPython) {
             this.element.append(toinsert);
         } catch(err) {
             console.log(err);
-            this._append_javascript_error(err, this.element);
+            // Create an actual output_area and output_subarea, which creates
+            // the prompt area and the proper indentation.
+            var toinsert = this.create_output_area();
+            var subarea = $('<div/>').addClass('output_subarea');
+            toinsert.append(subarea);
+            this._append_javascript_error(err, subarea);
+            this.element.append(toinsert);
         }
     };
 
@@ -512,16 +516,13 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
-        var element = this.create_output_subarea(md, "");
+        var element = this.create_output_subarea(md, "output_javascript");
         container.append(element);
-        // Div for js shouldn't be drawn, as it will add empty height to the area.
-        container.hide();
-        // If the Javascript appends content to `element` that should be drawn, then
-        // it must also call `container.show()`.
         try {
             eval(js);
         } catch(err) {
-            this._append_javascript_error(err, container);
+            console.log(err);
+            this._append_javascript_error(err, element);
         }
     };
 

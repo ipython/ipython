@@ -29,3 +29,11 @@ div.inner_cell {
     .vbox();
     .box-flex1();
 }
+
+/* This is needed so that empty prompt areas can collapse to zero height when there
+   is no content in the output_subarea and the prompt. The main purpose of this is
+   to make sure that empty JavaScript output_subareas have no height. */
+div.prompt:empty {
+    padding-top: 0;
+    padding-bottom: 0;
+}
