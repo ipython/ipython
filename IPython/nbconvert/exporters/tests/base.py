@@ -23,7 +23,7 @@ from ...tests.base import TestsBase
 #-----------------------------------------------------------------------------
 
 all_raw_mimetypes = {
-    'application/x-python',
+    'text/x-python',
     'text/markdown',
     'text/html',
     'text/restructuredtext',

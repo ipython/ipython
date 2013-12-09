@@ -53,7 +53,7 @@ class Exporter(LoggingConfigurable):
         help="Extension of the file that should be written to disk"
         )
 
-    mime_type = Unicode('', config=True,
+    output_mimetype = Unicode('', config=True,
         help="MIME type of the result file, for HTTP response headers."
         )
 

@@ -40,10 +40,6 @@ class LatexExporter(TemplateExporter):
         'tex', config=True, 
         help="Extension of the file that should be written to disk")
 
-    mime_type = Unicode('application/x-tex', config=True,
-        help="MIME type of the result file, for HTTP response headers."
-        )
-
     default_template = Unicode('article', config=True, help="""Template of the 
         data format to use.  I.E. 'article' or 'report'""")
 
@@ -67,7 +63,7 @@ class LatexExporter(TemplateExporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
-    def _raw_mimetype_default(self):
+    def _output_mimetype_default(self):
         return 'text/latex'
 
 

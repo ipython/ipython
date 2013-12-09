@@ -36,8 +36,9 @@ class NbconvertFileHandler(IPythonHandler):
                             'attachment; filename="%s"' % filename)
         
         # MIME type
-        if exporter.mime_type:
-            self.set_header('Content-Type', '%s; charset=utf-8' % exporter.mime_type)
+        if exporter.output_mimetype:
+            self.set_header('Content-Type',
+                            '%s; charset=utf-8' % exporter.output_mimetype)
 
         output, resources = exporter.from_filename(os_path)
         
@@ -57,8 +58,9 @@ class NbconvertPostHandler(IPythonHandler):
         nbnode = to_notebook_json(model['content'])
         
         # MIME type
-        if exporter.mime_type:
-            self.set_header('Content-Type', '%s; charset=utf-8' % exporter.mime_type)
+        if exporter.output_mimetype:
+            self.set_header('Content-Type',
+            '%s; charset=utf-8' % exporter.output_mimetype)
 
         output, resources = exporter.from_notebook_node(nbnode)
 

@@ -29,9 +29,5 @@ class PythonExporter(TemplateExporter):
         'py', config=True, 
         help="Extension of the file that should be written to disk")
 
-    def _raw_mimetype_default(self):
-        return 'application/x-python'
-
-    mime_type = Unicode('text/x-python', config=True,
-        help="MIME type of the result file, for HTTP response headers."
-        )
+    def _output_mimetype_default(self):
+        return 'text/x-python'
