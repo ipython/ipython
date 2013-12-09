@@ -203,7 +203,7 @@ define(["components/underscore/underscore-min",
 
                     var cell = this._get_msg_cell(msg.parent_header.msg_id);
                     var callbacks = this._make_callbacks(cell);
-                    var data = {sync_method: 'update', sync_data: this.msg_buffer};
+                    var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
                     this.comm.send(data, callbacks);   
                     this.msg_buffer = null;
                 } else {
