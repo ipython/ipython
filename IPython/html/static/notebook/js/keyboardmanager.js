@@ -12,13 +12,490 @@
 var IPython = (function (IPython) {
     "use strict";
 
-    var key   = IPython.utils.keycodes;
+    // Setup global keycodes and inverse keycodes.
+
+    // See http://unixpapa.com/js/key.html for a complete description. The short of
+    // it is that there are different keycode sets. Firefox uses the "Mozilla keycodes"
+    // and Webkit/IE use the "IE keycodes". These keycode sets are mostly the same
+    // but have minor differences.
+
+    // These apply to Firefox, (Webkit and IE)
+    var _keycodes = {
+        'a': 65, 'b': 66, 'c': 67, 'd': 68, 'e': 69, 'f': 70, 'g': 71, 'h': 72, 'i': 73,
+        'j': 74, 'k': 75, 'l': 76, 'm': 77, 'n': 78, 'o': 79, 'p': 80, 'q': 81, 'r': 82,
+        's': 83, 't': 84, 'u': 85, 'v': 86, 'w': 87, 'x': 88, 'y': 89, 'z': 90,
+        '1 !': 49, '2 @': 50, '3 #': 51, '4 $': 52, '5 %': 53, '6 ^': 54,
+        '7 &': 55, '8 *': 56, '9 (': 57, '0 )': 48, 
+        '[ {': 219, '] }': 221, '` ~': 192,  ', <': 188, '. >': 190, '/ ?': 191,
+        '\\ |': 220, '- _': 109, '\' "': 222,
+        'numpad0': 96, 'numpad1': 97, 'numpad2': 98, 'numpad3': 99, 'numpad4': 100,
+        'numpad5': 101, 'numpad6': 102, 'numpad7': 103, 'numpad8': 104, 'numpad9': 105,
+        'multiply': 106, 'add': 107, 'subtract': 109, 'decimal': 110, 'divide': 111,
+        'f1': 112, 'f2': 113, 'f3': 114, 'f4': 115, 'f5': 116, 'f6': 117, 'f7': 118,
+        'f8': 119, 'f9': 120, 'f11': 122, 'f12': 123, 'f13': 124, 'f14': 125, 'f15': 126,
+        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 16, 'ctrl': 17, 'alt': 18,
+        'meta': 91, 'capslock': 20, 'esc': 27, 'space': 32, 'pageup': 33, 'pagedown': 34,
+        'end': 35, 'home': 36, 'left': 37, 'up': 38, 'right': 39, 'down': 40,
+        'insert': 45, 'delete': 46, 'numlock': 144,
+    };
+    
+    // These apply to Firefox and Opera
+    var _mozilla_keycodes = {
+        '; :': 59, '= +': 61
+    }
+    
+    // This apply to Webkit and IE
+    var _ie_keycodes = {
+        '; :': 186, '= +': 187,
+    }
+    
+    var browser = IPython.utils.browser[0];
+    
+    if (browser === 'Firefox' || browser === 'Opera') {
+        $.extend(_keycodes, _mozilla_keycodes);
+    } else if (browser === 'Safari' || browser === 'Chrome' || browser === 'MSIE') {
+        $.extend(_keycodes, _ie_keycodes);
+    }
+
+    var keycodes = {};
+    var inv_keycodes = {};
+    for (var name in _keycodes) {
+        console.log(name);
+        var names = name.split(' ');
+        if (names.length === 1) {
+            var n = names[0]
+            keycodes[n] = _keycodes[n]
+            inv_keycodes[_keycodes[n]] = n
+            // console.log(keycodes[n], inv_keycodes[_keycodes[n]]);
+        } else {
+            var primary = names[0];
+            var secondary = names[1];
+            keycodes[primary] = _keycodes[name]
+            keycodes[secondary] = _keycodes[name]
+            inv_keycodes[_keycodes[name]] = primary
+            // console.log(keycodes[primary], keycodes[secondary], inv_keycodes[_keycodes[name]])
+        }
+    }
+
+
+    // Default keyboard shortcuts
+
+    var default_common_shortcuts = {
+        'meta+s' : {
+            help    : 'save notebook',
+            handler : function (event) {
+                IPython.notebook.save_checkpoint();
+                event.preventDefault();
+                return false;
+            }
+        },
+        'ctrl+s' : {
+            help    : 'save notebook',
+            handler : function (event) {
+                IPython.notebook.save_checkpoint();
+                event.preventDefault();
+                return false;
+            }
+        },
+        'shift' : {
+            help    : '',
+            handler : function (event) {
+                // ignore shift keydown
+                return true;
+            }
+        },
+        'shift+enter' : {
+            help    : 'run cell',
+            handler : function (event) {
+                IPython.notebook.execute_selected_cell('shift');
+                return false;
+            }
+        },
+        'alt+enter' : {
+            help    : 'run cell',
+            handler : function (event) {
+                IPython.notebook.execute_selected_cell('alt');
+                return false;
+            }
+        },
+        'ctrl+enter' : {
+            help    : 'run cell',
+            handler : function (event) {
+                IPython.notebook.execute_selected_cell('ctrl');
+                return false;
+            }
+        }
+    }
+
+    // Edit mode defaults
+
+    var default_edit_shortcuts = {
+        'esc' : {
+            help    : 'command mode',
+            handler : function (event) {
+                IPython.notebook.command_mode();
+                return false;
+            }
+        },
+        'ctrl+m' : {
+            help    : 'command mode',
+            handler : function (event) {
+                IPython.notebook.command_mode();
+                return false;
+            }
+        },
+        'up' : {
+            help    : 'select previous cell',
+            handler : function (event) {
+                var cell = IPython.notebook.get_selected_cell();
+                if (cell && cell.at_top()) {
+                    event.preventDefault();
+                    IPython.notebook.command_mode()
+                    IPython.notebook.select_prev();
+                    IPython.notebook.edit_mode();
+                    return false;
+                };
+            }
+        },
+        'down' : {
+            help    : 'select next cell',
+            handler : function (event) {
+                var cell = IPython.notebook.get_selected_cell();
+                if (cell && cell.at_bottom()) {
+                    event.preventDefault();
+                    IPython.notebook.command_mode()
+                    IPython.notebook.select_next();
+                    IPython.notebook.edit_mode();
+                    return false;
+                };
+            }
+        },
+
+    }
+
+    // Command mode defaults
+
+    var default_command_shortcuts = {
+        'enter' : {
+            help    : 'edit mode',
+            handler : function (event) {
+                IPython.notebook.edit_mode();
+                return false;
+            }
+        },
+        'up' : {
+            help    : 'select previous cell',
+            handler : function (event) {
+                var index = IPython.notebook.get_selected_index();
+                if (index !== 0 && index !== null) {
+                    IPython.notebook.select_prev();
+                    var cell = IPython.notebook.get_selected_cell();
+                    cell.focus_cell();
+                };
+                return false;
+            }
+        },
+        'down' : {
+            help    : 'select next cell',
+            handler : function (event) {
+                var index = IPython.notebook.get_selected_index();
+                if (index !== (IPython.notebook.ncells()-1) && index !== null) {
+                    IPython.notebook.select_next();
+                    var cell = IPython.notebook.get_selected_cell();
+                    cell.focus_cell();
+                };
+                return false;
+            }
+        },
+        'x' : {
+            help    : 'cut cell',
+            handler : function (event) {
+                IPython.IPython.notebook.cut_cell();
+                return false;
+            }
+        },
+        'c' : {
+            help    : 'copy cell',
+            handler : function (event) {
+                IPython.IPython.notebook.copy_cell();
+                return false;
+            }
+        },
+        'v' : {
+            help    : 'paste cell below',
+            handler : function (event) {
+                IPython.IPython.notebook.paste_cell_below();
+                return false;
+            }
+        },
+        'd' : {
+            help    : 'delete cell (press twice)',
+            handler : function (event) {
+                var dc = IPython.delete_count;
+                console.log('delete_count', dc);
+                if (dc === undefined) {
+                    IPython.delete_count = 0;
+                } else if (dc === 0) {
+                    IPython.delete_count = 1;
+                    setTimeout(function () {
+                        IPython.delete_count = 0;
+                    }, 800);
+                } else if (dc === 1) {
+                    IPython.notebook.delete_cell();
+                    IPython.delete_count = 0;
+                }
+                return false;
+            }
+        },
+        'a' : {
+            help    : 'insert cell above',
+            handler : function (event) {
+                IPython.notebook.insert_cell_above('code');
+                IPython.notebook.select_prev();
+                return false;
+            }
+        },
+        'b' : {
+            help    : 'insert cell below',
+            handler : function (event) {
+                IPython.notebook.insert_cell_below('code');
+                IPython.notebook.select_next();
+                return false;
+            }
+        },
+        'y' : {
+            help    : 'to code',
+            handler : function (event) {
+                IPython.notebook.to_code();
+                return false;
+            }
+        },
+        'm' : {
+            help    : 'to markdown',
+            handler : function (event) {
+                IPython.notebook.to_markdown();
+                return false;
+            }
+        },
+        't' : {
+            help    : 'to raw',
+            handler : function (event) {
+                IPython.notebook.to_raw();
+                return false;
+            }
+        },
+        '1' : {
+            help    : 'to heading 1',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 1);
+                return false;
+            }
+        },
+        '2' : {
+            help    : 'to heading 2',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 2);
+                return false;
+            }
+        },
+        '3' : {
+            help    : 'to heading 3',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 3);
+                return false;
+            }
+        },
+        '4' : {
+            help    : 'to heading 4',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 4);
+                return false;
+            }
+        },
+        '5' : {
+            help    : 'to heading 5',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 5);
+                return false;
+            }
+        },
+        '6' : {
+            help    : 'to heading 6',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 6);
+                return false;
+            }
+        },
+        'o' : {
+            help    : 'toggle output',
+            handler : function (event) {
+                IPython.notebook.toggle_output();
+                return false;
+            }
+        },
+        'shift+o' : {
+            help    : 'toggle output',
+            handler : function (event) {
+                IPython.notebook.toggle_output_scroll();
+                return false;
+            }
+        },
+        's' : {
+            help    : 'save notebook',
+            handler : function (event) {
+                IPython.notebook.save_checkpoint();
+                return false;
+            }
+        },
+        'ctrl+j' : {
+            help    : 'move cell down',
+            handler : function (event) {
+                IPython.notebook.move_cell_down();
+                return false;
+            }
+        },
+        'ctrl+k' : {
+            help    : 'move cell up',
+            handler : function (event) {
+                IPython.notebook.move_cell_up();
+                return false;
+            }
+        },
+        'l' : {
+            help    : 'toggle line numbers',
+            handler : function (event) {
+                IPython.notebook.cell_toggle_line_numbers();
+                return false;
+            }
+        },
+        'i' : {
+            help    : 'interrupt kernel',
+            handler : function (event) {
+                IPython.notebook.kernel.interrupt();
+                return false;
+            }
+        },
+        '.' : {
+            help    : 'restart kernel',
+            handler : function (event) {
+                IPython.notebook.restart_kernel();
+                return false;
+            }
+        },
+        'h' : {
+            help    : 'keyboard shortcuts',
+            handler : function (event) {
+                IPython.quick_help.show_keyboard_shortcuts();
+                return false;
+            }
+        },
+        'z' : {
+            help    : 'undo last delete',
+            handler : function (event) {
+                IPython.notebook.undelete_cell();
+                return false;
+            }
+        },
+        '-' : {
+            help    : 'split cell',
+            handler : function (event) {
+                IPython.notebook.split_cell();
+                return false;
+            }
+        },
+        'shift+=' : {
+            help    : 'merge cell below',
+            handler : function (event) {
+                IPython.notebook.merge_cell_below();
+                return false;
+            }
+        },
+    }
+
+
+    // Shortcut manager class
+
+    var ShortcutManager = function () {
+        this._shortcuts = {}
+    }
+
+    ShortcutManager.prototype.canonicalize_key = function (key) {
+        return inv_keycodes[keycodes[key]];
+    }
+
+    ShortcutManager.prototype.canonicalize_shortcut = function (shortcut) {
+        // Sort a sequence of + separated modifiers into the order alt+ctrl+meta+shift
+        var values = shortcut.split("+");
+        if (values.length === 1) {
+            return this.canonicalize_key(values[0])
+        } else {
+            var modifiers = values.slice(0,-1);
+            var key = this.canonicalize_key(values[-1]);
+            modifiers.sort();
+            return modifiers.join('+') + '+' + key;
+        }
+    }
+
+    ShortcutManager.prototype.event_to_shortcut = function (event) {
+        // Convert a jQuery keyboard event to a strong based keyboard shortcut
+        var shortcut = '';
+        var key = inv_keycodes[event.which]
+        if (event.altKey && key !== 'alt') {shortcut += 'alt+';}
+        if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl+';}
+        if (event.metaKey && key !== 'meta') {shortcut += 'meta+';}
+        if (event.shiftKey && key !== 'shift') {shortcut += 'shift+';}
+        shortcut += key;
+        return shortcut
+    }
+
+    ShortcutManager.prototype.clear_shortcuts = function () {
+        this._shortcuts = {};
+    }
+
+    ShortcutManager.prototype.add_shortcut = function (shortcut, data) {
+        shortcut = this.canonicalize_shortcut(shortcut);
+        this._shortcuts[shortcut] = data;
+    }
+
+    ShortcutManager.prototype.add_shortcuts = function (data) {
+        for (var shortcut in data) {
+            this.add_shortcut(shortcut, data[shortcut]);
+        }
+    }
+
+    ShortcutManager.prototype.remove_shortcut = function (shortcut) {
+        shortcut = this.canonicalize_shortcut(shortcut);
+        delete this._shortcuts[shortcut];
+    }
+
+    ShortcutManager.prototype.call_handler = function (event) {
+        var shortcut = this.event_to_shortcut(event);
+        var data = this._shortcuts[shortcut];
+        if (data !== undefined) {
+            console.log('call_handler', shortcut, data['help']);
+            var handler = data['handler'];
+            if (handler !== undefined) {
+                return handler(event);
+            }
+        }
+        return true;
+    }
+
+
+
+    // Main keyboard manager for the notebook
 
     var KeyboardManager = function () {
         this.mode = 'command';
         this.enabled = true;
         this.delete_count = 0;
         this.bind_events();
+        this.command_shortcuts = new ShortcutManager();
+        this.command_shortcuts.add_shortcuts(default_common_shortcuts);
+        this.command_shortcuts.add_shortcuts(default_command_shortcuts);
+        this.edit_shortcuts = new ShortcutManager();
+        this.edit_shortcuts.add_shortcuts(default_common_shortcuts);
+        this.edit_shortcuts.add_shortcuts(default_edit_shortcuts);
     };
 
     KeyboardManager.prototype.bind_events = function () {
@@ -33,237 +510,28 @@ var IPython = (function (IPython) {
         
         console.log('keyboard_manager', this.mode, event.keyCode);
         
-        if (event.which === key.ESC) {
+        if (event.which === keycodes['esc']) {
             // Intercept escape at highest level to avoid closing
             // websocket connection with firefox
             event.preventDefault();
         }
         
         if (!this.enabled) {
+            if (event.which === keycodes['esc']) {
+                // ESC
+                notebook.command_mode();
+                return false;
+            }
             return true;
-        }
-        
-        // Event handlers for both command and edit mode
-        if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-            // Save (CTRL+S) or (Command+S on Mac)
-            notebook.save_checkpoint();
-            event.preventDefault();
-            return false;
-        } else if (event.which === key.ESC) {
-            // Intercept escape at highest level to avoid closing
-            // websocket connection with firefox
-            event.preventDefault();
-            // Don't return yet to allow edit/command modes to handle
-        } else if (event.which === key.SHIFT) {
-            // ignore shift keydown
-            return true;
-        } else if (event.which === key.ENTER && event.shiftKey) {
-            notebook.execute_selected_cell('shift');
-            return false;
-        } else if (event.which === key.ENTER && event.altKey) {
-            // Execute code cell, and insert new in place
-            notebook.execute_selected_cell('alt');
-            return false;
-        } else if (event.which === key.ENTER && event.ctrlKey) {
-            notebook.execute_selected_cell('ctrl');
-            return false;
         }
         
         if (this.mode === 'edit') {
-            return this.handle_edit_mode(event);
-        } else if (this.mode === 'command' && !(event.ctrlKey || event.altKey || event.metaKey)) {
-            return this.handle_command_mode(event);
+            return this.edit_shortcuts.call_handler(event);
+        } else if (this.mode === 'command') {
+            return this.command_shortcuts.call_handler(event);
         }
-    }
-
-    KeyboardManager.prototype.handle_edit_mode = function (event) {
-        var notebook = IPython.notebook;
-        
-        if (event.which === key.ESC) {
-            // ESC
-            notebook.command_mode();
-            return false;
-        } else if (event.which === 77 && event.ctrlKey) {
-            // Ctrl-m
-            notebook.command_mode();
-            return false;
-        } else if (event.which === key.UPARROW && !event.shiftKey) {
-            var cell = notebook.get_selected_cell();
-            if (cell && cell.at_top()) {
-                event.preventDefault();
-                notebook.command_mode()
-                notebook.select_prev();
-                notebook.edit_mode();
-                return false;
-            };
-        } else if (event.which === key.DOWNARROW && !event.shiftKey) {
-            var cell = notebook.get_selected_cell();
-            if (cell && cell.at_bottom()) {
-                event.preventDefault();
-                notebook.command_mode()
-                notebook.select_next();
-                notebook.edit_mode();
-                return false;
-            };
-        };
         return true;
     }
-
-    KeyboardManager.prototype.handle_command_mode = function (event) {
-        var that = this;
-        var notebook = IPython.notebook;
-        
-        if (event.which === key.ENTER && !(event.ctrlKey || event.altKey || event.shiftKey)) {
-            // Enter edit mode = ENTER alone
-            notebook.edit_mode();
-            return false;
-        } else if (event.which === key.UPARROW && !event.shiftKey) {
-            var index = notebook.get_selected_index();
-            if (index !== 0 && index !== null) {
-                notebook.select_prev();
-                var cell = notebook.get_selected_cell();
-                cell.focus_cell();
-            };
-            return false;
-        } else if (event.which === key.DOWNARROW && !event.shiftKey) {
-            var index = notebook.get_selected_index();
-            if (index !== (notebook.ncells()-1) && index !== null) {
-                notebook.select_next();
-                var cell = notebook.get_selected_cell();
-                cell.focus_cell();
-            };
-            return false;
-        } else if (event.which === 88) {
-            // Cut selected cell = x
-            notebook.cut_cell();
-            return false;
-        } else if (event.which === 67) {
-            // Copy selected cell = c
-            notebook.copy_cell();
-            return false;
-        } else if (event.which === 86) {
-            // Paste below selected cell = v
-            notebook.paste_cell_below();
-            return false;
-        } else if (event.which === 68) {
-            // Delete selected cell = d
-            var dc = this.delete_count;
-            console.log('delete_count', dc);
-            if (dc === 0) {
-                this.delete_count = 1;
-                setTimeout(function () {
-                    that.delete_count = 0;
-                }, 1000);
-            } else if (dc === 1) {
-                notebook.delete_cell();
-            }
-            return false;
-        } else if (event.which === 65) {
-            // Insert code cell above selected = a
-            notebook.insert_cell_above('code');
-            notebook.select_prev();
-            return false;
-        } else if (event.which === 66) {
-            // Insert code cell below selected = b
-            notebook.insert_cell_below('code');
-            notebook.select_next();
-            return false;
-        } else if (event.which === 89) {
-            // To code = y
-            notebook.to_code();
-            return false;
-        } else if (event.which === 77) {
-            // To markdown = m
-            notebook.to_markdown();
-            return false;
-        } else if (event.which === 84) {
-            // To Raw = t
-            notebook.to_raw();
-            return false;
-        } else if (event.which === 49) {
-            // To Heading 1 = 1
-            notebook.to_heading(undefined, 1);
-            return false;
-        } else if (event.which === 50) {
-            // To Heading 2 = 2
-            notebook.to_heading(undefined, 2);
-            return false;
-        } else if (event.which === 51) {
-            // To Heading 3 = 3
-            notebook.to_heading(undefined, 3);
-            return false;
-        } else if (event.which === 52) {
-            // To Heading 4 = 4
-            notebook.to_heading(undefined, 4);
-            return false;
-        } else if (event.which === 53) {
-            // To Heading 5 = 5
-            notebook.to_heading(undefined, 5);
-            return false;
-        } else if (event.which === 54) {
-            // To Heading 6 = 6
-            notebook.to_heading(undefined, 6);
-            return false;
-        } else if (event.which === 79) {
-            // Toggle output = o
-            if (event.shiftKey) {
-                notebook.toggle_output_scroll();
-            } else {
-                notebook.toggle_output();
-            };
-            return false;
-        } else if (event.which === 83) {
-            // Save notebook = s
-            notebook.save_checkpoint();
-            return false;
-        } else if (event.which === 74) {
-            // Move cell down = j
-            notebook.move_cell_down();
-            return false;
-        } else if (event.which === 75) {
-            // Move cell up = k
-            notebook.move_cell_up();
-            return false;
-        } else if (event.which === 80) {
-            // Select previous = p
-            notebook.select_prev();
-            return false;
-        } else if (event.which === 78) {
-            // Select next = n
-            notebook.select_next();
-            return false;
-        } else if (event.which === 76) {
-            // Toggle line numbers = l
-            notebook.cell_toggle_line_numbers();
-            return false;
-        } else if (event.which === 73) {
-            // Interrupt kernel = i
-            notebook.kernel.interrupt();
-            return false;
-        } else if (event.which === 190) {
-            // Restart kernel = .  # matches qt console
-            notebook.restart_kernel();
-            return false;
-        } else if (event.which === 72) {
-            // Show keyboard shortcuts = h
-            IPython.quick_help.show_keyboard_shortcuts();
-            return false;
-        } else if (event.which === 90) {
-            // Undo last cell delete = z
-            notebook.undelete_cell();
-            return false;
-        } else if (event.which === 189 || event.which === 173) {
-            // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
-            // Split cell = -
-            notebook.split_cell();
-            return false;
-        } else if ((event.which === 61 || event.which === 187) && event.shiftKey) {
-            notebook.merge_cell_below();
-            return false;
-        };
-        // If we havn't handled it, let someone else.
-        return true;
-    };
 
     KeyboardManager.prototype.edit_mode = function () {
         console.log('KeyboardManager', 'changing to edit mode');
@@ -285,7 +553,25 @@ var IPython = (function (IPython) {
         this.enabled = false;
     }
 
+    KeyboardManager.prototype.register_events = function (e) {
+        var that = this;
+        e.on('focusin', function () {
+            that.command_mode();
+            that.disable();
+        });
+        e.on('focusout', function () {
+            that.command_mode();
+            that.enable();
+        })
+    }
 
+
+    IPython.keycodes = keycodes;
+    IPython.inv_keycodes = inv_keycodes;
+    IPython.default_common_shortcuts = default_common_shortcuts;
+    IPython.default_edit_shortcuts = default_edit_shortcuts;
+    IPython.default_command_shortcuts = default_command_shortcuts;
+    IPython.ShortcutManager = ShortcutManager;
     IPython.KeyboardManager = KeyboardManager;
 
     return IPython;
