@@ -264,6 +264,17 @@ var IPython = (function (IPython) {
         "application/json" : "json",
         "application/javascript" : "javascript",
     };
+    
+    OutputArea.mime_map_r = {
+        "text" : "text/plain",
+        "html" : "text/html",
+        "svg" : "image/svg+xml",
+        "png" : "image/png",
+        "jpeg" : "image/jpeg",
+        "latex" : "text/latex",
+        "json" : "application/json",
+        "javascript" : "application/javascript",
+    };
 
     OutputArea.prototype.convert_mime_types = function (json, data) {
         if (!data) {
@@ -272,8 +283,8 @@ var IPython = (function (IPython) {
         // non-mimetype-keyed metadata used to get dropped here, this code
         // re-injects it into the json.
         for (var key in data) {
-            var json_key = OutputArea.mime_map[key] || key;
-            json[json_key] = data[key];
+            var rkey = OutputArea.mime_map_r[key] || key;
+            json[rkey] = data[key];
         }
         return json;
     };
@@ -328,7 +339,6 @@ var IPython = (function (IPython) {
             return mime_md[key];
         }
         // fallback on global
-        console.log("fallback" + key + "   "+ metadata[key]);
         return metadata[key];
     }
 
@@ -485,7 +495,15 @@ var IPython = (function (IPython) {
         }
     };
 
-    OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','text'];
+    OutputArea.display_order = [
+        'application/javascript',
+        'text/html',
+        'text/latex',
+        'image/svg+xml',
+        'image/png',
+        'image/jpeg',
+        'text/plain'
+    ];
 
     OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
 
@@ -502,7 +520,8 @@ var IPython = (function (IPython) {
                         return true;
                     }
                 } else {
-                    this['append_'+type](json[type], md, element);
+                    var old_name = OutputArea.mime_map[type]
+                    this['append_'+old_name](json[type], md, element, type);
                     return true;
                 }
                 return false;
