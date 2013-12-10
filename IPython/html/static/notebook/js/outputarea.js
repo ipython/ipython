@@ -509,6 +509,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_html = function (html, md, element) {
         var toinsert = this.create_output_subarea(md, "output_html rendered_html");
+        IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
     };
@@ -517,6 +518,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
         var element = this.create_output_subarea(md, "output_javascript");
+        IPython.keyboard_manager.register_events(element);
         container.append(element);
         try {
             eval(js);
