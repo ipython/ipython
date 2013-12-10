@@ -47,6 +47,10 @@ Usage
    (the ``version`` field from ``setup.py``).
 
 """
+# Skip doctests because the output from %version_information is
+# (intended to be) non-deterministic.
+skip_doctest = True
+
 import cgi
 import json
 import os
