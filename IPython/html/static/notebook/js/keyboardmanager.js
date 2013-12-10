@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
         '1 !': 49, '2 @': 50, '3 #': 51, '4 $': 52, '5 %': 53, '6 ^': 54,
         '7 &': 55, '8 *': 56, '9 (': 57, '0 )': 48, 
         '[ {': 219, '] }': 221, '` ~': 192,  ', <': 188, '. >': 190, '/ ?': 191,
-        '\\ |': 220, '- _': 109, '\' "': 222,
+        '\\ |': 220, '\' "': 222,
         'numpad0': 96, 'numpad1': 97, 'numpad2': 98, 'numpad3': 99, 'numpad4': 100,
         'numpad5': 101, 'numpad6': 102, 'numpad7': 103, 'numpad8': 104, 'numpad9': 105,
         'multiply': 106, 'add': 107, 'subtract': 109, 'decimal': 110, 'divide': 111,
@@ -41,12 +41,12 @@ var IPython = (function (IPython) {
     
     // These apply to Firefox and Opera
     var _mozilla_keycodes = {
-        '; :': 59, '= +': 61
+        '; :': 59, '= +': 61, '- _': 109, 
     }
     
     // This apply to Webkit and IE
     var _ie_keycodes = {
-        '; :': 186, '= +': 187,
+        '; :': 186, '= +': 187, '- _': 189, 
     }
     
     var browser = IPython.utils.browser[0];
@@ -60,20 +60,17 @@ var IPython = (function (IPython) {
     var keycodes = {};
     var inv_keycodes = {};
     for (var name in _keycodes) {
-        console.log(name);
         var names = name.split(' ');
         if (names.length === 1) {
             var n = names[0]
             keycodes[n] = _keycodes[n]
             inv_keycodes[_keycodes[n]] = n
-            // console.log(keycodes[n], inv_keycodes[_keycodes[n]]);
         } else {
             var primary = names[0];
             var secondary = names[1];
             keycodes[primary] = _keycodes[name]
             keycodes[secondary] = _keycodes[name]
             inv_keycodes[_keycodes[name]] = primary
-            // console.log(keycodes[primary], keycodes[secondary], inv_keycodes[_keycodes[name]])
         }
     }
 
@@ -210,21 +207,21 @@ var IPython = (function (IPython) {
         'x' : {
             help    : 'cut cell',
             handler : function (event) {
-                IPython.IPython.notebook.cut_cell();
+                IPython.notebook.cut_cell();
                 return false;
             }
         },
         'c' : {
             help    : 'copy cell',
             handler : function (event) {
-                IPython.IPython.notebook.copy_cell();
+                IPython.notebook.copy_cell();
                 return false;
             }
         },
         'v' : {
             help    : 'paste cell below',
             handler : function (event) {
-                IPython.IPython.notebook.paste_cell_below();
+                IPython.notebook.paste_cell_below();
                 return false;
             }
         },
@@ -232,7 +229,6 @@ var IPython = (function (IPython) {
             help    : 'delete cell (press twice)',
             handler : function (event) {
                 var dc = IPython.delete_count;
-                console.log('delete_count', dc);
                 if (dc === undefined) {
                     IPython.delete_count = 0;
                 } else if (dc === 0) {
@@ -419,6 +415,14 @@ var IPython = (function (IPython) {
         this._shortcuts = {}
     }
 
+    ShortcutManager.prototype.help = function () {
+        var help = [];
+        for (var shortcut in this._shortcuts) {
+            help.push({shortcut: shortcut, help: this._shortcuts[shortcut]['help']});
+        }
+        return help;
+    }
+
     ShortcutManager.prototype.canonicalize_key = function (key) {
         return inv_keycodes[keycodes[key]];
     }
@@ -430,7 +434,7 @@ var IPython = (function (IPython) {
             return this.canonicalize_key(values[0])
         } else {
             var modifiers = values.slice(0,-1);
-            var key = this.canonicalize_key(values[-1]);
+            var key = this.canonicalize_key(values[values.length-1]);
             modifiers.sort();
             return modifiers.join('+') + '+' + key;
         }
@@ -472,7 +476,6 @@ var IPython = (function (IPython) {
         var shortcut = this.event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
         if (data !== undefined) {
-            console.log('call_handler', shortcut, data['help']);
             var handler = data['handler'];
             if (handler !== undefined) {
                 return handler(event);
