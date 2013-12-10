@@ -234,7 +234,7 @@ rprint = raw_print
 rprinte = raw_print_err
 
 def unicode_std_stream(stream='stdout'):
-    """Get a wrapper to write unicode to stdout/stderr as UTF-8.
+    u"""Get a wrapper to write unicode to stdout/stderr as UTF-8.
 
     This ignores environment variables and default encodings, to reliably write
     unicode to stdout or stderr.
