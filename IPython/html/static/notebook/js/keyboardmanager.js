@@ -167,7 +167,6 @@ var IPython = (function (IPython) {
                 };
             }
         },
-
     }
 
     // Command mode defaults
@@ -193,6 +192,30 @@ var IPython = (function (IPython) {
             }
         },
         'down' : {
+            help    : 'select next cell',
+            handler : function (event) {
+                var index = IPython.notebook.get_selected_index();
+                if (index !== (IPython.notebook.ncells()-1) && index !== null) {
+                    IPython.notebook.select_next();
+                    var cell = IPython.notebook.get_selected_cell();
+                    cell.focus_cell();
+                };
+                return false;
+            }
+        },
+        'k' : {
+            help    : 'select previous cell',
+            handler : function (event) {
+                var index = IPython.notebook.get_selected_index();
+                if (index !== 0 && index !== null) {
+                    IPython.notebook.select_prev();
+                    var cell = IPython.notebook.get_selected_cell();
+                    cell.focus_cell();
+                };
+                return false;
+            }
+        },
+        'j' : {
             help    : 'select next cell',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
