@@ -42,15 +42,15 @@ ipython_promptout:
     in the prompt.
 ipython_mplbackend:
     The string which specifies if the embedded Sphinx shell should import
-    Matplotlib and set the backend for each code-block. If `None`, or equal
-    to '' or 'None', then `matplotlib` will not be automatically imported. If
-    not `None`, then the value should specify a backend that is passed to
-    `matplotlib.use()`. The default value is 'agg'.
+    Matplotlib and set the backend. The value specifies a backend that is
+    passed to `matplotlib.use()`. If specified in conf.py as `None` or not
+    specified in conf.py at all, then the default value of 'agg' is used.
 ipython_execlines:
-    A list of strings to be exec'd for each embedded Sphinx shell.  Typical
-    usage is to make certain packages always available.  If None, then
-    `['import numpy as np', 'from pylab import *']` is used. Set this to an
-    empty list if you wish to have no imports always available.
+    A list of strings to be exec'd for the embedded Sphinx shell. Typical
+    usage is to make certain packages always available. Set this to an empty
+    list if you wish to have no imports always available. If specified in
+    conf.py as `None` or not specified in conf.py at all, then the default
+    value of ['import numpy as np', 'from pylab import *'] is used.
 
 As an example, to use the IPython directive when `matplotlib` is not available,
 one sets the backend to `None`::
@@ -256,7 +256,7 @@ class EmbeddedSphinxShell(object):
         self.cout = StringIO()
 
         if exec_lines is None:
-            exec_lines = ['import numpy as np', 'from pylab import *']
+            exec_lines = []
 
         # Create config object for IPython
         config = Config()
@@ -679,6 +679,14 @@ class IPythonDirective(Directive):
         mplbackend = config.ipython_mplbackend
         exec_lines = config.ipython_execlines
 
+        # Handle None uniformly, whether specified in conf.py as `None` or
+        # omitted entirely from conf.py.
+
+        if mplbackend is None:
+            mplbackend = 'agg'
+        if exec_lines is None:
+            exec_lines = ['import numpy as np', 'from pylab import *']
+
         return (savefig_dir, source_dir, rgxin, rgxout,
                 promptin, promptout, mplbackend, exec_lines)
 
@@ -689,7 +697,7 @@ class IPythonDirective(Directive):
 
         if self.shell is None:
 
-            if mplbackend:
+            if mplbackend and mplbackend is not 'none':
                 import matplotlib
                 # Repeated calls to use() will not hurt us since `mplbackend`
                 # is the same each time.
@@ -791,7 +799,7 @@ def setup(app):
                          re.compile('Out\[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_promptin', 'In [%d]:', 'env')
     app.add_config_value('ipython_promptout', 'Out[%d]:', 'env')
-    app.add_config_value('ipython_mplbackend', 'agg', 'env')
+    app.add_config_value('ipython_mplbackend', None, 'env')
     app.add_config_value('ipython_execlines', None, 'env')
 
 # Simple smoke test, needs to be converted to a proper automatic test.
