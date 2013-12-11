@@ -436,11 +436,14 @@ class HistoryManager(HistoryAccessor):
 
     # The number of the current session in the history database
     session_number = Integer()
-    # Should we log output to the database? (default no)
-    db_log_output = Bool(False, config=True)
-    # Write to database every x commands (higher values save disk access & power)
-    #  Values of 1 or less effectively disable caching. 
-    db_cache_size = Integer(0, config=True)
+    
+    db_log_output = Bool(False, config=True,
+        help="Should the history database include output? (default: no)"
+    )
+    db_cache_size = Integer(0, config=True,
+        help="Write to database every x commands (higher values save disk access & power).\n"
+        "Values of 1 or less effectively disable caching."
+    )
     # The input and output caches
     db_input_cache = List()
     db_output_cache = List()
