@@ -21,23 +21,24 @@ Usage
 
    In [2]: %version_information
    Out[2]:
-   Software versions
-   Python 2.7.3 (default, Sep 26 2013, 20:08:41) [GCC 4.6.3]
-   IPython 2.0.0-dev
-   OS posix [linux2]
+   # Software versions
+   # -----------------
+   # Wed Dec 11 07:17:22 2013 CST
+   # Python: 2.7.3 (default, Sep 26 2013, 20:08:41) [GCC 4.6.3]
+   # IPython: 2.0.0-dev
+   # OS: posix [linux2]
 
-   Mon Dec 09 10:21:40 2013 CST
 
    In [3]: %version_information sphinx, jinja2
    Out[3]:
-   Software versions
-   Python 2.7.3 (default, Sep 26 2013, 20:08:41) [GCC 4.6.3]
-   IPython 2.0.0-dev
-   OS posix [linux2]
-   sphinx 1.2b3
-   jinja2 2.7.1
-
-   Mon Dec 09 10:21:52 2013 CST
+   # Software versions
+   # -----------------
+   # Wed Dec 11 07:17:29 2013 CST
+   # Python: 2.7.3 (default, Sep 26 2013, 20:08:41) [GCC 4.6.3]
+   # IPython: 2.0.0-dev
+   # OS: posix [linux2]
+   sphinx==1.2b3
+   jinja2==2.7.1
 
 .. note:: ``%version_information`` expects to find the module version in
    ``<module>.__version__``.
