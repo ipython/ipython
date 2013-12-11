@@ -57,7 +57,10 @@ class ExtensionMagics(Magics):
 
     @line_magic
     def load_ext(self, module_str):
-        """Load an IPython extension by its module name."""
+        """Load an IPython extension by its module name.
+
+        Use ``%lsext`` to list Loaded, Registered, and IPYTHONDIR extensions.
+        """
         if not module_str:
             raise UsageError('Missing module name.')
         res = self.shell.extension_manager.load_extension(module_str)
@@ -93,7 +96,7 @@ class ExtensionMagics(Magics):
         self.shell.extension_manager.reload_extension(module_str)
 
     @line_magic
-    def list_extensions(self, _):
-        """List extensions specifying ``ipython_extensions`` ``entry_points``
+    def lsext(self, _):
+        """List Loaded, Registered, and IPYTHONDIR extensions
         """
         self.shell.extension_manager.print_extensions()
