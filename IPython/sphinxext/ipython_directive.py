@@ -43,8 +43,12 @@ ipython_promptout:
 ipython_mplbackend:
     The string which specifies if the embedded Sphinx shell should import
     Matplotlib and set the backend. The value specifies a backend that is
-    passed to `matplotlib.use()`. If specified in conf.py as `None` or not
-    specified in conf.py at all, then the default value of 'agg' is used.
+    passed to `matplotlib.use()` before any lines in `ipython_execlines` are
+    executed. If specified in conf.py as `None` or not specified in conf.py at
+    all, then no call to `matplotlib.use()` is made. Then, matplotlib is loaded
+    only if specified in `ipython_execlines` or if the @savefig pseudo
+    decorator is used. In the latter case, matplotlib is imported and its
+    default backend is used.
 ipython_execlines:
     A list of strings to be exec'd for the embedded Sphinx shell. Typical
     usage is to make certain packages always available. Set this to an empty
@@ -696,8 +700,7 @@ class IPythonDirective(Directive):
          promptout, mplbackend, exec_lines) = self.get_config_options()
 
         if self.shell is None:
-
-            if mplbackend and mplbackend is not 'none':
+            if mplbackend:
                 import matplotlib
                 # Repeated calls to use() will not hurt us since `mplbackend`
                 # is the same each time.
