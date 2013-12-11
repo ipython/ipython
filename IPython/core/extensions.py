@@ -215,31 +215,51 @@ class ExtensionManager(Configurable):
     def print_extensions(self):
         """Print a list of Loaded, Registered, and IPYTHONDIR extensions
 
-        Loaded extensions are already loaded in the IPython config.
-
-        'Registered' extensions define  ``ipython_extension`` ``entry_points``
-        in their ``setup.py`` files.
-
-        IPYTHONDIR extensions must contain a function named
-        ``load_ipython_extension``.
+        * 'Loaded' extensions are already loaded in the IPython config.
+        * 'Registered' extensions define  ``ipython_extension``
+          ``entry_points`` in their ``setup.py`` files.
+        * IPYTHONDIR extensions are located in IPYTHONDIR,
+          and must contain a function named ``load_ipython_extension``.
         """
         import pkgutil
-        import glob
+        from collections import namedtuple
+        _Extension = namedtuple('Extension', ('name', 'path'))
+        class Extension(_Extension):
+            def _repr_pretty_(self):
+                return u' %s - %r' % (self.name, self.path)
 
-        print("Loaded:")
-        for modulestr, mod in self.loaded.items():
-            path_ = mod.__file__
-            print(' %s -- %r' % (modulestr, mod.__file__))
-        print("")
+        loaded = [Extension(name, mod.__file__)
+                  for name, mod in self.loaded.items()]
+        registered = []
 
-        print("Available (Registered):")
         for ext in ExtensionManager.list_available_extensions():
             path_ = pkgutil.find_loader(ext.module_name).filename
-            print(' %s -- %r' % (ext.name, path_))
-        print("")
+            registered.append(Extension(ext.name, path_))
 
-        print("Available (IPYTHONDIR):")
-        for path_ in glob.glob(
-            os.path.join(self.ipython_extension_dir, '*')):
-            print(' %r' % path_)
+        return ExtensionDisplay(loaded, registered,
+                                self.ipython_extension_dir)
 
+
+class ExtensionDisplay(object):
+    def __init__(self, loaded, registered, ipython_extension_dir):
+        self.loaded = loaded
+        self.registered = registered
+        self.ipython_extension_dir = ipython_extension_dir
+
+    def _repr_pretty_(self, p, cycle):
+        def __repr_pretty(self):
+            yield "Loaded:\n"
+            for ext in self.loaded:
+                yield ext._repr_pretty_()
+                yield '\n'
+            yield "\nRegistered:\n"
+            for ext in self.registered:
+                yield ext._repr_pretty_()
+                yield '\n'
+            yield "\nIPYTHONDIR:\n"
+
+            import glob
+            for path_ in glob.glob(
+                os.path.join(self.ipython_extension_dir, '*')):
+                yield u' %r\n' % path_
+        p.text(u''.join(__repr_pretty(self)))

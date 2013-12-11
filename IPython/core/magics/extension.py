@@ -113,4 +113,4 @@ class ExtensionMagics(Magics):
         ``sys.path`` + IPYTHONDIR/extensions for modules with
         ``load_ipython_extension`` functions.
         """
-        self.shell.extension_manager.print_extensions()
+        return self.shell.extension_manager.print_extensions()
