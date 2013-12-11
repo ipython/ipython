@@ -714,7 +714,7 @@ casper.notebook_test(function () {
     });
 
     // Test selection widget /////////////////////////////////////////////////
-    var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-button'
+    var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-btn'
     var multibtn_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group[data-toggle="buttons-radio"]'
     var radio_selector = '.widget-area .widget-subarea .widget-hbox .vbox'
     var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox'
@@ -734,12 +734,10 @@ casper.notebook_test(function () {
 
             this.test.assert(multibtn_state == state, 'Multibutton correct state (' + state + '), ' + test_mssage);
             this.test.assert(radio_state == state, 'Radio correct state (' + state + '), ' + test_mssage);
-            this.test.assert(list_state == state, 'ListBox correct state (' + state + '), ' + test_mssage);
-            this.test.assert(combo_state == state, 'ComboBox correct state (' + state + '), ' + test_mssage);
+            this.test.assert(list_state == state, 'Listbox correct state (' + state + '), ' + test_mssage);
+            this.test.assert(combo_state == state, 'Combobox correct state (' + state + '), ' + test_mssage);
         }
     }
-
-    
 
     selection_index = this.append_cell(
         'selection = widgets.SelectionWidget(values=["' + selection_values + '"[i] for i in range(4)])\n' +
@@ -752,8 +750,21 @@ casper.notebook_test(function () {
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Create selection cell executed with correct output. (1)');
 
-        this.test.assert(,
-            '');
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea'),
+            'Widget subarea exists.');
+
+        // this.test.assert(this.cell_element_exists(index, combo_selector),
+        //     'Widget combobox exists.');
+
+        this.test.assert(this.cell_element_exists(index, multibtn_selector),
+            'Widget multibutton exists.');
+
+        this.test.assert(this.cell_element_exists(index, radio_selector),
+            'Widget radio buttons exists.');
+
+        this.test.assert(this.cell_element_exists(index, list_selector),
+            'Widget list exists.');
     });
 
 });
