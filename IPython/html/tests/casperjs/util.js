@@ -93,6 +93,88 @@ casper.get_cells_length = function () {
     return result;
 };
 
+// Set the text content of a cell.
+casper.set_cell_text = function(index, text){
+    this.evaluate(function (index, text) {
+        var cell = IPython.notebook.get_cell(index);
+        cell.set_text(text);
+    }, index, text);        
+};
+
+// Inserts a cell at the bottom of the notebook
+// Returns the new cell's index.
+casper.insert_cell_at_bottom = function(cell_type){
+    if (cell_type===undefined) {
+        cell_type = 'code';
+    }
+
+    return this.evaluate(function (cell_type) {
+        var cell = IPython.notebook.insert_cell_at_bottom(cell_type);
+        return IPython.notebook.find_cell_index(cell);
+    }, cell_type);        
+};
+
+// Insert a cell at the bottom of the notebook and set the cells text.
+// Returns the new cell's index.
+casper.append_cell = function(text, cell_type) { 
+    var index = this.insert_cell_at_bottom(cell_type);
+    if (text !== undefined) {
+        this.set_cell_text(index, text);
+    }
+    return index;
+};
+
+// Asynchronously executes a cell by index.
+// Returns the cell's index.
+casper.execute_cell = function(index){
+    var that = this;
+    this.then(function(){
+        that.evaluate(function (index) {
+            var cell = IPython.notebook.get_cell(index);
+            cell.execute();
+        }, index);            
+    });
+    return index;
+};
+
+// Synchronously executes a cell by index.
+// Optionally accepts a then_callback parameter.  then_callback will get called
+// when the cell  has finished executing.
+// Returns the cell's index.
+casper.execute_cell_then = function(index, then_callback) {
+    var return_val = this.execute_cell(index);
+
+    this.wait_for_output(index);
+
+    var that = this;
+    this.then(function(){ 
+        if (then_callback!==undefined) {
+            then_callback.apply(that, [index]);
+        }
+    });        
+
+    return return_val;
+};
+
+// Utility function that allows us to easily check if an element exists 
+// within a cell.  Uses JQuery selector to look for the element.
+casper.cell_element_exists = function(index, selector){
+    return casper.evaluate(function (index, selector) {
+        var $cell = IPython.notebook.get_cell(index).element;
+        return $cell.find(selector).length > 0;
+    }, index, selector);
+};
+
+// Utility function that allows us to execute a jQuery function on an 
+// element within a cell.
+casper.cell_element_function = function(index, selector, function_name, function_args){
+    return casper.evaluate(function (index, selector, function_name, function_args) {
+        var $cell = IPython.notebook.get_cell(index).element;
+        var $el = $cell.find(selector);
+        return $el[function_name].apply($el, function_args);
+    }, index, selector, function_name, function_args);
+};
+
 // Wrap a notebook test to reduce boilerplate.
 casper.notebook_test = function(test) {
     this.open_new_notebook();
