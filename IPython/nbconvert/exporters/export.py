@@ -22,6 +22,13 @@ from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import string_types
 
 from .exporter import Exporter
+from .templateexporter import TemplateExporter
+from .html import HTMLExporter
+from .slides import SlidesExporter
+from .latex import LatexExporter
+from .markdown import MarkdownExporter
+from .python import PythonExporter
+from .rst import RSTExporter
 
 #-----------------------------------------------------------------------------
 # Classes
