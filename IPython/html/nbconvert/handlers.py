@@ -1,9 +1,8 @@
-import json
 import os
 
 from tornado import web
 
-from ..base.handlers import IPythonHandler, json_errors
+from ..base.handlers import IPythonHandler
 from IPython.nbformat.current import to_notebook_json
 from IPython.nbconvert.exporters.export import exporter_map
 from IPython.utils import tz
@@ -70,19 +69,6 @@ class NbconvertPostHandler(IPythonHandler):
         
         self.finish(output)
 
-class NbconvertRootHandler(IPythonHandler):
-    SUPPORTED_METHODS = ('GET',)
-
-    @web.authenticated
-    @json_errors
-    def get(self):
-        res = {}
-        for format, exporter in exporter_map.items():
-            res[format] = info = {}
-            info['output_mimetype'] = exporter.output_mimetype
-
-        self.finish(json.dumps(res))
-
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
@@ -96,5 +82,4 @@ default_handlers = [
     (r"/nbconvert/%s%s" % (_format_regex, _notebook_path_regex),
          NbconvertFileHandler),
     (r"/nbconvert/%s" % _format_regex, NbconvertPostHandler),
-    (r"/nbconvert", NbconvertRootHandler),
 ]
