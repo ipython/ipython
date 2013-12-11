@@ -275,7 +275,7 @@ if 'setuptools' in sys.modules:
         parallel = 'pyzmq>=2.1.11',
         qtconsole = ['pyzmq>=2.1.11', 'pygments'],
         zmq = 'pyzmq>=2.1.11',
-        doc = 'Sphinx>=0.3',
+        doc = ['Sphinx>=0.3', 'numpydoc'],
         test = 'nose>=0.10.1',
         notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
         nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
