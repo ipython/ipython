@@ -102,10 +102,9 @@ var IPython = (function (IPython) {
             window.location.assign(url);
         });
         
-        /* FIXME: download-as-py doesn't work right now
-         * We will need nbconvert hooked up to get this back
         
-        this.element.find('#download_py').click(function () {
+        this.element.find('.download').click(function () {
+            var format = $(this).data('format');
             var notebook_name = IPython.notebook.get_notebook_name();
             if (IPython.notebook.dirty) {
                 IPython.notebook.save_notebook({async : false});
@@ -114,12 +113,11 @@ var IPython = (function (IPython) {
                 that.baseProjectUrl(),
                 'api/notebooks',
                 that.notebookPath(),
-                notebook_name + '.ipynb?format=py&download=True'
+                notebook_name + '.ipynb?format=' + format + '&download=True'
             );
             window.location.assign(url);
         });
         
-        */
         
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
