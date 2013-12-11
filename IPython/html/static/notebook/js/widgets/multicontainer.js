@@ -22,9 +22,9 @@ define(["notebook/js/widget"], function(widget_manager){
         
         render: function(){
             var guid = 'accordion' + IPython.utils.uuid();
-            this.$el = $('<div />', {id: guid})
+            this.$el
+                .attr('id', guid)
                 .addClass('accordion');
-            this._ensureElement();
             this.containers = [];
         },
         
