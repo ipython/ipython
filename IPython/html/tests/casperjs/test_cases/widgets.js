@@ -713,5 +713,47 @@ casper.notebook_test(function () {
             'selected_index property updated with tab change.');
     });
 
+    // Test selection widget /////////////////////////////////////////////////
+    var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-button'
+    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group[data-toggle="buttons-radio"]'
+    var radio_selector = '.widget-area .widget-subarea .widget-hbox .vbox'
+    var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox'
+
+    var selection_index;
+    var selection_values = 'abcd';
+    var check_state = function(index, state, test_mssage){
+        if (0 <= index && index < selection_values.length) {
+            var multibtn_state = this.cell_element_function(selection_index, multibtn_selector + '.btn:nth-child(' + (index + 1) + ')', 'hasClass', ['active']);
+            var radio_state = this.cell_element_function(selection_index, radio_selector + '.radio:nth-child(' + (index + 1) + ')', 'val');
+            var list_val = this.cell_element_function(selection_index, list_selector, 'val');
+            var combo_val = this.cell_element_function(selection_index, combo_selector, 'html');
+            
+            var val = selection_values.charAt(index);
+            var list_state = (val == list_val);
+            var combo_state = (val == combo_val);
+
+            this.test.assert(multibtn_state == state, 'Multibutton correct state (' + state + '), ' + test_mssage);
+            this.test.assert(radio_state == state, 'Radio correct state (' + state + '), ' + test_mssage);
+            this.test.assert(list_state == state, 'ListBox correct state (' + state + '), ' + test_mssage);
+            this.test.assert(combo_state == state, 'ComboBox correct state (' + state + '), ' + test_mssage);
+        }
+    }
+
+    
+
+    selection_index = this.append_cell(
+        'selection = widgets.SelectionWidget(values=["' + selection_values + '"[i] for i in range(4)])\n' +
+        'display(selection)\n' +
+        'display(selection, view_name="ToggleButtonsView")\n' +
+        'display(selection, view_name="RadioButtonsView")\n' +
+        'display(selection, view_name="ListBoxView")\n' +
+        'print("Success")\n');
+    this.execute_cell_then(selection_index, function(index){
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Create selection cell executed with correct output. (1)');
+
+        this.test.assert(,
+            '');
+    });
 
 });
