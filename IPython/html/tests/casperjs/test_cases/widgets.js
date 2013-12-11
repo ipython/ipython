@@ -809,10 +809,15 @@ casper.notebook_test(function () {
 
     this.wait(500); // Wait for change to execute in kernel
 
-    index = this.append_cell('print(selection.value)');
+    index = this.append_cell(
+        'print(selection.value)\n' +
+        'selection.values.append("z")\n' +
+        'selection.send_state()\n' +
+        'selection.value = "z"');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == 'c\n', 
-            'Python updated with selected item.');
+
+        // Verify that selecting a combobox option updates all of the others.
+        this.test.assert(verify_selection(this, 4), 'Item added to selection widget.');
     });
 
 });
