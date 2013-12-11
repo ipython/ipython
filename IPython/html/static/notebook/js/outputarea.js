@@ -286,6 +286,30 @@ var IPython = (function (IPython) {
         return remapped;
     };
 
+
+    OutputArea.output_types = [
+        'application/javascript',
+        'text/html',
+        'text/latex',
+        'image/svg+xml',
+        'image/png',
+        'image/jpeg',
+        'text/plain'
+    ];
+
+    OutputArea.prototype.validate_output = function (json) {
+        // scrub invalid outputs
+        // TODO: right now everything is a string, but JSON really shouldn't be.
+        // nbformat 4 will fix that.
+        $.map(OutputArea.output_types, function(key){
+            if (json[key] !== undefined && typeof json[key] !== 'string') {
+                console.log("Invalid type for " + key, json[key]);
+                delete json[key];
+            }
+        });
+        return json;
+    };
+
     OutputArea.prototype.append_output = function (json) {
         this.expand();
         // Clear the output if clear is queued.
@@ -294,6 +318,9 @@ var IPython = (function (IPython) {
             this.clear_output(false);
             needs_height_reset = true;
         }
+        
+        // validate output data types
+        json = this.validate_output(json);
 
         if (json.output_type === 'pyout') {
             this.append_pyout(json);
