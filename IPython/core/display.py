@@ -340,7 +340,7 @@ class TextDisplayObject(DisplayObject):
     """Validate that display data is text"""
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, string_types):
-            raise TypeError("%s xpects text, not %r" % (self.__class__.__name__, self.data))
+            raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
 
 class Pretty(TextDisplayObject):
 
