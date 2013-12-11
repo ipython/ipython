@@ -232,6 +232,8 @@ texinfo_documents = [
    1),
 ]
 
+modindex_common_prefix = ['IPython.']
+
 
 # Cleanup
 # -------
