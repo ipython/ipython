@@ -721,22 +721,32 @@ casper.notebook_test(function () {
 
     var selection_index;
     var selection_values = 'abcd';
-    var check_state = function(index, state, test_mssage){
+    var check_state = function(context, index, state){
         if (0 <= index && index < selection_values.length) {
-            var multibtn_state = this.cell_element_function(selection_index, multibtn_selector + '.btn:nth-child(' + (index + 1) + ')', 'hasClass', ['active']);
-            var radio_state = this.cell_element_function(selection_index, radio_selector + '.radio:nth-child(' + (index + 1) + ')', 'val');
-            var list_val = this.cell_element_function(selection_index, list_selector, 'val');
-            var combo_val = this.cell_element_function(selection_index, combo_selector, 'html');
+            var multibtn_state = context.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(' + (index + 1) + ')', 'hasClass', ['active']);
+            var radio_state = context.cell_element_function(selection_index, radio_selector + ' .radio:nth-child(' + (index + 1) + ') input', 'prop', ['checked']);
+            var list_val = context.cell_element_function(selection_index, list_selector, 'val');
+            var combo_val = context.cell_element_function(selection_index, combo_selector, 'html');
             
             var val = selection_values.charAt(index);
             var list_state = (val == list_val);
             var combo_state = (val == combo_val);
 
-            this.test.assert(multibtn_state == state, 'Multibutton correct state (' + state + '), ' + test_mssage);
-            this.test.assert(radio_state == state, 'Radio correct state (' + state + '), ' + test_mssage);
-            this.test.assert(list_state == state, 'Listbox correct state (' + state + '), ' + test_mssage);
-            this.test.assert(combo_state == state, 'Combobox correct state (' + state + '), ' + test_mssage);
+            return multibtn_state == state &&
+                radio_state == state &&
+                list_state == state &&
+                combo_state == state;
         }
+        return true;
+    }
+
+    var verify_selection = function(context, index){
+        for (var i = 0; i < selection_values.length; i++) {
+            if (!check_state(context, i, i==index)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     selection_index = this.append_cell(
@@ -748,14 +758,14 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(selection_index, function(index){
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 
-            'Create selection cell executed with correct output. (1)');
+            'Create selection cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        // this.test.assert(this.cell_element_exists(index, combo_selector),
-        //     'Widget combobox exists.');
+        this.test.assert(this.cell_element_exists(index, combo_selector),
+             'Widget combobox exists.');
 
         this.test.assert(this.cell_element_exists(index, multibtn_selector),
             'Widget multibutton exists.');
@@ -765,6 +775,44 @@ casper.notebook_test(function () {
 
         this.test.assert(this.cell_element_exists(index, list_selector),
             'Widget list exists.');
+
+        // Verify that no items are selected.
+        this.test.assert(verify_selection(this, -1), 'No items selected.');
+    });
+
+    index = this.append_cell(
+        'selection.value = "a"\n' +
+        'print("Success")\n');
+    this.execute_cell_then(index, function(index){
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Python select item executed with correct output.');
+
+        // Verify that the first item is selected.
+        this.test.assert(verify_selection(this, 0), 'Python selected');
+
+        // Verify that selecting a radio button updates all of the others.
+        this.cell_element_function(selection_index, radio_selector + ' .radio:nth-child(2) input', 'click');
+        this.test.assert(verify_selection(this, 1), 'Radio button selection updated view states correctly.');
+
+        // Verify that selecting a list option updates all of the others.
+        this.cell_element_function(selection_index, list_selector + ' option:nth-child(3)', 'click');
+        this.test.assert(verify_selection(this, 2), 'List selection updated view states correctly.');
+
+        // Verify that selecting a multibutton option updates all of the others.
+        this.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(4)', 'click');
+        this.test.assert(verify_selection(this, 3), 'Multibutton selection updated view states correctly.');
+
+        // Verify that selecting a combobox option updates all of the others.
+        this.cell_element_function(selection_index, '.widget-area .widget-subarea .widget-hbox-single .btn-group ul.dropdown-menu li:nth-child(3) a', 'click');
+        this.test.assert(verify_selection(this, 2), 'Combobox selection updated view states correctly.');
+    });
+
+    this.wait(500); // Wait for change to execute in kernel
+
+    index = this.append_cell('print(selection.value)');
+    this.execute_cell_then(index, function(index){
+        this.test.assert(this.get_output_cell(index).text == 'c\n', 
+            'Python updated with selected item.');
     });
 
 });
