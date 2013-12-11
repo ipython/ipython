@@ -98,5 +98,19 @@ class ExtensionMagics(Magics):
     @line_magic
     def lsext(self, _):
         """List Loaded, Registered, and IPYTHONDIR extensions
+
+        * 'Loaded' extensions are already loaded in the IPython config.
+        * 'Registered' extensions define  ``ipython_extension``
+          ``entry_points`` in their ``setup.py`` files.
+        * IPYTHONDIR extensions are located in IPYTHONDIR,
+          and must contain a function named ``load_ipython_extension``.
+
+        Any Python module on ``sys.path`` with a ``load_ipython_extension``
+        function may be an IPython extension.
+
+        If the extension is not listed here, it may very well be
+        still ``%load_ext``-able. You might consider searching
+        ``sys.path`` + IPYTHONDIR/extensions for modules with
+        ``load_ipython_extension`` functions.
         """
         self.shell.extension_manager.print_extensions()

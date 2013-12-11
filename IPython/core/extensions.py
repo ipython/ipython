@@ -213,8 +213,15 @@ class ExtensionManager(Configurable):
         return pkg_resources.iter_entry_points(group='ipython_extensions')
 
     def print_extensions(self):
-        """Print the list of IPython extensions which define
-        ``ipython_extension`` ``entry_points``, and their source locations
+        """Print a list of Loaded, Registered, and IPYTHONDIR extensions
+
+        Loaded extensions are already loaded in the IPython config.
+
+        'Registered' extensions define  ``ipython_extension`` ``entry_points``
+        in their ``setup.py`` files.
+
+        IPYTHONDIR extensions must contain a function named
+        ``load_ipython_extension``.
         """
         import pkgutil
         import glob
@@ -236,9 +243,3 @@ class ExtensionManager(Configurable):
             os.path.join(self.ipython_extension_dir, '*')):
             print(' %r' % path_)
 
-        # .. note: If the extension is not listed here, it may very well be
-        #    still %load_ext-able. Any Python module with a
-        #    load_ipython_extension function may be an IPython extension.
-        #    You might consider adding a ipython_extension entrypoint
-        #    in the extension; or searching sys.path with something like
-        #    grin --sys-path load_ipython_extension
