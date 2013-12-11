@@ -225,6 +225,7 @@ class SList(list):
         """ sort by specified fields (see fields())
 
         Example::
+
             a.sort(1, nums = True)
 
         Sorts a by second field, in numerical order (so that 21 > 3)
@@ -310,6 +311,7 @@ def list_strings(arg):
     as input.
 
     :Examples:
+    ::
 
         In [7]: list_strings('A single string')
         Out[7]: ['A single string']
@@ -329,6 +331,7 @@ def marquee(txt='',width=78,mark='*'):
     """Return the input string centered in a 'marquee'.
 
     :Examples:
+    ::
 
         In [16]: marquee('A test',40)
         Out[16]: '**************** A test ****************'
@@ -499,13 +502,14 @@ class EvalFormatter(Formatter):
 
     Examples
     --------
-    
-    In  [1]: f = EvalFormatter()
-    In  [2]: f.format('{n//4}', n=8)
-    Out [2]: '2'
-    
-    In  [3]: f.format("{greeting[slice(2,4)]}", greeting="Hello")
-    Out [3]: 'll'
+    ::
+
+        In [1]: f = EvalFormatter()
+        In [2]: f.format('{n//4}', n=8)
+        Out[2]: '2'
+
+        In [3]: f.format("{greeting[slice(2,4)]}", greeting="Hello")
+        Out[3]: 'll'
     """
     def get_field(self, name, args, kwargs):
         v = eval(name, kwargs)
@@ -524,16 +528,17 @@ class FullEvalFormatter(Formatter):
     
     Examples
     --------
-    
-    In [1]: f = FullEvalFormatter()
-    In [2]: f.format('{n//4}', n=8)
-    Out[2]: u'2'
-    
-    In [3]: f.format('{list(range(5))[2:4]}')
-    Out[3]: u'[2, 3]'
+    ::
 
-    In [4]: f.format('{3*2}')
-    Out[4]: u'6'
+        In [1]: f = FullEvalFormatter()
+        In [2]: f.format('{n//4}', n=8)
+        Out[2]: u'2'
+
+        In [3]: f.format('{list(range(5))[2:4]}')
+        Out[3]: u'[2, 3]'
+
+        In [4]: f.format('{3*2}')
+        Out[4]: u'6'
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
@@ -578,15 +583,17 @@ class DollarFormatter(FullEvalFormatter):
 
     Examples
     --------
-    In [1]: f = DollarFormatter()
-    In [2]: f.format('{n//4}', n=8)
-    Out[2]: u'2'
-    
-    In [3]: f.format('23 * 76 is $result', result=23*76)
-    Out[3]: u'23 * 76 is 1748'
-    
-    In [4]: f.format('$a or {b}', a=1, b=2)
-    Out[4]: u'1 or 2'
+    ::
+
+        In [1]: f = DollarFormatter()
+        In [2]: f.format('{n//4}', n=8)
+        Out[2]: u'2'
+
+        In [3]: f.format('23 * 76 is $result', result=23*76)
+        Out[3]: u'23 * 76 is 1748'
+
+        In [4]: f.format('$a or {b}', a=1, b=2)
+        Out[4]: u'1 or 2'
     """
     _dollar_pattern = re.compile("(.*?)\$(\$?[\w\.]+)")
     def parse(self, fmt_string):
@@ -649,7 +656,7 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     Parameters
     ----------
 
-    items :
+    items
         list of strings to columize
     empty : (default None)
         default value to fill list if needed
@@ -661,39 +668,41 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     Returns
     -------
 
-    Returns a tuple of (strings_matrix, dict_info)
-
-    strings_matrix :
+    strings_matrix
 
         nested list of string, the outer most list contains as many list as
         rows, the innermost lists have each as many element as colums. If the
         total number of elements in `items` does not equal the product of
         rows*columns, the last element of some lists are filled with `None`.
 
-    dict_info :
+    dict_info
         some info to make columnize easier:
 
-        columns_numbers : number of columns
-        rows_numbers    : number of rows
-        columns_width   : list of with of each columns
-        optimal_separator_width : best separator width between columns
+        columns_numbers
+          number of columns
+        rows_numbers
+          number of rows
+        columns_width
+          list of with of each columns
+        optimal_separator_width
+          best separator width between columns
 
     Examples
     --------
+    ::
 
-    In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
-       ...: compute_item_matrix(l,displaywidth=12)
-    Out[1]:
-        ([['aaa', 'f', 'k'],
-        ['b', 'g', 'l'],
-        ['cc', 'h', None],
-        ['d', 'i', None],
-        ['eeeee', 'j', None]],
-        {'columns_numbers': 3,
-        'columns_width': [5, 1, 1],
-        'optimal_separator_width': 2,
-        'rows_numbers': 5})
-
+        In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
+           ...: compute_item_matrix(l,displaywidth=12)
+        Out[1]:
+            ([['aaa', 'f', 'k'],
+            ['b', 'g', 'l'],
+            ['cc', 'h', None],
+            ['d', 'i', None],
+            ['eeeee', 'j', None]],
+            {'columns_numbers': 3,
+            'columns_width': [5, 1, 1],
+            'optimal_separator_width': 2,
+            'rows_numbers': 5})
     """
     info = _find_optimal(list(map(len, items)), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
