@@ -220,7 +220,7 @@ class ExtensionManager(Configurable):
         import glob
 
         print("Loaded:")
-        for modulestr, mod in self.loaded.iteritems():
+        for modulestr, mod in self.loaded.items():
             path_ = mod.__file__
             print(' %s -- %r' % (modulestr, mod.__file__))
         print("")
