@@ -233,7 +233,7 @@ class ExtensionManager(Configurable):
 
         print("Available (IPYTHONDIR):")
         for path_ in glob.glob(
-            os.path.join(self.ipython_extension_dir, '*.py*')):
+            os.path.join(self.ipython_extension_dir, '*')):
             print(' %r' % path_)
 
         # .. note: If the extension is not listed here, it may very well be
