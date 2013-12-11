@@ -276,31 +276,15 @@ var IPython = (function (IPython) {
         "json" : "application/json",
         "javascript" : "application/javascript",
     };
-
-    OutputArea.prototype._safe_set_mime = function (src, dest, srckey, destkey) {
-        destkey = destkey || srckey;
-        
-        var value = src[srckey];
-        if (value !== undefined) {
-            // For now, everything is a string,
-            // but JSON should really not be double-serialized.
-            if (typeof value !== 'string') {
-                console.log("Invalid type for " + destkey, value);
-            } else {
-                dest[destkey] = value;
-            }
-        }
-    };
-
+    
     OutputArea.prototype.rename_keys = function (data, key_map) {
         var remapped = {};
         for (var key in data) {
             var new_key = key_map[key] || key;
-            this._safe_set_mime(data, remapped, key, new_key);
+            remapped[new_key] = data[key];
         }
         return remapped;
     };
-    
 
     OutputArea.prototype.append_output = function (json) {
         this.expand();
