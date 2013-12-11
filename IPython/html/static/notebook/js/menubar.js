@@ -83,11 +83,7 @@ var IPython = (function (IPython) {
             notebook_name + '.ipynb'
         ) + "?download=" + download.toString();
 
-        if (download) {
-            window.location.assign(url);
-        } else {
-            window.open(url);
-        }
+        window.open(url);
     }
 
     MenuBar.prototype.bind_events = function () {
