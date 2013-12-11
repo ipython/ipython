@@ -160,14 +160,16 @@ class VersionInformation(Magics):
 
 
     def _repr_pretty_(self, pp, cycle):
+        def __repr_pretty(self):
+            yield ("# Software versions\n"
+                   "# -----------------\n")
+            yield "# %s\n" % time.strftime('%a %b %d %H:%M:%S %Y %Z')
+            for name, version in self.packages[:3]:
+                yield u"# %s: %s\n" % (name, version)
+            for name, version in self.packages[3:]:
+                yield u"%s==%s\n" % (name, version)
 
-        text = "Software versions\n"
-        for name, version in self.packages:
-            text += "%s %s\n" % (name, version)
-
-        text += "\n%s" % time.strftime('%a %b %d %H:%M:%S %Y %Z')
-
-        pp.text(text)
+        pp.text(u''.join(__repr_pretty(self)))
 
 
 def load_ipython_extension(ipython):
