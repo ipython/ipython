@@ -279,7 +279,16 @@ if 'setuptools' in sys.modules:
             'rmagic = IPython.extensions.rmagic [numpy, rmagic]',
             'storemagic = IPython.extensions.storemagic',
             'sympyprinting = IPython.extensions.sympyprinting [sympy]',
-        ]
+        ],
+        'ipython_exporters': [
+            'custom = IPython.nbconvert.exporters.templateexporter:TemplateExporter',
+            'html = IPython.nbconvert.exporters.html:HTMLExporter',
+            'slides = IPython.nbconvert.exporters.slides:SlidesExporter',
+            'latex = IPython.nbconvert.exporters.latex:LatexExporter',
+            'markdown = IPython.nbconvert.exporters.markdown:MarkdownExporter',
+            'python = IPython.nbconvert.exporters.python:PythonExporter',
+            'rst = IPython.nbconvert.exporters.rst:RSTExporter',
+        ],
     }
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.11',
