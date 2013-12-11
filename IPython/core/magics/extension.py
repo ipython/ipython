@@ -61,7 +61,7 @@ class ExtensionMagics(Magics):
         if not module_str:
             raise UsageError('Missing module name.')
         res = self.shell.extension_manager.load_extension(module_str)
-        
+
         if res == 'already loaded':
             print("The %s extension is already loaded. To reload it, use:" % module_str)
             print("  %reload_ext", module_str)
@@ -71,15 +71,15 @@ class ExtensionMagics(Magics):
     @line_magic
     def unload_ext(self, module_str):
         """Unload an IPython extension by its module name.
-        
+
         Not all extensions can be unloaded, only those which define an
         ``unload_ipython_extension`` function.
         """
         if not module_str:
             raise UsageError('Missing module name.')
-        
+
         res = self.shell.extension_manager.unload_extension(module_str)
-        
+
         if res == 'no unload function':
             print("The %s extension doesn't define how to unload it." % module_str)
         elif res == "not loaded":
@@ -91,3 +91,9 @@ class ExtensionMagics(Magics):
         if not module_str:
             raise UsageError('Missing module name.')
         self.shell.extension_manager.reload_extension(module_str)
+
+    @line_magic
+    def list_extensions(self, _):
+        """List extensions specifying ``ipython_extensions`` ``entry_points``
+        """
+        self.shell.extension_manager.print_extensions()
