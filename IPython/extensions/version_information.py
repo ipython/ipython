@@ -77,7 +77,6 @@ class VersionInformation(Magics):
 
         """
         self.time = time.strftime('%a %b %d %H:%M:%S %Y %Z')
-
         self.packages = [("Python", sys.version.replace("\n", "")),
                          ("IPython", IPython.__version__),
                          ("OS", "%s [%s]" % (os.name, sys.platform))]
@@ -112,7 +111,7 @@ class VersionInformation(Magics):
             yield "<tr><th>Software</th><th>Version</th></tr>"
             for name, version in self.packages:
                 _version = cgi.escape(version)
-                yield "<tr><td>%s</td><td>%s</td></tr>" % (name, _version)
+                yield u"<tr><td>%s</td><td>%s</td></tr>" % (name, _version)
             yield "<tr><td colspan='2'>%s</td></tr>" % self.time
             yield "</table>"
         return u''.join(__repr_html(self))
