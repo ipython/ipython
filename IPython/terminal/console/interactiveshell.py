@@ -277,6 +277,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             if mime in data and mime in self._imagemime:
                 self.handle_image(data, mime)
                 return
+        # if it was an image, we handled it by now and returned
+        if 'text/plain' in data:
+            print(data['text/plain'])
 
     def handle_image(self, data, mime):
         handler = getattr(
