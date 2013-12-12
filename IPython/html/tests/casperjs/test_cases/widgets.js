@@ -77,7 +77,6 @@ casper.notebook_test(function () {
         }
     });
 
-
     // Test bool widget ////////////////////////////////////////////////////////
     var bool_index = this.append_cell(
         'bool_widget = widgets.BoolWidget(description="Title", value=True)\n' +
@@ -882,4 +881,54 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea div span.MathJax_Preview'),
             'MathJax parsed the LaTeX successfully.');
     });
+
+    // Test throttling /////////////////////////////////////////////////////////
+    throttle_index = this.append_cell(
+        'import time\n' +
+        'textbox = widgets.StringWidget()\n' +
+        'display(textbox)\n'+
+        'textbox.add_class("my-throttle-textbox")\n' +
+        'def handle_change(name, old, new):\n' +
+        '    print(len(new))\n' +
+        '    time.sleep(0.5)\n' +
+        'textbox.on_trait_change(handle_change)\n' +
+        'print("Success")');
+    this.execute_cell_then(throttle_index, function(index){
+        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+            'Test throttling cell executed with correct output');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.widget-area .widget-subarea'),
+            'Widget subarea exists.');
+
+        this.test.assert(this.cell_element_exists(index, 
+            '.my-throttle-textbox'), 'Textbox exists.');
+
+        // Send 20 characters
+        this.sendKeys('.my-throttle-textbox', '....................');
+    });
+
+    this.wait(2000); // Wait for clicks to execute in kernel
+
+    this.then(function(){
+        var resume = true;
+        var i = 0;
+        while (resume) {
+            i++;
+            var output = this.get_output_cell(throttle_index, i);  
+            if (output === undefined || output === null) {
+                resume = false;
+                i--;
+            }
+        }
+
+        // Only 4 outputs should have printed, but because of timing, sometimes
+        // 5 outputs will print.  All we need to do is verify num outputs <= 5
+        // because that is much less than 20.
+        this.test.assert(i <= 5, 'Messages throttled.');
+
+        // We also need to verify that the last state sent was correct.
+        var last_state = this.get_output_cell(throttle_index, i).text;
+        this.test.assert(last_state == "20\n", "Last state sent when throttling.");
+    })
 });
