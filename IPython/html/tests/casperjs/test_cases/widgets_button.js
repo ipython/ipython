@@ -40,16 +40,4 @@ casper.notebook_test(function () {
         this.test.assert(this.get_output_cell(button_index, 1).text == 'Clicked\n', 
             'Button click event fires.');
     });
-
-    // Close the button widget asynchronisly.
-    index = this.append_cell('button.close()\n');
-    this.execute_cell(index);
-
-    this.wait(500); // Wait for the button to close.
-
-    this.then(function(){
-        this.test.assert(! this.cell_element_exists(button_index, 
-            '.widget-area .widget-subarea button'),
-            'Widget button doesn\'t exists.');
-    });
 });
