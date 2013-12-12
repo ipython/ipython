@@ -33,8 +33,8 @@ define(["notebook/js/widget"], function(widget_manager){
             var titles = this.model.get('_titles');
             for (var page_index in titles) {
 
-                var accordian = this.containers[page_index]
-                if (accordian != undefined) {
+                var accordian = this.containers[page_index];
+                if (accordian !== undefined) {
                     accordian
                         .find('.accordion-heading')
                         .find('.accordion-toggle')
@@ -95,7 +95,7 @@ define(["notebook/js/widget"], function(widget_manager){
             // open by default even though they don't have the `in` class
             // attached to them.  For some reason a delay is required.  
             // TODO: Better fix.
-            setTimeout(function(){that.update()}, 500);
+            setTimeout(function(){ that.update(); }, 500);
         },
     });
 
@@ -121,8 +121,8 @@ define(["notebook/js/widget"], function(widget_manager){
             // Set tab titles
             var titles = this.model.get('_titles');
             for (var page_index in titles) {
-                var tab_text = this.containers[page_index]
-                if (tab_text != undefined) {
+                var tab_text = this.containers[page_index];
+                if (tab_text !== undefined) {
                     tab_text.html(titles[page_index]);
                 }
             }
@@ -162,7 +162,7 @@ define(["notebook/js/widget"], function(widget_manager){
                 .append(view.$el)
                 .appendTo(this.$tab_contents);
 
-            if (index==0) {
+            if (index === 0) {
                 tab_text.tab('show');
             }
             this.update();

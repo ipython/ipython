@@ -102,7 +102,7 @@ define(["notebook/js/widget"], function(widget_manager){
             this.$textbox.prop('disabled', disabled);
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
@@ -156,7 +156,7 @@ define(["notebook/js/widget"], function(widget_manager){
             this.$textbox.prop('disabled', disabled);
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);

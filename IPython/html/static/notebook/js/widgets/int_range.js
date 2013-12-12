@@ -51,7 +51,7 @@ define(["notebook/js/widget"], function(widget_manager){
             var _keys = ['step', 'max', 'min', 'disabled'];
             for (var index in _keys) {
                 var key = _keys[index];
-                if (this.model.get(key) != undefined) {
+                if (this.model.get(key) !== undefined) {
                     this.$slider.slider("option", key, this.model.get(key));
                 }
             }
@@ -68,7 +68,7 @@ define(["notebook/js/widget"], function(widget_manager){
             var value = this.model.get('min');
             this.$slider.slider('option', 'value', value);
             this.$slider.slider('option', 'orientation', orientation);
-            var value = this.model.get('value');
+            value = this.model.get('value');
             this.$slider.slider('option', 'value', value);
 
             // Use the right CSS classes for vertical & horizontal sliders
@@ -96,7 +96,7 @@ define(["notebook/js/widget"], function(widget_manager){
             }
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
@@ -149,7 +149,7 @@ define(["notebook/js/widget"], function(widget_manager){
             }
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
@@ -169,7 +169,7 @@ define(["notebook/js/widget"], function(widget_manager){
             
             // Try to parse value as a float.
             var numericalValue = 0;
-            if (e.target.value != '') {
+            if (e.target.value !== '') {
                 numericalValue = parseInt(e.target.value);
             }
             
@@ -177,10 +177,10 @@ define(["notebook/js/widget"], function(widget_manager){
             if (isNaN(numericalValue)) {
                 e.target.value = this.model.get('value');
             } else if (!isNaN(numericalValue)) {
-                if (this.model.get('max') != undefined) {
+                if (this.model.get('max') !== undefined) {
                     numericalValue = Math.min(this.model.get('max'), numericalValue);
                 }
-                if (this.model.get('min') != undefined) {
+                if (this.model.get('min') !== undefined) {
                     numericalValue = Math.max(this.model.get('min'), numericalValue);
                 }
                 

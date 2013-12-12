@@ -87,7 +87,7 @@ define(["notebook/js/widget"], function(widget_manager) {
                 .appendTo(this.$window)
                 .mousedown(function(){
                     that.bring_to_front();
-                });;
+                });
             this.$close = $('<button />')
                 .addClass('close icon-remove')
                 .css('margin-left', '5px')
@@ -156,7 +156,7 @@ define(["notebook/js/widget"], function(widget_manager) {
             this.$window.resizable();
             this.$window.on('resize', function(){
                 that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
-            })
+            });
 
             this.$el_to_style = this.$body;
             this._shown_once = false;
@@ -173,7 +173,7 @@ define(["notebook/js/widget"], function(widget_manager) {
 
             this.$window.show();
             if (this.popped_out) {
-                this.$window.css("positon", "absolute")
+                this.$window.css("positon", "absolute");
                 this.$window.css("top", "0px");
                 this.$window.css("left", Math.max(0, (($('body').outerWidth() - this.$window.outerWidth()) / 2) + 
                     $(window).scrollLeft()) + "px");
@@ -192,7 +192,7 @@ define(["notebook/js/widget"], function(widget_manager) {
             max_zindex = Math.max(max_zindex, 2000);
 
             $widget_modals.each(function (index, el){
-                $el = $(el)
+                $el = $(el);
                 if (max_zindex == parseInt($el.css('z-index'))) {
                     $el.css('z-index', max_zindex - 1);
                 }
@@ -206,7 +206,7 @@ define(["notebook/js/widget"], function(widget_manager) {
             var description = this.model.get('description');
             description = description.replace(/ /g, '&nbsp;', 'm');
             description = description.replace(/\n/g, '<br>\n', 'm');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$title.html('&nbsp;'); // Preserve title height
             } else {
                 this.$title.html(description);
@@ -215,7 +215,7 @@ define(["notebook/js/widget"], function(widget_manager) {
             var button_text = this.model.get('button_text');
             button_text = button_text.replace(/ /g, '&nbsp;', 'm');
             button_text = button_text.replace(/\n/g, '<br>\n', 'm');
-            if (button_text.length == 0) {
+            if (button_text.length === 0) {
                 this.$show_button.html('&nbsp;'); // Preserve button height
             } else {
                 this.$show_button.html(button_text);

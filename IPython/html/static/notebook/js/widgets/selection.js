@@ -62,7 +62,7 @@ define(["notebook/js/widget"], function(widget_manager){
             var selected_item_text = this.model.get('value');
             selected_item_text = selected_item_text.replace(/ /g, '&nbsp;');
             selected_item_text = selected_item_text.replace(/\n/g, '<br>\n');
-            if (selected_item_text.length == 0) {
+            if (selected_item_text.length === 0) {
                 this.$droplabel.html('&nbsp;');
             } else {
                 this.$droplabel.html(selected_item_text);    
@@ -74,12 +74,8 @@ define(["notebook/js/widget"], function(widget_manager){
                 var that = this;
                 var item_button = $('<a href="#"/>')
                     .html(items[index])
-                    .on('click', function(e){
-                        that.model.set('value', $(e.target).html(), this);
-                        that.model.update_other_views(that);
-                    })
-                
-                this.$droplist.append($('<li />').append(item_button))
+                    .on('click', this.handle_click);
+                this.$droplist.append($('<li />').append(item_button));
             }
             
             if (this.model.get('disabled')) {
@@ -95,13 +91,19 @@ define(["notebook/js/widget"], function(widget_manager){
             }
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
                 this.$label.show();
             }
             return IPython.WidgetView.prototype.update.call(this);
+        },
+
+        // Handle when a value is clicked.
+        handle_click: function (e) {
+            this.model.set('value', $(e.target).html(), this);
+            this.model.update_other_views(this);
         },
         
     });
@@ -136,22 +138,18 @@ define(["notebook/js/widget"], function(widget_manager){
             var disabled = this.model.get('disabled');
             for (var index in items) {
                 var item_query = ' :input[value="' + items[index] + '"]';
-                if (this.$el.find(item_query).length == 0) {
+                if (this.$el.find(item_query).length === 0) {
                     var $label = $('<label />')
                         .addClass('radio')
                         .html(items[index])
                         .appendTo(this.$container);
                     
-                    var that = this;
                     $('<input />')
                         .attr('type', 'radio')
                         .addClass(this.model)
                         .val(items[index])
                         .prependTo($label)
-                        .on('click', function(e){
-                            that.model.set('value', $(e.target).val(), this);
-                            that.model.update_other_views(that);
-                        });
+                        .on('click', this.handle_click);
                 }
                 
                 var $item_element = this.$container.find(item_query);
@@ -180,7 +178,7 @@ define(["notebook/js/widget"], function(widget_manager){
             });
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
@@ -188,7 +186,12 @@ define(["notebook/js/widget"], function(widget_manager){
             }
             return IPython.WidgetView.prototype.update.call(this);
         },
-        
+
+        // Handle when a value is clicked.
+        handle_click: function (e) {
+            this.model.set('value', $(e.target).val(), this);
+            this.model.update_other_views(this);
+        },
     });
 
     widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
@@ -222,18 +225,13 @@ define(["notebook/js/widget"], function(widget_manager){
             var disabled = this.model.get('disabled');
             for (var index in items) {
                 var item_query = ' :contains("' + items[index] + '")';
-                if (this.$buttongroup.find(item_query).length == 0) {
-                    
-                    var that = this;
+                if (this.$buttongroup.find(item_query).length === 0) {
                     $('<button />')
                         .attr('type', 'button')
                         .addClass('btn')
                         .html(items[index])
                         .appendTo(this.$buttongroup)
-                        .on('click', function(e){
-                            that.model.set('value', $(e.target).html(), this);
-                            that.model.update_other_views(that);
-                        });
+                        .on('click', this.handle_click);
                 }
                 
                 var $item_element = this.$buttongroup.find(item_query);
@@ -262,13 +260,19 @@ define(["notebook/js/widget"], function(widget_manager){
             });
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
                 this.$label.show();
             }
             return IPython.WidgetView.prototype.update.call(this);
+        },
+
+        // Handle when a value is clicked.
+        handle_click: function (e) {
+            this.model.set('value', $(e.target).html(), this);
+            this.model.update_other_views(this);
         },
         
     });
@@ -302,17 +306,12 @@ define(["notebook/js/widget"], function(widget_manager){
             var items = this.model.get('values');
             for (var index in items) {
                 var item_query = ' :contains("' + items[index] + '")';
-                if (this.$listbox.find(item_query).length == 0) {
-                    
-                    var that = this;
+                if (this.$listbox.find(item_query).length === 0) {
                     $('<option />')
                         .html(items[index])
                         .attr('value', items[index])
                         .appendTo(this.$listbox)
-                        .on('click', function(e){
-                            that.model.set('value', $(e.target).html(), this);
-                            that.model.update_other_views(that);
-                        });
+                        .on('click', this.handle_click);
                 }
             }
 
@@ -340,13 +339,19 @@ define(["notebook/js/widget"], function(widget_manager){
             });
 
             var description = this.model.get('description');
-            if (description.length == 0) {
+            if (description.length === 0) {
                 this.$label.hide();
             } else {
                 this.$label.html(description);
                 this.$label.show();
             }
             return IPython.WidgetView.prototype.update.call(this);
+        },
+
+        // Handle when a value is clicked.
+        handle_click: function (e) {
+            this.model.set('value', $(e.target).html(), this);
+            this.model.update_other_views(this);
         },
         
     });
