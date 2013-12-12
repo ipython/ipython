@@ -748,6 +748,8 @@ var IPython = (function (IPython) {
         // disable any other raw_inputs, if they are left around
         $("div.output_subarea.raw_input_container").remove();
         
+        var input_type = content.password ? 'password' : 'text';
+        
         area.append(
             $("<div/>")
             .addClass("box-flex1 output_subarea raw_input_container")
@@ -759,7 +761,7 @@ var IPython = (function (IPython) {
             .append(
                 $("<input/>")
                 .addClass("raw_input")
-                .attr('type', 'text')
+                .attr('type', input_type)
                 .attr("size", 47)
                 .keydown(function (event, ui) {
                     // make sure we submit on enter,
@@ -788,10 +790,15 @@ var IPython = (function (IPython) {
         var theprompt = container.find("span.raw_input_prompt");
         var theinput = container.find("input.raw_input");
         var value = theinput.val();
+        var echo  = value;
+        // don't echo if it's a password
+        if (theinput.attr('type') == 'password') {
+            echo = '········';
+        }
         var content = {
             output_type : 'stream',
             name : 'stdout',
-            text : theprompt.text() + value + '\n'
+            text : theprompt.text() + echo + '\n'
         }
         // remove form container
         container.parent().remove();

@@ -6,6 +6,7 @@
 
 from __future__ import print_function
 
+import getpass
 import sys
 import time
 import traceback
@@ -333,7 +334,42 @@ class Kernel(Configurable):
                           parent=parent,
                           ident=self._topic('status'),
                           )
+    
+    def _forward_raw_input(self, ident, parent, allow_stdin):
+        """Replace raw_input. Note that is not sufficient to replace
+        raw_input in the user namespace.
+        """
         
+        if allow_stdin:
+            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+            input = lambda prompt='': eval(raw_input(prompt))
+            _getpass = lambda prompt='', stream=None: self._raw_input(
+                prompt, ident, parent, password=True
+            )
+        else:
+            _getpass = raw_input = input = lambda prompt='' : self._no_raw_input()
+            
+
+        if py3compat.PY3:
+            self._sys_raw_input = builtin_mod.input
+            builtin_mod.input = raw_input
+        else:
+            self._sys_raw_input = builtin_mod.raw_input
+            self._sys_eval_input = builtin_mod.input
+            builtin_mod.raw_input = raw_input
+            builtin_mod.input = input
+        self._save_getpass = getpass.getpass
+        getpass.getpass = _getpass
+
+    def _restore_raw_input(self):
+        # Restore raw_input
+        if py3compat.PY3:
+            builtin_mod.input = self._sys_raw_input
+        else:
+            builtin_mod.raw_input = self._sys_raw_input
+            builtin_mod.input = self._sys_eval_input
+        
+        getpass.getpass = self._save_getpass
 
     def execute_request(self, stream, ident, parent):
         """handle an execute_request"""
@@ -354,22 +390,7 @@ class Kernel(Configurable):
 
         shell = self.shell # we'll need this a lot here
 
-        # Replace raw_input. Note that is not sufficient to replace
-        # raw_input in the user namespace.
-        if content.get('allow_stdin', False):
-            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
-            input = lambda prompt='': eval(raw_input(prompt))
-        else:
-            raw_input = input = lambda prompt='' : self._no_raw_input()
-
-        if py3compat.PY3:
-            self._sys_raw_input = builtin_mod.input
-            builtin_mod.input = raw_input
-        else:
-            self._sys_raw_input = builtin_mod.raw_input
-            self._sys_eval_input = builtin_mod.input
-            builtin_mod.raw_input = raw_input
-            builtin_mod.input = input
+        self._forward_raw_input(ident, parent, content.get('allow_stdin', False))
 
         # Set the parent message of the display hook and out streams.
         shell.set_parent(parent)
@@ -398,12 +419,7 @@ class Kernel(Configurable):
         else:
             status = u'ok'
         finally:
-            # Restore raw_input.
-             if py3compat.PY3:
-                 builtin_mod.input = self._sys_raw_input
-             else:
-                 builtin_mod.raw_input = self._sys_raw_input
-                 builtin_mod.input = self._sys_eval_input
+            self._restore_raw_input()
 
         reply_content[u'status'] = status
 
@@ -727,8 +743,8 @@ class Kernel(Configurable):
         stdin."""
         raise StdinNotImplementedError("raw_input was called, but this "
                                        "frontend does not support stdin.") 
-        
-    def _raw_input(self, prompt, ident, parent):
+    
+    def _raw_input(self, prompt, ident, parent, password=False):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -743,7 +759,7 @@ class Kernel(Configurable):
                     raise
         
         # Send the input request.
-        content = json_clean(dict(prompt=prompt))
+        content = json_clean(dict(prompt=prompt, password=password))
         self.session.send(self.stdin_socket, u'input_request', content, parent,
                           ident=ident)
 
