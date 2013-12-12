@@ -15,6 +15,8 @@ from __future__ import print_function
 
 # Stdlib imports
 import subprocess
+import re
+import warnings
 from io import TextIOWrapper, BytesIO
 
 # IPython imports
@@ -30,6 +32,7 @@ class PandocMissing(ConversionException):
     """Exception raised when Pandoc is missing. """
     pass
 
+minimal_version = "1.12.1"
 
 def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     """Convert an input string in format `from` to format `to` via pandoc.
@@ -68,3 +71,21 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
     return out.rstrip('\n')
 
+
+pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
+def get_pandoc_version():
+    out = subprocess.check_output(['pandoc', '--version'], universal_newlines=True)
+    return pv_re.search(out).group(0)
+
+
+pandoc.version = get_pandoc_version()
+
+def check_pandoc_version():
+    return pandoc.version >= minimal_version
+
+if(not check_pandoc_version()):
+    warnings.warn( "You are using an old version of pandoc (%s)\n"%pandoc.version + 
+                   "Recommended version is %s.\nTry updating."%minimal_version + 
+                   "http://johnmacfarlane.net/pandoc/installing.html.\nContinuing with doubts...",
+                   RuntimeWarning, 
+                   stacklevel=2)

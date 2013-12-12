@@ -18,6 +18,7 @@ from __future__ import print_function
 # Stdlib imports
 import sys
 import subprocess
+import re
 
 from IPython.nbconvert.utils.pandoc import pandoc
 
@@ -50,9 +51,14 @@ def markdown2latex(source):
     return pandoc(source, 'markdown', 'latex')
 
 
-def markdown2html(source):
+pandoc_code_markup_re = re.compile(r'<pre class="(\w*)"><code>', re.S)
+def markdown2html(source, browser_highlight=False):
     """Convert a markdown string to HTML via pandoc"""
-    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+    if not browser_highlight:
+        return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+    else:
+        out = pandoc(source, 'markdown', 'html', extra_args=['--mathjax', '--no-highlight'])
+        return pandoc_code_markup_re.sub(r'<pre class="prettyprint lang-\1"><code>', out)
 
 def markdown2rst(source):
     """Convert a markdown string to LaTeX via pandoc.

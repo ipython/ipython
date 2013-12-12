@@ -21,6 +21,12 @@ from IPython.utils.warn import warn
 # Configurable for inline backend options
 #-----------------------------------------------------------------------------
 
+try:
+    from PIL import image
+    has_pil = True
+except:
+    has_pil = False
+
 # inherit from InlineBackendConfig for deprecation purposes
 class InlineBackendConfig(SingletonConfigurable):
     pass
@@ -53,7 +59,16 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
-    figure_format = CaselessStrEnum(['svg', 'png', 'retina'], default_value='png', config=True,
+    fmts = ['svg', 'png', 'retina']
+
+    if has_pil:
+        # If we have PIL using jpeg as inline image format can save some bytes.
+        fmts.append('jpg')
+        # Matplotlib's JPEG printer supports a quality option that can be tweaked.
+        quality = Int(default_value=90, config=True,
+                          help="Quality of compression [0-100], currently for lossy JPEG only.")
+
+    figure_format = CaselessStrEnum(fmts, default_value='png', config=True,
         help="The image format for figures with the inline backend.")
 
     def _figure_format_changed(self, name, old, new):
