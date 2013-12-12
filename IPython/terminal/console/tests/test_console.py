@@ -61,3 +61,40 @@ def test_help_output():
     """ipython console --help-all works"""
     tt.help_all_output_test('console')
 
+
+def test_display_text():
+    "Ensure display protocol plain/text key is supported"
+    # equivalent of:
+    #
+    #   x = %lsmagic
+    #   from IPython.display import display; display(x);
+
+    from IPython.external import pexpect
+    
+    args = ['console', '--colors=NoColor']
+    # FIXME: remove workaround for 2.6 support
+    if sys.version_info[:2] > (2,6):
+        args = ['-m', 'IPython'] + args
+        cmd = sys.executable
+    else:
+        cmd = 'ipython'
+    
+    try:
+        p = pexpect.spawn(cmd, args=args)
+    except IOError:
+        raise SkipTest("Couldn't find command %s" % cmd)
+    
+    # timeout after one minute
+    t = 60
+    idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
+    p.sendline('x = %lsmagic')
+    idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
+    p.sendline('from IPython.display import display; display(x);')
+    p.expect([r'Available line magics:', pexpect.EOF], timeout=t)
+
+    # send ctrl-D;ctrl-D to exit
+    p.sendeof()
+    p.sendeof()
+    p.expect([pexpect.EOF, pexpect.TIMEOUT], timeout=t)
+    if p.isalive():
+        p.terminate()
