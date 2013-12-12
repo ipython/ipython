@@ -38,5 +38,5 @@ del word after     Ctrl-Delete     Alt-Delete
 
 .. note::
 
-     These shorcuts are valid for US keyboards, so some shortcuts can change
+     These shortcuts are valid for US keyboards, so some shortcuts can change
      for non-US keyboards.
