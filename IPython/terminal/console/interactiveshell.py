@@ -263,8 +263,12 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     hook.finish_displayhook()
 
                 elif msg_type == 'display_data':
-                    self.handle_rich_data(sub_msg["content"]["data"])
-                    
+                    data = sub_msg["content"]["data"]
+                    handled = self.handle_rich_data(data)
+                    if not handled:
+                        # if it was an image, we handled it by now
+                        if 'text/plain' in data:
+                            print(data['text/plain'])
 
     _imagemime = {
         'image/png': 'png',
@@ -276,10 +280,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         for mime in self.mime_preference:
             if mime in data and mime in self._imagemime:
                 self.handle_image(data, mime)
-                return
-        # if it was an image, we handled it by now and returned
-        if 'text/plain' in data:
-            print(data['text/plain'])
+                return True
 
     def handle_image(self, data, mime):
         handler = getattr(
