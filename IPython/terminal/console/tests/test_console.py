@@ -13,14 +13,11 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import sys
-import time
 
-import nose.tools as nt
 from nose import SkipTest
 
 import IPython.testing.tools as tt
 from IPython.testing import decorators as dec
-from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Tests
