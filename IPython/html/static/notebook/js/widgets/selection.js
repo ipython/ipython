@@ -74,7 +74,7 @@ define(["notebook/js/widget"], function(widget_manager){
                 var that = this;
                 var item_button = $('<a href="#"/>')
                     .html(items[index])
-                    .on('click', this.handle_click);
+                    .on('click', $.proxy(this.handle_click, this));
                 this.$droplist.append($('<li />').append(item_button));
             }
             
@@ -149,7 +149,7 @@ define(["notebook/js/widget"], function(widget_manager){
                         .addClass(this.model)
                         .val(items[index])
                         .prependTo($label)
-                        .on('click', this.handle_click);
+                        .on('click', $.proxy(this.handle_click, this));
                 }
                 
                 var $item_element = this.$container.find(item_query);
@@ -231,7 +231,7 @@ define(["notebook/js/widget"], function(widget_manager){
                         .addClass('btn')
                         .html(items[index])
                         .appendTo(this.$buttongroup)
-                        .on('click', this.handle_click);
+                        .on('click', $.proxy(this.handle_click, this));
                 }
                 
                 var $item_element = this.$buttongroup.find(item_query);
@@ -311,7 +311,7 @@ define(["notebook/js/widget"], function(widget_manager){
                         .html(items[index])
                         .attr('value', items[index])
                         .appendTo(this.$listbox)
-                        .on('click', this.handle_click);
+                        .on('click', $.proxy(this.handle_click, this));
                 }
             }
 
