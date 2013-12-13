@@ -24,13 +24,64 @@ from IPython.utils.py3compat import cast_bytes
 
 from .exceptions import ConversionException
 
+
+#----------------------------------------------------------------------------
+# Preliminary checks.
+# Not finding Pandoc is not always fatal so only a warning is issued at the
+# module root level so that the import of this module is not fatal. 
+#----------------------------------------------------------------------------
+
+class PandocMissing(ConversionException):
+    """Exception raised when Pandoc is missing. """
+    def __init__(self, cmd, exc, *args, **kwargs):
+        super(PandocMissing, self).__init__( "The command '%s' returned an error: %s.\n" %(" ".join(cmd), exc) +
+                                             "Please check that pandoc is installed:\n" +
+                                             "http://johnmacfarlane.net/pandoc/installing.html" )
+
+def pandoc_available(failmode="return", warn=False):
+    """Is pandoc available. Only tries to call Pandoc
+    and inform you that it succeeded or failed. 
+    
+    Parameters
+    ----------
+     - failmode : string
+        either "return" or "raise". If "return" and pandoc
+        is not available, will return (False, e) where e is
+        the exception returned by subprocess.check_call.
+     - warn : bool
+        issue a user warning if pandoc is not available.
+
+    Return
+    ------
+    out : (Bool, Exception)
+        On success will return (True, None). On failure and failmode=="return" 
+        will return (False, OSError instance)
+    """
+    
+    cmd  = ["pandoc", "-v"]
+
+    try:
+        out = subprocess.check_output(cmd, universal_newlines=True)
+        return True, None
+    except OSError, e:
+        if warn:
+            warnings.warn(
+                "Pandoc cannot be found (call %s failed).\n" % " ".join(cmd) +
+                "Please check that pandoc is installed:\n" +
+                "http://johnmacfarlane.net/pandoc/installing.html"
+            )
+
+        if failmode == "return":
+            return False, e
+        else:
+            raise PandocMissing(cmd, e)
+            
+pandoc_available(warn=True)
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class PandocMissing(ConversionException):
-    """Exception raised when Pandoc is missing. """
-    pass
 
 minimal_version = "1.12.1"
 
@@ -54,38 +105,38 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     out : unicode
       Output as returned by pandoc.
     """
-    command = ['pandoc', '-f', fmt, '-t', to]
+    cmd = ['pandoc', '-f', fmt, '-t', to]
     if extra_args:
-        command.extend(extra_args)
-    try:
-        p = subprocess.Popen(command,
-                             stdin=subprocess.PIPE, stdout=subprocess.PIPE
-        )
-    except OSError as e:
-        raise PandocMissing(
-            "The command '%s' returned an error: %s.\n" %(" ".join(command), e) +
-            "Please check that pandoc is installed:\n" +
-            "http://johnmacfarlane.net/pandoc/installing.html"
-        )
+        cmd.extend(extra_args)
+
+    # if pandoc is missing let the exception bubble us out of here
+    pandoc_available(failmode="raise")
+    
+    # we can safely continue
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out, _ = p.communicate(cast_bytes(source, encoding))
     out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
     return out.rstrip('\n')
 
 
-pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
 def get_pandoc_version():
-    out = subprocess.check_output(['pandoc', '--version'], universal_newlines=True)
-    return pv_re.search(out).group(0)
-
-
-pandoc.version = get_pandoc_version()
+    """Gets the Pandoc version if Pandoc is installed."""
+    try:
+        return pandoc.version
+    except AttributeError:
+        out = pandoc("None", "None", "None", ["-v"])
+        pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
+        pandoc.version = pv_re.search(out).group(0)
+        return pandoc.version
 
 def check_pandoc_version():
-    return pandoc.version >= minimal_version
+    """Returns True if minimal pandoc version is met"""
+    return get_pandoc_version() >= minimal_version
+
 
 if(not check_pandoc_version()):
-    warnings.warn( "You are using an old version of pandoc (%s)\n"%pandoc.version + 
-                   "Recommended version is %s.\nTry updating."%minimal_version + 
+    warnings.warn( "You are using an old version of pandoc (%s)\n" % pandoc.version + 
+                   "Recommended version is %s.\nTry updating." % minimal_version + 
                    "http://johnmacfarlane.net/pandoc/installing.html.\nContinuing with doubts...",
                    RuntimeWarning, 
                    stacklevel=2)
