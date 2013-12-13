@@ -37,16 +37,15 @@ class TestProcessLauncher(LocalProcessLauncher):
     """subclass LocalProcessLauncher, to prevent extra sockets and threads being created on Windows"""
     def start(self):
         if self.state == 'before':
+            # Store stdout & stderr to show with failing tests.
+            # This is defined in IPython.testing.iptest
             self.process = Popen(self.args,
-                stdout=nose.ipy_stream_capturer.writefd, stderr=STDOUT,
+                stdout=nose.iptest_stdstreams_fileno(), stderr=STDOUT,
                 env=os.environ,
                 cwd=self.work_dir
             )
             self.notify_start(self.process.pid)
             self.poll = self.process.poll
-            # Store stdout & stderr to show with failing tests.
-            # This is defined in IPython.testing.iptest
-            nose.ipy_stream_capturer.ensure_started()
         else:
             s = 'The process was already started and has state: %r' % self.state
             raise ProcessStateError(s)

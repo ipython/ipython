@@ -237,20 +237,23 @@ def prepare_controllers(options):
     c_py = [PyTestController(name) for name in py_testgroups]
 
     configure_py_controllers(c_py, xunit=options.xunit,
-            coverage=options.coverage, extra_args=options.extra_args)
+            coverage=options.coverage, subproc_streams=options.subproc_streams,
+            extra_args=options.extra_args)
 
     controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
     not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
 
-def configure_py_controllers(controllers, xunit=False, coverage=False, extra_args=()):
+def configure_py_controllers(controllers, xunit=False, coverage=False,
+                             subproc_streams='capture', extra_args=()):
     """Apply options for a collection of TestController objects."""
     for controller in controllers:
         if xunit:
             controller.add_xunit()
         if coverage:
             controller.add_coverage()
+        controller.env['IPTEST_SUBPROC_STREAMS'] = subproc_streams
         controller.cmd.extend(extra_args)
 
 def do_run(controller):
@@ -469,6 +472,9 @@ argparser.add_argument('--xunit', action='store_true',
 argparser.add_argument('--coverage', nargs='?', const=True, default=False,
                     help="Measure test coverage. Specify 'html' or "
                     "'xml' to get reports.")
+argparser.add_argument('--subproc-streams', default='capture',
+                    help="What to do with stdout/stderr from subprocesses. "
+                    "'capture' (default), 'show' and 'discard' are the options.")
 
 def default_options():
     """Get an argparse Namespace object with the default arguments, to pass to
