@@ -57,10 +57,9 @@ class NotebookTestBase(TestCase):
             '--notebook-dir=%s' % cls.notebook_dir.name,
         ]
         cls.notebook = Popen(notebook_args,
-            stdout=nose.ipy_stream_capturer.writefd,
+            stdout=nose.iptest_stdstreams_fileno(),
             stderr=STDOUT,
         )
-        nose.ipy_stream_capturer.ensure_started()
         cls.wait_until_alive()
 
     @classmethod
