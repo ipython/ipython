@@ -20,6 +20,7 @@ from .session import extract_header
 
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
+from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -65,7 +66,16 @@ class OutStream(object):
         
         self._pipe_in = ctx.socket(zmq.PULL)
         self._pipe_in.linger = 0
-        self._pipe_port = self._pipe_in.bind_to_random_port("tcp://127.0.0.1")
+        try:
+            self._pipe_port = self._pipe_in.bind_to_random_port("tcp://127.0.0.1")
+        except zmq.ZMQError as e:
+            warn("Couldn't bind IOStream to 127.0.0.1: %s" % e +
+                "\nsubprocess output will be unavailable."
+            )
+            self._pipe_flag = False
+            self._pipe_in.close()
+            del self._pipe_in
+            return
         self._pipe_poller = zmq.Poller()
         self._pipe_poller.register(self._pipe_in, zmq.POLLIN)
     
@@ -89,7 +99,7 @@ class OutStream(object):
     def _check_mp_mode(self):
         """check for forks, and switch to zmq pipeline if necessary"""
         if not self._pipe_flag or self._is_master_process():
-                return MASTER
+            return MASTER
         else:
             if not self._have_pipe_out():
                 self._flush_buffer()
