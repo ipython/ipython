@@ -23,14 +23,14 @@
     // elsewhere.
     define(["components/underscore/underscore-min",
              "components/backbone/backbone-min",
-            ], function(underscore, backbone){
+            ], function (underscore, backbone) {
 
 
         //--------------------------------------------------------------------
         // WidgetModel class
         //--------------------------------------------------------------------
         var WidgetModel = Backbone.Model.extend({
-            constructor: function(comm_manager, comm, widget_manager) {
+            constructor: function (comm_manager, comm, widget_manager) {
                 this.comm_manager = comm_manager;
                 this.widget_manager = widget_manager;
                 this.pending_msgs = 0;
@@ -51,7 +51,7 @@
             },
 
 
-            update_other_views: function(caller) {
+            update_other_views: function (caller) {
                 this.last_modified_view = caller;
                 this.save(this.changedAttributes(), {patch: true});
 
@@ -64,7 +64,7 @@
             },
         
 
-            send: function(content, cell) {
+            send: function (content, cell) {
 
                 // Used the last modified view as the sender of the message.  This
                 // will insure that any python code triggered by the sent message
@@ -131,7 +131,7 @@
             // Handle incomming comm msg.
             _handle_comm_msg: function (msg) {
                 var method = msg.content.data.method;
-                switch (method){
+                switch (method) {
                     case 'display':
 
                         // Try to get the cell.
@@ -171,7 +171,7 @@
                 try {
                     for (var key in state) {
                         if (state.hasOwnProperty(key)) {
-                            if (key == "_css"){
+                            if (key == "_css") {
 
                                 // Set the css value of the model as an attribute
                                 // instead of a backbone trait because we are only 
@@ -244,7 +244,7 @@
                         // normal.  If this is a patch operation, just send the 
                         // changes.
                         var send_json = model_json;
-                        if (method=='patch') {
+                        if (method =='patch') {
                             send_json = {};
                             for (attr in options.attrs) {
                                 send_json[attr] = options.attrs[attr];
@@ -270,7 +270,7 @@
             },
 
 
-            _handle_view_displayed: function(view) {
+            _handle_view_displayed: function (view) {
                 if (this._view_displayed_callback) {
                     try {
                         this._view_displayed_callback(view);
@@ -361,7 +361,7 @@
 
                     // Handle when the view element is remove from the page.
                     var that = this;
-                    view.$el.on("remove", function(){ 
+                    view.$el.on("remove", function () { 
                         var index = that.views.indexOf(view);
                         if (index > -1) {
                             that.views.splice(index, 1);
@@ -407,14 +407,14 @@
                             output : handle_output,
                             clear_output : handle_clear_output,
 
-                            status : function(msg){
+                            status : function (msg) {
                                 that._handle_status(cell, msg);
                             },
 
                             // Special function only registered by widget messages.
                             // Allows us to get the cell for a message so we know
                             // where to add widgets if the code requires it.
-                            get_cell : function() {
+                            get_cell : function () {
                                 return cell;
                             },
                         },
@@ -460,19 +460,19 @@
         //--------------------------------------------------------------------
         var WidgetView = Backbone.View.extend({
             
-            initialize: function() {
+            initialize: function () {
                 this.visible = true;
                 this.model.on('sync',this.update,this);
             },
             
-            add_class: function(selector, class_list){
+            add_class: function (selector, class_list) {
                 var elements = this._get_selector_element(selector);
                 if (elements.length > 0) {
                     elements.addClass(class_list);
                 }
             },
             
-            remove_class: function(selector, class_list){
+            remove_class: function (selector, class_list) {
                 var elements = this._get_selector_element(selector);
                 if (elements.length > 0) {
                     elements.removeClass(class_list);
@@ -480,11 +480,11 @@
             },
         
         
-            send: function(content) {
+            send: function (content) {
                 this.model.send(content, this.cell);
             },
 
-            update: function() {
+            update: function () {
                 if (this.model.get('visible') !== undefined) {
                     if (this.visible != this.model.get('visible')) {
                         this.visible = this.model.get('visible');
@@ -515,7 +515,7 @@
                 }
             },
 
-            _get_selector_element: function(selector) {
+            _get_selector_element: function (selector) {
                 // Get the elements via the css selector.  If the selector is
                 // blank, apply the style to the $el_to_style element.  If
                 // the $el_to_style element is not defined, use apply the 
@@ -536,13 +536,13 @@
         //--------------------------------------------------------------------
         // WidgetManager class
         //--------------------------------------------------------------------
-        var WidgetManager = function(){
+        var WidgetManager = function () {
             this.comm_manager = null;
             this.widget_model_types = {};
             this.widget_view_types = {};
             
             var that = this;
-            Backbone.sync = function(method, model, options, error) {
+            Backbone.sync = function (method, model, options, error) {
                 var result = model._handle_sync(method, options);
                 if (options.success) {
                   options.success(result);
