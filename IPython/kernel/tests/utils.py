@@ -43,11 +43,10 @@ KC = None
 def start_new_kernel(argv=None):
     """start a new kernel, and return its Manager and Client"""
     km = KernelManager()
-    kwargs = dict(stdout=nose.ipy_stream_capturer.writefd, stderr=STDOUT)
+    kwargs = dict(stdout=nose.iptest_stdstreams_fileno(), stderr=STDOUT)
     if argv:
         kwargs['extra_arguments'] = argv
     km.start_kernel(**kwargs)
-    nose.ipy_stream_capturer.ensure_started()
     kc = km.client()
     kc.start_channels()
     

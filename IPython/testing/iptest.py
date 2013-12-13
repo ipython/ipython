@@ -407,14 +407,25 @@ class SubprocessStreamCapturePlugin(Plugin):
     def __init__(self):
         Plugin.__init__(self)
         self.stream_capturer = StreamCapturer()
+        self.destination = os.environ.get('IPTEST_SUBPROC_STREAMS', 'capture')
         # This is ugly, but distant parts of the test machinery need to be able
         # to redirect streams, so we make the object globally accessible.
-        nose.ipy_stream_capturer = self.stream_capturer
+        nose.iptest_stdstreams_fileno = self.get_write_fileno
+
+    def get_write_fileno(self):
+        if self.destination == 'capture':
+            self.stream_capturer.ensure_started()
+            return self.stream_capturer.writefd
+        elif self.destination == 'discard':
+            return os.open(os.devnull, os.O_WRONLY)
+        else:
+            return sys.__stdout__.fileno()
     
     def configure(self, options, config):
         Plugin.configure(self, options, config)
         # Override nose trying to disable plugin.
-        self.enabled = True
+        if self.destination == 'capture':
+            self.enabled = True
     
     def startTest(self, test):
         # Reset log capture
