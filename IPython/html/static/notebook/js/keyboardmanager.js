@@ -109,14 +109,14 @@ var IPython = (function (IPython) {
             }
         },
         'alt+enter' : {
-            help    : 'run cell',
+            help    : 'run cell, insert below',
             handler : function (event) {
                 IPython.notebook.execute_selected_cell('alt');
                 return false;
             }
         },
         'ctrl+enter' : {
-            help    : 'run cell',
+            help    : 'run cell, select below',
             handler : function (event) {
                 IPython.notebook.execute_selected_cell('ctrl');
                 return false;
