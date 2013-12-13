@@ -76,7 +76,6 @@ def pandoc_available(failmode="return", warn=False):
         else:
             raise PandocMissing(cmd, e)
             
-pandoc_available(warn=True)
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -133,10 +132,9 @@ def check_pandoc_version():
     """Returns True if minimal pandoc version is met"""
     return get_pandoc_version() >= minimal_version
 
-
-if(not check_pandoc_version()):
-    warnings.warn( "You are using an old version of pandoc (%s)\n" % pandoc.version + 
-                   "Recommended version is %s.\nTry updating." % minimal_version + 
-                   "http://johnmacfarlane.net/pandoc/installing.html.\nContinuing with doubts...",
-                   RuntimeWarning, 
-                   stacklevel=2)
+if pandoc_available(warn=True)[0]:
+    if(not check_pandoc_version()):
+        warnings.warn( "You are using an old version of pandoc (%s)\n" % pandoc.version + 
+                       "Recommended version is %s.\nTry updating." % minimal_version + 
+                       "http://johnmacfarlane.net/pandoc/installing.html.\nContinuing with doubts...",
+                       RuntimeWarning, stacklevel=2)
