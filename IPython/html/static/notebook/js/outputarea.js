@@ -603,7 +603,8 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_png = function (png, md, element, type) {
         var toinsert = this.create_output_subarea(md, "output_png", type);
-        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        var img = $("<img/>");
+        img[0].attr('src','data:image/png;base64,'+png);
         if (md['height']) {
             img[0].setAttribute('height', md['height']);
         }
