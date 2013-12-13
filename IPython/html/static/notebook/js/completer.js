@@ -1,11 +1,11 @@
 // function completer.
 //
-// completer should be a class that take an cell instance
+// completer should be a class that takes an cell instance
 var IPython = (function (IPython) {
     // that will prevent us from misspelling
     "use strict";
 
-    // easyier key mapping
+    // easier key mapping
     var key = IPython.utils.keycodes;
 
     function prepend_n_prc(str, n) {
@@ -114,7 +114,7 @@ var IPython = (function (IPython) {
      * shared start
      **/
     Completer.prototype.carry_on_completion = function (first_invocation) {
-        // Pass true as parameter if you want the commpleter to autopick when
+        // Pass true as parameter if you want the completer to autopick when
         // only one completion. This function is automatically reinvoked at
         // each keystroke with first_invocation = false
         var cur = this.editor.getCursor();
