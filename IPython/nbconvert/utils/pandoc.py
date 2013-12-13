@@ -38,7 +38,7 @@ class PandocMissing(ConversionException):
                                              "Please check that pandoc is installed:\n" +
                                              "http://johnmacfarlane.net/pandoc/installing.html" )
 
-def pandoc_available(failmode="return", warn=False):
+def pandoc_available(failmode="return", warn=False, alt=None):
     """Is pandoc available. Only tries to call Pandoc
     and inform you that it succeeded or failed. 
     
@@ -50,6 +50,8 @@ def pandoc_available(failmode="return", warn=False):
         the exception returned by subprocess.check_call.
      - warn : bool
         issue a user warning if pandoc is not available.
+     - alt: list of strings
+        command to print in the error (not used as actual call)
 
     Return
     ------
@@ -63,10 +65,10 @@ def pandoc_available(failmode="return", warn=False):
     try:
         out = subprocess.check_output(cmd, universal_newlines=True)
         return True, None
-    except OSError, e:
+    except OSError as e:
         if warn:
             warnings.warn(
-                "Pandoc cannot be found (call %s failed).\n" % " ".join(cmd) +
+                "Pandoc cannot be found (calling %s failed).\n" % " ".join(alt or cmd) +
                 "Please check that pandoc is installed:\n" +
                 "http://johnmacfarlane.net/pandoc/installing.html"
             )
@@ -74,7 +76,7 @@ def pandoc_available(failmode="return", warn=False):
         if failmode == "return":
             return False, e
         else:
-            raise PandocMissing(cmd, e)
+            raise PandocMissing(alt or cmd, e)
             
 
 #-----------------------------------------------------------------------------
@@ -109,7 +111,7 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
         cmd.extend(extra_args)
 
     # if pandoc is missing let the exception bubble us out of here
-    pandoc_available(failmode="raise")
+    pandoc_available(failmode="raise", alt=cmd)
     
     # we can safely continue
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
