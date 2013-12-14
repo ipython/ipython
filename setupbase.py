@@ -390,7 +390,10 @@ class install_symlinked(install):
     def run(self):
         if sys.platform == 'win32':
             raise Exception("This doesn't work on Windows.")
-        install.run(self)
+
+        # Run all sub-commands (at least those that need to be run)
+        for cmd_name in self.get_sub_commands():
+            self.run_command(cmd_name)
     
     # 'sub_commands': a list of commands this command might have to run to
     # get its work done.  See cmd.py for more info.
