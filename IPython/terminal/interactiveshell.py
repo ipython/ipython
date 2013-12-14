@@ -55,14 +55,18 @@ def get_default_editor():
     else:
         return 'notepad' # same in Windows!
 
-def get_pasted_lines(sentinel, l_input=py3compat.input):
+def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
     """ Yield pasted lines until the user enters the given sentinel value.
     """
-    print("Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
-          % sentinel)
+    if not quiet:
+        print("Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
+              % sentinel)
+        prompt = ":"
+    else:
+        prompt = ""
     while True:
         try:
-            l = l_input(':')
+            l = l_input(prompt)
             if l == sentinel:
                 return
             else:
@@ -133,7 +137,7 @@ class TerminalMagics(Magics):
 
         You must terminate the block with '--' (two minus-signs) or Ctrl-D
         alone on the line. You can also provide your own sentinel with '%paste
-        -s %%' ('%%' is the new sentinel for this operation)
+        -s %%' ('%%' is the new sentinel for this operation).
 
         The block is dedented prior to execution to enable execution of method
         definitions. '>' and '+' characters at the beginning of a line are
@@ -147,6 +151,7 @@ class TerminalMagics(Magics):
         dedenting or executing it (preceding >>> and + is still stripped)
 
         '%cpaste -r' re-executes the block previously entered by cpaste.
+        '%cpaste -q' suppresses any additional output messages.
 
         Do not be alarmed by garbled output on Windows (it's a readline bug).
         Just press enter and type -- (and press enter again) and the block
@@ -169,13 +174,15 @@ class TerminalMagics(Magics):
           :--
           Hello world!
         """
-        opts, name = self.parse_options(parameter_s, 'rs:', mode='string')
+        opts, name = self.parse_options(parameter_s, 'rqs:', mode='string')
         if 'r' in opts:
             self.rerun_pasted()
             return
 
+        quiet = ('q' in opts)
+
         sentinel = opts.get('s', '--')
-        block = '\n'.join(get_pasted_lines(sentinel))
+        block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
         self.store_or_execute(block, name)
 
     @line_magic
