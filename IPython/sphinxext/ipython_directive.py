@@ -136,27 +136,6 @@ COMMENT, INPUT, OUTPUT =  range(3)
 #-----------------------------------------------------------------------------
 # Functions and class declarations
 #-----------------------------------------------------------------------------
-def str_to_array(s):
-    """
-    Simplistic converter of strings from repr to float NumPy arrays.
-
-    """
-    import numpy as np
-
-    # Handle infs (assumes default printoptions for NumPy)
-    s = s.replace(u'inf', u'np.inf')
-    s = s.replace(u'nan', u'np.nan')
-
-    if s.startswith(u'array'):
-        # Remove array( and )
-        s = s[6:-1]
-
-    if s.startswith(u'['):
-        a = np.array(eval(s), dtype=float)
-    else:
-        # Assume its a regular float. Force 1D so we can index into it.
-        a = np.atleast_1d(float(s))
-    return a
 
 def block_parser(part, rgxin, rgxout, fmtin, fmtout):
     """
@@ -251,6 +230,7 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
             break
 
     return block
+
 
 class EmbeddedSphinxShell(object):
     """An embedded IPython instance to run inside Sphinx"""
@@ -355,7 +335,6 @@ class EmbeddedSphinxShell(object):
         image_directive = '\n'.join(imagerows)
         return image_file, image_directive
 
-
     # Callbacks for each type of token
     def process_input(self, data, input_prompt, lineno):
         """Process data block for INPUT token."""
@@ -452,8 +431,7 @@ class EmbeddedSphinxShell(object):
                          'output="{2}"'.format(input_lines, found, submitted) )
                     raise RuntimeError(e)
             else:
-                self.specialized_doctest(decorator, input_lines,
-                                         found, submitted)
+                self.custom_doctest(decorator, input_lines, found, submitted)
 
     def process_comment(self, data):
         """Process data fPblock for COMMENT token."""
@@ -594,55 +572,20 @@ class EmbeddedSphinxShell(object):
 
         return output
 
-    def specialized_doctest(self, decorator, input_lines, found, submitted):
+    def custom_doctest(self, decorator, input_lines, found, submitted):
         """
         Perform a specialized doctest.
 
         """
-        # Requires NumPy
-        import numpy as np
-
-        valid_types = set(['float'])
+        from .custom_doctests import doctests
 
         args = decorator.split()
-
         doctest_type = args[1]
-        if doctest_type not in valid_types:
+        if doctest_type in doctests:
+            doctests[doctest_type](self, args, input_lines, found, submitted)
+        else:
             e = "Invalid option to @doctest: {0}".format(doctest_type)
             raise Exception(e)
-
-        if len(args) == 2:
-            rtol = 1e-05
-            atol = 1e-08
-        else:
-            # Both must be specified if any are specified.
-            try:
-                rtol = float(args[2])
-                atol = float(args[3])
-            except IndexError:
-                e = ("Both `rtol` and `atol` must be specified "
-                     "if either are specified: {0}".format(args))
-                raise IndexError(e)
-
-        try:
-            submitted = str_to_array(submitted)
-            found = str_to_array(found)
-        except:
-            # For example, if the array is huge and there are ellipsis in it.
-            error = True
-        else:
-            found_isnan = np.isnan(found)
-            submitted_isnan = np.isnan(submitted)
-            error = not np.allclose(found_isnan, submitted_isnan)
-            error |= not np.allclose(found[~found_isnan],
-                                     submitted[~submitted_isnan],
-                                     rtol=rtol, atol=atol)
-
-        if error:
-            e = ('doctest float comparison failure for input_lines="{0}" with '
-                 'found_output="{1}" and submitted '
-                 'output="{2}"'.format(input_lines, found, submitted) )
-            raise RuntimeError(e)
 
 
 class IPythonDirective(Directive):
