@@ -45,7 +45,7 @@ html {
   overflow-y: auto;
 }
 .reveal {
-  font-size: 20px;
+  font-size: 160%;
 }
 .reveal pre {
   width: inherit;
