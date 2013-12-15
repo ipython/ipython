@@ -60,7 +60,12 @@ class TestStrings(TestsBase):
         assert '<b' in results
         assert '</b>' in results
 
-        
+    def test_add_anchor_fail(self):
+        """add_anchor does nothing when it fails"""
+        html = '<h1>Hello <br>World!</h1>'
+        results = add_anchor(html)
+        self.assertEqual(html, results)
+
     def test_strip_dollars(self):
         """strip_dollars test"""
         tests = [
