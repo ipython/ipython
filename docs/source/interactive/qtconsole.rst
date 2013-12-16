@@ -602,7 +602,8 @@ In order to make the QtConsole available to an external Qt GUI application (just
 command-line application), there are a few options:
 
 * First start IPython, and then start the external Qt application from IPython,
-  as described above.
+  as described above.  Effectively, this embeds your application in IPython
+  rather than the other way round.
 
 * Start a standard IPython kernel in the process of the external Qt
   application.  See :file:`examples/lib/ipkernel_qtapp.py` for an example.  Due
@@ -617,6 +618,9 @@ command-line application), there are a few options:
   the kernel from other consoles as there are no real ZMQ sockets anymore.
   Moreover, the default, system-wide configuration will not be loaded and
   applied.
+
+* Start an IPython kernel in a separate subprocess and communicate with it via
+  the ZMQ sockets.
 
 Regressions
 ===========
