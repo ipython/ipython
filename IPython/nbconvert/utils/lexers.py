@@ -351,8 +351,7 @@ class IPythonConsoleLexer(Lexer):
         # To reduce the number of regex match checks, we have multiple
         # 'if' blocks instead of 'if-elif' blocks.
 
-        ### Check for possible end of input
-        ###
+        # Check for possible end of input
         in2_match = self.in2_regex.match(line)
         in2_match_rstrip = self.in2_regex_rstrip.match(line)
         if (in2_match and in2_match.group().rstrip() == line.rstrip()) or \
@@ -368,8 +367,7 @@ class IPythonConsoleLexer(Lexer):
             insertion = (0, Generic.Prompt, line)
             return mode, code, insertion
 
-        ### Check for output prompt
-        ###
+        # Check for output prompt
         out_match = self.out_regex.match(line)
         out_match_rstrip = self.out_regex_rstrip.match(line)
         if out_match or out_match_rstrip:
@@ -385,8 +383,7 @@ class IPythonConsoleLexer(Lexer):
             return mode, code, insertion
 
 
-        ### Check for input or continuation prompt (non stripped version)
-        ###
+        # Check for input or continuation prompt (non stripped version)
         in1_match = self.in1_regex.match(line)
         if in1_match or (in2_match and self.mode != 'tb'):
             # New input or when not in tb, continued input.
@@ -401,8 +398,7 @@ class IPythonConsoleLexer(Lexer):
             insertion = (0, Generic.Prompt, line[:idx])
             return mode, code, insertion
 
-        ### Check for input or continuation prompt (stripped version)
-        ###
+        # Check for input or continuation prompt (stripped version)
         in1_match_rstrip = self.in1_regex_rstrip.match(line)
         if in1_match_rstrip or (in2_match_rstrip and self.mode != 'tb'):
             # New input or when not in tb, continued input.
@@ -417,16 +413,14 @@ class IPythonConsoleLexer(Lexer):
             insertion = (0, Generic.Prompt, line[:idx])
             return mode, code, insertion
 
-        ### Check for traceback
-        ###
+        # Check for traceback
         if self.ipytb_start.match(line):
             mode = 'tb'
             code = line
             insertion = None
             return mode, code, insertion
 
-        ### All other stuff...
-        ###
+        # All other stuff...
         if self.mode in ('input', 'output'):
             # We assume all other text is output. Multiline input that
             # does not use the continuation marker cannot be detected.
