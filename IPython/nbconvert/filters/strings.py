@@ -122,8 +122,8 @@ def strip_dollars(text):
     return text.strip('$')
 
 
-files_url_pattern = re.compile(r'(src|href)\=([\'"]?)files/')
-markdown_url_pattern = re.compile(r'!\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
+files_url_pattern = re.compile(r'(src|href)\=([\'"]?)/?files/')
+markdown_url_pattern = re.compile(r'(!?)\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
 
 def strip_files_prefix(text):
     """
@@ -136,7 +136,7 @@ def strip_files_prefix(text):
         Text in which to replace 'src="files/real...' with 'src="real...'
     """
     cleaned_text = files_url_pattern.sub(r"\1=\2", text)
-    cleaned_text = markdown_url_pattern.sub(r'![\1](\2)', cleaned_text)
+    cleaned_text = markdown_url_pattern.sub(r'\1[\2](\3)', cleaned_text)
     return cleaned_text
 
 
