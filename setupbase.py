@@ -381,7 +381,8 @@ class install_lib_symlink(Command):
         try:
             os.symlink(pkg, dest)
         except OSError as e:
-            if e.errno == errno.EEXIST and os.path.islink(dest):
+            if e.errno == errno.EEXIST and os.path.islink(dest) \
+                    and os.path.realpath(dest) == pkg:
                 print('Symlink already exists')
             else:
                 raise
