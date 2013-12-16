@@ -326,10 +326,8 @@ def find_entry_points():
             'ipython%s = IPython:start_ipython',
             'ipcontroller%s = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',
-            'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
             'ipcluster%s = IPython.parallel.apps.ipclusterapp:launch_new_instance',
             'iptest%s = IPython.testing.iptestcontroller:main',
-            'irunner%s = IPython.lib.irunner:main',
         ]
     suffix = str(sys.version_info[0])
     return [e % '' for e in ep] + [e % suffix for e in ep]
