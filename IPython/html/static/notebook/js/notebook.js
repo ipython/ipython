@@ -1739,10 +1739,10 @@ var IPython = (function (IPython) {
      * @method save_notebook_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('notebook_save_failed.Notebook');
+    Notebook.prototype.save_notebook_error = function (xhr, status, error) {
+        $([IPython.events]).trigger('notebook_save_failed.Notebook', [xhr, status, error]);
     };
 
     Notebook.prototype.new_notebook = function(){
@@ -1835,12 +1835,13 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('notebook_renamed.Notebook', json);
     }
 
-    Notebook.prototype.rename_error = function (json, status, xhr) {
+    Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
         var dialog = $('<div/>').append(
             $("<p/>").addClass("rename-message")
             .html('This notebook name already exists.')
         )
+        $([IPython.events]).trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         IPython.dialog.modal({
             title: "Notebook Rename Error!",
             body: dialog,
@@ -1963,12 +1964,13 @@ var IPython = (function (IPython) {
      * 
      * @method load_notebook_error
      * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} textStatus Description of response status
-     * @param {String} errorThrow HTTP error message
+     * @param {String} status Description of response status
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.load_notebook_error = function (xhr, textStatus, errorThrow) {
+    Notebook.prototype.load_notebook_error = function (xhr, status, error) {
+        $([IPython.events]).trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         if (xhr.status === 400) {
-            var msg = errorThrow;
+            var msg = error;
         } else if (xhr.status === 500) {
             var msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
