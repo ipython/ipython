@@ -79,7 +79,6 @@ class Testrevealhelp(PreprocessorTestsBase):
         # Make sure correct metadata tags are available on every cell.
         for cell in cells:
             assert 'slide_type' in cell.metadata
-            assert 'align_type' in cell.metadata
 
         # Make sure slide end is only applied to the cells preceeding slide 
         # cells.

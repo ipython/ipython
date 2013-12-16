@@ -43,11 +43,10 @@ class RevealHelpPreprocessor(Preprocessor):
             preprocessors to pass variables into the Jinja engine.
         """
 
-        for worksheet in nb.worksheets :
+        for worksheet in nb.worksheets:
             for index, cell in enumerate(worksheet.cells):
 
                 #Make sure the cell has slideshow metadata.
-                cell.metadata.align_type = cell.get('metadata', {}).get('slideshow', {}).get('align_type', 'Left')
                 cell.metadata.slide_type = cell.get('metadata', {}).get('slideshow', {}).get('slide_type', '-')
 
                 #Get the slide type.  If type is start of subslide or slide,
