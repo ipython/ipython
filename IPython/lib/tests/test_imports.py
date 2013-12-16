@@ -9,7 +9,3 @@ def test_import_deepreload():
 
 def test_import_demo():
     from IPython.lib import demo
-
-@dec.skip_win32
-def test_import_irunner():
-    from IPython.lib import irunner
