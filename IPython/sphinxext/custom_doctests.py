@@ -81,10 +81,26 @@ def float_doctest(sphinx_shell, args, input_lines, found, submitted):
                                  submitted[~submitted_isnan],
                                  rtol=rtol, atol=atol)
 
+    TAB = ' ' * 4
+    directive = sphinx_shell.directive
+    if directive is None:
+        source = 'Unavailable'
+        content = 'Unavailable'
+    else:
+        source = directive.state.document.current_source
+        # Add tabs and make into a single string.
+        content = '\n'.join([TAB + line for line in directive.content])
+
     if error:
-        e = ('doctest float comparison failure for input_lines={0} with '
-             'found_output={1} and submitted '
-             'output="{2}"'.format(input_lines, repr(found), repr(submitted)) )
+
+        e = ('doctest float comparison failure\n\n'
+             'Document source: {0}\n\n'
+             'Raw content: \n{1}\n\n'
+             'On input line(s):\n{TAB}{2}\n\n'
+             'we found output:\n{TAB}{3}\n\n'
+             'instead of the expected:\n{TAB}{4}\n\n')
+        e = e.format(source, content, '\n'.join(input_lines), repr(found),
+                     repr(submitted), TAB=TAB)
         raise RuntimeError(e)
 
 doctests = {
