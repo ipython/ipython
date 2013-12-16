@@ -19,9 +19,9 @@ def setup(app):
 # Alternatively, we could register the lexer with pygments instead. This would
 # require using setuptools entrypoints: http://pygments.org/docs/plugins
 
-ipy = IPyLexer(python3=False)
+ipy2 = IPyLexer(python3=False)
 ipy3 = IPyLexer(python3=True)
-ipy3.aliases = ['ipy3']
 
-highlighting.lexers['ipython'] = ipy
+highlighting.lexers['ipython'] = ipy2
+highlighting.lexers['ipython2'] = ipy2
 highlighting.lexers['ipython3'] = ipy3

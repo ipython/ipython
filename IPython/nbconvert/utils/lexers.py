@@ -83,7 +83,7 @@ def build_ipy_lexer(python3):
         PyLexer = PythonLexer
         clsname = 'IPythonLexer'
         name = 'IPython'
-        aliases = ['ipython']
+        aliases = ['ipython2', 'ipython']
         doc = """IPython Lexer"""
 
     tokens = PyLexer.tokens.copy()
@@ -169,6 +169,10 @@ class IPythonTracebackLexer(DelegatingLexer):
 
     def __init__(self, **options):
         self.python3 = get_bool_opt(options, 'python3', False)
+        if self.python3:
+            self.aliases = ['ipythontb3']
+        else:
+            self.aliases = ['ipythontb2', 'ipythontb']
 
         if self.python3:
             IPyLexer = IPython3Lexer
@@ -255,6 +259,10 @@ class IPythonConsoleLexer(Lexer):
 
         """
         self.python3 = get_bool_opt(options, 'python3', False)
+        if self.python3:
+            self.aliases = ['ipythoncon3']
+        else:
+            self.aliases = ['ipythoncon2', 'ipythoncon']
 
         in1_regex = options.get('in1_regex', self.in1_regex)
         in2_regex = options.get('in2_regex', self.in2_regex)
@@ -479,6 +487,11 @@ class IPyLexer(Lexer):
 
     def __init__(self, **options):
         self.python3 = get_bool_opt(options, 'python3', False)
+        if self.python3:
+            self.aliases = ['ipy3']
+        else:
+            self.aliases = ['ipy2', 'ipy']
+
         Lexer.__init__(self, **options)
 
         self.IPythonLexer = IPythonLexer(**options)
