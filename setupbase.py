@@ -377,15 +377,11 @@ class install_lib_symlink(Command):
             raise Exception("This doesn't work on Windows.")
         pkg = os.path.join(os.getcwd(), 'IPython')
         dest = os.path.join(self.install_dir, 'IPython')
+        if os.path.islink(dest):
+            print('removing existing symlink at %s' % dest)
+            os.unlink(dest)
         print('symlinking %s -> %s' % (pkg, dest))
-        try:
-            os.symlink(pkg, dest)
-        except OSError as e:
-            if e.errno == errno.EEXIST and os.path.islink(dest) \
-                    and os.path.realpath(dest) == pkg:
-                print('Symlink already exists')
-            else:
-                raise
+        os.symlink(pkg, dest)
 
 class install_symlinked(install):
     def run(self):
