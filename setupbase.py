@@ -383,6 +383,15 @@ class install_lib_symlink(Command):
         print('symlinking %s -> %s' % (pkg, dest))
         os.symlink(pkg, dest)
 
+class unsymlink(install):
+    def run(self):
+        dest = os.path.join(self.install_lib, 'IPython')
+        if os.path.islink(dest):
+            print('removing symlink at %s' % dest)
+            os.unlink(dest)
+        else:
+            print('No symlink exists at %s' % dest)
+
 class install_symlinked(install):
     def run(self):
         if sys.platform == 'win32':
