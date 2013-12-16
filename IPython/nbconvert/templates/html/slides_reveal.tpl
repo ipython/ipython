@@ -141,7 +141,7 @@ dependencies: [
 </script>
 
 <!-- Loading mathjax macro -->
-mathjax()
+{{ mathjax() }}
 
 <script>
 Reveal.addEventListener( 'slidechanged', function( event ) {

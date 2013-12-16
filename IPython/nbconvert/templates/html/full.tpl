@@ -38,7 +38,7 @@ pre {
 <link rel="stylesheet" href="custom.css">
 
 <!-- Loading mathjax macro -->
-mathjax()
+{{ mathjax() }}
 
 </head>
 {%- endblock header -%}
