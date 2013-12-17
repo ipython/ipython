@@ -98,6 +98,10 @@ class Kernel(Configurable):
         """
     )
 
+    # track associations with current request
+    _allow_stdin = Bool(False)
+    _parent_header = Dict()
+    _parent_ident = Any(b'')
     # Time to sleep after flushing the stdout/err buffers in each execute
     # cycle.  While this introduces a hard limit on the minimal latency of the
     # execute cycle, it helps prevent output synchronization problems for
@@ -335,34 +339,26 @@ class Kernel(Configurable):
                           ident=self._topic('status'),
                           )
     
-    def _forward_raw_input(self, ident, parent, allow_stdin):
-        """Replace raw_input. Note that is not sufficient to replace
-        raw_input in the user namespace.
-        """
+    def _forward_input(self, allow_stdin=False):
+        """Forward raw_input and getpass to the current frontend.
         
-        if allow_stdin:
-            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
-            input = lambda prompt='': eval(raw_input(prompt))
-            _getpass = lambda prompt='', stream=None: self._raw_input(
-                prompt, ident, parent, password=True
-            )
-        else:
-            _getpass = raw_input = input = lambda prompt='' : self._no_raw_input()
-            
-
+        via input_request
+        """
+        self._allow_stdin = allow_stdin
+        
         if py3compat.PY3:
             self._sys_raw_input = builtin_mod.input
-            builtin_mod.input = raw_input
+            builtin_mod.input = self.raw_input
         else:
             self._sys_raw_input = builtin_mod.raw_input
             self._sys_eval_input = builtin_mod.input
-            builtin_mod.raw_input = raw_input
-            builtin_mod.input = input
+            builtin_mod.raw_input = self.raw_input
+            builtin_mod.input = lambda prompt='': eval(self.raw_input(prompt))
         self._save_getpass = getpass.getpass
-        getpass.getpass = _getpass
-
-    def _restore_raw_input(self):
-        # Restore raw_input
+        getpass.getpass = self.getpass
+    
+    def _restore_input(self):
+        """Restore raw_input, getpass"""
         if py3compat.PY3:
             builtin_mod.input = self._sys_raw_input
         else:
@@ -370,7 +366,16 @@ class Kernel(Configurable):
             builtin_mod.input = self._sys_eval_input
         
         getpass.getpass = self._save_getpass
-
+    
+    def set_parent(self, ident, parent):
+        """Record the parent state
+        
+        For associating side effects with their requests.
+        """
+        self._parent_ident = ident
+        self._parent_header = parent
+        self.shell.set_parent(parent)
+    
     def execute_request(self, stream, ident, parent):
         """handle an execute_request"""
         
@@ -387,14 +392,13 @@ class Kernel(Configurable):
             return
         
         md = self._make_metadata(parent['metadata'])
-
+        
         shell = self.shell # we'll need this a lot here
-
-        self._forward_raw_input(ident, parent, content.get('allow_stdin', False))
-
+        
+        self._forward_input(content.get('allow_stdin', False))
         # Set the parent message of the display hook and out streams.
-        shell.set_parent(parent)
-
+        self.set_parent(ident, parent)
+        
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
         if not silent:
@@ -419,7 +423,7 @@ class Kernel(Configurable):
         else:
             status = u'ok'
         finally:
-            self._restore_raw_input()
+            self._restore_input()
 
         reply_content[u'status'] = status
 
@@ -744,7 +748,41 @@ class Kernel(Configurable):
         raise StdinNotImplementedError("raw_input was called, but this "
                                        "frontend does not support stdin.") 
     
-    def _raw_input(self, prompt, ident, parent, password=False):
+    def getpass(self, prompt=''):
+        """Forward getpass to frontends
+        
+        Raises
+        ------
+        StdinNotImplentedError if active frontend doesn't support stdin.
+        """
+        if not self._allow_stdin:
+            raise StdinNotImplementedError(
+                "getpass was called, but this frontend does not support input requests."
+            )
+        return self._input_request(prompt,
+            self._parent_ident,
+            self._parent_header,
+            password=True,
+        )
+    
+    def raw_input(self, prompt=''):
+        """Forward raw_input to frontends
+        
+        Raises
+        ------
+        StdinNotImplentedError if active frontend doesn't support stdin.
+        """
+        if not self._allow_stdin:
+            raise StdinNotImplementedError(
+                "raw_input was called, but this frontend does not support input requests."
+            )
+        return self._input_request(prompt,
+            self._parent_ident,
+            self._parent_header,
+            password=False,
+        )
+    
+    def _input_request(self, prompt, ident, parent, password=False):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -777,8 +815,7 @@ class Kernel(Configurable):
         try:
             value = py3compat.unicode_to_str(reply['content']['value'])
         except:
-            self.log.error("Got bad raw_input reply: ")
-            self.log.error("%s", parent)
+            self.log.error("Bad input_reply: %s", parent)
             value = ''
         if value == '\x04':
             # EOF
