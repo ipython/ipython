@@ -278,17 +278,18 @@ var IPython = (function (IPython) {
         "javascript" : "application/javascript",
     };
 
-    OutputArea.prototype.convert_mime_types = function (json, data) {
-        if (!data) {
-            return json;
-        }
-        // non-mimetype-keyed metadata used to get dropped here, this code
-        // re-injects it into the json.
+    OutputArea.prototype.convert_mime_types = function (data) {
         for (var key in data) {
-            var rkey = OutputArea.mime_map_r[key] || key;
-            json[rkey] = data[key];
+            var json_key = OutputArea.mime_map[key] || key;
+            console.log("converting ", key, "to", json_key)
+            if (json_key !== key) {
+                // move mime-type keys to short name
+                console.log("converting ", key, "to", json_key)
+                data[json_key] = data[key];
+                delete data[key];
+            }
         }
-        return json;
+        return data;
     };
     
     OutputArea.prototype.convert_mime_types_r = function (data) {
@@ -756,10 +757,10 @@ var IPython = (function (IPython) {
         // TODO: remove this when we update to nbformat 4
         var len = outputs.length;
         for (var i=0; i<len; i++) {
-            // convert mime keys 
             var data = outputs[i];
             var msg_type = data.output_type;
             if (msg_type === "display_data" || msg_type === "pyout") {
+                // convert short keys to mime keys
                  this.convert_mime_types_r(data);
                  this.convert_mime_types_r(data.metadata);
             }
@@ -774,7 +775,15 @@ var IPython = (function (IPython) {
         var outputs = [];
         var len = this.outputs.length;
         for (var i=0; i<len; i++) {
-            outputs[i] = this.outputs[i];
+            var data = this.outputs[i];
+            var msg_type = data.output_type;
+            console.log("msg type is  ", msg_type)
+            if (msg_type === "display_data" || msg_type === "pyout") {
+                  // convert mime keys to short keys
+                 this.convert_mime_types(data);
+                 //this.convert_mime_types(data.metadata);
+            }
+            outputs[i] = data;
         }
         return outputs;
     };
