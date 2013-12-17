@@ -80,12 +80,6 @@ In&nbsp;[{{ cell.prompt_number }}]:
 </div>
 {% endblock headingcell %}
 
-{%- block rawcell scoped -%}
-{% if cell.metadata.get('raw_mimetype', resources.get('raw_mimetype', '')).lower() in resources.get('raw_mimetypes', ['']) %}
-    {{ cell.source }}
-{% endif %}
-{%- endblock rawcell -%}
-
 {% block unknowncell scoped %}
 unknown type  {{ cell.type }}
 {% endblock unknowncell %}
