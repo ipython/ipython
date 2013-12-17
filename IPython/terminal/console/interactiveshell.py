@@ -6,14 +6,15 @@
 
 from __future__ import print_function
 
+import base64
 import bdb
 import signal
 import os
 import sys
 import time
 import subprocess
+from getpass import getpass
 from io import BytesIO
-import base64
 
 try:
     from queue import Empty  # Py 3
@@ -171,7 +172,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         self._execution_state = "busy"
         while self._execution_state != 'idle' and self.client.is_alive():
             try:
-                self.handle_stdin_request(msg_id, timeout=0.05)
+                self.handle_input_request(msg_id, timeout=0.05)
             except Empty:
                 # display intermediate print statements, etc.
                 self.handle_iopub(msg_id)
@@ -327,13 +328,13 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     def handle_image_callable(self, data, mime):
         self.callable_image_handler(data)
 
-    def handle_stdin_request(self, msg_id, timeout=0.1):
+    def handle_input_request(self, msg_id, timeout=0.1):
         """ Method to capture raw_input
         """
-        msg_rep = self.client.stdin_channel.get_msg(timeout=timeout)
+        req = self.client.stdin_channel.get_msg(timeout=timeout)
         # in case any iopub came while we were waiting:
         self.handle_iopub(msg_id)
-        if msg_id == msg_rep["parent_header"].get("msg_id"):
+        if msg_id == req["parent_header"].get("msg_id"):
             # wrap SIGINT handler
             real_handler = signal.getsignal(signal.SIGINT)
             def double_int(sig,frame):
@@ -342,9 +343,10 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 real_handler(sig,frame)
                 raise KeyboardInterrupt
             signal.signal(signal.SIGINT, double_int)
-            
+            content = req['content']
+            read = getpass if content.get('password', False) else input
             try:
-                raw_data = input(msg_rep["content"]["prompt"])
+                raw_data = read(content["prompt"])
             except EOFError:
                 # turn EOFError into EOF character
                 raw_data = '\x04'
