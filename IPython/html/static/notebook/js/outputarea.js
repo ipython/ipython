@@ -278,32 +278,18 @@ var IPython = (function (IPython) {
         "javascript" : "application/javascript",
     };
 
-    OutputArea.prototype.convert_mime_types = function (data) {
+    OutputArea.prototype.rename_keys = function (data, key_map) {
         for (var key in data) {
-            var json_key = OutputArea.mime_map[key] || key;
-            console.log("converting ", key, "to", json_key)
-            if (json_key !== key) {
+            var new_key = key_map[key] || key;
+            if (new_key !== key) {
                 // move mime-type keys to short name
-                console.log("converting ", key, "to", json_key)
-                data[json_key] = data[key];
+                data[new_key] = data[key];
                 delete data[key];
             }
         }
         return data;
     };
     
-    OutputArea.prototype.convert_mime_types_r = function (data) {
-        for (var key in data) {
-            var mkey = OutputArea.mime_map_r[key] || key;
-            if (mkey !== key) {
-                // move short keys to mime-type keys
-                data[mkey] = data[key];
-                delete data[key];
-            }
-        }
-        return data;
-    };
-
 
     OutputArea.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
@@ -761,8 +747,8 @@ var IPython = (function (IPython) {
             var msg_type = data.output_type;
             if (msg_type === "display_data" || msg_type === "pyout") {
                 // convert short keys to mime keys
-                 this.convert_mime_types_r(data);
-                 this.convert_mime_types_r(data.metadata);
+                 this.rename_keys(data, OutputArea.mime_map_r);
+                 this.rename_keys(data.metadata, OutputArea.mime_map_r);
             }
             
             // append with dynamic=false.
@@ -780,8 +766,8 @@ var IPython = (function (IPython) {
             console.log("msg type is  ", msg_type)
             if (msg_type === "display_data" || msg_type === "pyout") {
                   // convert mime keys to short keys
-                 this.convert_mime_types(data);
-                 //this.convert_mime_types(data.metadata);
+                 this.rename_keys(data, OutputArea.mime_map);
+                 this.rename_keys(data.metadata, OutputArea.mime_map);
             }
             outputs[i] = data;
         }
