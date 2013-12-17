@@ -15,10 +15,10 @@ Each of these abstractions is represented by a Python class.
 Configuration object: :class:`~IPython.config.loader.Config`
     A configuration object is a simple dictionary-like class that holds
     configuration attributes and sub-configuration objects. These classes
-    support dotted attribute style access (``Foo.bar``) in addition to the
-    regular dictionary style access (``Foo['bar']``). Configuration objects
-    are smart. They know how to merge themselves with other configuration
-    objects and they automatically create sub-configuration objects.
+    support dotted attribute style access (``cfg.Foo.bar``) in addition to the
+    regular dictionary style access (``cfg['Foo']['bar']``).
+    The Config object is a wrapper around a simple dictionary with some convenience methods,
+    such as merging and automatic section creation.
 
 Application: :class:`~IPython.config.application.Application`
     An application is a process that does a specific job. The most obvious
@@ -85,12 +85,24 @@ Now, we show what our configuration objects and files look like.
 Configuration objects and files
 ===============================
 
-A configuration file is simply a pure Python file that sets the attributes
-of a global, pre-created configuration object.  This configuration object is a 
-:class:`~IPython.config.loader.Config` instance.  While in a configuration
-file, to get a reference to this object, simply call the :func:`get_config`
-function.  We inject this function into the global namespace that the 
-configuration file is executed in.
+A configuration object is little more than a wrapper around a dictionary.
+A configuration *file* is simply a mechanism for producing that object.
+The main IPython configuration file is a plain Python script,
+which can perform extensive logic to populate the config object.
+IPython 2.0 introduces a JSON configuration file,
+which is just a direct JSON serialization of the config dictionary.
+The JSON format is easily processed by external software.
+
+When both Python and JSON configuration file are present, both will be loaded,
+with JSON configuration having higher priority.
+
+Python configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A Python configuration file is a pure Python file that populates a configuration object.
+This configuration object is a :class:`~IPython.config.loader.Config` instance.
+While in a configuration file, to get a reference to this object, simply call the :func:`get_config`
+function, which is available in the global namespace of the script.
 
 Here is an example of a super simple configuration file that does nothing::
 
@@ -99,10 +111,11 @@ Here is an example of a super simple configuration file that does nothing::
 Once you get a reference to the configuration object, you simply set
 attributes on it.  All you have to know is:
 
-* The name of each attribute.
+* The name of the class to configure.
+* The name of the attribute.
 * The type of each attribute.
 
-The answers to these two questions are provided by the various
+The answers to these questions are provided by the various
 :class:`~IPython.config.configurable.Configurable` subclasses that an
 application uses. Let's look at how this would work for a simple configurable
 subclass::
@@ -118,7 +131,7 @@ subclass::
         # The rest of the class implementation would go here..
 
 In this example, we see that :class:`MyClass` has three attributes, two
-of whom (``name``, ``ranking``) can be configured.  All of the attributes
+of  (``name``, ``ranking``) can be configured.  All of the attributes
 are given types and default values.  If a :class:`MyClass` is instantiated,
 but not configured, these default values will be used.  But let's see how
 to configure this class in a configuration file::
@@ -173,8 +186,37 @@ attribute of ``c`` is not the actual class, but instead is another
     instance is dynamically created for that attribute. This allows deeply
     hierarchical information created easily (``c.Foo.Bar.value``) on the fly.
 
+JSON configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A JSON configuration file is simply a file that contain a
+:class:`~IPython.config.loader.Config` dictionary serialized to JSON.
+A JSON configuration file has the same base name as a Python configuration file,
+just with a .json extension.
+
+Configuration described in previous section could be written as follow in a
+JSON configuration file:
+
+.. sourcecode:: json
+
+    {
+      "version": "1.0",
+      "MyClass": {
+        "name": "coolname",
+        "ranking": 10
+      }
+    }
+
+JSON configuration files can be more easily generated or processed by programs
+or other languages.
+
+
 Configuration files inheritance
 ===============================
+
+.. note::
+
+    This section only apply to Python configuration files.
 
 Let's say you want to have different configuration files for various purposes.
 Our configuration system makes it easy for one configuration file to inherit
