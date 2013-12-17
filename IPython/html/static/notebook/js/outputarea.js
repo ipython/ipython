@@ -239,12 +239,14 @@ var IPython = (function (IPython) {
             json.text = content.data;
             json.stream = content.name;
         } else if (msg_type === "display_data") {
-            json = this.convert_mime_types(json, content.data);
-            json.metadata = this.convert_mime_types({}, content.metadata);
+            json = content.data
+            json.output_type = msg_type
+            json.metadata = content.metadata
         } else if (msg_type === "pyout") {
+            json = content.data
+            json.output_type = msg_type
+            json.metadata = content.metadata
             json.prompt_number = content.execution_count;
-            json = this.convert_mime_types(json, content.data);
-            json.metadata = this.convert_mime_types({}, content.metadata);
         } else if (msg_type === "pyerr") {
             json.ename = content.ename;
             json.evalue = content.evalue;
