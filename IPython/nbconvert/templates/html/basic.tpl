@@ -55,7 +55,10 @@ In&nbsp;[{{ cell.prompt_number }}]:
 
 {% block markdowncell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
+<div class="prompt input_prompt"></div>
+<div class="inner_cell">
 {{ cell.source  | markdown2html | strip_files_prefix }}
+</div>
 </div>
 {%- endblock markdowncell %}
 
