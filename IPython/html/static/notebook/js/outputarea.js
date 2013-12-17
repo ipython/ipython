@@ -288,6 +288,18 @@ var IPython = (function (IPython) {
         }
         return json;
     };
+    
+    OutputArea.prototype.convert_mime_types_r = function (data) {
+        for (var key in data) {
+            var mkey = OutputArea.mime_map_r[key] || key;
+            if (mkey !== key) {
+                // move short keys to mime-type keys
+                data[mkey] = data[key];
+                delete data[key];
+            }
+        }
+        return data;
+    };
 
 
     OutputArea.prototype.append_output = function (json, dynamic) {
@@ -738,10 +750,20 @@ var IPython = (function (IPython) {
     // JSON serialization
 
     OutputArea.prototype.fromJSON = function (outputs) {
+        // add here the mapping of short key to mime type
+        // TODO: remove this when we update to nbformat 4
         var len = outputs.length;
         for (var i=0; i<len; i++) {
+            // convert mime keys 
+            var data = outputs[i];
+            var msg_type = data.output_type;
+            if (msg_type === "display_data" || msg_type === "pyout") {
+                 this.convert_mime_types_r(data);
+                 this.convert_mime_types_r(data.metadata);
+            }
+            
             // append with dynamic=false.
-            this.append_output(outputs[i], false);
+            this.append_output(data, false);
         }
     };
 
