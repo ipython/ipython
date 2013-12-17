@@ -122,19 +122,22 @@ def strip_dollars(text):
     return text.strip('$')
 
 
-files_url_pattern = re.compile(r'(src|href)\=([\'"]?)files/')
+files_url_pattern = re.compile(r'(src|href)\=([\'"]?)/?files/')
+markdown_url_pattern = re.compile(r'(!?)\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
 
 def strip_files_prefix(text):
     """
-    Fix all fake URLs that start with `files/`,
-    stripping out the `files/` prefix.
+    Fix all fake URLs that start with `files/`, stripping out the `files/` prefix.
+    Applies to both urls (for html) and relative paths (for markdown paths).
     
     Parameters
     ----------
     text : str
         Text in which to replace 'src="files/real...' with 'src="real...'
     """
-    return files_url_pattern.sub(r"\1=\2", text)
+    cleaned_text = files_url_pattern.sub(r"\1=\2", text)
+    cleaned_text = markdown_url_pattern.sub(r'\1[\2](\3)', cleaned_text)
+    return cleaned_text
 
 
 def comment_lines(text, prefix='# '):
