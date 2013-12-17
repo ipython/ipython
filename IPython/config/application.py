@@ -525,19 +525,19 @@ class Application(SingletonConfigurable):
                                 filename, exc_info=True)
             else:
                 log.debug("Loaded config file: %s", loader.full_filename)
-            if config :
+            if config:
                  yield config
 
-        if not config_found :
-            raise ConfigFileNotFound('Neither .json, not .py file found.')
+        if not config_found:
+            raise ConfigFileNotFound('Neither .json, nor .py config file found.')
         raise StopIteration
 
 
     @catch_config_error
     def load_config_file(self, filename, path=None):
-        """Load config files (json/py) by filename and path."""
+        """Load config files by filename and path."""
         filename, ext = os.path.splitext(filename)
-        for config in self._load_config_files(filename, path=path , log=self.log):
+        for config in self._load_config_files(filename, path=path, log=self.log):
             self.update_config(config)
 
 

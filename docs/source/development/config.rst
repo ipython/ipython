@@ -90,8 +90,8 @@ A configuration *file* is simply a mechanism for producing that object.
 The main IPython configuration file is a plain Python script,
 which can perform extensive logic to populate the config object.
 IPython 2.0 introduces a JSON configuration file,
-which is just a direct JSON serialization of the config dictionary.
-The JSON format is easily processed by external software.
+which is just a direct JSON serialization of the config dictionary,
+which is easily processed by external software.
 
 When both Python and JSON configuration file are present, both will be loaded,
 with JSON configuration having higher priority.
@@ -131,7 +131,7 @@ subclass::
         # The rest of the class implementation would go here..
 
 In this example, we see that :class:`MyClass` has three attributes, two
-of  (``name``, ``ranking``) can be configured.  All of the attributes
+of which (``name``, ``ranking``) can be configured.  All of the attributes
 are given types and default values.  If a :class:`MyClass` is instantiated,
 but not configured, these default values will be used.  But let's see how
 to configure this class in a configuration file::
@@ -189,12 +189,12 @@ attribute of ``c`` is not the actual class, but instead is another
 JSON configuration Files
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-A JSON configuration file is simply a file that contain a
+A JSON configuration file is simply a file that contains a
 :class:`~IPython.config.loader.Config` dictionary serialized to JSON.
 A JSON configuration file has the same base name as a Python configuration file,
-just with a .json extension.
+but with a .json extension.
 
-Configuration described in previous section could be written as follow in a
+Configuration described in previous section could be written as follows in a
 JSON configuration file:
 
 .. sourcecode:: json

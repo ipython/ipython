@@ -292,12 +292,12 @@ class Config(dict):
 class ConfigLoader(object):
     """A object for loading configurations from just about anywhere.
 
-    The resulting configuration is packaged as a :class:`Struct`.
+    The resulting configuration is packaged as a :class:`Config`.
 
     Notes
     -----
     A :class:`ConfigLoader` does one thing: load a config from a source
-    (file, command line arguments) and returns the data as a :class:`Struct`.
+    (file, command line arguments) and returns the data as a :class:`Config` object.
     There are lots of things that :class:`ConfigLoader` does not do.  It does
     not implement complex logic for finding config files.  It does not handle
     default values or merge multiple configs.  These things need to be
@@ -324,10 +324,10 @@ class ConfigLoader(object):
         {}
         """
         self.clear()
-        if log is None :
+        if log is None:
             self.log = self._log_default()
             self.log.debug('Using default logger')
-        else :
+        else:
             self.log = log
 
     def clear(self):
@@ -375,7 +375,7 @@ class JSONFileConfigLoader(FileConfigLoader):
     """A Json file loader for config"""
 
     def load_config(self):
-        """Load the config from a file and return it as a Struct."""
+        """Load the config from a file and return it as a Config object."""
         self.clear()
         try:
             self._find_file()
@@ -386,32 +386,31 @@ class JSONFileConfigLoader(FileConfigLoader):
         return self.config
 
     def _read_file_as_dict(self):
-        with open(self.full_filename) as f :
+        with open(self.full_filename) as f:
             return json.load(f)
 
     def _convert_to_config(self, dictionary):
         if 'version' in dictionary:
             version = dictionary.pop('version')
-        else :
+        else:
             version = 1
-            self.log.warn("Unrecognized JSON config file version, assuming version : {}".format(version))
+            self.log.warn("Unrecognized JSON config file version, assuming version {}".format(version))
 
         if version == 1:
             return Config(dictionary)
-        else :
-            raise ValueError('Unknown version of JSON config file : version number {version}'.format(version=version))
+        else:
+            raise ValueError('Unknown version of JSON config file: {version}'.format(version=version))
 
 
 class PyFileConfigLoader(FileConfigLoader):
     """A config loader for pure python files.
 
     This is responsible for locating a Python config file by filename and
-    profile name, then executing it in a namespace where it could have access
-    to subconfigs.
+    path, then executing it to construct a Config object.
     """
 
     def load_config(self):
-        """Load the config from a file and return it as a Struct."""
+        """Load the config from a file and return it as a Config object."""
         self.clear()
         try:
             self._find_file()
@@ -645,7 +644,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     lhs = aliases[lhs]
                 if '.' not in lhs:
                     # probably a mistyped alias, but not technically illegal
-                    self.log.warn("Unrecognized alias: '%s', it will probably have no effect. %s,-- %s"%(lhs,raw, aliases))
+                    self.log.warn("Unrecognized alias: '%s', it will probably have no effect.", raw)
                 try:
                     self._exec_config_str(lhs, rhs)
                 except Exception:
