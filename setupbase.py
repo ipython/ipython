@@ -375,20 +375,29 @@ class install_lib_symlink(Command):
             raise Exception("This doesn't work on Windows.")
         pkg = os.path.join(os.getcwd(), 'IPython')
         dest = os.path.join(self.install_dir, 'IPython')
+        if os.path.islink(dest):
+            print('removing existing symlink at %s' % dest)
+            os.unlink(dest)
         print('symlinking %s -> %s' % (pkg, dest))
-        try:
-            os.symlink(pkg, dest)
-        except OSError as e:
-            if e.errno == errno.EEXIST:
-                print('ALREADY EXISTS')
-            else:
-                raise
+        os.symlink(pkg, dest)
+
+class unsymlink(install):
+    def run(self):
+        dest = os.path.join(self.install_lib, 'IPython')
+        if os.path.islink(dest):
+            print('removing symlink at %s' % dest)
+            os.unlink(dest)
+        else:
+            print('No symlink exists at %s' % dest)
 
 class install_symlinked(install):
     def run(self):
         if sys.platform == 'win32':
             raise Exception("This doesn't work on Windows.")
-        install.run(self)
+
+        # Run all sub-commands (at least those that need to be run)
+        for cmd_name in self.get_sub_commands():
+            self.run_command(cmd_name)
     
     # 'sub_commands': a list of commands this command might have to run to
     # get its work done.  See cmd.py for more info.
