@@ -41,5 +41,3 @@ class TestLatex(TestsBase):
     def _try_escape_latex(self, test, result):
         """Try to remove latex from string"""
         self.assertEqual(escape_latex(test), result)
-
-

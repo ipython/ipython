@@ -60,4 +60,4 @@ def escape_latex(text):
         text = pattern.sub(replacement, text)
 
     return text
-
+    
