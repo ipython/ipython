@@ -58,9 +58,9 @@ ipython_execlines:
     ['import numpy as np', 'import matplotlib.pyplot as plt'] is used.
 
 As an example, to use the IPython directive when `matplotlib` is not available,
-one sets the backend to `'none'`::
+one sets the backend to `None`::
 
-    ipython_mplbacked = 'none'
+    ipython_mplbackend = None
 
 An example usage of the directive is:
 
