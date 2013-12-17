@@ -95,7 +95,7 @@ def figsize(sizex, sizey):
 
 
 def print_figure(fig, fmt='png', quality=90):
-    """Convert a figure to svg, jpg (if PIL is installed) or png for inline display."""
+    """Convert a figure to svg, png or jpg for inline display."""
     from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
@@ -164,7 +164,7 @@ def mpl_runner(safe_execfile):
 
 
 def select_figure_format(shell, fmt, quality):
-    """Select figure format for inline backend, can be 'png', 'retina', or 'svg'.
+    """Select figure format for inline backend, can be 'png', 'retina', 'jpg', or 'svg'.
 
     Using this method ensures only one figure format is active at a time.
     """
@@ -175,20 +175,18 @@ def select_figure_format(shell, fmt, quality):
     png_formatter = shell.display_formatter.formatters['image/png']
     jpg_formatter = shell.display_formatter.formatters['image/jpeg']
 
+    [ f.type_printers.pop(Figure, None) for f in {svg_formatter, png_formatter, jpg_formatter} ]
+
     if fmt == 'png':
-        svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
-    elif fmt in ('jpg', 'jpeg'):
-        svg_formatter.type_printers.pop(Figure, None)
-        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
     elif fmt in ('png2x', 'retina'):
-        svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, retina_figure)
+    elif fmt in ('jpg', 'jpeg'):
+        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
     elif fmt == 'svg':
-        png_formatter.pop(Figure, None)
         svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
     else:
-        raise ValueError("supported formats are: 'png', 'retina', 'svg', not %r" % fmt)
+        raise ValueError("supported formats are: 'png', 'retina', 'svg', 'jpg', not %r" % fmt)
 
     # set the format to be used in the backend()
     backend_inline._figure_format = fmt

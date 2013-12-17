@@ -21,11 +21,15 @@ from IPython.utils.warn import warn
 # Configurable for inline backend options
 #-----------------------------------------------------------------------------
 
-try:
-    from PIL import Image
-    has_pil = True
-except:
-    has_pil = False
+def pil_available():
+    """Test if PIL/Pillow is available"""
+    out = False
+    try:
+        from PIL import Image
+        out = True
+    except:
+        pass
+    return out
 
 # inherit from InlineBackendConfig for deprecation purposes
 class InlineBackendConfig(SingletonConfigurable):
@@ -59,28 +63,28 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
-    fmts = ['svg', 'png', 'retina']
 
-    if has_pil:
-        # If we have PIL using jpeg as inline image format can save some bytes.
-        fmts.append('jpg')
-
-    # Matplotlib's JPEG printer supports a quality option that can be tweaked.
-    # We expose it only if PIL is available so the user isn't confused. But it
-    # isn't guarded by "has_pil" test because core/pylabtools.py expects this
-    # field OR we need to propagate the has_pil test to that module too.
-    quality = Int(default_value=90, config=has_pil,
-                  help="Quality of compression [0-100], currently for lossy JPEG only.")
-
-    figure_format = CaselessStrEnum(fmts, default_value='png', config=True,
-        help="The image format for figures with the inline backend.")
+    figure_format = CaselessStrEnum(['svg', 'png', 'retina', 'jpg'],
+                                    default_value='png', config=True,
+                                    help="""The image format for figures with the inline backend.
+                                    JPEG requires the PIL/Pillow library.""")
 
     def _figure_format_changed(self, name, old, new):
         from IPython.core.pylabtools import select_figure_format
+        if new in {"jpg", "jpeg"}:
+            if not pil_available():
+                raise TraitError("Requires PIL/Pillow for JPG figures")
         if self.shell is None:
             return
         else:
             select_figure_format(self.shell, new)
+
+    quality = Int(default_value=90, config=True,
+                  help="Quality of compression [0-100], currently for lossy JPEG only.")
+
+    def _quality_changed(self, name, old, new):
+        if new < 0 or new > 100:
+            raise TraitError("figure quality must be in [0-100] range.")
     
     close_figures = Bool(True, config=True,
         help="""Close all figures at the end of each cell.
