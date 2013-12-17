@@ -498,7 +498,7 @@ For instance:
     # is equivalent to
     $ ipcontroller --Application.log_level=DEBUG
     # and
-    $ ipython --matploitlib
+    $ ipython --matplotlib
     # is equivalent to
     $ ipython --matplotlib auto
     # or
