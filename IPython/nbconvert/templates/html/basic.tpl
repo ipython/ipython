@@ -13,26 +13,6 @@
 </div>
 {% endblock input_group %}
 
-{% block m_input_group -%}
-<div class="input">
-{{ super() }}
-</div>
-{% endblock m_input_group %}
-
-{% block h_input_group -%}
-<div class="input">
-{{ super() }}
-</div>
-{% endblock h_input_group %}
-
-{% block r_input_group -%}
-{{ super() }}
-{% endblock r_input_group %}
-
-{% block u_input_group -%}
-{{ super() }}
-{% endblock u_input_group %}
-
 {% block output_group %}
 <div class="output_wrapper">
 <div class="output">
@@ -78,31 +58,37 @@ In&nbsp;[{{ cell.prompt_number }}]:
 </div>
 {% endblock output %}
 
-{% block m_input %}
+{% block markdowncell scoped %}
+<div class="input">
+{{ self.e_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ cell.source  | markdown2html | strip_files_prefix }}
 </div>
 </div>
-{%- endblock m_input %}
+</div>
+{%- endblock markdowncell %}
 
-{% block h_input %}
+{% block headingcell scoped %}
+<div class="input">
+{{ self.e_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ ("#" * cell.level + cell.source) | replace('\n', ' ')  | markdown2html | strip_files_prefix | add_anchor }}
 </div>
 </div>
-{% endblock h_input %}
+</div>
+{% endblock headingcell %}
 
-{% block r_input %}
+{%- block rawcell scoped -%}
 {% if cell.metadata.get('raw_mimetype', resources.get('raw_mimetype', '')).lower() in resources.get('raw_mimetypes', ['']) %}
     {{ cell.source }}
 {% endif %}
-{% endblock r_input %}
+{%- endblock rawcell -%}
 
-{% block u_input %}
+{% block unknowncell scoped %}
 unknown type  {{ cell.type }}
-{% endblock u_input %}
+{% endblock unknowncell %}
 
 {% block pyout -%}
 <div class="box-flex1 output_subarea output_pyout">

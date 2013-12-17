@@ -71,17 +71,9 @@ consider calling super even if it is a leave block, we might insert more blocks 
                 {%- endblock codecell -%}
             {%- elif cell.cell_type in ['markdown'] -%}
                 {%- block markdowncell scoped-%}
-                    {%- block m_input_group -%}
-                        {%- block e_in_prompt -%}{%- endblock e_in_prompt -%}
-                        {%- block m_input -%}{%- endblock m_input -%}
-                    {%- endblock m_input_group -%}
                 {%- endblock markdowncell -%}
             {%- elif cell.cell_type in ['heading'] -%}
                 {%- block headingcell scoped-%}
-                    {%- block h_input_group -%}
-                        {{ self.e_in_prompt() }}
-                        {%- block h_input -%}{%- endblock h_input -%}
-                    {%- endblock h_input_group -%}
                 {%- endblock headingcell -%}
             {%- elif cell.cell_type in ['raw'] -%}
                 {%- block rawcell scoped -%}
@@ -91,10 +83,6 @@ consider calling super even if it is a leave block, we might insert more blocks 
                 {%- endblock rawcell -%}
             {%- else -%}
                 {%- block unknowncell scoped-%}
-                    {%- block u_input_group -%}
-                        {{ self.e_in_prompt() }}
-                        {%- block u_input -%}{%- endblock u_input -%}
-                    {%- endblock u_input_group -%}
                 {%- endblock unknowncell -%}
             {%- endif -%}
         {%- endblock any_cell -%}
