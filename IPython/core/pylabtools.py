@@ -95,7 +95,9 @@ def figsize(sizex, sizey):
 
 
 def print_figure(fig, fmt='png', quality=90):
-    """Convert a figure to svg, png or jpg for inline display."""
+    """Convert a figure to svg, png or jpg for inline display.
+    Quality is only relevant for jpg.
+    """
     from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
