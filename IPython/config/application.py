@@ -31,7 +31,7 @@ from IPython.external.decorator import decorator
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
-    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound,
+    KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound, JSONFileConfigLoader
 )
 
 from IPython.utils.traitlets import (
@@ -492,33 +492,54 @@ class Application(SingletonConfigurable):
         
         # flatten flags&aliases, so cl-args get appropriate priority:
         flags,aliases = self.flatten_flags()
-
         loader = KVArgParseConfigLoader(argv=argv, aliases=aliases,
-                                        flags=flags)
+                                        flags=flags, log=self.log)
         config = loader.load_config()
         self.update_config(config)
         # store unparsed args in extra_args
         self.extra_args = loader.extra_args
 
+    @classmethod
+    def _load_config_files(cls, basefilename, path=None, log=None):
+        """Load config files (py,json) by filename and path.
+
+        yield each config object in turn.
+        """
+
+        pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
+        jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
+        config_found = False
+        config = None
+        for loader in [pyloader, jsonloader]:
+            try:
+                config = loader.load_config()
+                config_found = True
+            except ConfigFileNotFound:
+                pass
+            except Exception:
+                # try to get the full filename, but it will be empty in the
+                # unlikely event that the error raised before filefind finished
+                filename = loader.full_filename or filename
+                # problem while running the file
+                log.error("Exception while loading config file %s",
+                                filename, exc_info=True)
+            else:
+                log.debug("Loaded config file: %s", loader.full_filename)
+            if config:
+                 yield config
+
+        if not config_found:
+            raise ConfigFileNotFound('Neither .json, nor .py config file found.')
+        raise StopIteration
+
+
     @catch_config_error
     def load_config_file(self, filename, path=None):
-        """Load a .py based config file by filename and path."""
-        loader = PyFileConfigLoader(filename, path=path)
-        try:
-            config = loader.load_config()
-        except ConfigFileNotFound:
-            # problem finding the file, raise
-            raise
-        except Exception:
-            # try to get the full filename, but it will be empty in the
-            # unlikely event that the error raised before filefind finished
-            filename = loader.full_filename or filename
-            # problem while running the file
-            self.log.error("Exception while loading config file %s",
-                            filename, exc_info=True)
-        else:
-            self.log.debug("Loaded config file: %s", loader.full_filename)
+        """Load config files by filename and path."""
+        filename, ext = os.path.splitext(filename)
+        for config in self._load_config_files(filename, path=path, log=self.log):
             self.update_config(config)
+
 
     def generate_config_file(self):
         """generate default config file from Configurables"""

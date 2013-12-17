@@ -22,17 +22,21 @@ Authors:
 import os
 import pickle
 import sys
+import json
+
 from tempfile import mkstemp
 from unittest import TestCase
 
 from nose import SkipTest
+import nose.tools as nt
 
-from IPython.testing.tools import mute_warn
+
 
 from IPython.config.loader import (
     Config,
     LazyConfigValue,
     PyFileConfigLoader,
+    JSONFileConfigLoader,
     KeyValueConfigLoader,
     ArgParseConfigLoader,
     KVArgParseConfigLoader,
@@ -53,21 +57,77 @@ c.Foo.Bam.value=list(range(10))  # list() is just so it's the same on Python 3
 c.D.C.value='hi there'
 """
 
-class TestPyFileCL(TestCase):
+json1file = """
+{
+  "version": 1,
+  "a": 10,
+  "b": 20,
+  "Foo": {
+    "Bam": {
+      "value": [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+    },
+    "Bar": {
+      "value": 10
+    }
+  },
+  "D": {
+    "C": {
+      "value": "hi there"
+    }
+  }
+}
+"""
 
-    def test_basic(self):
-        fd, fname = mkstemp('.py')
-        f = os.fdopen(fd, 'w')
-        f.write(pyfile)
-        f.close()
-        # Unlink the file
-        cl = PyFileConfigLoader(fname)
-        config = cl.load_config()
+# should not load
+json2file = """
+{
+  "version": 2
+}
+"""
+
+import logging
+log = logging.getLogger('devnull')
+log.setLevel(0)
+
+class TestFileCL(TestCase):
+
+    def _check_conf(self, config):
         self.assertEqual(config.a, 10)
         self.assertEqual(config.b, 20)
         self.assertEqual(config.Foo.Bar.value, 10)
         self.assertEqual(config.Foo.Bam.value, list(range(10)))
         self.assertEqual(config.D.C.value, 'hi there')
+
+    def test_python(self):
+        fd, fname = mkstemp('.py')
+        f = os.fdopen(fd, 'w')
+        f.write(pyfile)
+        f.close()
+        # Unlink the file
+        cl = PyFileConfigLoader(fname, log=log)
+        config = cl.load_config()
+        self._check_conf(config)
+
+    def test_json(self):
+        fd, fname = mkstemp('.json')
+        f = os.fdopen(fd, 'w')
+        f.write(json1file)
+        f.close()
+        # Unlink the file
+        cl = JSONFileConfigLoader(fname, log=log)
+        config = cl.load_config()
+        self._check_conf(config)
+
+    def test_v2raise(self):
+        fd, fname = mkstemp('.json')
+        f = os.fdopen(fd, 'w')
+        f.write(json2file)
+        f.close()
+        # Unlink the file
+        cl = JSONFileConfigLoader(fname, log=log)
+        with nt.assert_raises(ValueError):
+            cl.load_config()
+
 
 class MyLoader1(ArgParseConfigLoader):
     def _add_arguments(self, aliases=None, flags=None):
@@ -121,10 +181,9 @@ class TestKeyValueCL(TestCase):
     klass = KeyValueConfigLoader
 
     def test_basic(self):
-        cl = self.klass()
+        cl = self.klass(log=log)
         argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
-        with mute_warn():
-            config = cl.load_config(argv)
+        config = cl.load_config(argv)
         self.assertEqual(config.a, 10)
         self.assertEqual(config.b, 20)
         self.assertEqual(config.Foo.Bar.value, 10)
@@ -132,31 +191,27 @@ class TestKeyValueCL(TestCase):
         self.assertEqual(config.D.C.value, 'hi there')
     
     def test_expanduser(self):
-        cl = self.klass()
+        cl = self.klass(log=log)
         argv = ['--a=~/1/2/3', '--b=~', '--c=~/', '--d="~/"']
-        with mute_warn():
-            config = cl.load_config(argv)
+        config = cl.load_config(argv)
         self.assertEqual(config.a, os.path.expanduser('~/1/2/3'))
         self.assertEqual(config.b, os.path.expanduser('~'))
         self.assertEqual(config.c, os.path.expanduser('~/'))
         self.assertEqual(config.d, '~/')
     
     def test_extra_args(self):
-        cl = self.klass()
-        with mute_warn():
-            config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
+        cl = self.klass(log=log)
+        config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
         self.assertEqual(cl.extra_args, ['b', 'd'])
         self.assertEqual(config.a, 5)
         self.assertEqual(config.c, 10)
-        with mute_warn():
-            config = cl.load_config(['--', '--a=5', '--c=10'])
+        config = cl.load_config(['--', '--a=5', '--c=10'])
         self.assertEqual(cl.extra_args, ['--a=5', '--c=10'])
     
     def test_unicode_args(self):
-        cl = self.klass()
+        cl = self.klass(log=log)
         argv = [u'--a=épsîlön']
-        with mute_warn():
-            config = cl.load_config(argv)
+        config = cl.load_config(argv)
         self.assertEqual(config.a, u'épsîlön')
     
     def test_unicode_bytes_args(self):
@@ -166,16 +221,14 @@ class TestKeyValueCL(TestCase):
         except (TypeError, UnicodeEncodeError):
             raise SkipTest("sys.stdin.encoding can't handle 'é'")
         
-        cl = self.klass()
-        with mute_warn():
-            config = cl.load_config([barg])
+        cl = self.klass(log=log)
+        config = cl.load_config([barg])
         self.assertEqual(config.a, u'é')
     
     def test_unicode_alias(self):
-        cl = self.klass()
+        cl = self.klass(log=log)
         argv = [u'--a=épsîlön']
-        with mute_warn():
-            config = cl.load_config(argv, aliases=dict(a='A.a'))
+        config = cl.load_config(argv, aliases=dict(a='A.a'))
         self.assertEqual(config.A.a, u'épsîlön')
 
 
@@ -183,18 +236,16 @@ class TestArgParseKVCL(TestKeyValueCL):
     klass = KVArgParseConfigLoader
 
     def test_expanduser2(self):
-        cl = self.klass()
+        cl = self.klass(log=log)
         argv = ['-a', '~/1/2/3', '--b', "'~/1/2/3'"]
-        with mute_warn():
-            config = cl.load_config(argv, aliases=dict(a='A.a', b='A.b'))
+        config = cl.load_config(argv, aliases=dict(a='A.a', b='A.b'))
         self.assertEqual(config.A.a, os.path.expanduser('~/1/2/3'))
         self.assertEqual(config.A.b, '~/1/2/3')
     
     def test_eval(self):
-        cl = self.klass()
+        cl = self.klass(log=log)
         argv = ['-c', 'a=5']
-        with mute_warn():
-            config = cl.load_config(argv, aliases=dict(c='A.c'))
+        config = cl.load_config(argv, aliases=dict(c='A.c'))
         self.assertEqual(config.A.c, u"a=5")
     
 
