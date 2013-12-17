@@ -27,6 +27,7 @@ try:
     from signal import SIGKILL
 except ImportError:
     SIGKILL=None
+from types import FunctionType
 
 try:
     import cPickle
@@ -221,8 +222,16 @@ def interactive(f):
     This results in the function being linked to the user_ns as globals()
     instead of the module globals().
     """
-    f.__module__ = '__main__'
-    return f
+    mainmod = __import__('__main__')
+    
+    # build new FunctionType, so it can have the right globals
+    # interactive functions never have closures, that's kind of the point
+    f2 = FunctionType(f.__code__, mainmod.__dict__,
+        f.__name__, f.__defaults__,
+    )
+    # associate with __main__ for uncanning
+    f2.__module__ = '__main__'
+    return f2
 
 @interactive
 def _push(**ns):
