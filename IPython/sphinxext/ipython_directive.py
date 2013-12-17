@@ -44,22 +44,23 @@ ipython_mplbackend:
     The string which specifies if the embedded Sphinx shell should import
     Matplotlib and set the backend. The value specifies a backend that is
     passed to `matplotlib.use()` before any lines in `ipython_execlines` are
-    executed. If specified in conf.py as `None` or not specified in conf.py at
-    all, then no call to `matplotlib.use()` is made. Then, matplotlib is loaded
-    only if specified in `ipython_execlines` or if the @savefig pseudo
-    decorator is used. In the latter case, matplotlib is imported and its
-    default backend is used.
+    executed. If not specified in conf.py, then the default value of 'agg' is
+    used. To use the IPython directive without matplotlib as a dependency, set
+    the value to `None`. It may end up that matplotlib is still imported
+    if the user specifies so in `ipython_execlines` or makes use of the
+    @savefig pseudo decorator.
 ipython_execlines:
-    A list of strings to be exec'd for the embedded Sphinx shell. Typical
+    A list of strings to be exec'd in the embedded Sphinx shell. Typical
     usage is to make certain packages always available. Set this to an empty
     list if you wish to have no imports always available. If specified in
-    conf.py as `None` or not specified in conf.py at all, then the default
-    value of ['import numpy as np', 'from pylab import *'] is used.
+    conf.py as `None`, then it has the effect of making no imports available.
+    If omitted from conf.py altogether, then the default value of
+    ['import numpy as np', 'import matplotlib.pyplot as plt'] is used.
 
 As an example, to use the IPython directive when `matplotlib` is not available,
-one sets the backend to `None`::
+one sets the backend to `'none'`::
 
-    ipython_mplbacked = None
+    ipython_mplbacked = 'none'
 
 An example usage of the directive is:
 
@@ -73,7 +74,7 @@ An example usage of the directive is:
 
         In [3]: print(y)
 
-See http://matplotlib.org/sampledoc/ipython_directive.html for more additional
+See http://matplotlib.org/sampledoc/ipython_directive.html for additional
 documentation.
 
 ToDo
@@ -490,19 +491,19 @@ class EmbeddedSphinxShell(object):
         input_lines = None
         lineno = self.IP.execution_count
 
-        input_prompt = self.promptin%lineno
-        output_prompt = self.promptout%lineno
+        input_prompt = self.promptin % lineno
+        output_prompt = self.promptout % lineno
         image_file = None
         image_directive = None
 
         for token, data in block:
-            if token==COMMENT:
+            if token == COMMENT:
                 out_data = self.process_comment(data)
-            elif token==INPUT:
+            elif token == INPUT:
                 (out_data, input_lines, output, is_doctest, decorator,
                     image_file, image_directive) = \
                           self.process_input(data, input_prompt, lineno)
-            elif token==OUTPUT:
+            elif token == OUTPUT:
                 out_data = \
                     self.process_output(data, output_prompt,
                                         input_lines, output, is_doctest,
@@ -517,11 +518,30 @@ class EmbeddedSphinxShell(object):
         return ret, image_directive
 
     def ensure_pyplot(self):
-        if self._pyplot_imported:
-            return
-        self.process_input_line('import matplotlib.pyplot as plt',
-                                store_history=False)
-        self._pyplot_imported = True
+        """
+        Ensures that pyplot has been imported into the embedded IPython shell.
+
+        Also, makes sure to set the backend appropriately if not set already.
+
+        """
+        # We are here if the @figure pseudo decorator was used. Thus, it's
+        # possible that we could be here even if python_mplbackend were set to
+        # `None`. That's also strange and perhaps worthy of raising an
+        # exception, but for now, we just set the backend to 'agg'.
+
+        if not self._pyplot_imported:
+            if 'matplotlib.backends' not in sys.modules:
+                # Then ipython_matplotlib was set to None but there was a
+                # call to the @figure decorator (and ipython_execlines did
+                # not set a backend).
+                #raise Exception("No backend was set, but @figure was used!")
+                import matplotlib
+                matplotlib.use('agg')
+
+            # Always import pyplot into embedded shell.
+            self.process_input_line('import matplotlib.pyplot as plt',
+                                    store_history=False)
+            self._pyplot_imported = True
 
     def process_pure_python(self, content):
         """
@@ -655,14 +675,6 @@ class IPythonDirective(Directive):
         mplbackend = config.ipython_mplbackend
         exec_lines = config.ipython_execlines
 
-        # Handle None uniformly, whether specified in conf.py as `None` or
-        # omitted entirely from conf.py.
-
-        if mplbackend is None:
-            mplbackend = 'agg'
-        if exec_lines is None:
-            exec_lines = ['import numpy as np', 'from pylab import *']
-
         return (savefig_dir, source_dir, rgxin, rgxout,
                 promptin, promptout, mplbackend, exec_lines)
 
@@ -672,6 +684,10 @@ class IPythonDirective(Directive):
          promptout, mplbackend, exec_lines) = self.get_config_options()
 
         if self.shell is None:
+            # We will be here many times.  However, when the
+            # EmbeddedSphinxShell is created, its interactive shell member
+            # is the same for each instance.
+
             if mplbackend:
                 import matplotlib
                 # Repeated calls to use() will not hurt us since `mplbackend`
@@ -764,7 +780,7 @@ class IPythonDirective(Directive):
         # cleanup
         self.teardown()
 
-        return []#, imgnode]
+        return []
 
 # Enable as a proper Sphinx directive
 def setup(app):
@@ -778,8 +794,15 @@ def setup(app):
                          re.compile('Out\[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_promptin', 'In [%d]:', 'env')
     app.add_config_value('ipython_promptout', 'Out[%d]:', 'env')
-    app.add_config_value('ipython_mplbackend', None, 'env')
-    app.add_config_value('ipython_execlines', None, 'env')
+    # We could just let matplotlib pick whatever is specified as the default
+    # backend in the matplotlibrc file, but this would cause issues if the
+    # backend didn't work in headless environments. For this reason, 'agg'
+    # is a good default backend choice.
+    app.add_config_value('ipython_mplbackend', 'agg', 'env')
+    # If the user sets this config value to `None`, then EmbeddedSphinxShell's
+    # __init__ method will treat it as [].
+    execlines = ['import numpy as np', 'import matplotlib.pyplot as plt']
+    app.add_config_value('ipython_execlines', execlines, 'env')
 
 # Simple smoke test, needs to be converted to a proper automatic test.
 def test():
