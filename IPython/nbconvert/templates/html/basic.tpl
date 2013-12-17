@@ -13,6 +13,30 @@
 </div>
 {% endblock input_group %}
 
+{% block m_input_group -%}
+<div class="input">
+{{ super() }}
+</div>
+{% endblock m_input_group %}
+
+{% block h_input_group -%}
+<div class="input">
+{{ super() }}
+</div>
+{% endblock h_input_group %}
+
+{% block r_input_group -%}
+<div class="input">
+{{ super() }}
+</div>
+{% endblock r_input_group %}
+
+{% block u_input_group -%}
+<div class="input">
+{{ super() }}
+</div>
+{% endblock u_input_group %}
+
 {% block output_group %}
 <div class="output_wrapper">
 <div class="output">
@@ -26,6 +50,11 @@
 In&nbsp;[{{ cell.prompt_number }}]:
 </div>
 {%- endblock in_prompt %}
+
+{% block e_in_prompt -%}
+<div class="prompt input_prompt">
+</div>
+{%- endblock e_in_prompt %}
 
 {# 
   output_prompt doesn't do anything in HTML,
@@ -52,11 +81,6 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {{ super() }}
 </div>
 {% endblock output %}
-
-{% block e_in_prompt -%}
-<div class="prompt input_prompt">
-</div>
-{%- endblock e_in_prompt %}
 
 {% block m_input %}
 <div class="inner_cell">
