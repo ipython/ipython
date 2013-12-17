@@ -26,15 +26,11 @@
 {% endblock h_input_group %}
 
 {% block r_input_group -%}
-<div class="input">
 {{ super() }}
-</div>
 {% endblock r_input_group %}
 
 {% block u_input_group -%}
-<div class="input">
 {{ super() }}
-</div>
 {% endblock u_input_group %}
 
 {% block output_group %}
@@ -99,17 +95,13 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock h_input %}
 
 {% block r_input %}
-<div class="inner_cell">
 {% if cell.metadata.get('raw_mimetype', resources.get('raw_mimetype', '')).lower() in resources.get('raw_mimetypes', ['']) %}
     {{ cell.source }}
 {% endif %}
-</div>
 {% endblock r_input %}
 
 {% block u_input %}
-<div class="inner_cell">
 unknown type  {{ cell.type }}
-</div>
 {% endblock u_input %}
 
 {% block pyout -%}
