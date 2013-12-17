@@ -1029,12 +1029,19 @@ the ``raw_input(prompt)`` call.
 
 Message type: ``input_request``::
 
-    content = { 'prompt' : str }
+    content = { 'prompt' : str, 'password' : bool }
 
 Message type: ``input_reply``::
 
     content = { 'value' : str }
-    
+
+
+When ``password`` is True, the frontend should not echo the input as it is entered.
+
+.. versionchanged:: 5.0
+
+    ``password`` key added in msg spec 5.0.
+
 .. note::
 
     The stdin socket of the client is required to have the same zmq IDENTITY
