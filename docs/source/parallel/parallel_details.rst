@@ -170,7 +170,7 @@ communication API for engines via its low-level :meth:`send_apply_message` metho
 by all higher level methods of its Views.
 
 f : function
-    The fuction to be called remotely
+    The function to be called remotely
 args : tuple/list
     The positional arguments passed to `f`
 kwargs : dict

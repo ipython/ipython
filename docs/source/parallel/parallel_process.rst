@@ -800,7 +800,7 @@ which is a UUID, and thus different every time.
 
 .. sourcecode:: python
 
-    # To keep persistant task history in MongoDB:
+    # To keep persistent task history in MongoDB:
     c.MongoDB.database = 'tasks'
     
     # and in SQLite:
@@ -853,7 +853,7 @@ mpi4py, add:
     c.MPI.use = 'mpi4py'
 
 In this case, the Engine will use our default mpi4py init script to set up
-the MPI environment prior to exection.  We have default init scripts for
+the MPI environment prior to execution.  We have default init scripts for
 mpi4py and pytrilinos.  If you want to specify your own code to be run
 at the beginning, specify `c.MPI.init_script`.
 
