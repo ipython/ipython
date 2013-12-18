@@ -818,7 +818,7 @@ Message type: ``stream``::
 Display Data
 ------------
 
-This type of message is used to bring back data that should be diplayed (text,
+This type of message is used to bring back data that should be displayed (text,
 html, svg, etc.) in the frontends. This data is published to all frontends.
 Each message can have multiple representations of the data; it is up to the
 frontend to decide which to use and how. A single message should contain all
@@ -829,7 +829,7 @@ Some questions remain about this design:
 
 * Do we use this message type for pyout/displayhook? Probably not, because
   the displayhook also has to handle the Out prompt display. On the other hand
-  we could put that information into the metadata secion.
+  we could put that information into the metadata section.
 
 Message type: ``display_data``::
 
@@ -838,7 +838,7 @@ Message type: ``display_data``::
         # Who create the data
         'source' : str,
 
-        # The data dict contains key/value pairs, where the kids are MIME
+        # The data dict contains key/value pairs, where the keys are MIME
         # types and the values are the raw data of the representation in that
         # format.
         'data' : dict,
