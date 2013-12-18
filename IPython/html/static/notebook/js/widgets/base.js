@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget",
+define(["notebook/js/widgetmanager",
         "components/underscore/underscore-min",
         "components/backbone/backbone-min"], 
 function(widget_manager, underscore, backbone){
