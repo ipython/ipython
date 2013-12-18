@@ -170,5 +170,10 @@ def assemble_output(iopub):
             pass
     return stdout, stderr
 
-
-
+def wait_for_idle(kc):
+    while True:
+        msg = kc.iopub_channel.get_msg(block=True, timeout=1)
+        msg_type = msg['msg_type']
+        content = msg['content']
+        if msg_type == 'status' and content['execution_state'] == 'idle':
+            break
