@@ -113,8 +113,7 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     if extra_args:
         cmd.extend(extra_args)
 
-    # if pandoc is missing let the exception bubble us out of here
-    pandoc_available(failmode="raise", alt=cmd)
+    # this will raise an exception that will pop us out of here
     check_pandoc_version()
     
     # we can safely continue
@@ -134,11 +133,10 @@ def get_pandoc_version():
         else:
             return pandoc.version
     except AttributeError:
+        # if pandoc is missing let the exception bubble us out of here
+        pandoc_available(failmode="raise")        
         cmd = ["pandoc", "-v"]
-        try:
-            out = subprocess.check_output(cmd, universal_newlines=True)
-        except OSError as e:
-            raise PandocMissing(cmd, e)
+        out = subprocess.check_output(cmd, universal_newlines=True)
         pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
         pandoc.version = pv_re.search(out).group(0)
         return pandoc.version
