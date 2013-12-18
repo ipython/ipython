@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widget"], function(widget_manager){
+define(["notebook/js/widgets/base"], function(widget_manager){
     var IntRangeWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
 
