@@ -258,7 +258,7 @@ class EmbeddedSphinxShell(object):
         # This will persist across different EmbededSphinxShell instances.
         IP = InteractiveShell.instance(config=config, profile_dir=profile)
 
-        # io.stdout redirect must be done *after* instantiating InteractiveShell
+        # io.stdout redirect must be done after instantiating InteractiveShell
         io.stdout = self.cout
         io.stderr = self.cout
 

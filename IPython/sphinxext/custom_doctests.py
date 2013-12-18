@@ -1,5 +1,50 @@
 """
-Module containing custom doctests.
+Module containing additional handlers for the IPython directive's @doctest.
+
+The Sphinx extension that provides support for embedded IPython code provides
+a pseudo-decorator @doctest, which treats the input/output block as a
+doctest, raising a RuntimeError during doc generation if the actual output
+(after running the input) does not match the expected output.
+
+An example usage is:
+
+.. code-block:: rst
+
+   .. ipython::
+
+        In [1]: x = 1
+
+        @doctest
+        In [2]: x + 2
+        Out[3]: 3
+
+One can also provide arguments to the decorator. The first argument should be
+the name of a custom handler. The specification of any other arguments is
+determined by the handler. For example,
+
+.. code-block:: rst
+
+      .. ipython::
+
+         @doctest float
+         In [154]: 0.1 + 0.2
+         Out[154]: 0.3
+
+allows the actual output ``0.30000000000000004`` to match the expected output
+due to a comparison with `np.allclose`.
+
+This module contains handlers for the @doctest pseudo-decorator. Handlers
+should have the following function signature::
+
+    handler(sphinx_shell, args, input_lines, found, submitted)
+
+where `sphinx_shell` is the embedded Sphinx shell, `args` contains the list
+of arguments that follow: '@doctest handler_name', `input_lines` contains
+a list of the lines relevant to the current doctest, `found` is a string
+containing the output from the IPython shell, and `submitted` is a string
+containing the expected output from the IPython shell.
+
+Handlers must be registered in the `doctests` dict at the end of this module.
 
 """
 
@@ -103,6 +148,8 @@ def float_doctest(sphinx_shell, args, input_lines, found, submitted):
                      repr(submitted), TAB=TAB)
         raise RuntimeError(e)
 
+# dict of allowable doctest handlers. The key represents the first argument
+# that must be given to @doctest in order to activate the handler.
 doctests = {
     'float': float_doctest,
 }
