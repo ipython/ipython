@@ -83,6 +83,7 @@ if sys.version_info[0] >= 3:
     str_to_bytes = encode
     bytes_to_str = decode
     cast_bytes_py2 = no_code
+    cast_unicode_py2 = no_code
     
     string_types = (str,)
     unicode_type = str
@@ -139,6 +140,7 @@ else:
     str_to_bytes = no_code
     bytes_to_str = no_code
     cast_bytes_py2 = cast_bytes
+    cast_unicode_py2 = cast_unicode
     
     string_types = (str, unicode)
     unicode_type = unicode

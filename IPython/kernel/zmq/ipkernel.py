@@ -341,7 +341,7 @@ class Kernel(Configurable):
         
         try:
             content = parent[u'content']
-            code = content[u'code']
+            code = py3compat.cast_unicode_py2(content[u'code'])
             silent = content[u'silent']
             store_history = content.get(u'store_history', not silent)
         except:
