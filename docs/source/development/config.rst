@@ -97,7 +97,7 @@ When both Python and JSON configuration file are present, both will be loaded,
 with JSON configuration having higher priority.
 
 Python configuration Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 A Python configuration file is a pure Python file that populates a configuration object.
 This configuration object is a :class:`~IPython.config.loader.Config` instance.
@@ -187,7 +187,7 @@ attribute of ``c`` is not the actual class, but instead is another
     hierarchical information created easily (``c.Foo.Bar.value``) on the fly.
 
 JSON configuration Files
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 A JSON configuration file is simply a file that contains a
 :class:`~IPython.config.loader.Config` dictionary serialized to JSON.
