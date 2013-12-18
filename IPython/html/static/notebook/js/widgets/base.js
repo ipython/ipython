@@ -142,7 +142,7 @@ function(widget_manager, underscore, backbone){
                         console.log("Could not determine where the display" + 
                             " message was from.  Widget will not be displayed");
                     } else {
-                        this._display_view(msg.content.data.view_name, 
+                        this.display_view(msg.content.data.view_name, 
                         msg.content.data.parent,
                         cell);
                     }
@@ -310,7 +310,7 @@ function(widget_manager, underscore, backbone){
 
 
         // Create view that represents the model.
-        _display_view: function (view_name, parent_id, cell) {
+        display_view: function (view_name, parent_id, cell) {
             var new_views = [];
             var view;
 
