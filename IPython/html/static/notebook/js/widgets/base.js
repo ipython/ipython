@@ -557,4 +557,6 @@ function(widget_manager, underscore, backbone){
 
     IPython.WidgetModel = WidgetModel;
     IPython.WidgetView = WidgetView;
+
+    return widget_manager;
 });
