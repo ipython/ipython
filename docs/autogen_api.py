@@ -30,7 +30,7 @@ if __name__ == '__main__':
                                         r'\.ipdoctest',
                                         r'\.testing\.plugin',
                                         # This just prints a deprecation msg:
-                                        r'\.frontend',
+                                        r'\.frontend$',
                                         ]
     
     # We're rarely working on machines with the Azure SDK installed, so we
