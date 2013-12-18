@@ -45,7 +45,7 @@ from IPython.core.error import TryNext
 # but over time we'll move here all the public API for user-accessible things.
 
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
-           'input_prefilter', 'shutdown_hook', 'late_startup_hook',
+           'shutdown_hook', 'late_startup_hook',
            'show_in_pager','pre_prompt_hook',
            'pre_run_code_hook', 'clipboard_get']
 
@@ -149,21 +149,6 @@ class CommandChainDispatcher:
         Handy if the objects are not callable.
         """
         return iter(self.chain)
-
-
-def input_prefilter(self,line):
-    """ Default input prefilter
-
-    This returns the line as unchanged, so that the interpreter
-    knows that nothing was done and proceeds with "classic" prefiltering
-    (%magics, !shell commands etc.).
-
-    Note that leading whitespace is not passed to this hook. Prefilter
-    can't alter indentation.
-
-    """
-    #print "attempt to rewrite",line #dbg
-    return line
 
 
 def shutdown_hook(self):
