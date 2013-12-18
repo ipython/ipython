@@ -1,4 +1,4 @@
-"""some generic utilities for dealing with classes, urls, and serialization
+"""Some generic utilities for dealing with classes, urls, and serialization.
 
 Authors:
 

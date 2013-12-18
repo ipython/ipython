@@ -1,3 +1,5 @@
+"""Replacements for sys.displayhook that publish over ZMQ.
+"""
 import sys
 
 from IPython.core.displayhook import DisplayHook

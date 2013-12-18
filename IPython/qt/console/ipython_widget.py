@@ -1,5 +1,6 @@
-""" A FrontendWidget that emulates the interface of the console IPython and
-    supports the additional functionality provided by the IPython kernel.
+"""A FrontendWidget that emulates the interface of the console IPython.
+
+This supports the additional functionality provided by the IPython kernel.
 """
 
 #-----------------------------------------------------------------------------

@@ -1,3 +1,5 @@
+"""Adapt readline completer interface to make ZMQ request.
+"""
 # -*- coding: utf-8 -*-
 import readline
 try:

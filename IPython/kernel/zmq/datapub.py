@@ -1,4 +1,4 @@
-"""Publishing
+"""Publishing native (typically pickled) objects.
 """
 
 #-----------------------------------------------------------------------------
