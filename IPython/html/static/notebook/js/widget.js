@@ -30,22 +30,25 @@
         // WidgetModel class
         //--------------------------------------------------------------------
         var WidgetModel = Backbone.Model.extend({
-            constructor: function (comm_manager, comm, widget_manager) {
-                this.comm_manager = comm_manager;
+            constructor: function (widget_manager, widget_id, comm) {
                 this.widget_manager = widget_manager;
                 this.pending_msgs = 0;
                 this.msg_throttle = 3;
                 this.msg_buffer = null;
                 this.views = [];
+                this.id = widget_id;
                 this._custom_msg_callbacks = [];
 
-                // Remember comm associated with the model.
-                this.comm = comm;
-                comm.model = this;
+                if (comm !== undefined) {
 
-                // Hook comm messages up to model.
-                comm.on_close($.proxy(this._handle_comm_closed, this));
-                comm.on_msg($.proxy(this._handle_comm_msg, this));
+                    // Remember comm associated with the model.
+                    this.comm = comm;
+                    comm.model = this;
+
+                    // Hook comm messages up to model.
+                    comm.on_close($.proxy(this._handle_comm_closed, this));
+                    comm.on_msg($.proxy(this._handle_comm_msg, this));
+                }
 
                 return Backbone.Model.apply(this);
             },
@@ -65,19 +68,21 @@
         
 
             send: function (content, cell) {
-
-                // Used the last modified view as the sender of the message.  This
-                // will insure that any python code triggered by the sent message
-                // can create and display widgets and output.
-                if (cell === undefined) {
-                    if (this.last_modified_view !== undefined && 
-                        this.last_modified_view.cell !== undefined) {
-                        cell = this.last_modified_view.cell;
+                if (this._has_comm()) {
+                    // Used the last modified view as the sender of the message.  This
+                    // will insure that any python code triggered by the sent message
+                    // can create and display widgets and output.
+                    if (cell === undefined) {
+                        if (this.last_modified_view !== undefined && 
+                            this.last_modified_view.cell !== undefined) {
+                            cell = this.last_modified_view.cell;
+                        }
                     }
+                    var callbacks = this._make_callbacks(cell);
+                    var data = {method: 'custom', custom_content: content};
+                    
+                    this.comm.send(data, callbacks);
                 }
-                var callbacks = this._make_callbacks(cell);
-                var data = {method: 'custom', custom_content: content};
-                this.comm.send(data, callbacks);   
             },
 
 
@@ -124,7 +129,11 @@
             // Handle when a widget is closed.
             _handle_comm_closed: function (msg) {
                 this._execute_views_method('remove');
-                delete this.comm.model; // Delete ref so GC will collect widget model.
+                if (this._has_comm()) {
+                    delete this.comm.model; // Delete ref so GC will collect widget model.
+                    delete this.comm;
+                }
+                delete this.widget_id; // Delete id from model so widget manager cleans up.
             },
 
 
@@ -158,6 +167,10 @@
                         var class_list = msg.content.data.class_list;
                         this._execute_views_method(method, selector, class_list);
                         break;
+                    case 'set_snapshot':
+                        var cell = this._get_msg_cell(msg.parent_header.msg_id);
+                        cell.metadata.snapshot = msg.content.data.snapshot;
+                        break;
                     case 'custom':
                         this._handle_custom_msg(msg.content.data.custom_content);
                         break;
@@ -185,7 +198,6 @@
                             }
                         }
                     }
-                    this.id = this.comm.comm_id;
                     this.save();
                 } finally {
                     this.updating = false;
@@ -195,22 +207,24 @@
 
             _handle_status: function (cell, msg) {
                 //execution_state : ('busy', 'idle', 'starting')
-                if (msg.content.execution_state=='idle') {
-                    
-                    // Send buffer if this message caused another message to be
-                    // throttled.
-                    if (this.msg_buffer !== null &&
-                        this.msg_throttle == this.pending_msgs) {
+                if (this._has_comm()) {
+                    if (msg.content.execution_state=='idle') {
+                        
+                        // Send buffer if this message caused another message to be
+                        // throttled.
+                        if (this.msg_buffer !== null &&
+                            this.msg_throttle == this.pending_msgs) {
 
-                        var callbacks = this._make_callbacks(cell);
-                        var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
-                        this.comm.send(data, callbacks);   
-                        this.msg_buffer = null;
-                    } else {
+                            var callbacks = this._make_callbacks(cell);
+                            var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
+                            this.comm.send(data, callbacks);   
+                            this.msg_buffer = null;
+                        } else {
 
-                        // Only decrease the pending message count if the buffer
-                        // doesn't get flushed (sent).
-                        --this.pending_msgs;
+                            // Only decrease the pending message count if the buffer
+                            // doesn't get flushed (sent).
+                            --this.pending_msgs;
+                        }
                     }
                 }
             },
@@ -223,44 +237,46 @@
 
                 // Only send updated state if the state hasn't been changed 
                 // during an update.
-                if (!this.updating) {
-                    if (this.pending_msgs >= this.msg_throttle) {
-                        // The throttle has been exceeded, buffer the current msg so
-                        // it can be sent once the kernel has finished processing 
-                        // some of the existing messages.
-                        if (method=='patch') {
-                            if (this.msg_buffer === null) {
+                if (this._has_comm()) {
+                    if (!this.updating) {
+                        if (this.pending_msgs >= this.msg_throttle) {
+                            // The throttle has been exceeded, buffer the current msg so
+                            // it can be sent once the kernel has finished processing 
+                            // some of the existing messages.
+                            if (method=='patch') {
+                                if (this.msg_buffer === null) {
+                                    this.msg_buffer = $.extend({}, model_json); // Copy
+                                }
+                                for (attr in options.attrs) {
+                                    this.msg_buffer[attr] = options.attrs[attr];
+                                }
+                            } else {
                                 this.msg_buffer = $.extend({}, model_json); // Copy
                             }
-                            for (attr in options.attrs) {
-                                this.msg_buffer[attr] = options.attrs[attr];
-                            }
+
                         } else {
-                            this.msg_buffer = $.extend({}, model_json); // Copy
-                        }
-
-                    } else {
-                        // We haven't exceeded the throttle, send the message like 
-                        // normal.  If this is a patch operation, just send the 
-                        // changes.
-                        var send_json = model_json;
-                        if (method =='patch') {
-                            send_json = {};
-                            for (attr in options.attrs) {
-                                send_json[attr] = options.attrs[attr];
+                            // We haven't exceeded the throttle, send the message like 
+                            // normal.  If this is a patch operation, just send the 
+                            // changes.
+                            var send_json = model_json;
+                            if (method =='patch') {
+                                send_json = {};
+                                for (attr in options.attrs) {
+                                    send_json[attr] = options.attrs[attr];
+                                }
                             }
-                        }
 
-                        var data = {method: 'backbone', sync_method: method, sync_data: send_json};
+                            var data = {method: 'backbone', sync_method: method, sync_data: send_json};
 
-                        var cell = null;
-                        if (this.last_modified_view !== undefined && this.last_modified_view !== null) {
-                            cell = this.last_modified_view.cell;    
+                            var cell = null;
+                            if (this.last_modified_view !== undefined && this.last_modified_view !== null) {
+                                cell = this.last_modified_view.cell;    
+                            }
+                            
+                            var callbacks = this._make_callbacks(cell);
+                            this.comm.send(data, callbacks);    
+                            this.pending_msgs++;
                         }
-                        
-                        var callbacks = this._make_callbacks(cell);
-                        this.comm.send(data, callbacks);    
-                        this.pending_msgs++;
                     }
                 }
                 
@@ -301,28 +317,29 @@
 
 
             // Create view that represents the model.
-            _display_view: function (view_name, parent_comm_id, cell) {
+            _display_view: function (view_name, parent_id, cell) {
                 var new_views = [];
                 var view;
 
                 // Try creating and adding the view to it's parent.
                 var displayed = false;
-                if (parent_comm_id !== undefined) {
-                    var parent_comm = this.comm_manager.comms[parent_comm_id];
-                    var parent_model = parent_comm.model;
-                    var parent_views = parent_model.views; 
-                    for (var parent_view_index in parent_views) {
-                        var parent_view = parent_views[parent_view_index];
-                        if (parent_view.cell === cell) {
-                            if (parent_view.display_child !== undefined) {
-                                view = this._create_view(view_name, cell);
-                                if (view !== null) {
-                                    new_views.push(view);
-                                    parent_view.display_child(view);
-                                    displayed = true;
-                                    this._handle_view_displayed(view);
-                                }
-                            }    
+                if (parent_id !== undefined) {
+                    var parent_model = this.widget_manager.get_model(parent_id);
+                    if (parent_model !== null) {
+                        var parent_views = parent_model.views; 
+                        for (var parent_view_index in parent_views) {
+                            var parent_view = parent_views[parent_view_index];
+                            if (parent_view.cell === cell) {
+                                if (parent_view.display_child !== undefined) {
+                                    view = this._create_view(view_name, cell);
+                                    if (view !== null) {
+                                        new_views.push(view);
+                                        parent_view.display_child(view);
+                                        displayed = true;
+                                        this._handle_view_displayed(view);
+                                    }
+                                }    
+                            }
                         }
                     }
                 }
@@ -377,8 +394,13 @@
                                     console.log("Exception in widget model close callback", e, that);
                                 }
                             }
-                            that.comm.close();     
-                            delete that.comm.model; // Delete ref so GC will collect widget model.
+
+                            if (that._has_comm()) {
+                                that.comm.close();
+                                delete that.comm.model; // Delete ref so GC will collect widget model.
+                                delete that.comm;
+                            }
+                            delete that.widget_id; // Delete id from model so widget manager cleans up.
                         }
                     });
                     return view;    
@@ -438,13 +460,15 @@
                 // for the message.  get_cell callbacks are registered for
                 // widget messages, so this block is actually checking to see if the
                 // message was triggered by a widget.
-                var kernel = this.comm_manager.kernel;
-                var callbacks = kernel.get_callbacks_for_msg(msg_id);
-                if (callbacks !== undefined && 
-                    callbacks.iopub !== undefined && 
-                    callbacks.iopub.get_cell !== undefined) {
+                var kernel = this.widget_manager.get_kernel();
+                if (kernel !== undefined && kernel !== null) {
+                    var callbacks = kernel.get_callbacks_for_msg(msg_id);
+                    if (callbacks !== undefined && 
+                        callbacks.iopub !== undefined && 
+                        callbacks.iopub.get_cell !== undefined) {
 
-                    return callbacks.iopub.get_cell();
+                        return callbacks.iopub.get_cell();
+                    }    
                 }
                 
                 // Not triggered by a cell or widget (no get_cell callback 
@@ -452,6 +476,12 @@
                 return null;
             },
 
+
+            // Function that checks if a comm has been attached to this widget
+            // model.  Returns True if a valid comm is attached.
+            _has_comm: function() {
+                return this.comm !== undefined && this.comm !== null;
+            },
         });
 
 
@@ -540,6 +570,7 @@
             this.comm_manager = null;
             this.widget_model_types = {};
             this.widget_view_types = {};
+            this._model_instances = {};
             
             var that = this;
             Backbone.sync = function (method, model, options, error) {
@@ -581,8 +612,26 @@
                 return IPython.notebook.get_msg_cell(msg_id);
             }
         };
-        
-        
+
+
+        WidgetManager.prototype.get_model = function (widget_id) {
+            var model = this._model_instances[widget_id];
+            if (model.id == widget_id) {
+                return model;
+            }
+            return null;
+        };
+
+
+        WidgetManager.prototype.get_kernel = function () {
+            if (this.comm_manager === null) {
+                return null;
+            } else {
+                return this.comm_manager.kernel;
+            }
+        };
+
+
         WidgetManager.prototype.on_create_widget = function (callback) {
             this._create_widget_callback = callback;
         };
@@ -601,11 +650,11 @@
 
         WidgetManager.prototype._handle_com_open = function (comm, msg) {
             var widget_type_name = msg.content.target_name;
-            var widget_model = new this.widget_model_types[widget_type_name](this.comm_manager, comm, this);
+            var widget_model = new this.widget_model_types[widget_type_name](this, comm.comm_id, comm);
+            this._model_instances[comm.comm_id] = widget_model;
             this._handle_create_widget(widget_model);
         };
         
-
         //--------------------------------------------------------------------
         // Init code
         //--------------------------------------------------------------------
