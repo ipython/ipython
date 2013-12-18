@@ -193,8 +193,9 @@ class IPythonHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             use_less=self.use_less,
+            static_url=self.static_url,
         )
-
+    
     def get_json_body(self):
         """Return the body of the request as JSON data."""
         if not self.request.body:
