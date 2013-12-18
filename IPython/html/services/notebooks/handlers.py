@@ -17,12 +17,13 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import json
+import os.path
 
 from tornado import web
 
 from IPython.html.utils import url_path_join, url_escape
 from IPython.utils.jsonutil import date_default
-
+from IPython.nbconvert import export_by_name
 from IPython.html.base.handlers import IPythonHandler, json_errors
 
 #-----------------------------------------------------------------------------
@@ -35,7 +36,7 @@ class NotebookHandler(IPythonHandler):
     SUPPORTED_METHODS = (u'GET', u'PUT', u'PATCH', u'POST', u'DELETE')
 
     def notebook_location(self, name, path=''):
-        """Return the full URL location of a notebook based.
+        """Return the full URL location of a notebook based.f
         
         Parameters
         ----------
@@ -56,6 +57,14 @@ class NotebookHandler(IPythonHandler):
         self.set_header('Last-Modified', model['last_modified'])
         self.finish(json.dumps(model, default=date_default))
     
+    def _download(self, export):
+        content, meta = export
+        filename = "%s.%s" % (meta['metadata']['name'], meta['output_extension'])
+        mimetype = meta['raw_mimetype']
+        self.set_header('Content-Type', mimetype)
+        self.set_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.finish(content)
+
     @web.authenticated
     @json_errors
     def get(self, path='', name=None):
@@ -70,10 +79,15 @@ class NotebookHandler(IPythonHandler):
             # List notebooks in 'path'
             notebooks = nbm.list_notebooks(path)
             self.finish(json.dumps(notebooks, default=date_default))
-            return
-        # get and return notebook representation
-        model = nbm.get_notebook_model(name, path)
-        self._finish_model(model, location=False)
+        elif 'download' in self.request.arguments:
+            format = self.request.arguments['format'][0]
+            nb = os.path.join(path, name)
+            export = export_by_name(format, nb)
+            self._download(export)
+        else:
+            # get and return notebook representation
+            model = nbm.get_notebook_model(name, path)
+            self._finish_model(model, location=False)
 
     @web.authenticated
     @json_errors
