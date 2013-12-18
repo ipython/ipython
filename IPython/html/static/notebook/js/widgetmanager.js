@@ -78,7 +78,7 @@
 
         WidgetManager.prototype.get_model = function (widget_id) {
             var model = this._model_instances[widget_id];
-            if (model.id == widget_id) {
+            if (model !== undefined && model.id == widget_id) {
                 return model;
             }
             return null;
