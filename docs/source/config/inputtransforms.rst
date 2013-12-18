@@ -41,7 +41,10 @@ attributes :attr:`~IPython.core.interactiveshell.InteractiveShell.input_splitter
 to tell when a block of input is complete, and
 :attr:`~IPython.core.interactiveshell.InteractiveShell.input_transformer_manager`,
 to transform complete cells. If you add a transformer, you should make sure that
-it gets added to both.
+it gets added to both, e.g.::
+
+    ip.input_splitter.logical_line_transforms.append(my_transformer())
+    ip.input_transformer_manager.logical_line_transforms.append(my_transformer())
 
 Stateless transformations
 -------------------------
