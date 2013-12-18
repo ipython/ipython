@@ -72,7 +72,11 @@ def html2text(element):
     Analog of jQuery's $(element).text()
     """
     if isinstance(element, py3compat.string_types):
-        element = ElementTree.fromstring(element)
+        try:
+            element = ElementTree.fromstring(element)
+        except Exception:
+            # failed to parse, just return it unmodified
+            return element
     
     text = element.text or ""
     for child in element:
@@ -86,7 +90,11 @@ def add_anchor(html):
     
     For use in heading cells
     """
-    h = ElementTree.fromstring(py3compat.cast_bytes_py2(html, encoding='utf-8'))
+    try:
+        h = ElementTree.fromstring(py3compat.cast_bytes_py2(html, encoding='utf-8'))
+    except Exception:
+        # failed to parse, just return it unmodified
+        return html
     link = html2text(h).replace(' ', '-')
     h.set('id', link)
     a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
