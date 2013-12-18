@@ -148,7 +148,7 @@ function(widget_manager, underscore, backbone){
                     }
                     break;
                 case 'update':
-                    this._handle_update(msg.content.data.state);
+                    this.apply_update(msg.content.data.state);
                     break;
                 case 'add_class':
                 case 'remove_class':
@@ -172,7 +172,7 @@ function(widget_manager, underscore, backbone){
 
 
         // Handle when a widget is updated via the python side.
-        _handle_update: function (state) {
+        apply_update: function (state) {
             this.updating = true;
             try {
                 for (var key in state) {
