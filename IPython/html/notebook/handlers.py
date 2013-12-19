@@ -20,8 +20,7 @@ import os
 from tornado import web
 HTTPError = web.HTTPError
 
-from ..base.handlers import IPythonHandler
-from ..services.notebooks.handlers import _notebook_path_regex, _path_regex
+from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
 from ..utils import url_path_join, url_escape
 
 #-----------------------------------------------------------------------------
@@ -85,7 +84,7 @@ class NotebookRedirectHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/notebooks%s" % _notebook_path_regex, NotebookHandler),
-    (r"/notebooks%s" % _path_regex, NotebookRedirectHandler),
+    (r"/notebooks%s" % notebook_path_regex, NotebookHandler),
+    (r"/notebooks%s" % path_regex, NotebookRedirectHandler),
 ]
 

@@ -18,9 +18,8 @@ Authors:
 import os
 
 from tornado import web
-from ..base.handlers import IPythonHandler
+from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
 from ..utils import url_path_join, path2url, url2path, url_escape
-from ..services.notebooks.handlers import _notebook_path_regex, _path_regex
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -70,8 +69,8 @@ class TreeRedirectHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/tree%s" % _notebook_path_regex, TreeHandler),
-    (r"/tree%s" % _path_regex, TreeHandler),
+    (r"/tree%s" % notebook_path_regex, TreeHandler),
+    (r"/tree%s" % path_regex, TreeHandler),
     (r"/tree", TreeHandler),
     (r"/", TreeRedirectHandler),
     ]

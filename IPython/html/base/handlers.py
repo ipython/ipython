@@ -355,6 +355,14 @@ class TrailingSlashHandler(web.RequestHandler):
         self.redirect(self.request.uri.rstrip('/'))
 
 #-----------------------------------------------------------------------------
+# URL pattern fragments for re-use
+#-----------------------------------------------------------------------------
+
+path_regex = r"(?P<path>(?:/.*)*)"
+notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
+notebook_path_regex = "%s/%s" % (path_regex, notebook_name_regex)
+
+#-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
 

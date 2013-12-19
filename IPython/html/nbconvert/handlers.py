@@ -2,7 +2,7 @@ import os
 
 from tornado import web
 
-from ..base.handlers import IPythonHandler
+from ..base.handlers import IPythonHandler, notebook_path_regex
 from IPython.nbformat.current import to_notebook_json
 from IPython.nbconvert.exporters.export import exporter_map
 from IPython.utils import tz
@@ -74,12 +74,10 @@ class NbconvertPostHandler(IPythonHandler):
 #-----------------------------------------------------------------------------
 
 _format_regex = r"(?P<format>\w+)"
-_path_regex = r"(?P<path>(?:/.*)*)"
-_notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
-_notebook_path_regex = "%s/%s" % (_path_regex, _notebook_name_regex)
+
 
 default_handlers = [
-    (r"/nbconvert/%s%s" % (_format_regex, _notebook_path_regex),
+    (r"/nbconvert/%s%s" % (_format_regex, notebook_path_regex),
          NbconvertFileHandler),
     (r"/nbconvert/%s" % _format_regex, NbconvertPostHandler),
 ]
