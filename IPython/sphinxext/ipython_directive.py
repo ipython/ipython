@@ -57,6 +57,11 @@ ipython_execlines:
     conf.py as `None`, then it has the effect of making no imports available.
     If omitted from conf.py altogether, then the default value of
     ['import numpy as np', 'import matplotlib.pyplot as plt'] is used.
+ipython_holdcount
+    When the @suppress pseudo-decorator is used, the execution count can be
+    incremented or not. The default behavior is to hold the execution count,
+    corresponding to a value of `True`. Set this to `False` to increment
+    the execution count after each suppressed command.
 
 As an example, to use the IPython directive when `matplotlib` is not available,
 one sets the backend to `None`::
@@ -363,7 +368,6 @@ class EmbeddedSphinxShell(object):
                                        # so splitter buffer gets reset
 
         continuation = '   %s:'%''.join(['.']*(len(str(lineno))+2))
-        Nc = len(continuation)
 
         if is_savefig:
             image_file, image_directive = self.process_image(decorator)
@@ -371,23 +375,29 @@ class EmbeddedSphinxShell(object):
         ret = []
         is_semicolon = False
 
+        # Hold the execution count, if requested to do so.
+        if is_suppress and self.hold_count:
+            store_history = False
+        else:
+            store_history = True
+
         for i, line in enumerate(input_lines):
             if line.endswith(';'):
                 is_semicolon = True
 
-            if i==0:
+            if i == 0:
                 # process the first input line
                 if is_verbatim:
                     self.process_input_line('')
                     self.IP.execution_count += 1 # increment it anyway
                 else:
                     # only submit the line in non-verbatim mode
-                    self.process_input_line(line, store_history=True)
+                    self.process_input_line(line, store_history=store_history)
                 formatted_line = '%s %s'%(input_prompt, line)
             else:
                 # process a continuation line
                 if not is_verbatim:
-                    self.process_input_line(line, store_history=True)
+                    self.process_input_line(line, store_history=store_history)
 
                 formatted_line = '%s %s'%(continuation, line)
 
@@ -675,14 +685,15 @@ class IPythonDirective(Directive):
         promptout  = config.ipython_promptout
         mplbackend = config.ipython_mplbackend
         exec_lines = config.ipython_execlines
+        hold_count = config.ipython_holdcount
 
         return (savefig_dir, source_dir, rgxin, rgxout,
-                promptin, promptout, mplbackend, exec_lines)
+                promptin, promptout, mplbackend, exec_lines, hold_count)
 
     def setup(self):
         # Get configuration values.
-        (savefig_dir, source_dir, rgxin, rgxout, promptin,
-         promptout, mplbackend, exec_lines) = self.get_config_options()
+        (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
+         mplbackend, exec_lines, hold_count) = self.get_config_options()
 
         if self.shell is None:
             # We will be here many times.  However, when the
@@ -718,6 +729,7 @@ class IPythonDirective(Directive):
         self.shell.promptout = promptout
         self.shell.savefig_dir = savefig_dir
         self.shell.source_dir = source_dir
+        self.shell.hold_count = hold_count
 
         # setup bookmark for saving figures directory
         self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
@@ -796,15 +808,19 @@ def setup(app):
                          re.compile('Out\[(\d+)\]:\s?(.*)\s*'), 'env')
     app.add_config_value('ipython_promptin', 'In [%d]:', 'env')
     app.add_config_value('ipython_promptout', 'Out[%d]:', 'env')
+
     # We could just let matplotlib pick whatever is specified as the default
     # backend in the matplotlibrc file, but this would cause issues if the
     # backend didn't work in headless environments. For this reason, 'agg'
     # is a good default backend choice.
     app.add_config_value('ipython_mplbackend', 'agg', 'env')
+
     # If the user sets this config value to `None`, then EmbeddedSphinxShell's
     # __init__ method will treat it as [].
     execlines = ['import numpy as np', 'import matplotlib.pyplot as plt']
     app.add_config_value('ipython_execlines', execlines, 'env')
+
+    app.add_config_value('ipython_holdcount', True, 'env')
 
 # Simple smoke test, needs to be converted to a proper automatic test.
 def test():
