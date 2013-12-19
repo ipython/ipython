@@ -204,10 +204,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             prompt created. When triggered by an Enter/Return key press,
             'interactive' is True; otherwise, it is False.
         """
-        try:
-            self._input_splitter.reset()
-        except SyntaxError:
-            pass
+        self._input_splitter.reset()
         try:
             complete = self._input_splitter.push(source)
         except SyntaxError:
@@ -239,10 +236,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         # Flush all state from the input splitter so the next round of
         # reading input starts with a clean buffer.
-        try:
-            self._input_splitter.reset()
-        except SyntaxError:
-            pass
+        self._input_splitter.reset()
 
         if not self._reading:
             self._highlighter.highlighting_on = False

@@ -536,14 +536,13 @@ class IPythonInputSplitter(InputSplitter):
         self.transformer_accumulating = False
         self.within_python_line = False
 
-        last_exc = None
         for t in self.transforms:
             try:
                 t.reset()
-            except SyntaxError as e:
-                last_exc = e
-        if last_exc is not None:
-            raise last_exc
+            except SyntaxError:
+                # Nothing that calls reset() expects to handle transformer
+                # errors
+                pass
     
     def flush_transformers(self):
         def _flush(transform, out):
@@ -560,18 +559,19 @@ class IPythonInputSplitter(InputSplitter):
         if out is not None:
             self._store(out)
 
-    def source_raw_reset(self):
-        """Return input and raw source and perform a full reset.
+    def raw_reset(self):
+        """Return raw input only and perform a full reset.
         """
-        self.flush_transformers()
-        out = self.source
-        out_r = self.source_raw
+        out = self.source_raw
         self.reset()
-        return out, out_r
+        return out
     
     def source_reset(self):
-        self.flush_transformers()
-        return super(IPythonInputSplitter, self).source_reset()
+        try:
+            self.flush_transformers()
+            return self.source
+        finally:
+            self.reset()
 
     def push_accepts_more(self):
         if self.transformer_accumulating:
@@ -583,8 +583,12 @@ class IPythonInputSplitter(InputSplitter):
         """Process and translate a cell of input.
         """
         self.reset()
-        self.push(cell)
-        return self.source_reset()
+        try:
+            self.push(cell)
+            self.flush_transformers()
+            return self.source
+        finally:
+            self.reset()
 
     def push(self, lines):
         """Push one or more lines of IPython input.

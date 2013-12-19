@@ -518,7 +518,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
-                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    source_raw = self.input_splitter.raw_reset()
                     hlen_b4_cell = \
                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
@@ -552,7 +552,7 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.autoedit_syntax):
                     self.edit_syntax_error()
                 if not more:
-                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    source_raw = self.input_splitter.raw_reset()
                     self.run_cell(source_raw, store_history=True)
                     hlen_b4_cell = \
                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)

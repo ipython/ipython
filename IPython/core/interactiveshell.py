@@ -2635,8 +2635,7 @@ class InteractiveShell(SingletonConfigurable):
         preprocessing_exc_tuple = None
         try:
             # Static input transformations
-            self.input_transformer_manager.push(raw_cell)
-            cell = self.input_transformer_manager.source_reset()
+            cell = self.input_transformer_manager.transform_cell(raw_cell)
         except SyntaxError:
             preprocessing_exc_tuple = sys.exc_info()
             cell = raw_cell  # cell has to exist so it can be stored/logged

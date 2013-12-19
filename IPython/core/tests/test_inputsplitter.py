@@ -412,7 +412,8 @@ class IPythonInputTestCase(InputSplitterTestCase):
                     continue
 
                 isp.push(raw+'\n')
-                out, out_raw = isp.source_raw_reset()
+                out_raw = isp.source_raw
+                out = isp.source_reset()
                 self.assertEqual(out.rstrip(), out_t,
                         tt.pair_fail_msg.format("inputsplitter",raw, out_t, out))
                 self.assertEqual(out_raw.rstrip(), raw.rstrip())
@@ -431,7 +432,8 @@ class IPythonInputTestCase(InputSplitterTestCase):
                         isp.push(lraw)
                         raw_parts.append(lraw)
 
-                out, out_raw = isp.source_raw_reset()
+                out_raw = isp.source_raw
+                out = isp.source_reset()
                 out_t = '\n'.join(out_t_parts).rstrip()
                 raw = '\n'.join(raw_parts).rstrip()
                 self.assertEqual(out.rstrip(), out_t)
@@ -498,7 +500,8 @@ if __name__ == '__main__':
             # Here we just return input so we can use it in a test suite, but a
             # real interpreter would instead send it for execution somewhere.
             #src = isp.source; raise EOFError # dbg
-            src, raw = isp.source_raw_reset()
+            raw = isp.source_raw
+            src = isp.source_reset()
             print('Input source was:\n', src)
             print('Raw source was:\n', raw)
     except EOFError:
@@ -545,9 +548,7 @@ class CellMagicsCommon(object):
 
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
-        sp = self.sp
-        sp.push(src)
-        out = sp.source_reset()
+        out = self.sp.transform_cell(src)
         ref = u"get_ipython().run_cell_magic({u}'cellm', {u}'line', {u}'body')\n"
         nt.assert_equal(out, py3compat.u_format(ref))
     
