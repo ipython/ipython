@@ -1,5 +1,5 @@
 """
-Module containing additional handlers for the IPython directive's @doctest.
+Handlers for IPythonDirective's @doctest pseudo-decorator.
 
 The Sphinx extension that provides support for embedded IPython code provides
 a pseudo-decorator @doctest, which treats the input/output block as a

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Sphinx directive to support embedded IPython code.
+"""
+Sphinx directive to support embedded IPython code.
 
 This directive allows pasting of entire interactive IPython sessions, prompts
 and all, and their code will actually get re-executed at doc build time, with
