@@ -212,7 +212,7 @@ class PrefilterManager(Configurable):
             self._checkers.remove(checker)
 
     #-------------------------------------------------------------------------
-    # API for managing checkers
+    # API for managing handlers
     #-------------------------------------------------------------------------
 
     def init_handlers(self):
