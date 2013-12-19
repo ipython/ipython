@@ -477,8 +477,13 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # asynchronously by signal handlers, for example.
                 self.showtraceback()
             else:
-                self.input_splitter.push(line)
-                more = self.input_splitter.push_accepts_more()
+                try:
+                    self.input_splitter.push(line)
+                    more = self.input_splitter.push_accepts_more()
+                except SyntaxError:
+                    # Run the code directly - run_cell takes care of displaying
+                    # the exception.
+                    more = False
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
