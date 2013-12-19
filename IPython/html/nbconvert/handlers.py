@@ -19,7 +19,7 @@ class NbconvertFileHandler(IPythonHandler):
     
     @web.authenticated
     def get(self, format, path='', name=None):
-        exporter = exporter_map[format]()
+        exporter = exporter_map[format](config=self.config)
         
         path = path.strip('/')
         os_path = self.notebook_manager.get_os_path(name, path)
@@ -52,7 +52,7 @@ class NbconvertPostHandler(IPythonHandler):
 
     @web.authenticated 
     def post(self, format):
-        exporter = exporter_map[format]()
+        exporter = exporter_map[format](config=self.config)
         
         model = self.get_json_body()
         nbnode = to_notebook_json(model['content'])
