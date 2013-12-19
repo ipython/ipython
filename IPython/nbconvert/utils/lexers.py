@@ -170,9 +170,9 @@ class IPythonTracebackLexer(DelegatingLexer):
     def __init__(self, **options):
         self.python3 = get_bool_opt(options, 'python3', False)
         if self.python3:
-            self.aliases = ['ipythontb3']
+            self.aliases = ['ipython3tb']
         else:
-            self.aliases = ['ipythontb2', 'ipythontb']
+            self.aliases = ['ipython2tb', 'ipythontb']
 
         if self.python3:
             IPyLexer = IPython3Lexer
@@ -189,7 +189,7 @@ class IPythonConsoleLexer(Lexer):
 
     .. code-block:: rst
 
-        .. code-block:: ipythoncon
+        .. code-block:: ipythonconsole
 
             In [1]: a = 'foo'
 
@@ -206,7 +206,7 @@ class IPythonConsoleLexer(Lexer):
 
     .. code-block:: rst
 
-        .. code-block:: ipythoncon
+        .. code-block:: ipythonconsole
 
             In [1]: raise Exception
             ---------------------------------------------------------------------------
@@ -218,7 +218,7 @@ class IPythonConsoleLexer(Lexer):
 
     """
     name = 'IPython console session'
-    aliases = ['ipythoncon']
+    aliases = ['ipythonconsole']
     mimetypes = ['text/x-ipython-console']
 
     # The regexps used to determine what is input and what is output.
@@ -260,9 +260,9 @@ class IPythonConsoleLexer(Lexer):
         """
         self.python3 = get_bool_opt(options, 'python3', False)
         if self.python3:
-            self.aliases = ['ipythoncon3']
+            self.aliases = ['ipython3console']
         else:
-            self.aliases = ['ipythoncon2', 'ipythoncon']
+            self.aliases = ['ipython2console', 'ipythonconsole']
 
         in1_regex = options.get('in1_regex', self.in1_regex)
         in2_regex = options.get('in2_regex', self.in2_regex)
