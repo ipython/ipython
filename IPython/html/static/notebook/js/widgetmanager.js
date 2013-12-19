@@ -34,7 +34,6 @@
             this.widget_view_types = {};
             this._model_instances = {};
             
-            var that = this;
             Backbone.sync = function (method, model, options, error) {
                 var result = model._handle_sync(method, options);
                 if (options.success) {
