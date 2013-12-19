@@ -126,9 +126,9 @@ class CapturingDisplayPublisher(DisplayPublisher):
     
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)
-        if other:
-            # empty the list, *do not* reassign a new list
-            del self.outputs[:]
+        
+        # empty the list, *do not* reassign a new list
+        del self.outputs[:]
 
 
 def publish_display_data(source, data, metadata=None):
