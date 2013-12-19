@@ -79,15 +79,11 @@ var IPython = (function (IPython) {
     };
 
     Notebook.prototype.notebookName = function() {
-        var name = $('body').data('notebookName');
-        name = decodeURIComponent(name);
-        return name;  
+        return $('body').data('notebookName');
     };
     
     Notebook.prototype.notebookPath = function() {
-        var path = $('body').data('notebookPath');
-        path = decodeURIComponent(path);
-        return path
+        return $('body').data('notebookPath');
     };
     
     /**
@@ -1689,10 +1685,10 @@ var IPython = (function (IPython) {
             }
         }
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
             'api/notebooks',
-            this.notebookPath(),
+            this.notebook_path,
             this.notebook_name
         );
         $.ajax(url, settings);
@@ -1743,15 +1739,15 @@ var IPython = (function (IPython) {
      * @method save_notebook_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('notebook_save_failed.Notebook');
+    Notebook.prototype.save_notebook_error = function (xhr, status, error) {
+        $([IPython.events]).trigger('notebook_save_failed.Notebook', [xhr, status, error]);
     };
 
     Notebook.prototype.new_notebook = function(){
-        var path = this.notebookPath();
-        var base_project_url = this.baseProjectUrl();
+        var path = this.notebook_path;
+        var base_project_url = this._baseProjectUrl;
         var settings = {
             processData : false,
             cache : false,
@@ -1761,7 +1757,7 @@ var IPython = (function (IPython) {
             success : function (data, status, xhr){
                 var notebook_name = data.name;
                 window.open(
-                    utils.url_path_join(
+                    utils.url_join_encode(
                         base_project_url,
                         'notebooks',
                         path,
@@ -1771,7 +1767,7 @@ var IPython = (function (IPython) {
                 );
             }
         };
-        var url = utils.url_path_join(
+        var url = utils.url_join_encode(
             base_project_url,
             'api/notebooks',
             path
@@ -1781,8 +1777,8 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.copy_notebook = function(){
-        var path = this.notebookPath();
-        var base_project_url = this.baseProjectUrl();
+        var path = this.notebook_path;
+        var base_project_url = this._baseProjectUrl;
         var settings = {
             processData : false,
             cache : false,
@@ -1791,7 +1787,7 @@ var IPython = (function (IPython) {
             data : JSON.stringify({copy_from : this.notebook_name}),
             async : false,
             success : function (data, status, xhr) {
-                window.open(utils.url_path_join(
+                window.open(utils.url_join_encode(
                     base_project_url,
                     'notebooks',
                     data.path,
@@ -1799,7 +1795,7 @@ var IPython = (function (IPython) {
                 ), '_blank');
             }
         };
-        var url = utils.url_path_join(
+        var url = utils.url_join_encode(
             base_project_url,
             'api/notebooks',
             path
@@ -1821,10 +1817,10 @@ var IPython = (function (IPython) {
             error : $.proxy(that.rename_error, this)
         };
         $([IPython.events]).trigger('rename_notebook.Notebook', data);
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
             'api/notebooks',
-            this.notebookPath(),
+            this.notebook_path,
             this.notebook_name
         );
         $.ajax(url, settings);
@@ -1832,19 +1828,20 @@ var IPython = (function (IPython) {
     
     
     Notebook.prototype.rename_success = function (json, status, xhr) {
-        this.notebook_name = json.name
-        var name = this.notebook_name
-        var path = json.path
+        this.notebook_name = json.name;
+        var name = this.notebook_name;
+        var path = json.path;
         this.session.rename_notebook(name, path);
         $([IPython.events]).trigger('notebook_renamed.Notebook', json);
     }
 
-    Notebook.prototype.rename_error = function (json, status, xhr) {
+    Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
         var dialog = $('<div/>').append(
             $("<p/>").addClass("rename-message")
             .html('This notebook name already exists.')
         )
+        $([IPython.events]).trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         IPython.dialog.modal({
             title: "Notebook Rename Error!",
             body: dialog,
@@ -1889,10 +1886,10 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = utils.url_path_join(
+        var url = utils.url_join_encode(
             this._baseProjectUrl,
             'api/notebooks',
-            this.notebookPath(),
+            this.notebook_path,
             this.notebook_name
         );
         $.ajax(url, settings);
@@ -1974,12 +1971,13 @@ var IPython = (function (IPython) {
      * 
      * @method load_notebook_error
      * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} textStatus Description of response status
-     * @param {String} errorThrow HTTP error message
+     * @param {String} status Description of response status
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.load_notebook_error = function (xhr, textStatus, errorThrow) {
+    Notebook.prototype.load_notebook_error = function (xhr, status, error) {
+        $([IPython.events]).trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         if (xhr.status === 400) {
-            var msg = errorThrow;
+            var msg = error;
         } else if (xhr.status === 500) {
             var msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
@@ -2034,10 +2032,10 @@ var IPython = (function (IPython) {
      * @method list_checkpoints
      */
     Notebook.prototype.list_checkpoints = function () {
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
             'api/notebooks',
-            this.notebookPath(),
+            this.notebook_path,
             this.notebook_name,
             'checkpoints'
         );
@@ -2085,8 +2083,8 @@ var IPython = (function (IPython) {
      * @method create_checkpoint
      */
     Notebook.prototype.create_checkpoint = function () {
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
             'api/notebooks',
             this.notebookPath(),
             this.notebook_name,
@@ -2172,8 +2170,8 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
             'api/notebooks',
             this.notebookPath(),
             this.notebook_name,
@@ -2220,8 +2218,8 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
             'api/notebooks',
             this.notebookPath(),
             this.notebook_name,

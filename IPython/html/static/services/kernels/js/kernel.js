@@ -113,7 +113,7 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
         if (this.running) {
             this.stop_channels();
-            var url = utils.url_path_join(this.kernel_url, "restart");
+            var url = utils.url_join_encode(this.kernel_url, "restart");
             $.post(url,
                 $.proxy(this._kernel_started, this),
                 'json'
@@ -133,7 +133,7 @@ var IPython = (function (IPython) {
             ws_url = prot + location.host + ws_url;
         }
         this.ws_url = ws_url;
-        this.kernel_url = utils.url_path_join(this.base_url, this.kernel_id);
+        this.kernel_url = utils.url_join_encode(this.base_url, this.kernel_id);
         this.start_channels();
     };
 

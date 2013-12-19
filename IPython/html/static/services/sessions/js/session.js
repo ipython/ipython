@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
                 }
             },
         };
-        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions');
+        var url = utils.url_join_encode(this._baseProjectUrl, 'api/sessions');
         $.ajax(url, settings);
     };
     
@@ -64,7 +64,7 @@ var IPython = (function (IPython) {
             data: JSON.stringify(model),
             dataType : "json",
         };
-        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.id);
+        var url = utils.url_join_encode(this._baseProjectUrl, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     
@@ -76,7 +76,7 @@ var IPython = (function (IPython) {
             dataType : "json",
         };
         this.kernel.running = false;
-        var url = utils.url_path_join(this._baseProjectUrl, 'api/sessions', this.id);
+        var url = utils.url_join_encode(this._baseProjectUrl, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     

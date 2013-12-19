@@ -51,7 +51,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.load_list_success, this)
         };
-        var url = utils.url_path_join(this.baseProjectUrl(), 'clusters');
+        var url = utils.url_join_encode(this.baseProjectUrl(), 'clusters');
         $.ajax(url, settings);
     };
 
@@ -137,7 +137,7 @@ var IPython = (function (IPython) {
                     }
                 };
                 status_col.html('starting');
-                var url = utils.url_path_join(
+                var url = utils.url_join_encode(
                     that.baseProjectUrl(),
                     'clusters',
                     that.data.profile,
@@ -179,7 +179,7 @@ var IPython = (function (IPython) {
                 }
             };
             status_col.html('stopping');
-            var url = utils.url_path_join(
+            var url = utils.url_join_encode(
                 that.baseProjectUrl(),
                 'clusters',
                 that.data.profile,

@@ -147,7 +147,7 @@ var IPython = (function (IPython) {
                              },this)
         };
 
-        var url = utils.url_path_join(
+        var url = utils.url_join_encode(
                 this.baseProjectUrl(),
                 'api',
                 'notebooks',
@@ -177,7 +177,7 @@ var IPython = (function (IPython) {
             var nbname = utils.splitext(name)[0];
             var item = this.new_notebook_item(i);
             this.add_link(path, nbname, item);
-            name = utils.url_path_join(this.notebookPath(), name);
+            name = utils.url_path_join(path, name);
             if(this.sessions[name] === undefined){
                 this.add_delete_button(item);
             } else {
@@ -214,10 +214,10 @@ var IPython = (function (IPython) {
         item.find(".item_name").text(nbname);
         item.find("a.item_link")
             .attr('href',
-                utils.url_path_join(
+                utils.url_join_encode(
                     this.baseProjectUrl(),
                     "notebooks",
-                    this.notebookPath(),
+                    path,
                     nbname + ".ipynb"
                 )
             ).attr('target','_blank');
@@ -254,7 +254,7 @@ var IPython = (function (IPython) {
                         that.load_sessions();
                     }
                 };
-                var url = utils.url_path_join(
+                var url = utils.url_join_encode(
                     that.baseProjectUrl(),
                     'api/sessions',
                     session
@@ -294,11 +294,11 @@ var IPython = (function (IPython) {
                                         parent_item.remove();
                                     }
                                 };
-                                var url = utils.url_path_join(
+                                var url = utils.url_join_encode(
                                     notebooklist.baseProjectUrl(),
                                     'api/notebooks',
                                     notebooklist.notebookPath(),
-                                     nbname + '.ipynb'
+                                    nbname + '.ipynb'
                                 );
                                 $.ajax(url, settings);
                             }
@@ -339,7 +339,7 @@ var IPython = (function (IPython) {
                     }
                 };
 
-                var url = utils.url_path_join(
+                var url = utils.url_join_encode(
                     that.baseProjectUrl(),
                     'api/notebooks',
                     that.notebookPath(),
@@ -373,7 +373,7 @@ var IPython = (function (IPython) {
             success : function (data, status, xhr) {
                 var notebook_name = data.name;
                 window.open(
-                    utils.url_path_join(
+                    utils.url_join_encode(
                         base_project_url,
                         'notebooks',
                         path,
@@ -382,7 +382,7 @@ var IPython = (function (IPython) {
                 );
             }
         };
-        var url = utils.url_path_join(
+        var url = utils.url_join_encode(
             base_project_url,
             'api/notebooks',
             path
