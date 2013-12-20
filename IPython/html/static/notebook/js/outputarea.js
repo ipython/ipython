@@ -279,15 +279,12 @@ var IPython = (function (IPython) {
     };
 
     OutputArea.prototype.rename_keys = function (data, key_map) {
+        var remapped = {};
         for (var key in data) {
             var new_key = key_map[key] || key;
-            if (new_key !== key) {
-                // move mime-type keys to short name
-                data[new_key] = data[key];
-                delete data[key];
-            }
+            remapped[new_key] = data[key];
         }
-        return data;
+        return remapped;
     };
     
 
@@ -742,13 +739,13 @@ var IPython = (function (IPython) {
         // add here the mapping of short key to mime type
         // TODO: remove this when we update to nbformat 4
         var len = outputs.length;
+        var data;
         for (var i=0; i<len; i++) {
-            var data = outputs[i];
-            var msg_type = data.output_type;
+            var msg_type = outputs[i].output_type;
             if (msg_type === "display_data" || msg_type === "pyout") {
                 // convert short keys to mime keys
-                 this.rename_keys(data, OutputArea.mime_map_r);
-                 this.rename_keys(data.metadata, OutputArea.mime_map_r);
+                 data = this.rename_keys(outputs[i], OutputArea.mime_map_r);
+                 data.metadata = this.rename_keys(outputs[i].metadata, OutputArea.mime_map_r);
             }
             
             // append with dynamic=false.
@@ -760,14 +757,14 @@ var IPython = (function (IPython) {
     OutputArea.prototype.toJSON = function () {
         var outputs = [];
         var len = this.outputs.length;
+        var data;
         for (var i=0; i<len; i++) {
-            var data = this.outputs[i];
-            var msg_type = data.output_type;
+            var msg_type = this.outputs[i].output_type;
             console.log("msg type is  ", msg_type)
             if (msg_type === "display_data" || msg_type === "pyout") {
                   // convert mime keys to short keys
-                 this.rename_keys(data, OutputArea.mime_map);
-                 this.rename_keys(data.metadata, OutputArea.mime_map);
+                 data = this.rename_keys(this.outputs[i], OutputArea.mime_map);
+                 data.metadata = this.rename_keys(this.outputs[i], OutputArea.mime_map);
             }
             outputs[i] = data;
         }
