@@ -176,13 +176,15 @@ class Widget(LoggingConfigurable):
         self._comm = None
 
 
-    def _handle_displayed(self, view_name):
+    def _handle_displayed(self, view_name, parent=None):
         """Called when a view has been displayed for this widget instance
 
         Parameters
         ----------
         view_name: unicode
-            Name of the view that was displayed."""
+            Name of the view that was displayed.
+        parent: Widget instance [optional]
+            Widget that this widget should be displayed as a child of."""
         for handler in self._display_callbacks:
             if callable(handler):
                 argspec = inspect.getargspec(handler)
@@ -199,6 +201,8 @@ class Widget(LoggingConfigurable):
                     handler(self)
                 elif nargs == 2:
                     handler(self, view_name)
+                elif nargs == 3:
+                    handler(self, view_name, parent)
                 else:
                     raise TypeError('Widget display callback must ' \
                         'accept 0-2 arguments, not %d.' % nargs)
@@ -371,6 +375,7 @@ class Widget(LoggingConfigurable):
             - callback()
             - callback(sender)
             - callback(sender, view_name)
+            - callback(sender, view_name, parent)
         remove: bool
             True if the callback should be unregistered."""
         if remove and callback in self._display_callbacks:
@@ -403,12 +408,13 @@ class Widget(LoggingConfigurable):
         # Show view.
         if self.parent is None or self.parent._comm is None:
             self._comm.send({"method": "display", "view_name": view_name})
+            self._handle_displayed(view_name)
         else:
             self._comm.send({"method": "display", 
                             "view_name": view_name,
                             "parent": self.parent._comm.comm_id})
+            self._handle_displayed(view_name, self.parent)
         self._displayed = True
-        self._handle_displayed(view_name)
 
         # Now display children if any.
         for child in self._children:
