@@ -27,16 +27,7 @@ class ZMQCompleter(Configurable):
         import readline
         line = readline.get_line_buffer()
         cursor_pos = readline.get_endidx()
-
-        # send completion request to kernel
-        # Give the kernel up to 0.5s to respond
-        msg_id = self.client.shell_channel.complete(text=text, line=line,
-                                                        cursor_pos=cursor_pos)
-
-        msg = self.client.shell_channel.get_msg(timeout=self.timeout)
-        if msg['parent_header']['msg_id'] == msg_id:
-            return msg["content"]["matches"]
-        return []
+        return complete_request(text, line, cursor_pos)
 
     def complete_request(self, text, line, cursor_pos):
         # send completion request to kernel
@@ -63,14 +54,13 @@ class ZMQCompleter(Configurable):
             return None
 
     def complete(self, text, line, cursor_pos=None):
-        if state == 0:
-            try:
-                self.matches = self.complete_request(text, line, cursor_pos)
-            except Empty:
-                #print('WARNING: Kernel timeout on tab completion.')
-                pass
+        try:
+            self.matches = self.complete_request(text, line, cursor_pos)
+        except Empty:
+            #print('WARNING: Kernel timeout on tab completion.')
+            pass
 
         try:
-            return self.matches[state]
+            return self.matches[0]
         except IndexError:
             return None
