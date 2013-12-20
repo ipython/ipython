@@ -10,7 +10,8 @@ import requests
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.current import (new_notebook, write, new_worksheet,
-                                      new_heading_cell, new_code_cell)
+                                      new_heading_cell, new_code_cell,
+                                      new_output)
 
 class NbconvertAPI(object):
     """Wrapper for nbconvert API calls."""
@@ -48,7 +49,9 @@ class APITest(NotebookTestBase):
         ws = new_worksheet()
         nb.worksheets = [ws]
         ws.cells.append(new_heading_cell(u'Created by test ³'))
-        ws.cells.append(new_code_cell(input=u'print(2*6)'))
+        cc1 = new_code_cell(input=u'print(2*6)')
+        cc1.outputs.append(new_output(output_text=u'12'))
+        ws.cells.append(cc1)
         
         with io.open(pjoin(nbdir, 'foo', 'testnb.ipynb'), 'w',
                      encoding='utf-8') as f:
@@ -83,6 +86,11 @@ class APITest(NotebookTestBase):
         self.assertIn('attachment', content_disposition)
         self.assertIn('testnb.py', content_disposition)
 
+    def test_from_file_zip(self):
+        r = self.nbconvert_api.from_file('latex', 'foo', 'testnb.ipynb', download=True)
+        self.assertIn(u'application/zip', r.headers['Content-Type'])
+        self.assertIn(u'.zip', r.headers['Content-Disposition'])
+
     def test_from_post(self):
         nbmodel_url = url_path_join(self.base_url(), 'api/notebooks/foo/testnb.ipynb')
         nbmodel = requests.get(nbmodel_url).json()
@@ -96,3 +104,11 @@ class APITest(NotebookTestBase):
         r = self.nbconvert_api.from_post(format='python', nbmodel=nbmodel)
         self.assertIn(u'text/x-python', r.headers['Content-Type'])
         self.assertIn(u'print(2*6)', r.text)
+
+    def test_from_post_zip(self):
+        nbmodel_url = url_path_join(self.base_url(), 'api/notebooks/foo/testnb.ipynb')
+        nbmodel = requests.get(nbmodel_url).json()
+
+        r = self.nbconvert_api.from_post(format='latex', nbmodel=nbmodel)
+        self.assertIn(u'application/zip', r.headers['Content-Type'])
+        self.assertIn(u'.zip', r.headers['Content-Disposition'])
