@@ -29,6 +29,7 @@ class TestExtractOutput(PreprocessorTestsBase):
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
         preprocessor = ExtractOutputPreprocessor()
+        preprocessor.extract_output_types = {'text', 'png'}
         preprocessor.enabled = True
         return preprocessor
 
