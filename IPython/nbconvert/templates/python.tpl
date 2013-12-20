@@ -27,7 +27,7 @@ it introduces a new line
 {# .... #}
 
 {% block pyout %}
-{{ output.text | indent | comment_lines }}
+{{ output.text or '' | indent | comment_lines }}
 {% endblock pyout %}
 
 {% block stream %}

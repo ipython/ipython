@@ -17,7 +17,7 @@ import base64
 import sys
 import os
 
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, Set
 from .base import Preprocessor
 from IPython.utils import py3compat
 
@@ -34,6 +34,7 @@ class ExtractOutputPreprocessor(Preprocessor):
     output_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}.{extension}", config=True)
 
+    extract_output_types = Set({'png', 'jpg', 'svg', 'pdf'}, config=True)
 
     def preprocess_cell(self, cell, resources, cell_index):
         """
@@ -63,8 +64,8 @@ class ExtractOutputPreprocessor(Preprocessor):
         #Loop through all of the outputs in the cell
         for index, out in enumerate(cell.get('outputs', [])):
 
-            #Get the output in data formats that the template is interested in.
-            for out_type in self.display_data_priority:
+            #Get the output in data formats that the template needs extracted
+            for out_type in self.extract_output_types:
                 if out.hasattr(out_type): 
                     data = out[out_type]
 
