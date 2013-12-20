@@ -449,7 +449,32 @@ class TestClient(ClusterTestCase):
         self.client.purge_local_results(res[-1])
         self.assertEqual(len(self.client.results),before-len(res[-1]), msg="Not removed from results")
         self.assertEqual(len(self.client.metadata),before-len(res[-1]), msg="Not removed from metadata")
-        
+    
+    def test_purge_local_results_outstanding(self):
+        v = self.client[-1]
+        ar = v.apply_async(lambda : 1)
+        msg_id = ar.msg_ids[0]
+        ar.get()
+        self._wait_for_idle()
+        ar2 = v.apply_async(time.sleep, 1)
+        self.assertIn(msg_id, self.client.results)
+        self.assertIn(msg_id, self.client.metadata)
+        self.client.purge_local_results(ar)
+        self.assertNotIn(msg_id, self.client.results)
+        self.assertNotIn(msg_id, self.client.metadata)
+        with self.assertRaises(RuntimeError):
+            self.client.purge_local_results(ar2)
+        ar2.get()
+        self.client.purge_local_results(ar2)
+    
+    def test_purge_all_local_results_outstanding(self):
+        v = self.client[-1]
+        ar = v.apply_async(time.sleep, 1)
+        with self.assertRaises(RuntimeError):
+            self.client.purge_local_results('all')
+        ar.get()
+        self.client.purge_local_results('all')
+    
     def test_purge_all_hub_results(self):
         self.client.purge_hub_results('all')
         hist = self.client.hub_history()

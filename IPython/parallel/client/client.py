@@ -1661,15 +1661,13 @@ class Client(HasTraits):
         return msg_ids        
         
     def purge_local_results(self, jobs=[], targets=[]):
-        """Clears the client caches of results and frees such memory.
-        
+        """Clears the client caches of results and their metadata.
+
         Individual results can be purged by msg_id, or the entire
         history of specific targets can be purged.
 
-        Use `purge_local_results('all')` to scrub everything from the Clients's db.
-
-        The client must have no outstanding tasks before purging the caches.
-        Raises `AssertionError` if there are still outstanding tasks.
+        Use `purge_local_results('all')` to scrub everything from the Clients's
+        results and metadata caches.
 
         After this call all `AsyncResults` are invalid and should be discarded.
 
@@ -1683,24 +1681,30 @@ class Client(HasTraits):
 
         jobs : str or list of str or AsyncResult objects
                 the msg_ids whose results should be purged.
-        targets : int/str/list of ints/strs
-                The targets, by int_id, whose entire results are to be purged.
+        targets : int/list of ints
+                The engines, by integer ID, whose entire result histories are to be purged.
 
-                default : None
+        Raises
+        ------
+
+        RuntimeError : if any of the tasks to be purged are still outstanding.
+
         """
-        assert not self.outstanding, "Can't purge a client with outstanding tasks!"
-        
         if not targets and not jobs:
             raise ValueError("Must specify at least one of `targets` and `jobs`")
-                
+        
         if jobs == 'all':
+            if self.outstanding:
+                raise RuntimeError("Can't purge outstanding tasks: %s" % self.outstanding)
             self.results.clear()
             self.metadata.clear()
-            return
         else:
-            msg_ids = []
-            msg_ids.extend(self._build_msgids_from_target(targets))
-            msg_ids.extend(self._build_msgids_from_jobs(jobs))
+            msg_ids = set()
+            msg_ids.update(self._build_msgids_from_target(targets))
+            msg_ids.update(self._build_msgids_from_jobs(jobs))
+            still_outstanding = self.outstanding.intersection(msg_ids)
+            if still_outstanding:
+                raise RuntimeError("Can't purge outstanding tasks: %s" % still_outstanding)
             for mid in msg_ids:
                 self.results.pop(mid)
                 self.metadata.pop(mid)
