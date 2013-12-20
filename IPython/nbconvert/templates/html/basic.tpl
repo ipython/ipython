@@ -27,10 +27,10 @@ In&nbsp;[{{ cell.prompt_number }}]:
 </div>
 {%- endblock in_prompt %}
 
-{% block e_in_prompt -%}
+{% block empty_in_prompt -%}
 <div class="prompt input_prompt">
 </div>
-{%- endblock e_in_prompt %}
+{%- endblock empty_in_prompt %}
 
 {# 
   output_prompt doesn't do anything in HTML,
@@ -60,7 +60,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 
 {% block markdowncell scoped %}
 <div class="input">
-{{ self.e_in_prompt() }}
+{{ self.empty_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ cell.source  | markdown2html | strip_files_prefix }}
@@ -71,7 +71,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 
 {% block headingcell scoped %}
 <div class="input">
-{{ self.e_in_prompt() }}
+{{ self.empty_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ ("#" * cell.level + cell.source) | replace('\n', ' ')  | markdown2html | strip_files_prefix | add_anchor }}
