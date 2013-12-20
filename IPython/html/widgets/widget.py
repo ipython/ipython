@@ -32,10 +32,24 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 class Widget(LoggingConfigurable):
 
-    # Shared declarations
+    # Shared declarations (Class level)
     _keys = []
+    widget_construction_callback = None
+
+    def on_widget_constructed(callback):
+        """Class method, registers a callback to be called when a widget is
+        constructed.  The callback must have the following signature:
+        callback(widget)"""
+        Widget.widget_construction_callback = callback
+
+    def _handle_widget_constructed(widget):
+        """Class method, called when a widget is constructed."""
+        if Widget.widget_construction_callback is not None and callable(Widget.widget_construction_callback):
+            Widget.widget_construction_callback(widget)
+
     
-    # Public declarations
+
+    # Public declarations (Instance level)
     target_name = Unicode('widget', help="""Name of the backbone model 
         registered in the frontend to create and sync this widget with.""")
     default_view_name = Unicode(help="""Default view registered in the frontend
@@ -83,6 +97,8 @@ class Widget(LoggingConfigurable):
                 
         # Register after init to allow default values to be specified
         self.on_trait_change(self._handle_property_changed, self.keys)
+
+        Widget._handle_widget_constructed(self)
         
         
     def __del__(self):
