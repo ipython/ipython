@@ -192,10 +192,12 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('auth.login'))
         handlers.extend(load_handlers('auth.logout'))
         handlers.extend(load_handlers('notebook.handlers'))
+        handlers.extend(load_handlers('nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernels.handlers'))
         handlers.extend(load_handlers('services.notebooks.handlers'))
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend(load_handlers('services.sessions.handlers'))
+        handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),

@@ -69,6 +69,22 @@ var IPython = (function (IPython) {
         );
     };
 
+    MenuBar.prototype._nbconvert = function (format, download) {
+        download = download || false;
+        var notebook_name = IPython.notebook.get_notebook_name();
+        if (IPython.notebook.dirty) {
+            IPython.notebook.save_notebook({async : false});
+        }
+        var url = utils.url_path_join(
+            this.baseProjectUrl(),
+            'nbconvert',
+            format,
+            this.notebookPath(),
+            notebook_name + '.ipynb'
+        ) + "?download=" + download.toString();
+
+        window.open(url);
+    }
 
     MenuBar.prototype.bind_events = function () {
         //  File
@@ -102,25 +118,22 @@ var IPython = (function (IPython) {
             window.location.assign(url);
         });
         
-        /* FIXME: download-as-py doesn't work right now
-         * We will need nbconvert hooked up to get this back
-        
-        this.element.find('#download_py').click(function () {
-            var notebook_name = IPython.notebook.get_notebook_name();
-            if (IPython.notebook.dirty) {
-                IPython.notebook.save_notebook({async : false});
-            }
-            var url = utils.url_path_join(
-                that.baseProjectUrl(),
-                'api/notebooks',
-                that.notebookPath(),
-                notebook_name + '.ipynb?format=py&download=True'
-            );
-            window.location.assign(url);
+        this.element.find('#print_preview').click(function () {
+            that._nbconvert('html', false);
         });
-        
-        */
-        
+
+        this.element.find('#download_py').click(function () {
+            that._nbconvert('python', true);
+        });
+
+        this.element.find('#download_html').click(function () {
+            that._nbconvert('html', true);
+        });
+
+        this.element.find('#download_rst').click(function () {
+            that._nbconvert('rst', true);
+        });
+
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
         });

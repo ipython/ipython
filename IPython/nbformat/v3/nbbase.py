@@ -55,7 +55,8 @@ def new_output(output_type=None, output_text=None, output_png=None,
     output_html=None, output_svg=None, output_latex=None, output_json=None,
     output_javascript=None, output_jpeg=None, prompt_number=None,
     ename=None, evalue=None, traceback=None, stream=None, metadata=None):
-    """Create a new code cell with input and output"""
+    """Create a new output, to go in the ``cell.outputs`` list of a code cell.
+    """
     output = NotebookNode()
     if output_type is not None:
         output.output_type = unicode_type(output_type)

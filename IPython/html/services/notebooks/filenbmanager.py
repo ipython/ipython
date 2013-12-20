@@ -178,7 +178,7 @@ class FileNotebookManager(NotebookManager):
         return notebooks
 
     def get_notebook_model(self, name, path='', content=True):
-        """ Takes a path and name for a notebook and returns it's model
+        """ Takes a path and name for a notebook and returns its model
         
         Parameters
         ----------

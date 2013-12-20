@@ -36,11 +36,14 @@ class HTMLExporter(TemplateExporter):
         help="Extension of the file that should be written to disk"
         )
 
+    mime_type = Unicode('text/html', config=True,
+        help="MIME type of the result file, for HTTP response headers."
+        )
+
     default_template = Unicode('full', config=True, help="""Flavor of the data 
         format to use.  I.E. 'full' or 'basic'""")
     
-    def _raw_mimetype_default(self):
-        return 'text/html'
+    output_mimetype = 'text/html'
     
     @property
     def default_config(self):

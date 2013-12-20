@@ -1,12 +1,13 @@
 """Base class for notebook tests."""
 
-import os
 import sys
 import time
 import requests
 from contextlib import contextmanager
-from subprocess import Popen, PIPE
+from subprocess import Popen, STDOUT
 from unittest import TestCase
+
+import nose
 
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -55,10 +56,9 @@ class NotebookTestBase(TestCase):
             '--ipython-dir=%s' % cls.ipython_dir.name,
             '--notebook-dir=%s' % cls.notebook_dir.name,
         ]
-        devnull = open(os.devnull, 'w')
         cls.notebook = Popen(notebook_args,
-            stdout=devnull,
-            stderr=devnull,
+            stdout=nose.iptest_stdstreams_fileno(),
+            stderr=STDOUT,
         )
         cls.wait_until_alive()
 
