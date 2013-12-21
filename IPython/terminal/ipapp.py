@@ -174,7 +174,7 @@ frontend_flags['quick']=(
 frontend_flags['i'] = (
     {'TerminalIPythonApp' : {'force_interact' : True}},
     """If running code from the command line, become interactive afterwards.
-    Note: can also be given simply as '-i.'"""
+    Note: can also be given simply as '-i'."""
 )
 flags.update(frontend_flags)
 
