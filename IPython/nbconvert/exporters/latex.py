@@ -16,7 +16,7 @@
 import os
 
 # IPython imports
-from IPython.utils.traitlets import Unicode, List
+from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
 from IPython.nbconvert import filters, preprocessors

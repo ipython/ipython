@@ -13,7 +13,6 @@
 #-----------------------------------------------------------------------------
 
 from IPython.config import Config
-from IPython.utils.traitlets import Unicode
 
 from .templateexporter import TemplateExporter
 

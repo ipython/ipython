@@ -12,8 +12,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode
-
 from IPython.nbconvert import preprocessors
 from IPython.config import Config
 

@@ -12,8 +12,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode
-
 from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
