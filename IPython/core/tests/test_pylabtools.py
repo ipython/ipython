@@ -53,6 +53,19 @@ def test_figure_to_svg():
     svg = pt.print_figure(fig, 'svg')[:100].lower()
     nt.assert_in(b'doctype svg', svg)
 
+try:
+    from PIL import Image
+    def test_figure_to_jpg():
+        # simple check for at least svg-looking output
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.plot([1,2,3])
+        plt.draw()
+        jpg = pt.print_figure(fig, 'jpg')[:100].lower()
+        assert jpg.startswith(b'\xff\xd8')
+except ImportError:
+    pass
+
 
 def test_import_pylab():
     ip = get_ipython()
