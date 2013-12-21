@@ -426,18 +426,16 @@ class Widget(LoggingConfigurable):
         if not hasattr(self, '_comm') or self._comm is None:
             self._comm = Comm(target_name=self.target_name)
             self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._handle_close)
-
-
-    def _handle_close(self):
-        """Called when the comm is closed by the front-end."""
-        self._close_communication()
+            self._comm.on_close(self._close_communication)
 
 
     def _close_communication(self):
         """Closes a communication with the front-end."""
         if hasattr(self, '_comm') and self._comm is not None:
-            self._comm.close()
+            try:
+                self._comm.close()
+            finally:
+                self._comm = None
 
 
     def _send(self, msg):
