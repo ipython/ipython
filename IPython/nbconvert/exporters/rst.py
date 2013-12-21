@@ -26,9 +26,11 @@ class RSTExporter(TemplateExporter):
     Exports restructured text documents.
     """
     
-    file_extension = Unicode(
-        'rst', config=True, 
-        help="Extension of the file that should be written to disk")
+    def _file_extension_default(self):
+        return 'rst'
+
+    def _template_file_default(self):
+        return 'rst'
 
     output_mimetype = 'text/restructuredtext'
 

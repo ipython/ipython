@@ -31,17 +31,11 @@ class HTMLExporter(TemplateExporter):
     filters, just change the 'template_file' config option.  
     """
     
-    file_extension = Unicode(
-        'html', config=True, 
-        help="Extension of the file that should be written to disk"
-        )
+    def _file_extension_default(self):
+        return 'html'
 
-    mime_type = Unicode('text/html', config=True,
-        help="MIME type of the result file, for HTTP response headers."
-        )
-
-    default_template = Unicode('full', config=True, help="""Flavor of the data 
-        format to use.  I.E. 'full' or 'basic'""")
+    def _template_file_default(self):
+        return 'html_full'
     
     output_mimetype = 'text/html'
     

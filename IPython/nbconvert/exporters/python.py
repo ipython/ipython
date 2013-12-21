@@ -24,9 +24,10 @@ class PythonExporter(TemplateExporter):
     """
     Exports a Python code file.
     """
-    
-    file_extension = Unicode(
-        'py', config=True, 
-        help="Extension of the file that should be written to disk")
+    def _file_extension_default(self):
+        return 'py'
+
+    def _template_file_default(self):
+        return 'python'
 
     output_mimetype = 'text/x-python'
