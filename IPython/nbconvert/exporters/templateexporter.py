@@ -173,15 +173,12 @@ class TemplateExporter(Exporter):
         # template by name with extension added, then try loading the template
         # as if the name is explicitly specified, then try the name as a 
         # 'flavor', and lastly just try to load the template by module name.
-        module_name = self.__module__.rsplit('.', 1)[-1]
         try_names = []
         if self.template_file:
             try_names.extend([
                 self.template_file + self.template_extension,
                 self.template_file,
-                module_name + '_' + self.template_file + self.template_extension,
             ])
-        try_names.append(module_name + self.template_extension)
         for try_name in try_names:
             self.log.debug("Attempting to load template %s", try_name)
             try:

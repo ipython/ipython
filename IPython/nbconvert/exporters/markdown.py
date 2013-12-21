@@ -26,9 +26,11 @@ class MarkdownExporter(TemplateExporter):
     Exports to a markdown document (.md)
     """
     
-    file_extension = Unicode(
-        'md', config=True, 
-        help="Extension of the file that should be written to disk")
+    def _file_extension_default(self):
+        return 'md'
+
+    def _template_file_default(self):
+        return 'markdown'
 
     output_mimetype = 'text/markdown'
     

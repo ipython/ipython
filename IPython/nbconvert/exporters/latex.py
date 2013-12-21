@@ -35,13 +35,16 @@ class LatexExporter(TemplateExporter):
     'template_file' config option.  Place your template in the special "/latex" 
     subfolder of the "../templates" folder.
     """
+
+    def _file_extension_default(self):
+        return 'tex'
+
+    def _template_file_default(self):
+        return 'article'
     
     file_extension = Unicode(
         'tex', config=True, 
         help="Extension of the file that should be written to disk")
-
-    default_template = Unicode('article', config=True, help="""Template of the 
-        data format to use.  I.E. 'article' or 'report'""")
 
     #Latex constants
     default_template_path = Unicode(
