@@ -74,8 +74,7 @@ class Widget(LoggingConfigurable):
     _property_lock = (None, None) # Last updated (key, value) from the front-end.  Prevents echo.
     _css = Dict() # Internal CSS property dict
     _displayed = False
-    _comm = None
-    
+   
     
     def __init__(self, **kwargs):
         """Public constructor
@@ -110,11 +109,7 @@ class Widget(LoggingConfigurable):
         """Close method.  Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically 
         removed from the frontend."""
-        try:
-            self._comm.close()
-            del self._comm
-        except:
-            pass # Comm doesn't exist and/or is already closed.
+        self._close_communication()
     
     
     # Properties      
@@ -180,16 +175,9 @@ class Widget(LoggingConfigurable):
     def _handle_property_changed(self, name, old, new):
         """Called when a proeprty has been changed."""
         # Make sure this isn't information that the front-end just sent us.
-        if self._property_lock[0] != name and self._property_lock[1] != new \
-        and self._comm is not None:
-            # TODO: Validate properties.
+        if self._property_lock[0] != name and self._property_lock[1] != new:
             # Send new state to frontend
             self.send_state(key=name)
-
-
-    def _handle_close(self):
-        """Called when the comm is closed by the frontend."""
-        self._comm = None
 
 
     def _handle_displayed(self, view_name, parent=None):
@@ -233,22 +221,21 @@ class Widget(LoggingConfigurable):
         key : unicode (optional)
             A single property's name to sync with the frontend.
         """
-        if self._comm is not None:
-            state = {}
+        state = {}
 
-            # If a key is provided, just send the state of that key.
-            keys = []
-            if key is None:
-                keys.extend(self.keys)
-            else:
-                keys.append(key)
-            for key in self.keys:
-                try:
-                    state[key] = getattr(self, key)
-                except Exception as e:
-                    pass # Eat errors, nom nom nom
-            self._comm.send({"method": "update",
-                            "state": state})
+        # If a key is provided, just send the state of that key.
+        keys = []
+        if key is None:
+            keys.extend(self.keys)
+        else:
+            keys.append(key)
+        for key in self.keys:
+            try:
+                state[key] = getattr(self, key)
+            except Exception as e:
+                pass # Eat errors, nom nom nom
+        self._send({"method": "update",
+                        "state": state})
 
 
     def get_css(self, key, selector=""):
@@ -327,10 +314,9 @@ class Widget(LoggingConfigurable):
             JQuery selector to select the DOM element(s) that the class(es) will 
             be added to.
         """
-        if self._comm is not None:
-            self._comm.send({"method": "add_class",
-                            "class_list": class_name,
-                            "selector": selector})
+        self._send({"method": "add_class",
+                        "class_list": class_name,
+                        "selector": selector})
 
 
     def remove_class(self, class_name, selector=""):
@@ -345,10 +331,9 @@ class Widget(LoggingConfigurable):
             JQuery selector to select the DOM element(s) that the class(es) will 
             be removed from.
         """
-        if self._comm is not None:
-            self._comm.send({"method": "remove_class",
-                            "class_list": class_name,
-                            "selector": selector})
+        self._send({"method": "remove_class",
+                        "class_list": class_name,
+                        "selector": selector})
 
 
     def send(self, content):
@@ -359,9 +344,8 @@ class Widget(LoggingConfigurable):
         content : dict
             Content of the message to send.
         """
-        if self._comm is not None:
-            self._comm.send({"method": "custom",
-                            "custom_content": content})
+        self._send({"method": "custom",
+                        "custom_content": content})
 
 
     def on_msg(self, callback, remove=False):
@@ -412,21 +396,18 @@ class Widget(LoggingConfigurable):
         if not view_name:
             view_name = self.default_view_name
         
-        # Create a comm.
-        if self._comm is None:
-            self._comm = Comm(target_name=self.target_name)
-            self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._handle_close)
+        # Create a communication.
+        self._open_communication()
         
         # Make sure model is syncronized
         self.send_state()
             
         # Show view.
         if self.parent is None or self.parent._comm is None:
-            self._comm.send({"method": "display", "view_name": view_name})
+            self._send({"method": "display", "view_name": view_name})
             self._handle_displayed(view_name)
         else:
-            self._comm.send({"method": "display", 
+            self._send({"method": "display", 
                             "view_name": view_name,
                             "parent": self.parent._comm.comm_id})
             self._handle_displayed(view_name, self.parent)
@@ -437,3 +418,32 @@ class Widget(LoggingConfigurable):
             if child != self:
                 child._repr_widget_()
         return None
+
+
+    def _open_communication(self):
+        """Opens a communication with the front-end."""
+        # Create a comm.
+        if not hasattr(self, '_comm') or self._comm is None:
+            self._comm = Comm(target_name=self.target_name)
+            self._comm.on_msg(self._handle_msg)
+            self._comm.on_close(self._handle_close)
+
+
+    def _handle_close(self):
+        """Called when the comm is closed by the front-end."""
+        self._close_communication()
+
+
+    def _close_communication(self):
+        """Closes a communication with the front-end."""
+        if hasattr(self, '_comm') and self._comm is not None:
+            self._comm.close()
+
+
+    def _send(self, msg):
+        """Sends a message to the model in the front-end"""
+        if hasattr(self, '_comm') and self._comm is not None:
+            self._comm.send(msg)
+            return True
+        else:
+            return False
