@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 """Test NbConvertApp"""
 
 #-----------------------------------------------------------------------------
@@ -183,3 +184,35 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert --log-level 0 --config="override.py"')
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
+
+    def test_accents_in_filename(self):
+        """
+        Can notebook names include accents?
+        """
+        with self.create_temp_cwd(['nb*.ipynb']):
+            self.call('nbconvert --log-level 0 --to python nb1_*')
+            assert os.path.isfile(u'nb1_análisis.py')
+    
+    @dec.onlyif_cmds_exist('pandoc')        
+    def test_accents_in_command_line(self):
+        """
+        Are accents allowed in arguments of command line?
+        """
+        with self.create_temp_cwd(['nb*.ipynb']):
+            self.call('nbconvert --to latex nb1_* ' 
+                      '--SphinxTransform.author="análisis"')
+            assert os.path.isfile(u'nb1_análisis.tex')
+
+    @dec.onlyif_cmds_exist('pdflatex')
+    @dec.onlyif_cmds_exist('pandoc')
+    def test_filename_spaces(self):
+        """
+        Generate PDFs if notebooks have an accent in their name?
+        """
+        with self.create_temp_cwd(['nb*.ipynb']):
+            o,e = self.call('nbconvert --log-level 0 --to latex '
+                            '"nb1_*" --post PDF '
+                            '--PDFPostProcessor.verbose=True')
+            assert os.path.isfile('nb1_análisis.tex')
+            assert os.path.isdir('nb1_análisis_files')
+            assert os.path.isfile('nb1_análisis.pdf')
