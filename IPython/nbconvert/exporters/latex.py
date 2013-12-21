@@ -41,10 +41,6 @@ class LatexExporter(TemplateExporter):
 
     def _template_file_default(self):
         return 'article'
-    
-    file_extension = Unicode(
-        'tex', config=True, 
-        help="Extension of the file that should be written to disk")
 
     #Latex constants
     default_template_path = Unicode(
