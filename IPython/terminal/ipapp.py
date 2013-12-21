@@ -273,7 +273,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # unless the --i flag (App.force_interact) is true.
     force_interact = Bool(False, config=True,
         help="""If a command or file is given via the command-line,
-        e.g. 'ipython foo.py"""
+        e.g. 'ipython foo.py', start an interactive shell after executing the
+        file or command."""
     )
     def _force_interact_changed(self, name, old, new):
         if new:
