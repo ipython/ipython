@@ -18,8 +18,10 @@ import os
 import sys
 
 from IPython.utils.traitlets import Integer, List, Bool
+from IPython.utils.encoding import DEFAULT_ENCODING
 
 from .base import PostProcessorBase
+
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -68,13 +70,22 @@ class PDFPostProcessor(PostProcessorBase):
             A boolean indicating if the command was successful (True)
             or failed (False).
         """
+        #HACK: Encode file name with the correct encoding
+        # For Windows must be cp1252 (win application) and we cannot use
+        #    encoding.DEFAULT_ENCODING or sys.stdin.encoding because input
+        #    encoding could be different (cp437 in case of dos console)
+        if sys.platform == 'win32':
+            filename = filename.encode('cp1252')
+        else:
+            filename = filename.encode('utf-8')
+        #END_HACK
         command = [c.format(filename=filename) for c in command_list]
         times = 'time' if count == 1 else 'times'
         self.log.info("Running %s %i %s: %s", command_list[0], count, times, command)
         with open(os.devnull, 'rb') as null:
             stdout = subprocess.PIPE if not self.verbose else None
             for index in range(count):
-                p = subprocess.Popen(command, stdout=stdout, stdin=null)
+                p = subprocess.Popen(command, stdout=stdout, stdin=null, shell=True)
                 out, err = p.communicate()
                 if p.returncode:
                     if self.verbose:

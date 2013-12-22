@@ -213,6 +213,5 @@ class TestNbConvertApp(TestsBase):
             o,e = self.call('nbconvert --log-level 0 --to latex '
                             '"nb1_*" --post PDF '
                             '--PDFPostProcessor.verbose=True')
-            assert os.path.isfile('nb1_análisis.tex')
-            assert os.path.isdir('nb1_análisis_files')
-            assert os.path.isfile('nb1_análisis.pdf')
+            assert os.path.isfile(u'nb1_análisis.tex')
+            assert os.path.isfile(u'nb1_análisis.pdf')
