@@ -18,10 +18,8 @@ import os
 import sys
 
 from IPython.utils.traitlets import Integer, List, Bool
-from IPython.utils.encoding import DEFAULT_ENCODING
 
 from .base import PostProcessorBase
-
 
 #-----------------------------------------------------------------------------
 # Classes
