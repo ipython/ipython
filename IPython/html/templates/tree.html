@@ -32,15 +32,15 @@ data-base-kernel-url="{{base_kernel_url}}"
     <div id="notebooks" class="tab-pane active">
         <div id="notebook_toolbar">
             <form id='alternate_upload'  class='alternate_upload' >
-                <span id="drag_info" style="position:absolute" >
+                <span id="drag_info" style="position:absolute" class="span12">
                     To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
-                    </span>
+                </span>
+                <span id="notebook_buttons">
+                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small">Refresh</button>
+                    <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
+                </span>
                 <input type="file" name="datafile" class="fileinput" multiple='multiple'>
             </form>
-            <span id="notebook_buttons">
-                <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small">Refresh</button>
-                <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
-            </span>
         </div>
 
         <div id="notebook_list">
@@ -50,6 +50,7 @@ data-base-kernel-url="{{base_kernel_url}}"
                     {% for component in tree_url_path.strip('/').split('/') %}
                         <li>{{component}} <span>/</span></li>
                     {% endfor %}
+                    <div class="header_last_modified span8">Last modified</div>
                 </ul>
               </div>
           </div>
@@ -88,4 +89,5 @@ data-base-kernel-url="{{base_kernel_url}}"
     <script src="{{static_url("tree/js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>
 {% endblock %}

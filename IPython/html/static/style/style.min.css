@@ -1418,6 +1418,10 @@ input.nbname_input{height:15px;}
 .highlight_text{color:blue;}
 #project_name>.breadcrumb{padding:0px;margin-bottom:0px;background-color:transparent;font-weight:bold;}
 input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:60px;}
+.last_modified{display:inline-block;padding:10px;}
+.header_last_modified.span8{float:right;margin-left:30%;margin-bottom:-4%;}
+.item_buttons .btn.btn-mini{float:right;margin-top:5px;}
+.toolbar_info{width:915px;}
 .ansibold{font-weight:bold;}
 .ansiblack{color:black;}
 .ansired{color:darkred;}
