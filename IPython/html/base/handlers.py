@@ -24,7 +24,13 @@ import os
 import stat
 import sys
 import traceback
+try:
+    # py3
+    from http.client import responses
+except ImportError:
+    from httplib import responses
 
+from jinja2 import TemplateNotFound
 from tornado import web
 
 try:
@@ -44,14 +50,7 @@ UF_HIDDEN = getattr(stat, 'UF_HIDDEN', 32768)
 # Top-level handlers
 #-----------------------------------------------------------------------------
 
-class RequestHandler(web.RequestHandler):
-    """RequestHandler with default variable setting."""
-
-    def render(*args, **kwargs):
-        kwargs.setdefault('message', '')
-        return web.RequestHandler.render(*args, **kwargs)
-
-class AuthenticatedHandler(RequestHandler):
+class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
 
     def clear_login_cookie(self):
@@ -208,6 +207,45 @@ class IPythonHandler(AuthenticatedHandler):
             self.log.error("Couldn't parse JSON", exc_info=True)
             raise web.HTTPError(400, u'Invalid JSON in body of request')
         return model
+
+    def get_error_html(self, status_code, **kwargs):
+        """render custom error pages"""
+        exception = kwargs.get('exception')
+        message = ''
+        status_message = responses.get(status_code, 'Unknown')
+        if exception:
+            # get the custom message, if defined
+            try:
+                message = exception.log_message % exception.args
+            except Exception:
+                pass
+            
+            # construct the custom reason, if defined
+            reason = getattr(exception, 'reason', '')
+            if reason:
+                status_message = reason
+        
+        # build template namespace
+        ns = dict(
+            status_code=status_code,
+            status_message=status_message,
+            message=message,
+            exception=exception,
+        )
+        
+        # render the template
+        try:
+            html = self.render_template('%s.html' % status_code, **ns)
+        except TemplateNotFound:
+            self.log.debug("No template for %d", status_code)
+            html = self.render_template('error.html', **ns)
+        return html
+
+
+class Template404(IPythonHandler):
+    """Render our 404 template"""
+    def prepare(self):
+        raise web.HTTPError(404)
 
 
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
