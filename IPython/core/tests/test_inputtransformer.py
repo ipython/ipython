@@ -206,6 +206,11 @@ syntax_ml = \
           ('   ....:     print i','    print i'),
           ('   ....: ', ''),
           ],
+         [('In [24]: for i in range(10):','for i in range(10):'),
+          # Qt console prompts expand with spaces, not dots
+          ('    ...:     print i','    print i'),
+          ('    ...: ', ''),
+          ],
          [('In [2]: a="""','a="""'),
           ('   ...: 123"""','123"""'),
           ],
