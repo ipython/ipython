@@ -333,7 +333,6 @@ var IPython = (function (IPython) {
         var mime_md = metadata[mime];
         // mime-specific higher priority
         if (mime_md && mime_md[key] !== undefined) {
-            console.log("got" + key + "   "+ mime_md[key]);
             return mime_md[key];
         }
         // fallback on global
@@ -741,11 +740,12 @@ var IPython = (function (IPython) {
         var len = outputs.length;
         var data;
         for (var i=0; i<len; i++) {
-            var msg_type = outputs[i].output_type;
+            data = outputs[i];
+            var msg_type = data.output_type;
             if (msg_type === "display_data" || msg_type === "pyout") {
                 // convert short keys to mime keys
-                 data = this.rename_keys(outputs[i], OutputArea.mime_map_r);
-                 data.metadata = this.rename_keys(outputs[i].metadata, OutputArea.mime_map_r);
+                 data = this.rename_keys(data, OutputArea.mime_map_r);
+                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
             }
             
             // append with dynamic=false.
@@ -759,12 +759,12 @@ var IPython = (function (IPython) {
         var len = this.outputs.length;
         var data;
         for (var i=0; i<len; i++) {
-            var msg_type = this.outputs[i].output_type;
-            console.log("msg type is  ", msg_type)
+            data = this.outputs[i];
+            var msg_type = data.output_type;
             if (msg_type === "display_data" || msg_type === "pyout") {
                   // convert mime keys to short keys
-                 data = this.rename_keys(this.outputs[i], OutputArea.mime_map);
-                 data.metadata = this.rename_keys(this.outputs[i], OutputArea.mime_map);
+                 data = this.rename_keys(data, OutputArea.mime_map);
+                 data.metadata = this.rename_keys(data, OutputArea.mime_map);
             }
             outputs[i] = data;
         }
