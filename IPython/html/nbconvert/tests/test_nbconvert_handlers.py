@@ -14,6 +14,9 @@ from IPython.nbformat.current import (new_notebook, write, new_worksheet,
                                       new_heading_cell, new_code_cell,
                                       new_output)
 
+from IPython.testing.decorators import onlyif_cmds_exist
+
+
 class NbconvertAPI(object):
     """Wrapper for nbconvert API calls."""
     def __init__(self, base_url):
@@ -71,6 +74,7 @@ class APITest(NotebookTestBase):
         for dname in ['foo']:
             shutil.rmtree(pjoin(nbdir, dname), ignore_errors=True)
     
+    @onlyif_cmds_exist('pandoc')
     def test_from_file(self):
         r = self.nbconvert_api.from_file('html', 'foo', 'testnb.ipynb')
         self.assertEqual(r.status_code, 200)
@@ -82,21 +86,25 @@ class APITest(NotebookTestBase):
         self.assertIn(u'text/x-python', r.headers['Content-Type'])
         self.assertIn(u'print(2*6)', r.text)
 
+    @onlyif_cmds_exist('pandoc')
     def test_from_file_404(self):
         with assert_http_error(404):
             self.nbconvert_api.from_file('html', 'foo', 'thisdoesntexist.ipynb')
 
+    @onlyif_cmds_exist('pandoc')
     def test_from_file_download(self):
         r = self.nbconvert_api.from_file('python', 'foo', 'testnb.ipynb', download=True)
         content_disposition = r.headers['Content-Disposition']
         self.assertIn('attachment', content_disposition)
         self.assertIn('testnb.py', content_disposition)
 
+    @onlyif_cmds_exist('pandoc')
     def test_from_file_zip(self):
         r = self.nbconvert_api.from_file('latex', 'foo', 'testnb.ipynb', download=True)
         self.assertIn(u'application/zip', r.headers['Content-Type'])
         self.assertIn(u'.zip', r.headers['Content-Disposition'])
 
+    @onlyif_cmds_exist('pandoc')
     def test_from_post(self):
         nbmodel_url = url_path_join(self.base_url(), 'api/notebooks/foo/testnb.ipynb')
         nbmodel = requests.get(nbmodel_url).json()
@@ -111,6 +119,7 @@ class APITest(NotebookTestBase):
         self.assertIn(u'text/x-python', r.headers['Content-Type'])
         self.assertIn(u'print(2*6)', r.text)
 
+    @onlyif_cmds_exist('pandoc')
     def test_from_post_zip(self):
         nbmodel_url = url_path_join(self.base_url(), 'api/notebooks/foo/testnb.ipynb')
         nbmodel = requests.get(nbmodel_url).json()
