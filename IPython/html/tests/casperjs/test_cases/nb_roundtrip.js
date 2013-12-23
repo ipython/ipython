@@ -28,19 +28,19 @@ casper.notebook_test(function () {
 
     this.then(function ( ) {
         json = this.evaluate(function() {
-            // the appended cell will initiall be empty
             var json = IPython.notebook.get_cell(0).output_area.toJSON();
+            // appended cell will initially be empty, lets add it some output
             var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
             return json;
         });
         var result = this.get_output_cell(0);
         var result2 = this.get_output_cell(1);
         this.test.assertTrue(result.hasOwnProperty('application/javascript'),
-            'embeded JS keeps mime key after save');
+            'toJSON() original embeded JS keeps mime key');
         this.test.assertTrue(json[0].hasOwnProperty('javascript'),
-            'JSON representation uses short keys');
+            'toJSON() representation uses short key');
         this.test.assertTrue(result2.hasOwnProperty('application/javascript'),
-            'embeded JS keeps mime key on fromJSON');
+            'fromJSON() embeded JS gets mime key');
 
     });
 
