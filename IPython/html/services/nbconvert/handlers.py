@@ -3,7 +3,10 @@ import json
 from tornado import web
 
 from ...base.handlers import IPythonHandler, json_errors
-from IPython.nbconvert.exporters.export import exporter_map
+try:
+    from IPython.nbconvert.exporters.export import exporter_map
+except ImportError:
+    exporter_map = {}
 
 class NbconvertRootHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET',)
