@@ -280,6 +280,8 @@ if not have['jinja2']:
     sec.exclude('notebookapp')
 if not have['azure']:
     sec.exclude('services.notebooks.azurenbmanager')
+if not have['pygments'] or not have['jinja2']:
+    sec.exclude('nbconvert')
 
 # config:
 # Config files aren't really importable stand-alone
@@ -287,7 +289,7 @@ test_sections['config'].exclude('profile')
 
 # nbconvert:
 sec = test_sections['nbconvert']
-sec.requires('pygments', 'jinja2', 'sphinx')
+sec.requires('pygments', 'jinja2')
 # Exclude nbconvert directories containing config files used to test.
 # Executing the config files with iptest would cause an exception.
 sec.exclude('tests.files')
