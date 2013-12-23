@@ -62,8 +62,11 @@ class NbconvertFileHandler(IPythonHandler):
 
         info = os.stat(os_path)
         self.set_header('Last-Modified', tz.utcfromtimestamp(info.st_mtime))
-
-        output, resources = exporter.from_filename(os_path)
+        
+        try:
+            output, resources = exporter.from_filename(os_path)
+        except Exception as e:
+            raise web.HTTPError(500, "nbconvert failed: %s" % e)
 
         if respond_zip(self, name, output, resources):
             return
@@ -90,8 +93,11 @@ class NbconvertPostHandler(IPythonHandler):
         
         model = self.get_json_body()
         nbnode = to_notebook_json(model['content'])
-
-        output, resources = exporter.from_notebook_node(nbnode)
+        
+        try:
+            output, resources = exporter.from_notebook_node(nbnode)
+        except Exception as e:
+            raise web.HTTPError(500, "nbconvert failed: %s" % e)
 
         if respond_zip(self, nbnode.metadata.name, output, resources):
             return
