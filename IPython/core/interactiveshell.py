@@ -1107,13 +1107,6 @@ class InteractiveShell(SingletonConfigurable):
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
         ns = dict()
         
-        # Put 'help' in the user namespace
-        try:
-            from site import _Helper
-            ns['help'] = _Helper()
-        except ImportError:
-            warn('help() not available - check site.py')
-
         # make global variables for user access to the histories
         ns['_ih'] = self.history_manager.input_hist_parsed
         ns['_oh'] = self.history_manager.output_hist
