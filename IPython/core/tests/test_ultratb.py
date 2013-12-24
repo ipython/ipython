@@ -108,8 +108,33 @@ class IndentationErrorTest(unittest.TestCase):
                 with tt.AssertPrints("zoon()", suppress=False):
                     ip.magic('run %s' % fname)
 
+se_file_1 = """1
+2
+7/
+"""
+
+se_file_2 = """7/
+"""
+
 class SyntaxErrorTest(unittest.TestCase):
     def test_syntaxerror_without_lineno(self):
         with tt.AssertNotPrints("TypeError"):
             with tt.AssertPrints("line unknown"):
                 ip.run_cell("raise SyntaxError()")
+
+    def test_changing_py_file(self):
+        with TemporaryDirectory() as td:
+            fname = os.path.join(td, "foo.py")
+            with open(fname, 'w') as f:
+                f.write(se_file_1)
+
+            with tt.AssertPrints(["7/", "SyntaxError"]):
+                ip.magic("run " + fname)
+
+            # Modify the file
+            with open(fname, 'w') as f:
+                f.write(se_file_2)
+
+            # The SyntaxError should point to the correct line
+            with tt.AssertPrints(["7/", "SyntaxError"]):
+                ip.magic("run " + fname)
