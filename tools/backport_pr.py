@@ -152,7 +152,7 @@ if __name__ == '__main__':
         already = already_backported(branch)
         should = should_backport("backport-1.2")
         print ("The following PRs should be backported:")
-        for pr in should.difference(already):
+        for pr in sorted(should.difference(already)):
             print (pr)
         sys.exit(0)
 
