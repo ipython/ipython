@@ -41,7 +41,7 @@ from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, List, Set, Integer, Unicode,
-    Type
+    Type, Bool,
 )
 
 from serialize import serialize_object, unpack_apply_message
@@ -100,9 +100,15 @@ class Kernel(Configurable):
     def _ident_default(self):
         return unicode(uuid.uuid4())
 
-
     # Private interface
     
+    _darwin_app_nap = Bool(True, config=True,
+        help="""Whether to use appnope for compatiblity with OS X App Nap.
+
+        Only affects OS X >= 10.9.
+        """
+    )
+
     # Time to sleep after flushing the stdout/err buffers in each execute
     # cycle.  While this introduces a hard limit on the minimal latency of the
     # execute cycle, it helps prevent output synchronization problems for
