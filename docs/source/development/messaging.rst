@@ -628,7 +628,7 @@ Message type: ``complete_reply``::
     # this is typically the common prefix of the matches,
     # and the text that is already in the block that would be replaced by the full completion.
     # This would be 'a.is' in the above example.
-    'text' : str,
+    'matched_text' : str,
     
     # status should be 'ok' unless an exception was raised during the request,
     # in which case it should be 'error', along with the usual error message content
