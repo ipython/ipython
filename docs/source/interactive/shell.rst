@@ -48,22 +48,6 @@ switching to any of them. Type ``cd?`` for more details.
 ``%pushd``, ``%popd`` and ``%dirs`` are provided for directory stack handling.
 
 
-Environment variables
-=====================
-
-
-%env can be used to "remember" environment variable manipulations. Examples::
-
-	%env - Show all environment variables
-	%env VISUAL=jed  - set VISUAL to jed
-	%env PATH+=;/foo - append ;foo to PATH
-	%env PATH+=;/bar - also append ;bar to PATH
-	%env PATH-=/wbin; - prepend /wbin; to PATH
-	%env -d VISUAL   - forget VISUAL persistent val
-	%env -p          - print all persistent env modifications
-
-
-
 Prompt customization
 ====================
 
