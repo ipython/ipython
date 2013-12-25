@@ -291,6 +291,7 @@ var IPython = (function (IPython) {
         var callbacks = this.get_callbacks();
         
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        this.mark_clean();
     };
     
     /**
@@ -471,6 +472,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.clear_output = function (wait) {
+        this.mark_dirty();
         this.output_area.clear_output(wait);
     };
 
