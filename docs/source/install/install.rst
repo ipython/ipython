@@ -24,7 +24,8 @@ This will download and install IPython and its main optional dependencies:
 - pygments, used by nbconvert and the Qt console for syntax highlighting
 - tornado, needed by the web-based notebook
 - nose, used by the test suite
-- readline (on OS X) or pyreadline (on Windows), needed for the terminal
+- readline (on OS X) or pyreadline (on Windows), needed for enhanced
+  terminal features such as tab completion
 
 To run IPython's test suite, use the :command:`iptest` command:
 
@@ -198,11 +199,17 @@ read on for more details.
 readline
 --------
 
-As indicated above, on Windows, PyReadline is a *mandatory* dependency.
-PyReadline is a separate, Windows only implementation of readline that uses
-native Windows calls through :mod:`ctypes`. The easiest way of installing
-PyReadline is you use the binary installer available `here
-<http://pypi.python.org/pypi/pyreadline>`__.
+As indicated above, on Windows, to get full functionality in the console
+version of IPython, PyReadline is needed.  PyReadline is a separate, Windows
+only implementation of readline that uses native Windows calls through
+:mod:`ctypes`. The easiest way of installing PyReadline is you use the binary
+installer available `here <http://pypi.python.org/pypi/pyreadline>`__.
+
+Note that the Python interpreter itself imports readline on startup. So
+installing pyreadline will result in all Python console processes having
+readline functionality available (not just IPython). This may or may not be
+what you want. If you want to have readline only in IPython, you will need to
+use a virtualenv for your IPython installation.
 
 On OSX, if you are using the built-in Python shipped by Apple, you will be
 missing a full readline implementation as Apple ships instead a library called
