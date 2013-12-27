@@ -1,3 +1,8 @@
+"""Input transformer classes to support IPython special syntax.
+
+This includes the machinery to recognise and transform ``%magic`` commands,
+``!system`` commands, ``help?`` querying, prompt stripping, and so forth.
+"""
 import abc
 import functools
 import re

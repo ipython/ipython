@@ -1,4 +1,4 @@
-"""a simple completer for the qtconsole"""
+"""A simple completer for the qtconsole"""
 #-----------------------------------------------------------------------------
 # Copyright (c) 2012, IPython Development Team.$
 #

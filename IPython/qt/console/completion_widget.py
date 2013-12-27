@@ -1,3 +1,4 @@
+"""A dropdown completer widget for the qtconsole."""
 # System library imports
 from IPython.external.qt import QtCore, QtGui
 

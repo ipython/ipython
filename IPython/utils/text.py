@@ -310,7 +310,8 @@ def list_strings(arg):
     """Always return a list of strings, given a string or list of strings
     as input.
 
-    :Examples:
+    Examples
+    --------
     ::
 
         In [7]: list_strings('A single string')
@@ -330,7 +331,8 @@ def list_strings(arg):
 def marquee(txt='',width=78,mark='*'):
     """Return the input string centered in a 'marquee'.
 
-    :Examples:
+    Examples
+    --------
     ::
 
         In [16]: marquee('A test',40)

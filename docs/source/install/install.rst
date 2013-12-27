@@ -198,7 +198,8 @@ read on for more details.
 readline
 --------
 
-As indicated above, on Windows, PyReadline is a *mandatory* dependency.
+As indicated above, on Windows, to get full functionality in the console
+version of IPython, PyReadline is needed.
 PyReadline is a separate, Windows only implementation of readline that uses
 native Windows calls through :mod:`ctypes`. The easiest way of installing
 PyReadline is you use the binary installer available `here

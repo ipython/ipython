@@ -1,4 +1,4 @@
-"""utilities for checking zmq versions"""
+"""Utilities for checking zmq versions."""
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2013  The IPython Development Team
 #

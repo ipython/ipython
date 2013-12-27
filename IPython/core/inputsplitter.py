@@ -1,58 +1,24 @@
-"""Analysis of text input into executable blocks.
+"""Input handling and transformation machinery.
 
-The main class in this module, :class:`InputSplitter`, is designed to break
-input from either interactive, line-by-line environments or block-based ones,
-into standalone blocks that can be executed by Python as 'single' statements
-(thus triggering sys.displayhook).
+The first class in this module, :class:`InputSplitter`, is designed to tell when
+input from a line-oriented frontend is complete and should be executed, and when
+the user should be prompted for another line of code instead. The name 'input
+splitter' is largely for historical reasons.
 
 A companion, :class:`IPythonInputSplitter`, provides the same functionality but
 with full support for the extended IPython syntax (magics, system calls, etc).
+The code to actually do these transformations is in :mod:`IPython.core.inputtransformer`.
+:class:`IPythonInputSplitter` feeds the raw code to the transformers in order
+and stores the results.
 
-For more details, see the class docstring below.
-
-Syntax Transformations
-----------------------
-
-One of the main jobs of the code in this file is to apply all syntax
-transformations that make up 'the IPython language', i.e. magics, shell
-escapes, etc.  All transformations should be implemented as *fully stateless*
-entities, that simply take one line as their input and return a line.
-Internally for implementation purposes they may be a normal function or a
-callable object, but the only input they receive will be a single line and they
-should only return a line, without holding any data-dependent state between
-calls.
-
-As an example, the EscapedTransformer is a class so we can more clearly group
-together the functionality of dispatching to individual functions based on the
-starting escape character, but the only method for public use is its call
-method.
-
-
-ToDo
-----
-
-- Should we make push() actually raise an exception once push_accepts_more()
-  returns False?
-
-- Naming cleanups.  The tr_* names aren't the most elegant, though now they are
-  at least just attributes of a class so not really very exposed.
-
-- Think about the best way to support dynamic things: automagic, autocall,
-  macros, etc.
-
-- Think of a better heuristic for the application of the transforms in
-  IPythonInputSplitter.push() than looking at the buffer ending in ':'.  Idea:
-  track indentation change events (indent, dedent, nothing) and apply them only
-  if the indentation went up, but not otherwise.
-
-- Think of the cleanest way for supporting user-specified transformations (the
-  user prefilters we had before).
+For more details, see the class docstrings below.
 
 Authors
 -------
 
 * Fernando Perez
 * Brian Granger
+* Thomas Kluyver
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010  The IPython Development Team
@@ -598,9 +564,9 @@ class IPythonInputSplitter(InputSplitter):
         -------
         is_complete : boolean
           True if the current input source (the result of the current input
-        plus prior inputs) forms a complete Python execution block.  Note that
-        this value is also stored as a private attribute (_is_complete), so it
-        can be queried at any time.
+          plus prior inputs) forms a complete Python execution block.  Note that
+          this value is also stored as a private attribute (_is_complete), so it
+          can be queried at any time.
         """
 
         # We must ensure all input is pure unicode

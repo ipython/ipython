@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ultratb.py -- Spice up your tracebacks!
+Verbose and colourful traceback formatting.
 
 **ColorTB**
 
