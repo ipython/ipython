@@ -28,12 +28,15 @@ import abc
 import sys
 import warnings
 
+from IPython.external.decorator import decorator
+
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
+from IPython.utils.warn import warn
 from IPython.utils.py3compat import (
     unicode_to_str, with_metaclass, PY3, string_types,
 )
@@ -180,6 +183,16 @@ class DisplayFormatter(Configurable):
 #-----------------------------------------------------------------------------
 
 
+@decorator
+def warn_format_error(method, self, *args, **kwargs):
+    """decorator for warning on failed format call"""
+    try:
+        return method(self, *args, **kwargs)
+    except Exception as e:
+        warn("Exception in %s formatter: %s" % (self.format_type, e))
+        return None
+
+
 class FormatterABC(with_metaclass(abc.ABCMeta, object)):
     """ Abstract base class for Formatters.
 
@@ -194,17 +207,16 @@ class FormatterABC(with_metaclass(abc.ABCMeta, object)):
 
     # Is the formatter enabled...
     enabled = True
-
+    
     @abc.abstractmethod
+    @warn_format_error
     def __call__(self, obj):
         """Return a JSON'able representation of the object.
 
-        If the object cannot be formatted by this formatter, then return None
+        If the object cannot be formatted by this formatter,
+        warn and return None.
         """
-        try:
-            return repr(obj)
-        except Exception:
-            return None
+        return repr(obj)
 
 
 def _mod_name_key(typ):
@@ -222,6 +234,7 @@ def _get_type(obj):
     return getattr(obj, '__class__', None) or type(obj)
 
 _raise_key_error = object()
+
 
 class BaseFormatter(Configurable):
     """A base formatter class that is configurable.
@@ -266,24 +279,22 @@ class BaseFormatter(Configurable):
     # Map (modulename, classname) pairs to the format functions.
     deferred_printers = Dict(config=True)
 
+    @warn_format_error
     def __call__(self, obj):
         """Compute the format for an object."""
         if self.enabled:
+            # lookup registered printer
             try:
-                # lookup registered printer
-                try:
-                    printer = self.lookup(obj)
-                except KeyError:
-                    pass
-                else:
-                    return printer(obj)
-                # Finally look for special method names
-                method = pretty._safe_getattr(obj, self.print_method, None)
-                if method is not None:
-                    return method()
-                return None
-            except Exception:
+                printer = self.lookup(obj)
+            except KeyError:
                 pass
+            else:
+                return printer(obj)
+            # Finally look for special method names
+            method = pretty._safe_getattr(obj, self.print_method, None)
+            if method is not None:
+                return method()
+            return None
         else:
             return None
     
@@ -599,6 +610,7 @@ class PlainTextFormatter(BaseFormatter):
 
     #### FormatterABC interface ####
 
+    @warn_format_error
     def __call__(self, obj):
         """Compute the pretty representation of the object."""
         if not self.pprint:

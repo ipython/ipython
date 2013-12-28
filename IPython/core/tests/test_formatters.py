@@ -1,5 +1,4 @@
-"""Tests for the Formatters.
-"""
+"""Tests for the Formatters."""
 
 from math import pi
 
@@ -9,7 +8,8 @@ except:
     numpy = None
 import nose.tools as nt
 
-from IPython.core.formatters import PlainTextFormatter, _mod_name_key
+from IPython.core.formatters import PlainTextFormatter, HTMLFormatter, _mod_name_key
+from IPython.utils.io import capture_output
 
 class A(object):
     def __repr__(self):
@@ -230,5 +230,41 @@ def test_pop_string():
         f.pop(type_str)
     nt.assert_is(f.pop(type_str, None), None)
     
+
+def test_warn_error_method():
+    f = HTMLFormatter()
+    class BadHTML(object):
+        def _repr_html_(self):
+            return 1/0
+    bad = BadHTML()
+    with capture_output() as captured:
+        result = f(bad)
+    nt.assert_is(result, None)
+    nt.assert_in("WARNING", captured.stderr)
+    nt.assert_in("text/html", captured.stderr)
+    nt.assert_in("zero", captured.stderr)
+
+def test_warn_error_for_type():
+    f = HTMLFormatter()
+    f.for_type(int, lambda i: name_error)
+    with capture_output() as captured:
+        result = f(5)
+    nt.assert_is(result, None)
+    nt.assert_in("WARNING", captured.stderr)
+    nt.assert_in("text/html", captured.stderr)
+    nt.assert_in("name_error", captured.stderr)
+
+def test_warn_error_pretty_method():
+    f = PlainTextFormatter()
+    class BadPretty(object):
+        def _repr_pretty_(self):
+            return "hello"
+    bad = BadPretty()
+    with capture_output() as captured:
+        result = f(bad)
+    nt.assert_is(result, None)
+    nt.assert_in("WARNING", captured.stderr)
+    nt.assert_in("text/plain", captured.stderr)
+    nt.assert_in("argument", captured.stderr)
 
 
