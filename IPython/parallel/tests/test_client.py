@@ -333,7 +333,7 @@ class TestClient(ClusterTestCase):
         
         # ensure Hub up to date:
         self.assertEqual(qs['unassigned'], 0)
-        for eid in qs if eid != 'unassigned':
+        for eid in [ eid for eid in qs if eid != 'unassigned' ]:
             self.assertEqual(qs[eid]['tasks'], 0)
             self.assertEqual(qs[eid]['queue'], 0)
     
