@@ -9,7 +9,7 @@ except:
     numpy = None
 import nose.tools as nt
 
-from IPython.core.formatters import PlainTextFormatter
+from IPython.core.formatters import PlainTextFormatter, _mod_name_key
 
 class A(object):
     def __repr__(self):
@@ -18,6 +18,9 @@ class A(object):
 class B(A):
     def __repr__(self):
         return 'B()'
+
+class C:
+    pass
 
 class BadPretty(object):
     _repr_pretty_ = None
@@ -86,5 +89,146 @@ def test_bad_precision():
     nt.assert_raises(ValueError, set_fp, '%.3f%i')
     nt.assert_raises(ValueError, set_fp, 'foo')
     nt.assert_raises(ValueError, set_fp, -1)
+
+def test_for_type():
+    f = PlainTextFormatter()
+    
+    # initial return, None
+    nt.assert_is(f.for_type(C, foo_printer), None)
+    # no func queries
+    nt.assert_is(f.for_type(C), foo_printer)
+    # shouldn't change anything
+    nt.assert_is(f.for_type(C), foo_printer)
+    # None should do the same
+    nt.assert_is(f.for_type(C, None), foo_printer)
+    nt.assert_is(f.for_type(C, None), foo_printer)
+
+def test_for_type_string():
+    f = PlainTextFormatter()
+    
+    mod = C.__module__
+    
+    type_str = '%s.%s' % (C.__module__, 'C')
+    
+    # initial return, None
+    nt.assert_is(f.for_type(type_str, foo_printer), None)
+    # no func queries
+    nt.assert_is(f.for_type(type_str), foo_printer)
+    nt.assert_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_is(f.for_type(C), foo_printer)
+    nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_in(C, f.type_printers)
+
+def test_for_type_by_name():
+    f = PlainTextFormatter()
+    
+    mod = C.__module__
+    
+    # initial return, None
+    nt.assert_is(f.for_type_by_name(mod, 'C', foo_printer), None)
+    # no func queries
+    nt.assert_is(f.for_type_by_name(mod, 'C'), foo_printer)
+    # shouldn't change anything
+    nt.assert_is(f.for_type_by_name(mod, 'C'), foo_printer)
+    # None should do the same
+    nt.assert_is(f.for_type_by_name(mod, 'C', None), foo_printer)
+    nt.assert_is(f.for_type_by_name(mod, 'C', None), foo_printer)
+
+def test_lookup():
+    f = PlainTextFormatter()
+    
+    f.for_type(C, foo_printer)
+    nt.assert_is(f.lookup(C()), foo_printer)
+    with nt.assert_raises(KeyError):
+        f.lookup(A())
+
+def test_lookup_string():
+    f = PlainTextFormatter()
+    type_str = '%s.%s' % (C.__module__, 'C')
+    
+    f.for_type(type_str, foo_printer)
+    nt.assert_is(f.lookup(C()), foo_printer)
+    # should move from deferred to imported dict
+    nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_in(C, f.type_printers)
+
+def test_lookup_by_type():
+    f = PlainTextFormatter()
+    f.for_type(C, foo_printer)
+    nt.assert_is(f.lookup_by_type(C), foo_printer)
+    type_str = '%s.%s' % (C.__module__, 'C')
+    with nt.assert_raises(KeyError):
+        f.lookup_by_type(A)
+
+def test_lookup_by_type_string():
+    f = PlainTextFormatter()
+    type_str = '%s.%s' % (C.__module__, 'C')
+    f.for_type(type_str, foo_printer)
+    
+    # verify insertion
+    nt.assert_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_not_in(C, f.type_printers)
+    
+    nt.assert_is(f.lookup_by_type(type_str), foo_printer)
+    # lookup by string doesn't cause import
+    nt.assert_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_not_in(C, f.type_printers)
+    
+    nt.assert_is(f.lookup_by_type(C), foo_printer)
+    # should move from deferred to imported dict
+    nt.assert_not_in(_mod_name_key(C), f.deferred_printers)
+    nt.assert_in(C, f.type_printers)
+
+def test_in_formatter():
+    f = PlainTextFormatter()
+    f.for_type(C, foo_printer)
+    type_str = '%s.%s' % (C.__module__, 'C')
+    nt.assert_in(C, f)
+    nt.assert_in(type_str, f)
+
+def test_string_in_formatter():
+    f = PlainTextFormatter()
+    type_str = '%s.%s' % (C.__module__, 'C')
+    f.for_type(type_str, foo_printer)
+    nt.assert_in(type_str, f)
+    nt.assert_in(C, f)
+
+def test_pop():
+    f = PlainTextFormatter()
+    f.for_type(C, foo_printer)
+    nt.assert_is(f.lookup_by_type(C), foo_printer)
+    nt.assert_is(f.pop(C, None), foo_printer)
+    f.for_type(C, foo_printer)
+    nt.assert_is(f.pop(C), foo_printer)
+    with nt.assert_raises(KeyError):
+        f.lookup_by_type(C)
+    with nt.assert_raises(KeyError):
+        f.pop(C)
+    with nt.assert_raises(KeyError):
+        f.pop(A)
+    nt.assert_is(f.pop(A, None), None)
+
+def test_pop_string():
+    f = PlainTextFormatter()
+    type_str = '%s.%s' % (C.__module__, 'C')
+    
+    with nt.assert_raises(KeyError):
+        f.pop(type_str)
+    
+    f.for_type(type_str, foo_printer)
+    f.pop(type_str)
+    with nt.assert_raises(KeyError):
+        f.lookup_by_type(C)
+    with nt.assert_raises(KeyError):
+        f.pop(type_str)
+
+    f.for_type(C, foo_printer)
+    nt.assert_is(f.pop(type_str, None), foo_printer)
+    with nt.assert_raises(KeyError):
+        f.lookup_by_type(C)
+    with nt.assert_raises(KeyError):
+        f.pop(type_str)
+    nt.assert_is(f.pop(type_str, None), None)
+    
 
 
