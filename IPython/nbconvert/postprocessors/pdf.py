@@ -71,7 +71,7 @@ class PDFPostProcessor(PostProcessorBase):
         command = [c.format(filename=filename) for c in command_list]
         #In windows and python 2.x there is a bug in subprocess.Popen and
         # unicode commands are not supported
-        if sys.platform == 'win' and sys.version_info < (3,0):
+        if sys.platform == 'win32' and sys.version_info < (3,0):
             #We must use cp1252 encoding for calling subprocess.Popen
             #Note that sys.stdin.encoding and encoding.DEFAULT_ENCODING
             # could be different (cp437 in case of dos console)

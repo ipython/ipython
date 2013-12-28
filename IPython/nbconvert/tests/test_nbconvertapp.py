@@ -193,16 +193,6 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert --log-level 0 --to python nb1_*')
             assert os.path.isfile(u'nb1_análisis.py')
     
-    @dec.onlyif_cmds_exist('pandoc')        
-    def test_accents_in_command_line(self):
-        """
-        Are accents allowed in arguments of command line?
-        """
-        with self.create_temp_cwd(['nb*.ipynb']):
-            self.call('nbconvert --to latex nb1_* ' 
-                      '--SphinxTransform.author="análisis"')
-            assert os.path.isfile(u'nb1_análisis.tex')
-
     @dec.onlyif_cmds_exist('pdflatex')
     @dec.onlyif_cmds_exist('pandoc')
     def test_filename_spaces(self):
