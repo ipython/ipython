@@ -15,8 +15,8 @@
  **/
 
 define(["notebook/js/widgetmanager",
-        "components/underscore/underscore-min",
-        "components/backbone/backbone-min"], 
+        "underscore",
+        "backbone"], 
 function(widget_manager, underscore, backbone){
     
     //--------------------------------------------------------------------

@@ -21,8 +21,8 @@
     // Use require.js 'define' method so that require.js is intelligent enough to
     // syncronously load everything within this file when it is being 'required' 
     // elsewhere.
-    define(["components/underscore/underscore-min",
-             "components/backbone/backbone-min",
+    define(["underscore",
+             "backbone",
             ], function (underscore, backbone) {
 
         //--------------------------------------------------------------------
