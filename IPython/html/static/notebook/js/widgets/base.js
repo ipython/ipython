@@ -79,8 +79,8 @@ function(widget_manager, underscore, backbone){
         },
 
 
-        on_view_displayed: function (callback) {
-            this._view_displayed_callback = callback;
+        on_view_created: function (callback) {
+            this._view_created_callback = callback;
         },
 
 
@@ -142,7 +142,7 @@ function(widget_manager, underscore, backbone){
                         console.log("Could not determine where the display" + 
                             " message was from.  Widget will not be displayed");
                     } else {
-                        this.display_view(msg.content.data.view_name, 
+                        this.create_views(msg.content.data.view_name, 
                         msg.content.data.parent,
                         cell);
                     }
@@ -279,10 +279,10 @@ function(widget_manager, underscore, backbone){
         },
 
 
-        _handle_view_displayed: function (view) {
-            if (this._view_displayed_callback) {
+        _handle_view_created: function (view) {
+            if (this._view_created_callback) {
                 try {
-                    this._view_displayed_callback(view);
+                    this._view_created_callback(view);
                 } catch (e) {
                     console.log("Exception in widget model view displayed callback", e, view, this);
                 }
@@ -310,7 +310,7 @@ function(widget_manager, underscore, backbone){
 
 
         // Create view that represents the model.
-        display_view: function (view_name, parent_id, cell) {
+        create_views: function (view_name, parent_id, cell) {
             var new_views = [];
             var view;
 
@@ -329,7 +329,7 @@ function(widget_manager, underscore, backbone){
                                     new_views.push(view);
                                     parent_view.display_child(view);
                                     displayed = true;
-                                    this._handle_view_displayed(view);
+                                    this._handle_view_created(view);
                                 }
                             }    
                         }
@@ -347,7 +347,7 @@ function(widget_manager, underscore, backbone){
                     if (cell.widget_subarea !== undefined && cell.widget_subarea !== null) {
                         cell.widget_area.show();
                         cell.widget_subarea.append(view.$el);
-                        this._handle_view_displayed(view);
+                        this._handle_view_created(view);
                     }
                 }
             }
