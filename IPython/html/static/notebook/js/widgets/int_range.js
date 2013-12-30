@@ -109,7 +109,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         events: { "slide" : "handleSliderChange" }, 
         handleSliderChange: function(e, ui) { 
             this.model.set('value', ~~ui.value); // Double bit-wise not to truncate decimel
-            this.model.update_other_views(this);
+            this.touch();
         },
     });
 
@@ -188,7 +188,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 if (numericalValue != this.model.get('value')) {
                     this.changing = true;
                     this.model.set('value', numericalValue);
-                    this.model.update_other_views(this);
+                    this.touch();
                     this.changing = false;
                 }
             }

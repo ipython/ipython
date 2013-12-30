@@ -76,7 +76,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 .attr('href', '#' + uuid)
                 .click(function(evt){ 
                     that.model.set("selected_index", index);
-                    that.model.update_other_views(that);
+                    that.touch();
                  })
                 .html('Page ' + index)
                 .appendTo(accordion_heading);
@@ -151,7 +151,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 .appendTo(tab)
                 .click(function (e) {
                     that.model.set("selected_index", index);
-                    that.model.update_other_views(that);
+                    that.touch();
                     that.select_page(index);
                 });
             this.containers.push(tab_text);

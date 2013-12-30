@@ -103,7 +103,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         // Handle when a value is clicked.
         handle_click: function (e) {
             this.model.set('value', $(e.target).html(), this);
-            this.model.update_other_views(this);
+            this.touch();
         },
         
     });
@@ -190,7 +190,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         // Handle when a value is clicked.
         handle_click: function (e) {
             this.model.set('value', $(e.target).val(), this);
-            this.model.update_other_views(this);
+            this.touch();
         },
     });
 
@@ -272,7 +272,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         // Handle when a value is clicked.
         handle_click: function (e) {
             this.model.set('value', $(e.target).html(), this);
-            this.model.update_other_views(this);
+            this.touch();
         },
         
     });
@@ -351,7 +351,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         // Handle when a value is clicked.
         handle_click: function (e) {
             this.model.set('value', $(e.target).html(), this);
-            this.model.update_other_views(this);
+            this.touch();
         },
         
     });

@@ -35,7 +35,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 .click(function(el) {
                     that.user_invoked_update = true;
                     that.model.set('value', that.$checkbox.prop('checked'));
-                    that.model.update_other_views(that);
+                    that.touch();
                     that.user_invoked_update = false;
                 })
                 .appendTo(this.$el);
@@ -113,7 +113,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         handleClick: function(e) { 
             this.user_invoked_update = true;
             this.model.set('value', ! $(e.target).hasClass('active'));
-            this.model.update_other_views(this);
+            this.touch();
             this.user_invoked_update = false;
         },
     });

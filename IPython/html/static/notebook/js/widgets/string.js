@@ -119,7 +119,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         handleChanging: function(e) { 
             this.user_invoked_update = true;
             this.model.set('value', e.target.value);
-            this.model.update_other_views(this);
+            this.touch();
             this.user_invoked_update = false;
         },
     });
@@ -173,7 +173,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         // Handles and validates user input.
         handleChanging: function(e) { 
             this.model.set('value', e.target.value);
-            this.model.update_other_views(this);
+            this.touch();
         },
         
         // Handles text submition

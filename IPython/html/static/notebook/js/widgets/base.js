@@ -45,19 +45,6 @@ function(widget_manager, underscore, backbone){
 
             return Backbone.Model.apply(this);
         },
-
-
-        update_other_views: function (caller) {
-            this.last_modified_view = caller;
-            this.save(this.changedAttributes(), {patch: true});
-
-            for (var view_index in this.views) {
-                var view = this.views[view_index];
-                if (view !== caller) {
-                    view.update();    
-                }
-            }
-        },
     
 
         send: function (content, cell) {
@@ -505,6 +492,12 @@ function(widget_manager, underscore, backbone){
     
         send: function (content) {
             this.model.send(content, this.cell);
+        },
+
+
+        touch: function () {
+            this.model.last_modified_view = this;
+            this.model.save(this.model.changedAttributes(), {patch: true});
         },
 
         update: function () {
