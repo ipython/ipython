@@ -180,15 +180,13 @@ class Widget(LoggingConfigurable):
             self.send_state(key=name)
 
 
-    def _handle_displayed(self, view_name, parent=None):
+    def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance
 
         Parameters
         ----------
-        view_name: unicode
-            Name of the view that was displayed.
-        parent: Widget instance [optional]
-            Widget that this widget should be displayed as a child of."""
+        [view_name]: unicode (optional kwarg)
+            Name of the view that was displayed."""
         for handler in self._display_callbacks:
             if callable(handler):
                 argspec = inspect.getargspec(handler)
@@ -204,12 +202,9 @@ class Widget(LoggingConfigurable):
                 elif nargs == 1:
                     handler(self)
                 elif nargs == 2:
-                    handler(self, view_name)
-                elif nargs == 3:
-                    handler(self, view_name, parent)
+                    handler(self, kwargs.get('view_name', None))
                 else:
-                    raise TypeError('Widget display callback must ' \
-                        'accept 0-2 arguments, not %d.' % nargs)
+                    handler(self, **kwargs)
     
     
     # Public methods
@@ -375,7 +370,8 @@ class Widget(LoggingConfigurable):
             - callback()
             - callback(sender)
             - callback(sender, view_name)
-            - callback(sender, view_name, parent)
+            - callback(sender, **kwargs)
+              kwargs from display call passed through without modification.
         remove: bool
             True if the callback should be unregistered."""
         if remove and callback in self._display_callbacks:
@@ -385,7 +381,7 @@ class Widget(LoggingConfigurable):
 
 
     # Support methods
-    def _repr_widget_(self, view_name=None):
+    def _repr_widget_(self, **kwargs):
         """Function that is called when `IPython.display.display` is called on
         the widget.
 
@@ -393,8 +389,7 @@ class Widget(LoggingConfigurable):
         ----------
         view_name: unicode (optional)
             View to display in the frontend.  Overrides default_view_name."""
-        if not view_name:
-            view_name = self.default_view_name
+        view_name = kwargs.get('view_name', self.default_view_name)
         
         # Create a communication.
         self._open_communication()
@@ -405,12 +400,11 @@ class Widget(LoggingConfigurable):
         # Show view.
         if self.parent is None or self.parent._comm is None:
             self._send({"method": "display", "view_name": view_name})
-            self._handle_displayed(view_name)
         else:
             self._send({"method": "display", 
                             "view_name": view_name,
                             "parent": self.parent._comm.comm_id})
-            self._handle_displayed(view_name, self.parent)
+        self._handle_displayed(**kwargs)
         self._displayed = True
 
         # Now display children if any.
