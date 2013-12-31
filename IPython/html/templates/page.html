@@ -1,9 +1,6 @@
 
 
 <!DOCTYPE HTML>
-{% macro static_url(name) -%}
-   {{ base_project_url }}static/{{ name }}
-{%- endmacro %}
 <html>
 
 <head>
@@ -28,7 +25,7 @@
     <script src="{{static_url("components/requirejs/require.js") }}" type="text/javascript" charset="utf-8"></script>
     <script>
       require.config({
-          baseUrl: '{{static_url()}}',
+          baseUrl: '{{static_url("")}}',
           paths: {
             nbextensions : '{{ base_project_url }}nbextensions'
           }
