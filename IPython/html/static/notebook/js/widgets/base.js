@@ -56,10 +56,8 @@ function(widget_manager, underscore, backbone){
         _handle_comm_closed: function (msg) {
 	    // jng: widget manager should observe the comm_close event and delete views when triggered
 	    this.trigger('comm:close');
-            if (this._has_comm()) {
-                delete this.comm.model; // Delete ref so GC will collect widget model.
-                delete this.comm;
-            }
+            delete this.comm.model; // Delete ref so GC will collect widget model.
+            delete this.comm;
             delete this.widget_id; // Delete id from model so widget manager cleans up.
         },
 
