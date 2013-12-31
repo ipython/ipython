@@ -41,7 +41,6 @@ function(widget_manager, underscore, backbone){
                 comm.on_close($.proxy(this._handle_comm_closed, this));
                 comm.on_msg($.proxy(this._handle_comm_msg, this));
             }
-
             return Backbone.Model.apply(this);
         },
 
@@ -54,12 +53,11 @@ function(widget_manager, underscore, backbone){
 
         // Handle when a widget is closed.
         _handle_comm_closed: function (msg) {
-	    // jng: widget manager should observe the comm_close event and delete views when triggered
-	    
 	    this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.widget_id; // Delete id from model so widget manager cleans up.
+	    // TODO: Handle deletion, like this.destroy(), and delete views, etc.
         },
 
 

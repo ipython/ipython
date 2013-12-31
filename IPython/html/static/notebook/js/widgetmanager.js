@@ -95,10 +95,9 @@
                 var view = new ViewType({model: model, widget_manager: this, cell: cell});
                 view.render();
 		model.views.push(view);
+		model.on('destroy', view.remove, view);
 		/*
-                // jng: Handle when the view element is remove from the page.
-		// observe the view destruction event and do this.  We may need
-		// to override the view's remove method to trigger this event.
+                // TODO: handle view deletion.  Don't forget to delete child views
                 var that = this;
                 view.$el.on("remove", function () { 
                     var index = that.views.indexOf(view);
@@ -109,7 +108,7 @@
 
                     // Close the comm if there are no views left.
                     if (that.views.length() === 0) {
-			//jng: trigger comm close event
+			//trigger comm close event?
                         }
 
 		        
