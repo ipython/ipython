@@ -98,8 +98,7 @@
             if (ViewType !== undefined && ViewType !== null) {
                 var view = new ViewType({model: model, widget_manager: this, cell: cell});
                 view.render();
-                //this.views.push(view);
-
+		model.views.push(view);
 		/*
                 // jng: Handle when the view element is remove from the page.
 		// observe the view destruction event and do this.  We may need

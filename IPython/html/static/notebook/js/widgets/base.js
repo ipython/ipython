@@ -29,6 +29,7 @@ function(widget_manager, underscore, backbone){
             this.msg_throttle = 3;
             this.msg_buffer = null;
             this.id = widget_id;
+	    this.views = [];
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -43,7 +44,6 @@ function(widget_manager, underscore, backbone){
 
             return Backbone.Model.apply(this);
         },
-    
 
         send: function (content, callbacks) {
             if (this.comm !== undefined) {
@@ -55,6 +55,7 @@ function(widget_manager, underscore, backbone){
         // Handle when a widget is closed.
         _handle_comm_closed: function (msg) {
 	    // jng: widget manager should observe the comm_close event and delete views when triggered
+	    
 	    this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
@@ -178,6 +179,7 @@ function(widget_manager, underscore, backbone){
 	    this.widget_manager = options.widget_manager;
 	    this.comm_manager = options.widget_manager.comm_manager;
 	    this.cell = options.cell;
+	    this.child_views = [];
         },
 
 	update: function(){
@@ -187,6 +189,7 @@ function(widget_manager, underscore, backbone){
 	child_view: function(comm_id, view_name) {
 	    var child_model = this.comm_manager.comms[comm_id].model;
 	    var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
+	    this.child_views.push(child_view);
 	    return child_view;
 	},
 
