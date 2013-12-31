@@ -155,7 +155,7 @@ function(widget_manager, underscore, backbone){
                         }
 
                         var data = {method: 'backbone', sync_method: method, sync_data: send_json};
-                        this.comm.send(data, this.cell_callbacks());
+                        this.comm.send(data, this.callbacks);
                         this.pending_msgs++;
                     }
                 }
@@ -166,20 +166,46 @@ function(widget_manager, underscore, backbone){
             return model_json;
         },
 
-        // Build a callback dict.
-        cell_callbacks: function (cell) {
+    });
+
+
+    //--------------------------------------------------------------------
+    // WidgetView class
+    //--------------------------------------------------------------------
+    var BaseWidgetView = Backbone.View.extend({
+        initialize: function(options) {
+            this.model.on('change',this.update,this);
+	    this.widget_manager = options.widget_manager;
+	    this.comm_manager = options.widget_manager.comm_manager;
+	    this.cell = options.cell;
+        },
+
+	update: function(){
+	    // update thyself to be consistent with this.model
+	},
+
+	child_view: function(comm_id, view_name) {
+	    var child_model = this.comm_manager.comms[comm_id].model;
+	    var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
+	    return child_view;
+	},
+
+	render: function(){
+	    // render thyself
+	},
+        send: function (content) {
+            this.model.send(content, this.cell_callbacks(this.cell));
+        },
+
+        touch: function () {
+            this.model.callbacks = this.cell_callbacks();
+            this.model.save(this.model.changedAttributes(), {patch: true});
+        },
+
+        cell_callbacks: function () {
+	    // callback handlers specific to this view's cell
             var callbacks = {};
-            if (cell === undefined) {
-		// Used the last modified view as the sender of the message.  This
-		// will insure that any python code triggered by the sent message
-		// can create and display widgets and output.
-                if (this.last_modified_view !== undefined && 
-                    this.last_modified_view.cell !== undefined) {
-                    cell = this.last_modified_view.cell;
-                } else {
-		    cell = null;
-		}
-            }
+	    var cell = this.cell;
             if (cell !== null) {
                 
                 // Try to get output handlers
@@ -198,7 +224,7 @@ function(widget_manager, underscore, backbone){
                         clear_output : handle_clear_output,
 
                         status : function (msg) {
-                            that._handle_status(msg, that.cell_callbacks(cell));
+                            that._handle_status(msg, that.cell_callbacks());
                         },
 
                         // Special function only registered by widget messages.
@@ -212,41 +238,7 @@ function(widget_manager, underscore, backbone){
             }
             return callbacks;
         },
-    });
 
-
-    //--------------------------------------------------------------------
-    // WidgetView class
-    //--------------------------------------------------------------------
-    var BaseWidgetView = Backbone.View.extend({
-        initialize: function(options) {
-            this.model.on('change',this.update,this);
-	    this.widget_manager = options.widget_manager;
-	    this.comm_manager = options.widget_manager.comm_manager;
-	    this.cell = options.cell
-        },
-
-	update: function(){
-	    // update thyself to be consistent with this.model
-	},
-
-	child_view: function(comm_id, view_name) {
-	    var child_model = this.comm_manager.comms[comm_id].model;
-	    var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
-	    return child_view;
-	},
-
-	render: function(){
-	    // render thyself
-	},
-        send: function (content) {
-            this.model.send(content, this.model.cell_callbacks(this.cell));
-        },
-
-        touch: function () {
-            this.model.last_modified_view = this;
-            this.model.save(this.model.changedAttributes(), {patch: true});
-        },
     });
 
     var WidgetView = BaseWidgetView.extend({
