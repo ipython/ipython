@@ -85,10 +85,6 @@
 			}
 		    }
 		    break;
-		case 'set_snapshot':
-                    var cell = this.get_msg_cell(msg.parent_header.msg_id);
-                    cell.metadata.snapshot = msg.content.data.snapshot;
-                    break;
 	    }
 	}
 
