@@ -244,12 +244,11 @@ function(widget_manager, underscore, backbone){
 
     var WidgetView = BaseWidgetView.extend({
         initialize: function (options) {
-	    this.model.on('change:visible', function() {this.$el.toggle(this.model.get('visible'))}, this);
-	    this.model.on('change', this.update_css, this);
+        // TODO: make changes more granular
+	    this.model.on('change', this.update, this);
 	    BaseWidgetView.prototype.initialize.apply(this, arguments);
         },
 			  
-	
         add_class: function (selector, class_list) {
             var elements = this._get_selector_element(selector);
             if (elements.length > 0) {
@@ -264,8 +263,14 @@ function(widget_manager, underscore, backbone){
             }
         },
 	
-        update_css: function () {
-	    var css = this.model.css;
+        update: function () {
+        // the very first update seems to happen before the element is finished rendering
+        // so we use setTimeout to give the element time to render
+        var e = this.$el;
+        var visible = this.model.get('visible');
+        setTimeout(function() {e.toggle(visible)},0);
+ 
+        var css = this.model.css;
 	    if (css === undefined) {return;}
             for (var selector in css) {
                 if (css.hasOwnProperty(selector)) {
