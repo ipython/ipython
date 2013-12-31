@@ -26,6 +26,10 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 .attr('id', guid)
                 .addClass('accordion');
             this.containers = [];
+	    for (var i in children) {
+		this.add_child_view(this.child_view(children[i]))
+	    }
+
         },
         update: function() {
             // Set tab titles
@@ -57,7 +61,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
             return IPython.WidgetView.prototype.update.call(this);
         },
 
-        add_child_view: function(attr, view) {
+        add_child_view: function(view) {
 
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
