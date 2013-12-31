@@ -108,7 +108,6 @@ define(["notebook/js/widgets/base"], function(widget_manager){
 	},
 
         render: function(){
-	    console.log('rendering tabs', this);
             var uuid = 'tabs'+IPython.utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})

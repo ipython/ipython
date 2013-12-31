@@ -230,12 +230,6 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
             
             return IPython.WidgetView.prototype.update.call(this);
         },
-
-        add_child_view: function(attr, view) {
-	    if (attr==='children') {
-		this.$body.append(view.$el);
-	    }
-        },
         
         _get_selector_element: function(selector) {
 

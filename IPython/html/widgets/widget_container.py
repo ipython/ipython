@@ -23,8 +23,7 @@ class ContainerWidget(Widget):
     target_name = Unicode('ContainerWidgetModel')
     default_view_name = Unicode('ContainerView')
 
-    children = []#List(Instance('IPython.html.widgets.widget.Widget'))
-    _children_lists_attr = List(Unicode, ['children'])
+    children = [] #List(Instance('IPython.html.widgets.widget.Widget'))
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...

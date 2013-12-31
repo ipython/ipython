@@ -29,8 +29,7 @@ class MulticontainerWidget(Widget):
     _titles = Dict(help="Titles of the pages")
     selected_index = Int(0)
 
-    children = []#List(Instance('IPython.html.widgets.widget.Widget'))
-    _children_lists_attr = List(Unicode, ['children'])
+    children = [] #List(Instance('IPython.html.widgets.widget.Widget'))
 
     # Public methods
     def set_title(self, index, title):

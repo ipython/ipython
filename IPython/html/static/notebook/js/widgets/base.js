@@ -46,7 +46,6 @@ function(widget_manager, underscore, backbone){
     
 
         send: function (content, callbacks) {
-	    console.log('send',content, callbacks);
             if (this.comm !== undefined) {
                 var data = {method: 'custom', custom_content: content};
                 this.comm.send(data, callbacks);
@@ -172,7 +171,6 @@ function(widget_manager, underscore, backbone){
         // Build a callback dict.
         cell_callbacks: function (cell) {
             var callbacks = {};
-	    console.log('cell_callbacks A', cell);
             if (cell === undefined) {
 		// Used the last modified view as the sender of the message.  This
 		// will insure that any python code triggered by the sent message
@@ -184,7 +182,6 @@ function(widget_manager, underscore, backbone){
 		    cell = null;
 		}
             }
-	    console.log('cell_callbacks B', cell);
             if (cell !== null) {
                 
                 // Try to get output handlers
@@ -215,7 +212,6 @@ function(widget_manager, underscore, backbone){
                     },
                 };
             }
-	    console.log('constructed callbacks for',cell);
             return callbacks;
         },
     });

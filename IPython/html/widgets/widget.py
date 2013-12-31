@@ -70,9 +70,6 @@ class BaseWidget(LoggingConfigurable):
         self._msg_callbacks = []
         super(BaseWidget, self).__init__(**kwargs)
 
-        # Register after init to allow default values to be specified
-        # TODO: register three different handlers, one for each list, and abstract out the common parts
-        #print self.keys, self._children_attr, self._children_lists_attr
         self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._handle_widget_constructed(self)
 
