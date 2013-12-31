@@ -225,7 +225,7 @@ function(widget_manager, underscore, backbone){
                         clear_output : handle_clear_output,
 
                         status : function (msg) {
-                            that._handle_status(msg, that.cell_callbacks());
+                            that.model._handle_status(msg, that.cell_callbacks());
                         },
 
                         // Special function only registered by widget messages.
