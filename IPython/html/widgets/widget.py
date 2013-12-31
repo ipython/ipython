@@ -36,11 +36,6 @@ class BaseWidget(LoggingConfigurable):
     # Shared declarations (Class level)
     _keys = List(Unicode, default_value = [], 
                  help="List of keys comprising the state of the model.", allow_none=False)
-    _children_attr = List(Unicode, default_value = [], 
-                          help="List of keys of children objects of the model.", allow_none=False)
-    _children_lists_attr = List(Unicode, default_value = [],
-                                help="List of keys containing lists of children objects of the model.", 
-                                allow_none=False)
     widget_construction_callback = None
 
     def on_widget_constructed(callback):
@@ -78,7 +73,7 @@ class BaseWidget(LoggingConfigurable):
         # Register after init to allow default values to be specified
         # TODO: register three different handlers, one for each list, and abstract out the common parts
         #print self.keys, self._children_attr, self._children_lists_attr
-        self.on_trait_change(self._handle_property_changed, self.keys+self._children_attr+self._children_lists_attr)
+        self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._handle_widget_constructed(self)
 
     def __del__(self):
@@ -96,7 +91,7 @@ class BaseWidget(LoggingConfigurable):
     # Properties
     @property
     def keys(self):
-        keys = ['_children_attr', '_children_lists_attr', 'default_view_name']
+        keys = ['default_view_name']
         keys.extend(self._keys)
         return keys
     
@@ -215,26 +210,22 @@ class BaseWidget(LoggingConfigurable):
         # If a key is provided, just send the state of that key.
         if key is None:
             keys = self.keys[:]
-            children_attr = self._children_attr[:]
-            children_lists_attr = self._children_lists_attr[:]
         else:
-            keys = []
-            children_attr = []
-            children_lists_attr = []
-            if key in self._children_attr:
-                children_attr.append(key)
-            elif key in self._children_lists_attr:
-                children_lists_attr.append(key)
-            else:
-                keys.append(key)
+            keys = [key]
         for k in keys:
-            state[k] = getattr(self, k)
-        for k in children_attr:
-            # automatically create models on the browser side if they aren't already created
-            state[k] = getattr(self, k).comm.comm_id
-        for k in children_lists_attr:
-            # automatically create models on the browser side if they aren't already created
-            state[k] = [i.comm.comm_id for i in getattr(self, k)]
+            value = getattr(self, k)
+
+            # a more elegant solution to encoding BaseWidgets would be
+            # to tap into the JSON encoder and teach it how to deal
+            # with BaseWidget objects, or maybe just teach the JSON
+            # encoder to look for a _repr_json property before giving
+            # up encoding
+            if isinstance(value, BaseWidget):
+                value = value.comm.comm_id
+            elif isinstance(value, list) and isinstance(value[0], BaseWidget):
+                # assume all elements of the list are widgets
+                value = [i.comm.comm_id for i in value]
+            state[k] = value
         return state
 
 

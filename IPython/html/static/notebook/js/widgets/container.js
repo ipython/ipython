@@ -52,9 +52,11 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
         render: function(){
             this.$el
                 .addClass('widget-container');
-	    var children = this.model.get('children')
-	    for(var i in this.model.get('children')) {
-		
+	    var children = this.model.get('children');
+	    for(var i in children) {
+		var view = this.child_view(children[i]);
+		this.$el.append(view.$el);
+	    }
 	    this.update()
         },
         
@@ -62,11 +64,6 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
             set_flex_properties(this, this.$el);
             return IPython.WidgetView.prototype.update.call(this);
         },
-	add_child_view: function(attr, view) {
-	    if (attr==='children') {
-		this.$el.append(view.$el);
-	    }
-	}
     });
 
     widget_manager.register_widget_view('ContainerView', ContainerView);

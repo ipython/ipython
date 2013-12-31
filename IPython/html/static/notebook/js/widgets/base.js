@@ -230,35 +230,14 @@ function(widget_manager, underscore, backbone){
 	    this.widget_manager = options.widget_manager;
 	    this.comm_manager = options.widget_manager.comm_manager;
 	    this.cell = options.cell
-	    this.render();
-	    // jng: maybe the following shouldn't be automatic---maybe the render method should take
-	    // care of knowing what needs to be added as a child?
-            var children_attr = this.model.get('_children_attr');
-            for (var i in children_attr) {
-                var child_attr = children_attr[i];
-                var child_model = this.comm_manager.comms[this.model.get(child_attr)].model;
-		var child_view_name = this.child_view_name(child_attr, child_model);
-                var child_view = this.widget_manager.create_view(child_model, child_view_name, this.cell);
-                this.add_child_view(child_attr, child_view);
-           }
-	   var children_lists_attr = this.model.get('_children_lists_attr')
-           for (var i in children_lists_attr) {
-               var child_attr = children_lists_attr[i];
-               var child_list = this.model.get(child_attr);
-               for (var j in child_list) {
-                   var child_model = this.comm_manager.comms[child_list[j]].model;
-		   var child_view_name = this.child_view_name(child_attr, child_model);
-                   var child_view =  this.widget_manager.create_view(child_model, child_view_name, this.cell);
-                   this.add_child_view(child_attr, child_view);
-               }
-           }
         },
+
 	update: function(){
 	    // update thyself to be consistent with this.model
 	},
 
-	child_view: function(attr, viewname) {
-	    var child_model = this.comm_manager.comms[this.model.get(attr)].model;
+	child_view: function(comm_id, view_name) {
+	    var child_model = this.comm_manager.comms[comm_id].model;
 	    var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
 	    return child_view;
 	},
@@ -266,19 +245,6 @@ function(widget_manager, underscore, backbone){
 	render: function(){
 	    // render thyself
 	},
-        child_view_name: function(attr, model) {
-	    // attr is the name of the attribute we are constructing a view for
-	    // model is the model stored in that attribute
-	    // return a valid view_name to construct a view of that type
-	    // or null for the default view for the model
-	    return null;
-	},
-	add_child_view: function(attr, view) {
-            //attr is the name of the attribute containing a reference to this child
-            //view is the child view that has been constructed
-            //typically this will just add the child view's view.el attribute to some dom element
-	},
-    
         send: function (content) {
             this.model.send(content, this.model.cell_callbacks(this.cell));
         },
@@ -287,8 +253,6 @@ function(widget_manager, underscore, backbone){
             this.model.last_modified_view = this;
             this.model.save(this.model.changedAttributes(), {patch: true});
         },
-
-
     });
 
     var WidgetView = BaseWidgetView.extend({
