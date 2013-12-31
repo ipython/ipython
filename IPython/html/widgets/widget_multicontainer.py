@@ -25,11 +25,11 @@ class MulticontainerWidget(Widget):
     default_view_name = Unicode('TabView')
 
     # Keys
-    _keys = ['_titles', 'selected_index']
+    _keys = ['_titles', 'selected_index', 'children']
     _titles = Dict(help="Titles of the pages")
     selected_index = Int(0)
 
-    children = [] #List(Instance('IPython.html.widgets.widget.Widget'))
+    children = List(Instance(Widget))
 
     # Public methods
     def set_title(self, index, title):

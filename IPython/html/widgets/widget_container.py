@@ -23,13 +23,14 @@ class ContainerWidget(Widget):
     target_name = Unicode('ContainerWidgetModel')
     default_view_name = Unicode('ContainerView')
 
-    children = [] #List(Instance('IPython.html.widgets.widget.Widget'))
-
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
     _keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
             '_pack_start', '_pack_end', '_pack_center', '_flex0', '_flex1', 
-            '_flex2', 'description', 'button_text']
+            '_flex2', 'description', 'button_text',
+            'children']
+    children = List(Instance(Widget))
+    
     description = Unicode()
     button_text = Unicode()
     _hbox = Bool(False)

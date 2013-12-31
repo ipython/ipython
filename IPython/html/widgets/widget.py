@@ -219,7 +219,7 @@ class BaseWidget(LoggingConfigurable):
             # up encoding
             if isinstance(value, BaseWidget):
                 value = value.comm.comm_id
-            elif isinstance(value, list) and isinstance(value[0], BaseWidget):
+            elif isinstance(value, list) and len(value)>0 and isinstance(value[0], BaseWidget):
                 # assume all elements of the list are widgets
                 value = [i.comm.comm_id for i in value]
             state[k] = value
