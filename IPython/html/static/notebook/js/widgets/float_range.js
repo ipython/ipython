@@ -70,6 +70,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
             this.$slider.slider('option', 'orientation', orientation);
             value = this.model.get('value');
             this.$slider.slider('option', 'value', value);
+	    console.log('updating value',value)
 
             // Use the right CSS classes for vertical & horizontal sliders
             if (orientation=='vertical') {
@@ -109,6 +110,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
         events: { "slide" : "handleSliderChange" }, 
         handleSliderChange: function(e, ui) { 
             this.model.set('value', ui.value); 
+	    console.log('triggered value change', ui.value, this.model);
             this.touch();
         },
     });

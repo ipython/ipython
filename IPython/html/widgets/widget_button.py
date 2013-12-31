@@ -59,7 +59,7 @@ class ButtonWidget(Widget):
 
 
     def _handle_button_msg(self, content):
-        """Hanlde a msg from the front-end
+        """Handle a msg from the front-end
 
         Parameters
         ----------

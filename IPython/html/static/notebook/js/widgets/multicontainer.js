@@ -27,7 +27,6 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 .addClass('accordion');
             this.containers = [];
         },
-        
         update: function() {
             // Set tab titles
             var titles = this.model.get('_titles');
@@ -58,7 +57,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
             return IPython.WidgetView.prototype.update.call(this);
         },
 
-        display_child: function(view) {
+        add_child_view: function(attr, view) {
 
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
@@ -103,7 +102,13 @@ define(["notebook/js/widgets/base"], function(widget_manager){
     
     var TabView = IPython.WidgetView.extend({
         
+	initialize: function() {
+	    this.containers = [];
+	    IPython.WidgetView.prototype.initialize.apply(this, arguments);
+	},
+
         render: function(){
+	    console.log('rendering tabs', this);
             var uuid = 'tabs'+IPython.utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})
@@ -113,8 +118,7 @@ define(["notebook/js/widgets/base"], function(widget_manager){
             this.$tab_contents = $('<div />', {id: uuid + 'Content'})
                 .addClass('tab-content')
                 .appendTo(this.$el);
-
-            this.containers = [];
+	    this.update();
         },
 
         update: function() {
@@ -135,8 +139,8 @@ define(["notebook/js/widgets/base"], function(widget_manager){
             return IPython.WidgetView.prototype.update.call(this);
         },
 
-        display_child: function(view) {
-
+        add_child_view: function(attr, view) {
+	    console.log('adding child view', attr, view);
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
 

@@ -14,7 +14,7 @@ Represents a container that can be used to group other widgets.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import Widget
-from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.traitlets import Unicode, Bool, List, Instance
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -22,6 +22,9 @@ from IPython.utils.traitlets import Unicode, Bool
 class ContainerWidget(Widget):
     target_name = Unicode('ContainerWidgetModel')
     default_view_name = Unicode('ContainerView')
+
+    children = []#List(Instance('IPython.html.widgets.widget.Widget'))
+    _children_lists_attr = List(Unicode, ['children'])
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...

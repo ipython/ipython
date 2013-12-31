@@ -86,7 +86,7 @@ var IPython = (function (IPython) {
         try {
             f(comm, msg);
         } catch (e) {
-            console.log("Exception opening new comm:", e, msg);
+            console.log("Exception opening new comm:", e, e.stack, msg);
             comm.close();
             this.unregister_comm(comm);
         }
@@ -102,7 +102,7 @@ var IPython = (function (IPython) {
         try {
             comm.handle_close(msg);
         } catch (e) {
-            console.log("Exception closing comm: ", e, msg);
+            console.log("Exception closing comm: ", e, e.stack, msg);
         }
     };
     
@@ -115,7 +115,7 @@ var IPython = (function (IPython) {
         try {
             comm.handle_msg(msg);
         } catch (e) {
-            console.log("Exception handling comm msg: ", e, msg);
+            console.log("Exception handling comm msg: ", e, e.stack, msg);
         }
     };
     
@@ -176,7 +176,7 @@ var IPython = (function (IPython) {
             try {
                 callback(msg);
             } catch (e) {
-                console.log("Exception in Comm callback", e, msg);
+                console.log("Exception in Comm callback", e, e.stack, msg);
             }
         }
     };

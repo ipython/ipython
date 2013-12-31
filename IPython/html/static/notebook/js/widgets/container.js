@@ -52,16 +52,21 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
         render: function(){
             this.$el
                 .addClass('widget-container');
+	    var children = this.model.get('children')
+	    for(var i in this.model.get('children')) {
+		
+	    this.update()
         },
         
         update: function(){
             set_flex_properties(this, this.$el);
             return IPython.WidgetView.prototype.update.call(this);
         },
-
-        display_child: function(view) {
-            this.$el.append(view.$el);
-        },
+	add_child_view: function(attr, view) {
+	    if (attr==='children') {
+		this.$el.append(view.$el);
+	    }
+	}
     });
 
     widget_manager.register_widget_view('ContainerView', ContainerView);
@@ -229,8 +234,10 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
             return IPython.WidgetView.prototype.update.call(this);
         },
 
-        display_child: function(view) {
-            this.$body.append(view.$el);
+        add_child_view: function(attr, view) {
+	    if (attr==='children') {
+		this.$body.append(view.$el);
+	    }
         },
         
         _get_selector_element: function(selector) {

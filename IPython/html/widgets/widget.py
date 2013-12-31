@@ -34,9 +34,13 @@ from IPython.utils.py3compat import string_types
 class BaseWidget(LoggingConfigurable):
 
     # Shared declarations (Class level)
-    _keys = List(Unicode, help="List of keys comprising the state of the model.")
-    _children_attr = List(Unicode, help="List of keys of children objects of the model.")
-    _children_lists_attr = List(Unicode, help="List of keys containing lists of children objects of the model.")
+    _keys = List(Unicode, default_value = [], 
+                 help="List of keys comprising the state of the model.", allow_none=False)
+    _children_attr = List(Unicode, default_value = [], 
+                          help="List of keys of children objects of the model.", allow_none=False)
+    _children_lists_attr = List(Unicode, default_value = [],
+                                help="List of keys containing lists of children objects of the model.", 
+                                allow_none=False)
     widget_construction_callback = None
 
     def on_widget_constructed(callback):
@@ -59,9 +63,10 @@ class BaseWidget(LoggingConfigurable):
         to use to represent the widget.""")
 
     # Private/protected declarations
+    # todo: change this to a context manager
     _property_lock = (None, None) # Last updated (key, value) from the front-end.  Prevents echo.
     _displayed = False
-    _comm = None
+    _comm = Instance('IPython.kernel.comm.Comm')
     
     def __init__(self, **kwargs):
         """Public constructor
@@ -72,6 +77,7 @@ class BaseWidget(LoggingConfigurable):
 
         # Register after init to allow default values to be specified
         # TODO: register three different handlers, one for each list, and abstract out the common parts
+        #print self.keys, self._children_attr, self._children_lists_attr
         self.on_trait_change(self._handle_property_changed, self.keys+self._children_attr+self._children_lists_attr)
         Widget._handle_widget_constructed(self)
 
@@ -90,7 +96,7 @@ class BaseWidget(LoggingConfigurable):
     # Properties
     @property
     def keys(self):
-        keys = ['_children_attr', '_children_lists_attr']
+        keys = ['_children_attr', '_children_lists_attr', 'default_view_name']
         keys.extend(self._keys)
         return keys
     
@@ -117,7 +123,6 @@ class BaseWidget(LoggingConfigurable):
         elif method == 'custom':
             if 'custom_content' in data:
                 self._handle_custom_msg(data['custom_content'])
-
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is recieved."""
@@ -153,7 +158,7 @@ class BaseWidget(LoggingConfigurable):
 
 
     def _handle_property_changed(self, name, old, new):
-        """Called when a proeprty has been changed."""
+        """Called when a property has been changed."""
         # Make sure this isn't information that the front-end just sent us.
         if self._property_lock[0] != name and self._property_lock[1] != new:
             # Send new state to frontend
@@ -197,7 +202,7 @@ class BaseWidget(LoggingConfigurable):
         self._send({"method": "update",
                     "state": self.get_state()})
 
-    def get_state(self, key=None)
+    def get_state(self, key=None):
         """Gets the widget state, or a piece of it.
 
         Parameters
@@ -308,15 +313,18 @@ class BaseWidget(LoggingConfigurable):
     def _open_communication(self):
         """Opens a communication with the front-end."""
         # Create a comm.
-        if not hasattr(self, '_comm') or self._comm is None:
+        if self._comm is None:
             self._comm = Comm(target_name=self.target_name)
             self._comm.on_msg(self._handle_msg)
             self._comm.on_close(self._close_communication)
 
+        # first update
+        self.send_state()
+
 
     def _close_communication(self):
         """Closes a communication with the front-end."""
-        if hasattr(self, '_comm') and self._comm is not None:
+        if self._comm is not None:
             try:
                 self._comm.close()
             finally:
@@ -332,9 +340,6 @@ class BaseWidget(LoggingConfigurable):
             return False        
 
 class Widget(BaseWidget):
-
-    _children = List(Instance('IPython.html.widgets.widget.Widget'))
-    _children_lists_attr = List(Unicode, ['_children'])
     visible = Bool(True, help="Whether or not the widget is visible.")
 
     # Private/protected declarations
