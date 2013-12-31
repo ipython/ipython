@@ -489,7 +489,7 @@ var IPython = (function (IPython) {
             try {
                 callbacks.iopub.status(msg);
             } catch (e) {
-                console.log("Exception in status msg handler", e);
+                console.log("Exception in status msg handler", e, e.stack);
             }
         }
         
