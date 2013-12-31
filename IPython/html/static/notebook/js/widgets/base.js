@@ -243,10 +243,12 @@ function(widget_manager, underscore, backbone){
 
     var WidgetView = BaseWidgetView.extend({
         initialize: function (options) {
-            this.visible = true;
+	    this.model.on('change:visible', function() {this.$el.toggle(this.model.get('visible'))}, this);
+	    this.model.on('change', this.update_css, this);
 	    BaseWidgetView.prototype.initialize.apply(this, arguments);
         },
-        
+			  
+	
         add_class: function (selector, class_list) {
             var elements = this._get_selector_element(selector);
             if (elements.length > 0) {
@@ -260,27 +262,19 @@ function(widget_manager, underscore, backbone){
                 elements.removeClass(class_list);
             }
         },
-    
-        update: function () {
-	    // jng: hook into change:visible trigger
-	    var visible = this.model.get('visible');
-            if (visible !== undefined && this.visible !== visible) {
-		this.visible = visible;
-		this.$el.toggle(visible)
-            }
-
-            if (this.model.css !== undefined) {
-                for (var selector in this.model.css) {
-                    if (this.model.css.hasOwnProperty(selector)) {
-
-                        // Apply the css traits to all elements that match the selector.
-                        var elements = this._get_selector_element(selector);
-                        if (elements.length > 0) {
-                            var css_traits = this.model.css[selector];    
-                            for (var css_key in css_traits) {
-                                if (css_traits.hasOwnProperty(css_key)) {
-                                    elements.css(css_key, css_traits[css_key]);
-                                }
+	
+        update_css: function () {
+	    var css = this.model.css;
+	    if (css === undefined) {return;}
+            for (var selector in css) {
+                if (css.hasOwnProperty(selector)) {
+                    // Apply the css traits to all elements that match the selector.
+                    var elements = this._get_selector_element(selector);
+                    if (elements.length > 0) {
+                        var css_traits = css[selector];    
+                        for (var css_key in css_traits) {
+                            if (css_traits.hasOwnProperty(css_key)) {
+                                elements.css(css_key, css_traits[css_key]);
                             }
                         }
                     }
@@ -293,14 +287,16 @@ function(widget_manager, underscore, backbone){
             // blank, apply the style to the $el_to_style element.  If
             // the $el_to_style element is not defined, use apply the 
             // style to the view's element.
-            var elements = this.$el.find(selector);
+            var elements;
             if (selector === undefined || selector === null || selector === '') {
                 if (this.$el_to_style === undefined) {
                     elements = this.$el;
                 } else {
                     elements = this.$el_to_style;
                 }
-            }
+            } else {
+		    elements = this.$el.find(selector);
+	    }
             return elements;
         },
     });
