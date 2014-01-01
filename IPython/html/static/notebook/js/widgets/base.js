@@ -29,7 +29,7 @@ function(widget_manager, underscore, backbone){
             this.msg_throttle = 3;
             this.msg_buffer = null;
             this.id = widget_id;
-	    this.views = [];
+            this.views = [];
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -37,7 +37,6 @@ function(widget_manager, underscore, backbone){
                 comm.model = this;
 
                 // Hook comm messages up to model.
-		var that = this;
                 comm.on_close($.proxy(this._handle_comm_closed, this));
                 comm.on_msg($.proxy(this._handle_comm_msg, this));
             }
@@ -53,11 +52,11 @@ function(widget_manager, underscore, backbone){
 
         // Handle when a widget is closed.
         _handle_comm_closed: function (msg) {
-	    this.trigger('comm:close');
+            this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.widget_id; // Delete id from model so widget manager cleans up.
-	    // TODO: Handle deletion, like this.destroy(), and delete views, etc.
+            // TODO: Handle deletion, like this.destroy(), and delete views, etc.
         },
 
 
@@ -71,9 +70,9 @@ function(widget_manager, underscore, backbone){
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.custom_content);
                     break;
-		default:
-		    // pass on to widget manager
-		    this.widget_manager.handle_msg(msg, this);
+                default:
+                    // pass on to widget manager
+                    this.widget_manager.handle_msg(msg, this);
             }
         },
 
@@ -87,6 +86,7 @@ function(widget_manager, underscore, backbone){
                             this.set(key, state[key]);
                     }
                 }
+                //TODO: are there callbacks that make sense in this case?  If so, attach them here as an option
                 this.save();
             } finally {
                 this.updating = false;
@@ -96,22 +96,18 @@ function(widget_manager, underscore, backbone){
 
         _handle_status: function (msg, callbacks) {
             //execution_state : ('busy', 'idle', 'starting')
-            if (this.comm !== undefined) {
-                if (msg.content.execution_state ==='idle') {
-                    
-                    // Send buffer if this message caused another message to be
-                    // throttled.
-                    if (this.msg_buffer !== null &&
-                        this.msg_throttle === this.pending_msgs) {
-                        var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
-                        this.comm.send(data, callbacks);   
-                        this.msg_buffer = null;
-                    } else {
-
-                        // Only decrease the pending message count if the buffer
-                        // doesn't get flushed (sent).
-                        --this.pending_msgs;
-                    }
+            if (this.comm !== undefined && msg.content.execution_state ==='idle') {
+                // Send buffer if this message caused another message to be
+                // throttled.
+                if (this.msg_buffer !== null &&
+                    this.msg_throttle === this.pending_msgs) {
+                    var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
+                    this.comm.send(data, callbacks);   
+                    this.msg_buffer = null;
+                } else {
+                    // Only decrease the pending message count if the buffer
+                    // doesn't get flushed (sent).
+                    --this.pending_msgs;
                 }
             }
         },
@@ -154,7 +150,7 @@ function(widget_manager, underscore, backbone){
                         }
 
                         var data = {method: 'backbone', sync_method: method, sync_data: send_json};
-                        this.comm.send(data, this.callbacks);
+                        this.comm.send(data, options.callbacks);
                         this.pending_msgs++;
                     }
                 }
@@ -174,41 +170,42 @@ function(widget_manager, underscore, backbone){
     var BaseWidgetView = Backbone.View.extend({
         initialize: function(options) {
             this.model.on('change',this.update,this);
-	    this.widget_manager = options.widget_manager;
-	    this.comm_manager = options.widget_manager.comm_manager;
-	    this.cell = options.cell;
-	    this.child_views = [];
+            this.widget_manager = options.widget_manager;
+            this.comm_manager = options.widget_manager.comm_manager;
+            this.cell = options.cell;
+            this.child_views = [];
         },
 
-	update: function(){
-	    // update thyself to be consistent with this.model
-	},
+        update: function(){
+            // update view to be consistent with this.model
+            // triggered on model change
+        },
 
-	child_view: function(comm_id, view_name) {
-	    var child_model = this.comm_manager.comms[comm_id].model;
-	    var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
-	    this.child_views.push(child_view);
-	    return child_view;
-	},
+        child_view: function(comm_id, view_name) {
+            // create and return a child view, given a comm id for a model and (optionally) a view name
+            // if the view name is not given, it defaults to the model's default view attribute
+            var child_model = this.comm_manager.comms[comm_id].model;
+            var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
+            this.child_views.push(child_view);
+            return child_view;
+        },
 
-	render: function(){
-	    // render thyself
-	},
+        render: function(){
+            // render the view.  By default, this is only called the first time the view is created
+        },
         send: function (content) {
-            this.model.send(content, this.cell_callbacks(this.cell));
+            this.model.send(content, this._callbacks());
         },
 
         touch: function () {
-            this.model.callbacks = this.cell_callbacks();
-            this.model.save(this.model.changedAttributes(), {patch: true});
+            this.model.save(this.model.changedAttributes(), {patch: true, callbacks: this._callbacks()});
         },
 
-        cell_callbacks: function () {
-	    // callback handlers specific to this view's cell
+        _callbacks: function () {
+            // callback handlers specific to this view's cell
             var callbacks = {};
-	    var cell = this.cell;
+            var cell = this.cell;
             if (cell !== null) {
-                
                 // Try to get output handlers
                 var handle_output = null;
                 var handle_clear_output = null;
@@ -225,7 +222,7 @@ function(widget_manager, underscore, backbone){
                         clear_output : handle_clear_output,
 
                         status : function (msg) {
-                            that.model._handle_status(msg, that.cell_callbacks());
+                            that.model._handle_status(msg, that._callbacks());
                         },
 
                         // Special function only registered by widget messages.
@@ -244,9 +241,9 @@ function(widget_manager, underscore, backbone){
 
     var WidgetView = BaseWidgetView.extend({
         initialize: function (options) {
-        // TODO: make changes more granular
-	    this.model.on('change', this.update, this);
-	    BaseWidgetView.prototype.initialize.apply(this, arguments);
+            // TODO: make changes more granular (e.g., trigger on visible:change)
+            this.model.on('change', this.update, this);
+            BaseWidgetView.prototype.initialize.apply(this, arguments);
         },
 			  
         add_class: function (selector, class_list) {
@@ -264,14 +261,14 @@ function(widget_manager, underscore, backbone){
         },
 	
         update: function () {
-        // the very first update seems to happen before the element is finished rendering
-        // so we use setTimeout to give the element time to render
-        var e = this.$el;
-        var visible = this.model.get('visible');
-        setTimeout(function() {e.toggle(visible)},0);
- 
-        var css = this.model.css;
-	    if (css === undefined) {return;}
+            // the very first update seems to happen before the element is finished rendering
+            // so we use setTimeout to give the element time to render
+            var e = this.$el;
+            var visible = this.model.get('visible');
+            setTimeout(function() {e.toggle(visible)},0);
+     
+            var css = this.model.css;
+            if (css === undefined) {return;}
             for (var selector in css) {
                 if (css.hasOwnProperty(selector)) {
                     // Apply the css traits to all elements that match the selector.
@@ -301,14 +298,15 @@ function(widget_manager, underscore, backbone){
                     elements = this.$el_to_style;
                 }
             } else {
-		    elements = this.$el.find(selector);
-	    }
+                elements = this.$el.find(selector);
+            }
             return elements;
         },
     });
 
     IPython.WidgetModel = WidgetModel;
     IPython.WidgetView = WidgetView;
+    IPython.BaseWidgetView = BaseWidgetView;
 
     return widget_manager;
 });
