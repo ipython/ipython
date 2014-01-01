@@ -243,9 +243,21 @@ function(widget_manager, underscore, backbone){
         initialize: function (options) {
             // TODO: make changes more granular (e.g., trigger on visible:change)
             this.model.on('change', this.update, this);
+            this.model.on('msg:custom', this.on_msg, this);
             BaseWidgetView.prototype.initialize.apply(this, arguments);
         },
-			  
+        
+        on_msg: function(msg) {
+            switch(msg.msg_type) {
+                case 'add_class':
+                    this.add_class(msg.selector, msg.class_list);
+                    break;
+                case 'remove_class':
+                    this.remove_class(msg.selector, msg.class_list);
+                    break;
+            }
+        },
+
         add_class: function (selector, class_list) {
             var elements = this._get_selector_element(selector);
             if (elements.length > 0) {
@@ -267,7 +279,7 @@ function(widget_manager, underscore, backbone){
             var visible = this.model.get('visible');
             setTimeout(function() {e.toggle(visible)},0);
      
-            var css = this.model.css;
+            var css = this.model.get('_css');
             if (css === undefined) {return;}
             for (var selector in css) {
                 if (css.hasOwnProperty(selector)) {
