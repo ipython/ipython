@@ -186,9 +186,30 @@ function(widget_manager, underscore, backbone){
             // if the view name is not given, it defaults to the model's default view attribute
             var child_model = this.comm_manager.comms[comm_id].model;
             var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
-            this.child_views.push(child_view);
+            this.child_views[comm_id] = child_view;
             return child_view;
         },
+        
+        update_child_views: function(old_list, new_list) {
+            // this function takes an old list and new list of comm ids
+            // views in child_views that correspond to deleted ids are deleted
+            // views corresponding to added ids are added child_views
+        
+            // delete old views
+            _.each(_.difference(old_list, new_list), function(element, index, list) {
+                var view = this.child_views[element];
+                delete this.child_views[element];
+                view.remove();
+            }, this);
+            
+            // add new views
+            _.each(_.difference(new_list, old_list), function(element, index, list) {
+                // this function adds the view to the child_views dictionary
+                this.child_view(element);
+            }, this);
+        },
+
+        
 
         render: function(){
             // render the view.  By default, this is only called the first time the view is created

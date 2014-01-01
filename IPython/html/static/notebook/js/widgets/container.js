@@ -52,12 +52,20 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
         render: function(){
             this.$el
                 .addClass('widget-container');
-	    var children = this.model.get('children');
-	    for(var i in children) {
-		var view = this.child_view(children[i]);
-		this.$el.append(view.$el);
-	    }
-	    this.update()
+            this.children={};
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
+            }, this);
+            this.update()
+        },
+        
+        update_children: function(old_list, new_list) {
+            this.$el.empty();
+            this.update_child_views(old_list, new_list);
+            _.each(new_list, function(element, index, list) {
+                this.$el.append(this.child_views[element].$el);
+            }, this)
         },
         
         update: function(){

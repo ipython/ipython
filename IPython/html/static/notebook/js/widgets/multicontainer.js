@@ -26,11 +26,24 @@ define(["notebook/js/widgets/base"], function(widget_manager){
                 .attr('id', guid)
                 .addClass('accordion');
             this.containers = [];
-	    for (var i in children) {
-		this.add_child_view(this.child_view(children[i]))
-	    }
-
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                    this.update_children(model.previous('children'), value);
+                }, this);
         },
+        
+        update_children: function(old_list, new_list) {
+            _.each(this.containers, function(element, index, list) {
+                element.remove();
+            }, this);
+            this.containers = [];
+            this.update_child_views(old_list, new_list);
+            _.each(new_list, function(element, index, list) {
+                this.add_child_view(this.child_views[element]);
+            }, this)
+        },
+        
+
         update: function() {
             // Set tab titles
             var titles = this.model.get('_titles');
