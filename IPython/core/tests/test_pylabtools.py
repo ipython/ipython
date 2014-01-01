@@ -56,7 +56,7 @@ def test_figure_to_svg():
 try:
     from PIL import Image
     def test_figure_to_jpg():
-        # simple check for at least svg-looking output
+        # simple check for at least jpg-looking output
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         ax.plot([1,2,3])
