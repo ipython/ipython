@@ -447,4 +447,4 @@ class Widget(BaseWidget):
     def view(self, view_name=None):
         """Return a widget that can be displayed to display this widget using
         a non-default view"""
-       return ViewWidget(self, view_name)
+        return ViewWidget(self, view_name)
