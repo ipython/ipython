@@ -8,7 +8,8 @@ casper.notebook_test(function () {
 
     var container_index = this.append_cell(
         'container = widgets.ContainerWidget()\n' +
-        'button = widgets.ButtonWidget(parent=container)\n'+
+        'button = widgets.ButtonWidget()\n'+
+        'container.children = [button]\n'+
         'display(container)\n'+
         'container.add_class("my-test-class")\n'+
         'print("Success")\n');
@@ -35,15 +36,15 @@ casper.notebook_test(function () {
     });
 
     index = this.append_cell(
-        'container.set_css("display", "none")\n'+
+        'container.set_css("float", "right")\n'+
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Set container class CSS cell executed with correct output.');
-
+        
         this.test.assert(this.cell_element_function(container_index, 
-            '.widget-area .widget-subarea .my-test-class', 'css', ['display'])=='none',
+            '.widget-area .widget-subarea .my-test-class', 'css', ['float'])=='right',
             'set_css works.');
     });
 
