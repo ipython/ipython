@@ -149,7 +149,7 @@ def parse_notifier_name(name):
         return ['anytrait']
     elif isinstance(name, (list, tuple)):
         for n in name:
-            assert isinstance(n, basestring), "names must be strings: %s, %r"%(type(n), n)
+            assert isinstance(n, str), "names must be strings"
         return name
 
 
@@ -801,14 +801,11 @@ class Instance(ClassBasedTraitType):
             if self._allow_none:
                 return value
             self.error(obj, value)
-        try:
-            if isinstance(value, self.klass):
-                return value
-            else:
-                self.error(obj, value)
-        except TypeError as e:
-            print self.klass, type(self.klass)
-            raise TypeError("validate, %s, %s"%(self.klass, type(self.klass)))
+
+        if isinstance(value, self.klass):
+            return value
+        else:
+            self.error(obj, value)
 
     def info(self):
         if isinstance(self.klass, py3compat.string_types):
