@@ -101,7 +101,7 @@ def _load_ips_ifconfig():
     for line in lines:
         blocks = line.lower().split()
         if (len(blocks) >= 2) and (blocks[0] == 'inet'):
-            if "addr:" in blocks[1]:
+            if  blocks[1].startswith("addr:"):
                 addrs.append(blocks[1].split(":")[1])
             else:
                 addrs.append(blocks[1])
