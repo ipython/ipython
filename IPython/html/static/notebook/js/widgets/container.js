@@ -81,6 +81,12 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
         
         render: function(){
             var that = this;
+            this.children={};
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
+            }, this);
+            
             this.$el
                 .html('')
                 .on("remove", function(){
@@ -208,6 +214,14 @@ define(["notebook/js/widgets/base"], function(widget_manager) {
                 }
             });
             this.$window.css('z-index', max_zindex);
+        },
+        
+        update_children: function(old_list, new_list) {
+            this.$el.empty();
+            this.update_child_views(old_list, new_list);
+            _.each(new_list, function(element, index, list) {
+                this.$body.append(this.child_views[element].$el);
+            }, this)
         },
         
         update: function(){
