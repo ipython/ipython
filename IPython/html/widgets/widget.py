@@ -416,9 +416,9 @@ class Widget(BaseWidget):
             JQuery selector to select the DOM element(s) that the class(es) will
             be added to.
         """
-        self._send({"method": "add_class",
-                        "class_list": class_name,
-                        "selector": selector})
+        self.send({"msg_type": "add_class",
+                   "class_list": class_name,
+                   "selector": selector})
 
 
     def remove_class(self, class_name, selector=""):
@@ -433,6 +433,6 @@ class Widget(BaseWidget):
             JQuery selector to select the DOM element(s) that the class(es) will
             be removed from.
         """
-        self._send({"method": "remove_class",
-                        "class_list": class_name,
-                        "selector": selector})
+        self.send({"msg_type": "remove_class",
+                   "class_list": class_name,
+                   "selector": selector})
