@@ -27,8 +27,6 @@ from IPython.utils.traitlets import Unicode, Dict, List, Instance, Bool
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
-from .widget_view import ViewWidget
-
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
@@ -331,7 +329,16 @@ class BaseWidget(LoggingConfigurable):
             self._comm.send(msg)
             return True
         else:
-            return False        
+            return False     
+
+
+class ViewWidget(BaseWidget):
+    target_name = Unicode('ViewModel')
+
+    def __init__(self, widget, view):
+        self.default_view_name = view
+        self.widget = widget
+
 
 class Widget(BaseWidget):
     visible = Bool(True, help="Whether or not the widget is visible.")
