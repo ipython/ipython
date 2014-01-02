@@ -71,22 +71,22 @@
         WidgetManager.prototype.handle_msg = function(msg, model) {
             var method = msg.content.data.method;
             switch (method) {
-            case 'display':
-                var cell = this.get_msg_cell(msg.parent_header.msg_id);
-                if (cell === null) {
-                console.log("Could not determine where the display" + 
-                        " message was from.  Widget will not be displayed");
-                } else {
-                var view = this.create_view(model, 
-                                msg.content.data.view_name, cell);
-                if (view !== undefined 
-                    && cell.widget_subarea !== undefined 
-                    && cell.widget_subarea !== null) {
-                                cell.widget_area.show();
-                                cell.widget_subarea.append(view.$el);
-                }
-                }
-                break;
+                case 'display':
+                    var cell = this.get_msg_cell(msg.parent_header.msg_id);
+                    if (cell === null) {
+                        console.log("Could not determine where the display" + 
+                            " message was from.  Widget will not be displayed");
+                    } else {
+                        var view = this.create_view(model, msg.content.data.view_name, cell);
+                        if (view !== undefined 
+                            && cell.widget_subarea !== undefined 
+                            && cell.widget_subarea !== null) {
+                            
+                            cell.widget_area.show();
+                            cell.widget_subarea.append(view.$el);
+                        }
+                    }
+                    break;
             }
         }
 
