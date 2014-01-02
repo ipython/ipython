@@ -23,12 +23,12 @@ function(widget_manager, underscore, backbone){
     // WidgetModel class
     //--------------------------------------------------------------------
     var WidgetModel = Backbone.Model.extend({
-        constructor: function (widget_manager, widget_id, comm) {
+        constructor: function (widget_manager, model_id, comm) {
             this.widget_manager = widget_manager;
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
-            this.id = widget_id;
+            this.id = model_id;
             this.views = [];
 
             if (comm !== undefined) {
@@ -55,7 +55,7 @@ function(widget_manager, underscore, backbone){
             this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
-            delete this.widget_id; // Delete id from model so widget manager cleans up.
+            delete this.model_id; // Delete id from model so widget manager cleans up.
             // TODO: Handle deletion, like this.destroy(), and delete views, etc.
         },
 
@@ -181,12 +181,12 @@ function(widget_manager, underscore, backbone){
             // triggered on model change
         },
 
-        child_view: function(comm_id, view_name) {
+        child_view: function(model_id, view_name) {
             // create and return a child view, given a comm id for a model and (optionally) a view name
             // if the view name is not given, it defaults to the model's default view attribute
-            var child_model = this.comm_manager.comms[comm_id].model;
+            var child_model = this.widget_manager.get_model(model_id);
             var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
-            this.child_views[comm_id] = child_view;
+            this.child_views[model_id] = child_view;
             return child_view;
         },
         

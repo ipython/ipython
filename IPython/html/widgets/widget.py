@@ -99,6 +99,10 @@ class BaseWidget(LoggingConfigurable):
         if self._comm is None:
             self._open_communication()
         return self._comm
+    
+    @property
+    def model_id(self):
+        return self._comm.comm_id
 
     # Event handlers
     def _handle_msg(self, msg):
@@ -220,10 +224,10 @@ class BaseWidget(LoggingConfigurable):
             # encoder to look for a _repr_json property before giving
             # up encoding
             if isinstance(value, BaseWidget):
-                value = value.comm.comm_id
+                value = value.model_id
             elif isinstance(value, list) and len(value)>0 and isinstance(value[0], BaseWidget):
                 # assume all elements of the list are widgets
-                value = [i.comm.comm_id for i in value]
+                value = [i.model_id for i in value]
             state[k] = value
         return state
 

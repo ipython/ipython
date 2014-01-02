@@ -66,60 +66,62 @@
         WidgetManager.prototype.register_widget_view = function (widget_view_name, widget_view_type) {
             this.widget_view_types[widget_view_name] = widget_view_type;
         };
-    WidgetManager.prototype.handle_msg = function(msg, model) {
-        var method = msg.content.data.method;
-        switch (method) {
-        case 'display':
-            var cell = this.get_msg_cell(msg.parent_header.msg_id);
-            if (cell === null) {
-            console.log("Could not determine where the display" + 
-                    " message was from.  Widget will not be displayed");
-            } else {
-            var view = this.create_view(model, 
-                            msg.content.data.view_name, cell);
-            if (view !== undefined 
-                && cell.widget_subarea !== undefined 
-                && cell.widget_subarea !== null) {
-                            cell.widget_area.show();
-                            cell.widget_subarea.append(view.$el);
-            }
-            }
-            break;
-        }
-    }
 
-    WidgetManager.prototype.create_view = function(model, view_name, cell) {
-        view_name = view_name || model.get('default_view_name');
+
+        WidgetManager.prototype.handle_msg = function(msg, model) {
+            var method = msg.content.data.method;
+            switch (method) {
+            case 'display':
+                var cell = this.get_msg_cell(msg.parent_header.msg_id);
+                if (cell === null) {
+                console.log("Could not determine where the display" + 
+                        " message was from.  Widget will not be displayed");
+                } else {
+                var view = this.create_view(model, 
+                                msg.content.data.view_name, cell);
+                if (view !== undefined 
+                    && cell.widget_subarea !== undefined 
+                    && cell.widget_subarea !== null) {
+                                cell.widget_area.show();
+                                cell.widget_subarea.append(view.$el);
+                }
+                }
+                break;
+            }
+        }
+
+        WidgetManager.prototype.create_view = function(model, view_name, cell) {
+            view_name = view_name || model.get('default_view_name');
             var ViewType = this.widget_view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
                 var view = new ViewType({model: model, widget_manager: this, cell: cell});
                 view.render();
-        model.views.push(view);
-        model.on('destroy', view.remove, view);
-        /*
-                // TODO: handle view deletion.  Don't forget to delete child views
-                var that = this;
-                view.$el.on("remove", function () { 
-                    var index = that.views.indexOf(view);
-                    if (index > -1) {
-                        that.views.splice(index, 1);
-                    }
-                    view.remove(); // Clean-up view 
-
-                    // Close the comm if there are no views left.
-                    if (that.views.length() === 0) {
-            //trigger comm close event?
+                model.views.push(view);
+                model.on('destroy', view.remove, view);
+                /*
+                    // TODO: handle view deletion.  Don't forget to delete child views
+                    var that = this;
+                    view.$el.on("remove", function () { 
+                        var index = that.views.indexOf(view);
+                        if (index > -1) {
+                            that.views.splice(index, 1);
                         }
+                        view.remove(); // Clean-up view 
 
-                
-                        if (that.comm !== undefined) {
-                            that.comm.close();
-                            delete that.comm.model; // Delete ref so GC will collect widget model.
-                            delete that.comm;
-                        }
-                        delete that.widget_id; // Delete id from model so widget manager cleans up.
-                    });
-        */
+                        // Close the comm if there are no views left.
+                        if (that.views.length() === 0) {
+                //trigger comm close event?
+                            }
+
+                    
+                            if (that.comm !== undefined) {
+                                that.comm.close();
+                                delete that.comm.model; // Delete ref so GC will collect widget model.
+                                delete that.comm;
+                            }
+                            delete that.model_id; // Delete id from model so widget manager cleans up.
+                        });
+                */
                 return view;
             }
         },
@@ -154,9 +156,9 @@
         };
 
 
-        WidgetManager.prototype.get_model = function (widget_id) {
-            var model = this._model_instances[widget_id];
-            if (model !== undefined && model.id == widget_id) {
+        WidgetManager.prototype.get_model = function (model_id) {
+            var model = this._model_instances[model_id];
+            if (model !== undefined && model.id == model_id) {
                 return model;
             }
             return null;
@@ -191,7 +193,7 @@
         WidgetManager.prototype._handle_comm_open = function (comm, msg) {
             var widget_type_name = msg.content.target_name;
             var widget_model = new this.widget_model_types[widget_type_name](this, comm.comm_id, comm);
-            this._model_instances[comm.comm_id] = widget_model;
+            this._model_instances[comm.comm_id] = widget_model; // comm_id == model_id
             this._handle_create_widget(widget_model);
         };
         
