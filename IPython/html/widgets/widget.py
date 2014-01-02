@@ -37,7 +37,7 @@ class BaseWidget(LoggingConfigurable):
 
     # Shared declarations (Class level)
     _keys = List(Unicode, default_value = [], 
-                 help="List of keys comprising the state of the model.", allow_none=False)
+        help="List of keys comprising the state of the model.", allow_none=False)
     widget_construction_callback = None
 
     def on_widget_constructed(callback):
@@ -198,7 +198,7 @@ class BaseWidget(LoggingConfigurable):
             A single property's name to sync with the frontend.
         """
         self._send({"method": "update",
-                    "state": self.get_state()})
+            "state": self.get_state()})
 
     def get_state(self, key=None):
         """Gets the widget state, or a piece of it.
@@ -241,7 +241,7 @@ class BaseWidget(LoggingConfigurable):
             Content of the message to send.
         """
         self._send({"method": "custom",
-                        "custom_content": content})
+            "custom_content": content})
 
 
     def on_msg(self, callback, remove=False):
@@ -423,8 +423,8 @@ class Widget(BaseWidget):
             be added to.
         """
         self.send({"msg_type": "add_class",
-                   "class_list": class_name,
-                   "selector": selector})
+            "class_list": class_name,
+            "selector": selector})
 
 
     def remove_class(self, class_name, selector=""):
@@ -440,8 +440,8 @@ class Widget(BaseWidget):
             be removed from.
         """
         self.send({"msg_type": "remove_class",
-                   "class_list": class_name,
-                   "selector": selector})
+            "class_list": class_name,
+            "selector": selector})
 
 
     def view(self, view_name=None):

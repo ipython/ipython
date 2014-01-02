@@ -23,5 +23,5 @@ class ViewWidget(BaseWidget):
     target_name = Unicode('ViewModel')
 
     def __init__(self, widget, view):
-       self.default_view_name = view
-       self.widget = widget
+        self.default_view_name = view
+        self.widget = widget
