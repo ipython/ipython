@@ -119,10 +119,10 @@ define(["notebook/js/widgets/base"], function(widget_manager){
     
     var TabView = IPython.WidgetView.extend({
         
-	initialize: function() {
-	    this.containers = [];
-	    IPython.WidgetView.prototype.initialize.apply(this, arguments);
-	},
+    initialize: function() {
+        this.containers = [];
+        IPython.WidgetView.prototype.initialize.apply(this, arguments);
+    },
 
         render: function(){
             var uuid = 'tabs'+IPython.utils.uuid();
@@ -134,11 +134,11 @@ define(["notebook/js/widgets/base"], function(widget_manager){
             this.$tab_contents = $('<div />', {id: uuid + 'Content'})
                 .addClass('tab-content')
                 .appendTo(this.$el);
-	    var children = this.model.get('children');
-	    for (var i in children) {
-		this.add_child_view(this.child_view(children[i]))
-	    }
-	    this.update();
+        var children = this.model.get('children');
+        for (var i in children) {
+        this.add_child_view(this.child_view(children[i]))
+        }
+        this.update();
         },
 
         update: function() {

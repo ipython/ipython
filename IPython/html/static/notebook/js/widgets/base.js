@@ -292,7 +292,7 @@ function(widget_manager, underscore, backbone){
                 elements.removeClass(class_list);
             }
         },
-	
+    
         update: function () {
             // the very first update seems to happen before the element is finished rendering
             // so we use setTimeout to give the element time to render

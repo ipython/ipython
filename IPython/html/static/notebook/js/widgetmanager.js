@@ -66,37 +66,37 @@
         WidgetManager.prototype.register_widget_view = function (widget_view_name, widget_view_type) {
             this.widget_view_types[widget_view_name] = widget_view_type;
         };
-	WidgetManager.prototype.handle_msg = function(msg, model) {
-	    var method = msg.content.data.method;
-	    switch (method) {
-		case 'display':
-		    var cell = this.get_msg_cell(msg.parent_header.msg_id);
-		    if (cell === null) {
-			console.log("Could not determine where the display" + 
-				    " message was from.  Widget will not be displayed");
-		    } else {
-			var view = this.create_view(model, 
-						    msg.content.data.view_name, cell);
-			if (view !== undefined 
-			    && cell.widget_subarea !== undefined 
-			    && cell.widget_subarea !== null) {
+    WidgetManager.prototype.handle_msg = function(msg, model) {
+        var method = msg.content.data.method;
+        switch (method) {
+        case 'display':
+            var cell = this.get_msg_cell(msg.parent_header.msg_id);
+            if (cell === null) {
+            console.log("Could not determine where the display" + 
+                    " message was from.  Widget will not be displayed");
+            } else {
+            var view = this.create_view(model, 
+                            msg.content.data.view_name, cell);
+            if (view !== undefined 
+                && cell.widget_subarea !== undefined 
+                && cell.widget_subarea !== null) {
                             cell.widget_area.show();
                             cell.widget_subarea.append(view.$el);
-			}
-		    }
-		    break;
-	    }
-	}
+            }
+            }
+            break;
+        }
+    }
 
-	WidgetManager.prototype.create_view = function(model, view_name, cell) {
-	    view_name = view_name || model.get('default_view_name');
+    WidgetManager.prototype.create_view = function(model, view_name, cell) {
+        view_name = view_name || model.get('default_view_name');
             var ViewType = this.widget_view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
                 var view = new ViewType({model: model, widget_manager: this, cell: cell});
                 view.render();
-		model.views.push(view);
-		model.on('destroy', view.remove, view);
-		/*
+        model.views.push(view);
+        model.on('destroy', view.remove, view);
+        /*
                 // TODO: handle view deletion.  Don't forget to delete child views
                 var that = this;
                 view.$el.on("remove", function () { 
@@ -108,10 +108,10 @@
 
                     // Close the comm if there are no views left.
                     if (that.views.length() === 0) {
-			//trigger comm close event?
+            //trigger comm close event?
                         }
 
-		        
+                
                         if (that.comm !== undefined) {
                             that.comm.close();
                             delete that.comm.model; // Delete ref so GC will collect widget model.
@@ -119,20 +119,20 @@
                         }
                         delete that.widget_id; // Delete id from model so widget manager cleans up.
                     });
-		*/
+        */
                 return view;
             }
         },
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
-	    var cell = null;
+        var cell = null;
             // First, check to see if the msg was triggered by cell execution.
             if (IPython.notebook !== undefined && IPython.notebook !== null) {
                 cell = IPython.notebook.get_msg_cell(msg_id);
             }
-	    if (cell !== null) {
-		return cell
-	    }
+        if (cell !== null) {
+        return cell
+        }
             // Second, check to see if a get_cell callback was defined
             // for the message.  get_cell callbacks are registered for
             // widget messages, so this block is actually checking to see if the
