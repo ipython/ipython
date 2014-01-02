@@ -27,6 +27,8 @@ from IPython.utils.traitlets import Unicode, Dict, List, Instance, Bool
 from IPython.display import Javascript, display
 from IPython.utils.py3compat import string_types
 
+from .widget_view import ViewWidget
+
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
@@ -436,3 +438,9 @@ class Widget(BaseWidget):
         self.send({"msg_type": "remove_class",
                    "class_list": class_name,
                    "selector": selector})
+
+
+    def view(self, view_name=None):
+        """Return a widget that can be displayed to display this widget using
+        a non-default view"""
+       return ViewWidget(self, view_name)
