@@ -18,7 +18,7 @@ casper.notebook_test(function () {
         'multicontainer.selected_index = 0\n' +
         'print("Success")\n');
     this.execute_cell_then(multicontainer1_index, function(index){
-
+        print(this.get_output_cell(index).text);
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Create multicontainer cell executed with correct output. (1)');
 
