@@ -206,16 +206,13 @@ def run_webapp(q, nbdir, loglevel=0):
     import os
     import IPython.html.notebookapp as nbapp
     import sys
-    #sys.stdout = open(str(os.getpid()) + ".out", "w")
-    #sys.stderr = open(str(os.getpid()) + ".err", "w")
-    print("hello")
-    # sys.stderr = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
     os.environ["IPYTHONDIR"] = nbdir
     server = nbapp.NotebookApp()
     args = ['--no-browser']
     args.append('--notebook-dir='+nbdir)
     args.append('--profile-dir='+nbdir)
-    #args.append('--log-level='+str(loglevel))
+    args.append('--log-level='+str(loglevel))
     server.initialize(args)
     # communicate the port number to the parent process
     q.put(server.port)
