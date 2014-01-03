@@ -13,9 +13,6 @@ casper.get_notebook_server = function () {
 casper.open_new_notebook = function () {
     var baseUrl = this.get_notebook_server();
     this.start(baseUrl);
-    this.then(function () {
-        console.log(this.getHTML());
-    });
     this.thenClick('button#new_notebook');
     this.waitForPopup('');
 
