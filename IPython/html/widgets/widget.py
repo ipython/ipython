@@ -100,7 +100,7 @@ class BaseWidget(LoggingConfigurable):
     
     @property
     def model_id(self):
-        return self._comm.comm_id
+        return self.comm.comm_id
 
     # Event handlers
     def _handle_msg(self, msg):
