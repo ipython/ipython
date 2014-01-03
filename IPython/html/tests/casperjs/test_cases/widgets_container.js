@@ -15,7 +15,6 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(container_index, function(index){
 
-        print(this.get_output_cell(index).text);
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 
             'Create container cell executed with correct output.');
 
