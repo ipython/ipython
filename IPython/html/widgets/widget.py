@@ -84,14 +84,22 @@ class BaseWidget(LoggingConfigurable):
         removed from the frontend."""
         self._close_communication()
     
-    
+    _keys = ['default_view_name']
+
     # Properties
     @property
     def keys(self):
-        keys = ['default_view_name']
-        keys.extend(self._keys)
+        """Lazily accumulate _keys from all superclasses and cache them in this class"""
+        keys=[]
+        for c in self.__class__.mro():
+            if hasattr(c, '_keys'):
+                keys.extend(getattr(c,'_keys'))
+            else:
+                break
+        # cache so future lookups are fast
+        self.__class__.x = keys
         return keys
-    
+
     @property
     def comm(self):
         if self._comm is None:
@@ -346,12 +354,7 @@ class Widget(BaseWidget):
     # Private/protected declarations
     _css = Dict() # Internal CSS property dict
 
-    # Properties
-    @property
-    def keys(self):
-        keys = ['visible', '_css']
-        keys.extend(super(Widget, self).keys)
-        return keys
+    _keys = ['visible', '_css']
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.  Note, this function does not
