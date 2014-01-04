@@ -90,14 +90,20 @@
             }
         }
 
+<<<<<<< HEAD
         WidgetManager.prototype.create_view = function(model, view_name, cell) {
             view_name = view_name || model.get('default_view_name');
+=======
+    WidgetManager.prototype.create_view = function(model, view_name, cell, options) {
+        view_name = view_name || model.get('default_view_name');
+>>>>>>> Add widget view options in creating child views
             var ViewType = this.widget_view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
-                var view = new ViewType({model: model, widget_manager: this, cell: cell});
+                var view = new ViewType({model: model, widget_manager: this, cell: cell, options: options});
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
+<<<<<<< HEAD
                 /*
                     // TODO: handle view deletion.  Don't forget to delete child views
                     var that = this;
@@ -105,6 +111,28 @@
                         var index = that.views.indexOf(view);
                         if (index > -1) {
                             that.views.splice(index, 1);
+=======
+        /*
+                // TODO: handle view deletion.  Don't forget to delete child views
+                var that = this;
+                view.$el.on("remove", function () { 
+                    var index = that.views.indexOf(view);
+                    if (index > -1) {
+                        that.views.splice(index, 1);
+                    }
+                    view.remove(); // Clean-up view 
+
+                    // Close the comm if there are no views left.
+                    if (that.views.length() === 0) {
+            //trigger comm close event?
+                        }
+
+                
+                        if (that.comm !== undefined) {
+                            that.comm.close();
+                            delete that.comm.model; // Delete ref so GC will collect widget model.
+                            delete that.comm;
+>>>>>>> Add widget view options in creating child views
                         }
                         view.remove(); // Clean-up view 
 
