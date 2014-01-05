@@ -34,9 +34,9 @@ from IPython.utils.py3compat import string_types
 class BaseWidget(LoggingConfigurable):
 
     # Shared declarations (Class level)
-    _keys = List(Unicode, default_value = [], 
-        help="List of keys comprising the state of the model.", allow_none=False)
     widget_construction_callback = None
+
+    keys = ['default_view_name']
 
     def on_widget_constructed(callback):
         """Class method, registers a callback to be called when a widget is
@@ -84,22 +84,6 @@ class BaseWidget(LoggingConfigurable):
         removed from the frontend."""
         self._close_communication()
     
-    _keys = ['default_view_name']
-
-    # Properties
-    @property
-    def keys(self):
-        """Lazily accumulate _keys from all superclasses and cache them in this class"""
-        keys=[]
-        for c in self.__class__.mro():
-            if hasattr(c, '_keys'):
-                keys.extend(getattr(c,'_keys'))
-            else:
-                break
-        # cache so future lookups are fast
-        self.__class__.x = keys
-        return keys
-
     @property
     def comm(self):
         if self._comm is None:
@@ -151,8 +135,7 @@ class BaseWidget(LoggingConfigurable):
 
     def _handle_recieve_state(self, sync_data):
         """Called when a state is recieved from the frontend."""
-        # Use _keys instead of keys - Don't get retrieve the css from the client side.
-        for name in self._keys:
+        for name in self.keys:
             if name in sync_data:
                 try:
                     self._property_lock = (name, sync_data[name])
@@ -354,7 +337,7 @@ class Widget(BaseWidget):
     # Private/protected declarations
     _css = Dict() # Internal CSS property dict
 
-    _keys = ['visible', '_css']
+    keys = ['visible', '_css'] + BaseWidget.keys
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.  Note, this function does not
