@@ -24,7 +24,7 @@ class FloatRangeWidget(Widget):
     default_view_name = Unicode('FloatSliderView')
 
     # Keys
-    _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description']
+    keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + Widget.keys
     value = Float(0.0, help="Flaot value") 
     max = Float(100.0, help="Max value")
     min = Float(0.0, help="Min value")

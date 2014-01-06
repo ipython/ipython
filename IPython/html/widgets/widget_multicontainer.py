@@ -25,7 +25,7 @@ class MulticontainerWidget(Widget):
     default_view_name = Unicode('TabView')
 
     # Keys
-    _keys = ['_titles', 'selected_index', 'children']
+    keys = ['_titles', 'selected_index', 'children'] + Widget.keys
     _titles = Dict(help="Titles of the pages")
     selected_index = Int(0)
 

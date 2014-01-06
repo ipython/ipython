@@ -27,7 +27,7 @@ class ImageWidget(Widget):
     default_view_name = Unicode('ImageView')
     
     # Define the custom state properties to sync with the front-end
-    _keys = ['image_format', 'width', 'height', '_b64value']
+    keys = ['image_format', 'width', 'height', '_b64value'] + Widget.keys
     image_format = Unicode('png')
     width = Unicode()
     height = Unicode()

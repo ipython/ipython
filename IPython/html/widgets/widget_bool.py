@@ -24,7 +24,7 @@ class BoolWidget(Widget):
     default_view_name = Unicode('CheckboxView')
 
     # Model Keys
-    _keys = ['value', 'description', 'disabled']
+    keys = ['value', 'description', 'disabled'] + Widget.keys
     value = Bool(False, help="Bool value")
     description = Unicode('', help="Description of the boolean (label).") 
     disabled = Bool(False, help="Enable or disable user changes.")

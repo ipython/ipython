@@ -24,7 +24,7 @@ class IntRangeWidget(Widget):
     default_view_name = Unicode('IntSliderView')
 
     # Keys
-    _keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description']
+    keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + Widget.keys
     value = Int(0, help="Int value") 
     max = Int(100, help="Max value")
     min = Int(0, help="Min value")

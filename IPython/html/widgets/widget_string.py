@@ -27,7 +27,7 @@ class StringWidget(Widget):
     default_view_name = Unicode('TextBoxView')
 
     # Keys
-    _keys = ['value', 'disabled', 'description']
+    keys = ['value', 'disabled', 'description'] + Widget.keys
     value = Unicode(help="String value")
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")

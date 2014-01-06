@@ -28,7 +28,7 @@ class ButtonWidget(Widget):
     default_view_name = Unicode('ButtonView')
 
     # Keys
-    _keys = ['description', 'disabled']
+    keys = ['description', 'disabled'] + Widget.keys
     description = Unicode('', help="Description of the button (label).")
     disabled = Bool(False, help="Enable or disable user changes.")
     

@@ -24,7 +24,7 @@ class FloatWidget(Widget):
     default_view_name = Unicode('FloatTextView')
 
     # Keys
-    _keys = ['value', 'disabled', 'description']
+    keys = ['value', 'disabled', 'description'] + Widget.keys
     value = Float(0.0, help="Float value") 
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")

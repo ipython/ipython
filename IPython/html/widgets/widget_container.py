@@ -25,10 +25,10 @@ class ContainerWidget(Widget):
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
-    _keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
+    keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
             '_pack_start', '_pack_end', '_pack_center', '_flex0', '_flex1', 
             '_flex2', 'description', 'button_text',
-            'children']
+            'children'] + Widget.keys
     children = List(Instance(Widget))
     
     description = Unicode()
