@@ -188,8 +188,12 @@ function(widget_manager, underscore, backbone){
         child_view: function(model_id, view_name) {
 =======
         child_view: function(model_id, view_name, options) {
+<<<<<<< HEAD
 >>>>>>> s/comm_id/model_id (left over from before)
             // create and return a child view, given a comm id for a model and (optionally) a view name
+=======
+            // create and return a child view, given a model id for a model and (optionally) a view name
+>>>>>>> Updated comm id comments in view to model id
             // if the view name is not given, it defaults to the model's default view attribute
             var child_model = this.widget_manager.get_model(model_id);
             var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
@@ -206,7 +210,7 @@ function(widget_manager, underscore, backbone){
         },
         
         update_child_views: function(old_list, new_list) {
-            // this function takes an old list and new list of comm ids
+            // this function takes an old list and new list of model ids
             // views in child_views that correspond to deleted ids are deleted
             // views corresponding to added ids are added child_views
         
