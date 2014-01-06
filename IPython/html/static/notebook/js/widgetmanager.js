@@ -77,11 +77,12 @@
                         console.log("Could not determine where the display" + 
                             " message was from.  Widget will not be displayed");
                     } else {
-                        var view = this.create_view(model, msg.content.data.view_name, cell);
+                        var view = this.create_view(model, msg.content.data.view_name);
                         if (view !== undefined 
                             && cell.widget_subarea !== undefined 
                             && cell.widget_subarea !== null) {
                             
+                            view.cell = cell;
                             cell.widget_area.show();
                             cell.widget_subarea.append(view.$el);
                         }
@@ -91,7 +92,11 @@
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         WidgetManager.prototype.create_view = function(model, view_name, cell) {
+=======
+        WidgetManager.prototype.create_view = function(model, view_name, options) {
+>>>>>>> Completely remove cell from model and view.
             view_name = view_name || model.get('default_view_name');
 =======
     WidgetManager.prototype.create_view = function(model, view_name, cell, options) {
@@ -99,7 +104,7 @@
 >>>>>>> Add widget view options in creating child views
             var ViewType = this.widget_view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
-                var view = new ViewType({model: model, widget_manager: this, cell: cell, options: options});
+                var view = new ViewType({model: model, widget_manager: this, options: options});
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
@@ -155,14 +160,14 @@
         },
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
-        var cell = null;
+            var cell = null;
             // First, check to see if the msg was triggered by cell execution.
             if (IPython.notebook !== undefined && IPython.notebook !== null) {
                 cell = IPython.notebook.get_msg_cell(msg_id);
             }
-        if (cell !== null) {
-        return cell
-        }
+            if (cell !== null) {
+                return cell
+            }
             // Second, check to see if a get_cell callback was defined
             // for the message.  get_cell callbacks are registered for
             // widget messages, so this block is actually checking to see if the
@@ -181,6 +186,42 @@
             // Not triggered by a cell or widget (no get_cell callback 
             // exists).
             return null;
+        };
+
+        WidgetManager.prototype.callbacks = function (view) {
+            // callback handlers specific a view
+            var callbacks = {};
+            var cell = view.cell;
+            if (cell !== null) {
+                // Try to get output handlers
+                var handle_output = null;
+                var handle_clear_output = null;
+                if (cell.output_area !== undefined && cell.output_area !== null) {
+                    handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
+                    handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
+                }
+
+                // Create callback dict using what is known
+                var that = this;
+                callbacks = {
+                    iopub : {
+                        output : handle_output,
+                        clear_output : handle_clear_output,
+
+                        status : function (msg) {
+                            view.model._handle_status(msg, that.callbacks());
+                        },
+
+                        // Special function only registered by widget messages.
+                        // Allows us to get the cell for a message so we know
+                        // where to add widgets if the code requires it.
+                        get_cell : function () {
+                            return cell;
+                        },
+                    },
+                };
+            }
+            return callbacks;
         };
 
 
