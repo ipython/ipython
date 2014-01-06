@@ -209,7 +209,7 @@
                         clear_output : handle_clear_output,
 
                         status : function (msg) {
-                            view.model._handle_status(msg, that.callbacks());
+                            view.model._handle_status(msg, that.callbacks(view));
                         },
 
                         // Special function only registered by widget messages.
