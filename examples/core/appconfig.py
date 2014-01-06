@@ -30,8 +30,6 @@ When the config attribute of an Application is updated, it will fire all of
 the trait's events for all of the config=True attributes.
 """
 
-import sys
-
 from IPython.config.configurable import Configurable
 from IPython.config.application import Application
 from IPython.utils.traitlets import (
@@ -87,8 +85,8 @@ class MyApp(Application):
         self.init_bar()
     
     def start(self):
-        print "app.config:"
-        print self.config
+        print("app.config:")
+        print(self.config)
 
 
 def main():
