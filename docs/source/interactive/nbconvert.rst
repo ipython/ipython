@@ -62,7 +62,7 @@ The currently supported export formats are:
 
   This generates a Reveal.js HTML slideshow.
   It must be served by an HTTP server. The easiest way to do this is adding
-  ``--post serve`` on the command-line. The ``--post serve`` post-processor 
+  ``--post serve`` on the command-line. The ``serve`` post-processor 
   proxies Reveal.js requests to a CDN if no local Reveal.js library is present. 
   For low connectivity environments, just place the Reveal.js library in the 
   same directory where your_talk.slides.html is located or point to another 
