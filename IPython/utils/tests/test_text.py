@@ -16,6 +16,7 @@ from __future__ import print_function
 import os
 import math
 import random
+import sys
 
 import nose.tools as nt
 
@@ -108,7 +109,12 @@ def eval_formatter_no_slicing_check(f):
     s = f.format('{stuff[slice(1,4)]}', **ns)
     nt.assert_equal(s, 'ell')
     
-    nt.assert_raises(SyntaxError, f.format, "{a[:]}")
+    if sys.version_info >= (3, 4):
+        # String formatting has changed in Python 3.4, so this now works.
+        s = f.format("{a[:]}", a=[1, 2])
+        nt.assert_equal(s, "[1, 2]")
+    else:
+        nt.assert_raises(SyntaxError, f.format, "{a[:]}")
 
 def test_eval_formatter():
     f = text.EvalFormatter()
