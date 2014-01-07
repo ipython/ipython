@@ -325,8 +325,8 @@ class DOMWidget(Widget):
     def set_css(self, *args, **kwargs):
         """Set one or more CSS properties of the widget (shared among all of the
         views).  This function has two signatures:
-        - set_css(css_dict, [selector=''])
-        - set_css(key, value, [selector=''])
+        - set_css(css_dict, selector='')
+        - set_css(key, value, selector='')
 
         Parameters
         ----------
@@ -341,7 +341,7 @@ class DOMWidget(Widget):
         """
         selector = kwargs.get('selector', '')
 
-        # Signature 1: set_css(css_dict, [selector=''])
+        # Signature 1: set_css(css_dict, selector='')
         if len(args) == 1:
             if isinstance(args[0], dict):
                 for (key, value) in args[0].items():
@@ -349,7 +349,7 @@ class DOMWidget(Widget):
             else:
                 raise Exception('css_dict must be a dict.')
 
-        # Signature 2: set_css(key, value, [selector=''])
+        # Signature 2: set_css(key, value, selector='')
         elif len(args) == 2 or len(args) == 3:
 
             # Selector can be a positional arg if it's the 3rd value
