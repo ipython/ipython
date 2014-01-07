@@ -47,7 +47,7 @@ class TestHTMLExporter(ExportersTestsBase):
         """
         Can a HTMLExporter export using the 'basic' template?
         """
-        (output, resources) = HTMLExporter(template_file='html_basic').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(template_file='basic').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
@@ -56,6 +56,6 @@ class TestHTMLExporter(ExportersTestsBase):
         """
         Can a HTMLExporter export using the 'full' template?
         """
-        (output, resources) = HTMLExporter(template_file='html_full').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(template_file='full').from_filename(self._get_notebook())
         assert len(output) > 0
 

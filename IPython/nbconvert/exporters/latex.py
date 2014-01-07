@@ -43,9 +43,8 @@ class LatexExporter(TemplateExporter):
         return 'article'
 
     #Latex constants
-    default_template_path = Unicode(
-        os.path.join("..", "templates", "latex"), config=True,
-        help="Path where the template files are located.")
+    def _default_template_path_default(self):
+        return os.path.join("..", "templates", "latex")
 
     template_skeleton_path = Unicode(
         os.path.join("..", "templates", "latex", "skeleton"), config=True,

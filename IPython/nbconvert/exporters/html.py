@@ -12,6 +12,8 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
+
 from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
@@ -32,8 +34,11 @@ class HTMLExporter(TemplateExporter):
     def _file_extension_default(self):
         return 'html'
 
+    def _default_template_path_default(self):
+        return os.path.join("..", "templates", "html")
+
     def _template_file_default(self):
-        return 'html_full'
+        return 'full'
     
     output_mimetype = 'text/html'
     

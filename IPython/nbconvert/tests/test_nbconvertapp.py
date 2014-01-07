@@ -123,7 +123,7 @@ class TestNbConvertApp(TestsBase):
         """Is embedded png data well formed in HTML?"""
         with self.create_temp_cwd(['notebook2.ipynb']):
             self.call('nbconvert --log-level 0 --to HTML '
-                      'notebook2.ipynb --template html_full')
+                      'notebook2.ipynb --template full')
             assert os.path.isfile('notebook2.html')
             with open('notebook2.html') as f:
                 assert "data:image/png;base64,b'" not in f.read()

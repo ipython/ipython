@@ -1,4 +1,4 @@
-{%- extends 'html_basic.tpl' -%}
+{%- extends 'basic.tpl' -%}
 
 
 {%- block any_cell scoped -%}
