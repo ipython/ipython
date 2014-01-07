@@ -149,12 +149,7 @@ class Widget(LoggingConfigurable):
             self.send_state(key=name)
 
     def _handle_displayed(self, **kwargs):
-        """Called when a view has been displayed for this widget instance
-
-        Parameters
-        ----------
-        [view_name]: unicode (optional kwarg)
-            Name of the view that was displayed."""
+        """Called when a view has been displayed for this widget instance"""
         for handler in self._display_callbacks:
             if callable(handler):
                 argspec = inspect.getargspec(handler)
@@ -169,8 +164,6 @@ class Widget(LoggingConfigurable):
                     handler()
                 elif nargs == 1:
                     handler(self)
-                elif nargs == 2:
-                    handler(self, kwargs.get('view_name', None))
                 else:
                     handler(self, **kwargs)
 
@@ -256,7 +249,6 @@ class Widget(LoggingConfigurable):
             Can have a signature of:
             - callback()
             - callback(sender)
-            - callback(sender, view_name)
             - callback(sender, **kwargs)
               kwargs from display call passed through without modification.
         remove: bool
