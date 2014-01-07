@@ -25,7 +25,7 @@ from IPython.utils.traitlets import Unicode, Bool, Int
 #-----------------------------------------------------------------------------
 class ButtonWidget(DOMWidget):
     target_name = Unicode('ButtonWidgetModel')
-    default_view_name = Unicode('ButtonView')
+    view_name = Unicode('ButtonView')
 
     # Keys
     keys = ['description', 'disabled'] + DOMWidget.keys

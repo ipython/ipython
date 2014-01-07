@@ -24,7 +24,7 @@ from IPython.utils.traitlets import Unicode, Bytes
 #-----------------------------------------------------------------------------
 class ImageWidget(DOMWidget):
     target_name = Unicode('ImageWidgetModel')
-    default_view_name = Unicode('ImageView')
+    view_name = Unicode('ImageView')
     
     # Define the custom state properties to sync with the front-end
     keys = ['image_format', 'width', 'height', '_b64value'] + DOMWidget.keys

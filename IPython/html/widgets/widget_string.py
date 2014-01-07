@@ -24,7 +24,7 @@ from IPython.utils.traitlets import Unicode, Bool, List, Int
 #-----------------------------------------------------------------------------
 class StringWidget(DOMWidget):
     target_name = Unicode('StringWidgetModel')
-    default_view_name = Unicode('TextBoxView')
+    view_name = Unicode('TextBoxView')
 
     # Keys
     keys = ['value', 'disabled', 'description'] + DOMWidget.keys

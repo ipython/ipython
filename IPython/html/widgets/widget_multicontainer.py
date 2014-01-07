@@ -22,7 +22,7 @@ from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
 #-----------------------------------------------------------------------------
 class MulticontainerWidget(DOMWidget):
     target_name = Unicode('MulticontainerWidgetModel')
-    default_view_name = Unicode('TabView')
+    view_name = Unicode('TabView')
 
     # Keys
     keys = ['_titles', 'selected_index', 'children'] + DOMWidget.keys

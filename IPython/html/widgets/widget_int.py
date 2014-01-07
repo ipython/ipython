@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Int, Bool, List
 #-----------------------------------------------------------------------------
 class IntWidget(DOMWidget):
     target_name = Unicode('IntWidgetModel')
-    default_view_name = Unicode('IntTextView')
+    view_name = Unicode('IntTextView')
 
     # Keys
     keys = ['value', 'disabled', 'description'] + DOMWidget.keys

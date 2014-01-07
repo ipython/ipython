@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, List, Bool
 #-----------------------------------------------------------------------------
 class SelectionWidget(DOMWidget):
     target_name = Unicode('SelectionWidgetModel')
-    default_view_name = Unicode('DropdownView')
+    view_name = Unicode('DropdownView')
 
     # Keys
     keys = ['value', 'values', 'disabled', 'description'] + DOMWidget.keys

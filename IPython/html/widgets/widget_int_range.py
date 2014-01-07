@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Int, Bool, List
 #-----------------------------------------------------------------------------
 class IntRangeWidget(DOMWidget):
     target_name = Unicode('IntRangeWidgetModel')
-    default_view_name = Unicode('IntSliderView')
+    view_name = Unicode('IntSliderView')
 
     # Keys
     keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + DOMWidget.keys

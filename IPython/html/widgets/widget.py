@@ -36,7 +36,7 @@ class Widget(LoggingConfigurable):
     # Shared declarations (Class level)
     widget_construction_callback = None
 
-    keys = ['default_view_name']
+    keys = ['view_name']
 
     def on_widget_constructed(callback):
         """Class method, registers a callback to be called when a widget is
@@ -54,7 +54,7 @@ class Widget(LoggingConfigurable):
     # Public declarations (Instance level)
     target_name = Unicode('widget', help="""Name of the backbone model 
         registered in the frontend to create and sync this widget with.""")
-    default_view_name = Unicode(help="""Default view registered in the frontend
+    view_name = Unicode(help="""Default view registered in the frontend
         to use to represent the widget.""")
 
     # Private/protected declarations
@@ -276,8 +276,8 @@ class Widget(LoggingConfigurable):
         Parameters
         ----------
         view_name: unicode (optional)
-            View to display in the frontend.  Overrides default_view_name."""
-        view_name = kwargs.get('view_name', self.default_view_name)
+            View to display in the frontend.  Overrides view_name."""
+        view_name = kwargs.get('view_name', self.view_name)
         
         # Create a communication.
         self._open_communication()

@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Float, Bool, List
 #-----------------------------------------------------------------------------
 class FloatWidget(DOMWidget):
     target_name = Unicode('FloatWidgetModel')
-    default_view_name = Unicode('FloatTextView')
+    view_name = Unicode('FloatTextView')
 
     # Keys
     keys = ['value', 'disabled', 'description'] + DOMWidget.keys

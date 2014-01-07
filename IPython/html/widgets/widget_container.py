@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Bool, List, Instance
 #-----------------------------------------------------------------------------
 class ContainerWidget(DOMWidget):
     target_name = Unicode('ContainerWidgetModel')
-    default_view_name = Unicode('ContainerView')
+    view_name = Unicode('ContainerView')
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
