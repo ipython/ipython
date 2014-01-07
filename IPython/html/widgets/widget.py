@@ -44,7 +44,7 @@ class Widget(LoggingConfigurable):
         callback(widget)"""
         Widget.widget_construction_callback = callback
 
-    def _handle_widget_constructed(widget):
+    def _call_widget_constructed(widget):
         """Class method, called when a widget is constructed."""
         if Widget.widget_construction_callback is not None and callable(Widget.widget_construction_callback):
             Widget.widget_construction_callback(widget)
@@ -71,7 +71,7 @@ class Widget(LoggingConfigurable):
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
-        Widget._handle_widget_constructed(self)
+        Widget._call_widget_constructed(self)
 
     def __del__(self):
         """Object disposal"""
