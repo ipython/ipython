@@ -60,7 +60,6 @@ class Widget(LoggingConfigurable):
     # Private/protected declarations
     # todo: change this to a context manager
     _property_lock = (None, None) # Last updated (key, value) from the front-end.  Prevents echo.
-    _displayed = False
     _comm = Instance('IPython.kernel.comm.Comm')
     
     def __init__(self, **kwargs):
@@ -271,17 +270,11 @@ class Widget(LoggingConfigurable):
     # Support methods
     def _repr_widget_(self, **kwargs):
         """Function that is called when `IPython.display.display` is called on
-        the widget.
-
-        Parameters
-        ----------
-        view_name: unicode (optional)
-            View to display in the frontend.  Overrides view_name."""
+        the widget."""
             
         # Show view.  By sending a display message, the comm is opened and the
         # initial state is sent.
-        self._send({"method": "display", "view_name": view_name})
-        self._displayed = True
+        self._send({"method": "display"})
         self._handle_displayed(**kwargs)
 
 
