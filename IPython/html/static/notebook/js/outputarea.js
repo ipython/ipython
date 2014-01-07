@@ -514,11 +514,12 @@ var IPython = (function (IPython) {
                         return true;
                     }
                 } else {
-                    var old_name = OutputArea.mime_map[type]
-                    this['append_'+old_name](json[type], md, element, type);
-                    return true;
+                    var append = OutputArea.append_map[type];
+                    if (append !== undefined) {
+                        append.apply(this, [json[type], md, element, type]);
+                        return true;
+                    }
                 }
-                return false;
             }
         }
         return false;
@@ -632,6 +633,17 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_latex", type);
         toinsert.append(latex);
         element.append(toinsert);
+    };
+
+    OutputArea.append_map = {
+        "text/plain" : OutputArea.prototype.append_text,
+        "text/html" : OutputArea.prototype.append_html,
+        "image/svg+xml" : OutputArea.prototype.append_svg,
+        "image/png" : OutputArea.prototype.append_png,
+        "image/jpeg" : OutputArea.prototype.append_jpeg,
+        "text/latex" : OutputArea.prototype.append_latex,
+        "application/json" : OutputArea.prototype.append_json,
+        "application/javascript" : OutputArea.prototype.append_javascript,
     };
 
     OutputArea.prototype.append_raw_input = function (msg) {
