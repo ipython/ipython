@@ -76,13 +76,11 @@ WINDOWS = os.name == 'nt'
 # Paths to the kernel apps
 #-----------------------------------------------------------------------------
 
-cmd = "from IPython.parallel.apps.%s import launch_new_instance; launch_new_instance()"
+ipcluster_cmd_argv = [sys.executable, "-m", "IPython.parallel.cluster"]
 
-ipcluster_cmd_argv = [sys.executable, "-c", cmd % "ipclusterapp"]
+ipengine_cmd_argv = [sys.executable, "-m", "IPython.parallel.engine"]
 
-ipengine_cmd_argv = [sys.executable, "-c", cmd % "ipengineapp"]
-
-ipcontroller_cmd_argv = [sys.executable, "-c", cmd % "ipcontrollerapp"]
+ipcontroller_cmd_argv = [sys.executable, "-m", "IPython.parallel.controller"]
 
 #-----------------------------------------------------------------------------
 # Base launchers and errors
