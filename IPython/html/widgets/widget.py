@@ -278,7 +278,8 @@ class Widget(LoggingConfigurable):
         view_name: unicode (optional)
             View to display in the frontend.  Overrides view_name."""
             
-        # Show view.
+        # Show view.  By sending a display message, the comm is opened and the
+        # initial state is sent.
         self._send({"method": "display", "view_name": view_name})
         self._displayed = True
         self._handle_displayed(**kwargs)
@@ -307,11 +308,7 @@ class Widget(LoggingConfigurable):
 
     def _send(self, msg):
         """Sends a message to the model in the front-end"""
-        if self._comm is not None:
-            self._comm.send(msg)
-            return True
-        else:
-            return False     
+        self.comm.send(msg)
 
 
 class DOMWidget(Widget):
