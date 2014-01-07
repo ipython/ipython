@@ -212,7 +212,7 @@ class IPythonHandler(AuthenticatedHandler):
         """render custom error pages"""
         exception = kwargs.get('exception')
         message = ''
-        status_message = responses.get(status_code, 'Unknown')
+        status_message = responses.get(status_code, 'Unknown HTTP Error')
         if exception:
             # get the custom message, if defined
             try:
