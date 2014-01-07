@@ -24,6 +24,13 @@
     define(["underscore",
              "backbone",
             ], function (underscore, backbone) {
+            
+        Backbone.sync = function (method, model, options, error) {
+            var result = model._handle_sync(method, options);
+            if (options.success) {
+              options.success(result);
+            }
+        }; 
 
         //--------------------------------------------------------------------
         // WidgetManager class
@@ -34,13 +41,6 @@
                                       (target_name) and model types. */
             this._view_types = {}; /* Dictionary of view names and view types. */
             this._models = {}; /* Dictionary of model ids and model instances */
-            
-            Backbone.sync = function (method, model, options, error) {
-                var result = model._handle_sync(method, options);
-                if (options.success) {
-                  options.success(result);
-                }
-            }; 
         };
 
 
