@@ -10,15 +10,15 @@
 //============================================================================
 
 define([
-    "notebook/js/widgets/bool",
-    "notebook/js/widgets/button",
-    "notebook/js/widgets/container",
-    "notebook/js/widgets/float",
-    "notebook/js/widgets/float_range",
-    "notebook/js/widgets/image",
-    "notebook/js/widgets/int",
-    "notebook/js/widgets/int_range",
-    "notebook/js/widgets/multicontainer",
-    "notebook/js/widgets/selection",
-    "notebook/js/widgets/string",
+    "notebook/js/widgets/widget_bool",
+    "notebook/js/widgets/widget_button",
+    "notebook/js/widgets/widget_container",
+    "notebook/js/widgets/widget_float",
+    "notebook/js/widgets/widget_float_range",
+    "notebook/js/widgets/widget_image",
+    "notebook/js/widgets/widget_int",
+    "notebook/js/widgets/widget_int_range",
+    "notebook/js/widgets/widget_multicontainer",
+    "notebook/js/widgets/widget_selection",
+    "notebook/js/widgets/widget_string",
 ], function(){ return true; });

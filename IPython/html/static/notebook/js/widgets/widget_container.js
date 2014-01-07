@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/base"], function(widget_manager) {
+define(["notebook/js/widgets/widget"], function(widget_manager) {
 
     var set_flex_property = function(element, property_name, enabled) {
         if (enabled) {
