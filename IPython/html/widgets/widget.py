@@ -345,7 +345,9 @@ class DOMWidget(Widget):
         if len(args) == 1:
             if isinstance(args[0], dict):
                 for (key, value) in args[0].items():
-                    self.set_css(key, value, selector=selector)
+                    if not (key in self._css[selector] and value in self._css[selector][key]):
+                        self._css[selector][key] = value
+                self.send_state('_css')
             else:
                 raise Exception('css_dict must be a dict.')
 
