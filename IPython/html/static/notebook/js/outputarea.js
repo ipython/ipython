@@ -239,13 +239,13 @@ var IPython = (function (IPython) {
             json.text = content.data;
             json.stream = content.name;
         } else if (msg_type === "display_data") {
-            json = content.data
-            json.output_type = msg_type
-            json.metadata = content.metadata
+            json = content.data;
+            json.output_type = msg_type;
+            json.metadata = content.metadata;
         } else if (msg_type === "pyout") {
-            json = content.data
-            json.output_type = msg_type
-            json.metadata = content.metadata
+            json = content.data;
+            json.output_type = msg_type;
+            json.metadata = content.metadata;
             json.prompt_number = content.execution_count;
         } else if (msg_type === "pyerr") {
             json.ename = content.ename;
@@ -506,11 +506,8 @@ var IPython = (function (IPython) {
 
         for(var type_i in OutputArea.display_order){
             var type = OutputArea.display_order[type_i];
-            if(json[type] != undefined ){
-                var md = {};
-                if (json.metadata) {
-                    md = json.metadata;
-                }
+            if(json[type] !== undefined ){
+                md = json.metadata || {};
                 if(type == 'javascript'){
                     if (dynamic) {
                         this.append_javascript(json.javascript, md, element, dynamic);
