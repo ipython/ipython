@@ -1350,7 +1350,7 @@ var IPython = (function (IPython) {
         cell.execute();
 
         // If we are at the end always insert a new cell and return
-        if (cell_index === (this.ncells()-1)) {
+        if (cell_index === (this.ncells()-1) && mode !== 'shift') {
             this.insert_cell_below('code');
             this.select(cell_index+1);
             this.edit_mode();
