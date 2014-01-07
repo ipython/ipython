@@ -23,6 +23,7 @@ import hashlib
 import logging
 import mimetypes
 import os
+import re
 import stat
 import threading
 
@@ -92,6 +93,7 @@ if tornado.version_info <= (2,1,1):
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
+non_alphanum = re.compile(r'[^A-Za-z0-9]')
 
 class RequestHandler(web.RequestHandler):
     """RequestHandler with default variable setting."""
@@ -120,9 +122,9 @@ class AuthenticatedHandler(RequestHandler):
 
     @property
     def cookie_name(self):
-        default_cookie_name = 'username-{host}'.format(
-            host=self.request.host,
-        ).replace(':', '-')
+        default_cookie_name = non_alphanum.sub('-', 'username-{}'.format(
+            self.request.host
+        ))
         return self.settings.get('cookie_name', default_cookie_name)
     
     @property
