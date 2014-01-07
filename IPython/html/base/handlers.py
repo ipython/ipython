@@ -21,6 +21,7 @@ import functools
 import json
 import logging
 import os
+import re
 import stat
 import sys
 import traceback
@@ -43,6 +44,7 @@ UF_HIDDEN = getattr(stat, 'UF_HIDDEN', 32768)
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
+non_alphanum = re.compile(r'[^A-Za-z0-9]')
 
 class RequestHandler(web.RequestHandler):
     """RequestHandler with default variable setting."""
@@ -71,9 +73,9 @@ class AuthenticatedHandler(RequestHandler):
 
     @property
     def cookie_name(self):
-        default_cookie_name = 'username-{host}'.format(
-            host=self.request.host,
-        ).replace(':', '-')
+        default_cookie_name = non_alphanum.sub('-', 'username-{}'.format(
+            self.request.host
+        ))
         return self.settings.get('cookie_name', default_cookie_name)
     
     @property
