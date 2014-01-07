@@ -16,18 +16,18 @@ click events on the button and trigger backend code when the clicks are fired.
 #-----------------------------------------------------------------------------
 import base64
 
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Bytes
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class ImageWidget(Widget):
+class ImageWidget(DOMWidget):
     target_name = Unicode('ImageWidgetModel')
     default_view_name = Unicode('ImageView')
     
     # Define the custom state properties to sync with the front-end
-    keys = ['image_format', 'width', 'height', '_b64value'] + Widget.keys
+    keys = ['image_format', 'width', 'height', '_b64value'] + DOMWidget.keys
     image_format = Unicode('png')
     width = Unicode()
     height = Unicode()

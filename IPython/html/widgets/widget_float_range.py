@@ -13,18 +13,18 @@ Represents a bounded float using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Float, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class FloatRangeWidget(Widget):
+class FloatRangeWidget(DOMWidget):
     target_name = Unicode('FloatRangeWidgetModel')
     default_view_name = Unicode('FloatSliderView')
 
     # Keys
-    keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + Widget.keys
+    keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + DOMWidget.keys
     value = Float(0.0, help="Flaot value") 
     max = Float(100.0, help="Max value")
     min = Float(0.0, help="Min value")

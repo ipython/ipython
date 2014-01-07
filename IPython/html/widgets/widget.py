@@ -31,7 +31,7 @@ from IPython.utils.py3compat import string_types
 # Classes
 #-----------------------------------------------------------------------------
 
-class BaseWidget(LoggingConfigurable):
+class Widget(LoggingConfigurable):
 
     # Shared declarations (Class level)
     widget_construction_callback = None
@@ -42,12 +42,12 @@ class BaseWidget(LoggingConfigurable):
         """Class method, registers a callback to be called when a widget is
         constructed.  The callback must have the following signature:
         callback(widget)"""
-        BaseWidget.widget_construction_callback = callback
+        Widget.widget_construction_callback = callback
 
     def _handle_widget_constructed(widget):
         """Class method, called when a widget is constructed."""
-        if BaseWidget.widget_construction_callback is not None and callable(BaseWidget.widget_construction_callback):
-            BaseWidget.widget_construction_callback(widget)
+        if Widget.widget_construction_callback is not None and callable(Widget.widget_construction_callback):
+            Widget.widget_construction_callback(widget)
 
     
 
@@ -68,10 +68,10 @@ class BaseWidget(LoggingConfigurable):
         """
         self._display_callbacks = []
         self._msg_callbacks = []
-        super(BaseWidget, self).__init__(**kwargs)
+        super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
-        BaseWidget._handle_widget_constructed(self)
+        Widget._handle_widget_constructed(self)
 
     def __del__(self):
         """Object disposal"""
@@ -205,14 +205,14 @@ class BaseWidget(LoggingConfigurable):
         for k in keys:
             value = getattr(self, k)
 
-            # a more elegant solution to encoding BaseWidgets would be
+            # a more elegant solution to encoding Widgets would be
             # to tap into the JSON encoder and teach it how to deal
-            # with BaseWidget objects, or maybe just teach the JSON
+            # with Widget objects, or maybe just teach the JSON
             # encoder to look for a _repr_json property before giving
             # up encoding
-            if isinstance(value, BaseWidget):
+            if isinstance(value, Widget):
                 value = value.model_id
-            elif isinstance(value, list) and len(value)>0 and isinstance(value[0], BaseWidget):
+            elif isinstance(value, list) and len(value)>0 and isinstance(value[0], Widget):
                 # assume all elements of the list are widgets
                 value = [i.model_id for i in value]
             state[k] = value
@@ -321,13 +321,13 @@ class BaseWidget(LoggingConfigurable):
             return False     
 
 
-class Widget(BaseWidget):
+class DOMWidget(Widget):
     visible = Bool(True, help="Whether or not the widget is visible.")
 
     # Private/protected declarations
     _css = Dict() # Internal CSS property dict
 
-    keys = ['visible', '_css'] + BaseWidget.keys
+    keys = ['visible', '_css'] + Widget.keys
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.  Note, this function does not

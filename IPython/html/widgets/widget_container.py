@@ -13,13 +13,13 @@ Represents a container that can be used to group other widgets.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Bool, List, Instance
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class ContainerWidget(Widget):
+class ContainerWidget(DOMWidget):
     target_name = Unicode('ContainerWidgetModel')
     default_view_name = Unicode('ContainerView')
 
@@ -28,8 +28,8 @@ class ContainerWidget(Widget):
     keys = ['_vbox', '_hbox', '_align_start', '_align_end', '_align_center',
             '_pack_start', '_pack_end', '_pack_center', '_flex0', '_flex1', 
             '_flex2', 'description', 'button_text',
-            'children'] + Widget.keys
-    children = List(Instance(Widget))
+            'children'] + DOMWidget.keys
+    children = List(Instance(DOMWidget))
     
     description = Unicode()
     button_text = Unicode()

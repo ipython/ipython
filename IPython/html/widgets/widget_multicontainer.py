@@ -14,22 +14,22 @@ pages.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class MulticontainerWidget(Widget):
+class MulticontainerWidget(DOMWidget):
     target_name = Unicode('MulticontainerWidgetModel')
     default_view_name = Unicode('TabView')
 
     # Keys
-    keys = ['_titles', 'selected_index', 'children'] + Widget.keys
+    keys = ['_titles', 'selected_index', 'children'] + DOMWidget.keys
     _titles = Dict(help="Titles of the pages")
     selected_index = Int(0)
 
-    children = List(Instance(Widget))
+    children = List(Instance(DOMWidget))
 
     # Public methods
     def set_title(self, index, title):

@@ -17,18 +17,18 @@ click events on the button and trigger backend code when the clicks are fired.
 import inspect
 import types
 
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Bool, Int
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class ButtonWidget(Widget):
+class ButtonWidget(DOMWidget):
     target_name = Unicode('ButtonWidgetModel')
     default_view_name = Unicode('ButtonView')
 
     # Keys
-    keys = ['description', 'disabled'] + Widget.keys
+    keys = ['description', 'disabled'] + DOMWidget.keys
     description = Unicode('', help="Description of the button (label).")
     disabled = Bool(False, help="Enable or disable user changes.")
     

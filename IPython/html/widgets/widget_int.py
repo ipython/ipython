@@ -13,18 +13,18 @@ Represents an unbounded int using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Int, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class IntWidget(Widget):
+class IntWidget(DOMWidget):
     target_name = Unicode('IntWidgetModel')
     default_view_name = Unicode('IntTextView')
 
     # Keys
-    keys = ['value', 'disabled', 'description'] + Widget.keys
+    keys = ['value', 'disabled', 'description'] + DOMWidget.keys
     value = Int(0, help="Int value") 
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")

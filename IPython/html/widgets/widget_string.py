@@ -16,18 +16,18 @@ Represents a unicode string using a widget.
 import inspect
 import types
 
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Bool, List, Int
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class StringWidget(Widget):
+class StringWidget(DOMWidget):
     target_name = Unicode('StringWidgetModel')
     default_view_name = Unicode('TextBoxView')
 
     # Keys
-    keys = ['value', 'disabled', 'description'] + Widget.keys
+    keys = ['value', 'disabled', 'description'] + DOMWidget.keys
     value = Unicode(help="String value")
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")

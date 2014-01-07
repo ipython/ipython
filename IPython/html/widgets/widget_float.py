@@ -13,18 +13,18 @@ Represents an unbounded float using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Float, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class FloatWidget(Widget):
+class FloatWidget(DOMWidget):
     target_name = Unicode('FloatWidgetModel')
     default_view_name = Unicode('FloatTextView')
 
     # Keys
-    keys = ['value', 'disabled', 'description'] + Widget.keys
+    keys = ['value', 'disabled', 'description'] + DOMWidget.keys
     value = Float(0.0, help="Float value") 
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")

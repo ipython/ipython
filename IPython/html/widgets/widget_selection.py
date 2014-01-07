@@ -13,18 +13,18 @@ Represents an enumeration using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, List, Bool
 
 #-----------------------------------------------------------------------------
 # SelectionWidget
 #-----------------------------------------------------------------------------
-class SelectionWidget(Widget):
+class SelectionWidget(DOMWidget):
     target_name = Unicode('SelectionWidgetModel')
     default_view_name = Unicode('DropdownView')
 
     # Keys
-    keys = ['value', 'values', 'disabled', 'description'] + Widget.keys
+    keys = ['value', 'values', 'disabled', 'description'] + DOMWidget.keys
     value = Unicode(help="Selected value")
     values = List(help="List of values the user can select")
     disabled = Bool(False, help="Enable or disable user changes")

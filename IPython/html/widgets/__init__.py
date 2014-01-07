@@ -1,4 +1,4 @@
-from .widget import Widget
+from .widget import Widget, DOMWidget
 
 from .widget_bool import BoolWidget
 from .widget_button import ButtonWidget

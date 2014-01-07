@@ -13,18 +13,18 @@ Represents a boolean using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import Widget
+from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class BoolWidget(Widget):
+class BoolWidget(DOMWidget):
     target_name = Unicode('BoolWidgetModel')
     default_view_name = Unicode('CheckboxView')
 
     # Model Keys
-    keys = ['value', 'description', 'disabled'] + Widget.keys
+    keys = ['value', 'description', 'disabled'] + DOMWidget.keys
     value = Bool(False, help="Bool value")
     description = Unicode('', help="Description of the boolean (label).") 
     disabled = Bool(False, help="Enable or disable user changes.")
