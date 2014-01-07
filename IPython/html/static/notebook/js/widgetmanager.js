@@ -30,9 +30,10 @@
         //--------------------------------------------------------------------
         var WidgetManager = function () {
             this.comm_manager = null;
-            this.widget_model_types = {};
-            this.widget_view_types = {};
-            this._model_instances = {};
+            this._model_types = {}; /* Dictionary of model type names 
+                                      (target_name) and model types. */
+            this._view_types = {}; /* Dictionary of view names and view types. */
+            this._models = {}; /* Dictionary of model ids and model instances */
             
             Backbone.sync = function (method, model, options, error) {
                 var result = model._handle_sync(method, options);
@@ -47,7 +48,7 @@
             this.comm_manager = comm_manager;
 
             // Register already-registered widget model types with the comm manager.
-            for (var widget_model_name in this.widget_model_types) {
+            for (var widget_model_name in this._model_types) {
                 this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_comm_open, this));
             }
         };
@@ -59,12 +60,12 @@
             if (this.comm_manager !== null) {
                 this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_comm_open, this));
             }
-            this.widget_model_types[widget_model_name] = widget_model_type;
+            this._model_types[widget_model_name] = widget_model_type;
         };
 
 
         WidgetManager.prototype.register_widget_view = function (widget_view_name, widget_view_type) {
-            this.widget_view_types[widget_view_name] = widget_view_type;
+            this._view_types[widget_view_name] = widget_view_type;
         };
 
 
@@ -98,11 +99,15 @@
         WidgetManager.prototype.create_view = function(model, view_name, options) {
 >>>>>>> Completely remove cell from model and view.
             view_name = view_name || model.get('default_view_name');
+<<<<<<< HEAD
 =======
     WidgetManager.prototype.create_view = function(model, view_name, cell, options) {
         view_name = view_name || model.get('default_view_name');
 >>>>>>> Add widget view options in creating child views
             var ViewType = this.widget_view_types[view_name];
+=======
+            var ViewType = this._view_types[view_name];
+>>>>>>> _model_types, _view_types, _models - and document what keys and values are
             if (ViewType !== undefined && ViewType !== null) {
                 var view = new ViewType({model: model, widget_manager: this, options: options});
                 view.render();
@@ -226,7 +231,7 @@
 
 
         WidgetManager.prototype.get_model = function (model_id) {
-            var model = this._model_instances[model_id];
+            var model = this._models[model_id];
             if (model !== undefined && model.id == model_id) {
                 return model;
             }
@@ -261,8 +266,8 @@
 
         WidgetManager.prototype._handle_comm_open = function (comm, msg) {
             var widget_type_name = msg.content.target_name;
-            var widget_model = new this.widget_model_types[widget_type_name](this, comm.comm_id, comm);
-            this._model_instances[comm.comm_id] = widget_model; // comm_id == model_id
+            var widget_model = new this._model_types[widget_type_name](this, comm.comm_id, comm);
+            this._models[comm.comm_id] = widget_model; // comm_id == model_id
             this._handle_create_widget(widget_model);
         };
         
