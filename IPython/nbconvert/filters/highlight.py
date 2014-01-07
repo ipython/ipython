@@ -14,14 +14,11 @@ from within Jinja templates.
 # Imports
 #-----------------------------------------------------------------------------
 
-from pygments import highlight as pygements_highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
-from pygments.formatters import LatexFormatter
-
+# pygments must not be imported at the module level
+# because errors should be raised at runtime if it's actually needed,
+# not import time, when it may not be needed.
 
 # Our own imports
-from IPython.nbconvert.utils.lexers import IPythonLexer
 from IPython.nbconvert.utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
@@ -55,10 +52,11 @@ class Highlight2Html(NbConvertBase):
         metadata : NotebookNode cell metadata
             metadata of the cell to highlight
         """
+        from pygments.formatters import HtmlFormatter
         if not language:
             language=self.default_language
 
-        return _pygment_highlight(source, HtmlFormatter(), language, metadata)
+        return _pygments_highlight(source, HtmlFormatter(), language, metadata)
 
 
 class Highlight2Latex(NbConvertBase):
@@ -78,10 +76,11 @@ class Highlight2Latex(NbConvertBase):
         strip_verbatim : bool
             remove the Verbatim environment that pygments provides by default
         """
+        from pygments.formatters import LatexFormatter
         if not language:
             language=self.default_language
 
-        latex = _pygment_highlight(source, LatexFormatter(), language, metadata)
+        latex = _pygments_highlight(source, LatexFormatter(), language, metadata)
         if strip_verbatim:
             latex = latex.replace(r'\begin{Verbatim}[commandchars=\\\{\}]' + '\n', '')
             return latex.replace('\n\\end{Verbatim}\n', '')
@@ -90,7 +89,7 @@ class Highlight2Latex(NbConvertBase):
 
 
 
-def _pygment_highlight(source, output_formatter, language='ipython', metadata=None):
+def _pygments_highlight(source, output_formatter, language='ipython', metadata=None):
     """
     Return a syntax-highlighted version of the input source
 
@@ -104,6 +103,9 @@ def _pygment_highlight(source, output_formatter, language='ipython', metadata=No
     metadata : NotebookNode cell metadata
         metadata of the cell to highlight
     """
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from IPython.nbconvert.utils.lexers import IPythonLexer
 
     # If the cell uses a magic extension language,
     # use the magic language instead.
@@ -118,4 +120,4 @@ def _pygment_highlight(source, output_formatter, language='ipython', metadata=No
     else:
         lexer = get_lexer_by_name(language, stripall=True)
 
-    return pygements_highlight(source, lexer, output_formatter)
+    return highlight(source, lexer, output_formatter)
