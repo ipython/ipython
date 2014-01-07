@@ -100,12 +100,10 @@ class BaseWidget(LoggingConfigurable):
         data = msg['content']['data']
         method = data['method']
 
-        # Handle backbone sync methods CREATE, PATCH, and UPDATE
-        if method == 'backbone':
-            if 'sync_method' in data and 'sync_data' in data:
-                sync_method = data['sync_method']
-                sync_data = data['sync_data']
-                self._handle_recieve_state(sync_data) # handles all methods
+        # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
+        if method == 'backbone' and 'sync_data' in data:
+            sync_data = data['sync_data']
+            self._handle_recieve_state(sync_data) # handles all methods
 
         # Handle a custom msg from the front-end
         elif method == 'custom':
@@ -323,14 +321,6 @@ class BaseWidget(LoggingConfigurable):
             return False     
 
 
-class ViewWidget(BaseWidget):
-    target_name = Unicode('ViewModel')
-
-    def __init__(self, widget, view):
-        self.default_view_name = view
-        self.widget = widget
-
-
 class Widget(BaseWidget):
     visible = Bool(True, help="Whether or not the widget is visible.")
 
@@ -435,9 +425,3 @@ class Widget(BaseWidget):
         self.send({"msg_type": "remove_class",
             "class_list": class_name,
             "selector": selector})
-
-
-    def view(self, view_name=None):
-        """Return a widget that can be displayed to display this widget using
-        a non-default view"""
-        return ViewWidget(self, view_name)
