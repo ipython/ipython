@@ -61,7 +61,10 @@ def get_exporter(format, **kwargs):
         # should this be 400?
         raise web.HTTPError(404, u"No exporter for format: %s" % format)
     
-    return Exporter(**kwargs)
+    try:
+        return Exporter(**kwargs)
+    except Exception as e:
+        raise web.HTTPError(500, "Could not construct Exporter: %s" % e)
 
 class NbconvertFileHandler(IPythonHandler):
 
