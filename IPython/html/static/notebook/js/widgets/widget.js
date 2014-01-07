@@ -231,17 +231,19 @@ function(widget_manager, underscore, backbone){
             }, this);
         },
 
-        
+        callbacks: function(){
+            return this.widget_manager.callbacks(this);
+        }        
 
         render: function(){
             // render the view.  By default, this is only called the first time the view is created
         },
         send: function (content) {
-            this.model.send(content, this.widget_manager.callbacks(this));
+            this.model.send(content, this.callbacks());
         },
 
         touch: function () {
-            this.model.save(this.model.changedAttributes(), {patch: true, callbacks: this.widget_manager.callbacks(this)});
+            this.model.save(this.model.changedAttributes(), {patch: true, callbacks: this.callbacks()});
         },
 
     });
