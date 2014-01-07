@@ -393,35 +393,41 @@ class Widget(BaseWidget):
             raise Exception('set_css only accepts 1-3 arguments')
 
 
-    def add_class(self, class_name, selector=""):
+    def add_class(self, class_names, selector=""):
         """Add class[es] to a DOM element
 
         Parameters
         ----------
-        class_name: unicode
-            Class name(s) to add to the DOM element(s).  Multiple class names
-            must be space separated.
+        class_names: unicode or list
+            Class name(s) to add to the DOM element(s).
         selector: unicode (optional)
             JQuery selector to select the DOM element(s) that the class(es) will
             be added to.
         """
+        class_list = class_names
+        if isinstance(list, class_list):
+            class_list = ' '.join(class_list)
+
         self.send({"msg_type": "add_class",
-            "class_list": class_name,
+            "class_list": class_list,
             "selector": selector})
 
 
-    def remove_class(self, class_name, selector=""):
+    def remove_class(self, class_names, selector=""):
         """Remove class[es] from a DOM element
 
         Parameters
         ----------
-        class_name: unicode
-            Class name(s) to remove from  the DOM element(s).  Multiple class
-            names must be space separated.
+        class_names: unicode or list
+            Class name(s) to remove from  the DOM element(s).
         selector: unicode (optional)
             JQuery selector to select the DOM element(s) that the class(es) will
             be removed from.
         """
+        class_list = class_names
+        if isinstance(list, class_list):
+            class_list = ' '.join(class_list)
+
         self.send({"msg_type": "remove_class",
-            "class_list": class_name,
+            "class_list": class_list,
             "selector": selector})
