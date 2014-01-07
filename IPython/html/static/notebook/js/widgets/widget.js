@@ -6,10 +6,9 @@
 //----------------------------------------------------------------------------
 
 //============================================================================
-// Basic Widgets
+// Base Widget Model and View classes
 //============================================================================
 
-<<<<<<< HEAD
 /**
  * @module IPython
  * @namespace IPython
@@ -183,33 +182,12 @@ function(widget_manager, underscore, backbone){
             // triggered on model change
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        child_view: function(model_id, view_name) {
-=======
         child_view: function(model_id, view_name, options) {
-<<<<<<< HEAD
->>>>>>> s/comm_id/model_id (left over from before)
-            // create and return a child view, given a comm id for a model and (optionally) a view name
-=======
             // create and return a child view, given a model id for a model and (optionally) a view name
->>>>>>> Updated comm id comments in view to model id
             // if the view name is not given, it defaults to the model's default view attribute
             var child_model = this.widget_manager.get_model(model_id);
-<<<<<<< HEAD
-            var child_view = this.widget_manager.create_view(child_model, view_name, this.cell);
-=======
             var child_view = this.widget_manager.create_view(child_model, view_name, options);
->>>>>>> Completely remove cell from model and view.
             this.child_views[model_id] = child_view;
-=======
-        child_view: function(comm_id, view_name, options) {
-            // create and return a child view, given a comm id for a model and (optionally) a view name
-            // if the view name is not given, it defaults to the model's default view attribute
-            var child_model = this.comm_manager.comms[comm_id].model;
-            var child_view = this.widget_manager.create_view(child_model, view_name, this.cell, options);
-            this.child_views[comm_id] = child_view;
->>>>>>> Add widget view options in creating child views
             return child_view;
         },
         
@@ -332,18 +310,3 @@ function(widget_manager, underscore, backbone){
 
     return widget_manager;
 });
-=======
-define([
-    "notebook/js/widgets/widget_bool",
-    "notebook/js/widgets/widget_button",
-    "notebook/js/widgets/widget_container",
-    "notebook/js/widgets/widget_float",
-    "notebook/js/widgets/widget_float_range",
-    "notebook/js/widgets/widget_image",
-    "notebook/js/widgets/widget_int",
-    "notebook/js/widgets/widget_int_range",
-    "notebook/js/widgets/widget_multicontainer",
-    "notebook/js/widgets/widget_selection",
-    "notebook/js/widgets/widget_string",
-], function(){ return true; });
->>>>>>> renamed:    basic_widgets.js -> init.js
