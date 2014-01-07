@@ -253,7 +253,7 @@ var IPython = (function (IPython) {
             handler : function (event) {
                 var dc = IPython.delete_count;
                 if (dc === undefined) {
-                    IPython.delete_count = 0;
+                    IPython.delete_count = 1;
                 } else if (dc === 0) {
                     IPython.delete_count = 1;
                     setTimeout(function () {
