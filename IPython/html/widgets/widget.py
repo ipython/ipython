@@ -277,13 +277,6 @@ class Widget(LoggingConfigurable):
         ----------
         view_name: unicode (optional)
             View to display in the frontend.  Overrides view_name."""
-        view_name = kwargs.get('view_name', self.view_name)
-        
-        # Create a communication.
-        self._open_communication()
-        
-        # Make sure model is syncronized
-        self.send_state()
             
         # Show view.
         self._send({"method": "display", "view_name": view_name})
