@@ -15,7 +15,7 @@
 // which make both this file fail at setting marked configuration, and textcell.js
 // which search marked into global.
 require(['components/marked/lib/marked',
-         'notebook/js/widgets/basic_widgets'],
+         'notebook/js/widgets/init'],
 
 function (marked) {
 
