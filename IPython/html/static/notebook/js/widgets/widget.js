@@ -149,7 +149,7 @@ function(widget_manager, underscore, backbone){
                             }
                         }
 
-                        var data = {method: 'backbone', sync_method: method, sync_data: send_json};
+                        var data = {method: 'backbone', sync_data: send_json};
                         this.comm.send(data, options.callbacks);
                         this.pending_msgs++;
                     }
