@@ -1,6 +1,30 @@
 // Test opening a rich notebook, saving it, and reopening it again.
 //
 //toJSON fromJSON toJSON and do a string comparison
+
+
+// this is just a copy of OutputArea.mime_mape_r in IPython/html/static/notebook/js/outputarea.js
+mime =  {
+        "text" : "text/plain",
+        "html" : "text/html",
+        "svg" : "image/svg+xml",
+        "png" : "image/png",
+        "jpeg" : "image/jpeg",
+        "latex" : "text/latex",
+        "json" : "application/json",
+        "javascript" : "application/javascript",
+    };
+    
+function assert_has(short_name, json, result, result2) {
+    long_name = mime[short_name];
+    this.test.assertTrue(result.hasOwnProperty(long_name),
+            'toJSON()   original embeded JSON keeps ' + long_name);
+    this.test.assertTrue(json[0].hasOwnProperty(short_name),
+            'toJSON()   representation uses ' + short_name);
+    this.test.assertTrue(result2.hasOwnProperty(long_name),
+            'fromJSON() embeded ' + short_name + ' gets mime key ' + long_name);
+}
+
 casper.notebook_test(function () {
     this.evaluate(function () {
         var cell = IPython.notebook.get_cell(0);
@@ -35,12 +59,8 @@ casper.notebook_test(function () {
         });
         var result = this.get_output_cell(0);
         var result2 = this.get_output_cell(1);
-        this.test.assertTrue(result.hasOwnProperty('application/javascript'),
-            'toJSON() original embeded JS keeps mime key');
-        this.test.assertTrue(json[0].hasOwnProperty('javascript'),
-            'toJSON() representation uses short key');
-        this.test.assertTrue(result2.hasOwnProperty('application/javascript'),
-            'fromJSON() embeded JS gets mime key');
+
+        assert_has.apply(this, ['javascript', json, result, result2]);
 
     });
 
@@ -53,7 +73,7 @@ casper.notebook_test(function () {
         this.set_cell_text(0, "%lsmagic");
         this.execute_cell(0);
     });
-
+   
     this.then(function ( ) {
         json = this.evaluate(function() {
             var json = IPython.notebook.get_cell(0).output_area.toJSON();
@@ -65,12 +85,9 @@ casper.notebook_test(function () {
         var result2 = this.get_output_cell(1);
         this.test.assertEquals(result.output_type, 'pyout',
             'testing pyout application/json and text/plain');
-        this.test.assertTrue(result.hasOwnProperty('application/json'),
-            'toJSON() original embeded JSON keeps mime key');
-        this.test.assertTrue(json[0].hasOwnProperty('json'),
-            'toJSON() representation uses short key');
-        this.test.assertTrue(result2.hasOwnProperty('application/json'),
-            'fromJSON() embeded JS gets mime key');
+
+        assert_has.apply(this, ['json', json, result, result2]);
+        assert_has.apply(this, ['text', json, result, result2]);
 
     });
     this.then(function() {
@@ -95,29 +112,10 @@ casper.notebook_test(function () {
         var result2 = this.get_output_cell(1);
         this.test.assertEquals(result.output_type, 'display_data',
             'testing display_data application/json and text/plain');
-        this.test.assertTrue(result.hasOwnProperty('text/plain'),
-            'toJSON()\t original embeded text keeps mime key');
-        this.test.assertTrue(json[0].hasOwnProperty('text'),
-            'toJSON()\t representation uses short key');
-        this.test.assertTrue(result2.hasOwnProperty('text/plain'),
-            'fromJSON()\t embeded text gets mime key');
+        
+        assert_has.apply(this, ['json', json, result, result2]);
+        assert_has.apply(this, ['text', json, result, result2]);
 
     });
-
-
-    //this.thenEvaluate(function () {
-    //var cell = IPython.notebook.get_cell(0);
-
-    //    // we have to make messes to find out who we are
-    //    cell.set_text([
-    //        "import IPython.html.tests as t",
-    //        "t.write_test_notebook('rich_output.ipynb')"
-    //        ].join('\n')
-    //        );
-
-    //    cell.execute();
-    //});
-    //
-    //this.wait_for_output(0);
 
 });
