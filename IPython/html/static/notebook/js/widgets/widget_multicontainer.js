@@ -18,7 +18,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     var MulticontainerModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('MulticontainerWidgetModel', MulticontainerModel);
 
-    var AccordionView = IPython.WidgetView.extend({
+    var AccordionView = IPython.DOMWidgetView.extend({
         
         render: function(){
             var guid = 'accordion' + IPython.utils.uuid();
@@ -71,7 +71,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 }
             }
             
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         add_child_view: function(view) {
@@ -117,11 +117,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
     widget_manager.register_widget_view('AccordionView', AccordionView);
     
-    var TabView = IPython.WidgetView.extend({
+    var TabView = IPython.DOMWidgetView.extend({
         
         initialize: function() {
             this.containers = [];
-            IPython.WidgetView.prototype.initialize.apply(this, arguments);
+            IPython.DOMWidgetView.prototype.initialize.apply(this, arguments);
         },
 
         render: function(){
@@ -167,7 +167,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.select_page(selected_index);
             }
 
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         add_child_view: function(view) {

@@ -18,7 +18,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     var SelectionWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
 
-    var DropdownView = IPython.WidgetView.extend({
+    var DropdownView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.
         render : function(){
@@ -97,7 +97,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         // Handle when a value is clicked.
@@ -110,7 +110,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
     widget_manager.register_widget_view('DropdownView', DropdownView);
 
-    var RadioButtonsView = IPython.WidgetView.extend({
+    var RadioButtonsView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.
         render : function(){
@@ -184,7 +184,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         // Handle when a value is clicked.
@@ -197,7 +197,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
 
 
-    var ToggleButtonsView = IPython.WidgetView.extend({
+    var ToggleButtonsView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.
         render : function(){
@@ -266,7 +266,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         // Handle when a value is clicked.
@@ -279,7 +279,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
     widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
 
-    var ListBoxView = IPython.WidgetView.extend({
+    var ListBoxView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.
         render : function(){
@@ -345,7 +345,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         // Handle when a value is clicked.

@@ -19,7 +19,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     var BoolWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
 
-    var CheckboxView = IPython.WidgetView.extend({
+    var CheckboxView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -61,14 +61,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
     });
 
     widget_manager.register_widget_view('CheckboxView', CheckboxView);
 
-    var ToggleButtonView = IPython.WidgetView.extend({
+    var ToggleButtonView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -104,7 +104,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$button.html(description);
                 }
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
         events: {"click button" : "handleClick"},

@@ -18,7 +18,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     var ImageWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('ImageWidgetModel', ImageWidgetModel);
 
-    var ImageView = IPython.WidgetView.extend({
+    var ImageView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -45,7 +45,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             } else {
                 this.$el.removeAttr('height');
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
     });

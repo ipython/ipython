@@ -47,7 +47,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
     var ContainerModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
 
-    var ContainerView = IPython.WidgetView.extend({
+    var ContainerView = IPython.DOMWidgetView.extend({
         
         render: function(){
             this.$el
@@ -70,14 +70,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         
         update: function(){
             set_flex_properties(this, this.$el);
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
     });
 
     widget_manager.register_widget_view('ContainerView', ContainerView);
 
 
-    var ModalView = IPython.WidgetView.extend({
+    var ModalView = IPython.DOMWidgetView.extend({
         
         render: function(){
             var that = this;
@@ -250,7 +250,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
                 this.show();
             }
             
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
         _get_selector_element: function(selector) {
@@ -269,7 +269,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
                     return this.$window.find(selector.substring(6));
                 }
             } else {
-                return IPython.WidgetView.prototype._get_selector_element.call(this, selector);
+                return IPython.DOMWidgetView.prototype._get_selector_element.call(this, selector);
             }
         },
         

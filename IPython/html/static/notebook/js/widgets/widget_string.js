@@ -18,7 +18,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     var StringWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
 
-    var HTMLView = IPython.WidgetView.extend({
+    var HTMLView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -29,7 +29,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         //          Frontent -> Frontend Sync
         update : function(){
             this.$el.html(this.model.get('value'));
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
     });
@@ -37,7 +37,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     widget_manager.register_widget_view('HTMLView', HTMLView);
 
 
-    var LatexView = IPython.WidgetView.extend({
+    var LatexView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -50,14 +50,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.$el.html(this.model.get('value'));
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
 
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
     });
 
     widget_manager.register_widget_view('LatexView', LatexView);
 
-    var TextAreaView = IPython.WidgetView.extend({
+    var TextAreaView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render: function(){
@@ -108,7 +108,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
         events: {"keyup textarea": "handleChanging",
@@ -126,7 +126,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
     widget_manager.register_widget_view('TextAreaView', TextAreaView);
 
-    var TextBoxView = IPython.WidgetView.extend({
+    var TextBoxView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render: function(){
@@ -162,7 +162,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
         
         events: {"keyup input": "handleChanging",

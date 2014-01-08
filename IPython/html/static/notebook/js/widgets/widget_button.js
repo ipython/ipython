@@ -19,7 +19,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
     var ButtonWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
 
-    var ButtonView = IPython.WidgetView.extend({
+    var ButtonView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
         render : function(){
@@ -48,7 +48,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$el.removeAttr('disabled');
             }
 
-            return IPython.WidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
         events: {

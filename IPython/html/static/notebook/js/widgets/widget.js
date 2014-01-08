@@ -90,7 +90,6 @@ function(widget_manager, underscore, backbone){
 
         // Handle when a widget is updated via the python side.
         apply_update: function (state) {
-            //this.updating = true;
             for (var key in state) {
                 if (state.hasOwnProperty(key)) {
                     var value = state[key];
@@ -184,7 +183,7 @@ function(widget_manager, underscore, backbone){
     //--------------------------------------------------------------------
     // WidgetView class
     //--------------------------------------------------------------------
-    var BaseWidgetView = Backbone.View.extend({
+    var WidgetView = Backbone.View.extend({
         initialize: function(options) {
             this.model.on('change',this.update,this);
             this.widget_manager = options.widget_manager;
@@ -244,12 +243,12 @@ function(widget_manager, underscore, backbone){
 
     });
 
-    var WidgetView = BaseWidgetView.extend({
+    var DOMWidgetView = WidgetView.extend({
         initialize: function (options) {
             // TODO: make changes more granular (e.g., trigger on visible:change)
             this.model.on('change', this.update, this);
             this.model.on('msg:custom', this.on_msg, this);
-            BaseWidgetView.prototype.initialize.apply(this, arguments);
+            WidgetView.prototype.initialize.apply(this, arguments);
         },
         
         on_msg: function(msg) {
@@ -323,7 +322,7 @@ function(widget_manager, underscore, backbone){
 
     IPython.WidgetModel = WidgetModel;
     IPython.WidgetView = WidgetView;
-    IPython.BaseWidgetView = BaseWidgetView;
+    IPython.DOMWidgetView = DOMWidgetView;
 
     return widget_manager;
 });
