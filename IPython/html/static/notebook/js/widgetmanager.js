@@ -25,10 +25,12 @@
              "backbone",
             ], function (underscore, backbone) {
             
+        // Backbone.sync method must be in widgetmanager.js file instead of 
+        // widget.js so it can be overwritten for different contexts.
         Backbone.sync = function (method, model, options, error) {
             var result = model._handle_sync(method, options);
             if (options.success) {
-              options.success(result);
+                options.success(result);
             }
         }; 
 
