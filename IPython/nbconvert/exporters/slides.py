@@ -12,8 +12,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode
-
 from IPython.nbconvert import preprocessors
 from IPython.config import Config
 
@@ -26,15 +24,13 @@ from .html import HTMLExporter
 class SlidesExporter(HTMLExporter):
     """Exports HTML slides with reveal.js"""
     
-    file_extension = Unicode(
-        'slides.html', config=True, 
-        help="Extension of the file that should be written to disk"
-        )
+    def _file_extension_default(self):
+        return 'slides.html'
+
+    def _template_file_default(self):
+        return 'slides_reveal'
 
     output_mimetype = 'text/html'
-
-    default_template = Unicode('reveal', config=True, help="""Template of the 
-        data format to use.  I.E. 'reveal'""")
 
     @property
     def default_config(self):

@@ -1,6 +1,6 @@
 ((= IPython input/output style =))
 
-((*- extends 'latex_base.tplx' -*))
+((*- extends 'base.tplx' -*))
 
 % Custom definitions
 ((* block definitions *))

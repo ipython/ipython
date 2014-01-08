@@ -16,7 +16,7 @@
 import os
 
 # IPython imports
-from IPython.utils.traitlets import Unicode, List
+from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
 from IPython.nbconvert import filters, preprocessors
@@ -35,22 +35,19 @@ class LatexExporter(TemplateExporter):
     'template_file' config option.  Place your template in the special "/latex" 
     subfolder of the "../templates" folder.
     """
-    
-    file_extension = Unicode(
-        'tex', config=True, 
-        help="Extension of the file that should be written to disk")
 
-    default_template = Unicode('article', config=True, help="""Template of the 
-        data format to use.  I.E. 'article' or 'report'""")
+    def _file_extension_default(self):
+        return 'tex'
+
+    def _template_file_default(self):
+        return 'article'
 
     #Latex constants
-    default_template_path = Unicode(
-        os.path.join("..", "templates", "latex"), config=True,
-        help="Path where the template files are located.")
+    def _default_template_path_default(self):
+        return os.path.join("..", "templates", "latex")
 
-    template_skeleton_path = Unicode(
-        os.path.join("..", "templates", "latex", "skeleton"), config=True,
-        help="Path where the template skeleton files are located.") 
+    def _template_skeleton_path_default(self):
+        return os.path.join("..", "templates", "latex", "skeleton")
 
     #Special Jinja2 syntax that will not conflict when exporting latex.
     jinja_comment_block_start = Unicode("((=", config=True)
