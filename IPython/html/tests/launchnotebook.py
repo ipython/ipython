@@ -24,19 +24,24 @@ class NotebookTestBase(TestCase):
     def wait_until_alive(cls):
         """Wait for the server to be alive"""
         url = 'http://localhost:%i/api/notebooks' % cls.port
-        while True:
+        for _ in range(300):
             try:
                 requests.get(url)
             except requests.exceptions.ConnectionError:
+                if cls.notebook.poll() is not None:
+                    raise RuntimeError("The notebook server exited with status %s" \
+                                        % cls.notebook.poll())
                 time.sleep(.1)
             else:
-                break
+                return
+
+        raise TimeoutError("The notebook server didn't start up correctly.")
     
     @classmethod
     def wait_until_dead(cls):
         """Wait for the server to stop getting requests after shutdown"""
         url = 'http://localhost:%i/api/notebooks' % cls.port
-        while True:
+        for _ in range(300):
             try:
                 requests.get(url)
             except requests.exceptions.ConnectionError:
@@ -44,6 +49,8 @@ class NotebookTestBase(TestCase):
             else:
                 time.sleep(.1)
     
+        raise TimeoutError("Undead notebook server")
+
     @classmethod
     def setup_class(cls):
         cls.ipython_dir = TemporaryDirectory()
@@ -52,6 +59,7 @@ class NotebookTestBase(TestCase):
             sys.executable, '-c',
             'from IPython.html.notebookapp import launch_new_instance; launch_new_instance()',
             '--port=%d' % cls.port,
+            '--port-retries=0',
             '--no-browser',
             '--ipython-dir=%s' % cls.ipython_dir.name,
             '--notebook-dir=%s' % cls.notebook_dir.name,
