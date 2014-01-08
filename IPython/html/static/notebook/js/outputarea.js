@@ -516,7 +516,7 @@ var IPython = (function (IPython) {
                 } else {
                     var append = OutputArea.append_map[type];
                     if (append !== undefined) {
-                        append.apply(this, [json[type], md, element, type]);
+                        append.apply(this, [json[type], md, element]);
                         return true;
                     }
                 }
@@ -526,7 +526,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_html = function (html, md, element, type) {
+    OutputArea.prototype.append_html = function (html, md, element) {
+        type = 'text/html';
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
@@ -534,8 +535,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_javascript = function (js, md, container, type) {
+    OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
+        type = 'application/javascript';
         var element = this.create_output_subarea(md, "output_javascript", type);
         IPython.keyboard_manager.register_events(element);
         container.append(element);
@@ -548,7 +550,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_text = function (data, md, element, extra_class, type) {
+    OutputArea.prototype.append_text = function (data, md, element, extra_class) {
+        type = 'text/plain';
         var toinsert = this.create_output_subarea(md, "output_text", type);
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
@@ -562,7 +565,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_svg = function (svg, md, element, type) {
+    OutputArea.prototype.append_svg = function (svg, md, element) {
+        type = 'image/svg+xml';
         var toinsert = this.create_output_subarea(md, "output_svg", type);
         toinsert.append(svg);
         element.append(toinsert);
@@ -596,7 +600,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_png = function (png, md, element, type) {
+    OutputArea.prototype.append_png = function (png, md, element) {
+        type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
         var img = $("<img/>");
         img[0].setAttribute('src','data:image/png;base64,'+png);
@@ -612,7 +617,8 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_jpeg = function (jpeg, md, element, type) {
+    OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
+        type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         if (md['height']) {
@@ -627,9 +633,10 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_latex = function (latex, md, element, type) {
+    OutputArea.prototype.append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
+        type = 'text/latex';
         var toinsert = this.create_output_subarea(md, "output_latex", type);
         toinsert.append(latex);
         element.append(toinsert);
