@@ -315,7 +315,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         self._pending_text_flush_interval.setInterval(100)
         self._pending_text_flush_interval.setSingleShot(True)
         self._pending_text_flush_interval.timeout.connect(
-                                            self._flush_pending_stream)
+                                            self._on_flush_pending_stream_timer)
 
         # Set a monospaced font.
         self.reset_font()
@@ -1491,6 +1491,20 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
 
         return False
 
+    def _on_flush_pending_stream_timer(self):
+        """ Flush the pending stream output and change the
+        prompt position appropriately.
+        """
+        cursor = self._control.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        pos = cursor.position()
+        self._flush_pending_stream()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        diff = cursor.position() - pos
+        if diff > 0:
+            self._prompt_pos += diff
+            self._append_before_prompt_pos += diff
+
     def _flush_pending_stream(self):
         """ Flush out pending text into the widget. """
         text = self._pending_insert_text
@@ -2044,6 +2058,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             there is not already a newline at the end of the buffer.
         """
         # Save the current end position to support _append*(before_prompt=True).
+        self._flush_pending_stream()
         cursor = self._get_end_cursor()
         self._append_before_prompt_pos = cursor.position()
 
@@ -2053,6 +2068,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                                 QtGui.QTextCursor.KeepAnchor)
             if cursor.selection().toPlainText() != '\n':
                 self._append_block()
+                self._append_before_prompt_pos += 1
 
         # Write the prompt.
         self._append_plain_text(self._prompt_sep)
@@ -2070,7 +2086,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                 self._prompt = prompt
                 self._prompt_html = None
 
-        self._flush_pending_stream()
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 
