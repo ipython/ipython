@@ -185,7 +185,10 @@
             // for the message.  get_cell callbacks are registered for
             // widget messages, so this block is actually checking to see if the
             // message was triggered by a widget.
-            var kernel = this.get_kernel();
+            var kernel = null;
+            if (this.comm_manager !== null) {
+                kernel = this.comm_manager.kernel;
+            }
             if (kernel !== undefined && kernel !== null) {
                 var callbacks = kernel.get_callbacks_for_msg(msg_id);
                 if (callbacks !== undefined && 
@@ -244,15 +247,6 @@
                 return model;
             }
             return null;
-        };
-
-
-        WidgetManager.prototype.get_kernel = function () {
-            if (this.comm_manager === null) {
-                return null;
-            } else {
-                return this.comm_manager.kernel;
-            }
         };
 
 
