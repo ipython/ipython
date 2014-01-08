@@ -39,15 +39,11 @@ class NotebookTestBase(TestCase):
     
     @classmethod
     def wait_until_dead(cls):
-        """Wait for the server to stop getting requests after shutdown"""
-        url = 'http://localhost:%i/api/notebooks' % cls.port
+        """Wait for the server process to terminate after shutdown"""
         for _ in range(300):
-            try:
-                requests.get(url)
-            except requests.exceptions.ConnectionError:
-                break
-            else:
-                time.sleep(.1)
+            if cls.notebook.poll() is not None:
+                return
+            time.sleep(.1)
     
         raise TimeoutError("Undead notebook server")
 
