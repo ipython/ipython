@@ -740,8 +740,6 @@ var IPython = (function (IPython) {
     // JSON serialization
 
     OutputArea.prototype.fromJSON = function (outputs) {
-        // add here the mapping of short key to mime type
-        // TODO: remove this when we update to nbformat 4
         var len = outputs.length;
         var data;
 
@@ -757,6 +755,7 @@ var IPython = (function (IPython) {
             var msg_type = data.output_type;
             if (msg_type === "display_data" || msg_type === "pyout") {
                 // convert short keys to mime keys
+                // TODO: remove mapping of short keys when we update to nbformat 4
                  data = this.rename_keys(data, OutputArea.mime_map_r);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
             }
@@ -779,7 +778,7 @@ var IPython = (function (IPython) {
             if (msg_type === "display_data" || msg_type === "pyout") {
                   // convert mime keys to short keys
                  data = this.rename_keys(data, OutputArea.mime_map);
-                 data.metadata = this.rename_keys(data, OutputArea.mime_map);
+                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
             }
             outputs[i] = data;
         }
