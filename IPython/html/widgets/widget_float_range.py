@@ -25,7 +25,7 @@ class FloatRangeWidget(DOMWidget):
 
     # Keys
     keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + DOMWidget.keys
-    value = Float(0.0, help="Flaot value") 
+    value = Float(0.0, help="Float value") 
     max = Float(100.0, help="Max value")
     min = Float(0.0, help="Min value")
     disabled = Bool(False, help="Enable or disable user changes")
