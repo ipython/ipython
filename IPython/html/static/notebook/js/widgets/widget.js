@@ -224,6 +224,31 @@ function(widget_manager, underscore, backbone){
             }, this);
         },
 
+        do_diff: function(old_list, new_list, removed_callback, added_callback) {
+            // Difference a changed list and call remove and add callbacks for 
+            // each removed and added item in the new list.
+            //
+            // Parameters
+            // ----------
+            // old_list : array
+            // new_list : array
+            // removed_callback : Callback(item)
+            //      Callback that is called for each item removed.
+            // added_callback : Callback(item)
+            //      Callback that is called for each item added.
+
+
+            // removed items
+            _.each(_.difference(old_list, new_list), function(item, index, list) {
+                removed_callback(item);
+            }, this);
+
+            // added items
+            _.each(_.difference(new_list, old_list), function(item, index, list) {
+                added_callback(item);
+            }, this);
+        }
+
         callbacks: function(){
             return this.widget_manager.callbacks(this);
         },
