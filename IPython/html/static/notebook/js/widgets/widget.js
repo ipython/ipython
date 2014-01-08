@@ -70,9 +70,9 @@ function(widget_manager, underscore, backbone){
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.custom_content);
                     break;
-                default:
-                    // pass on to widget manager
-                    this.widget_manager.handle_msg(msg, this);
+                case 'display':
+                    this.widget_manager.display_view(msg.parent_header.msg_id, this);
+                    break;
             }
         },
 
