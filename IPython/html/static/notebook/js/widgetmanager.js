@@ -78,7 +78,7 @@
                         console.log("Could not determine where the display" + 
                             " message was from.  Widget will not be displayed");
                     } else {
-                        var view = this.create_view(model, msg.content.data.view_name);
+                        var view = this.create_view(model);
                         if (view !== undefined 
                             && cell.widget_subarea !== undefined 
                             && cell.widget_subarea !== null) {
@@ -94,6 +94,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         WidgetManager.prototype.create_view = function(model, view_name, cell) {
 =======
         WidgetManager.prototype.create_view = function(model, view_name, options) {
@@ -106,6 +107,10 @@
 >>>>>>> Add widget view options in creating child views
             var ViewType = this.widget_view_types[view_name];
 =======
+=======
+        WidgetManager.prototype.create_view = function(model, options) {
+            var view_name = model.get('view_name');
+>>>>>>> remove msg.content.data.view_name and corrosponding create_view param
             var ViewType = this._view_types[view_name];
 >>>>>>> _model_types, _view_types, _models - and document what keys and values are
             if (ViewType !== undefined && ViewType !== null) {
@@ -113,6 +118,7 @@
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
+<<<<<<< HEAD
 <<<<<<< HEAD
                 /*
                     // TODO: handle view deletion.  Don't forget to delete child views
@@ -160,6 +166,8 @@
                             delete that.model_id; // Delete id from model so widget manager cleans up.
                         });
                 */
+=======
+>>>>>>> remove msg.content.data.view_name and corrosponding create_view param
                 return view;
             }
         },
