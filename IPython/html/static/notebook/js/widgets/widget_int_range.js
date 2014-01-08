@@ -23,8 +23,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .addClass('widget-hbox-single')
-                .html('');
+                .addClass('widget-hbox-single');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
@@ -50,10 +49,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
-                // Slider related keys.
-                var _keys = ['step', 'max', 'min', 'disabled'];
-                for (var index in _keys) {
-                    var key = _keys[index];
+                // JQuery slider option keys.  These keys happen to have a
+                // one-to-one mapping with the corrosponding keys of the model.
+                var jquery_slider_keys = ['step', 'max', 'min', 'disabled'];
+                for (var index in jquery_slider_keys) {
+                    var key = jquery_slider_keys[index];
                     if (this.model.get(key) !== undefined) {
                         this.$slider.slider("option", key, this.model.get(key));
                     }
@@ -127,8 +127,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .addClass('widget-hbox-single')
-                .html('');
+                .addClass('widget-hbox-single');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
