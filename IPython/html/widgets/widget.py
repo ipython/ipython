@@ -14,6 +14,7 @@ in the IPython notebook frontend.
 #-----------------------------------------------------------------------------
 from copy import copy
 from glob import glob
+from contextlib import contextmanager
 import uuid
 import sys
 import os
@@ -30,6 +31,17 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+@contextmanager
+def PropertyLock(instance, key, value):
+    instance._property_lock = (key, value)
+    yield
+    del instance._property_lock
+
+def should_send_property(instance, key, value):
+    return not hasattr(instance, _property_lock) or \
+    key != instance._property_lock[0] or \
+    value != instance._property_lock[1]
+
 
 class Widget(LoggingConfigurable):
 
@@ -58,8 +70,6 @@ class Widget(LoggingConfigurable):
         to use to represent the widget.""")
 
     # Private/protected declarations
-    # todo: change this to a context manager
-    _property_lock = (None, None) # Last updated (key, value) from the front-end.  Prevents echo.
     _comm = Instance('IPython.kernel.comm.Comm')
     
     def __init__(self, **kwargs):
@@ -114,11 +124,9 @@ class Widget(LoggingConfigurable):
         """Called when a state is recieved from the frontend."""
         for name in self.keys:
             if name in sync_data:
-                try:
-                    self._property_lock = (name, sync_data[name])
-                    setattr(self, name, sync_data[name])
-                finally:
-                    self._property_lock = (None, None)
+                value = sync_data[name]
+                with PropertyLock(self, name, value):
+                    setattr(self, name, value)
 
 
     def _handle_custom_msg(self, content):
@@ -145,7 +153,7 @@ class Widget(LoggingConfigurable):
     def _handle_property_changed(self, name, old, new):
         """Called when a property has been changed."""
         # Make sure this isn't information that the front-end just sent us.
-        if self._property_lock[0] != name and self._property_lock[1] != new:
+        if should_send_property(self, name, new):
             # Send new state to frontend
             self.send_state(key=name)
 
