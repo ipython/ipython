@@ -28,8 +28,20 @@ var IPython = (function (IPython) {
         var help, shortcut;
         var element = $('<div/>');
 
+        // The documentation
+        var doc = $('<div/>').addClass('alert');
+        doc.append(
+            $('<button/>').addClass('close').attr('data-dismiss','alert').html('&times')
+        ).append(
+            'The IPython Notebook has two different keyboard input modes. <b>Edit mode</b> '+
+            'allow you the type code/text into a cell and is indicated by a green cell '+
+            'border. <b>Commmand mode</b> binds the keyboard to notebook level actions '+
+            'and is in dicated by a grey cell border.'
+        )
+        element.append(doc);
+
         // Command mode
-        var cmd_div = $('<div/>').addClass('clearfix').append($('<h4>Command Mode</h4>'));
+        var cmd_div = $('<div/>').addClass('clearfix').append($('<h4>Command Mode (press ESC to enable)</h4>'));
         element.append(cmd_div);
         for (var i=0; i<command_shortcuts.length; i++) {
             help = command_shortcuts[i]['help'];
@@ -43,7 +55,7 @@ var IPython = (function (IPython) {
         };
 
         // Edit mode
-        var edit_div = $('<div/>').addClass('clearfix').append($('<h4>Edit Mode</h4>'));
+        var edit_div = $('<div/>').addClass('clearfix').append($('<h4>Edit Mode (press ENTER to enable)</h4>'));
         element.append(edit_div);
         for (var i=0; i<edit_shortcuts.length; i++) {
             help = edit_shortcuts[i]['help'];
