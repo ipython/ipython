@@ -62,6 +62,7 @@ var IPython = (function (IPython) {
         if (this.element !== null) {
             this.element.data("cell", this);
             this.bind_events();
+            this.init_classes();
         }
     };
 
@@ -98,6 +99,26 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.create_element = function () {
     };
+
+    Cell.prototype.init_classes = function () {
+        // Call after this.element exists to initialize the css classes
+        // related to selected, rendered and mode.
+        if (this.selected) {
+            this.element.addClass('selected');
+        } else {
+            this.element.addClass('unselected');
+        }
+        if (this.rendered) {
+            this.element.addClass('rendered');
+        } else {
+            this.element.addClass('unrendered');
+        }
+        if (this.mode === 'edit') {
+            this.element.addClass('edit_mode');
+        } else {
+            this.element.addClass('command_mode');
+        }
+    }
 
 
     /**
