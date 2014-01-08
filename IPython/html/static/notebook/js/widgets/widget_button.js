@@ -23,7 +23,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
       
         // Called when view is rendered.
         render : function(){
-            var that = this;
             this.setElement($("<button />")
                 .addClass('btn'));
 

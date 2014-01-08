@@ -75,14 +75,10 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
       
         // Called when view is rendered.
         render : function(){
-            this.$el
-                .html('');
-            this.$button = $('<button />')
+            this.setElement($('<button />')
                 .addClass('btn')
                 .attr('type', 'button')
-                .attr('data-toggle', 'button')
-                .appendTo(this.$el);
-            this.$el_to_style = this.$button; // Set default element to style
+                .attr('data-toggle', 'button'));
 
             this.update(); // Set defaults.
         },
@@ -94,19 +90,19 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 if (this.model.get('value')) {
-                    this.$button.addClass('active');
+                    this.$el.addClass('active');
                 } else {
-                    this.$button.removeClass('active');
+                    this.$el.removeClass('active');
                 }
 
                 var disabled = this.model.get('disabled');
-                this.$button.prop('disabled', disabled);
+                this.$el.prop('disabled', disabled);
 
                 var description = this.model.get('description');
                 if (description.length === 0) {
-                    this.$button.html(' '); // Preserve button height
+                    this.$el.html(' '); // Preserve button height
                 } else {
-                    this.$button.html(description);
+                    this.$el.html(description);
                 }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
