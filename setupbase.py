@@ -148,7 +148,7 @@ def find_package_data():
     js_tests = glob('casperjs/*.*') +  glob('casperjs/*/*')
 
     os.chdir(os.path.join(cwd, 'IPython', 'nbconvert'))
-    nbconvert_templates = [os.path.join(dirpath, '*')
+    nbconvert_templates = [os.path.join(dirpath, '*.*')
                             for dirpath, _, _ in os.walk('templates')]
 
     os.chdir(cwd)
