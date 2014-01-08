@@ -109,6 +109,18 @@ class Widget(LoggingConfigurable):
             if 'custom_content' in data:
                 self._handle_custom_msg(data['custom_content'])
 
+
+    def _handle_recieve_state(self, sync_data):
+        """Called when a state is recieved from the frontend."""
+        for name in self.keys:
+            if name in sync_data:
+                try:
+                    self._property_lock = (name, sync_data[name])
+                    setattr(self, name, sync_data[name])
+                finally:
+                    self._property_lock = (None, None)
+
+
     def _handle_custom_msg(self, content):
         """Called when a custom msg is recieved."""
         for handler in self._msg_callbacks:
@@ -128,17 +140,6 @@ class Widget(LoggingConfigurable):
                 else:
                     raise TypeError('Widget msg callback must ' \
                         'accept 1 or 2 arguments, not %d.' % nargs)
-
-
-    def _handle_recieve_state(self, sync_data):
-        """Called when a state is recieved from the frontend."""
-        for name in self.keys:
-            if name in sync_data:
-                try:
-                    self._property_lock = (name, sync_data[name])
-                    setattr(self, name, sync_data[name])
-                finally:
-                    self._property_lock = (None, None)
 
 
     def _handle_property_changed(self, name, old, new):
