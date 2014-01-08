@@ -261,17 +261,11 @@ function(widget_manager, underscore, backbone){
         },
 
         add_class: function (selector, class_list) {
-            var elements = this._get_selector_element(selector);
-            if (elements.length > 0) {
-                elements.addClass(class_list);
-            }
+            this._get_selector_element(selector).addClass(class_list);
         },
         
         remove_class: function (selector, class_list) {
-            var elements = this._get_selector_element(selector);
-            if (elements.length > 0) {
-                elements.removeClass(class_list);
-            }
+            this._get_selector_element(selector).removeClass(class_list);
         },
     
         update: function () {
