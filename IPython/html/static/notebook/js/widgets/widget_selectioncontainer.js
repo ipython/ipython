@@ -6,7 +6,7 @@
 //----------------------------------------------------------------------------
 
 //============================================================================
-// MultiContainerWidget
+// SelectionContainerWidget
 //============================================================================
 
 /**
@@ -15,8 +15,8 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var MulticontainerModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('MulticontainerWidgetModel', MulticontainerModel);
+    var SelectionContainerModel = IPython.WidgetModel.extend({});
+    widget_manager.register_widget_model('SelectionContainerWidgetModel', SelectionContainerModel);
 
     var AccordionView = IPython.DOMWidgetView.extend({
         

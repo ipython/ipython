@@ -1,4 +1,4 @@
-"""MulticontainerWidget class.  
+"""SelectionContainerWidget class.  
 
 Represents a multipage container that can be used to group other widgets into
 pages.
@@ -20,8 +20,8 @@ from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class MulticontainerWidget(DOMWidget):
-    target_name = Unicode('MulticontainerWidgetModel')
+class SelectionContainerWidget(DOMWidget):
+    target_name = Unicode('SelectionContainerWidgetModel')
     view_name = Unicode('TabView')
 
     # Keys

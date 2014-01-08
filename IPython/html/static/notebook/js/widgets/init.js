@@ -342,8 +342,8 @@ define([
     "notebook/js/widgets/widget_image",
     "notebook/js/widgets/widget_int",
     "notebook/js/widgets/widget_int_range",
-    "notebook/js/widgets/widget_multicontainer",
     "notebook/js/widgets/widget_selection",
+    "notebook/js/widgets/widget_selectioncontainer",
     "notebook/js/widgets/widget_string",
 ], function(){ return true; });
 >>>>>>> renamed:    basic_widgets.js -> init.js
