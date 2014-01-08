@@ -212,7 +212,7 @@ function(widget_manager, underscore, backbone){
 
         callbacks: function(){
             return this.widget_manager.callbacks(this);
-        }        
+        },
 
         render: function(){
             // render the view.  By default, this is only called the first time the view is created
