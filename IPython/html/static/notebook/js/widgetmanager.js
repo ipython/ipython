@@ -256,27 +256,10 @@
         };
 
 
-        WidgetManager.prototype.on_create_widget = function (callback) {
-            this._create_widget_callback = callback;
-        };
-
-
-        WidgetManager.prototype._handle_create_widget = function (widget_model) {
-            if (this._create_widget_callback) {
-                try {
-                    this._create_widget_callback(widget_model);
-                } catch (e) {
-                    console.log("Exception in WidgetManager callback", e, widget_model);
-                }
-            }
-        };
-
-
         WidgetManager.prototype._handle_comm_open = function (comm, msg) {
             var widget_type_name = msg.content.target_name;
             var widget_model = new this._model_types[widget_type_name](this, comm.comm_id, comm);
             this._models[comm.comm_id] = widget_model; // comm_id == model_id
-            this._handle_create_widget(widget_model);
         };
         
         //--------------------------------------------------------------------
