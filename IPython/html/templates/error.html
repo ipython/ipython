@@ -22,7 +22,7 @@ div#header, div#site {
     {% if message %}
     <p>The error was:</p>
     <div class="traceback-wrapper">
-    <pre class="traceback">{{message | replace('\n', '<br/>')}}</pre>
+    <pre class="traceback">{{message}}</pre>
     </div>
     {% endif %}
     {% endblock %}
