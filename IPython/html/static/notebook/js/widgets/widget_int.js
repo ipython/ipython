@@ -17,4 +17,7 @@
 define(["notebook/js/widgets/widget"], function(widget_manager){
     var IntWidgetModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('IntWidgetModel', IntWidgetModel);
+
+    // The Views for this model are shared with the bounded int, and can be
+    // found in widget_int_range.js.
 });
