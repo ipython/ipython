@@ -135,7 +135,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook2.ipynb']):
             self.call('nbconvert --log-level 0 --to slides '  
-                      'notebook2.ipynb --template slides_reveal')
+                      'notebook2.ipynb')
             assert os.path.isfile('notebook2.slides.html')
             with open('notebook2.slides.html') as f:
                 assert '/reveal.css' in f.read()
