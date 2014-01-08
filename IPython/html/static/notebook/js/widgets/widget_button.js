@@ -30,9 +30,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             var description = this.model.get('description');
             description = description.replace(/ /g, '&nbsp;', 'm');
             description = description.replace(/\n/g, '<br>\n', 'm');

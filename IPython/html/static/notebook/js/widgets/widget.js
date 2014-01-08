@@ -269,8 +269,13 @@ function(widget_manager, underscore, backbone){
         },
     
         update: function () {
-            // the very first update seems to happen before the element is finished rendering
-            // so we use setTimeout to give the element time to render
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
+            //      The very first update seems to happen before the element is 
+            // finished rendering so we use setTimeout to give the element time 
+            // to render
             var e = this.$el;
             var visible = this.model.get('visible');
             setTimeout(function() {e.toggle(visible)},0);

@@ -25,9 +25,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             this.$el.html(this.model.get('value'));
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -44,9 +46,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             this.$el.html(this.model.get('value'));
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
 
@@ -91,9 +95,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update: function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             if (!this.user_invoked_update) {
                 this.$textbox.val(this.model.get('value'));
             }
@@ -145,9 +151,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update: function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             if (this.$textbox.val() != this.model.get('value')) {
                 this.$textbox.val(this.model.get('value'));
             }

@@ -44,9 +44,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             if (!this.user_invoked_update) {
                 this.$checkbox.prop('checked', this.model.get('value'));
 
@@ -84,9 +86,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             if (!this.user_invoked_update) {
                 if (this.model.get('value')) {
                     this.$button.addClass('active');

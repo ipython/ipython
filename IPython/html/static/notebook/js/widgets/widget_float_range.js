@@ -44,9 +44,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
+
             // Slider related keys.
             var _keys = ['step', 'max', 'min', 'disabled'];
             for (var index in _keys) {
@@ -135,9 +138,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
+
             var value = this.model.get('value');
             if (!this.changing && parseFloat(this.$textbox.val()) != value) {
                 this.$textbox.val(value);
@@ -230,9 +236,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             var value = this.model.get('value');
             var max = this.model.get('max');
             var min = this.model.get('min');

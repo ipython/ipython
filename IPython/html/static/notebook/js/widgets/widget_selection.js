@@ -55,9 +55,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
 
             var selected_item_text = this.model.get('value');
             selected_item_text = selected_item_text.replace(/ /g, '&nbsp;');
@@ -129,9 +131,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             
             // Add missing items to the DOM.
             var items = this.model.get('values');
@@ -216,9 +220,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             
             // Add missing items to the DOM.
             var items = this.model.get('values');
@@ -298,9 +304,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             
             // Add missing items to the DOM.
             var items = this.model.get('values');

@@ -69,6 +69,10 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         update: function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             set_flex_properties(this, this.$el);
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -225,6 +229,10 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         update: function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             set_flex_properties(this, this.$body);
             
             var description = this.model.get('description');

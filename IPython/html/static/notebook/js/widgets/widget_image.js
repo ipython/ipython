@@ -26,9 +26,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        // Handles: Backend -> Frontend Sync
-        //          Frontent -> Frontend Sync
         update : function(){
+            // Update the contents of this view
+            //
+            // Called when the model is changed.  The model may have been 
+            // changed by another view or by a state update from the back-end.
             var image_src = 'data:image/' + this.model.get('image_format') + ';base64,' + this.model.get('_b64value');
             this.$el.attr('src', image_src);
             
