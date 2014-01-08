@@ -502,15 +502,13 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_mime_type = function (json, element) {
 
-        for(var type_i in OutputArea.display_order){
+        for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
-            if(json[type] !== undefined ){
-                var append = OutputArea.append_map[type];
-                if (append !== undefined) {
-                    md = json.metadata || {};
-                    append.apply(this, [json[type], md, element]);
-                    return true;
-                }
+            var append = OutputArea.append_map[type];
+            if ((json[type] !== undefined) && append) {
+                md = json.metadata || {};
+                append.apply(this, [json[type], md, element]);
+                return true;
             }
         }
         return false;
