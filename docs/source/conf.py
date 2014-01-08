@@ -87,6 +87,10 @@ copyright = '2008, The IPython Development Team'
 # ghissue config
 github_project_url = "https://github.com/ipython/ipython"
 
+# numpydoc config
+numpydoc_show_class_members = False # Otherwise Sphinx emits thousands of warnings
+numpydoc_class_members_toctree = False
+
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
