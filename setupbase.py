@@ -146,6 +146,11 @@ def find_package_data():
 
     os.chdir(os.path.join('tests',))
     js_tests = glob('casperjs/*.*') +  glob('casperjs/*/*')
+
+    os.chdir(os.path.join(cwd, 'IPython', 'nbconvert'))
+    nbconvert_templates = [os.path.join(dirpath, '*')
+                            for dirpath, _, _ in os.walk('templates')]
+
     os.chdir(cwd)
 
     package_data = {
@@ -157,10 +162,8 @@ def find_package_data():
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.html.tests' : js_tests,
         'IPython.qt.console' : ['resources/icon/*.svg'],
-        'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
-            'templates/latex/skeleton/*.tplx', 'templates/skeleton/*', 
-            'templates/reveal_internals/*.tpl', 'tests/files/*.*',
-            'exporters/tests/files/*.*'],
+        'IPython.nbconvert' : nbconvert_templates +
+            ['tests/files/*.*', 'exporters/tests/files/*.*'],
         'IPython.nbformat' : ['tests/*.ipynb']
     }
     return package_data
