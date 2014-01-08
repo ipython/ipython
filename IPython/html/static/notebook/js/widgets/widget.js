@@ -24,6 +24,16 @@ function(widget_manager, underscore, backbone){
     //--------------------------------------------------------------------
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
+            // Construcctor
+            //
+            // Creates a WidgetModel instance.
+            //
+            // Parameters
+            // ----------
+            // widget_manager : WidgetManager instance
+            // model_id : string
+            //      An ID unique to this model.
+            // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
             this.pending_msgs = 0;
             this.msg_throttle = 3;
