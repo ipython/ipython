@@ -179,7 +179,6 @@ var IPython = (function (IPython) {
             var output = text_cell.find("div.text_cell_render");
             output.hide();
             text_cell.find('div.text_cell_input').show();
-            this.focus_editor();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
                 this.refresh();
