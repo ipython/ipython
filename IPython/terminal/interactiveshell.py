@@ -379,6 +379,8 @@ class TerminalInteractiveShell(InteractiveShell):
         if os.name == 'posix':
             aliases = [('clear', 'clear'), ('more', 'more'), ('less', 'less'),
                        ('man', 'man')]
+        else :
+            aliases = []
 
         for name, cmd in aliases:
             self.alias_manager.soft_define_alias(name, cmd)
