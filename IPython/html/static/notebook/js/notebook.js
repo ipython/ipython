@@ -1053,7 +1053,6 @@ var IPython = (function (IPython) {
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
-            var mode = cell.mode;
             if (cell instanceof IPython.CodeCell) {
                 // In this case the operations keep the notebook in its existing mode
                 // so we don't need to do any post-op mode changes.
@@ -1061,23 +1060,12 @@ var IPython = (function (IPython) {
                 var new_cell = this.insert_cell_above('code');
                 new_cell.set_text(texta);
             } else if (cell instanceof IPython.MarkdownCell && !cell.rendered) {
+                // We know cell is !rendered so we can use set_text.
                 cell.set_text(textb);
-                cell.render();
                 var new_cell = this.insert_cell_above('markdown');
-                // Editor must be visible to call set_text, so we unrender.
-                // Note that this call will focus the CM editor, which selects
-                // this cell and enters edit mode.
-                new_cell.unrender(); 
-                new_cell.set_text(texta);
-                new_cell.render();
-                // The final rendered state of the split cells should
-                // match the original cell's state. The order matters
-                // here as we want the lower cell (cell) to be selected.
-                // Each of these involves a CM focus and cell select.
+                // Unrender the new cell so we can call set_text.
                 new_cell.unrender();
-                cell.unrender();
-                console.log('setting edit mode...')
-                this.edit_mode();
+                new_cell.set_text(texta);
             }
         };
     };
