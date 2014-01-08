@@ -38,6 +38,7 @@ function(widget_manager, underscore, backbone){
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
+            this.key_value_lock = null;
             this.id = model_id;
             this.views = [];
 
@@ -89,18 +90,20 @@ function(widget_manager, underscore, backbone){
 
         // Handle when a widget is updated via the python side.
         apply_update: function (state) {
-            this.updating = true;
-            try {
-                for (var key in state) {
-                    if (state.hasOwnProperty(key)) {
-                            this.set(key, state[key]);
+            //this.updating = true;
+            for (var key in state) {
+                if (state.hasOwnProperty(key)) {
+                    var value = state[key];
+                    this.key_value_lock = [key, value];
+                    try {
+                        this.set(key, state[key]);
+                    } finally {
+                        this.key_value_lock = null;
                     }
                 }
-                //TODO: are there callbacks that make sense in this case?  If so, attach them here as an option
-                this.save();
-            } finally {
-                this.updating = false;
             }
+            //TODO: are there callbacks that make sense in this case?  If so, attach them here as an option
+            this.save();
         },
 
 
@@ -130,39 +133,43 @@ function(widget_manager, underscore, backbone){
 
             // Only send updated state if the state hasn't been changed 
             // during an update.
-            if (this.comm !== undefined) {
-                if (!this.updating) {
-                    if (this.pending_msgs >= this.msg_throttle) {
-                        // The throttle has been exceeded, buffer the current msg so
-                        // it can be sent once the kernel has finished processing 
-                        // some of the existing messages.
-                        if (method=='patch') {
-                            if (this.msg_buffer === null) {
-                                this.msg_buffer = $.extend({}, model_json); // Copy
-                            }
-                            for (attr in options.attrs) {
-                                this.msg_buffer[attr] = options.attrs[attr];
-                            }
-                        } else {
+            if (this.comm !== undefined) {    
+                if (this.pending_msgs >= this.msg_throttle) {
+                    // The throttle has been exceeded, buffer the current msg so
+                    // it can be sent once the kernel has finished processing 
+                    // some of the existing messages.
+                    if (method=='patch') {
+                        if (this.msg_buffer === null) {
                             this.msg_buffer = $.extend({}, model_json); // Copy
                         }
-
-                    } else {
-                        // We haven't exceeded the throttle, send the message like 
-                        // normal.  If this is a patch operation, just send the 
-                        // changes.
-                        var send_json = model_json;
-                        if (method =='patch') {
-                            send_json = {};
-                            for (attr in options.attrs) {
-                                send_json[attr] = options.attrs[attr];
+                        for (attr in options.attrs) {
+                            var value = options.attrs[attr];
+                            if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
+                                this.msg_buffer[attr] = value;
                             }
                         }
-
-                        var data = {method: 'backbone', sync_data: send_json};
-                        this.comm.send(data, options.callbacks);
-                        this.pending_msgs++;
+                    } else {
+                        this.msg_buffer = $.extend({}, model_json); // Copy
                     }
+
+                } else {
+                    // We haven't exceeded the throttle, send the message like 
+                    // normal.  If this is a patch operation, just send the 
+                    // changes.
+                    var send_json = model_json;
+                    if (method =='patch') {
+                        send_json = {};
+                        for (attr in options.attrs) {
+                            var value = options.attrs[attr];
+                            if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
+                                send_json[attr] = value;
+                            }
+                        }
+                    }
+
+                    var data = {method: 'backbone', sync_data: send_json};
+                    this.comm.send(data, options.callbacks);
+                    this.pending_msgs++;
                 }
             }
             
