@@ -1048,7 +1048,8 @@ var IPython = (function (IPython) {
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
-        // Todo: implement spliting for other cell types.
+        var mdc = IPython.MarkdownCell;
+        var rc = IPython.RawCell;
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
@@ -1059,10 +1060,10 @@ var IPython = (function (IPython) {
                 cell.set_text(textb);
                 var new_cell = this.insert_cell_above('code');
                 new_cell.set_text(texta);
-            } else if (cell instanceof IPython.MarkdownCell && !cell.rendered) {
+            } else if (((cell instanceof mdc) || (cell instanceof rc)) && !cell.rendered) {
                 // We know cell is !rendered so we can use set_text.
                 cell.set_text(textb);
-                var new_cell = this.insert_cell_above('markdown');
+                var new_cell = this.insert_cell_above(cell.cell_type);
                 // Unrender the new cell so we can call set_text.
                 new_cell.unrender();
                 new_cell.set_text(texta);
@@ -1076,6 +1077,8 @@ var IPython = (function (IPython) {
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
+        var mdc = IPython.MarkdownCell;
+        var rc = IPython.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1091,7 +1094,7 @@ var IPython = (function (IPython) {
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
-            } else if (cell instanceof IPython.MarkdownCell) {
+            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
                 cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(upper_text+'\n\n'+text);
                 if (render) {
@@ -1111,6 +1114,8 @@ var IPython = (function (IPython) {
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
+        var mdc = IPython.MarkdownCell;
+        var rc = IPython.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1126,7 +1131,7 @@ var IPython = (function (IPython) {
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
-            } else if (cell instanceof IPython.MarkdownCell) {
+            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
                 cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(text+'\n\n'+lower_text);
                 if (render) {
