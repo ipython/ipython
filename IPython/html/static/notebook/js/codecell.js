@@ -172,8 +172,9 @@ var IPython = (function (IPython) {
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
+        var tooltip_closed = null;
         if (event.type === 'keydown' && event.which != key.TAB ) {
-            IPython.tooltip.remove_and_cancel_tooltip();
+            tooltip_closed = IPython.tooltip.remove_and_cancel_tooltip();
         }
 
         var cur = editor.getCursor();
@@ -200,8 +201,32 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             }
-        } else if (event.which === key.ESC) {
-            return IPython.tooltip.remove_and_cancel_tooltip(true);
+        } else if (event.which === key.ESC && event.type === 'keydown') {
+            // First see if the tooltip is active and if so cancel it.
+            if (tooltip_closed) {
+                // The call to remove_and_cancel_tooltip above in L177 doesn't pass
+                // force=true. Because of this it won't actually close the tooltip
+                // if it is in sticky mode. Thus, we have to check again if it is open
+                // and close it with force=true.
+                if (!IPython.tooltip._hidden) {
+                    IPython.tooltip.remove_and_cancel_tooltip(true);
+                }
+                // If we closed the tooltip, don't let CM or the global handlers
+                // handle this event.
+                event.stop();
+                return true;
+            }
+            if (that.code_mirror.options.keyMap === "vim-insert") {
+                // vim keyMap is active and in insert mode. In this case we leave vim
+                // insert mode, but remain in notebook edit mode.
+                // Let' CM handle this event and prevent global handling.
+                event.stop();
+                return false;
+            } else {
+                // vim keyMap is not active. Leave notebook edit mode.
+                // Don't let CM handle the event, defer to global handling.
+                return true;
+            }
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
@@ -211,7 +236,7 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             }
-        } else if (event.keyCode === key.TAB && event.type == 'keydown' && event.shiftKey) {
+        } else if (event.keyCode === key.TAB && event.type === 'keydown' && event.shiftKey) {
                 if (editor.somethingSelected()){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");

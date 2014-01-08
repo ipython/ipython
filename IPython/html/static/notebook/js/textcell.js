@@ -155,6 +155,18 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             };
+        } else if (event.which === key.ESC && event.type === 'keydown') {
+            if (that.code_mirror.options.keyMap === "vim-insert") {
+                // vim keyMap is active and in insert mode. In this case we leave vim
+                // insert mode, but remain in notebook edit mode.
+                // Let' CM handle this event and prevent global handling.
+                event.stop();
+                return false;
+            } else {
+                // vim keyMap is not active. Leave notebook edit mode.
+                // Don't let CM handle the event, defer to global handling.
+                return true;
+            }
         }
         return false;
     };
