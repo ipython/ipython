@@ -96,6 +96,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 .attr('data-parent', '#' + this.$el.attr('id'))
                 .attr('href', '#' + uuid)
                 .click(function(evt){ 
+            
+                    // Calling model.set will trigger all of the other views of the 
+                    // model to update.
                     that.model.set("selected_index", index);
                     that.touch();
                  })
@@ -194,6 +197,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 .html('Page ' + index)
                 .appendTo(tab)
                 .click(function (e) {
+            
+                    // Calling model.set will trigger all of the other views of the 
+                    // model to update.
                     that.model.set("selected_index", index);
                     that.touch();
                     that.select_page(index);

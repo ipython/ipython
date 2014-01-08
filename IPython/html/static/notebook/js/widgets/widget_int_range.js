@@ -111,6 +111,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Handles: User input
         events: { "slide" : "handleSliderChange" }, 
         handleSliderChange: function(e, ui) { 
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', ~~ui.value); // Double bit-wise not to truncate decimel
             this.touch();
         },
@@ -193,6 +196,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 // Apply the value if it has changed.
                 if (numericalValue != this.model.get('value')) {
                     this.changing = true;
+            
+                    // Calling model.set will trigger all of the other views of the 
+                    // model to update.
                     this.model.set('value', numericalValue);
                     this.touch();
                     this.changing = false;

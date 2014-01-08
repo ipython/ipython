@@ -124,6 +124,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Handles and validates user input.
         handleChanging: function(e) { 
             this.user_invoked_update = true;
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', e.target.value);
             this.touch();
             this.user_invoked_update = false;
@@ -180,6 +183,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         // Handles and validates user input.
         handleChanging: function(e) { 
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', e.target.value);
             this.touch();
         },

@@ -104,6 +104,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
         // Handle when a value is clicked.
         handle_click: function (e) {
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', $(e.target).html(), this);
             this.touch();
         },
@@ -193,6 +196,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
         // Handle when a value is clicked.
         handle_click: function (e) {
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', $(e.target).val(), this);
             this.touch();
         },
@@ -277,6 +283,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
         // Handle when a value is clicked.
         handle_click: function (e) {
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', $(e.target).html(), this);
             this.touch();
         },
@@ -358,6 +367,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
         // Handle when a value is clicked.
         handle_click: function (e) {
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', $(e.target).html(), this);
             this.touch();
         },

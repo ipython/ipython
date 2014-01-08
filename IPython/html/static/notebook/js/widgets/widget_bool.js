@@ -34,6 +34,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 .attr('type', 'checkbox')
                 .click(function(el) {
                     that.user_invoked_update = true;
+            
+                    // Calling model.set will trigger all of the other views of the 
+                    // model to update.
                     that.model.set('value', that.$checkbox.prop('checked'));
                     that.touch();
                     that.user_invoked_update = false;
@@ -116,6 +119,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Handles and validates user input.
         handleClick: function(e) { 
             this.user_invoked_update = true;
+            
+            // Calling model.set will trigger all of the other views of the 
+            // model to update.
             this.model.set('value', ! $(e.target).hasClass('active'));
             this.touch();
             this.user_invoked_update = false;
