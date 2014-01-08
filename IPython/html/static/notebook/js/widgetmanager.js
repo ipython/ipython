@@ -112,7 +112,8 @@
             var ViewType = this._view_types[view_name];
 >>>>>>> _model_types, _view_types, _models - and document what keys and values are
             if (ViewType !== undefined && ViewType !== null) {
-                var view = new ViewType({model: model, widget_manager: this, options: options});
+                var parameters = {model: model, options: options};
+                var view = new ViewType(parameters);
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);

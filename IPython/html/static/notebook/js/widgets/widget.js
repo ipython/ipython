@@ -184,11 +184,9 @@ function(widget_manager, underscore, backbone){
     // WidgetView class
     //--------------------------------------------------------------------
     var WidgetView = Backbone.View.extend({
-        initialize: function(options) {
+        initialize: function(parameters) {
             this.model.on('change',this.update,this);
-            this.widget_manager = options.widget_manager;
-            this.comm_manager = options.widget_manager.comm_manager;
-            this.options = options.options;
+            this.options = parameters.options;
             this.child_views = [];
             this.model.views.push(this);
         },
