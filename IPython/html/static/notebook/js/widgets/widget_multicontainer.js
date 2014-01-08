@@ -44,38 +44,39 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
         
 
-        update: function() {
+        update: function(options) {
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-
-            // Set tab titles
-            var titles = this.model.get('_titles');
-            for (var page_index in titles) {
-
-                var accordian = this.containers[page_index];
-                if (accordian !== undefined) {
-                    accordian
-                        .find('.accordion-heading')
-                        .find('.accordion-toggle')
-                        .html(titles[page_index]);
-                }
-            }
-
-            // Set selected page
-            var selected_index = this.model.get("selected_index");
-            if (0 <= selected_index && selected_index < this.containers.length) {
-                for (var index in this.containers) {
-                    if (index==selected_index) {
-                        this.containers[index].find('.accordion-body').collapse('show');    
-                    } else {
-                        this.containers[index].find('.accordion-body').collapse('hide');    
-                    }
-                    
-                }
-            }
             
+            if (options === undefined || options.updated_view != this) {
+                // Set tab titles
+                var titles = this.model.get('_titles');
+                for (var page_index in titles) {
+
+                    var accordian = this.containers[page_index];
+                    if (accordian !== undefined) {
+                        accordian
+                            .find('.accordion-heading')
+                            .find('.accordion-toggle')
+                            .html(titles[page_index]);
+                    }
+                }
+
+                // Set selected page
+                var selected_index = this.model.get("selected_index");
+                if (0 <= selected_index && selected_index < this.containers.length) {
+                    for (var index in this.containers) {
+                        if (index==selected_index) {
+                            this.containers[index].find('.accordion-body').collapse('show');    
+                        } else {
+                            this.containers[index].find('.accordion-body').collapse('hide');    
+                        }
+                        
+                    }
+                }
+            }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
@@ -99,7 +100,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
                     // Calling model.set will trigger all of the other views of the 
                     // model to update.
-                    that.model.set("selected_index", index);
+                    that.model.set("selected_index", index, {updated_view: this});
                     that.touch();
                  })
                 .html('Page ' + index)
@@ -160,26 +161,26 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }, this)
         },
 
-        update: function() {
+        update: function(options) {
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            
-            // Set tab titles
-            var titles = this.model.get('_titles');
-            for (var page_index in titles) {
-                var tab_text = this.containers[page_index];
-                if (tab_text !== undefined) {
-                    tab_text.html(titles[page_index]);
+            if (options === undefined || options.updated_view != this) {
+                // Set tab titles
+                var titles = this.model.get('_titles');
+                for (var page_index in titles) {
+                    var tab_text = this.containers[page_index];
+                    if (tab_text !== undefined) {
+                        tab_text.html(titles[page_index]);
+                    }
+                }
+
+                var selected_index = this.model.get('selected_index');
+                if (0 <= selected_index && selected_index < this.containers.length) {
+                    this.select_page(selected_index);
                 }
             }
-
-            var selected_index = this.model.get('selected_index');
-            if (0 <= selected_index && selected_index < this.containers.length) {
-                this.select_page(selected_index);
-            }
-
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
 
@@ -200,7 +201,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
                     // Calling model.set will trigger all of the other views of the 
                     // model to update.
-                    that.model.set("selected_index", index);
+                    that.model.set("selected_index", index, {updated_view: this});
                     that.touch();
                     that.select_page(index);
                 });

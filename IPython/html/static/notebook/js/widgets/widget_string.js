@@ -95,24 +95,24 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         
-        update: function(){
+        update: function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            if (!this.user_invoked_update) {
+            if (options === undefined || options.updated_view != this) {
                 this.$textbox.val(this.model.get('value'));
-            }
 
-            var disabled = this.model.get('disabled');
-            this.$textbox.prop('disabled', disabled);
+                var disabled = this.model.get('disabled');
+                this.$textbox.prop('disabled', disabled);
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -123,13 +123,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         // Handles and validates user input.
         handleChanging: function(e) { 
-            this.user_invoked_update = true;
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', e.target.value);
+            this.model.set('value', e.target.value, {updated_view: this});
             this.touch();
-            this.user_invoked_update = false;
         },
     });
 
@@ -154,24 +152,26 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        update: function(){
+        update: function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            if (this.$textbox.val() != this.model.get('value')) {
-                this.$textbox.val(this.model.get('value'));
-            }
+            if (options === undefined || options.updated_view != this) {
+                if (this.$textbox.val() != this.model.get('value')) {
+                    this.$textbox.val(this.model.get('value'));
+                }
 
-            var disabled = this.model.get('disabled');
-            this.$textbox.prop('disabled', disabled);
+                var disabled = this.model.get('disabled');
+                this.$textbox.prop('disabled', disabled);
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -186,7 +186,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', e.target.value);
+            this.model.set('value', e.target.value, {updated_view: this});
             this.touch();
         },
         

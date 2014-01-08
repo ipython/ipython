@@ -44,66 +44,68 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-
+            
+            if (options === undefined || options.updated_view != this) {
             // Slider related keys.
-            var _keys = ['step', 'max', 'min', 'disabled'];
-            for (var index in _keys) {
-                var key = _keys[index];
-                if (this.model.get(key) !== undefined) {
-                    this.$slider.slider("option", key, this.model.get(key));
+                var _keys = ['step', 'max', 'min', 'disabled'];
+                for (var index in _keys) {
+                    var key = _keys[index];
+                    if (this.model.get(key) !== undefined) {
+                        this.$slider.slider("option", key, this.model.get(key));
+                    }
                 }
-            }
 
-            // WORKAROUND FOR JQUERY SLIDER BUG.
-            // The horizontal position of the slider handle
-            // depends on the value of the slider at the time
-            // of orientation change.  Before applying the new
-            // workaround, we set the value to the minimum to
-            // make sure that the horizontal placement of the
-            // handle in the vertical slider is always 
-            // consistent.
-            var orientation = this.model.get('orientation');
-            var value = this.model.get('min');
-            this.$slider.slider('option', 'value', value);
-            this.$slider.slider('option', 'orientation', orientation);
-            value = this.model.get('value');
-            this.$slider.slider('option', 'value', value);
+                // WORKAROUND FOR JQUERY SLIDER BUG.
+                // The horizontal position of the slider handle
+                // depends on the value of the slider at the time
+                // of orientation change.  Before applying the new
+                // workaround, we set the value to the minimum to
+                // make sure that the horizontal placement of the
+                // handle in the vertical slider is always 
+                // consistent.
+                var orientation = this.model.get('orientation');
+                var value = this.model.get('min');
+                this.$slider.slider('option', 'value', value);
+                this.$slider.slider('option', 'orientation', orientation);
+                value = this.model.get('value');
+                this.$slider.slider('option', 'value', value);
 
-            // Use the right CSS classes for vertical & horizontal sliders
-            if (orientation=='vertical') {
-                this.$slider_container
-                    .removeClass('widget-hslider')
-                    .addClass('widget-vslider');
-                this.$el
-                    .removeClass('widget-hbox-single')
-                    .addClass('widget-vbox-single');
-                this.$label
-                    .removeClass('widget-hlabel')
-                    .addClass('widget-vlabel');
+                // Use the right CSS classes for vertical & horizontal sliders
+                if (orientation=='vertical') {
+                    this.$slider_container
+                        .removeClass('widget-hslider')
+                        .addClass('widget-vslider');
+                    this.$el
+                        .removeClass('widget-hbox-single')
+                        .addClass('widget-vbox-single');
+                    this.$label
+                        .removeClass('widget-hlabel')
+                        .addClass('widget-vlabel');
 
-            } else {
-                this.$slider_container
-                    .removeClass('widget-vslider')
-                    .addClass('widget-hslider');
-                this.$el
-                    .removeClass('widget-vbox-single')
-                    .addClass('widget-hbox-single');
-                this.$label
-                    .removeClass('widget-vlabel')
-                    .addClass('widget-hlabel');
-            }
+                } else {
+                    this.$slider_container
+                        .removeClass('widget-vslider')
+                        .addClass('widget-hslider');
+                    this.$el
+                        .removeClass('widget-vbox-single')
+                        .addClass('widget-hbox-single');
+                    this.$label
+                        .removeClass('widget-vlabel')
+                        .addClass('widget-hlabel');
+                }
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -114,7 +116,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', ui.value); 
+            this.model.set('value', ui.value, {updated_view: this}); 
             this.touch();
         },
     });
@@ -141,29 +143,31 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
 
-            var value = this.model.get('value');
-            if (!this.changing && parseFloat(this.$textbox.val()) != value) {
-                this.$textbox.val(value);
-            }
-            
-            if (this.model.get('disabled')) {
-                this.$textbox.attr('disabled','disabled');
-            } else {
-                this.$textbox.removeAttr('disabled');
-            }
+            if (options === undefined || options.updated_view != this) {
+                var value = this.model.get('value');
+                if (parseFloat(this.$textbox.val()) != value) {
+                    this.$textbox.val(value);
+                }
+                
+                if (this.model.get('disabled')) {
+                    this.$textbox.attr('disabled','disabled');
+                } else {
+                    this.$textbox.removeAttr('disabled');
+                }
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -196,13 +200,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
 
                 // Apply the value if it has changed.
                 if (numericalValue != this.model.get('value')) {
-                    this.changing = true;
             
                     // Calling model.set will trigger all of the other views of the 
                     // model to update.
-                    this.model.set('value', numericalValue);
+                    this.model.set('value', numericalValue, {updated_view: this});
                     this.touch();
-                    this.changing = false;
                 }
             }
         },

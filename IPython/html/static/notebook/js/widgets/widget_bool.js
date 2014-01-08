@@ -33,13 +33,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.$checkbox = $('<input />')
                 .attr('type', 'checkbox')
                 .click(function(el) {
-                    that.user_invoked_update = true;
             
                     // Calling model.set will trigger all of the other views of the 
                     // model to update.
-                    that.model.set('value', that.$checkbox.prop('checked'));
+                    that.model.set('value', that.$checkbox.prop('checked'), {updated_view: this});
                     that.touch();
-                    that.user_invoked_update = false;
                 })
                 .appendTo(this.$el);
 
@@ -47,12 +45,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            if (!this.user_invoked_update) {
+            if (options === undefined || options.updated_view != this) {
                 this.$checkbox.prop('checked', this.model.get('value'));
 
                 var disabled = this.model.get('disabled');
@@ -89,12 +87,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update(); // Set defaults.
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            if (!this.user_invoked_update) {
+            if (options === undefined || options.updated_view != this) {
                 if (this.model.get('value')) {
                     this.$button.addClass('active');
                 } else {
@@ -118,13 +116,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         // Handles and validates user input.
         handleClick: function(e) { 
-            this.user_invoked_update = true;
-            
+
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', ! $(e.target).hasClass('active'));
+            this.model.set('value', ! $(e.target).hasClass('active'), {updated_view: this});
             this.touch();
-            this.user_invoked_update = false;
         },
     });
 

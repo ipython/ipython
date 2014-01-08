@@ -55,49 +55,51 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
 
-            var selected_item_text = this.model.get('value');
-            selected_item_text = selected_item_text.replace(/ /g, '&nbsp;');
-            selected_item_text = selected_item_text.replace(/\n/g, '<br>\n');
-            if (selected_item_text.length === 0) {
-                this.$droplabel.html('&nbsp;');
-            } else {
-                this.$droplabel.html(selected_item_text);    
-            }
-            
-            var items = this.model.get('values');
-            this.$droplist.html('');
-            for (var index in items) {
-                var that = this;
-                var item_button = $('<a href="#"/>')
-                    .html(items[index])
-                    .on('click', $.proxy(this.handle_click, this));
-                this.$droplist.append($('<li />').append(item_button));
-            }
-            
-            if (this.model.get('disabled')) {
-                this.$buttongroup.attr('disabled','disabled');
-                this.$droplabel.attr('disabled','disabled');
-                this.$dropbutton.attr('disabled','disabled');
-                this.$droplist.attr('disabled','disabled');
-            } else {
-                this.$buttongroup.removeAttr('disabled');
-                this.$droplabel.removeAttr('disabled');
-                this.$dropbutton.removeAttr('disabled');
-                this.$droplist.removeAttr('disabled');
-            }
+            if (options === undefined || options.updated_view != this) {
+                var selected_item_text = this.model.get('value');
+                selected_item_text = selected_item_text.replace(/ /g, '&nbsp;');
+                selected_item_text = selected_item_text.replace(/\n/g, '<br>\n');
+                if (selected_item_text.length === 0) {
+                    this.$droplabel.html('&nbsp;');
+                } else {
+                    this.$droplabel.html(selected_item_text);    
+                }
+                
+                var items = this.model.get('values');
+                this.$droplist.html('');
+                for (var index in items) {
+                    var that = this;
+                    var item_button = $('<a href="#"/>')
+                        .html(items[index])
+                        .on('click', $.proxy(this.handle_click, this));
+                    this.$droplist.append($('<li />').append(item_button));
+                }
+                
+                if (this.model.get('disabled')) {
+                    this.$buttongroup.attr('disabled','disabled');
+                    this.$droplabel.attr('disabled','disabled');
+                    this.$dropbutton.attr('disabled','disabled');
+                    this.$droplist.attr('disabled','disabled');
+                } else {
+                    this.$buttongroup.removeAttr('disabled');
+                    this.$droplabel.removeAttr('disabled');
+                    this.$dropbutton.removeAttr('disabled');
+                    this.$droplist.removeAttr('disabled');
+                }
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -107,7 +109,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).html(), this);
+            this.model.set('value', $(e.target).html(), {updated_view: this});
             this.touch();
         },
         
@@ -134,62 +136,63 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            
-            // Add missing items to the DOM.
-            var items = this.model.get('values');
-            var disabled = this.model.get('disabled');
-            for (var index in items) {
-                var item_query = ' :input[value="' + items[index] + '"]';
-                if (this.$el.find(item_query).length === 0) {
-                    var $label = $('<label />')
-                        .addClass('radio')
-                        .html(items[index])
-                        .appendTo(this.$container);
-                    
-                    $('<input />')
-                        .attr('type', 'radio')
-                        .addClass(this.model)
-                        .val(items[index])
-                        .prependTo($label)
-                        .on('click', $.proxy(this.handle_click, this));
-                }
-                
-                var $item_element = this.$container.find(item_query);
-                if (this.model.get('value') == items[index]) {
-                    $item_element.prop('checked', true);
-                } else {
-                    $item_element.prop('checked', false);
-                }
-                $item_element.prop('disabled', disabled);
-            }
-            
-            // Remove items that no longer exist.
-            this.$container.find('input').each(function(i, obj) {
-                var value = $(obj).val();
-                var found = false;
+            if (options === undefined || options.updated_view != this) {
+                // Add missing items to the DOM.
+                var items = this.model.get('values');
+                var disabled = this.model.get('disabled');
                 for (var index in items) {
-                    if (items[index] == value) {
-                        found = true;
-                        break;
+                    var item_query = ' :input[value="' + items[index] + '"]';
+                    if (this.$el.find(item_query).length === 0) {
+                        var $label = $('<label />')
+                            .addClass('radio')
+                            .html(items[index])
+                            .appendTo(this.$container);
+                        
+                        $('<input />')
+                            .attr('type', 'radio')
+                            .addClass(this.model)
+                            .val(items[index])
+                            .prependTo($label)
+                            .on('click', $.proxy(this.handle_click, this));
                     }
+                    
+                    var $item_element = this.$container.find(item_query);
+                    if (this.model.get('value') == items[index]) {
+                        $item_element.prop('checked', true);
+                    } else {
+                        $item_element.prop('checked', false);
+                    }
+                    $item_element.prop('disabled', disabled);
                 }
                 
-                if (!found) {
-                    $(obj).parent().remove();
-                }
-            });
+                // Remove items that no longer exist.
+                this.$container.find('input').each(function(i, obj) {
+                    var value = $(obj).val();
+                    var found = false;
+                    for (var index in items) {
+                        if (items[index] == value) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        $(obj).parent().remove();
+                    }
+                });
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -199,7 +202,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).val(), this);
+            this.model.set('value', $(e.target).val(), {updated_view: this});
             this.touch();
         },
     });
@@ -226,57 +229,58 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            
-            // Add missing items to the DOM.
-            var items = this.model.get('values');
-            var disabled = this.model.get('disabled');
-            for (var index in items) {
-                var item_query = ' :contains("' + items[index] + '")';
-                if (this.$buttongroup.find(item_query).length === 0) {
-                    $('<button />')
-                        .attr('type', 'button')
-                        .addClass('btn')
-                        .html(items[index])
-                        .appendTo(this.$buttongroup)
-                        .on('click', $.proxy(this.handle_click, this));
-                }
-                
-                var $item_element = this.$buttongroup.find(item_query);
-                if (this.model.get('value') == items[index]) {
-                    $item_element.addClass('active');
-                } else {
-                    $item_element.removeClass('active');
-                }
-                $item_element.prop('disabled', disabled);
-            }
-            
-            // Remove items that no longer exist.
-            this.$buttongroup.find('button').each(function(i, obj) {
-                var value = $(obj).html();
-                var found = false;
+            if (options === undefined || options.updated_view != this) {
+                // Add missing items to the DOM.
+                var items = this.model.get('values');
+                var disabled = this.model.get('disabled');
                 for (var index in items) {
-                    if (items[index] == value) {
-                        found = true;
-                        break;
+                    var item_query = ' :contains("' + items[index] + '")';
+                    if (this.$buttongroup.find(item_query).length === 0) {
+                        $('<button />')
+                            .attr('type', 'button')
+                            .addClass('btn')
+                            .html(items[index])
+                            .appendTo(this.$buttongroup)
+                            .on('click', $.proxy(this.handle_click, this));
                     }
+                    
+                    var $item_element = this.$buttongroup.find(item_query);
+                    if (this.model.get('value') == items[index]) {
+                        $item_element.addClass('active');
+                    } else {
+                        $item_element.removeClass('active');
+                    }
+                    $item_element.prop('disabled', disabled);
                 }
                 
-                if (!found) {
-                    $(obj).remove();
-                }
-            });
+                // Remove items that no longer exist.
+                this.$buttongroup.find('button').each(function(i, obj) {
+                    var value = $(obj).html();
+                    var found = false;
+                    for (var index in items) {
+                        if (items[index] == value) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        $(obj).remove();
+                    }
+                });
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -286,7 +290,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).html(), this);
+            this.model.set('value', $(e.target).html(), {updated_view: this});
             this.touch();
         },
         
@@ -313,54 +317,55 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.update();
         },
         
-        update : function(){
+        update : function(options){
             // Update the contents of this view
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            
-            // Add missing items to the DOM.
-            var items = this.model.get('values');
-            for (var index in items) {
-                var item_query = ' :contains("' + items[index] + '")';
-                if (this.$listbox.find(item_query).length === 0) {
-                    $('<option />')
-                        .html(items[index])
-                        .attr('value', items[index])
-                        .appendTo(this.$listbox)
-                        .on('click', $.proxy(this.handle_click, this));
-                }
-            }
-
-            // Select the correct element
-            this.$listbox.val(this.model.get('value'));
-            
-            // Disable listbox if needed
-            var disabled = this.model.get('disabled');
-            this.$listbox.prop('disabled', disabled);
-
-            // Remove items that no longer exist.
-            this.$listbox.find('option').each(function(i, obj) {
-                var value = $(obj).html();
-                var found = false;
+            if (options === undefined || options.updated_view != this) {
+                // Add missing items to the DOM.
+                var items = this.model.get('values');
                 for (var index in items) {
-                    if (items[index] == value) {
-                        found = true;
-                        break;
+                    var item_query = ' :contains("' + items[index] + '")';
+                    if (this.$listbox.find(item_query).length === 0) {
+                        $('<option />')
+                            .html(items[index])
+                            .attr('value', items[index])
+                            .appendTo(this.$listbox)
+                            .on('click', $.proxy(this.handle_click, this));
                     }
                 }
-                
-                if (!found) {
-                    $(obj).remove();
-                }
-            });
 
-            var description = this.model.get('description');
-            if (description.length === 0) {
-                this.$label.hide();
-            } else {
-                this.$label.html(description);
-                this.$label.show();
+                // Select the correct element
+                this.$listbox.val(this.model.get('value'));
+                
+                // Disable listbox if needed
+                var disabled = this.model.get('disabled');
+                this.$listbox.prop('disabled', disabled);
+
+                // Remove items that no longer exist.
+                this.$listbox.find('option').each(function(i, obj) {
+                    var value = $(obj).html();
+                    var found = false;
+                    for (var index in items) {
+                        if (items[index] == value) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        $(obj).remove();
+                    }
+                });
+
+                var description = this.model.get('description');
+                if (description.length === 0) {
+                    this.$label.hide();
+                } else {
+                    this.$label.html(description);
+                    this.$label.show();
+                }
             }
             return IPython.DOMWidgetView.prototype.update.call(this);
         },
@@ -370,7 +375,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).html(), this);
+            this.model.set('value', $(e.target).html(), {updated_view: this});
             this.touch();
         },
         
