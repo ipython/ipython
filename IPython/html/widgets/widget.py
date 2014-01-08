@@ -314,9 +314,10 @@ class DOMWidget(Widget):
     keys = ['visible', '_css'] + Widget.keys
 
     def get_css(self, key, selector=""):
-        """Get a CSS property of the widget.  Note, this function does not
-        actually request the CSS from the front-end;  Only properties that have
-        been set with set_css can be read.
+        """Get a CSS property of the widget.
+
+        Note: This function does not actually request the CSS from the 
+        front-end;  Only properties that have been set with set_css can be read.
 
         Parameters
         ----------
@@ -332,8 +333,9 @@ class DOMWidget(Widget):
 
 
     def set_css(self, *args, **kwargs):
-        """Set one or more CSS properties of the widget (shared among all of the
-        views).  This function has two signatures:
+        """Set one or more CSS properties of the widget.
+
+        This function has two signatures:
         - set_css(css_dict, selector='')
         - set_css(key, value, selector='')
 
@@ -346,7 +348,12 @@ class DOMWidget(Widget):
         value
             CSS value
         selector: unicode (optional)
-            JQuery selector to use to apply the CSS key/value.
+            JQuery selector to use to apply the CSS key/value.  If no selector 
+            is provided, an empty selector is used.  An empty selector makes the 
+            front-end try to apply the css to a default element.  The default
+            element is an attribute unique to each view, which is a DOM element
+            of the view that should be styled with common CSS (see 
+            `$el_to_style` in the Javascript code).
         """
         selector = kwargs.get('selector', '')
 
