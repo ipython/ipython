@@ -27,8 +27,8 @@ class ImageWidget(DOMWidget):
     view_name = Unicode('ImageView')
     
     # Define the custom state properties to sync with the front-end
-    keys = ['image_format', 'width', 'height', '_b64value'] + DOMWidget.keys
-    image_format = Unicode('png')
+    keys = ['format', 'width', 'height', '_b64value'] + DOMWidget.keys
+    format = Unicode('png')
     width = Unicode()
     height = Unicode()
     _b64value = Unicode()
