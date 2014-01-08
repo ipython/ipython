@@ -252,8 +252,7 @@ var IPython = (function (IPython) {
             json.evalue = content.evalue;
             json.traceback = content.traceback;
         }
-        // append with dynamic=true
-        this.append_output(json, true);
+        this.append_output(json);
     };
 
     OutputArea.mime_map = {
@@ -288,8 +287,7 @@ var IPython = (function (IPython) {
     };
     
 
-    OutputArea.prototype.append_output = function (json, dynamic) {
-        // If dynamic is true, javascript output will be eval'd.
+    OutputArea.prototype.append_output = function (json) {
         this.expand();
         // Clear the output if clear is queued.
         var needs_height_reset = false;
@@ -299,11 +297,11 @@ var IPython = (function (IPython) {
         }
 
         if (json.output_type === 'pyout') {
-            this.append_pyout(json, dynamic);
+            this.append_pyout(json);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
         } else if (json.output_type === 'display_data') {
-            this.append_display_data(json, dynamic);
+            this.append_display_data(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         }
@@ -414,13 +412,13 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pyout = function (json, dynamic) {
+    OutputArea.prototype.append_pyout = function (json) {
         var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         }
-        this.append_mime_type(json, toinsert, dynamic);
+        this.append_mime_type(json, toinsert);
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
@@ -481,9 +479,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_display_data = function (json, dynamic) {
+    OutputArea.prototype.append_display_data = function (json) {
         var toinsert = this.create_output_area();
-        if (this.append_mime_type(json, toinsert, dynamic)) {
+        if (this.append_mime_type(json, toinsert)) {
             this._safe_append(toinsert);
             // If we just output latex, typeset it.
             if ( (json.latex !== undefined) || (json.html !== undefined) ) {
@@ -502,23 +500,16 @@ var IPython = (function (IPython) {
         'text/plain'
     ];
 
-    OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
+    OutputArea.prototype.append_mime_type = function (json, element) {
 
         for(var type_i in OutputArea.display_order){
             var type = OutputArea.display_order[type_i];
             if(json[type] !== undefined ){
-                md = json.metadata || {};
-                if(type == 'javascript'){
-                    if (dynamic) {
-                        this.append_javascript(json.javascript, md, element, dynamic);
-                        return true;
-                    }
-                } else {
-                    var append = OutputArea.append_map[type];
-                    if (append !== undefined) {
-                        append.apply(this, [json[type], md, element]);
-                        return true;
-                    }
+                var append = OutputArea.append_map[type];
+                if (append !== undefined) {
+                    md = json.metadata || {};
+                    append.apply(this, [json[type], md, element]);
+                    return true;
                 }
             }
         }
@@ -755,6 +746,14 @@ var IPython = (function (IPython) {
         // TODO: remove this when we update to nbformat 4
         var len = outputs.length;
         var data;
+
+        // We don't want to display javascript on load, so remove it from the
+        // display order for the duration of this function call, but be sure to
+        // put it back in there so incoming messages that contain javascript
+        // representations get displayed
+        var js_index = OutputArea.display_order.indexOf('application/javascript');
+        OutputArea.display_order.splice(js_index, 1);
+
         for (var i=0; i<len; i++) {
             data = outputs[i];
             var msg_type = data.output_type;
@@ -764,9 +763,11 @@ var IPython = (function (IPython) {
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
             }
             
-            // append with dynamic=false.
-            this.append_output(data, false);
+            this.append_output(data);
         }
+
+        // reinsert javascript into display order, see note above
+        OutputArea.display_order.splice(js_index, 0, 'application/javascript');
     };
 
 
