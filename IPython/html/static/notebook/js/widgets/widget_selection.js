@@ -122,8 +122,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .addClass('widget-hbox')
-                .html('');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
@@ -215,8 +214,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .addClass('widget-hbox-single')
-                .html('');
+                .addClass('widget-hbox-single');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
@@ -303,8 +301,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         // Called when view is rendered.
         render : function(){
             this.$el
-                .addClass('widget-hbox')
-                .html('');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
