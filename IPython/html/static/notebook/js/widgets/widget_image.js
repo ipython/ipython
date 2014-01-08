@@ -47,7 +47,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             } else {
                 this.$el.removeAttr('height');
             }
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
         
     });

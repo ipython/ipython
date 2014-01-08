@@ -77,7 +77,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     }
                 }
             }
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
 
         add_child_view: function(view) {
@@ -130,7 +130,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         initialize: function() {
             this.containers = [];
-            IPython.DOMWidgetView.prototype.initialize.apply(this, arguments);
+            IPython.DOMWidgetView.initialize.apply(this, arguments);
         },
 
         render: function(){
@@ -181,7 +181,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.select_page(selected_index);
                 }
             }
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
 
         add_child_view: function(view) {

@@ -271,7 +271,7 @@ function(widget_manager, underscore, backbone){
             // TODO: make changes more granular (e.g., trigger on visible:change)
             this.model.on('change', this.update, this);
             this.model.on('msg:custom', this.on_msg, this);
-            WidgetView.prototype.initialize.apply(this, arguments);
+            WidgetView.initialize.apply(this, arguments);
         },
         
         on_msg: function(msg) {

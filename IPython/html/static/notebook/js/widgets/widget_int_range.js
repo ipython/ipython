@@ -106,7 +106,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
         
         // Handles: User input
@@ -165,7 +165,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
         
         

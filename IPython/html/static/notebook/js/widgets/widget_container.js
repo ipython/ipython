@@ -74,7 +74,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
             set_flex_properties(this, this.$el);
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
     });
 
@@ -258,7 +258,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
                 this.show();
             }
             
-            return IPython.DOMWidgetView.prototype.update.call(this);
+            return IPython.DOMWidgetView.update.apply(this);
         },
         
         _get_selector_element: function(selector) {
@@ -277,7 +277,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
                     return this.$window.find(selector.substring(6));
                 }
             } else {
-                return IPython.DOMWidgetView.prototype._get_selector_element.call(this, selector);
+                return IPython.DOMWidgetView._get_selector_element.apply(this, [selector]);
             }
         },
         
