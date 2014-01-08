@@ -46,9 +46,8 @@ class LatexExporter(TemplateExporter):
     def _default_template_path_default(self):
         return os.path.join("..", "templates", "latex")
 
-    template_skeleton_path = Unicode(
-        os.path.join("..", "templates", "latex", "skeleton"), config=True,
-        help="Path where the template skeleton files are located.") 
+    def _template_skeleton_path_default(self):
+        return os.path.join("..", "templates", "latex", "skeleton")
 
     #Special Jinja2 syntax that will not conflict when exporting latex.
     jinja_comment_block_start = Unicode("((=", config=True)
