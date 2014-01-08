@@ -1053,27 +1053,31 @@ var IPython = (function (IPython) {
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
+            var mode = cell.mode;
             if (cell instanceof IPython.CodeCell) {
+                // In this case the operations keep the notebook in its existing mode
+                // so we don't need to do any post-op mode changes.
                 cell.set_text(textb);
                 var new_cell = this.insert_cell_above('code');
                 new_cell.set_text(texta);
-                this.select_next();
-            } else if (cell instanceof IPython.MarkdownCell) {
-                var render = cell.rendered;
+            } else if (cell instanceof IPython.MarkdownCell && !cell.rendered) {
                 cell.set_text(textb);
                 cell.render();
                 var new_cell = this.insert_cell_above('markdown');
-                new_cell.unrender(); // editor must be visible to call set_text
+                // Editor must be visible to call set_text, so we unrender.
+                // Note that this call will focus the CM editor, which selects
+                // this cell and enters edit mode.
+                new_cell.unrender(); 
                 new_cell.set_text(texta);
                 new_cell.render();
-                this.select_next();
-                if (!render) {
-                    // The final rendered state of the split cells should
-                    // match the original cell's state. The order matters
-                    // here as we want the lower cell (cell) to be selected.
-                    new_cell.unrender();
-                    cell.unrender();
-                }
+                // The final rendered state of the split cells should
+                // match the original cell's state. The order matters
+                // here as we want the lower cell (cell) to be selected.
+                // Each of these involves a CM focus and cell select.
+                new_cell.unrender();
+                cell.unrender();
+                console.log('setting edit mode...')
+                this.edit_mode();
             }
         };
     };

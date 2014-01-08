@@ -262,21 +262,6 @@ var IPython = (function (IPython) {
         };
     };
 
-
-    /** @method at_bottom **/
-    TextCell.prototype.at_bottom = function () {
-        if (this.rendered) {
-            return true
-        } else {
-            var cursor = this.code_mirror.getCursor();
-            if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
-                return true;
-            } else {
-                return false;
-            };
-        };
-    };
-
     /**
      * @method at_bottom
      * @return {Boolean}

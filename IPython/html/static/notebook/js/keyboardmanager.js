@@ -167,6 +167,13 @@ var IPython = (function (IPython) {
                 };
             }
         },
+        'alt+-' : {
+            help    : 'split cell',
+            handler : function (event) {
+                IPython.notebook.split_cell();
+                return false;
+            }
+        },
     }
 
     // Command mode defaults
