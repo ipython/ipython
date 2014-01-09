@@ -10,10 +10,6 @@ This document describes in-flight development work.
     conflicts for other Pull Requests). Instead, create a new file in the
     `docs/source/whatsnew/pr` folder
 
-
-- `%%capture` cell magic now captures the rich display output, not just
-  stdout/stderr
-
 Select Notebook Name When Renaming a Notebook
 ---------------------------------------------
 
@@ -45,10 +41,6 @@ the initial value::
     c = get_config()
     c.InlineBackend.rc.update({ 'figure.figsize' : (6, 4) })
 
- * In notebook, Showing tooltip on tab has been disables to avoid conflict with
-   completion, Shift-Tab could still be used to invoke tooltip when inside
-   function signature and/or on selection.
-
 Single codebase Python 3 support
 --------------------------------
 
@@ -57,6 +49,117 @@ have now switched to a single codebase which runs natively on Python 2.7
 and 3.3.
 
 For notes on how to maintain this, see :doc:`/development/pycompat`.
+
+changes to hidden namespace on startup
+--------------------------------------
+
+Previously, all names declared in code run at startup
+(startup files, ``ipython -i script.py``, etc.)
+were added to the hidden namespace, which hides the names from tools like ``%whos``.
+There are two changes to this behavior:
+
+1. Scripts run on the command-line ``ipython -i script.py``now behave the same as if they were
+   passed to ``%run``, so their variables are never hidden.
+2. A boolean config flag ``InteractiveShellApp.hide_initial_ns`` has been added to optionally
+   disable the hidden behavior altogether. The default behavior is unchanged.
+
+Using dill to expand serialization support
+------------------------------------------
+
+adds :func:`~IPython.utils.pickleutil.use_dill` for allowing
+dill to extend serialization support in :mod:`IPython.parallel` (closures, etc.).
+Also adds :meth:`DirectView.use_dill` convenience method for enabling dill
+locally and on all engines with one call.
+
+New IPython Console Lexer
+-------------------------
+
+The IPython console lexer has been rewritten and now supports tracebacks
+and customized input/output prompts. An entire suite of lexers is now
+available at :mod:`IPython.nbconvert.utils.lexers`. These include:
+
+IPythonLexer & IPython3Lexer
+  Lexers for pure IPython (python + magic/shell commands)
+
+IPythonPartialTracebackLexer & IPythonTracebackLexer
+  Supports 2.x and 3.x via the keyword `python3`. The partial traceback
+  lexer reads everything but the Python code appearing in a traceback.
+  The full lexer combines the partial lexer with an IPython lexer.
+
+IPythonConsoleLexer
+  A lexer for IPython console sessions, with support for tracebacks.
+  Supports 2.x and 3.x via the keyword `python3`.
+
+IPyLexer
+  A friendly lexer which examines the first line of text and from it,
+  decides whether to use an IPython lexer or an IPython console lexer.
+  Supports 2.x and 3.x via the keyword `python3`.
+
+Previously, the :class:`IPythonConsoleLexer` class was available at
+:mod:`IPython.sphinxext.ipython_console_hightlight`.  It was inserted
+into Pygments' list of available lexers under the name `ipython`.  It should
+be mentioned that this name is inaccurate, since an IPython console session
+is not the same as IPython code (which itself is a superset of the Python
+language).
+
+Now, the Sphinx extension inserts two console lexers into Pygments' list of
+available lexers. Both are IPyLexer instances under the names: `ipython` and
+`ipython3`. Although the names can be confusing (as mentioned above), their
+continued use is, in part, to maintain backwards compatibility and to
+aid typical usage. If a project needs to make Pygments aware of more than just
+the IPyLexer class, then one should not make the IPyLexer class available under
+the name `ipython` and use `ipy` or some other non-conflicting value.
+
+Code blocks such as:
+
+.. code-block:: rst
+
+    .. code-block:: ipython
+
+        In [1]: 2**2
+        Out[1]: 4
+
+will continue to work as before, but now, they will also properly highlight
+tracebacks.  For pure IPython code, the same lexer will also work:
+
+.. code-block:: rst
+
+    .. code-block:: ipython
+
+        x = ''.join(map(str, range(10)))
+        !echo $x
+
+Since the first line of the block did not begin with a standard IPython console
+prompt, the entire block is assumed to consist of IPython code instead.
+
+DisplayFormatter changes
+------------------------
+
+There was no official way to query or remove callbacks in the Formatter API.
+To remedy this, the following methods are added to :class:`BaseFormatter`:
+
+- ``lookup(instance)`` - return appropriate callback or a given object
+- ``lookup_by_type(type_or_str)`` - return appropriate callback for a given type or ``'mod.name'`` type string
+- ``pop(type_or_str)`` - remove a type (by type or string).
+  Pass a second argument to avoid KeyError (like dict).
+
+All of the above methods raise a KeyError if no match is found.
+
+And the following methods are changed:
+
+- ``for_type(type_or_str)`` - behaves the same as before, only adding support for ``'mod.name'``
+  type strings in addition to plain types. This removes the need for ``for_type_by_name()``,
+  but it remains for backward compatibility.
+
+Other changes
+-------------
+
+* `%%capture` cell magic now captures the rich display output, not just
+  stdout/stderr
+
+* In notebook, Showing tooltip on tab has been disables to avoid conflict with
+  completion, Shift-Tab could still be used to invoke tooltip when inside
+  function signature and/or on selection.
 
 * ``object_info_request`` as been replaced by ``object_info`` for consistency in the javascript API.
   ``object_info`` as a simpler interface to register callback that is incompatible with ``object_info_request``.
@@ -70,6 +173,23 @@ For notes on how to maintain this, see :doc:`/development/pycompat`.
 * Equations, images and tables are now centered in Markdown cells.
 * Multiline equations are now centered in output areas; single line equations
   remain left justified.
+
+* IPython config objects can be loaded from and serialized to JSON.
+  JSON config file have the same base name as their ``.py`` counterpart,
+  and will be loaded with higher priority if found.
+
+* bash completion updated with support for all ipython subcommands and flags, including nbconvert
+
+* ``ipython history trim``: added ``--keep=<N>`` as an alias for the more verbose
+  ``--HistoryTrim.keep=<N>``
+* new ``ipython history clear`` subcommand, which is the same as the newly supported
+  ``ipython history trim --keep=0``
+
+* You can now run notebooks in an interactive session via ``%run notebook.ipynb``.
+
+* Print preview is back in the notebook menus, along with options to
+  download the open notebook in various formats. This is powered by
+  nbconvert.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
@@ -98,5 +218,13 @@ Backwards incompatible changes
   :command:`pygmentize` command from the `Pygments <http://pygments.org/>`_ project.
   If you need to keep the exact output of :command:`pycolor`, you can still use
   ``python -m IPython.utils.PyColorize foo.py``.
+
+* :mod:`IPython.lib.irunner` and its command-line entry point have been removed.
+  It had fallen out of use long ago.
+
+* The ``input_prefilter`` hook has been removed, as it was never
+  actually used by the code. The input transformer system offers much
+  more powerful APIs to work with input code. See
+  :doc:`/config/inputtransforms` for details.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
