@@ -61,6 +61,7 @@ from tornado import web
 
 # Our own libraries
 from IPython.html import DEFAULT_STATIC_FILES_PATH
+from .base.handlers import Template404
 
 from .services.kernels.kernelmanager import MappingKernelManager
 from .services.notebooks.nbmanager import NotebookManager
@@ -208,6 +209,8 @@ class NotebookWebApplication(web.Application):
             pattern = url_path_join(settings['base_project_url'], handler[0])
             new_handler = tuple([pattern] + list(handler[1:]))
             new_handlers.append(new_handler)
+        # add 404 on the end, which will catch everything that falls through
+        new_handlers.append((r'(.*)', Template404))
         return new_handlers
 
 

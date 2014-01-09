@@ -1,0 +1,31 @@
+{% extends "page.html" %}
+
+{% block login_widget %}
+{% endblock %}
+
+{% block stylesheet %}
+{{super()}}
+<style type="text/css">
+/* disable initial hide */
+div#header, div#site {
+    display: block;
+}
+</style>
+{% endblock %}
+{% block site %}
+
+<div class="error">
+    {% block h1_error %}
+    <h1>{{status_code}} : {{status_message}}</h1>
+    {% endblock h1_error %}
+    {% block error_detail %}
+    {% if message %}
+    <p>The error was:</p>
+    <div class="traceback-wrapper">
+    <pre class="traceback">{{message}}</pre>
+    </div>
+    {% endif %}
+    {% endblock %}
+</header>
+
+{% endblock %}

@@ -6,7 +6,7 @@ from tornado import web
 
 from ..base.handlers import IPythonHandler, notebook_path_regex
 from IPython.nbformat.current import to_notebook_json
-from IPython.nbconvert.exporters.export import exporter_map
+
 from IPython.utils import tz
 from IPython.utils.py3compat import cast_bytes
 
@@ -47,13 +47,33 @@ def respond_zip(handler, name, output, resources):
     handler.finish(buffer.getvalue())
     return True
 
+def get_exporter(format, **kwargs):
+    """get an exporter, raising appropriate errors"""
+    # if this fails, will raise 500
+    try:
+        from IPython.nbconvert.exporters.export import exporter_map
+    except ImportError as e:
+        raise web.HTTPError(500, "Could not import nbconvert: %s" % e)
+    
+    try:
+        Exporter = exporter_map[format]
+    except KeyError:
+        # should this be 400?
+        raise web.HTTPError(404, u"No exporter for format: %s" % format)
+    
+    try:
+        return Exporter(**kwargs)
+    except Exception as e:
+        raise web.HTTPError(500, "Could not construct Exporter: %s" % e)
+
 class NbconvertFileHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('GET',)
     
     @web.authenticated
     def get(self, format, path='', name=None):
-        exporter = exporter_map[format](config=self.config)
+        
+        exporter = get_exporter(format, config=self.config)
         
         path = path.strip('/')
         os_path = self.notebook_manager.get_os_path(name, path)
@@ -62,8 +82,11 @@ class NbconvertFileHandler(IPythonHandler):
 
         info = os.stat(os_path)
         self.set_header('Last-Modified', tz.utcfromtimestamp(info.st_mtime))
-
-        output, resources = exporter.from_filename(os_path)
+        
+        try:
+            output, resources = exporter.from_filename(os_path)
+        except Exception as e:
+            raise web.HTTPError(500, "nbconvert failed: %s" % e)
 
         if respond_zip(self, name, output, resources):
             return
@@ -86,12 +109,15 @@ class NbconvertPostHandler(IPythonHandler):
 
     @web.authenticated 
     def post(self, format):
-        exporter = exporter_map[format](config=self.config)
+        exporter = get_exporter(format, config=self.config)
         
         model = self.get_json_body()
         nbnode = to_notebook_json(model['content'])
-
-        output, resources = exporter.from_notebook_node(nbnode)
+        
+        try:
+            output, resources = exporter.from_notebook_node(nbnode)
+        except Exception as e:
+            raise web.HTTPError(500, "nbconvert failed: %s" % e)
 
         if respond_zip(self, nbnode.metadata.name, output, resources):
             return

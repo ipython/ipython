@@ -19,8 +19,8 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import os
 
-# other libs/dependencies
-from jinja2 import Environment, FileSystemLoader, ChoiceLoader, TemplateNotFound
+# other libs/dependencies are imported at runtime
+# to move ImportErrors to runtime when the requirement is actually needed
 
 # IPython imports
 from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Dict, Any
@@ -164,6 +164,8 @@ class TemplateExporter(Exporter):
         
         This is triggered by various trait changes that would change the template.
         """
+        from jinja2 import TemplateNotFound
+        
         if self.template is not None:
             return
         # called too early, do nothing
@@ -274,6 +276,7 @@ class TemplateExporter(Exporter):
         """
         Create the Jinja templating environment.
         """
+        from jinja2 import Environment, ChoiceLoader, FileSystemLoader
         here = os.path.dirname(os.path.realpath(__file__))
         loaders = []
         if extra_loaders:
