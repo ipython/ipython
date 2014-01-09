@@ -42,6 +42,7 @@ var IPython = (function (IPython) {
                     callback : function () {
                         IPython.notebook.insert_cell_below('code');
                         IPython.notebook.select_next();
+                        IPython.notebook.focus_cell();
                         }
                 }
             ],'insert_above_below');

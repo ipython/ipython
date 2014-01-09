@@ -280,6 +280,7 @@ var IPython = (function (IPython) {
             handler : function (event) {
                 IPython.notebook.insert_cell_above('code');
                 IPython.notebook.select_prev();
+                IPython.notebook.focus_cell();
                 return false;
             }
         },
@@ -288,6 +289,7 @@ var IPython = (function (IPython) {
             handler : function (event) {
                 IPython.notebook.insert_cell_below('code');
                 IPython.notebook.select_next();
+                IPython.notebook.focus_cell();
                 return false;
             }
         },
