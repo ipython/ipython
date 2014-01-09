@@ -104,21 +104,21 @@ var IPython = (function (IPython) {
         'shift+enter' : {
             help    : 'run cell',
             handler : function (event) {
-                IPython.notebook.execute_selected_cell('shift');
+                IPython.notebook.execute_cell();
                 return false;
             }
         },
         'alt+enter' : {
             help    : 'run cell, insert below',
             handler : function (event) {
-                IPython.notebook.execute_selected_cell('alt');
+                IPython.notebook.execute_cell_and_insert_below();
                 return false;
             }
         },
         'ctrl+enter' : {
             help    : 'run cell, select below',
             handler : function (event) {
-                IPython.notebook.execute_selected_cell('ctrl');
+                IPython.notebook.execute_cell_and_select_below();
                 return false;
             }
         }

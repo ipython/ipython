@@ -100,7 +100,7 @@ var IPython = (function (IPython) {
                     label : 'Run Cell',
                     icon : 'icon-play',
                     callback : function () {
-                    IPython.notebook.execute_selected_cell();
+                    IPython.notebook.execute_cell();
                         }
                 },
                 {

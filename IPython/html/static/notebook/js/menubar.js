@@ -208,10 +208,13 @@ var IPython = (function (IPython) {
         });
         // Cell
         this.element.find('#run_cell').click(function () {
-            IPython.notebook.execute_selected_cell();
+            IPython.notebook.execute_cell();
         });
-        this.element.find('#run_cell_in_place').click(function () {
-            IPython.notebook.execute_selected_cell({terminal:true});
+        this.element.find('#run_cell_select_below').click(function () {
+            IPython.notebook.execute_cell_and_select_below();
+        });
+        this.element.find('#run_cell_insert_below').click(function () {
+            IPython.notebook.execute_cell_and_insert_below();
         });
         this.element.find('#run_all_cells').click(function () {
             IPython.notebook.execute_all_cells();

@@ -1336,48 +1336,77 @@ var IPython = (function (IPython) {
     };
     
     /**
-     * Run the selected cell.
+     * Execute or render cell outputs and go into command mode.
      * 
-     * Execute or render cell outputs.
-     * 
-     * @method execute_selected_cell
-     * @param {Object} options Customize post-execution behavior
+     * @method execute_cell
      */
-    Notebook.prototype.execute_selected_cell = function (mode) {
+    Notebook.prototype.execute_cell = function () {
         // mode = shift, ctrl, alt
-        mode = mode || 'shift'
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
+        
+        cell.execute();
+        this.command_mode();
+        this.set_dirty(true);
+    }
+
+    /**
+     * Execute or render cell outputs and insert a new cell below.
+     * 
+     * @method execute_cell_and_insert_below
+     */
+    Notebook.prototype.execute_cell_and_insert_below = function () {
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
         
         cell.execute();
 
         // If we are at the end always insert a new cell and return
-        if (cell_index === (this.ncells()-1) && mode !== 'shift') {
+        if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
             this.select(cell_index+1);
             this.edit_mode();
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
-        }      
-  
-        if (mode === 'shift') {
-            this.command_mode();
-        } else if (mode === 'ctrl') {
-            this.select(cell_index+1);
-            this.get_cell(cell_index+1).focus_cell();
-        } else if (mode === 'alt') {
-            // Only insert a new cell, if we ended up in an already populated cell
-            var next_text = this.get_cell(cell_index+1).get_text();
-            if (/\S/.test(next_text) === true) {
-                this.insert_cell_below('code');
-            }
-            this.select(cell_index+1);
-            this.edit_mode();
         }
+  
+        // Only insert a new cell, if we ended up in an already populated cell
+        var next_text = this.get_cell(cell_index+1).get_text();
+        if (/\S/.test(next_text) === true) {
+            this.insert_cell_below('code');
+        }
+        this.select(cell_index+1);
+        this.edit_mode();
         this.set_dirty(true);
     };
 
+    /**
+     * Execute or render cell outputs and select the next cell.
+     * 
+     * @method execute_cell_and_select_below
+     */
+    Notebook.prototype.execute_cell_and_select_below = function () {
+
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
+        
+        cell.execute();
+
+        // If we are at the end always insert a new cell and return
+        if (cell_index === (this.ncells()-1)) {
+            this.insert_cell_below('code');
+            this.select(cell_index+1);
+            this.edit_mode();
+            this.scroll_to_bottom();
+            this.set_dirty(true);
+            return;
+        }
+
+        this.select(cell_index+1);
+        this.get_cell(cell_index+1).focus_cell();
+        this.set_dirty(true);
+    };
 
     /**
      * Execute all cells below the selected cell.
@@ -1418,7 +1447,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.execute_cell_range = function (start, end) {
         for (var i=start; i<end; i++) {
             this.select(i);
-            this.execute_selected_cell({add_new:false});
+            this.execute_cell();
         };
     };
 
