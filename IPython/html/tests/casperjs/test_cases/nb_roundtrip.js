@@ -126,5 +126,23 @@ casper.notebook_test(function () {
     this.then(function ( ) {
         check_output_area.apply(this, ['display_data', ['text', 'latex']]);
     });
+    
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import HTML; HTML('<b>it works!</b>')");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['pyout', ['text', 'html']]);
+    });
+
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import HTML, display; display(HTML('<b>it works!</b>'))");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['display_data', ['text', 'html']]);
+    });
 
 });
