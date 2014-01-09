@@ -15,6 +15,9 @@ mime =  {
         "javascript" : "application/javascript",
     };
     
+var black_dot_jpeg="\"\"\"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDACodICUgGiolIiUvLSoyP2lEPzo6P4FcYUxpmYagnpaG\nk5GovfLNqLPltZGT0v/V5fr/////o8v///////L/////2wBDAS0vLz83P3xERHz/rpOu////////\n////////////////////////////////////////////////////////////wgARCAABAAEDAREA\nAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAABP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEA\nAhADEAAAARn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAn//xAAUEQEAAAAAAAAAAAAA\nAAAAAAAA/9oACAEDAQE/AX//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/AX//xAAUEAEA\nAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/An//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/\nIX//2gAMAwEAAgADAAAAEB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EH//xAAUEQEA\nAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EH//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/\nEH//2Q==\"\"\"";
+var black_dot_png = '\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC\"';
+
 // helper function to ensure that the short_name is found in the toJSON
 // represetnation, while the original in-memory cell retains its long mimetype
 // name, and that fromJSON also gets its long mimetype name
@@ -148,8 +151,9 @@ casper.notebook_test(function () {
 
     this.then(function() {
         clear_and_execute(this,
-            "from IPython.display import Image; Image('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC')");
+            "from IPython.display import Image; Image(" + black_dot_png + ")");
     });
+    this.thenEvaluate(function() { IPython.notebook.save_notebook(); });
     
     this.then(function ( ) {
         check_output_area.apply(this, ['pyout', ['text', 'png']]);
@@ -157,10 +161,29 @@ casper.notebook_test(function () {
     
     this.then(function() {
         clear_and_execute(this,
-            "from IPython.display import Image, display; display(Image('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC'))");
+            "from IPython.display import Image, display; display(Image(" + black_dot_png + "))");
     });
     
     this.then(function ( ) {
         check_output_area.apply(this, ['display_data', ['text', 'png']]);
+    });
+
+
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import Image; Image(" + black_dot_jpeg + ", format='jpeg')");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['pyout', ['text', 'jpeg']]);
+    });
+    
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import Image, display; display(Image(" + black_dot_jpeg + ", format='jpeg'))");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['display_data', ['text', 'jpeg']]);
     });
 });
