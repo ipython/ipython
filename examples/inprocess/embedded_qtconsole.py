@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -6,7 +7,7 @@ from IPython.lib import guisupport
 
 
 def print_process_id():
-    print 'Process ID is:', os.getpid()
+    print('Process ID is:', os.getpid())
 
 
 def main():

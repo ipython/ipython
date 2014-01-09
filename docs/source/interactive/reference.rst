@@ -181,11 +181,11 @@ magic, a cell one and one that works in both modes, using just plain functions:
 
     from IPython.core.magic import (register_line_magic, register_cell_magic,
                                     register_line_cell_magic)
-		
+
     @register_line_magic
     def lmagic(line):
         "my line magic"
-	return line
+        return line
 
     @register_cell_magic
     def cmagic(line, cell):
@@ -195,11 +195,11 @@ magic, a cell one and one that works in both modes, using just plain functions:
     @register_line_cell_magic
     def lcmagic(line, cell=None):
         "Magic that works both as %lcmagic and as %%lcmagic"
-	if cell is None:
-	    print "Called as line magic"
-	    return line
-	else:
-	    print "Called as cell magic"
+        if cell is None:
+            print("Called as line magic")
+            return line
+        else:
+            print("Called as cell magic")
             return line, cell
 
     # We delete these to avoid name conflicts for automagic to work
@@ -212,10 +212,11 @@ potentially hold state in between calls, and that have full access to the main
 IPython object:
     
 .. sourcecode:: python
-		
+
     # This code can be put in any Python module, it does not require IPython
     # itself to be running already.  It only creates the magics subclass but
     # doesn't instantiate it yet.
+    from __future__ import print_function
     from IPython.core.magic import (Magics, magics_class, line_magic,
                                     cell_magic, line_cell_magic)
 
@@ -226,8 +227,8 @@ IPython object:
         @line_magic
         def lmagic(self, line):
             "my line magic"
-            print "Full access to the main IPython object:", self.shell
-            print "Variables in the user namespace:", self.shell.user_ns.keys()
+            print("Full access to the main IPython object:", self.shell)
+            print("Variables in the user namespace:", list(self.shell.user_ns.keys()))
             return line
 
         @cell_magic
@@ -239,10 +240,10 @@ IPython object:
         def lcmagic(self, line, cell=None):
             "Magic that works both as %lcmagic and as %%lcmagic"
             if cell is None:
-                print "Called as line magic"
+                print("Called as line magic")
                 return line
             else:
-                print "Called as cell magic"
+                print("Called as cell magic")
                 return line, cell
 
 
@@ -259,11 +260,11 @@ additional state, then you should always call the parent constructor and
 instantiate the class yourself before registration:
 
 .. sourcecode:: python
-		
+
     @magics_class
     class StatefulMagics(Magics):
         "Magics that hold additional state"
-	
+
         def __init__(self, shell, data):
             # You must call the parent constructor
             super(StatefulMagics, self).__init__(shell)
@@ -288,8 +289,8 @@ follows:
 .. sourcecode:: python
 
     def func(self, line):
-        print "Line magic called with line:", line
-	print "IPython object:", self.shell
+        print("Line magic called with line:", line)
+        print("IPython object:", self.shell)
 
     ip = get_ipython()
     # Declare this function as the magic %mycommand
@@ -961,7 +962,7 @@ standard Python tutorial::
     In [3]: ... a, b = 0, 1
 
     In [4]: >>> while b < 10:
-       ...:     ...     print b
+       ...:     ...     print(b)
        ...:     ...     a, b = b, a+b
        ...:     
     1

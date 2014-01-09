@@ -17,7 +17,6 @@ to build much more flexible and powerful tools to browse and pull from the
 history database.
 """
 import sys
-import codecs
 
 from IPython.core.history import HistoryAccessor
 
@@ -34,5 +33,5 @@ dest.write("# coding: utf-8\n")
 hist = HistoryAccessor()
 
 for session, lineno, cell in hist.get_range(session=session_number, raw=raw):
-    # To use this in Python 3, remove the .encode() here:
-    dest.write(cell.encode('utf-8') + '\n')
+    cell = cell.encode('utf-8')  # This line is only needed on Python 2.
+    dest.write(cell + '\n')
