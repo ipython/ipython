@@ -41,7 +41,7 @@ var IPython = (function (IPython) {
     
     // These apply to Firefox and Opera
     var _mozilla_keycodes = {
-        '; :': 59, '= +': 61, '- _': 109, 
+        '; :': 59, '= +': 61, '- _': 173, 'meta': 224
     }
     
     // This apply to Webkit and IE
@@ -170,6 +170,13 @@ var IPython = (function (IPython) {
             }
         },
         'alt+-' : {
+            help    : 'split cell',
+            handler : function (event) {
+                IPython.notebook.split_cell();
+                return false;
+            }
+        },
+        'alt+subtract' : {
             help    : 'split cell',
             handler : function (event) {
                 IPython.notebook.split_cell();
@@ -423,13 +430,6 @@ var IPython = (function (IPython) {
             help    : 'undo last delete',
             handler : function (event) {
                 IPython.notebook.undelete_cell();
-                return false;
-            }
-        },
-        '-' : {
-            help    : 'split cell',
-            handler : function (event) {
-                IPython.notebook.split_cell();
                 return false;
             }
         },
