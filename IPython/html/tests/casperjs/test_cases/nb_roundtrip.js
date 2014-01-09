@@ -108,5 +108,23 @@ casper.notebook_test(function () {
     this.then(function ( ) {
         check_output_area.apply(this, ['display_data', ['text', 'json']]);
     });
+    
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import Latex; Latex('$X^2$')");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['pyout', ['text', 'latex']]);
+    });
+
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import Latex, display; display(Latex('$X^2$'))");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['display_data', ['text', 'latex']]);
+    });
 
 });
