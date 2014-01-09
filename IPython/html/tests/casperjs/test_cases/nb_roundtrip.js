@@ -49,6 +49,18 @@ function check_output_area(output_type, keys) {
     }
 }
 
+
+// helper function to clear the first two cells, set the text of and execute
+// the first one
+function clear_and_execute(that, code) {
+    that.evaluate(function() {
+        IPython.notebook.get_cell(0).clear_output();
+        IPython.notebook.get_cell(1).clear_output();
+    });
+    that.set_cell_text(0, code);
+    that.execute_cell(0);
+}
+
 casper.notebook_test(function () {
     this.evaluate(function () {
         var cell = IPython.notebook.get_cell(0);
@@ -80,13 +92,7 @@ casper.notebook_test(function () {
     });
 
     this.then(function() {
-        // test output of text/plain and application/json keys
-        this.evaluate(function() {
-            IPython.notebook.get_cell(0).clear_output();
-            IPython.notebook.get_cell(1).clear_output();
-        });
-        this.set_cell_text(0, "%lsmagic");
-        this.execute_cell(0);
+        clear_and_execute(this, '%lsmagic');
     });
    
     this.then(function () {
@@ -94,12 +100,7 @@ casper.notebook_test(function () {
     });
 
     this.then(function() {
-        // test display of text/plain and application/json keys
-        this.evaluate(function() {
-            IPython.notebook.get_cell(0).clear_output();
-            IPython.notebook.get_cell(1).clear_output();
-        });
-        this.set_cell_text(0,
+        clear_and_execute(this,
             "x = %lsmagic\nfrom IPython.display import display; display(x)");
         this.execute_cell(0);
     });
