@@ -267,17 +267,15 @@ var IPython = (function (IPython) {
         'd' : {
             help    : 'delete cell (press twice)',
             handler : function (event) {
-                var dc = IPython.delete_count;
-                if (dc === undefined) {
-                    IPython.delete_count = 1;
-                } else if (dc === 0) {
-                    IPython.delete_count = 1;
+                var dc = IPython.keyboard_manager._delete_count;
+                if (dc === 0) {
+                    IPython.keyboard_manager._delete_count = 1;
                     setTimeout(function () {
-                        IPython.delete_count = 0;
+                        IPython.keyboard_manager._delete_count = 0;
                     }, 800);
                 } else if (dc === 1) {
                     IPython.notebook.delete_cell();
-                    IPython.delete_count = 0;
+                    IPython.keyboard_manager._delete_count = 0;
                 }
                 return false;
             }
@@ -525,7 +523,7 @@ var IPython = (function (IPython) {
     var KeyboardManager = function () {
         this.mode = 'command';
         this.enabled = true;
-        this.delete_count = 0;
+        this._delete_count = 0;
         this.bind_events();
         this.command_shortcuts = new ShortcutManager();
         this.command_shortcuts.add_shortcuts(default_common_shortcuts);
