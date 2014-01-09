@@ -3,10 +3,11 @@
 //
 casper.notebook_test(function () {
     var result = this.evaluate(function() {
+        IPython.notebook.command_mode();
         pos0 = IPython.notebook.get_selected_index();
-        IPython.notebook.insert_cell_below('code'); 
+        IPython.utils.press(IPython.keycodes.b)
         pos1 = IPython.notebook.get_selected_index();
-        IPython.notebook.insert_cell_below('code'); 
+        IPython.utils.press(IPython.keycodes.b)
         pos2 = IPython.notebook.get_selected_index();
         // Simulate the "up arrow" and "down arrow" keys.
         IPython.utils.press_up();
