@@ -353,7 +353,7 @@ var IPython = (function (IPython) {
         if (cont) {
             this.code_mirror.refresh();
             this.auto_highlight();
-        };
+        }
         return cont;
     };
 
@@ -372,7 +372,7 @@ var IPython = (function (IPython) {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
         if (cont) {
             this.focus_editor();
-        };
+        }
         return cont;
     }
 

@@ -144,12 +144,12 @@ var IPython = (function (IPython) {
             this.code_mirror.on("change", function(cm, change) {
                 $([IPython.events]).trigger("set_dirty.Notebook", {value: true});
             });
-        };
+        }
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
                 $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
             });
-        };
+        }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
                 if (that.mode === 'edit') {
@@ -165,7 +165,7 @@ var IPython = (function (IPython) {
                     }, 1);
                 }
             });
-        };
+        }
     };
 
     /**
@@ -176,7 +176,7 @@ var IPython = (function (IPython) {
         if (window.MathJax) {
             var cell_math = this.element.get(0);
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, cell_math]);
-        };
+        }
     };
 
     /**
@@ -192,7 +192,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             return false;
-        };
+        }
     };
 
     /**
@@ -208,7 +208,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             return false;
-        };
+        }
     };
 
     /**
@@ -224,7 +224,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             return false;
-        };
+        }
     };
 
     /**
@@ -240,7 +240,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             return false;
-        };
+        }
     };
 
     /**
@@ -256,7 +256,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             return false;
-        };
+        }
     };
 
     /**
@@ -272,7 +272,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             return false;
-        };
+        }
     }
 
     /**
