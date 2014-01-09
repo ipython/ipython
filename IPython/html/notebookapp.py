@@ -727,8 +727,8 @@ class NotebookApp(BaseIPythonApplication):
 
     def write_server_info_file(self):
         """Write the result of server_info() to the JSON file info_file."""
-        with io.open(self.info_file, 'w', encoding='utf-8') as f:
-            json.dump(self.server_info(), f)
+        with open(self.info_file, 'w') as f:
+            json.dump(self.server_info(), f, indent=2)
 
     def remove_server_info_file(self):
         """Remove the nbserver-<pid>.json file created for this server.
