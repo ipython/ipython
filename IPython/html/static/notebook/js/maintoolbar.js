@@ -41,6 +41,7 @@ var IPython = (function (IPython) {
                     icon : 'icon-plus-sign',
                     callback : function () {
                         IPython.notebook.insert_cell_below('code');
+                        IPython.notebook.select_next();
                         }
                 }
             ],'insert_above_below');
