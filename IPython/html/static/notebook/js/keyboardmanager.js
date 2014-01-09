@@ -542,9 +542,7 @@ var IPython = (function (IPython) {
 
     KeyboardManager.prototype.handle_keydown = function (event) {
         var notebook = IPython.notebook;
-        
-        console.log('keyboard_manager', this.mode, event.keyCode);
-        
+
         if (event.which === keycodes['esc']) {
             // Intercept escape at highest level to avoid closing
             // websocket connection with firefox
@@ -569,13 +567,11 @@ var IPython = (function (IPython) {
     }
 
     KeyboardManager.prototype.edit_mode = function () {
-        console.log('KeyboardManager', 'changing to edit mode');
         this.last_mode = this.mode;
         this.mode = 'edit';
     }
 
     KeyboardManager.prototype.command_mode = function () {
-        console.log('KeyboardManager', 'changing to command mode');
         this.last_mode = this.mode;
         this.mode = 'command';
     }

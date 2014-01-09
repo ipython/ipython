@@ -523,7 +523,6 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.command_mode = function () {
         if (this.mode !== 'command') {
-            console.log('\nNotebook', 'changing to command mode');
             var index = this.get_edit_index();
             var cell = this.get_cell(index);
             if (cell) {
@@ -536,7 +535,6 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.edit_mode = function () {
         if (this.mode !== 'edit') {
-            console.log('\nNotebook', 'changing to edit mode');
             var cell = this.get_selected_cell();
             if (cell === null) {return;}  // No cell is selected
             // We need to set the mode to edit to prevent reentering this method

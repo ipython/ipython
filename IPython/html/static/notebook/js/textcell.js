@@ -111,7 +111,7 @@ var IPython = (function (IPython) {
 
     TextCell.prototype.handle_keyevent = function (editor, event) {
 
-        console.log('CM', this.mode, event.which, event.type)
+        // console.log('CM', this.mode, event.which, event.type)
 
         if (this.mode === 'command') {
             return true;
