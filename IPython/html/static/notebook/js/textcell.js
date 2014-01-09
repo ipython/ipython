@@ -204,14 +204,6 @@ var IPython = (function (IPython) {
         this.render();
     };
 
-    TextCell.prototype.command_mode = function () {
-        var cont = IPython.Cell.prototype.command_mode.apply(this);
-        if (cont) {
-            this.focus_cell();
-        };
-        return cont;
-    }
-
     TextCell.prototype.edit_mode = function () {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
         if (cont) {

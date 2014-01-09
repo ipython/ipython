@@ -131,6 +131,7 @@ var IPython = (function (IPython) {
             help    : 'command mode',
             handler : function (event) {
                 IPython.notebook.command_mode();
+                IPython.notebook.focus_cell();
                 return false;
             }
         },
@@ -138,6 +139,7 @@ var IPython = (function (IPython) {
             help    : 'command mode',
             handler : function (event) {
                 IPython.notebook.command_mode();
+                IPython.notebook.focus_cell();
                 return false;
             }
         },

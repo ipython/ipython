@@ -547,6 +547,11 @@ var IPython = (function (IPython) {
         };
     };
 
+    Notebook.prototype.focus_cell = function () {
+        var cell = this.get_selected_cell();
+        if (cell === null) {return;}  // No cell is selected
+        cell.focus_cell();
+    };
 
     // Cell movement
 

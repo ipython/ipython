@@ -368,14 +368,6 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.command_mode = function () {
-        var cont = IPython.Cell.prototype.command_mode.apply(this);
-        if (cont) {
-            this.focus_cell();
-        };
-        return cont;
-    }
-
     CodeCell.prototype.edit_mode = function () {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
         if (cont) {
