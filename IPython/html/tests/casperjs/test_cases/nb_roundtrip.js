@@ -17,10 +17,10 @@ mime =  {
     
 function assert_has(short_name, json, result, result2) {
     long_name = mime[short_name];
-    this.test.assertTrue(result.hasOwnProperty(long_name),
-            'toJSON()   original embeded JSON keeps ' + long_name);
     this.test.assertTrue(json[0].hasOwnProperty(short_name),
             'toJSON()   representation uses ' + short_name);
+    this.test.assertTrue(result.hasOwnProperty(long_name),
+            'toJSON()   original embeded JSON keeps ' + long_name);
     this.test.assertTrue(result2.hasOwnProperty(long_name),
             'fromJSON() embeded ' + short_name + ' gets mime key ' + long_name);
 }
@@ -45,7 +45,7 @@ casper.notebook_test(function () {
         var num_cells = this.get_cells_length();
         this.test.assertEquals(num_cells, 2, '%%javascript magic works');
         this.test.assertTrue(result.hasOwnProperty('application/javascript'),
-            'JS embeded with mime key');
+            'testing JS embeded with mime key');
     });
 
     //this.thenEvaluate(function() { IPython.notebook.save_notebook(); });
