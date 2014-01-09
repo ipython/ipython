@@ -455,18 +455,18 @@ var IPython = (function (IPython) {
         return help;
     }
 
-    ShortcutManager.prototype.canonicalize_key = function (key) {
+    ShortcutManager.prototype.normalize_key = function (key) {
         return inv_keycodes[keycodes[key]];
     }
 
-    ShortcutManager.prototype.canonicalize_shortcut = function (shortcut) {
+    ShortcutManager.prototype.normalize_shortcut = function (shortcut) {
         // Sort a sequence of + separated modifiers into the order alt+ctrl+meta+shift
         var values = shortcut.split("+");
         if (values.length === 1) {
-            return this.canonicalize_key(values[0])
+            return this.normalize_key(values[0])
         } else {
             var modifiers = values.slice(0,-1);
-            var key = this.canonicalize_key(values[values.length-1]);
+            var key = this.normalize_key(values[values.length-1]);
             modifiers.sort();
             return modifiers.join('+') + '+' + key;
         }
@@ -489,7 +489,7 @@ var IPython = (function (IPython) {
     }
 
     ShortcutManager.prototype.add_shortcut = function (shortcut, data) {
-        shortcut = this.canonicalize_shortcut(shortcut);
+        shortcut = this.normalize_shortcut(shortcut);
         this._shortcuts[shortcut] = data;
     }
 
@@ -500,7 +500,7 @@ var IPython = (function (IPython) {
     }
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut) {
-        shortcut = this.canonicalize_shortcut(shortcut);
+        shortcut = this.normalize_shortcut(shortcut);
         delete this._shortcuts[shortcut];
     }
 
