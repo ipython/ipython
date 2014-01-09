@@ -15,6 +15,9 @@ mime =  {
         "javascript" : "application/javascript",
     };
     
+// helper function to ensure that the short_name is found in the toJSON
+// represetnation, while the original in-memory cell retains its long mimetype
+// name, and that fromJSON also gets its long mimetype name
 function assert_has(short_name, json, result, result2) {
     long_name = mime[short_name];
     this.test.assertTrue(json[0].hasOwnProperty(short_name),
@@ -23,6 +26,27 @@ function assert_has(short_name, json, result, result2) {
             'toJSON()   original embeded JSON keeps ' + long_name);
     this.test.assertTrue(result2.hasOwnProperty(long_name),
             'fromJSON() embeded ' + short_name + ' gets mime key ' + long_name);
+}
+          
+// helper function for checkout that the first two cells have a particular
+// output_type (either 'pyout' or 'display_data'), and checks the to/fromJSON
+// for a set of mimetype keys, using their short names ('javascript', 'text',
+// 'png', etc).
+function check_output_area(output_type, keys) {
+    json = this.evaluate(function() {
+        var json = IPython.notebook.get_cell(0).output_area.toJSON();
+        // appended cell will initially be empty, lets add it some output
+        var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
+        return json;
+    });
+    var result = this.get_output_cell(0);
+    var result2 = this.get_output_cell(1);
+    this.test.assertEquals(result.output_type, output_type,
+        'testing ' + output_type + ' for ' + keys.join(' and '));
+
+    for (var idx in keys) {
+        assert_has.apply(this, [keys[idx], json, result, result2]);
+    }
 }
 
 casper.notebook_test(function () {
@@ -51,16 +75,7 @@ casper.notebook_test(function () {
     //this.thenEvaluate(function() { IPython.notebook.save_notebook(); });
 
     this.then(function ( ) {
-        json = this.evaluate(function() {
-            var json = IPython.notebook.get_cell(0).output_area.toJSON();
-            // appended cell will initially be empty, lets add it some output
-            var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
-            return json;
-        });
-        var result = this.get_output_cell(0);
-        var result2 = this.get_output_cell(1);
-
-        assert_has.apply(this, ['javascript', json, result, result2]);
+        check_output_area.apply(this, ['display_data', ['javascript']]);
 
     });
 
@@ -74,22 +89,10 @@ casper.notebook_test(function () {
         this.execute_cell(0);
     });
    
-    this.then(function ( ) {
-        json = this.evaluate(function() {
-            var json = IPython.notebook.get_cell(0).output_area.toJSON();
-            // appended cell will initially be empty, lets add it some output
-            var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
-            return json;
-        });
-        var result = this.get_output_cell(0);
-        var result2 = this.get_output_cell(1);
-        this.test.assertEquals(result.output_type, 'pyout',
-            'testing pyout application/json and text/plain');
-
-        assert_has.apply(this, ['json', json, result, result2]);
-        assert_has.apply(this, ['text', json, result, result2]);
-
+    this.then(function () {
+        check_output_area.apply(this, ['pyout', ['text', 'json']]);
     });
+
     this.then(function() {
         // test display of text/plain and application/json keys
         this.evaluate(function() {
@@ -102,20 +105,7 @@ casper.notebook_test(function () {
     });
 
     this.then(function ( ) {
-        json = this.evaluate(function() {
-            var json = IPython.notebook.get_cell(0).output_area.toJSON();
-            // appended cell will initially be empty, lets add it some output
-            var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
-            return json;
-        });
-        var result = this.get_output_cell(0);
-        var result2 = this.get_output_cell(1);
-        this.test.assertEquals(result.output_type, 'display_data',
-            'testing display_data application/json and text/plain');
-        
-        assert_has.apply(this, ['json', json, result, result2]);
-        assert_has.apply(this, ['text', json, result, result2]);
-
+        check_output_area.apply(this, ['display_data', ['text', 'json']]);
     });
 
 });
