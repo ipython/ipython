@@ -33,6 +33,7 @@ function assert_has(short_name, json, result, result2) {
 // for a set of mimetype keys, using their short names ('javascript', 'text',
 // 'png', etc).
 function check_output_area(output_type, keys) {
+    this.wait_for_output(0);
     json = this.evaluate(function() {
         var json = IPython.notebook.get_cell(0).output_area.toJSON();
         // appended cell will initially be empty, lets add it some output
@@ -102,7 +103,6 @@ casper.notebook_test(function () {
     this.then(function() {
         clear_and_execute(this,
             "x = %lsmagic\nfrom IPython.display import display; display(x)");
-        this.execute_cell(0);
     });
 
     this.then(function ( ) {
@@ -145,4 +145,22 @@ casper.notebook_test(function () {
         check_output_area.apply(this, ['display_data', ['text', 'html']]);
     });
 
+
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import Image; Image('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC')");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['pyout', ['text', 'png']]);
+    });
+    
+    this.then(function() {
+        clear_and_execute(this,
+            "from IPython.display import Image, display; display(Image('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC'))");
+    });
+    
+    this.then(function ( ) {
+        check_output_area.apply(this, ['display_data', ['text', 'png']]);
+    });
 });
