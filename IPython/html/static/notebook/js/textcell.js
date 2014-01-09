@@ -422,39 +422,6 @@ var IPython = (function (IPython) {
     };
 
 
-    /** @method handle_codemirror_keyevent **/
-    RawCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-
-        var that = this;
-        if (this.mode === 'command') {
-            return false
-        } else if (this.mode === 'edit') {
-            // TODO: review these handlers...
-            if (event.which === key.UPARROW && event.type === 'keydown') {
-                // If we are not at the top, let CM handle the up arrow and
-                // prevent the global keydown handler from handling it.
-                if (!that.at_top()) {
-                    event.stop();
-                    return false;
-                } else {
-                    return true;
-                };
-            } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
-                // If we are not at the bottom, let CM handle the down arrow and
-                // prevent the global keydown handler from handling it.
-                if (!that.at_bottom()) {
-                    event.stop();
-                    return false;
-                } else {
-                    return true;
-                };
-            };
-            return false;
-        };
-        return false;
-    };
-
-
     /**
      * @class HeadingCell
      * @extends IPython.TextCell
