@@ -182,7 +182,7 @@ var IPython = (function (IPython) {
             this.auto_highlight();
         }
 
-        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
+        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey || event.altKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
         } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
