@@ -1065,7 +1065,7 @@ var IPython = (function (IPython) {
                 cell.set_text(textb);
                 var new_cell = this.insert_cell_above('code');
                 new_cell.set_text(texta);
-            } else if (((cell instanceof mdc) || (cell instanceof rc)) && !cell.rendered) {
+            } else if ((cell instanceof mdc && !cell.rendered) || (cell instanceof rc)) {
                 // We know cell is !rendered so we can use set_text.
                 cell.set_text(textb);
                 var new_cell = this.insert_cell_above(cell.cell_type);
