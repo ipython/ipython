@@ -76,12 +76,13 @@ casper.wait_for_output = function (cell_num) {
 };
 
 // return the output of a given cell
-casper.get_output_cell = function (cell_num) {
-    var result = casper.evaluate(function (c) {
+casper.get_output_cell = function (cell_num, out_num) {
+    out_num = out_num || 0;
+    var result = casper.evaluate(function (c, o) {
         var cell = IPython.notebook.get_cell(c);
-        return cell.output_area.outputs[0];
+        return cell.output_area.outputs[o];
     },
-    {c : cell_num});
+    {c : cell_num, o : out_num});
     return result;
 };
 

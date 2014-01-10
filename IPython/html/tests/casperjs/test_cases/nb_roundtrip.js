@@ -17,7 +17,7 @@ mime =  {
     
 var black_dot_jpeg="\"\"\"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDACodICUgGiolIiUvLSoyP2lEPzo6P4FcYUxpmYagnpaG\nk5GovfLNqLPltZGT0v/V5fr/////o8v///////L/////2wBDAS0vLz83P3xERHz/rpOu////////\n////////////////////////////////////////////////////////////wgARCAABAAEDAREA\nAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAABP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEA\nAhADEAAAARn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAn//xAAUEQEAAAAAAAAAAAAA\nAAAAAAAA/9oACAEDAQE/AX//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/AX//xAAUEAEA\nAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/An//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/\nIX//2gAMAwEAAgADAAAAEB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EH//xAAUEQEA\nAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EH//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/\nEH//2Q==\"\"\"";
 var black_dot_png = '\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC\"';
-var svg = "\"<svg width='1cm' height='1cm' viewBox='0 0 1000 500'><defs><style>rect {fill:red;}; </style></defs><rect id='r1' x='200' y='100' width='600' height='300' /></svg>\""
+var svg = "\"<svg width='1cm' height='1cm' viewBox='0 0 1000 500'><defs><style>rect {fill:red;}; </style></defs><rect id='r1' x='200' y='100' width='600' height='300' /></svg>\"";
 
 // helper function to ensure that the short_name is found in the toJSON
 // represetnation, while the original in-memory cell retains its long mimetype
@@ -207,5 +207,29 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function() { IPython.notebook.save_notebook(); });
- 
+
+    this.then(function() {
+        clear_and_execute(this, [
+            "from IPython.core.formatters import HTMLFormatter",
+            "x = HTMLFormatter()",
+            "x.format_type = 'text/superfancymimetype'",
+            "get_ipython().display_formatter.formatters['text/superfancymimetype'] = x",
+            "from IPython.display import HTML, display",
+            'display(HTML("yo"))',
+            "HTML('hello')"].join('\n')
+            );
+             
+    });
+    
+    this.then(function ( ) {
+        var long_name = 'text/superfancymimetype';
+        var result = this.get_output_cell(0);
+        this.test.assertTrue(result.hasOwnProperty(long_name),
+            'display_data custom mimetype ' + long_name);
+        var result = this.get_output_cell(0, 1);
+        this.test.assertTrue(result.hasOwnProperty(long_name),
+            'pyout custom mimetype ' + long_name);
+    
+    });
+    
 });
