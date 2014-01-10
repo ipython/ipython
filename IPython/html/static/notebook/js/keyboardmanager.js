@@ -550,8 +550,10 @@ var IPython = (function (IPython) {
         if (typeof(data) === 'function') {
             data = {help: '', help_index: '', handler: data}
         }
+        data.help_index = data.help_index || '';
+        data.help = data.help || '';
         if (data.help_index === '') {
-            data.help_index = 'zz',
+            data.help_index = 'zz';
         }
         shortcut = this.normalize_shortcut(shortcut);
         this._shortcuts[shortcut] = data;
