@@ -517,6 +517,9 @@ class EvalFormatter(Formatter):
         v = eval(name, kwargs)
         return v, name
 
+#XXX: As of Python 3.4, the format string parsing no longer splits on a colon
+# inside [], so EvalFormatter can handle slicing. Once we only support 3.4 and
+# above, it should be possible to remove FullEvalFormatter.
 
 @skip_doctest_py3
 class FullEvalFormatter(Formatter):

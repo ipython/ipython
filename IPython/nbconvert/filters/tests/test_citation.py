@@ -11,6 +11,7 @@
 #-----------------------------------------------------------------------------
 
 from ..citation import citation2latex
+from nose.tools import assert_equal
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -51,8 +52,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit
 def test_citation2latex():
     """Are citations parsed properly?"""
     try:
-        import lxml
+        from lxml import html  #analysis:ignore
     except ImportError:
-        assert test_md == citation2latex(test_md) 
+        assert_equal(test_md, citation2latex(test_md))
     else:
-        assert test_md_parsed == citation2latex(test_md)
+        assert_equal(test_md_parsed, citation2latex(test_md))
