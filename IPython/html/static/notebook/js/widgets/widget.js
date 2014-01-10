@@ -171,6 +171,13 @@ function(widget_manager, underscore, backbone){
             return model_json;
         },
 
+        push: function(callbacks) {
+			// Push this model's state to the back-end
+			//
+			// This invokes a Backbone.Sync.
+            this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
+        },
+
         _pack_models: function(value) {
             // Replace models with model ids recursively.
             if (value instanceof Backbone.Model) {
@@ -288,8 +295,7 @@ function(widget_manager, underscore, backbone){
         },
 
         touch: function () {
-            // Associate recent model changes with this notebook.
-            this.model.save(this.model.changedAttributes(), {patch: true, callbacks: this.callbacks()});
+            this.model.push(this.callbacks());
         },
 
     });
