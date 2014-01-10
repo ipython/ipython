@@ -42,6 +42,29 @@ var IPython = (function (IPython) {
         element.append(doc);
 
         // Command mode
+        var cmd_div = this.build_command_help();
+        element.append(cmd_div);
+
+        // Edit mode
+        var edit_div = this.build_edit_help();
+        element.append(edit_div);
+
+        this.shortcut_dialog = IPython.dialog.modal({
+            title : "Keyboard shortcuts",
+            body : element,
+            destroy : false,
+            buttons : {
+                Close : {}
+            }
+        });
+    };
+
+    QuickHelp.prototype.build_command_help = function () {
+        var command_shortcuts = IPython.keyboard_manager.command_shortcuts.help();
+        var help, shortcut;
+        var i, half, n;
+
+        // Command mode
         var cmd_div = $('<div/>').append($('<h4>Command Mode (press ESC to enable)</h4>'));
         var cmd_sub_div = $('<div/>').addClass('hbox');
         var cmd_col1 = $('<div/>').addClass('box-flex0');
@@ -66,7 +89,13 @@ var IPython = (function (IPython) {
         };
         cmd_sub_div.append(cmd_col1).append(cmd_col2);
         cmd_div.append(cmd_sub_div);
-        element.append(cmd_div);
+        return cmd_div;
+    }
+
+    QuickHelp.prototype.build_edit_help = function () {
+        var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
+        var help, shortcut;
+        var i, half, n;
 
         // Edit mode
         var edit_div = $('<div/>').append($('<h4>Edit Mode (press ENTER to enable)</h4>'));
@@ -93,17 +122,8 @@ var IPython = (function (IPython) {
         };
         edit_sub_div.append(edit_col1).append(edit_col2);
         edit_div.append(edit_sub_div);
-        element.append(edit_div);
-
-        this.shortcut_dialog = IPython.dialog.modal({
-            title : "Keyboard shortcuts",
-            body : element,
-            destroy : false,
-            buttons : {
-                Close : {}
-            }
-        });
-    };
+        return edit_div;
+    }
 
     // Set module variables
     IPython.QuickHelp = QuickHelp;

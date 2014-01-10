@@ -510,7 +510,6 @@ var IPython = (function (IPython) {
                 return -1;
             return 0;
         });
-        console.log(help);
         return help;
     }
 
