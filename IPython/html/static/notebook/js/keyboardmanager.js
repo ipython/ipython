@@ -80,6 +80,7 @@ var IPython = (function (IPython) {
     var default_common_shortcuts = {
         'meta+s' : {
             help    : 'save notebook',
+            help_index : 'fb',
             handler : function (event) {
                 IPython.notebook.save_checkpoint();
                 event.preventDefault();
@@ -88,6 +89,7 @@ var IPython = (function (IPython) {
         },
         'ctrl+s' : {
             help    : 'save notebook',
+            help_index : 'fc',
             handler : function (event) {
                 IPython.notebook.save_checkpoint();
                 event.preventDefault();
@@ -96,6 +98,7 @@ var IPython = (function (IPython) {
         },
         'shift' : {
             help    : '',
+            help_index : '',
             handler : function (event) {
                 // ignore shift keydown
                 return true;
@@ -103,22 +106,25 @@ var IPython = (function (IPython) {
         },
         'shift+enter' : {
             help    : 'run cell',
+            help_index : 'ba',
             handler : function (event) {
                 IPython.notebook.execute_cell();
                 return false;
             }
         },
-        'alt+enter' : {
-            help    : 'run cell, insert below',
+        'ctrl+enter' : {
+            help    : 'run cell, select below',
+            help_index : 'bb',
             handler : function (event) {
-                IPython.notebook.execute_cell_and_insert_below();
+                IPython.notebook.execute_cell_and_select_below();
                 return false;
             }
         },
-        'ctrl+enter' : {
-            help    : 'run cell, select below',
+        'alt+enter' : {
+            help    : 'run cell, insert below',
+            help_index : 'bc',
             handler : function (event) {
-                IPython.notebook.execute_cell_and_select_below();
+                IPython.notebook.execute_cell_and_insert_below();
                 return false;
             }
         }
@@ -129,6 +135,7 @@ var IPython = (function (IPython) {
     var default_edit_shortcuts = {
         'esc' : {
             help    : 'command mode',
+            help_index : 'aa',
             handler : function (event) {
                 IPython.notebook.command_mode();
                 IPython.notebook.focus_cell();
@@ -137,6 +144,7 @@ var IPython = (function (IPython) {
         },
         'ctrl+m' : {
             help    : 'command mode',
+            help_index : 'ab',
             handler : function (event) {
                 IPython.notebook.command_mode();
                 IPython.notebook.focus_cell();
@@ -145,6 +153,7 @@ var IPython = (function (IPython) {
         },
         'up' : {
             help    : 'select previous cell',
+            help_index : 'da',
             handler : function (event) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell && cell.at_top()) {
@@ -158,6 +167,7 @@ var IPython = (function (IPython) {
         },
         'down' : {
             help    : 'select next cell',
+            help_index : 'db',
             handler : function (event) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell && cell.at_bottom()) {
@@ -171,13 +181,15 @@ var IPython = (function (IPython) {
         },
         'alt+-' : {
             help    : 'split cell',
+            help_index : 'ea',
             handler : function (event) {
                 IPython.notebook.split_cell();
                 return false;
             }
         },
         'alt+subtract' : {
-            help    : 'split cell',
+            help    : '',
+            help_index : 'eb',
             handler : function (event) {
                 IPython.notebook.split_cell();
                 return false;
@@ -190,6 +202,7 @@ var IPython = (function (IPython) {
     var default_command_shortcuts = {
         'enter' : {
             help    : 'edit mode',
+            help_index : 'aa',
             handler : function (event) {
                 IPython.notebook.edit_mode();
                 return false;
@@ -197,6 +210,7 @@ var IPython = (function (IPython) {
         },
         'up' : {
             help    : 'select previous cell',
+            help_index : 'da',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
@@ -209,6 +223,7 @@ var IPython = (function (IPython) {
         },
         'down' : {
             help    : 'select next cell',
+            help_index : 'db',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
@@ -221,6 +236,7 @@ var IPython = (function (IPython) {
         },
         'k' : {
             help    : 'select previous cell',
+            help_index : 'dc',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
@@ -233,6 +249,7 @@ var IPython = (function (IPython) {
         },
         'j' : {
             help    : 'select next cell',
+            help_index : 'dd',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
@@ -245,6 +262,7 @@ var IPython = (function (IPython) {
         },
         'x' : {
             help    : 'cut cell',
+            help_index : 'ee',
             handler : function (event) {
                 IPython.notebook.cut_cell();
                 return false;
@@ -252,6 +270,7 @@ var IPython = (function (IPython) {
         },
         'c' : {
             help    : 'copy cell',
+            help_index : 'ef',
             handler : function (event) {
                 IPython.notebook.copy_cell();
                 return false;
@@ -259,6 +278,7 @@ var IPython = (function (IPython) {
         },
         'v' : {
             help    : 'paste cell below',
+            help_index : 'eg',
             handler : function (event) {
                 IPython.notebook.paste_cell_below();
                 return false;
@@ -266,6 +286,7 @@ var IPython = (function (IPython) {
         },
         'd' : {
             help    : 'delete cell (press twice)',
+            help_index : 'ei',
             handler : function (event) {
                 var dc = IPython.keyboard_manager._delete_count;
                 if (dc === 0) {
@@ -282,6 +303,7 @@ var IPython = (function (IPython) {
         },
         'a' : {
             help    : 'insert cell above',
+            help_index : 'ec',
             handler : function (event) {
                 IPython.notebook.insert_cell_above('code');
                 IPython.notebook.select_prev();
@@ -291,6 +313,7 @@ var IPython = (function (IPython) {
         },
         'b' : {
             help    : 'insert cell below',
+            help_index : 'ed',
             handler : function (event) {
                 IPython.notebook.insert_cell_below('code');
                 IPython.notebook.select_next();
@@ -300,6 +323,7 @@ var IPython = (function (IPython) {
         },
         'y' : {
             help    : 'to code',
+            help_index : 'ca',
             handler : function (event) {
                 IPython.notebook.to_code();
                 return false;
@@ -307,6 +331,7 @@ var IPython = (function (IPython) {
         },
         'm' : {
             help    : 'to markdown',
+            help_index : 'cb',
             handler : function (event) {
                 IPython.notebook.to_markdown();
                 return false;
@@ -314,6 +339,7 @@ var IPython = (function (IPython) {
         },
         't' : {
             help    : 'to raw',
+            help_index : 'cc',
             handler : function (event) {
                 IPython.notebook.to_raw();
                 return false;
@@ -321,6 +347,7 @@ var IPython = (function (IPython) {
         },
         '1' : {
             help    : 'to heading 1',
+            help_index : 'cd',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 1);
                 return false;
@@ -328,6 +355,7 @@ var IPython = (function (IPython) {
         },
         '2' : {
             help    : 'to heading 2',
+            help_index : 'ce',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 2);
                 return false;
@@ -335,6 +363,7 @@ var IPython = (function (IPython) {
         },
         '3' : {
             help    : 'to heading 3',
+            help_index : 'cf',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 3);
                 return false;
@@ -342,6 +371,7 @@ var IPython = (function (IPython) {
         },
         '4' : {
             help    : 'to heading 4',
+            help_index : 'cg',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 4);
                 return false;
@@ -349,6 +379,7 @@ var IPython = (function (IPython) {
         },
         '5' : {
             help    : 'to heading 5',
+            help_index : 'ch',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 5);
                 return false;
@@ -356,6 +387,7 @@ var IPython = (function (IPython) {
         },
         '6' : {
             help    : 'to heading 6',
+            help_index : 'ci',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 6);
                 return false;
@@ -363,6 +395,7 @@ var IPython = (function (IPython) {
         },
         'o' : {
             help    : 'toggle output',
+            help_index : 'gb',
             handler : function (event) {
                 IPython.notebook.toggle_output();
                 return false;
@@ -370,6 +403,7 @@ var IPython = (function (IPython) {
         },
         'shift+o' : {
             help    : 'toggle output',
+            help_index : 'gc',
             handler : function (event) {
                 IPython.notebook.toggle_output_scroll();
                 return false;
@@ -377,6 +411,7 @@ var IPython = (function (IPython) {
         },
         's' : {
             help    : 'save notebook',
+            help_index : 'fa',
             handler : function (event) {
                 IPython.notebook.save_checkpoint();
                 return false;
@@ -384,6 +419,7 @@ var IPython = (function (IPython) {
         },
         'ctrl+j' : {
             help    : 'move cell down',
+            help_index : 'eb',
             handler : function (event) {
                 IPython.notebook.move_cell_down();
                 return false;
@@ -391,6 +427,7 @@ var IPython = (function (IPython) {
         },
         'ctrl+k' : {
             help    : 'move cell up',
+            help_index : 'ea',
             handler : function (event) {
                 IPython.notebook.move_cell_up();
                 return false;
@@ -398,6 +435,7 @@ var IPython = (function (IPython) {
         },
         'l' : {
             help    : 'toggle line numbers',
+            help_index : 'ga',
             handler : function (event) {
                 IPython.notebook.cell_toggle_line_numbers();
                 return false;
@@ -405,6 +443,7 @@ var IPython = (function (IPython) {
         },
         'i' : {
             help    : 'interrupt kernel',
+            help_index : 'ha',
             handler : function (event) {
                 IPython.notebook.kernel.interrupt();
                 return false;
@@ -412,6 +451,7 @@ var IPython = (function (IPython) {
         },
         '.' : {
             help    : 'restart kernel',
+            help_index : 'hb',
             handler : function (event) {
                 IPython.notebook.restart_kernel();
                 return false;
@@ -419,6 +459,7 @@ var IPython = (function (IPython) {
         },
         'h' : {
             help    : 'keyboard shortcuts',
+            help_index : 'gd',
             handler : function (event) {
                 IPython.quick_help.show_keyboard_shortcuts();
                 return false;
@@ -426,6 +467,7 @@ var IPython = (function (IPython) {
         },
         'z' : {
             help    : 'undo last delete',
+            help_index : 'eh',
             handler : function (event) {
                 IPython.notebook.undelete_cell();
                 return false;
@@ -433,6 +475,7 @@ var IPython = (function (IPython) {
         },
         'shift+=' : {
             help    : 'merge cell below',
+            help_index : 'ej',
             handler : function (event) {
                 IPython.notebook.merge_cell_below();
                 return false;
@@ -450,8 +493,24 @@ var IPython = (function (IPython) {
     ShortcutManager.prototype.help = function () {
         var help = [];
         for (var shortcut in this._shortcuts) {
-            help.push({shortcut: shortcut, help: this._shortcuts[shortcut]['help']});
+            var help_string = this._shortcuts[shortcut]['help'];
+            var help_index = this._shortcuts[shortcut]['help_index'];
+            if (help_string) {
+                help.push({
+                    shortcut: shortcut,
+                    help: help_string,
+                    help_index: help_index}
+                );
+            }
         }
+        help.sort(function (a, b) {
+            if (a.help_index > b.help_index)
+                return 1;
+            if (a.help_index < b.help_index)
+                return -1;
+            return 0;
+        });
+        console.log(help);
         return help;
     }
 
@@ -489,6 +548,9 @@ var IPython = (function (IPython) {
     }
 
     ShortcutManager.prototype.add_shortcut = function (shortcut, data) {
+        if (typeof(data) === 'function') {
+            data = {help: '', handler: data}
+        }
         shortcut = this.normalize_shortcut(shortcut);
         this._shortcuts[shortcut] = data;
     }

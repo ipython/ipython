@@ -1345,6 +1345,7 @@ var IPython = (function (IPython) {
         
         cell.execute();
         this.command_mode();
+        cell.focus_cell();
         this.set_dirty(true);
     }
 
