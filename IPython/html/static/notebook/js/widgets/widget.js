@@ -226,8 +226,14 @@ function(widget_manager, underscore, backbone){
         create_child_view: function(child_model, options) {
             // Create and return a child view.
             //
-            // - given a model and (optionally) a view name if the view name is 
+            // -given a model and (optionally) a view name if the view name is 
             // not given, it defaults to the model's default view attribute.
+	    
+            // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
+	        // it would be great to have the widget manager add the cell metadata
+	        // to the subview without having to add it here.
+	        options = options || {};
+            options.cell = this.options.cell;
             var child_view = this.model.widget_manager.create_view(child_model, options);
             this.child_views[child_model.id] = child_view;
             return child_view;
