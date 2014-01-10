@@ -152,8 +152,8 @@ var IPython = (function (IPython) {
             }
         },
         'up' : {
-            help    : 'select previous cell',
-            help_index : 'da',
+            help    : '',
+            help_index : '',
             handler : function (event) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell && cell.at_top()) {
@@ -166,8 +166,8 @@ var IPython = (function (IPython) {
             }
         },
         'down' : {
-            help    : 'select next cell',
-            help_index : 'db',
+            help    : '',
+            help_index : '',
             handler : function (event) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell && cell.at_bottom()) {
@@ -548,7 +548,10 @@ var IPython = (function (IPython) {
 
     ShortcutManager.prototype.add_shortcut = function (shortcut, data) {
         if (typeof(data) === 'function') {
-            data = {help: '', handler: data}
+            data = {help: '', help_index: '', handler: data}
+        }
+        if (data.help_index === '') {
+            data.help_index = 'zz',
         }
         shortcut = this.normalize_shortcut(shortcut);
         this._shortcuts[shortcut] = data;
