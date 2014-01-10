@@ -99,3 +99,78 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
         else:
             src = path
             _maybe_copy(src, dest, verbose)
+
+#----------------------------------------------------------------------
+# install nbextension app
+#----------------------------------------------------------------------
+
+import logging
+from IPython.utils.traitlets import Bool, Enum
+from IPython.core.application import BaseIPythonApplication
+
+flags = {
+    "overwrite" : ({
+        "NBExtensionApp" : {
+            "overwrite" : True,
+        }}, "Force overwrite of existing files"
+    ),
+    "debug" : ({
+        "NBExtensionApp" : {
+            "verbose" : 2,
+        }}, "Extra output"
+    ),
+    "quiet" : ({
+        "NBExtensionApp" : {
+            "verbose" : 0,
+        }}, "Minimal output"
+    ),
+}
+aliases = {
+    "ipython-dir" : "NBExtensionApp.ipython_dir"
+}
+
+class NBExtensionApp(BaseIPythonApplication):
+    """Entry point for installing notebook extensions"""
+    
+    description = """Install IPython notebook extensions
+    
+    Usage
+    
+        ipython install-nbextension file [more files or folders]
+    
+    This copies files and/or folders into the IPython nbextensions directory.
+    If the requested files are already up to date, no action is taken
+    unless --overwrite is specified.
+    """
+    
+    examples = """
+    ipython install-nbextension /path/to/d3.js /path/to/myextension
+    """
+    aliases = aliases
+    flags = flags
+    
+    overwrite = Bool(False, config=True, help="Force overwrite of existing files")
+    verbose = Enum((0,1,2), default_value=1, config=True,
+        help="Verbosity level"
+    )
+    
+    def install_extensions(self):
+        install_nbextension(self.extra_args,
+            overwrite=self.overwrite,
+            verbose=self.verbose,
+            ipython_dir=self.ipython_dir,
+        )
+    
+    def start(self):
+        if not self.extra_args:
+            nbext = pjoin(self.ipython_dir, u'nbextensions')
+            print("Notebook extensions in %s:" % nbext)
+            for ext in os.listdir(nbext):
+                print(u"    %s" % ext)
+        else:
+            self.install_extensions()
+
+
+if __name__ == '__main__':
+    NBExtensionApp.launch_instance()
+    
