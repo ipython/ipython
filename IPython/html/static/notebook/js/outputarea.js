@@ -421,7 +421,7 @@ var IPython = (function (IPython) {
         this.append_mime_type(json, toinsert);
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
-        if ((json.latex !== undefined) || (json.html !== undefined)) {
+        if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
             this.typeset();
         }
     };
@@ -484,7 +484,7 @@ var IPython = (function (IPython) {
         if (this.append_mime_type(json, toinsert)) {
             this._safe_append(toinsert);
             // If we just output latex, typeset it.
-            if ( (json.latex !== undefined) || (json.html !== undefined) ) {
+            if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
                 this.typeset();
             }
         }
