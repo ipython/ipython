@@ -156,12 +156,12 @@ div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;pa
 a.anchor-link:link{text-decoration:none;padding:0 20px;visibility:hidden}
 h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible}
 div.cell.text_cell.rendered{padding:0}
-div.text_cell_render.rendered_html h1{font-size:32px;margin:8px 0 0 0;font-weight:bold;line-height:1}
-div.text_cell_render.rendered_html h2{font-size:26px;margin:14px 0 0 0;font-weight:bold;line-height:1}
-div.text_cell_render.rendered_html h3{font-size:20px%;margin:20px 0 0 0;font-weight:bold;line-height:1}
-div.text_cell_render.rendered_html h4{font-size:14px;margin:6px 0 0 0;font-weight:bold;line-height:1}
+div.text_cell_render.rendered_html h1{font-size:26px;margin:14px 0 0 0;font-weight:bold;line-height:1}
+div.text_cell_render.rendered_html h2{font-size:22px;margin:14px 0 0 0;font-weight:bold;line-height:1}
+div.text_cell_render.rendered_html h3{font-size:18px;margin:14px 0 0 0;font-weight:bold;line-height:1}
+div.text_cell_render.rendered_html h4{font-size:14px;margin:14px 0 0 0;font-weight:bold;line-height:1}
 div.text_cell_render.rendered_html h5{font-size:14px;margin:6px 0 0 0;font-weight:bold;line-height:1}
-div.text_cell_render.rendered_html h6{font-size:14px;margin:6px;font-weight:bold;line-height:1}
+div.text_cell_render.rendered_html h6{font-size:14px;margin:6px 0 0 0;font-weight:bold;line-height:1}
 .widget-area{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch}.widget-area .widget-subarea{padding:.44em .4em .4em 1px;margin-left:6px;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;-webkit-box-flex:2;-moz-box-flex:2;box-flex:2}
 .widget-hlabel{min-width:10ex;padding-right:8px;padding-top:3px;text-align:right;vertical-align:text-top}
 .widget-vlabel{padding-bottom:5px;text-align:center;vertical-align:text-bottom}
