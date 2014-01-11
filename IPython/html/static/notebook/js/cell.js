@@ -435,9 +435,9 @@ var IPython = (function (IPython) {
         for( var mode in modes) {
             var regs = modes[mode]['reg'];
             // only one key every time but regexp can't be keys...
-            for(var reg in regs ) {
+            for(var i=0; i<regs.length; i++) {
                 // here we handle non magic_modes
-                if(first_line.match(regs[reg]) != null) {
+                if(first_line.match(regs[i]) != null) {
                     if(current_mode == mode){
                         return;
                     }
