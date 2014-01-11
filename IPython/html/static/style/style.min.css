@@ -1439,7 +1439,9 @@ input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-botto
 .ansibgpurple{background-color:magenta;}
 .ansibgcyan{background-color:cyan;}
 .ansibggray{background-color:gray;}
-div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;padding:5px 5px 5px 0px;margin:0px;outline:none;}div.cell.selected{border-radius:4px;border:thin #ababab solid;}
+div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}div.cell.selected{border-radius:4px;border:thin #ababab solid;}
+div.cell.edit_mode{border-radius:4px;border:thin green solid;}
+div.cell{width:100%;padding:5px 5px 5px 0px;margin:0px;outline:none;}
 div.prompt{min-width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;line-height:1.231em;}
 div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;}
 div.prompt:empty{padding-top:0;padding-bottom:0;}
@@ -1535,7 +1537,7 @@ body{background-color:#ffffff;}
 body.notebook_app{overflow:hidden;}
 span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%;}
 div#notebook_panel{margin:0px 0px 0px 0px;padding:0px;-webkit-box-shadow:0 -1px 10px rgba(0, 0, 0, 0.1);-moz-box-shadow:0 -1px 10px rgba(0, 0, 0, 0.1);box-shadow:0 -1px 10px rgba(0, 0, 0, 0.1);}
-div#notebook{overflow-y:scroll;overflow-x:auto;width:100%;padding:5px 5px 15px 5px;margin:0px;border-top:1px solid #ababab;}
+div#notebook{overflow-y:scroll;overflow-x:auto;width:100%;padding:5px 5px 15px 5px;margin:0px;border-top:1px solid #ababab;outline:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;}
 div.ui-widget-content{border:1px solid #ababab;outline:none;}
 pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:0.4em;padding-left:2em;}
 p.dialog{padding:0.2em;}
@@ -1567,7 +1569,6 @@ div#pager_splitter{height:8px;}
 div#pager{overflow:auto;display:none;}div#pager pre{font-size:13px;line-height:1.231em;color:#000000;background-color:#f7f7f7;padding:0.4em;}
 .shortcut_key{display:inline-block;width:15ex;text-align:right;font-family:monospace;}
 .shortcut_descr{display:inline-block;}
-div.quickhelp{float:left;width:50%;}
 span#save_widget{padding:0px 5px;margin-top:12px;}
 span#checkpoint_status,span#autosave_status{font-size:small;}
 @media (max-width:767px){span#save_widget{font-size:small;} span#checkpoint_status,span#autosave_status{font-size:x-small;}}@media (max-width:767px){span#checkpoint_status,span#autosave_status{display:none;}}@media (min-width:768px) and (max-width:979px){span#checkpoint_status{display:none;} span#autosave_status{font-size:x-small;}}.toolbar{padding:0px 10px;margin-top:-5px;}.toolbar select,.toolbar label{width:auto;height:26px;vertical-align:middle;margin-right:2px;margin-bottom:0px;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;padding-top:3px;}

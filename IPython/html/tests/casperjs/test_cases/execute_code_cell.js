@@ -31,11 +31,13 @@ casper.notebook_test(function () {
         var result = this.get_output_cell(0);
         var num_cells = this.get_cells_length();
         this.test.assertEquals(result.text, '11\n', 'cell execute (using ctrl-enter)');
-        this.test.assertEquals(num_cells, 1, '              ^--- does not add a new cell')
+        this.test.assertEquals(num_cells, 2, 'ctrl-enter adds a new cell at the bottom')
     });
     
     // do it again with the keyboard shortcut
     this.thenEvaluate(function () {
+        IPython.notebook.select(1);
+        IPython.notebook.delete_cell();
         var cell = IPython.notebook.get_cell(0);
         cell.set_text('a=12; print(a)');
         cell.clear_output();
@@ -48,7 +50,7 @@ casper.notebook_test(function () {
         var result = this.get_output_cell(0);
         var num_cells = this.get_cells_length();
         this.test.assertEquals(result.text, '12\n', 'cell execute (using shift-enter)');
-        this.test.assertEquals(num_cells, 2, '              ^--- adds a new cell')
+        this.test.assertEquals(num_cells, 1, 'shift-enter adds no new cell at the bottom')
     });
 
     // press the "play" triangle button in the toolbar

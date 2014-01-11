@@ -74,7 +74,7 @@ var IPython = (function (IPython) {
 
 
         var cm_overwrite_options  = {
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
+            onKeyEvent: $.proxy(this.handle_keyevent,this)
         };
 
         options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
@@ -139,6 +139,27 @@ var IPython = (function (IPython) {
         this.completer = new IPython.Completer(this);
     };
 
+    /** @method bind_events */
+    CodeCell.prototype.bind_events = function () {
+        IPython.Cell.prototype.bind_events.apply(this);
+        var that = this;
+
+        this.element.focusout(
+            function() { that.auto_highlight(); }
+        );
+    };
+
+    CodeCell.prototype.handle_keyevent = function (editor, event) {
+
+        // console.log('CM', this.mode, event.which, event.type)
+
+        if (this.mode === 'command') {
+            return true;
+        } else if (this.mode === 'edit') {
+            return this.handle_codemirror_keyevent(editor, event);
+        }
+    };
+
     /**
      *  This method gets called in CodeMirror's onKeyDown/onKeyPress
      *  handlers and is used to provide custom key handling. Its return
@@ -151,8 +172,9 @@ var IPython = (function (IPython) {
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
+        var tooltip_closed = null;
         if (event.type === 'keydown' && event.which != key.TAB ) {
-            IPython.tooltip.remove_and_cancel_tooltip();
+            tooltip_closed = IPython.tooltip.remove_and_cancel_tooltip();
         }
 
         var cur = editor.getCursor();
@@ -160,7 +182,7 @@ var IPython = (function (IPython) {
             this.auto_highlight();
         }
 
-        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
+        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey || event.altKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
         } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
@@ -179,8 +201,32 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             }
-        } else if (event.which === key.ESC) {
-            return IPython.tooltip.remove_and_cancel_tooltip(true);
+        } else if (event.which === key.ESC && event.type === 'keydown') {
+            // First see if the tooltip is active and if so cancel it.
+            if (tooltip_closed) {
+                // The call to remove_and_cancel_tooltip above in L177 doesn't pass
+                // force=true. Because of this it won't actually close the tooltip
+                // if it is in sticky mode. Thus, we have to check again if it is open
+                // and close it with force=true.
+                if (!IPython.tooltip._hidden) {
+                    IPython.tooltip.remove_and_cancel_tooltip(true);
+                }
+                // If we closed the tooltip, don't let CM or the global handlers
+                // handle this event.
+                event.stop();
+                return true;
+            }
+            if (that.code_mirror.options.keyMap === "vim-insert") {
+                // vim keyMap is active and in insert mode. In this case we leave vim
+                // insert mode, but remain in notebook edit mode.
+                // Let' CM handle this event and prevent global handling.
+                event.stop();
+                return false;
+            } else {
+                // vim keyMap is not active. Leave notebook edit mode.
+                // Don't let CM handle the event, defer to global handling.
+                return true;
+            }
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
@@ -190,7 +236,7 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             }
-        } else if (event.keyCode === key.TAB && event.type == 'keydown' && event.shiftKey) {
+        } else if (event.keyCode === key.TAB && event.type === 'keydown' && event.shiftKey) {
                 if (editor.somethingSelected()){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");
@@ -224,7 +270,6 @@ var IPython = (function (IPython) {
         }
         return false;
     };
-
 
     // Kernel related calls.
 
@@ -304,15 +349,32 @@ var IPython = (function (IPython) {
     // Basic cell manipulation.
 
     CodeCell.prototype.select = function () {
-        IPython.Cell.prototype.select.apply(this);
-        this.code_mirror.refresh();
-        this.code_mirror.focus();
-        this.auto_highlight();
-        // We used to need an additional refresh() after the focus, but
-        // it appears that this has been fixed in CM. This bug would show
-        // up on FF when a newly loaded markdown cell was edited.
+        var cont = IPython.Cell.prototype.select.apply(this);
+        if (cont) {
+            this.code_mirror.refresh();
+            this.auto_highlight();
+        }
+        return cont;
     };
 
+    CodeCell.prototype.render = function () {
+        var cont = IPython.Cell.prototype.render.apply(this);
+        // Always execute, even if we are already in the rendered state
+        return cont;
+    };
+    
+    CodeCell.prototype.unrender = function () {
+        // CodeCell is always rendered
+        return false;
+    };
+
+    CodeCell.prototype.edit_mode = function () {
+        var cont = IPython.Cell.prototype.edit_mode.apply(this);
+        if (cont) {
+            this.focus_editor();
+        }
+        return cont;
+    }
 
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};

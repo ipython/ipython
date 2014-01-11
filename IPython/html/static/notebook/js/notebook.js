@@ -13,7 +13,6 @@ var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
-    var key   = IPython.utils.keycodes;
 
     /**
      * A notebook contains and manages cells.
@@ -39,6 +38,9 @@ var IPython = (function (IPython) {
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
+        // It is important to start out in command mode to match the intial mode
+        // of the KeyboardManager.
+        this.mode = 'command';
         this.set_dirty(false);
         this.metadata = {};
         this._checkpoint_after_save = false;
@@ -50,7 +52,6 @@ var IPython = (function (IPython) {
         this.minimum_autosave_interval = 120000;
         // single worksheet for now
         this.worksheet_metadata = {};
-        this.control_key_active = false;
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
         this.nbformat_minor = 0 // Increment this when changing the nbformat
@@ -74,7 +75,7 @@ var IPython = (function (IPython) {
      * @method baseProjectUrl
      * @return {String} The base project URL
      */
-    Notebook.prototype.baseProjectUrl = function(){
+    Notebook.prototype.baseProjectUrl = function() {
         return this._baseProjectUrl || $('body').data('baseProjectUrl');
     };
 
@@ -92,12 +93,13 @@ var IPython = (function (IPython) {
      * @method create_elements
      */
     Notebook.prototype.create_elements = function () {
+        var that = this;
+        this.element.attr('tabindex','-1');
+        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
-        var that = this;
-        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         var end_space = $('<div/>').addClass('end_space');
         end_space.dblclick(function (e) {
             var ncells = that.ncells();
@@ -105,7 +107,6 @@ var IPython = (function (IPython) {
         });
         this.element.append(this.container);
         this.container.append(end_space);
-        $('div#notebook').addClass('border-box-sizing');
     };
 
     /**
@@ -131,7 +132,17 @@ var IPython = (function (IPython) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
         });
-        
+
+        $([IPython.events]).on('edit_mode.Cell', function (event, data) {
+            var index = that.find_cell_index(data.cell);
+            that.select(index);
+            that.edit_mode();
+        });
+
+        $([IPython.events]).on('command_mode.Cell', function (event, data) {
+            that.command_mode();
+        });
+
         $([IPython.events]).on('status_autorestarting.Kernel', function () {
             IPython.dialog.modal({
                 title: "Kernel Restarting",
@@ -144,220 +155,25 @@ var IPython = (function (IPython) {
             });
         });
 
-
-        $(document).keydown(function (event) {
-
-            // Save (CTRL+S) or (AppleKey+S)
-            //metaKey = applekey on mac
-            if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-                that.save_checkpoint();
-                event.preventDefault();
-                return false;
-            } else if (event.which === key.ESC) {
-                // Intercept escape at highest level to avoid closing
-                // websocket connection with firefox
-                IPython.pager.collapse();
-                event.preventDefault();
-            } else if (event.which === key.SHIFT) {
-                // ignore shift keydown
-                return true;
-            }
-            if (event.which === key.UPARROW && !event.shiftKey) {
-                var cell = that.get_selected_cell();
-                if (cell && cell.at_top()) {
-                    event.preventDefault();
-                    that.select_prev();
-                };
-            } else if (event.which === key.DOWNARROW && !event.shiftKey) {
-                var cell = that.get_selected_cell();
-                if (cell && cell.at_bottom()) {
-                    event.preventDefault();
-                    that.select_next();
-                };
-            } else if (event.which === key.ENTER && event.shiftKey) {
-                that.execute_selected_cell();
-                return false;
-            } else if (event.which === key.ENTER && event.altKey) {
-                // Execute code cell, and insert new in place
-                that.execute_selected_cell();
-                 // Only insert a new cell, if we ended up in an already populated cell
-                if (/\S/.test(that.get_selected_cell().get_text()) == true) {
-                    that.insert_cell_above('code');
-                }
-                return false;
-            } else if (event.which === key.ENTER && event.ctrlKey) {
-                that.execute_selected_cell({terminal:true});
-                return false;
-            } else if (event.which === 77 && event.ctrlKey && that.control_key_active == false) {
-                that.control_key_active = true;
-                return false;
-            } else if (event.which === 88 && that.control_key_active) {
-                // Cut selected cell = x
-                that.cut_cell();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 67 && that.control_key_active) {
-                // Copy selected cell = c
-                that.copy_cell();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 86 && that.control_key_active) {
-                // Paste below selected cell = v
-                that.paste_cell_below();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 68 && that.control_key_active) {
-                // Delete selected cell = d
-                that.delete_cell();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 65 && that.control_key_active) {
-                // Insert code cell above selected = a
-                that.insert_cell_above('code');
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 66 && that.control_key_active) {
-                // Insert code cell below selected = b
-                that.insert_cell_below('code');
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 89 && that.control_key_active) {
-                // To code = y
-                that.to_code();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 77 && that.control_key_active) {
-                // To markdown = m
-                that.to_markdown();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 84 && that.control_key_active) {
-                // To Raw = t
-                that.to_raw();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 49 && that.control_key_active) {
-                // To Heading 1 = 1
-                that.to_heading(undefined, 1);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 50 && that.control_key_active) {
-                // To Heading 2 = 2
-                that.to_heading(undefined, 2);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 51 && that.control_key_active) {
-                // To Heading 3 = 3
-                that.to_heading(undefined, 3);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 52 && that.control_key_active) {
-                // To Heading 4 = 4
-                that.to_heading(undefined, 4);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 53 && that.control_key_active) {
-                // To Heading 5 = 5
-                that.to_heading(undefined, 5);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 54 && that.control_key_active) {
-                // To Heading 6 = 6
-                that.to_heading(undefined, 6);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 79 && that.control_key_active) {
-                // Toggle output = o
-                if (event.shiftKey){
-                    that.toggle_output_scroll();
-                } else {
-                    that.toggle_output();
-                }
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 83 && that.control_key_active) {
-                // Save notebook = s
-                that.save_checkpoint();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 74 && that.control_key_active) {
-                // Move cell down = j
-                that.move_cell_down();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 75 && that.control_key_active) {
-                // Move cell up = k
-                that.move_cell_up();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 80 && that.control_key_active) {
-                // Select previous = p
-                that.select_prev();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 78 && that.control_key_active) {
-                // Select next = n
-                that.select_next();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 76 && that.control_key_active) {
-                // Toggle line numbers = l
-                that.cell_toggle_line_numbers();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 73 && that.control_key_active) {
-                // Interrupt kernel = i
-                that.session.interrupt_kernel();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 190 && that.control_key_active) {
-                // Restart kernel = .  # matches qt console
-                that.restart_kernel();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 72 && that.control_key_active) {
-                // Show keyboard shortcuts = h
-                IPython.quick_help.show_keyboard_shortcuts();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 90 && that.control_key_active) {
-                // Undo last cell delete = z
-                that.undelete();
-                that.control_key_active = false;
-                return false;
-            } else if ((event.which === 189 || event.which === 173) &&
-                    that.control_key_active) {
-                // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
-                // Split cell = -
-                that.split_cell();
-                that.control_key_active = false;
-                return false;                                               
-            } else if (that.control_key_active) {
-                that.control_key_active = false;
-                return true;
-            }
-            return true;
-        });
-        
-        var collapse_time = function(time){
+        var collapse_time = function (time) {
             var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var new_height = app_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, time);
-        }
+        };
 
-        this.element.bind('collapse_pager', function (event,extrap) {
+        this.element.bind('collapse_pager', function (event, extrap) {
             var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             collapse_time(time);
         });
 
-        var expand_time = function(time) {
+        var expand_time = function (time) {
             var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var pager_height = $('div#pager').outerHeight(true);
             var new_height = app_height - pager_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, time);
-        }
+        };
 
         this.element.bind('expand_pager', function (event, extrap) {
             var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
@@ -650,6 +466,7 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
+                this.command_mode();
                 this.get_cell(sindex).unselect();
             };
             var cell = this.get_cell(index);
@@ -692,6 +509,48 @@ var IPython = (function (IPython) {
     };
 
 
+    // Edit/Command mode
+
+    Notebook.prototype.get_edit_index = function () {
+        var result = null;
+        this.get_cell_elements().filter(function (index) {
+            if ($(this).data("cell").mode === 'edit') {
+                result = index;
+            };
+        });
+        return result;
+    };
+
+    Notebook.prototype.command_mode = function () {
+        if (this.mode !== 'command') {
+            var index = this.get_edit_index();
+            var cell = this.get_cell(index);
+            if (cell) {
+                cell.command_mode();
+            };
+            this.mode = 'command';
+            IPython.keyboard_manager.command_mode();
+        };
+    };
+
+    Notebook.prototype.edit_mode = function () {
+        if (this.mode !== 'edit') {
+            var cell = this.get_selected_cell();
+            if (cell === null) {return;}  // No cell is selected
+            // We need to set the mode to edit to prevent reentering this method
+            // when cell.edit_mode() is called below.
+            this.mode = 'edit';
+            IPython.keyboard_manager.edit_mode();
+            cell.edit_mode();
+        };
+    };
+
+    Notebook.prototype.focus_cell = function () {
+        var cell = this.get_selected_cell();
+        if (cell === null) {return;}  // No cell is selected
+        cell.focus_cell();
+    };
+
     // Cell movement
 
     /**
@@ -710,6 +569,8 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.before(tomove);
                 this.select(i-1);
+                var cell = this.get_selected_cell();
+                cell.focus_cell();
             };
             this.set_dirty(true);
         };
@@ -726,13 +587,15 @@ var IPython = (function (IPython) {
      **/
     Notebook.prototype.move_cell_down = function (index) {
         var i = this.index_or_selected(index);
-        if ( this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
+        if (this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
             var pivot = this.get_cell_element(i+1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
                 tomove.detach();
                 pivot.after(tomove);
                 this.select(i+1);
+                var cell = this.get_selected_cell();
+                cell.focus_cell();
             };
         };
         this.set_dirty();
@@ -755,9 +618,18 @@ var IPython = (function (IPython) {
         this.undelete_backup = cell.toJSON();
         $('#undelete_cell').removeClass('disabled');
         if (this.is_valid_cell_index(i)) {
+            var old_ncells = this.ncells();
             var ce = this.get_cell_element(i);
             ce.remove();
-            if (i === (this.ncells())) {
+            if (i === 0) {
+                // Always make sure we have at least one cell.
+                if (old_ncells === 1) {
+                    this.insert_cell_below('code');
+                }
+                this.select(0);
+                this.undelete_index = 0;
+                this.undelete_below = false;
+            } else if (i === old_ncells-1 && i !== 0) {
                 this.select(i-1);
                 this.undelete_index = i - 1;
                 this.undelete_below = true;
@@ -771,6 +643,42 @@ var IPython = (function (IPython) {
         };
         return this;
     };
+
+    /**
+     * Restore the most recently deleted cell.
+     * 
+     * @method undelete
+     */
+    Notebook.prototype.undelete_cell = function() {
+        if (this.undelete_backup !== null && this.undelete_index !== null) {
+            var current_index = this.get_selected_index();
+            if (this.undelete_index < current_index) {
+                current_index = current_index + 1;
+            }
+            if (this.undelete_index >= this.ncells()) {
+                this.select(this.ncells() - 1);
+            }
+            else {
+                this.select(this.undelete_index);
+            }
+            var cell_data = this.undelete_backup;
+            var new_cell = null;
+            if (this.undelete_below) {
+                new_cell = this.insert_cell_below(cell_data.cell_type);
+            } else {
+                new_cell = this.insert_cell_above(cell_data.cell_type);
+            }
+            new_cell.fromJSON(cell_data);
+            if (this.undelete_below) {
+                this.select(current_index+1);
+            } else {
+                this.select(current_index);
+            }
+            this.undelete_backup = null;
+            this.undelete_index = null;
+        }
+        $('#undelete_cell').addClass('disabled');
+    }
 
     /**
      * Insert a cell so that after insertion the cell is at given index.
@@ -804,10 +712,14 @@ var IPython = (function (IPython) {
                 cell = new IPython.HeadingCell();
             }
 
-            if(this._insert_element_at_index(cell.element,index)){
+            if(this._insert_element_at_index(cell.element,index)) {
                 cell.render();
-                this.select(this.find_cell_index(cell));
                 $([IPython.events]).trigger('create.Cell', {'cell': cell, 'index': index});
+                cell.refresh();
+                // We used to select the cell after we refresh it, but there
+                // are now cases were this method is called where select is
+                // not appropriate. The selection logic should be handled by the
+                // caller of the the top level insert_cell methods.
                 this.set_dirty(true);
             }
         }
@@ -923,6 +835,8 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -945,13 +859,15 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                // The edit must come before the set_text.
-                target_cell.edit();
+                // We must show the editor before setting its contents
+                target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -975,13 +891,15 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                // The edit must come before the set_text.
-                target_cell.edit();
+                // We must show the editor before setting its contents
+                target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -1009,16 +927,18 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                // The edit must come before the set_text.
+                // We must show the editor before setting its contents
                 target_cell.set_level(level);
-                target_cell.edit();
+                target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
-                this.set_dirty(true);
+                this.select(i);
             };
+            this.edit_mode();
+            this.set_dirty(true);
             $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
             );
@@ -1123,40 +1043,6 @@ var IPython = (function (IPython) {
         };
     };
 
-    // Cell undelete
-
-    /**
-     * Restore the most recently deleted cell.
-     * 
-     * @method undelete
-     */
-    Notebook.prototype.undelete = function() {
-        if (this.undelete_backup !== null && this.undelete_index !== null) {
-            var current_index = this.get_selected_index();
-            if (this.undelete_index < current_index) {
-                current_index = current_index + 1;
-            }
-            if (this.undelete_index >= this.ncells()) {
-                this.select(this.ncells() - 1);
-            }
-            else {
-                this.select(this.undelete_index);
-            }
-            var cell_data = this.undelete_backup;
-            var new_cell = null;
-            if (this.undelete_below) {
-                new_cell = this.insert_cell_below(cell_data.cell_type);
-            } else {
-                new_cell = this.insert_cell_above(cell_data.cell_type);
-            }
-            new_cell.fromJSON(cell_data);
-            this.select(current_index);
-            this.undelete_backup = null;
-            this.undelete_index = null;
-        }
-        $('#undelete_cell').addClass('disabled');
-    }
-
     // Split/merge
 
     /**
@@ -1165,24 +1051,25 @@ var IPython = (function (IPython) {
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
-        // Todo: implement spliting for other cell types.
+        var mdc = IPython.MarkdownCell;
+        var rc = IPython.RawCell;
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
             if (cell instanceof IPython.CodeCell) {
+                // In this case the operations keep the notebook in its existing mode
+                // so we don't need to do any post-op mode changes.
                 cell.set_text(textb);
                 var new_cell = this.insert_cell_above('code');
                 new_cell.set_text(texta);
-                this.select_next();
-            } else if (cell instanceof IPython.MarkdownCell) {
+            } else if ((cell instanceof mdc && !cell.rendered) || (cell instanceof rc)) {
+                // We know cell is !rendered so we can use set_text.
                 cell.set_text(textb);
-                cell.render();
-                var new_cell = this.insert_cell_above('markdown');
-                new_cell.edit(); // editor must be visible to call set_text
+                var new_cell = this.insert_cell_above(cell.cell_type);
+                // Unrender the new cell so we can call set_text.
+                new_cell.unrender();
                 new_cell.set_text(texta);
-                new_cell.render();
-                this.select_next();
             }
         };
     };
@@ -1193,8 +1080,11 @@ var IPython = (function (IPython) {
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
+        var mdc = IPython.MarkdownCell;
+        var rc = IPython.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
+        var render = cell.rendered;
         if (!cell.is_mergeable()) {
             return;
         }
@@ -1207,10 +1097,14 @@ var IPython = (function (IPython) {
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
-            } else if (cell instanceof IPython.MarkdownCell) {
-                cell.edit();
-                cell.set_text(upper_text+'\n'+text);
-                cell.render();
+            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
+                cell.unrender(); // Must unrender before we set_text.
+                cell.set_text(upper_text+'\n\n'+text);
+                if (render) {
+                    // The rendered state of the final cell should match
+                    // that of the original selected cell;
+                    cell.render();
+                }
             };
             this.delete_cell(index-1);
             this.select(this.find_cell_index(cell));
@@ -1223,8 +1117,11 @@ var IPython = (function (IPython) {
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
+        var mdc = IPython.MarkdownCell;
+        var rc = IPython.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
+        var render = cell.rendered;
         if (!cell.is_mergeable()) {
             return;
         }
@@ -1237,10 +1134,14 @@ var IPython = (function (IPython) {
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
-            } else if (cell instanceof IPython.MarkdownCell) {
-                cell.edit();
-                cell.set_text(text+'\n'+lower_text);
-                cell.render();
+            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
+                cell.unrender(); // Must unrender before we set_text.
+                cell.set_text(text+'\n\n'+lower_text);
+                if (render) {
+                    // The rendered state of the final cell should match
+                    // that of the original selected cell;
+                    cell.render();
+                }
             };
             this.delete_cell(index+1);
             this.select(this.find_cell_index(cell));
@@ -1433,35 +1334,76 @@ var IPython = (function (IPython) {
     };
     
     /**
-     * Run the selected cell.
+     * Execute or render cell outputs and go into command mode.
      * 
-     * Execute or render cell outputs.
-     * 
-     * @method execute_selected_cell
-     * @param {Object} options Customize post-execution behavior
+     * @method execute_cell
      */
-    Notebook.prototype.execute_selected_cell = function (options) {
-        // add_new: should a new cell be added if we are at the end of the nb
-        // terminal: execute in terminal mode, which stays in the current cell
-        var default_options = {terminal: false, add_new: true};
-        $.extend(default_options, options);
-        var that = this;
-        var cell = that.get_selected_cell();
-        var cell_index = that.find_cell_index(cell);
-        if (cell instanceof IPython.CodeCell) {
-            cell.execute();
+    Notebook.prototype.execute_cell = function () {
+        // mode = shift, ctrl, alt
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
+        
+        cell.execute();
+        this.command_mode();
+        cell.focus_cell();
+        this.set_dirty(true);
+    }
+
+    /**
+     * Execute or render cell outputs and insert a new cell below.
+     * 
+     * @method execute_cell_and_insert_below
+     */
+    Notebook.prototype.execute_cell_and_insert_below = function () {
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
+        
+        cell.execute();
+
+        // If we are at the end always insert a new cell and return
+        if (cell_index === (this.ncells()-1)) {
+            this.insert_cell_below('code');
+            this.select(cell_index+1);
+            this.edit_mode();
+            this.scroll_to_bottom();
+            this.set_dirty(true);
+            return;
         }
-        if (default_options.terminal) {
-            cell.select_all();
-        } else {
-            if ((cell_index === (that.ncells()-1)) && default_options.add_new) {
-                that.insert_cell_below('code');
-                // If we are adding a new cell at the end, scroll down to show it.
-                that.scroll_to_bottom();
-            } else {
-                that.select(cell_index+1);
-            };
-        };
+  
+        // Only insert a new cell, if we ended up in an already populated cell
+        var next_text = this.get_cell(cell_index+1).get_text();
+        if (/\S/.test(next_text) === true) {
+            this.insert_cell_below('code');
+        }
+        this.select(cell_index+1);
+        this.edit_mode();
+        this.set_dirty(true);
+    };
+
+    /**
+     * Execute or render cell outputs and select the next cell.
+     * 
+     * @method execute_cell_and_select_below
+     */
+    Notebook.prototype.execute_cell_and_select_below = function () {
+
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
+        
+        cell.execute();
+
+        // If we are at the end always insert a new cell and return
+        if (cell_index === (this.ncells()-1)) {
+            this.insert_cell_below('code');
+            this.select(cell_index+1);
+            this.edit_mode();
+            this.scroll_to_bottom();
+            this.set_dirty(true);
+            return;
+        }
+
+        this.select(cell_index+1);
+        this.get_cell(cell_index+1).focus_cell();
         this.set_dirty(true);
     };
 
@@ -1504,7 +1446,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.execute_cell_range = function (start, end) {
         for (var i=start; i<end; i++) {
             this.select(i);
-            this.execute_selected_cell({add_new:false});
+            this.execute_cell();
         };
     };
 
@@ -1584,7 +1526,7 @@ var IPython = (function (IPython) {
                     cell_data.cell_type = 'raw';
                 }
 
-                new_cell = this.insert_cell_at_bottom(cell_data.cell_type);
+                new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
                 new_cell.fromJSON(cell_data);
             };
         };
@@ -1909,9 +1851,13 @@ var IPython = (function (IPython) {
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
+            this.select(0);
+            this.edit_mode();
+        } else {
+            this.select(0);
+            this.command_mode();
         };
         this.set_dirty(false);
-        this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
             var msg = "This notebook has been converted from an older " +

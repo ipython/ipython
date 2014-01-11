@@ -218,6 +218,8 @@ var IPython = (function (IPython) {
         this.complete = $('<div/>').addClass('completions');
         this.complete.attr('id', 'complete');
 
+        // Currently webkit doesn't use the size attr correctly. See:
+        // https://code.google.com/p/chromium/issues/detail?id=4579
         this.sel = $('<select style="width: auto"/>')
             .attr('multiple', 'true')
             .attr('size', Math.min(10, this.raw_result.length));
@@ -255,6 +257,7 @@ var IPython = (function (IPython) {
         this.build_gui_list(this.raw_result);
 
         this.sel.focus();
+        IPython.keyboard_manager.disable();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function () {
             if (!this.done) this.sel.focus();
@@ -279,6 +282,7 @@ var IPython = (function (IPython) {
         if (this.done) return;
         this.done = true;
         $('.completions').remove();
+        IPython.keyboard_manager.enable();
     }
 
     Completer.prototype.pick = function () {

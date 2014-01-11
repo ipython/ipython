@@ -161,7 +161,7 @@ var IPython = (function (IPython) {
             IPython.notebook.delete_cell();
         });
         this.element.find('#undelete_cell').click(function () {
-            IPython.notebook.undelete();
+            IPython.notebook.undelete_cell();
         });
         this.element.find('#split_cell').click(function () {
             IPython.notebook.split_cell();
@@ -200,16 +200,21 @@ var IPython = (function (IPython) {
         // Insert
         this.element.find('#insert_cell_above').click(function () {
             IPython.notebook.insert_cell_above('code');
+            IPython.notebook.select_prev();
         });
         this.element.find('#insert_cell_below').click(function () {
             IPython.notebook.insert_cell_below('code');
+            IPython.notebook.select_next();
         });
         // Cell
         this.element.find('#run_cell').click(function () {
-            IPython.notebook.execute_selected_cell();
+            IPython.notebook.execute_cell();
         });
-        this.element.find('#run_cell_in_place').click(function () {
-            IPython.notebook.execute_selected_cell({terminal:true});
+        this.element.find('#run_cell_select_below').click(function () {
+            IPython.notebook.execute_cell_and_select_below();
+        });
+        this.element.find('#run_cell_insert_below').click(function () {
+            IPython.notebook.execute_cell_and_insert_below();
         });
         this.element.find('#run_all_cells').click(function () {
             IPython.notebook.execute_all_cells();

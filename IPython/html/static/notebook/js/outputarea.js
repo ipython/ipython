@@ -509,6 +509,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_html = function (html, md, element) {
         var toinsert = this.create_output_subarea(md, "output_html rendered_html");
+        IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
     };
@@ -517,6 +518,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
         var element = this.create_output_subarea(md, "output_javascript");
+        IPython.keyboard_manager.register_events(element);
         container.append(element);
         try {
             eval(js);
@@ -646,11 +648,18 @@ var IPython = (function (IPython) {
                 })
             )
         );
+        
         this.element.append(area);
-        // weirdly need double-focus now,
-        // otherwise only the cell will be focused
-        area.find("input.raw_input").focus().focus();
+        var raw_input = area.find('input.raw_input');
+        // Register events that enable/disable the keyboard manager while raw
+        // input is focused.
+        IPython.keyboard_manager.register_events(raw_input);
+        // Note, the following line used to read raw_input.focus().focus().
+        // This seemed to be needed otherwise only the cell would be focused.
+        // But with the modal UI, this seems to work fine with one call to focus().
+        raw_input.focus();
     }
+
     OutputArea.prototype._submit_raw_input = function (evt) {
         var container = this.element.find("div.raw_input");
         var theprompt = container.find("span.input_prompt");

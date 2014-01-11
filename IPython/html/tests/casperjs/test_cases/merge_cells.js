@@ -4,11 +4,12 @@
 casper.notebook_test(function() {
     var output = this.evaluate(function () {
         // Fill in test data.
+        IPython.notebook.command_mode();
         var set_cell_text = function () {
             var cell_one = IPython.notebook.get_selected_cell();
             cell_one.set_text('a = 5');
             
-            IPython.notebook.insert_cell_below('code');
+            IPython.utils.press(IPython.keycodes.b)
             var cell_two = IPython.notebook.get_selected_cell();
             cell_two.set_text('print(a)');
         };
@@ -31,7 +32,7 @@ casper.notebook_test(function() {
     });
     
     this.test.assertEquals(output.above, 'a = 5\nprint(a)',
-                           'Successful insert_cell_above().');
+                           'Successful merge_cell_above().');
     this.test.assertEquals(output.below, 'a = 5\nprint(a)',
-                           'Successful insert_cell_below().');
+                           'Successful merge_cell_below().');
 });
