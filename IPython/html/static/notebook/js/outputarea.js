@@ -239,56 +239,55 @@ var IPython = (function (IPython) {
             json.text = content.data;
             json.stream = content.name;
         } else if (msg_type === "display_data") {
-            json = this.convert_mime_types(json, content.data);
-            json.metadata = this.convert_mime_types({}, content.metadata);
+            json = content.data;
+            json.output_type = msg_type;
+            json.metadata = content.metadata;
         } else if (msg_type === "pyout") {
+            json = content.data;
+            json.output_type = msg_type;
+            json.metadata = content.metadata;
             json.prompt_number = content.execution_count;
-            json = this.convert_mime_types(json, content.data);
-            json.metadata = this.convert_mime_types({}, content.metadata);
         } else if (msg_type === "pyerr") {
             json.ename = content.ename;
             json.evalue = content.evalue;
             json.traceback = content.traceback;
         }
-        // append with dynamic=true
-        this.append_output(json, true);
+        this.append_output(json);
     };
 
-
-    OutputArea.prototype.convert_mime_types = function (json, data) {
-        if (data === undefined) {
-            return json;
-        }
-        if (data['text/plain'] !== undefined) {
-            json.text = data['text/plain'];
-        }
-        if (data['text/html'] !== undefined) {
-            json.html = data['text/html'];
-        }
-        if (data['image/svg+xml'] !== undefined) {
-            json.svg = data['image/svg+xml'];
-        }
-        if (data['image/png'] !== undefined) {
-            json.png = data['image/png'];
-        }
-        if (data['image/jpeg'] !== undefined) {
-            json.jpeg = data['image/jpeg'];
-        }
-        if (data['text/latex'] !== undefined) {
-            json.latex = data['text/latex'];
-        }
-        if (data['application/json'] !== undefined) {
-            json.json = data['application/json'];
-        }
-        if (data['application/javascript'] !== undefined) {
-            json.javascript = data['application/javascript'];
-        }
-        return json;
+    OutputArea.mime_map = {
+        "text/plain" : "text",
+        "text/html" : "html",
+        "image/svg+xml" : "svg",
+        "image/png" : "png",
+        "image/jpeg" : "jpeg",
+        "text/latex" : "latex",
+        "application/json" : "json",
+        "application/javascript" : "javascript",
+    };
+    
+    OutputArea.mime_map_r = {
+        "text" : "text/plain",
+        "html" : "text/html",
+        "svg" : "image/svg+xml",
+        "png" : "image/png",
+        "jpeg" : "image/jpeg",
+        "latex" : "text/latex",
+        "json" : "application/json",
+        "javascript" : "application/javascript",
     };
 
+    OutputArea.prototype.rename_keys = function (data, key_map) {
+        var remapped = {};
+        for (var key in data) {
+            var new_key = key_map[key] || key;
+            remapped[new_key] = data[key];
+        }
+        return remapped;
+    };
+    
 
-    OutputArea.prototype.append_output = function (json, dynamic) {
-        // If dynamic is true, javascript output will be eval'd.
+    OutputArea.prototype.append_output = function (json) {
         this.expand();
         // Clear the output if clear is queued.
         var needs_height_reset = false;
@@ -298,11 +297,11 @@ var IPython = (function (IPython) {
         }
 
         if (json.output_type === 'pyout') {
-            this.append_pyout(json, dynamic);
+            this.append_pyout(json);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
         } else if (json.output_type === 'display_data') {
-            this.append_display_data(json, dynamic);
+            this.append_display_data(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         }
@@ -328,9 +327,19 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.create_output_subarea = function(md, classes) {
+    function _get_metadata_key(metadata, key, mime) {
+        var mime_md = metadata[mime];
+        // mime-specific higher priority
+        if (mime_md && mime_md[key] !== undefined) {
+            return mime_md[key];
+        }
+        // fallback on global
+        return metadata[key];
+    }
+
+    OutputArea.prototype.create_output_subarea = function(md, classes, mime) {
         var subarea = $('<div/>').addClass('output_subarea').addClass(classes);
-        if (md['isolated']) {
+        if (_get_metadata_key(md, 'isolated', mime)) {
             // Create an iframe to isolate the subarea from the rest of the
             // document
             var iframe = $('<iframe/>').addClass('box-flex1');
@@ -403,16 +412,16 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pyout = function (json, dynamic) {
+    OutputArea.prototype.append_pyout = function (json) {
         var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         }
-        this.append_mime_type(json, toinsert, dynamic);
+        this.append_mime_type(json, toinsert);
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
-        if ((json.latex !== undefined) || (json.html !== undefined)) {
+        if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
             this.typeset();
         }
     };
@@ -470,37 +479,36 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_display_data = function (json, dynamic) {
+    OutputArea.prototype.append_display_data = function (json) {
         var toinsert = this.create_output_area();
-        if (this.append_mime_type(json, toinsert, dynamic)) {
+        if (this.append_mime_type(json, toinsert)) {
             this._safe_append(toinsert);
             // If we just output latex, typeset it.
-            if ( (json.latex !== undefined) || (json.html !== undefined) ) {
+            if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
                 this.typeset();
             }
         }
     };
 
-    OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','text'];
+    OutputArea.display_order = [
+        'application/javascript',
+        'text/html',
+        'text/latex',
+        'image/svg+xml',
+        'image/png',
+        'image/jpeg',
+        'text/plain'
+    ];
 
-    OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
-        for(var type_i in OutputArea.display_order){
+    OutputArea.prototype.append_mime_type = function (json, element) {
+
+        for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
-            if(json[type] != undefined ){
-                var md = {};
-                if (json.metadata && json.metadata[type]) {
-                    md = json.metadata[type];
-                };
-                if(type == 'javascript'){
-                    if (dynamic) {
-                        this.append_javascript(json.javascript, md, element, dynamic);
-                        return true;
-                    }
-                } else {
-                    this['append_'+type](json[type], md, element);
-                    return true;
-                }
-                return false;
+            var append = OutputArea.append_map[type];
+            if ((json[type] !== undefined) && append) {
+                var md = json.metadata || {};
+                append.apply(this, [json[type], md, element]);
+                return true;
             }
         }
         return false;
@@ -508,7 +516,8 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_html = function (html, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_html rendered_html");
+        var type = 'text/html';
+        var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
@@ -517,7 +526,8 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
-        var element = this.create_output_subarea(md, "output_javascript");
+        var type = 'application/javascript';
+        var element = this.create_output_subarea(md, "output_javascript", type);
         IPython.keyboard_manager.register_events(element);
         container.append(element);
         try {
@@ -530,7 +540,8 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_text = function (data, md, element, extra_class) {
-        var toinsert = this.create_output_subarea(md, "output_text");
+        var type = 'text/plain';
+        var toinsert = this.create_output_subarea(md, "output_text", type);
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
@@ -544,7 +555,8 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_svg = function (svg, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_svg");
+        var type = 'image/svg+xml';
+        var toinsert = this.create_output_subarea(md, "output_svg", type);
         toinsert.append(svg);
         element.append(toinsert);
     };
@@ -578,7 +590,8 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_png = function (png, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_png");
+        var type = 'image/png';
+        var toinsert = this.create_output_subarea(md, "output_png", type);
         var img = $("<img/>");
         img[0].setAttribute('src','data:image/png;base64,'+png);
         if (md['height']) {
@@ -594,7 +607,8 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
-        var toinsert = this.create_output_subarea(md, "output_jpeg");
+        var type = 'image/jpeg';
+        var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         if (md['height']) {
             img.attr('height', md['height']);
@@ -611,9 +625,21 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
-        var toinsert = this.create_output_subarea(md, "output_latex");
+        var type = 'text/latex';
+        var toinsert = this.create_output_subarea(md, "output_latex", type);
         toinsert.append(latex);
         element.append(toinsert);
+    };
+
+    OutputArea.append_map = {
+        "text/plain" : OutputArea.prototype.append_text,
+        "text/html" : OutputArea.prototype.append_html,
+        "image/svg+xml" : OutputArea.prototype.append_svg,
+        "image/png" : OutputArea.prototype.append_png,
+        "image/jpeg" : OutputArea.prototype.append_jpeg,
+        "text/latex" : OutputArea.prototype.append_latex,
+        "application/json" : OutputArea.prototype.append_json,
+        "application/javascript" : OutputArea.prototype.append_javascript,
     };
 
     OutputArea.prototype.append_raw_input = function (msg) {
@@ -715,18 +741,46 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.fromJSON = function (outputs) {
         var len = outputs.length;
+        var data;
+
+        // We don't want to display javascript on load, so remove it from the
+        // display order for the duration of this function call, but be sure to
+        // put it back in there so incoming messages that contain javascript
+        // representations get displayed
+        var js_index = OutputArea.display_order.indexOf('application/javascript');
+        OutputArea.display_order.splice(js_index, 1);
+
         for (var i=0; i<len; i++) {
-            // append with dynamic=false.
-            this.append_output(outputs[i], false);
+            data = outputs[i];
+            var msg_type = data.output_type;
+            if (msg_type === "display_data" || msg_type === "pyout") {
+                // convert short keys to mime keys
+                // TODO: remove mapping of short keys when we update to nbformat 4
+                 data = this.rename_keys(data, OutputArea.mime_map_r);
+                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
+            }
+            
+            this.append_output(data);
         }
+
+        // reinsert javascript into display order, see note above
+        OutputArea.display_order.splice(js_index, 0, 'application/javascript');
     };
 
 
     OutputArea.prototype.toJSON = function () {
         var outputs = [];
         var len = this.outputs.length;
+        var data;
         for (var i=0; i<len; i++) {
-            outputs[i] = this.outputs[i];
+            data = this.outputs[i];
+            var msg_type = data.output_type;
+            if (msg_type === "display_data" || msg_type === "pyout") {
+                  // convert mime keys to short keys
+                 data = this.rename_keys(data, OutputArea.mime_map);
+                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
+            }
+            outputs[i] = data;
         }
         return outputs;
     };
