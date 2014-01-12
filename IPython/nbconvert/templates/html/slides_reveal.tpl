@@ -1,5 +1,5 @@
 {%- extends 'reveal_internals/slides.tpl' -%}
-{% from 'math.tpl' import mathjax %}
+{% from 'mathjax.tpl' import mathjax %}
 
 
 {% block header %}
