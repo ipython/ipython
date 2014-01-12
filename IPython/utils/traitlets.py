@@ -52,7 +52,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-
+import contextlib
 import inspect
 import re
 import sys
@@ -182,6 +182,42 @@ def getmembers(object, predicate=None):
     results.sort()
     return results
 
+class Connect(object):
+    """Connect traits from different objects together so they remain in sync.
+
+    Parameters
+    ----------
+    obj : pairs of objects/attributes
+
+    Examples
+    --------
+
+    >>> c = Connect((obj1, 'value'), (obj2, 'value'), (obj3, 'value'))
+    >>> obj1.value = 5 # updates other objects as well
+    """
+    updating = False
+    def __init__(self, *args):
+        
+        self.objects = args
+        for obj,attr in args:
+            obj.on_trait_change(self._update, attr)
+
+    @contextlib.contextmanager
+    def _busy_updating(self):
+        self.updating = True
+        yield
+        self.updating = False
+
+    def _update(self, name, old, new):
+        if self.updating:
+            return
+        with self._busy_updating():
+            for obj,attr in self.objects:
+                setattr(obj, attr, new)
+    
+    def disconnect(self):
+        for obj,attr in self.objects:
+            obj.on_trait_change(self._update, attr, remove=True)
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
