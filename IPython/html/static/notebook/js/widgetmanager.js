@@ -72,15 +72,17 @@
         };
 
 
-        WidgetManager.prototype.display_view = function(msg_id, model) {
-            var cell = this.get_msg_cell(msg_id);
+        WidgetManager.prototype.display_view = function(msg, model) {
+            var cell = this.get_msg_cell(msg.parent_header.msg_id);
             if (cell === null) {
                 console.log("Could not determine where the display" + 
                     " message was from.  Widget will not be displayed");
             } else {
                 var view = this.create_view(model, {cell: cell});
-                if (view !== undefined 
-                    && cell.widget_subarea !== undefined 
+                if (view === undefined) {
+                    console.error("View creation failed", model);
+                }
+                if (cell.widget_subarea !== undefined
                     && cell.widget_subarea !== null) {
                     
                     cell.widget_area.show();
