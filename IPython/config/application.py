@@ -521,10 +521,12 @@ class Application(SingletonConfigurable):
                 # unlikely event that the error raised before filefind finished
                 filename = loader.full_filename or filename
                 # problem while running the file
-                log.error("Exception while loading config file %s",
-                                filename, exc_info=True)
+                if log:
+                    log.error("Exception while loading config file %s",
+                            filename, exc_info=True)
             else:
-                log.debug("Loaded config file: %s", loader.full_filename)
+                if log:
+                    log.debug("Loaded config file: %s", loader.full_filename)
             if config:
                  yield config
 
