@@ -505,7 +505,6 @@ class Application(SingletonConfigurable):
 
         yield each config object in turn.
         """
-
         pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
         jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
         config_found = False
@@ -519,7 +518,7 @@ class Application(SingletonConfigurable):
             except Exception:
                 # try to get the full filename, but it will be empty in the
                 # unlikely event that the error raised before filefind finished
-                filename = loader.full_filename or filename
+                filename = loader.full_filename or basefilename
                 # problem while running the file
                 if log:
                     log.error("Exception while loading config file %s",
