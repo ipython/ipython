@@ -135,6 +135,8 @@ class IPythonWidget(FrontendWidget):
         else:
             self.set_default_style()
 
+        self._guiref_loaded = False
+
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
@@ -258,10 +260,21 @@ class IPythonWidget(FrontendWidget):
             # This newline seems to be needed for text and html output.
             self._append_plain_text(u'\n', True)
 
+    def _handle_kernel_info_reply(self, rep):
+        """ Handle kernel info replies.
+        """
+        if not self._guiref_loaded:
+            if rep['content']['language'] == 'python':
+                self._load_guiref_magic()
+            self._guiref_loaded = True
+
     def _started_channels(self):
         """Reimplemented to make a history request and load %guiref."""
         super(IPythonWidget, self)._started_channels()
-        self._load_guiref_magic()
+
+        # The reply will trigger %guiref load provided language=='python'
+        self.kernel_client.kernel_info()
+
         self.kernel_client.shell_channel.history(hist_access_type='tail',
                                                   n=1000)
     
