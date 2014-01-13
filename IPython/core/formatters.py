@@ -33,12 +33,13 @@ from IPython.external.decorator import decorator
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
+from IPython.utils import io
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
 from IPython.utils.warn import warn
 from IPython.utils.py3compat import (
-    unicode_to_str, with_metaclass, PY3, string_types,
+    unicode_to_str, with_metaclass, PY3, string_types, unicode_type,
 )
 
 if PY3:
@@ -182,15 +183,22 @@ class DisplayFormatter(Configurable):
 # Formatters for specific format types (text, html, svg, etc.)
 #-----------------------------------------------------------------------------
 
-
 @decorator
 def warn_format_error(method, self, *args, **kwargs):
     """decorator for warning on failed format call"""
     try:
-        return method(self, *args, **kwargs)
+        r = method(self, *args, **kwargs)
     except Exception as e:
         warn("Exception in %s formatter: %s" % (self.format_type, e))
         return None
+    if r is None or isinstance(r, self._return_type) or \
+        (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
+        return r
+    else:
+        warn("%s formatter returned invalid type %s (expected %s) for object: %s" % (
+            self.format_type, type(r), self._return_type, pretty._safe_repr(args[0])
+        ))
+    
 
 
 class FormatterABC(with_metaclass(abc.ABCMeta, object)):
@@ -262,6 +270,7 @@ class BaseFormatter(Configurable):
     """
 
     format_type = Unicode('text/plain')
+    _return_type = string_types
 
     enabled = Bool(True, config=True)
 
@@ -278,7 +287,7 @@ class BaseFormatter(Configurable):
     # The deferred-import type-specific printers.
     # Map (modulename, classname) pairs to the format functions.
     deferred_printers = Dict(config=True)
-
+    
     @warn_format_error
     def __call__(self, obj):
         """Compute the format for an object."""
@@ -679,6 +688,8 @@ class PNGFormatter(BaseFormatter):
     format_type = Unicode('image/png')
 
     print_method = ObjectName('_repr_png_')
+    
+    _return_type = (bytes, unicode_type)
 
 
 class JPEGFormatter(BaseFormatter):
@@ -695,6 +706,8 @@ class JPEGFormatter(BaseFormatter):
     format_type = Unicode('image/jpeg')
 
     print_method = ObjectName('_repr_jpeg_')
+
+    _return_type = (bytes, unicode_type)
 
 
 class LatexFormatter(BaseFormatter):
