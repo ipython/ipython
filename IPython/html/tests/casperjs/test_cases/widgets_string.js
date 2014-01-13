@@ -7,12 +7,15 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var string_index = this.append_cell(
-        'string_widget = widgets.StringWidget()\n' +
-        'display(string_widget)\n'+
-        'display(string_widget, view_name="TextAreaView")\n' +
-        'display(string_widget, view_name="HTMLView")\n' +
-        'display(string_widget, view_name="LatexView")\n' +
-        'string_widget.value = "xyz"\n' +
+        'string_widget = [widgets.StringWidget(), widgets.StringWidget(), widgets.StringWidget(), widgets.StringWidget()]\n' +
+        'string_widget[0].value = "xyz"\n' +
+        'string_widget[1].view_name = "TextAreaView"\n' +
+        'string_widget[1].value = "xyz"\n' +
+        'string_widget[2].view_name = "HTMLView"\n' +
+        'string_widget[2].value = "xyz"\n' +
+        'string_widget[3].view_name = "LatexView"\n' +
+        'string_widget[3].value = "$\\\\LaTeX{}$"\n' +
+        '[display(widget) for widget in string_widget]\n'+
         'print("Success")');
     this.execute_cell_then(string_index, function(index){
 
@@ -39,29 +42,12 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea .widget-hbox-single input[type=text]', 'val')=='xyz',
             'Python set textbox value.');
 
-        this.cell_element_function(index, 
-            '.widget-area .widget-subarea .widget-hbox-single input[type=text]', 'val', [''])
-        this.sendKeys('.widget-area .widget-subarea .widget-hbox-single input[type=text]', 'abc');
-
-        this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea .widget-hbox textarea', 'val')=='abc',
-            'Textarea updated to textbox contents.');
-
-        this.cell_element_function(index, 
-            '.widget-area .widget-subarea .widget-hbox textarea', 'val', ['']);
-        this.sendKeys('.widget-area .widget-subarea .widget-hbox textarea', '$\\LaTeX{}$');
-
-        this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea .widget-hbox-single input[type=text]', 'val')=='$\\LaTeX{}$',
-            'Textbox updated to textarea contents.');
     });
 
     this.wait(500); // Wait for change to execute in kernel
 
     index = this.append_cell('print(string_widget.value)');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '$\\LaTeX{}$\n', 
-            'Python updated with correct string widget value.');
 
         this.test.assert(this.cell_element_exists(string_index, 
             '.widget-area .widget-subarea div span.MathJax_Preview'),

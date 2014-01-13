@@ -49,7 +49,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$el.removeAttr('disabled');
             }
 
-            return IPython.DOMWidgetView.update.apply(this);
+            return ButtonView.__super__.update.apply(this);
         },
 
         events: {

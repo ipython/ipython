@@ -64,7 +64,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return CheckboxView.__super__.update.apply(this);
         },
         
     });
@@ -88,13 +88,13 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            if (options === undefined || options.updated_view != this) {
-                if (this.model.get('value')) {
-                    this.$el.addClass('active');
-                } else {
-                    this.$el.removeClass('active');
-                }
+            if (this.model.get('value')) {
+                this.$el.addClass('active');
+            } else {
+                this.$el.removeClass('active');
+            }
 
+            if (options === undefined || options.updated_view != this) {
                 var disabled = this.model.get('disabled');
                 this.$el.prop('disabled', disabled);
 
@@ -105,17 +105,17 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$el.html(description);
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return ToggleButtonView.__super__.update.apply(this);
         },
         
-        events: {"click button" : "handleClick"},
+        events: {"click" : "handleClick"},
         
         // Handles and validates user input.
         handleClick: function(e) { 
 
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', ! $(e.target).hasClass('active'), {updated_view: this});
+            this.model.set('value', ! $(this.$el).hasClass('active'), {updated_view: this});
             this.touch();
         },
     });

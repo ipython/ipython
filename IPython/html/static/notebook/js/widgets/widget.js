@@ -95,7 +95,7 @@ function(widget_manager, underscore, backbone){
                     var value = state[key];
                     this.key_value_lock = [key, value];
                     try {
-                        this.set(key, state[key]);
+                        this.set(key, this._unpack_models(value));
                     } finally {
                         this.key_value_lock = null;
                     }
@@ -137,18 +137,14 @@ function(widget_manager, underscore, backbone){
                     // The throttle has been exceeded, buffer the current msg so
                     // it can be sent once the kernel has finished processing 
                     // some of the existing messages.
-                    if (method=='patch') {
-                        if (this.msg_buffer === null) {
-                            this.msg_buffer = $.extend({}, model_json); // Copy
-                        }
-                        for (attr in options.attrs) {
-                            var value = options.attrs[attr];
-                            if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
-                                this.msg_buffer[attr] = value;
-                            }
-                        }
-                    } else {
+                    if (this.msg_buffer === null) {
                         this.msg_buffer = $.extend({}, model_json); // Copy
+                    }
+                    for (attr in options.attrs) {
+                        var value = this._pack_models(options.attrs[attr]);
+                        if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
+                            this.msg_buffer[attr] = value;
+                        }
                     }
 
                 } else {
@@ -156,13 +152,11 @@ function(widget_manager, underscore, backbone){
                     // normal.  If this is a patch operation, just send the 
                     // changes.
                     var send_json = model_json;
-                    if (method =='patch') {
-                        send_json = {};
-                        for (attr in options.attrs) {
-                            var value = options.attrs[attr];
-                            if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
-                                send_json[attr] = value;
-                            }
+                    send_json = {};
+                    for (attr in options.attrs) {
+                        var value = this._pack_models(options.attrs[attr]);
+                        if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
+                            send_json[attr] = value;
                         }
                     }
 
@@ -175,6 +169,37 @@ function(widget_manager, underscore, backbone){
             // Since the comm is a one-way communication, assume the message 
             // arrived.
             return model_json;
+        },
+
+        _pack_models: function(value) {
+            if (value instanceof Backbone.Model) {
+                return value.id;
+            } else if (value instanceof Object) {
+                var packed = {};
+                for (var key in value) {
+                    packed[key] = this._pack_models(value[key]);
+                }
+                return packed;
+            } else {
+                return value;
+            }
+        },
+
+        _unpack_models: function(value) {
+            if (value instanceof Object) {
+                var unpacked = {};
+                for (var key in value) {
+                    unpacked[key] = this._unpack_models(value[key]);
+                }
+                return unpacked;
+            } else {
+                var model = this.widget_manager.get_model(value);
+                if (model !== null) {
+                    return model;
+                } else {
+                    return value;
+                }
+            }
         },
 
     });
@@ -196,24 +221,23 @@ function(widget_manager, underscore, backbone){
             // triggered on model change
         },
 
-        child_view: function(model_id, options) {
-            // create and return a child view, given a model id for a model and (optionally) a view name
+        child_view: function(child_model, options) {
+            // create and return a child view, given a model and (optionally) a view name
             // if the view name is not given, it defaults to the model's default view attribute
-            var child_model = this.widget_manager.get_model(model_id);
-            var child_view = this.widget_manager.create_view(child_model, options);
-            this.child_views[model_id] = child_view;
+            var child_view = this.model.widget_manager.create_view(child_model, options);
+            this.child_views[child_model.id] = child_view;
             return child_view;
         },
         
         update_child_views: function(old_list, new_list) {
-            // this function takes an old list and new list of model ids
+            // this function takes an old list and new list of models
             // views in child_views that correspond to deleted ids are deleted
             // views corresponding to added ids are added child_views
         
             // delete old views
             _.each(_.difference(old_list, new_list), function(element, index, list) {
-                var view = this.child_views[element];
-                delete this.child_views[element];
+                var view = this.child_views[element.id];
+                delete this.child_views[element.id];
                 view.remove();
             }, this);
             
@@ -247,10 +271,10 @@ function(widget_manager, underscore, backbone){
             _.each(_.difference(new_list, old_list), function(item, index, list) {
                 added_callback(item);
             }, this);
-        }
+        },
 
         callbacks: function(){
-            return this.widget_manager.callbacks(this);
+            return this.model.widget_manager.callbacks(this);
         },
 
         render: function(){
@@ -271,7 +295,7 @@ function(widget_manager, underscore, backbone){
             // TODO: make changes more granular (e.g., trigger on visible:change)
             this.model.on('change', this.update, this);
             this.model.on('msg:custom', this.on_msg, this);
-            WidgetView.initialize.apply(this, arguments);
+            DOMWidgetView.__super__.initialize.apply(this, arguments);
         },
         
         on_msg: function(msg) {

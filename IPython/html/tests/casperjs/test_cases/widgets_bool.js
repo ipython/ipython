@@ -7,9 +7,15 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var bool_index = this.append_cell(
-        'bool_widget = widgets.BoolWidget(description="Title", value=True)\n' +
-        'display(bool_widget)\n'+
-        'display(bool_widget, view_name="ToggleButtonView")\n' +
+        'bool_widgets = [widgets.BoolWidget(description="Title", value=True) for i in range(2)]\n' +
+        'display(bool_widgets[0])\n' +
+        'bool_widgets[1].view_name = "ToggleButtonView"\n' +
+        'display(bool_widgets[1])\n' +
+        'for widget in bool_widgets:\n' +
+        '    def handle_change(name,old,new):\n' +
+        '        for other_widget in bool_widgets:\n' +
+        '            other_widget.value = new\n' +
+        '    widget.on_trait_change(handle_change, "value")\n' +
         'print("Success")');
     this.execute_cell_then(bool_index, function(index){
 
@@ -37,21 +43,21 @@ casper.notebook_test(function () {
             'Checkbox labeled correctly.');
 
         this.test.assert(this.cell_element_exists(index, 
-            '.widget-area .widget-subarea div button'),
+            '.widget-area .widget-subarea button'),
             'Toggle button exists.');
 
         this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea div button', 'html')=="Title",
+            '.widget-area .widget-subarea button', 'html')=="Title",
             'Toggle button labeled correctly.');
 
         this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea div button', 'hasClass', ['active']),
+            '.widget-area .widget-subarea button', 'hasClass', ['active']),
             'Toggle button is toggled.');
 
     });
 
     index = this.append_cell(
-        'bool_widget.value = False\n' +
+        'bool_widgets[0].value = False\n' +
         'print("Success")');
     this.execute_cell_then(index, function(index){
 
@@ -63,18 +69,18 @@ casper.notebook_test(function () {
             'Checkbox is not checked. (1)');
 
         this.test.assert(! this.cell_element_function(bool_index, 
-            '.widget-area .widget-subarea div button', 'hasClass', ['active']),
+            '.widget-area .widget-subarea button', 'hasClass', ['active']),
             'Toggle button is not toggled. (1)');
 
         // Try toggling the bool by clicking on the toggle button.
-        this.cell_element_function(bool_index, '.widget-area .widget-subarea div button', 'click');
+        this.cell_element_function(bool_index, '.widget-area .widget-subarea button', 'click');
 
         this.test.assert(this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea .widget-hbox-single input', 'prop', ['checked']),
             'Checkbox is checked. (2)');
 
         this.test.assert(this.cell_element_function(bool_index, 
-            '.widget-area .widget-subarea div button', 'hasClass', ['active']),
+            '.widget-area .widget-subarea button', 'hasClass', ['active']),
             'Toggle button is toggled. (2)');
  
         // Try toggling the bool by clicking on the checkbox.
@@ -85,7 +91,7 @@ casper.notebook_test(function () {
             'Checkbox is not checked. (3)');
 
         this.test.assert(! this.cell_element_function(bool_index, 
-            '.widget-area .widget-subarea div button', 'hasClass', ['active']),
+            '.widget-area .widget-subarea button', 'hasClass', ['active']),
             'Toggle button is not toggled. (3)');
 
     });

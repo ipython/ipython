@@ -107,7 +107,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return FloatSliderView.__super__.update.apply(this);
         },
         
         // Handles: User input
@@ -168,7 +168,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return FloatTextView.__super__.update.apply(this);
         },
         
         
@@ -260,7 +260,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.html(description);
                 this.$label.show();
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return ProgressView.__super__.update.apply(this);
         },
         
     });

@@ -42,11 +42,16 @@ casper.notebook_test(function () {
     }
 
     selection_index = this.append_cell(
-        'selection = widgets.SelectionWidget(values=["' + selection_values + '"[i] for i in range(4)])\n' +
-        'display(selection)\n' +
-        'display(selection, view_name="ToggleButtonsView")\n' +
-        'display(selection, view_name="RadioButtonsView")\n' +
-        'display(selection, view_name="ListBoxView")\n' +
+        'selection = [widgets.SelectionWidget(values=["' + selection_values + '"[i] for i in range(4)]) for j in range(4)]\n' +
+        'selection[1].view_name="ToggleButtonsView"\n' +
+        'selection[2].view_name="RadioButtonsView"\n' +
+        'selection[3].view_name="ListBoxView"\n' +
+        '[display(selection[i]) for i in range(4)]\n' +
+        'for widget in selection:\n' +
+        '    def handle_change(name,old,new):\n' +
+        '        for other_widget in selection:\n' +
+        '            other_widget.value = new\n' +
+        '    widget.on_trait_change(handle_change, "value")\n' +
         'print("Success")\n');
     this.execute_cell_then(selection_index, function(index){
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 
@@ -73,7 +78,8 @@ casper.notebook_test(function () {
     });
 
     index = this.append_cell(
-        'selection.value = "a"\n' +
+        'for widget in selection:\n' +
+        '    widget.value = "a"\n' +
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
         this.test.assert(this.get_output_cell(index).text == 'Success\n', 

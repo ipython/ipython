@@ -34,11 +34,13 @@ from IPython.utils.py3compat import string_types
 @contextmanager
 def PropertyLock(instance, key, value):
     instance._property_lock = (key, value)
-    yield
-    del instance._property_lock
+    try:
+        yield
+    finally:
+        del instance._property_lock
 
 def should_send_property(instance, key, value):
-    return not hasattr(instance, _property_lock) or \
+    return not hasattr(instance, '_property_lock') or \
     key != instance._property_lock[0] or \
     value != instance._property_lock[1]
 
@@ -47,8 +49,9 @@ class Widget(LoggingConfigurable):
 
     # Shared declarations (Class level)
     widget_construction_callback = None
+    widgets = []
 
-    keys = ['view_name']
+    keys = ['view_name'] # TODO: Sync = True
 
     def on_widget_constructed(callback):
         """Class method, registers a callback to be called when a widget is
@@ -66,6 +69,7 @@ class Widget(LoggingConfigurable):
     # Public declarations (Instance level)
     target_name = Unicode('widget', help="""Name of the backbone model 
         registered in the frontend to create and sync this widget with.""")
+    # model_name
     view_name = Unicode(help="""Default view registered in the frontend
         to use to represent the widget.""")
 
@@ -75,23 +79,27 @@ class Widget(LoggingConfigurable):
     def __init__(self, **kwargs):
         """Public constructor
         """
+        self.closed = False
         self._display_callbacks = []
         self._msg_callbacks = []
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
+        Widget.widgets.append(self)
         Widget._call_widget_constructed(self)
 
     def __del__(self):
         """Object disposal"""
         self.close()
 
-
     def close(self):
         """Close method.  Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the frontend."""
-        self._close_communication()
+        if not self.closed:
+            self.closed = True
+            self._close_communication()
+            Widget.widgets.remove(self)
     
     @property
     def comm(self):
@@ -109,6 +117,8 @@ class Widget(LoggingConfigurable):
         data = msg['content']['data']
         method = data['method']
 
+        # TODO: Log unrecog.
+
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
         if method == 'backbone' and 'sync_data' in data:
             sync_data = data['sync_data']
@@ -124,7 +134,7 @@ class Widget(LoggingConfigurable):
         """Called when a state is recieved from the frontend."""
         for name in self.keys:
             if name in sync_data:
-                value = sync_data[name]
+                value = self._unpack_widgets(sync_data[name])
                 with PropertyLock(self, name, value):
                     setattr(self, name, value)
 
@@ -204,20 +214,55 @@ class Widget(LoggingConfigurable):
         else:
             keys = [key]
         for k in keys:
-            value = getattr(self, k)
-
-            # a more elegant solution to encoding Widgets would be
-            # to tap into the JSON encoder and teach it how to deal
-            # with Widget objects, or maybe just teach the JSON
-            # encoder to look for a _repr_json property before giving
-            # up encoding
-            if isinstance(value, Widget):
-                value = value.model_id
-            elif isinstance(value, list) and len(value)>0 and isinstance(value[0], Widget):
-                # assume all elements of the list are widgets
-                value = [i.model_id for i in value]
-            state[k] = value
+            state[k] = self._pack_widgets(getattr(self, k))
         return state
+
+
+    def _pack_widgets(self, values):
+        """This function recursively converts all widget instances to model id
+        strings.
+
+        Children widgets will be stored and transmitted to the front-end by 
+        their model ids."""
+        if isinstance(values, dict):
+            new_dict = {}
+            for key in values.keys():
+                new_dict[key] = self._pack_widgets(values[key])
+            return new_dict
+        elif isinstance(values, list):
+            new_list = []
+            for value in values:
+                new_list.append(self._pack_widgets(value))
+            return new_list
+        elif isinstance(values, Widget):
+            return values.model_id
+        else:
+            return values
+
+
+    def _unpack_widgets(self, values):
+        """This function recursively converts all model id strings to widget 
+        instances.
+
+        Children widgets will be stored and transmitted to the front-end by 
+        their model ids."""
+        if isinstance(values, dict):
+            new_dict = {}
+            for key in values.keys():
+                new_dict[key] = self._unpack_widgets(values[key])
+            return new_dict
+        elif isinstance(values, list):
+            new_list = []
+            for value in values:
+                new_list.append(self._unpack_widgets(value))
+            return new_list
+        elif isinstance(values, string_types):
+            for widget in Widget.widgets:
+                if widget.model_id == values:
+                    return widget
+            return values
+        else:
+            return values
 
 
     def send(self, content):
@@ -232,8 +277,9 @@ class Widget(LoggingConfigurable):
             "custom_content": content})
 
 
-    def on_msg(self, callback, remove=False):
-        """Register a callback for when a custom msg is recieved from the front-end
+    def on_msg(self, callback, remove=False): # TODO: Use lambdas and inspect here
+        """Register or unregister a callback for when a custom msg is recieved 
+        from the front-end.
 
         Parameters
         ----------
@@ -250,7 +296,8 @@ class Widget(LoggingConfigurable):
 
 
     def on_displayed(self, callback, remove=False):
-        """Register a callback to be called when the widget has been displayed
+        """Register or unregister a callback to be called when the widget has 
+        been displayed.
 
         Parameters
         ----------
@@ -282,10 +329,9 @@ class Widget(LoggingConfigurable):
     def _open_communication(self):
         """Opens a communication with the front-end."""
         # Create a comm.
-        if self._comm is None:
-            self._comm = Comm(target_name=self.target_name)
-            self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._close_communication)
+        self._comm = Comm(target_name=self.target_name)
+        self._comm.on_msg(self._handle_msg)
+        self._comm.on_close(self._close_communication)
 
         # first update
         self.send_state()
@@ -295,7 +341,7 @@ class Widget(LoggingConfigurable):
         """Closes a communication with the front-end."""
         if self._comm is not None:
             try:
-                self._comm.close()
+                self._comm.close() # TODO: Check
             finally:
                 self._comm = None
 
@@ -361,7 +407,7 @@ class DOMWidget(Widget):
         if len(args) == 1:
             if isinstance(args[0], dict):
                 for (key, value) in args[0].items():
-                    if not (key in self._css[selector] and value in self._css[selector][key]):
+                    if not (key in self._css[selector] and value == self._css[selector][key]):
                         self._css[selector][key] = value
                 self.send_state('_css')
             else:
@@ -379,7 +425,7 @@ class DOMWidget(Widget):
             # Only update the property if it has changed.
             key = args[0]
             value = args[1]
-            if not (key in self._css[selector] and value in self._css[selector][key]):
+            if not (key in self._css[selector] and value == self._css[selector][key]):
                 self._css[selector][key] = value
                 self.send_state('_css') # Send new state to client.
         else:
@@ -398,7 +444,7 @@ class DOMWidget(Widget):
             be added to.
         """
         class_list = class_names
-        if isinstance(list, class_list):
+        if isinstance(class_list, list):
             class_list = ' '.join(class_list)
 
         self.send({"msg_type": "add_class",
@@ -418,7 +464,7 @@ class DOMWidget(Widget):
             be removed from.
         """
         class_list = class_names
-        if isinstance(list, class_list):
+        if isinstance(class_list, list):
             class_list = ' '.join(class_list)
 
         self.send({"msg_type": "remove_class",

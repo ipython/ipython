@@ -27,7 +27,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'names = [name for name in dir(widgets)' + 
-        ' if name.endswith("Widget") and name!= "Widget"]\n' +
+        ' if name.endswith("Widget") and name!= "Widget" and name!= "DOMWidget"]\n' +
         'for name in names:\n' +
         '    print(name)\n');
     this.execute_cell_then(index, function(index){
@@ -37,7 +37,7 @@ casper.notebook_test(function () {
         // suffixed).
         var javascript_names = this.evaluate(function () {
             names = [];
-            for (var name in IPython.widget_manager.widget_model_types) {
+            for (var name in IPython.widget_manager._model_types) {
                 names.push(name.replace('Model',''));
             }
             return names;

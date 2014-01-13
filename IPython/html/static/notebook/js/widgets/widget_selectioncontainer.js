@@ -77,7 +77,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     }
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return AccordionView.__super__.update.apply(this);
         },
 
         add_child_view: function(view) {
@@ -130,7 +130,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         initialize: function() {
             this.containers = [];
-            IPython.DOMWidgetView.initialize.apply(this, arguments);
+            TabView.__super__.initialize.apply(this, arguments);
         },
 
         render: function(){
@@ -181,7 +181,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.select_page(selected_index);
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return TabView.__super__.update.apply(this);
         },
 
         add_child_view: function(view) {

@@ -31,7 +31,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
             this.$el.html(this.model.get('value'));
-            return IPython.DOMWidgetView.update.apply(this);
+            return HTMLView.__super__.update.apply(this);
         },
         
     });
@@ -54,7 +54,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.$el.html(this.model.get('value'));
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
 
-            return IPython.DOMWidgetView.update.apply(this);
+            return LatexView.__super__.update.apply(this);
         },
         
     });
@@ -114,7 +114,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return TextAreaView.__super__.update.apply(this);
         },
         
         events: {"keyup textarea": "handleChanging",
@@ -173,7 +173,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return TextBoxView.__super__.update.apply(this);
         },
         
         events: {"keyup input": "handleChanging",

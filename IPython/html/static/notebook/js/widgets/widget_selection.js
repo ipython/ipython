@@ -101,7 +101,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return DropdownView.__super__.update.apply(this);
         },
 
         // Handle when a value is clicked.
@@ -193,7 +193,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return RadioButtonsView.__super__.update.apply(this);
         },
 
         // Handle when a value is clicked.
@@ -280,7 +280,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return ToggleButtonsView.__super__.update.apply(this);
         },
 
         // Handle when a value is clicked.
@@ -364,7 +364,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                     this.$label.show();
                 }
             }
-            return IPython.DOMWidgetView.update.apply(this);
+            return ListBoxView.__super__.update.apply(this);
         },
 
         // Handle when a value is clicked.
