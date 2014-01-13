@@ -20,6 +20,7 @@ from __future__ import division, with_statement
 
 import numpy as np
 from matplotlib import pyplot as plt
+from six import advance_iterator
 
 # Top-level functions
 
@@ -99,8 +100,8 @@ def two_digit_freqs(digits, normalize=False):
     Consume digits of pi and compute 2 digits freq. counts.
     """
     freqs = np.zeros(100, dtype='i4')
-    last = digits.next()
-    this = digits.next()
+    last = advance_iterator(digits)
+    this = advance_iterator(digits)
     for d in digits:
         index = int(last + this)
         freqs[index] += 1
@@ -119,7 +120,7 @@ def n_digit_freqs(digits, n, normalize=False):
     freqs = np.zeros(pow(10,n), dtype='i4')
     current = np.zeros(n, dtype=int)
     for i in range(n):
-        current[i] = digits.next()
+        current[i] = advance_iterator(digits)
     for d in digits:
         index = int(''.join(map(str, current)))
         freqs[index] += 1
