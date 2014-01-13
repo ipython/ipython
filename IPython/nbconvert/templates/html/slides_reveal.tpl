@@ -1,6 +1,36 @@
-{%- extends 'reveal_internals/slides.tpl' -%}
+{%- extends 'basic.tpl' -%}
 {% from 'mathjax.tpl' import mathjax %}
 
+{%- block any_cell scoped -%}
+{%- if cell.metadata.slide_type in ['-'] -%}
+    {{ super() }}
+{%- elif cell.metadata.slide_type in ['slide'] -%}
+    <section>
+    <section>
+    {{ super() }}
+{%- elif cell.metadata.slide_type in ['subslide'] -%}
+    <section>
+    {{ super() }}
+{%- elif cell.metadata.slide_type in ['skip'] -%}
+    <div style=display:none>
+    {{ super() }}
+    </div>
+{%- elif cell.metadata.slide_type in ['notes'] -%}
+    <aside class="notes">
+    {{ super() }}
+    </aside>
+{%- elif cell.metadata.slide_type in ['fragment'] -%}
+    <div class="fragment">
+    {{ super() }}
+    </div>    
+{%- endif -%}   
+{%- if cell.metadata.slide_helper in ['subslide_end'] -%}
+    </section>
+{%- elif cell.metadata.slide_helper in ['slide_end'] -%}
+    </section>
+    </section>
+{%- endif -%}
+{%- endblock any_cell -%}
 
 {% block header %}
 <!DOCTYPE html>
