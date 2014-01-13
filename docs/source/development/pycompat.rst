@@ -1,12 +1,19 @@
 Writing code for Python 2 and 3
 ===============================
 
+.. module:: IPython.utils.py3compat
+   :synopsis: Python 2 & 3 compatibility helpers
+
+.. data:: PY3
+
+   Boolean indicating whether we're currently in Python 3.
+
 Iterators
 ---------
 
 Many built in functions and methods in Python 2 come in pairs, one
 returning a list, and one returning an iterator (e.g. :func:`range` and
-:func:`xrange`). In Python 3, there is usually only the iterator form,
+:func:`python:xrange`). In Python 3, there is usually only the iterator form,
 but it has the name which gives a list in Python 2 (e.g. :func:`range`).
 
 The way to write compatible code depends on what you need:
@@ -31,6 +38,16 @@ to use :meth:`dict.keys` or :meth:`dict.iterkeys`.
 
 Avoid using :func:`map` to cause function side effects. This is more
 clearly written with a simple for loop.
+
+.. data:: xrange
+
+   A reference to ``range`` on Python 3, and :func:`python:xrange` on Python 2.
+
+.. function:: iteritems(d)
+              itervalues(d)
+
+   Iterate over (key, value) pairs of a dictionary, or just over values.
+   ``iterkeys`` is not defined: iterating over the dictionary yields its keys.
 
 Changed standard library locations
 ----------------------------------
@@ -62,6 +79,15 @@ but it behaves differently from :class:`StringIO.StringIO`, and much of
 our code assumes the use of the latter on Python 2. So a try/except on
 the import may cause problems.
 
+.. function:: input
+
+   Behaves like :func:`python:raw_input` on Python 2.
+
+.. data:: builtin_mod
+          builtin_mod_name
+
+   A reference to the module containing builtins, and its name as a string.
+
 Unicode
 -------
 
@@ -73,6 +99,42 @@ To open files for reading or writing text, use :func:`io.open`, which is
 the Python 3 builtin ``open`` function, available on Python 2 as well.
 We almost always need to specify the encoding parameter, because the
 default is platform dependent.
+
+We have several helper functions for converting between string types. They all
+use the encoding from :func:`IPython.utils.encoding.getdefaultencoding` by default,
+and the ``errors='replace'`` option to do best-effort conversions for the user's
+system.
+
+.. function:: unicode_to_str(u, encoding=None)
+              str_to_unicode(s, encoding=None)
+
+   Convert between unicode and the native str type. No-ops on Python 3.
+
+.. function:: str_to_bytes(s, encoding=None)
+              bytes_to_str(u, encoding=None)
+
+   Convert between bytes and the native str type. No-ops on Python 2.
+
+.. function:: cast_unicode(s, encoding=None)
+              cast_bytes(s, encoding=None)
+
+   Convert strings to unicode/bytes when they may be of either type.
+
+.. function:: cast_unicode_py2(s, encoding=None)
+              cast_bytes_py2(s, encoding=None)
+
+   Convert strings to unicode/bytes when they may be of either type on Python 2,
+   but return them unaltered on Python 3 (where string types are more
+   predictable).
+
+.. data:: unicode_type
+
+   A reference to ``str`` on Python 3, and to ``unicode`` on Python 2.
+
+.. data:: string_types
+
+   A tuple for isinstance checks: ``(str,)`` on Python 3, ``(str, unicode)`` on
+   Python 2.
 
 Relative imports
 ----------------
@@ -104,12 +166,16 @@ Metaclasses
 -----------
 
 The syntax for declaring a class with a metaclass is different in
-Python 2 and 3. In most cases, the helper function
-:func:`~IPython.utils.py3compat.with_metaclass` (copied from the six
-library) can be used like this::
+Python 2 and 3. A helper function works for most cases:
 
-    class FormatterABC(with_metaclass(abc.ABCMeta, object)):
-        ...
+.. function:: with_metaclass
+
+   Create a base class with a metaclass. Copied from the six library.
+
+   Used like this::
+
+       class FormatterABC(with_metaclass(abc.ABCMeta, object)):
+           ...
 
 Combining inheritance between Qt and the traitlets system, however, does
 not work with this. Instead, we do this::
@@ -120,3 +186,48 @@ not work with this. Instead, we do this::
 This gives the new class a metaclass of :class:`~IPython.qt.util.MetaQObjectHasTraits`,
 and the parent classes :class:`~IPython.utils.traitlets.HasTraits` and
 :class:`~IPython.qt.util.SuperQObject`.
+
+
+Doctests
+--------
+
+.. function:: doctest_refactor_print(func_or_str)
+
+   Refactors print statements in doctests in Python 3 only. Accepts a string
+   or a function, so it can be used as a decorator.
+
+.. function:: u_format(func_or_str)
+
+   Handle doctests written with ``{u}'abcþ'``, replacing the ``{u}`` with ``u``
+   for Python 2, and removing it for Python 3.
+
+   Accepts a string or a function, so it can be used as a decorator.
+
+Execfile
+--------
+
+.. function:: execfile(fname, glob, loc=None)
+
+   Equivalent to the Python 2 :func:`python:execfile` builtin. We redefine it in
+   Python 2 to better handle non-ascii filenames.
+
+Miscellaneous
+-------------
+
+.. autofunction:: safe_unicode
+
+.. function:: isidentifier(s, dotted=False)
+
+   Checks whether the string s is a valid identifier in this version of Python.
+   In Python 3, non-ascii characters are allowed. If ``dotted`` is True, it
+   allows dots (i.e. attribute access) in the string.
+
+.. function:: getcwd()
+
+   Return the current working directory as unicode, like :func:`os.getcwdu` on
+   Python 2.
+
+.. function:: MethodType
+
+   Constructor for :class:`types.MethodType` that takes two arguments, like
+   the real constructor on Python 3.

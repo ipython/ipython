@@ -31,6 +31,8 @@ if __name__ == '__main__':
                                         r'\.testing\.plugin',
                                         # This just prints a deprecation msg:
                                         r'\.frontend$',
+                                        # We document this manually.
+                                        r'\.utils\.py3compat',
                                         ]
     
     # We're rarely working on machines with the Azure SDK installed, so we
