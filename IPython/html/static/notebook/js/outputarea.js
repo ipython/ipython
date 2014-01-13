@@ -48,20 +48,13 @@ var IPython = (function (IPython) {
         this.prompt_overlay = $("<div/>");
         this.wrapper.append(this.prompt_overlay);
         this.wrapper.append(this.element);
-        this.wrapper.append(this.collapse_button);
     };
 
 
     OutputArea.prototype.style = function () {
-        this.collapse_button.hide();
-        this.prompt_overlay.hide();
-        
+
         this.wrapper.addClass('output_wrapper');
         this.element.addClass('output');
-        
-        this.collapse_button.addClass("btn output_collapsed");
-        this.collapse_button.attr('title', 'click to expand output');
-        this.collapse_button.html('. . .');
         
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
@@ -94,8 +87,13 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.bind_events = function () {
         var that = this;
-        this.prompt_overlay.dblclick(function () { that.toggle_output(); });
-        this.prompt_overlay.click(function () { that.toggle_scroll(); });
+        // this.prompt_overlay.dblclick(function () { that.toggle_output(); });
+        // this.prompt_overlay.click(function () { that.toggle_scroll(); });
+        this.prompt_overlay.click(function () {
+            console.log('hi there');
+            that.toggle_output();
+        });
+
 
         this.element.resize(function () {
             // FIXME: Firefox on Linux misbehaves, so automatic scrolling is disabled
@@ -108,19 +106,15 @@ var IPython = (function (IPython) {
                 that.scroll_area();
             }
         });
-        this.collapse_button.click(function () {
-            that.expand();
-        });
     };
 
 
     OutputArea.prototype.collapse = function () {
         if (!this.collapsed) {
-            this.element.hide();
-            this.prompt_overlay.hide();
-            if (this.element.html()){
-                this.collapse_button.show();
-            }
+            this.wrapper.css('overflow-y', 'hidden');
+            this.wrapper.css('max-height', '30px');
+            // this.element.hide();
+            // this.prompt_overlay.hide();
             this.collapsed = true;
         }
     };
@@ -128,9 +122,10 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.expand = function () {
         if (this.collapsed) {
-            this.collapse_button.hide();
-            this.element.show();
-            this.prompt_overlay.show();
+            // this.element.show();
+            // this.prompt_overlay.show();
+            this.wrapper.css('max-height', '');
+            this.wrapper.css('overflow-y', 'visible');
             this.collapsed = false;
         }
     };
