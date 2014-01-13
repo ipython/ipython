@@ -39,7 +39,7 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.warn import warn
 from IPython.utils.py3compat import (
-    unicode_to_str, with_metaclass, PY3, string_types,
+    unicode_to_str, with_metaclass, PY3, string_types, unicode_type,
 )
 
 if PY3:
@@ -195,8 +195,8 @@ def warn_format_error(method, self, *args, **kwargs):
         (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
         return r
     else:
-        warn("%s formatter returned invalid type %s for object: %s" % (
-            self.format_type, type(r), pretty._safe_repr(args[0])
+        warn("%s formatter returned invalid type %s (expected %s) for object: %s" % (
+            self.format_type, type(r), self._return_type, pretty._safe_repr(args[0])
         ))
     
 
@@ -689,7 +689,7 @@ class PNGFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_png_')
     
-    _return_type = bytes
+    _return_type = (bytes, unicode_type)
 
 
 class JPEGFormatter(BaseFormatter):
@@ -707,7 +707,7 @@ class JPEGFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_jpeg_')
 
-    _return_type = bytes
+    _return_type = (bytes, unicode_type)
 
 
 class LatexFormatter(BaseFormatter):
