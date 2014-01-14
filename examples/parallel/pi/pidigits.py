@@ -21,7 +21,12 @@ from __future__ import division, with_statement
 import numpy as np
 from matplotlib import pyplot as plt
 
-# Top-level functions
+try : #python2
+    from urllib import urlretrieve
+except : #python3
+    from urllib.request import urlretrieve
+
+	# Top-level functions
 
 def fetch_pi_file(filename):
     """This will download a segment of pi from super-computing.org
@@ -34,11 +39,7 @@ def fetch_pi_file(filename):
         return
     else:
         # download it
-        try : #python2
-            urllib.urlretrieve(ftpdir+filename,filename)
-        except : #python3
-            import urllib.request
-            urllib.request.urlretrieve(ftpdir+filename,filename)
+        urlretrieve(ftpdir+filename,filename)
 
 def compute_one_digit_freqs(filename):
     """
