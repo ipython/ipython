@@ -27,7 +27,7 @@
             
         // Backbone.sync method must be in widgetmanager.js file instead of 
         // widget.js so it can be overwritten for different contexts.
-        Backbone.sync = function (method, model, options, error) {
+        Backbone.sync = function (method, model, options) {
             var result = model._handle_sync(method, options);
             if (options.success) {
                 options.success(result);
@@ -51,6 +51,7 @@
 
             // Register already-registered widget model types with the comm manager.
             for (var widget_model_name in this._model_types) {
+                // TODO: Should not be a for.
                 this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_comm_open, this));
             }
         };

@@ -327,7 +327,7 @@ class DOMWidget(Widget):
     # Private/protected declarations
     _css = Dict() # Internal CSS property dict
 
-    keys = ['visible', '_css'] + Widget.keys
+    keys = ['visible', '_css'] + Widget.keys # TODO
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.

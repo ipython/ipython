@@ -11,8 +11,9 @@ casper.notebook_test(function () {
 
     var floatrange_index = this.append_cell(
         'floatrange = widgets.FloatRangeWidget()\n' +
+        'floatrange2 = widgets.FloatRangeWidget()\n' +
         'display(floatrange)\n' + 
-        'display(floatrange, view_name="FloatTextView")\n' + 
+        'display(floatrange2)\n' + 
         'print("Success")\n');
     this.execute_cell_then(floatrange_index, function(index){
 

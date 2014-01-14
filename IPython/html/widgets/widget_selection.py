@@ -25,7 +25,7 @@ class SelectionWidget(DOMWidget):
 
     # Keys
     keys = ['value', 'values', 'disabled', 'description'] + DOMWidget.keys
-    value = Unicode(help="Selected value")
+    value = Unicode(help="Selected value") # TODO: Any support
     values = List(help="List of values the user can select")
     disabled = Bool(False, help="Enable or disable user changes")
     description = Unicode(help="Description of the value this widget represents")

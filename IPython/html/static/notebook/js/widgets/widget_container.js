@@ -16,34 +16,6 @@
 
 define(["notebook/js/widgets/widget"], function(widget_manager) {
 
-    var set_flex_property = function(element, property_name, enabled) {
-        if (enabled) {
-            element.addClass(property_name);
-        } else {
-            element.removeClass(property_name);
-        }
-    };
-
-    var set_flex_properties = function(context, element) {
-
-        // Apply flexible box model properties by adding and removing
-        // corrosponding CSS classes.
-        // Defined in IPython/html/static/base/less/flexbox.less
-        set_flex_property(element, 'vbox', context.model.get('_vbox'));
-        set_flex_property(element, 'hbox', context.model.get('_hbox'));
-        set_flex_property(element, 'start', context.model.get('_pack_start'));
-        set_flex_property(element, 'center', context.model.get('_pack_center'));
-        set_flex_property(element, 'end', context.model.get('_pack_end'));
-        set_flex_property(element, 'align-start', context.model.get('_align_start'));
-        set_flex_property(element, 'align-center', context.model.get('_align_center'));
-        set_flex_property(element, 'align-end', context.model.get('_align_end'));
-        set_flex_property(element, 'box-flex0', context.model.get('_flex0'));
-        set_flex_property(element, 'box-flex1', context.model.get('_flex1'));
-        set_flex_property(element, 'box-flex2', context.model.get('_flex2'));
-    };
-
-
-
     var ContainerModel = IPython.WidgetModel.extend({});
     widget_manager.register_widget_model('ContainerWidgetModel', ContainerModel);
 
@@ -73,7 +45,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            set_flex_properties(this, this.$el);
             return ContainerView.__super__.update.apply(this);
         },
     });
@@ -233,8 +204,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            set_flex_properties(this, this.$body);
-            
             var description = this.model.get('description');
             description = description.replace(/ /g, '&nbsp;', 'm');
             description = description.replace(/\n/g, '<br>\n', 'm');

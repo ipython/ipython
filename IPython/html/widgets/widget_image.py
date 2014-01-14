@@ -29,7 +29,7 @@ class ImageWidget(DOMWidget):
     # Define the custom state properties to sync with the front-end
     keys = ['format', 'width', 'height', '_b64value'] + DOMWidget.keys
     format = Unicode('png')
-    width = Unicode()
+    width = Unicode() # TODO: C unicode
     height = Unicode()
     _b64value = Unicode()
     
