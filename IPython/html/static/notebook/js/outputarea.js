@@ -533,7 +533,8 @@ var IPython = (function (IPython) {
             var append = OutputArea.append_map[type];
             if ((json[type] !== undefined) && append) {
                 var md = json.metadata || {};
-                append.apply(this, [json[type], md, element]);
+                var toinsert = append.apply(this, [json[type], md, element]);
+                $([IPython.events]).trigger('output_appended.OutputArea', [type, json[type], md, toinsert]);
                 return true;
             }
         }
@@ -547,6 +548,7 @@ var IPython = (function (IPython) {
         IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
+        return toinsert;
     };
 
 
@@ -562,6 +564,7 @@ var IPython = (function (IPython) {
             console.log(err);
             this._append_javascript_error(err, element);
         }
+        return container;
     };
 
 
@@ -577,6 +580,7 @@ var IPython = (function (IPython) {
         }
         toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
+        return toinsert;
     };
 
 
@@ -585,6 +589,7 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_svg", type);
         toinsert.append(svg);
         element.append(toinsert);
+        return toinsert;
     };
 
 
@@ -629,6 +634,7 @@ var IPython = (function (IPython) {
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
+        return toinsert;
     };
 
 
@@ -645,6 +651,7 @@ var IPython = (function (IPython) {
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
+        return toinsert;
     };
 
 
@@ -655,6 +662,7 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_latex", type);
         toinsert.append(latex);
         element.append(toinsert);
+        return toinsert;
     };
 
     OutputArea.append_map = {
