@@ -25,59 +25,9 @@ casper.notebook_test(function () {
         }), 'Notebook widget manager instanciated');
     });
 
-    index = this.append_cell(
-        'names = [name for name in dir(widgets)' + 
-        ' if name.endswith("Widget") and name!= "Widget" and name!= "DOMWidget"]\n' +
-        'for name in names:\n' +
-        '    print(name)\n');
-    this.execute_cell_then(index, function(index){
-
-        // Get the widget names that are registered with the widget manager.  Assume
-        // a 1 to 1 mapping of model and widgets names (model names just have 'model'
-        // suffixed).
-        var javascript_names = this.evaluate(function () {
-            names = [];
-            for (var name in IPython.widget_manager._model_types) {
-                names.push(name.replace('Model',''));
-            }
-            return names;
-        });
-
-        // Get the widget names registered in python.
-        var python_names = this.get_output_cell(index).text.split('\n');
-
-        // Make sure the two lists have the same items.
-        for (var i in javascript_names) {
-            var javascript_name = javascript_names[i];
-            var found = false;
-            for (var j in python_names) {
-                var python_name = python_names[j];
-                if (python_name==javascript_name) {
-                    found = true;
-                    break;
-                }
-            }
-            this.test.assert(found, javascript_name + ' exists in python');
-        }
-        for (var i in python_names) {
-            var python_name = python_names[i];
-            if (python_name.length > 0) {
-                var found = false;
-                for (var j in javascript_names) {
-                    var javascript_name = javascript_names[j];
-                    if (python_name==javascript_name) {
-                        found = true;
-                        break;
-                    }
-                }
-                this.test.assert(found, python_name + ' exists in javascript');
-            }
-        }
-    });
-    
     throttle_index = this.append_cell(
         'import time\n' +
-        'textbox = widgets.StringWidget()\n' +
+        'textbox = widgets.TextBoxWidget()\n' +
         'display(textbox)\n'+
         'textbox.add_class("my-throttle-textbox")\n' +
         'def handle_change(name, old, new):\n' +

@@ -238,8 +238,8 @@ class Widget(LoggingConfigurable):
                 new_list.append(self._unpack_widgets(value))
             return new_list
         elif isinstance(values, string_types):
-            if widget.model_id in Widget.widgets:
-                return Widget.widgets[widget.model_id]
+            if values in Widget.widgets:
+                return Widget.widgets[values]
             else:
                 return values
         else:

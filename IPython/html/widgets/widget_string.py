@@ -46,7 +46,7 @@ class TextBoxWidget(HTMLWidget):
     view_name = Unicode('TextBoxView', sync=True)
 
     def __init__(self, **kwargs):
-        super(StringWidget, self).__init__(**kwargs)
+        super(TextBoxWidget, self).__init__(**kwargs)
         self._submission_callbacks = []        
         self.on_msg(self._handle_string_msg)
 
@@ -90,5 +90,5 @@ class TextBoxWidget(HTMLWidget):
                 elif nargs == 1:
                     self._submission_callbacks.append(callback)
                 else:
-                    raise TypeError('StringWidget submit callback must ' \
+                    raise TypeError('TextBoxWidget submit callback must ' \
                         'accept 0 or 1 arguments.')
