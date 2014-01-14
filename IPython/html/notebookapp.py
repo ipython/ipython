@@ -527,7 +527,7 @@ class NotebookApp(BaseIPythonApplication):
 
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
-              "sent by the upstream reverse proxy. Neccesary if the proxy handles SSL")
+              "sent by the upstream reverse proxy. Necessary if the proxy handles SSL")
     )
     
     info_file = Unicode()
@@ -555,6 +555,14 @@ class NotebookApp(BaseIPythonApplication):
         """construct the kernel arguments"""
         # Scrub frontend-specific flags
         self.kernel_argv = swallow_argv(self.argv, notebook_aliases, notebook_flags)
+        if any(arg.startswith(u'--pylab') for arg in self.kernel_argv):
+            self.log.warn('\n    '.join([
+                "Starting all kernels in pylab mode is not recommended,",
+                "and will be disabled in a future release.",
+                "Please use the %matplotlib magic to enable matplotlib instead.",
+                "pylab implies many imports, which can have confusing side effects",
+                "and harm the reproducibility of your notebooks.",
+            ]))
         # Kernel should inherit default config file from frontend
         self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
         # Kernel should get *absolute* path to profile directory
