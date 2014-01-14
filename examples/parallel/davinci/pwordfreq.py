@@ -17,9 +17,9 @@ from IPython.parallel import Client, Reference
 
 from __future__ import division 
 
-try : #python2
+try: #python2
     from urllib import urlretrieve
-except : #python3
+except ImportError: #python3
     from urllib.request import urlretrieve
 
 davinci_url = "http://www.gutenberg.org/cache/epub/5000/pg5000.txt"
@@ -76,9 +76,9 @@ if __name__ == '__main__':
         with open('davinci%i.txt'%i, 'w') as f:
             f.write('\n'.join(chunk))
     
-    try : #python2
+    try: #python2
         cwd = os.path.abspath(os.getcwdu())
-    except : #python3
+    except AttributeError: #python3
         cwd = os.path.abspath(os.getcwd())
     fnames = [ os.path.join(cwd, 'davinci%i.txt'%i) for i in range(n)]
     tic = time.time()

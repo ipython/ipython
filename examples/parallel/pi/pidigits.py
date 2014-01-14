@@ -23,7 +23,7 @@ from matplotlib import pyplot as plt
 
 try : #python2
     from urllib import urlretrieve
-except : #python3
+except ImportError : #python3
     from urllib.request import urlretrieve
 
 	# Top-level functions
