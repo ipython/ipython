@@ -34,7 +34,11 @@ def fetch_pi_file(filename):
         return
     else:
         # download it
-        urllib.urlretrieve(ftpdir+filename,filename)
+        try : #python2
+            urllib.urlretrieve(ftpdir+filename,filename)
+        except : #python3
+            import urllib.request
+            urllib.request.urlretrieve(ftpdir+filename,filename)
 
 def compute_one_digit_freqs(filename):
     """
