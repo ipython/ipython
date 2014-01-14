@@ -12,20 +12,13 @@ in the IPython notebook frontend.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from copy import copy
-from glob import glob
 from contextlib import contextmanager
-import uuid
-import sys
-import os
 import inspect
 import types
 
-import IPython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, List, Instance, Bool
-from IPython.display import Javascript, display
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
