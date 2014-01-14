@@ -20,8 +20,8 @@ from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class SelectionContainerWidget(DOMWidget):
-    view_name = Unicode('TabView', sync=True)
+class AccordionWidget(DOMWidget):
+    view_name = Unicode('AccordionView', sync=True)
 
     # Keys
     _titles = Dict(help="Titles of the pages", sync=True)
@@ -54,3 +54,7 @@ class SelectionContainerWidget(DOMWidget):
             return self._titles[index]
         else:
             return None
+
+
+class TabWidget(AccordionWidget):
+    view_name = Unicode('TabView', sync=True)

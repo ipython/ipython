@@ -22,8 +22,8 @@ from IPython.utils.traitlets import Unicode, Bool, List, Int
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class StringWidget(DOMWidget):
-    view_name = Unicode('TextBoxView', sync=True)
+class HTMLWidget(DOMWidget):
+    view_name = Unicode('HTMLView', sync=True)
 
     # Keys
     value = Unicode(help="String value", sync=True)
@@ -31,15 +31,24 @@ class StringWidget(DOMWidget):
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
-    def __init__(self, **kwargs):
-        super(StringWidget, self).__init__(**kwargs)
-        self._submission_callbacks = []        
-        self.on_msg(self._handle_string_msg)
+class LatexWidget(HTMLWidget):
+    view_name = Unicode('LatexView', sync=True)
 
+
+class TextAreaWidget(HTMLWidget):
+    view_name = Unicode('TextAreaView', sync=True)
 
     def scroll_to_bottom(self):
         self.send({"method": "scroll_to_bottom"})
 
+
+class TextBoxWidget(HTMLWidget):
+    view_name = Unicode('TextBoxView', sync=True)
+
+    def __init__(self, **kwargs):
+        super(StringWidget, self).__init__(**kwargs)
+        self._submission_callbacks = []        
+        self.on_msg(self._handle_string_msg)
 
     def _handle_string_msg(self, content):
         """Handle a msg from the front-end
@@ -49,8 +58,8 @@ class StringWidget(DOMWidget):
         content: dict
             Content of the msg."""
         if 'event' in content and content['event'] == 'submit':
-            self._handle_submit()
-
+            for handler in self._submission_callbacks:
+                handler(self)
 
     def on_submit(self, callback, remove=False):
         """Register a callback to handle text submission (triggered when the 
@@ -67,25 +76,19 @@ class StringWidget(DOMWidget):
         if remove and callback in self._submission_callbacks:
             self._submission_callbacks.remove(callback)
         elif not remove and not callback in self._submission_callbacks:
-            self._submission_callbacks.append(callback)
-
-
-    def _handle_submit(self):
-        """Handles when a string widget view is submitted."""
-        for handler in self._submission_callbacks:
-            if callable(handler):
-                argspec = inspect.getargspec(handler)
+            if callable(callback):
+                argspec = inspect.getargspec(callback)
                 nargs = len(argspec[0])
 
                 # Bound methods have an additional 'self' argument
-                if isinstance(handler, types.MethodType):
+                if isinstance(callback, types.MethodType):
                     nargs -= 1
 
                 # Call the callback
                 if nargs == 0:
-                    handler()
+                    self._submission_callbacks.append(lambda sender: callback())
                 elif nargs == 1:
-                    handler(self)
+                    self._submission_callbacks.append(callback)
                 else:
                     raise TypeError('StringWidget submit callback must ' \
                         'accept 0 or 1 arguments.')
