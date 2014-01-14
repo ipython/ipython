@@ -166,7 +166,7 @@ class Widget(LoggingConfigurable):
     def _handle_property_changed(self, name, old, new):
         """Called when a property has been changed."""
         # Make sure this isn't information that the front-end just sent us.
-        if should_send_property(self, name, new):
+        if self.should_send_property(name, new):
             # Send new state to front-end
             self.send_state(key=name)
 

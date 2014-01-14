@@ -29,13 +29,13 @@ class ToggleButtonsWidget(DOMWidget):
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
-class DropdownWidget(SelectionWidget):
+class DropdownWidget(ToggleButtonsWidget):
     view_name = Unicode('DropdownView', sync=True)
 
 
-class RadioButtonsWidget(SelectionWidget):
+class RadioButtonsWidget(ToggleButtonsWidget):
     view_name = Unicode('RadioButtonsView', sync=True)
     
 
-class ListBoxWidget(SelectionWidget):
+class ListBoxWidget(ToggleButtonsWidget):
     view_name = Unicode('ListBoxView', sync=True)

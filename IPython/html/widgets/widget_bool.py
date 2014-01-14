@@ -27,6 +27,6 @@ class CheckBoxWidget(DOMWidget):
     description = Unicode('', help="Description of the boolean (label).", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
-class ToggleButtonWidget(CheckboxWidget):
+class ToggleButtonWidget(CheckBoxWidget):
     view_name = Unicode('ToggleButtonView', sync=True)
     
