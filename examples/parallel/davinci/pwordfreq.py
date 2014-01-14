@@ -15,6 +15,13 @@ from wordfreq import print_wordfreq, wordfreq
 
 from IPython.parallel import Client, Reference
 
+from __future__ import division 
+
+try: #python2
+    from urllib import urlretrieve
+except ImportError: #python3
+    from urllib.request import urlretrieve
+
 davinci_url = "http://www.gutenberg.org/cache/epub/5000/pg5000.txt"
 
 def pwordfreq(view, fnames):
@@ -32,7 +39,7 @@ def pwordfreq(view, fnames):
         word_set.update(f.keys())
     freqs = dict(zip(word_set, repeat(0)))
     for f in freqs_list:
-        for word, count in f.iteritems():
+        for word, count in f.items():
             freqs[word] += count
     return freqs
 
@@ -45,7 +52,7 @@ if __name__ == '__main__':
     if not os.path.exists('davinci.txt'):
         # download from project gutenberg
         print("Downloading Da Vinci's notebooks from Project Gutenberg")
-        urllib.urlretrieve(davinci_url, 'davinci.txt')
+        urlretrieve(davinci_url, 'davinci.txt')
         
     # Run the serial version
     print("Serial word frequency count:")
@@ -54,7 +61,7 @@ if __name__ == '__main__':
     freqs = wordfreq(text)
     toc = time.time()
     print_wordfreq(freqs, 10)
-    print("Took %.3f s to calcluate"%(toc-tic))
+    print("Took %.3f s to calculate"%(toc-tic))
     
     
     # The parallel version
@@ -63,18 +70,21 @@ if __name__ == '__main__':
     lines = text.splitlines()
     nlines = len(lines)
     n = len(rc)
-    block = nlines/n
+    block = nlines//n
     for i in range(n):
         chunk = lines[i*block:i*(block+1)]
         with open('davinci%i.txt'%i, 'w') as f:
             f.write('\n'.join(chunk))
     
-    cwd = os.path.abspath(os.getcwdu())
+    try: #python2
+        cwd = os.path.abspath(os.getcwdu())
+    except AttributeError: #python3
+        cwd = os.path.abspath(os.getcwd())
     fnames = [ os.path.join(cwd, 'davinci%i.txt'%i) for i in range(n)]
     tic = time.time()
     pfreqs = pwordfreq(view,fnames)
     toc = time.time()
     print_wordfreq(freqs)
-    print("Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets)))
+    print("Took %.3f s to calculate on %i engines"%(toc-tic, len(view.targets)))
     # cleanup split files
     map(os.remove, fnames)
