@@ -19,6 +19,8 @@ from __future__ import print_function
 
 # stdlib
 import errno
+import io
+import json
 import logging
 import os
 import random
@@ -73,6 +75,7 @@ from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
+from IPython.core.profiledir import ProfileDir
 from IPython.consoleapp import IPythonConsoleApp
 from IPython.kernel import swallow_argv
 from IPython.kernel.zmq.session import default_secure
@@ -214,6 +217,27 @@ class NotebookWebApplication(web.Application):
         return new_handlers
 
 
+class NbserverListApp(BaseIPythonApplication):
+    
+    description="List currently running notebook servers in this profile."
+    
+    flags = dict(
+        json=({'NbserverListApp': {'json': True}},
+              "Produce machine-readable JSON output."),
+    )
+    
+    json = Bool(False, config=True,
+          help="If True, each line of output will be a JSON object with the "
+                  "details from the server info file.")
+
+    def start(self):
+        if not self.json:
+            print("Currently running servers:")
+        for serverinfo in list_running_servers(self.profile):
+            if self.json:
+                print(json.dumps(serverinfo))
+            else:
+                print(serverinfo['url'], "::", serverinfo['notebook_dir'])
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -286,6 +310,10 @@ class NotebookApp(BaseIPythonApplication):
         FileNotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
+    
+    subcommands = dict(
+        list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
+    )
 
     kernel_argv = List(Unicode)
 
@@ -502,6 +530,12 @@ class NotebookApp(BaseIPythonApplication):
               "sent by the upstream reverse proxy. Neccesary if the proxy handles SSL")
     )
     
+    info_file = Unicode()
+
+    def _info_file_default(self):
+        info_file = "nbserver-%s.json"%os.getpid()
+        return os.path.join(self.profile_dir.security_dir, info_file)
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         
@@ -597,6 +631,20 @@ class NotebookApp(BaseIPythonApplication):
                               'no available port could be found.')
             self.exit(1)
     
+    @property
+    def display_url(self):
+        ip = self.ip if self.ip else '[all ip addresses on your system]'
+        return self._url(ip)
+
+    @property
+    def connection_url(self):
+        ip = self.ip if self.ip else localhost()
+        return self._url(ip)
+
+    def _url(self, ip):
+        proto = 'https' if self.certfile else 'http'
+        return "%s://%s:%i%s" % (proto, ip, self.port, self.base_project_url)
+
     def init_signal(self):
         if not sys.platform.startswith('win'):
             signal.signal(signal.SIGINT, self._handle_sigint)
@@ -669,7 +717,6 @@ class NotebookApp(BaseIPythonApplication):
         elif status == 'unclean':
             self.log.warn("components submodule unclean, you may see 404s on static/components")
             self.log.warn("run `setup.py submodule` or `git submodule update` to update")
-            
     
     @catch_config_error
     def initialize(self, argv=None):
@@ -694,33 +741,59 @@ class NotebookApp(BaseIPythonApplication):
         "Return the current working directory and the server url information"
         info = self.notebook_manager.info_string() + "\n"
         info += "%d active kernels \n" % len(self.kernel_manager._kernels)
-        return info + "The IPython Notebook is running at: %s" % self._url
+        return info + "The IPython Notebook is running at: %s" % self.display_url
+
+    def server_info(self):
+        """Return a JSONable dict of information about this server."""
+        return {'url': self.connection_url,
+                'hostname': self.ip if self.ip else 'localhost',
+                'port': self.port,
+                'secure': bool(self.certfile),
+                'base_project_url': self.base_project_url,
+                'notebook_dir': os.path.abspath(self.notebook_manager.notebook_dir),
+               }
+
+    def write_server_info_file(self):
+        """Write the result of server_info() to the JSON file info_file."""
+        with open(self.info_file, 'w') as f:
+            json.dump(self.server_info(), f, indent=2)
+
+    def remove_server_info_file(self):
+        """Remove the nbserver-<pid>.json file created for this server.
+        
+        Ignores the error raised when the file has already been removed.
+        """
+        try:
+            os.unlink(self.info_file)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
 
     def start(self):
         """ Start the IPython Notebook server app, after initialization
         
         This method takes no arguments so all configuration and initialization
         must be done prior to calling this method."""
-        ip = self.ip if self.ip else '[all ip addresses on your system]'
-        proto = 'https' if self.certfile else 'http'
+        if self.subapp is not None:
+            return self.subapp.start()
+
         info = self.log.info
-        self._url = "%s://%s:%i%s" % (proto, ip, self.port,
-                                      self.base_project_url)
         for line in self.notebook_info().split("\n"):
             info(line)
         info("Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).")
 
+        self.write_server_info_file()
+
         if self.open_browser or self.file_to_run:
-            ip = self.ip or localhost()
             try:
                 browser = webbrowser.get(self.browser or None)
             except webbrowser.Error as e:
                 self.log.warn('No web browser found: %s.' % e)
                 browser = None
             
-            nbdir = os.path.abspath(self.notebook_manager.notebook_dir)
             f = self.file_to_run
             if f:
+                nbdir = os.path.abspath(self.notebook_manager.notebook_dir)
                 if f.startswith(nbdir):
                     f = f[len(nbdir):]
                 else:
@@ -735,8 +808,8 @@ class NotebookApp(BaseIPythonApplication):
             else:
                 url = url_path_join('tree', f)
             if browser:
-                b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
-                    self.port, self.base_project_url, url), new=2)
+                b = lambda : browser.open("%s%s" % (self.connection_url, url),
+                                          new=2)
                 threading.Thread(target=b).start()
         try:
             ioloop.IOLoop.instance().start()
@@ -744,7 +817,21 @@ class NotebookApp(BaseIPythonApplication):
             info("Interrupted...")
         finally:
             self.cleanup_kernels()
+            self.remove_server_info_file()
+
+
+def list_running_servers(profile='default'):
+    """Iterate over the server info files of running notebook servers.
     
+    Given a profile name, find nbserver-* files in the security directory of
+    that profile, and yield dicts of their information, each one pertaining to
+    a currently running notebook server instance.
+    """
+    pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), name=profile)
+    for file in os.listdir(pd.security_dir):
+        if file.startswith('nbserver-'):
+            with io.open(os.path.join(pd.security_dir, file), encoding='utf-8') as f:
+                yield json.load(f)
 
 #-----------------------------------------------------------------------------
 # Main entry point
