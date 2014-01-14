@@ -44,6 +44,8 @@ function check_output_area(output_type, keys) {
         var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
         return json;
     });
+    // The evaluate call above happens asyncrhonously: wait for cell[1] to have output
+    this.wait_for_output(1);
     var result = this.get_output_cell(0);
     var result2 = this.get_output_cell(1);
     this.test.assertEquals(result.output_type, output_type,
