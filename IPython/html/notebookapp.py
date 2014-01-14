@@ -230,11 +230,11 @@ class NbserverListApp(BaseIPythonApplication):
     def start(self):
         if not self.json:
             print("Currently running servers:")
-        for serverinfo in discover_running_servers(self.profile):
+        for serverinfo in list_running_servers(self.profile):
             if self.json:
                 print(json.dumps(serverinfo))
             else:
-                print(serverinfo['url'], "::", serverinfo['notebookdir'])
+                print(serverinfo['url'], "::", serverinfo['notebook_dir'])
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -746,8 +746,8 @@ class NotebookApp(BaseIPythonApplication):
                 'hostname': self.ip if self.ip else 'localhost',
                 'port': self.port,
                 'secure': bool(self.certfile),
-                'baseurlpath': self.base_project_url,
-                'notebookdir': os.path.abspath(self.notebook_manager.notebook_dir),
+                'base_project_url': self.base_project_url,
+                'notebook_dir': os.path.abspath(self.notebook_manager.notebook_dir),
                }
 
     def write_server_info_file(self):
