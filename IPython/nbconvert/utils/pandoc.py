@@ -22,7 +22,7 @@ from io import TextIOWrapper, BytesIO
 # IPython imports
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
-from IPython.utils.process import find_cmd, FindCmdError
+from IPython.utils.process import is_cmd_found, FindCmdError
 
 
 from .exceptions import ConversionException
@@ -30,12 +30,7 @@ from .exceptions import ConversionException
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
-minimal_version = "1.12.1"
-
-# command line to make pandoc print it's version. It is also the
-# easiest way to make pandoc return at all.
-__pandoc_version_call = ['pandoc', '-v']
-
+_minimal_version = "1.12.1"
 
 def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     """Convert an input string in format `from` to format `to` via pandoc.
@@ -74,42 +69,6 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     return out.rstrip('\n')
 
 
-def pandoc_available(failmode="return", warn=False):
-    """Is pandoc available. Relies on `IPython.utils.process.find_cmd`.
-    
-    Parameters
-    ----------
-     - failmode : string
-        either "return" or "raise". See below.
-     - warn : bool
-        issue a user warning if pandoc is not available.
-
-    Return
-    ------
-    out : (Bool, Exception)
-        On success will return True. On failure and failmode=="return" 
-        will return False-valued PandocMissing instance. If failmode is
-        anything else, the function will not return but raise PandocMissing.
-    """
-    
-    try:
-        find_cmd("pandoc")
-        return True
-    except FindCmdError as e:
-        if warn:
-            warnings.warn(
-                "Pandoc cannot be found (find_cmd('pandoc') failed).\n"+
-                "Please check that pandoc is installed:\n" +
-                "http://johnmacfarlane.net/pandoc/installing.html"
-            )
-
-        exc = PandocMissing("pandoc", e)
-        if failmode == "return":
-            return exc
-        else:
-            raise exc
-
-
 def get_pandoc_version():
     """Gets the Pandoc version if Pandoc is installed.
     
@@ -123,15 +82,18 @@ def get_pandoc_version():
     ----------
     PandocMissing will be raised if pandoc is unavailable.
     """
+    global __version
 
-    if __cache['version_ok'] and __cache['version']:
-        return __cache['version']
+    if __version is not None:
+        return __version
     else:
-        pandoc_available(failmode="raise")
-        out = subprocess.check_output(__pandoc_version_call, universal_newlines=True)
+        if not is_cmd_found('pandoc'):
+            raise PandocMissing()
+
+        out = subprocess.check_output( ['pandoc', '-v'], universal_newlines=True)
         pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
-        __cache['version'] = version = pv_re.search(out).group(0)
-        return version
+        __version = pv_re.search(out).group(0)
+        return __version
 
 
 def check_pandoc_version():
@@ -141,52 +103,33 @@ def check_pandoc_version():
     ----------
     PandocMissing will be raised if pandoc is unavailable.
     """
-    ok = __cache['version_ok']
+    v = get_pandoc_version()
+    ok = check_version(v , _minimal_version )
     if not ok:
-        __cache['version_ok'] = ok = check_version( get_pandoc_version(), minimal_version )
-        if not ok:
-            warnings.warn( "You are using an old version of pandoc (%s)\n" % __cache['version'] + 
-                           "Recommended version is %s.\nTry updating." % minimal_version + 
-                           "http://johnmacfarlane.net/pandoc/installing.html.\nContinuing with doubts...",
-                           RuntimeWarning, stacklevel=2)
-    return __cache['version_ok']
+        warnings.warn( "You are using an old version of pandoc (%s)\n" % v + 
+                       "Recommended version is %s.\nTry updating." % _minimal_version + 
+                       "http://johnmacfarlane.net/pandoc/installing.html.\nContinuing with doubts...",
+                       RuntimeWarning, stacklevel=2)
+    return ok
 
 #-----------------------------------------------------------------------------
 # Exception handling
 #-----------------------------------------------------------------------------
 class PandocMissing(ConversionException):
     """Exception raised when Pandoc is missing. """
-    def __init__(self, cmd, exc, *args, **kwargs):
-        super(PandocMissing, self).__init__( "The command '%s' returned an error: %s.\n" %(" ".join(cmd), exc) +
+    def __init__(self, *args, **kwargs):
+        super(PandocMissing, self).__init__( "Pandoc wasn't found.\n" +
                                              "Please check that pandoc is installed:\n" +
                                              "http://johnmacfarlane.net/pandoc/installing.html" )
-        self.exc = exc
-
-    def __bool__(self):
-        return False
-
-    __nonzero__ = __bool__
-
 
 #-----------------------------------------------------------------------------
 # Internal state management
 #-----------------------------------------------------------------------------
-def clean_cache(new=False):
-    if new:
-        global __cache
-        cache = {}
-        __cache = cache
-    else:
-        cache = __cache
-        cache.clear()
-    
-    cache['version_ok'] = False
-    cache['version'] = None
-    return cache
+def clean_cache():
+    global __version
+    __version = None
 
-# The following holds cache values about the pandoc executable.
-__cache = clean_cache(new=True)
-
+__version = None
 
 
 

@@ -27,6 +27,7 @@ from IPython.testing import decorators as dec
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class TestPandoc(TestsBase):
     """Collection of Pandoc tests"""
 
@@ -36,30 +37,39 @@ class TestPandoc(TestsBase):
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_pandoc_available(self):
-        """ Test behaviour of pandoc_available() """
-        os.environ["PATH"] = ""
-        assert not pandoc.pandoc_available()
-        try:
-            pandoc.pandoc_available(failmode="raise")
-        except pandoc.PandocMissing:
-            assert True
+        """ Test behaviour that pandoc functions raise PandocMissing as documented """
+        pandoc.clean_cache()
 
+        os.environ["PATH"] = ""
+        assert pandoc_function_raised_missing(pandoc.get_pandoc_version) == True
+        assert pandoc_function_raised_missing(pandoc.check_pandoc_version) == True
+        assert pandoc_function_raised_missing(pandoc.pandoc, "", "markdown", "html") == True
+
+        # original_env["PATH"] should contain pandoc
         os.environ["PATH"] = self.original_env["PATH"]
-        assert pandoc.pandoc_available()
-        try:
-            pandoc.pandoc_available(failmode="raise")
-        except pandoc.PandocMissing:
-            assert False
+        assert pandoc_function_raised_missing(pandoc.get_pandoc_version) == False
+        assert pandoc_function_raised_missing(pandoc.check_pandoc_version) == False
+        assert pandoc_function_raised_missing(pandoc.pandoc, "", "markdown", "html") == False
+
         
     @dec.onlyif_cmds_exist('pandoc')        
     def test_minimal_version(self):
-        original_minversion = pandoc.minimal_version
+        original_minversion = pandoc._minimal_version
 
-        pandoc.minimal_version = "120.0"
+        pandoc._minimal_version = "120.0"
         assert not pandoc.check_pandoc_version()
 
-        pandoc.minimal_version = pandoc.get_pandoc_version()
+        pandoc._minimal_version = pandoc.get_pandoc_version()
         assert pandoc.check_pandoc_version()
         
 
         
+
+def pandoc_function_raised_missing(f, *args, **kwargs):
+    try:
+        f(*args, **kwargs)
+    except pandoc.PandocMissing as e:
+        print e
+        return True
+    else:
+        return False
