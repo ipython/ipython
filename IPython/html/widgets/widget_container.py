@@ -25,8 +25,7 @@ class ContainerWidget(DOMWidget):
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
-    keys = ['description', 'button_text', 'children'] + DOMWidget.keys # TODO: Use add/remove_class
-    children = List(Instance(DOMWidget))
+    children = List(Instance(DOMWidget), sync=True)
     
-    description = Unicode()
-    button_text = Unicode()
+    description = Unicode(sync=True)
+    button_text = Unicode(sync=True)

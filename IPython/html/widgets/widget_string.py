@@ -27,10 +27,9 @@ class StringWidget(DOMWidget):
     view_name = Unicode('TextBoxView')
 
     # Keys
-    keys = ['value', 'disabled', 'description'] + DOMWidget.keys
-    value = Unicode(help="String value")
-    disabled = Bool(False, help="Enable or disable user changes")
-    description = Unicode(help="Description of the value this widget represents")
+    value = Unicode(help="String value", sync=True)
+    disabled = Bool(False, help="Enable or disable user changes", sync=True)
+    description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
     def __init__(self, **kwargs):

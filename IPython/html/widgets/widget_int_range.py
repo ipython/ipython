@@ -24,11 +24,10 @@ class IntRangeWidget(DOMWidget):
     view_name = Unicode('IntSliderView')
 
     # Keys
-    keys = ['value', 'step', 'max', 'min', 'disabled', 'orientation', 'description'] + DOMWidget.keys
-    value = Int(0, help="Int value") 
-    max = Int(100, help="Max value")
-    min = Int(0, help="Min value")
-    disabled = Bool(False, help="Enable or disable user changes")
-    step = Int(1, help="Minimum step that the value can take (ignored by some views)")
-    orientation = Unicode(u'horizontal', help="Vertical or horizontal (ignored by some views)")
-    description = Unicode(help="Description of the value this widget represents")
+    value = Int(0, help="Int value", sync=True) 
+    max = Int(100, help="Max value", sync=True)
+    min = Int(0, help="Min value", sync=True)
+    disabled = Bool(False, help="Enable or disable user changes", sync=True)
+    step = Int(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    orientation = Unicode(u'horizontal', help="Vertical or horizontal (ignored by some views)", sync=True)
+    description = Unicode(help="Description of the value this widget represents", sync=True)

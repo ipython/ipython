@@ -25,9 +25,8 @@ class SelectionContainerWidget(DOMWidget):
     view_name = Unicode('TabView')
 
     # Keys
-    keys = ['_titles', 'selected_index', 'children'] + DOMWidget.keys
-    _titles = Dict(help="Titles of the pages")
-    selected_index = Int(0)
+    _titles = Dict(help="Titles of the pages", sync=True)
+    selected_index = Int(0, sync=True)
 
     children = List(Instance(DOMWidget))
 

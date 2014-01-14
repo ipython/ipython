@@ -30,8 +30,6 @@ class Widget(LoggingConfigurable):
     widget_construction_callback = None
     widgets = {}
 
-    keys = ['view_name'] # TODO: Sync = True
-
     def on_widget_constructed(callback):
         """Class method, registers a callback to be called when a widget is
         constructed.  The callback must have the following signature:
@@ -49,7 +47,7 @@ class Widget(LoggingConfigurable):
     model_name = Unicode('widget', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
     view_name = Unicode(help="""Default view registered in the front-end
-        to use to represent the widget.""")
+        to use to represent the widget.""", sync=True)
 
     @contextmanager
     def property_lock(self, key, value):
@@ -69,6 +67,15 @@ class Widget(LoggingConfigurable):
         return key != self._property_lock[0] or \
         value != self._property_lock[1]
 
+    @property
+    def keys(self):
+        if self._keys is None:
+            self._keys = []
+            for trait_name in self.trait_names():
+                if self.trait_metadata(trait_name, 'sync'):
+                    self._keys.append(trait_name)
+        return self._keys
+
     # Private/protected declarations
     _comm = Instance('IPython.kernel.comm.Comm')
     
@@ -79,6 +86,7 @@ class Widget(LoggingConfigurable):
         self._property_lock = (None, None)
         self._display_callbacks = []
         self._msg_callbacks = []
+        self._keys = None
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)

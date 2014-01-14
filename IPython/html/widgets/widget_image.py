@@ -27,11 +27,10 @@ class ImageWidget(DOMWidget):
     view_name = Unicode('ImageView')
     
     # Define the custom state properties to sync with the front-end
-    keys = ['format', 'width', 'height', '_b64value'] + DOMWidget.keys
-    format = Unicode('png')
-    width = Unicode() # TODO: C unicode
-    height = Unicode()
-    _b64value = Unicode()
+    format = Unicode('png', sync=True)
+    width = Unicode(sync=True) # TODO: C unicode
+    height = Unicode(sync=True)
+    _b64value = Unicode(sync=True)
     
     value = Bytes()
     def _value_changed(self, name, old, new):

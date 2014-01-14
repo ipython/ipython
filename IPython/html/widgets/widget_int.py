@@ -24,7 +24,6 @@ class IntWidget(DOMWidget):
     view_name = Unicode('IntTextView')
 
     # Keys
-    keys = ['value', 'disabled', 'description'] + DOMWidget.keys
-    value = Int(0, help="Int value") 
-    disabled = Bool(False, help="Enable or disable user changes")
-    description = Unicode(help="Description of the value this widget represents")
+    value = Int(0, help="Int value", sync=True) 
+    disabled = Bool(False, help="Enable or disable user changes", sync=True)
+    description = Unicode(help="Description of the value this widget represents", sync=True)

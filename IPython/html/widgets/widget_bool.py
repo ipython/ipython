@@ -24,8 +24,7 @@ class BoolWidget(DOMWidget):
     view_name = Unicode('CheckboxView')
 
     # Model Keys
-    keys = ['value', 'description', 'disabled'] + DOMWidget.keys
-    value = Bool(False, help="Bool value")
-    description = Unicode('', help="Description of the boolean (label).") 
-    disabled = Bool(False, help="Enable or disable user changes.")
+    value = Bool(False, help="Bool value", sync=True)
+    description = Unicode('', help="Description of the boolean (label).", sync=True) 
+    disabled = Bool(False, help="Enable or disable user changes.", sync=True)
     

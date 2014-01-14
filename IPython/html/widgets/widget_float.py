@@ -24,7 +24,6 @@ class FloatWidget(DOMWidget):
     view_name = Unicode('FloatTextView')
 
     # Keys
-    keys = ['value', 'disabled', 'description'] + DOMWidget.keys
-    value = Float(0.0, help="Float value") 
-    disabled = Bool(False, help="Enable or disable user changes")
-    description = Unicode(help="Description of the value this widget represents")
+    value = Float(0.0, help="Float value", sync=True) 
+    disabled = Bool(False, help="Enable or disable user changes", sync=True)
+    description = Unicode(help="Description of the value this widget represents", sync=True)

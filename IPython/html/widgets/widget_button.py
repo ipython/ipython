@@ -28,9 +28,8 @@ class ButtonWidget(DOMWidget):
     view_name = Unicode('ButtonView')
 
     # Keys
-    keys = ['description', 'disabled'] + DOMWidget.keys
-    description = Unicode('', help="Description of the button (label).")
-    disabled = Bool(False, help="Enable or disable user changes.")
+    description = Unicode('', help="Description of the button (label).", sync=True)
+    disabled = Bool(False, help="Enable or disable user changes.", sync=True)
     
 
     def __init__(self, **kwargs):
