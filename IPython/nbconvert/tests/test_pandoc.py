@@ -68,8 +68,7 @@ class TestPandoc(TestsBase):
 def pandoc_function_raised_missing(f, *args, **kwargs):
     try:
         f(*args, **kwargs)
-    except pandoc.PandocMissing as e:
-        print e
+    except pandoc.PandocMissing:
         return True
     else:
         return False
