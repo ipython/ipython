@@ -15,6 +15,8 @@ from wordfreq import print_wordfreq, wordfreq
 
 from IPython.parallel import Client, Reference
 
+from __future__ import division 
+
 davinci_url = "http://www.gutenberg.org/cache/epub/5000/pg5000.txt"
 
 def pwordfreq(view, fnames):
@@ -32,7 +34,7 @@ def pwordfreq(view, fnames):
         word_set.update(f.keys())
     freqs = dict(zip(word_set, repeat(0)))
     for f in freqs_list:
-        for word, count in f.iteritems():
+        for word, count in f.items():
             freqs[word] += count
     return freqs
 
@@ -45,7 +47,11 @@ if __name__ == '__main__':
     if not os.path.exists('davinci.txt'):
         # download from project gutenberg
         print("Downloading Da Vinci's notebooks from Project Gutenberg")
-        urllib.urlretrieve(davinci_url, 'davinci.txt')
+        try : #python2
+            urllib.urlretrieve(davinci_url, 'davinci.txt')
+        except : #python3
+            import urllib.request
+            urllib.request.urlretrieve(davinci_url, 'davinci.txt')
         
     # Run the serial version
     print("Serial word frequency count:")
@@ -63,13 +69,16 @@ if __name__ == '__main__':
     lines = text.splitlines()
     nlines = len(lines)
     n = len(rc)
-    block = nlines/n
+    block = nlines//n
     for i in range(n):
         chunk = lines[i*block:i*(block+1)]
         with open('davinci%i.txt'%i, 'w') as f:
             f.write('\n'.join(chunk))
     
-    cwd = os.path.abspath(os.getcwdu())
+    try : #python2
+        cwd = os.path.abspath(os.getcwdu())
+    except : #python3
+        cwd = os.path.abspath(os.getcwd())
     fnames = [ os.path.join(cwd, 'davinci%i.txt'%i) for i in range(n)]
     tic = time.time()
     pfreqs = pwordfreq(view,fnames)
