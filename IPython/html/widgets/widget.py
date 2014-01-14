@@ -330,12 +330,10 @@ class Widget(LoggingConfigurable):
 
 
 class DOMWidget(Widget):
-    visible = Bool(True, help="Whether or not the widget is visible.")
+    visible = Bool(True, help="Whether or not the widget is visible.", sync=True)
 
     # Private/protected declarations
-    _css = Dict() # Internal CSS property dict
-
-    keys = ['visible', '_css'] + Widget.keys # TODO
+    _css = Dict(sync=True) # Internal CSS property dict
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.
@@ -354,7 +352,6 @@ class DOMWidget(Widget):
             return self._css[selector][key]
         else:
             return None
-
 
     def set_css(self, *args, **kwargs):
         """Set one or more CSS properties of the widget.
