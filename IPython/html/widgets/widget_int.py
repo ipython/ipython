@@ -20,7 +20,6 @@ from IPython.utils.traitlets import Unicode, Int, Bool, List
 # Classes
 #-----------------------------------------------------------------------------
 class IntWidget(DOMWidget):
-    target_name = Unicode('IntWidgetModel')
     view_name = Unicode('IntTextView', sync=True)
 
     # Keys

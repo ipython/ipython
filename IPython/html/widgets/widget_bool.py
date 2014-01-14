@@ -20,7 +20,6 @@ from IPython.utils.traitlets import Unicode, Bool, List
 # Classes
 #-----------------------------------------------------------------------------
 class BoolWidget(DOMWidget):
-    target_name = Unicode('BoolWidgetModel')
     view_name = Unicode('CheckboxView', sync=True)
 
     # Model Keys

@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var ImageWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('ImageWidgetModel', ImageWidgetModel);
-
     var ImageView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.

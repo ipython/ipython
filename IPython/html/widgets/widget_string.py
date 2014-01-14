@@ -23,7 +23,6 @@ from IPython.utils.traitlets import Unicode, Bool, List, Int
 # Classes
 #-----------------------------------------------------------------------------
 class StringWidget(DOMWidget):
-    target_name = Unicode('StringWidgetModel')
     view_name = Unicode('TextBoxView', sync=True)
 
     # Keys

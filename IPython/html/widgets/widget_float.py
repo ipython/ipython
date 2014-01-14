@@ -20,7 +20,6 @@ from IPython.utils.traitlets import Unicode, Float, Bool, List
 # Classes
 #-----------------------------------------------------------------------------
 class FloatWidget(DOMWidget):
-    target_name = Unicode('FloatWidgetModel')
     view_name = Unicode('FloatTextView', sync=True)
 
     # Keys

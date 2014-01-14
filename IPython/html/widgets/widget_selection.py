@@ -20,7 +20,6 @@ from IPython.utils.traitlets import Unicode, List, Bool
 # SelectionWidget
 #-----------------------------------------------------------------------------
 class SelectionWidget(DOMWidget):
-    target_name = Unicode('SelectionWidgetModel')
     view_name = Unicode('DropdownView', sync=True)
 
     # Keys

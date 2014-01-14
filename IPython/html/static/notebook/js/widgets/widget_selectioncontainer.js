@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var SelectionContainerModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('SelectionContainerWidgetModel', SelectionContainerModel);
-
     var AccordionView = IPython.DOMWidgetView.extend({
         
         render: function(){

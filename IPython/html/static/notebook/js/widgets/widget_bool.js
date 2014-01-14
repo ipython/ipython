@@ -15,10 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    
-    var BoolWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('BoolWidgetModel', BoolWidgetModel);
-
     var CheckboxView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.

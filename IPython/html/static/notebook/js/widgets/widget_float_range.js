@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var FloatRangeWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('FloatRangeWidgetModel', FloatRangeWidgetModel);
-
     var FloatSliderView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.

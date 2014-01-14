@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var SelectionWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('SelectionWidgetModel', SelectionWidgetModel);
-
     var DropdownView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.

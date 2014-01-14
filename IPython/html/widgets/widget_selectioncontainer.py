@@ -21,7 +21,6 @@ from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
 # Classes
 #-----------------------------------------------------------------------------
 class SelectionContainerWidget(DOMWidget):
-    target_name = Unicode('SelectionContainerWidgetModel')
     view_name = Unicode('TabView', sync=True)
 
     # Keys

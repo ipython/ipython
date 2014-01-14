@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var IntRangeWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('IntRangeWidgetModel', IntRangeWidgetModel);
-
     var IntSliderView = IPython.DOMWidgetView.extend({
         
         // Called when view is rendered.

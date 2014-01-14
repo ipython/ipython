@@ -15,10 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    
-    var ButtonWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('ButtonWidgetModel', ButtonWidgetModel);
-
     var ButtonView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.

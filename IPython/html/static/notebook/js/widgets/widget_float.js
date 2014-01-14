@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var FloatWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('FloatWidgetModel', FloatWidgetModel);
-
     // The Views for this model are shared with the bounded float, and can be
     // found in widget_float_range.js.
 });

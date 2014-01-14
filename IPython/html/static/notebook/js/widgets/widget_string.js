@@ -15,9 +15,6 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var StringWidgetModel = IPython.WidgetModel.extend({});
-    widget_manager.register_widget_model('StringWidgetModel', StringWidgetModel);
-
     var HTMLView = IPython.DOMWidgetView.extend({
       
         // Called when view is rendered.
