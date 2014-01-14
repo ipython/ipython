@@ -27,7 +27,7 @@ def test_help_output():
 def test_server_info_file():
     nbapp = notebookapp.NotebookApp(profile='nbserver_file_test')
     def get_servers():
-        return list(notebookapp.discover_running_servers(profile='nbserver_file_test'))
+        return list(notebookapp.list_running_servers(profile='nbserver_file_test'))
     nbapp.initialize(argv=[])
     nbapp.write_server_info_file()
     servers = get_servers()

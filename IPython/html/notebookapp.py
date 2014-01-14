@@ -214,6 +214,27 @@ class NotebookWebApplication(web.Application):
         return new_handlers
 
 
+class NbserverListApp(BaseIPythonApplication):
+    
+    description="List currently running notebook servers in this profile."
+    
+    flags = dict(
+        json=({'NbserverListApp': {'json': True}},
+              "Produce machine-readable JSON output."),
+    )
+    
+    json = Bool(False, config=True,
+          help="If True, each line of output will be a JSON object with the "
+                  "details from the server info file.")
+
+    def start(self):
+        if not self.json:
+            print("Currently running servers:")
+        for serverinfo in discover_running_servers(self.profile):
+            if self.json:
+                print(json.dumps(serverinfo))
+            else:
+                print(serverinfo['url'], "::", serverinfo['notebookdir'])
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -286,6 +307,10 @@ class NotebookApp(BaseIPythonApplication):
         FileNotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
+    
+    subcommands = dict(
+        list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
+    )
 
     kernel_argv = List(Unicode)
 
@@ -746,6 +771,9 @@ class NotebookApp(BaseIPythonApplication):
         
         This method takes no arguments so all configuration and initialization
         must be done prior to calling this method."""
+        if self.subapp is not None:
+            return self.subapp.start()
+
         info = self.log.info
         for line in self.notebook_info().split("\n"):
             info(line)
@@ -789,7 +817,7 @@ class NotebookApp(BaseIPythonApplication):
             self.remove_server_info_file()
 
 
-def discover_running_servers(profile='default'):
+def list_running_servers(profile='default'):
     """Iterate over the server info files of running notebook servers.
     
     Given a profile name, find nbserver-* files in the security directory of
