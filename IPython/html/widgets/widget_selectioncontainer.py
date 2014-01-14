@@ -22,7 +22,7 @@ from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
 #-----------------------------------------------------------------------------
 class SelectionContainerWidget(DOMWidget):
     target_name = Unicode('SelectionContainerWidgetModel')
-    view_name = Unicode('TabView')
+    view_name = Unicode('TabView', sync=True)
 
     # Keys
     _titles = Dict(help="Titles of the pages", sync=True)

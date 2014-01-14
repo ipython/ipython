@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Bool, List
 #-----------------------------------------------------------------------------
 class BoolWidget(DOMWidget):
     target_name = Unicode('BoolWidgetModel')
-    view_name = Unicode('CheckboxView')
+    view_name = Unicode('CheckboxView', sync=True)
 
     # Model Keys
     value = Bool(False, help="Bool value", sync=True)

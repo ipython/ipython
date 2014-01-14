@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Float, Bool, List
 #-----------------------------------------------------------------------------
 class FloatWidget(DOMWidget):
     target_name = Unicode('FloatWidgetModel')
-    view_name = Unicode('FloatTextView')
+    view_name = Unicode('FloatTextView', sync=True)
 
     # Keys
     value = Float(0.0, help="Float value", sync=True) 
