@@ -16,6 +16,7 @@ markdown within Jinja templates.
 from __future__ import print_function
 
 # Stdlib imports
+import os
 import subprocess
 from io import TextIOWrapper, BytesIO
 
@@ -28,6 +29,7 @@ from IPython.utils.py3compat import cast_bytes
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+marked = os.path.join(os.path.dirname(__file__), "marked.js")
 
 __all__ = [
     'markdown2html',
@@ -37,8 +39,8 @@ __all__ = [
     'markdown2rst',
 ]
 
-class MarkedMissing(ConversionException):
-    """Exception raised when Marked is missing."""
+class NodeJSMissing(ConversionException):
+    """Exception raised when node.js is missing."""
     pass
 
 def markdown2latex(source):
@@ -65,16 +67,15 @@ def markdown2html_pandoc(source):
 
 def markdown2html_marked(source, encoding='utf-8'):
     """Convert a markdown string to HTML via marked"""
-    command = ['marked', '--gfm', '--tables']
+    command = ['node', marked]
     try:
         p = subprocess.Popen(command,
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
     except OSError as e:
-        raise MarkedMissing(
+        raise NodeJSMissing(
             "The command '%s' returned an error: %s.\n" % (" ".join(command), e) +
-            "Please check that marked is installed:\n" +
-            "    npm install -g marked"
+            "Please check that Node.js is installed."
         )
     out, _ = p.communicate(cast_bytes(source, encoding))
     out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
@@ -99,7 +100,7 @@ def markdown2rst(source):
     return pandoc(source, 'markdown', 'rst')
 
 try:
-    find_cmd('marked')
+    find_cmd('node')
 except FindCmdError:
     markdown2html = markdown2html_pandoc
 else:
