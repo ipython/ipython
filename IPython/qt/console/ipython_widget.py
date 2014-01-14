@@ -264,7 +264,7 @@ class IPythonWidget(FrontendWidget):
         """ Handle kernel info replies.
         """
         if not self._guiref_loaded:
-            if rep['content']['language'] == 'python':
+            if rep['content'].get('language') == 'python':
                 self._load_guiref_magic()
             self._guiref_loaded = True
 
