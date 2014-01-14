@@ -1,5 +1,5 @@
-"""Base Widget class.  Allows user to create widgets in the backend that render
-in the IPython notebook frontend.
+"""Base Widget class.  Allows user to create widgets in the back-end that render
+in the IPython notebook front-end.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -24,25 +24,11 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-@contextmanager
-def PropertyLock(instance, key, value):
-    instance._property_lock = (key, value)
-    try:
-        yield
-    finally:
-        del instance._property_lock
-
-def should_send_property(instance, key, value):
-    return not hasattr(instance, '_property_lock') or \
-    key != instance._property_lock[0] or \
-    value != instance._property_lock[1]
-
-
 class Widget(LoggingConfigurable):
 
     # Shared declarations (Class level)
     widget_construction_callback = None
-    widgets = []
+    widgets = {}
 
     keys = ['view_name'] # TODO: Sync = True
 
@@ -60,11 +46,28 @@ class Widget(LoggingConfigurable):
     
 
     # Public declarations (Instance level)
-    target_name = Unicode('widget', help="""Name of the backbone model 
-        registered in the frontend to create and sync this widget with.""")
-    # model_name
-    view_name = Unicode(help="""Default view registered in the frontend
+    model_name = Unicode('widget', help="""Name of the backbone model 
+        registered in the front-end to create and sync this widget with.""")
+    view_name = Unicode(help="""Default view registered in the front-end
         to use to represent the widget.""")
+
+    @contextmanager
+    def property_lock(self, key, value):
+        """Lock a property-value pair.
+
+        NOTE: This, in addition to the single lock for all state changes, is 
+        flawed.  In the future we may want to look into buffering state changes 
+        back to the front-end."""
+        self._property_lock = (key, value)
+        try:
+            yield
+        finally:
+            self._property_lock = (None, None)
+
+    def should_send_property(self, key, value):
+        """Check the property lock (property_lock)"""
+        return key != self._property_lock[0] or \
+        value != self._property_lock[1]
 
     # Private/protected declarations
     _comm = Instance('IPython.kernel.comm.Comm')
@@ -73,12 +76,12 @@ class Widget(LoggingConfigurable):
         """Public constructor
         """
         self.closed = False
+        self._property_lock = (None, None)
         self._display_callbacks = []
         self._msg_callbacks = []
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
-        Widget.widgets.append(self)
         Widget._call_widget_constructed(self)
 
     def __del__(self):
@@ -88,16 +91,30 @@ class Widget(LoggingConfigurable):
     def close(self):
         """Close method.  Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
-        removed from the frontend."""
+        removed from the front-end."""
         if not self.closed:
-            self.closed = True
-            self._close_communication()
-            Widget.widgets.remove(self)
-    
+            self._comm.close() 
+            self._close()
+
+
+    def _close(self):
+        """Unsafe close"""
+        del Widget.widgets[self.model_id]
+        self._comm = None
+        self.closed = True
+
+
     @property
     def comm(self):
         if self._comm is None:
-            self._open_communication()
+            # Create a comm.
+            self._comm = Comm(target_name=self.model_name)
+            self._comm.on_msg(self._handle_msg)
+            self._comm.on_close(self._close)
+            Widget.widgets[self.model_id] = self
+
+            # first update
+            self.send_state()
         return self._comm
     
     @property
@@ -106,11 +123,11 @@ class Widget(LoggingConfigurable):
 
     # Event handlers
     def _handle_msg(self, msg):
-        """Called when a msg is received from the frontend"""
+        """Called when a msg is received from the front-end"""
         data = msg['content']['data']
         method = data['method']
-
-        # TODO: Log unrecog.
+        if not method in ['backbone', 'custom']:
+            self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
 
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
         if method == 'backbone' and 'sync_data' in data:
@@ -124,69 +141,40 @@ class Widget(LoggingConfigurable):
 
 
     def _handle_receive_state(self, sync_data):
-        """Called when a state is received from the frontend."""
+        """Called when a state is received from the front-end."""
         for name in self.keys:
             if name in sync_data:
                 value = self._unpack_widgets(sync_data[name])
-                with PropertyLock(self, name, value):
+                with self.property_lock(name, value):
                     setattr(self, name, value)
 
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
         for handler in self._msg_callbacks:
-            if callable(handler):
-                argspec = inspect.getargspec(handler)
-                nargs = len(argspec[0])
-
-                # Bound methods have an additional 'self' argument
-                if isinstance(handler, types.MethodType):
-                    nargs -= 1
-
-                # Call the callback
-                if nargs == 1:
-                    handler(content)
-                elif nargs == 2:
-                    handler(self, content)
-                else:
-                    raise TypeError('Widget msg callback must ' \
-                        'accept 1 or 2 arguments, not %d.' % nargs)
+            handler(self, content)
 
 
     def _handle_property_changed(self, name, old, new):
         """Called when a property has been changed."""
         # Make sure this isn't information that the front-end just sent us.
         if should_send_property(self, name, new):
-            # Send new state to frontend
+            # Send new state to front-end
             self.send_state(key=name)
 
     def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance"""
         for handler in self._display_callbacks:
-            if callable(handler):
-                argspec = inspect.getargspec(handler)
-                nargs = len(argspec[0])
-
-                # Bound methods have an additional 'self' argument
-                if isinstance(handler, types.MethodType):
-                    nargs -= 1
-
-                # Call the callback
-                if nargs == 0:
-                    handler()
-                elif nargs == 1:
-                    handler(self)
-                else:
-                    handler(self, **kwargs)
+            handler(self, **kwargs)
 
     # Public methods
     def send_state(self, key=None):
-        """Sends the widget state, or a piece of it, to the frontend.
+        """Sends the widget state, or a piece of it, to the front-end.
 
         Parameters
         ----------
         key : unicode (optional)
-            A single property's name to sync with the frontend.
+            A single property's name to sync with the front-end.
         """
         self._send({"method": "update",
             "state": self.get_state()})
@@ -199,16 +187,8 @@ class Widget(LoggingConfigurable):
         key : unicode (optional)
             A single property's name to get.
         """
-        state = {}
-
-        # If a key is provided, just send the state of that key.
-        if key is None:
-            keys = self.keys[:]
-        else:
-            keys = [key]
-        for k in keys:
-            state[k] = self._pack_widgets(getattr(self, k))
-        return state
+        keys = self.keys if key is None else [key]
+        return {k: self._pack_widgets(getattr(self, k)) for k in keys} 
 
 
     def _pack_widgets(self, values):
@@ -219,8 +199,8 @@ class Widget(LoggingConfigurable):
         their model ids."""
         if isinstance(values, dict):
             new_dict = {}
-            for key in values.keys():
-                new_dict[key] = self._pack_widgets(values[key])
+            for key, value in values.items():
+                new_dict[key] = self._pack_widgets(value)
             return new_dict
         elif isinstance(values, list):
             new_list = []
@@ -241,7 +221,7 @@ class Widget(LoggingConfigurable):
         their model ids."""
         if isinstance(values, dict):
             new_dict = {}
-            for key in values.keys():
+            for key, values in values.items():
                 new_dict[key] = self._unpack_widgets(values[key])
             return new_dict
         elif isinstance(values, list):
@@ -250,10 +230,10 @@ class Widget(LoggingConfigurable):
                 new_list.append(self._unpack_widgets(value))
             return new_list
         elif isinstance(values, string_types):
-            for widget in Widget.widgets:
-                if widget.model_id == values:
-                    return widget
-            return values
+            if widget.model_id in Widget.widgets:
+                return Widget.widgets[widget.model_id]
+            else:
+                return values
         else:
             return values
 
@@ -266,12 +246,11 @@ class Widget(LoggingConfigurable):
         content : dict
             Content of the message to send.
         """
-        self._send({"method": "custom",
-            "custom_content": content})
+        self._send({"method": "custom", "custom_content": content})
 
 
-    def on_msg(self, callback, remove=False): # TODO: Use lambdas and inspect here
-        """Register or unregister a callback for when a custom msg is received 
+    def on_msg(self, callback, remove=False):
+        """Register or unregister a callback for when a custom msg is recieved 
         from the front-end.
 
         Parameters
@@ -285,7 +264,24 @@ class Widget(LoggingConfigurable):
         if remove and callback in self._msg_callbacks:
             self._msg_callbacks.remove(callback)
         elif not remove and not callback in self._msg_callbacks:
-            self._msg_callbacks.append(callback)
+            if callable(callback):
+                argspec = inspect.getargspec(callback)
+                nargs = len(argspec[0])
+
+                # Bound methods have an additional 'self' argument
+                if isinstance(callback, types.MethodType):
+                    nargs -= 1
+
+                # Call the callback
+                if nargs == 1:
+                    self._msg_callbacks.append(lambda sender, content: callback(content))
+                elif nargs == 2:
+                    self._msg_callbacks.append(callback)
+                else:
+                    raise TypeError('Widget msg callback must ' \
+                        'accept 1 or 2 arguments, not %d.' % nargs)
+            else:
+                raise Exception('Callback must be callable.')
 
 
     def on_displayed(self, callback, remove=False):
@@ -296,8 +292,6 @@ class Widget(LoggingConfigurable):
         ----------
         callback: method handler
             Can have a signature of:
-            - callback()
-            - callback(sender)
             - callback(sender, **kwargs)
               kwargs from display call passed through without modification.
         remove: bool
@@ -305,11 +299,14 @@ class Widget(LoggingConfigurable):
         if remove and callback in self._display_callbacks:
             self._display_callbacks.remove(callback)
         elif not remove and not callback in self._display_callbacks:
-            self._display_callbacks.append(callback)
+            if callable(handler):
+                self._display_callbacks.append(callback)
+            else:
+                raise Exception('Callback must be callable.')
 
 
     # Support methods
-    def _repr_widget_(self, **kwargs):
+    def _ipython_display_(self, **kwargs):
         """Function that is called when `IPython.display.display` is called on
         the widget."""
             
@@ -317,26 +314,6 @@ class Widget(LoggingConfigurable):
         # initial state is sent.
         self._send({"method": "display"})
         self._handle_displayed(**kwargs)
-
-
-    def _open_communication(self):
-        """Opens a communication with the front-end."""
-        # Create a comm.
-        self._comm = Comm(target_name=self.target_name)
-        self._comm.on_msg(self._handle_msg)
-        self._comm.on_close(self._close_communication)
-
-        # first update
-        self.send_state()
-
-
-    def _close_communication(self):
-        """Closes a communication with the front-end."""
-        if self._comm is not None:
-            try:
-                self._comm.close() # TODO: Check
-            finally:
-                self._comm = None
 
 
     def _send(self, msg):

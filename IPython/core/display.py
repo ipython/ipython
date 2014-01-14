@@ -114,9 +114,10 @@ def display(*objs, **kwargs):
         format = InteractiveShell.instance().display_formatter.format
 
     for obj in objs:
-        if hasattr(obj, '_repr_widget_'):
-            obj._repr_widget_(**kwargs)
-        else:
+
+        # If _ipython_display_ is defined, use that to display this object.  If
+        # it returns NotImplemented, use the _repr_ logic (default).
+        if not hasattr(obj, '_ipython_display_') or isinstance(obj._ipython_display_(**kwargs), NotImplemented):
             if raw:
                 publish_display_data('display', obj, metadata)
             else:            
