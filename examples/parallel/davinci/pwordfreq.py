@@ -17,6 +17,11 @@ from IPython.parallel import Client, Reference
 
 from __future__ import division 
 
+try : #python2
+    from urllib import urlretrieve
+except : #python3
+    from urllib.request import urlretrieve
+
 davinci_url = "http://www.gutenberg.org/cache/epub/5000/pg5000.txt"
 
 def pwordfreq(view, fnames):
@@ -47,11 +52,7 @@ if __name__ == '__main__':
     if not os.path.exists('davinci.txt'):
         # download from project gutenberg
         print("Downloading Da Vinci's notebooks from Project Gutenberg")
-        try : #python2
-            urllib.urlretrieve(davinci_url, 'davinci.txt')
-        except : #python3
-            import urllib.request
-            urllib.request.urlretrieve(davinci_url, 'davinci.txt')
+        urlretrieve(davinci_url, 'davinci.txt')
         
     # Run the serial version
     print("Serial word frequency count:")
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     freqs = wordfreq(text)
     toc = time.time()
     print_wordfreq(freqs, 10)
-    print("Took %.3f s to calcluate"%(toc-tic))
+    print("Took %.3f s to calculate"%(toc-tic))
     
     
     # The parallel version
@@ -84,6 +85,6 @@ if __name__ == '__main__':
     pfreqs = pwordfreq(view,fnames)
     toc = time.time()
     print_wordfreq(freqs)
-    print("Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets)))
+    print("Took %.3f s to calculate on %i engines"%(toc-tic, len(view.targets)))
     # cleanup split files
     map(os.remove, fnames)
