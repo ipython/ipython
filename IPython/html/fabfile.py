@@ -27,7 +27,6 @@ def _compile_less(source, target, minify=True, verbose=False):
     verbose = _to_bool(verbose)
     min_flag = '-x' if minify is True else ''
     ver_flag = '--verbose' if verbose is True else ''
-    lessc = os.path.join('components', 'less.js', 'bin', 'lessc')
     with lcd(static_dir):
-        local('{lessc} {min_flag} {ver_flag} {source} {target}'.format(**locals()))
+        local('lessc {min_flag} {ver_flag} {source} {target}'.format(**locals()))
 
