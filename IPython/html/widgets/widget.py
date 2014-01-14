@@ -106,7 +106,7 @@ class Widget(LoggingConfigurable):
 
     # Event handlers
     def _handle_msg(self, msg):
-        """Called when a msg is recieved from the frontend"""
+        """Called when a msg is received from the frontend"""
         data = msg['content']['data']
         method = data['method']
 
@@ -115,7 +115,7 @@ class Widget(LoggingConfigurable):
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
         if method == 'backbone' and 'sync_data' in data:
             sync_data = data['sync_data']
-            self._handle_recieve_state(sync_data) # handles all methods
+            self._handle_receive_state(sync_data) # handles all methods
 
         # Handle a custom msg from the front-end
         elif method == 'custom':
@@ -123,8 +123,8 @@ class Widget(LoggingConfigurable):
                 self._handle_custom_msg(data['custom_content'])
 
 
-    def _handle_recieve_state(self, sync_data):
-        """Called when a state is recieved from the frontend."""
+    def _handle_receive_state(self, sync_data):
+        """Called when a state is received from the frontend."""
         for name in self.keys:
             if name in sync_data:
                 value = self._unpack_widgets(sync_data[name])
@@ -133,7 +133,7 @@ class Widget(LoggingConfigurable):
 
 
     def _handle_custom_msg(self, content):
-        """Called when a custom msg is recieved."""
+        """Called when a custom msg is received."""
         for handler in self._msg_callbacks:
             if callable(handler):
                 argspec = inspect.getargspec(handler)
@@ -271,7 +271,7 @@ class Widget(LoggingConfigurable):
 
 
     def on_msg(self, callback, remove=False): # TODO: Use lambdas and inspect here
-        """Register or unregister a callback for when a custom msg is recieved 
+        """Register or unregister a callback for when a custom msg is received 
         from the front-end.
 
         Parameters
