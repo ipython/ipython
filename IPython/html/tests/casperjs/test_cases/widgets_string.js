@@ -7,14 +7,10 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var string_index = this.append_cell(
-        'string_widget = [widgets.StringWidget(), widgets.StringWidget(), widgets.StringWidget(), widgets.StringWidget()]\n' +
-        'string_widget[0].value = "xyz"\n' +
-        'string_widget[1].view_name = "TextAreaView"\n' +
-        'string_widget[1].value = "xyz"\n' +
-        'string_widget[2].view_name = "HTMLView"\n' +
-        'string_widget[2].value = "xyz"\n' +
-        'string_widget[3].view_name = "LatexView"\n' +
-        'string_widget[3].value = "$\\\\LaTeX{}$"\n' +
+        'string_widget = [widgets.TextBoxWidget(value = "xyz"),\n' +
+        '    widgets.TextAreaWidget(value = "xyz"),\n' +
+        '    widgets.HTMLWidget(value = "xyz"),\n' +
+        '    widgets.LatexWidget(value = "$\\\\LaTeX{}$")]\n' +
         '[display(widget) for widget in string_widget]\n'+
         'print("Success")');
     this.execute_cell_then(string_index, function(index){

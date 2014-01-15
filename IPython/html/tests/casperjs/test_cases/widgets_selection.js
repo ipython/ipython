@@ -41,11 +41,13 @@ casper.notebook_test(function () {
         return true;
     }
 
+//values=["' + selection_values + '"[i] for i in range(4)]
     selection_index = this.append_cell(
-        'selection = [widgets.SelectionWidget(values=["' + selection_values + '"[i] for i in range(4)]) for j in range(4)]\n' +
-        'selection[1].view_name="ToggleButtonsView"\n' +
-        'selection[2].view_name="RadioButtonsView"\n' +
-        'selection[3].view_name="ListBoxView"\n' +
+        'values=["' + selection_values + '"[i] for i in range(4)]\n' +
+        'selection = [widgets.DropdownWidget(values=values),\n' +
+        '    widgets.ToggleButtonsWidget(values=values),\n' +
+        '    widgets.RadioButtonsWidget(values=values),\n' +
+        '    widgets.ListBoxWidget(values=values)]\n' +
         '[display(selection[i]) for i in range(4)]\n' +
         'for widget in selection:\n' +
         '    def handle_change(name,old,new):\n' +
@@ -90,18 +92,30 @@ casper.notebook_test(function () {
 
         // Verify that selecting a radio button updates all of the others.
         this.cell_element_function(selection_index, radio_selector + ' .radio:nth-child(2) input', 'click');
+    });
+    this.wait(500);
+    this.then(function () {
         this.test.assert(verify_selection(this, 1), 'Radio button selection updated view states correctly.');
 
         // Verify that selecting a list option updates all of the others.
         this.cell_element_function(selection_index, list_selector + ' option:nth-child(3)', 'click');
+    });
+    this.wait(500);
+    this.then(function () {
         this.test.assert(verify_selection(this, 2), 'List selection updated view states correctly.');
 
         // Verify that selecting a multibutton option updates all of the others.
         this.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(4)', 'click');
+    });
+    this.wait(500);
+    this.then(function () {
         this.test.assert(verify_selection(this, 3), 'Multibutton selection updated view states correctly.');
 
         // Verify that selecting a combobox option updates all of the others.
         this.cell_element_function(selection_index, '.widget-area .widget-subarea .widget-hbox-single .btn-group ul.dropdown-menu li:nth-child(3) a', 'click');
+    });
+    this.wait(500);
+    this.then(function () {
         this.test.assert(verify_selection(this, 2), 'Combobox selection updated view states correctly.');
     });
 
@@ -109,9 +123,10 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'print(selection.value)\n' +
-        'selection.values.append("z")\n' +
-        'selection.send_state()\n' +
-        'selection.value = "z"');
+        'for widget in selection:\n' +
+        '    widget.values.append("z")\n' +
+        '    widget.send_state()\n' +
+        '    widget.value = "z"');
     this.execute_cell_then(index, function(index){
 
         // Verify that selecting a combobox option updates all of the others.

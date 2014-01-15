@@ -377,7 +377,9 @@ class DOMWidget(Widget):
             `$el_to_style` in the Javascript code).
         """
         selector = kwargs.get('selector', '')
-
+        if not selector in self._css:
+            self._css[selector] = {}
+            
         # Signature 1: set_css(css_dict, selector='')
         if len(args) == 1:
             if isinstance(args[0], dict):

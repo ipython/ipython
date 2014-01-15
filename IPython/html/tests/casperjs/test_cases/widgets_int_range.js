@@ -10,10 +10,10 @@ casper.notebook_test(function () {
     var int_text_query = '.widget-area .widget-subarea .widget-hbox-single .my-second-num-test-text';
 
     var intrange_index = this.append_cell(
-        'intrange = widgets.IntRangeWidget()\n' +
-        'display(intrange, view_name="IntTextView")\n' +
-        'intrange.add_class("my-second-num-test-text")\n' +  
-        'display(intrange)\n' + 
+        'intrange = [widgets.BoundedIntTextWidget(),\n' +
+        '    widgets.IntSliderWidget()]\n' +
+        '[display(intrange[i]) for i in range(2)]\n' +
+        'intrange[0].add_class("my-second-num-test-text")\n' +  
         'print("Success")\n');
     this.execute_cell_then(intrange_index, function(index){
 
@@ -32,9 +32,10 @@ casper.notebook_test(function () {
     });
 
     index = this.append_cell(
-        'intrange.max = 50\n' +
-        'intrange.min = -50\n' +
-        'intrange.value = 25\n' +
+        'for widget in intrange:\n' +
+        '    widget.max = 50\n' +
+        '    widget.min = -50\n' +
+        '    widget.value = 25\n' +
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
@@ -59,7 +60,7 @@ casper.notebook_test(function () {
 
     this.wait(500); // Wait for change to execute in kernel
 
-    index = this.append_cell('print(intrange.value)\n');
+    index = this.append_cell('print(intrange[0].value)\n');
     this.execute_cell_then(index, function(index){
         this.test.assert(this.get_output_cell(index).text == '1\n', 
             'Int textbox set int range value');
@@ -72,7 +73,7 @@ casper.notebook_test(function () {
 
     this.wait(500); // Wait for change to execute in kernel
 
-    index = this.append_cell('print(intrange.value)\n');
+    index = this.append_cell('print(intrange[0].value)\n');
     this.execute_cell_then(index, function(index){
         this.test.assert(this.get_output_cell(index).text == '50\n', 
             'Int textbox value bound');
@@ -85,7 +86,7 @@ casper.notebook_test(function () {
 
     this.wait(500); // Wait for change to execute in kernel
 
-    index = this.append_cell('print(intrange.value)\n');
+    index = this.append_cell('print(intrange[0].value)\n');
     this.execute_cell_then(index, function(index){
         this.test.assert(this.get_output_cell(index).text == '50\n', 
             'Invalid int textbox characters ignored');

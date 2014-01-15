@@ -20,7 +20,7 @@ casper.notebook_test(function () {
         'import base64\n' + 
         'data = base64.b64decode("' + test_jpg + '")\n' +
         'image = widgets.ImageWidget()\n' +
-        'image.image_format = "jpeg"\n' +
+        'image.format = "jpeg"\n' +
         'image.value = data\n' +
         'image.width = "50px"\n' +
         'image.height = "50px"\n' +

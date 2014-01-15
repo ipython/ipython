@@ -9,7 +9,7 @@ casper.notebook_test(function () {
     var int_text_query_2 = '.widget-area .widget-subarea .widget-hbox-single .my-second-int-text';
 
     var int_index = this.append_cell(
-        'int_widget = widgets.IntWidget()\n' +
+        'int_widget = widgets.IntTextWidget()\n' +
         'display(int_widget)\n' + 
         'int_widget.add_class("my-second-int-text")\n' + 
         'print("Success")\n');

@@ -36,7 +36,7 @@ function(widget_manager, underscore, backbone){
             // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
             this.pending_msgs = 0;
-            this.msg_throttle = 3;
+            this.msg_throttle = 2;
             this.msg_buffer = null;
             this.key_value_lock = null;
             this.id = model_id;
@@ -108,18 +108,18 @@ function(widget_manager, underscore, backbone){
 
         _handle_status: function (msg, callbacks) {
             //execution_state : ('busy', 'idle', 'starting')
-            if (this.comm !== undefined && msg.content.execution_state ==='idle') {
-                // Send buffer if this message caused another message to be
-                // throttled.
-                if (this.msg_buffer !== null &&
-                    this.msg_throttle === this.pending_msgs) {
-                    var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
-                    this.comm.send(data, callbacks);   
-                    this.msg_buffer = null;
-                } else {
-                    // Only decrease the pending message count if the buffer
-                    // doesn't get flushed (sent).
-                    --this.pending_msgs;
+            if (this.comm !== undefined) {
+                if (msg.content.execution_state ==='idle') {
+                    // Send buffer if this message caused another message to be
+                    // throttled.
+                    if (this.msg_buffer !== null &&
+                        this.msg_throttle === this.pending_msgs) {
+                        var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
+                        this.comm.send(data, callbacks);  
+                        this.msg_buffer = null;
+                    } else {
+                        --this.pending_msgs;
+                    }
                 }
             }
         },
@@ -142,7 +142,7 @@ function(widget_manager, underscore, backbone){
                     }
                     for (attr in options.attrs) {
                         var value = this._pack_models(options.attrs[attr]);
-                        if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
+                        if (this.key_value_lock === null || attr !== this.key_value_lock[0] || value !== this.key_value_lock[1]) {
                             this.msg_buffer[attr] = value;
                         }
                     }
@@ -155,14 +155,18 @@ function(widget_manager, underscore, backbone){
                     send_json = {};
                     for (attr in options.attrs) {
                         var value = this._pack_models(options.attrs[attr]);
-                        if (this.key_value_lock === null || attr != this.key_value_lock[0] || value != this.key_value_lock[1]) {
+                        if (this.key_value_lock === null || attr !== this.key_value_lock[0] || value !== this.key_value_lock[1]) {
                             send_json[attr] = value;
                         }
                     }
-
-                    var data = {method: 'backbone', sync_data: send_json};
-                    this.comm.send(data, options.callbacks);
-                    this.pending_msgs++;
+                    
+                    var is_empty = true;
+                    for (var prop in send_json) if (send_json.hasOwnProperty(prop)) is_empty = false;
+                    if (!is_empty) {
+                        ++this.pending_msgs;
+                        var data = {method: 'backbone', sync_data: send_json};
+                        this.comm.send(data, options.callbacks);
+                    }
                 }
             }
             

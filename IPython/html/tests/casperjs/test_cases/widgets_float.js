@@ -9,7 +9,7 @@ casper.notebook_test(function () {
     var float_text_query_2 = '.widget-area .widget-subarea .widget-hbox-single .my-second-float-text';
 
     var float_index = this.append_cell(
-        'float_widget = widgets.FloatWidget()\n' +
+        'float_widget = widgets.FloatTextWidget()\n' +
         'display(float_widget)\n' + 
         'float_widget.add_class("my-second-float-text")\n' + 
         'print("Success")\n');
