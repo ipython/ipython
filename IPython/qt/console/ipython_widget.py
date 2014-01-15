@@ -175,11 +175,15 @@ class IPythonWidget(FrontendWidget):
         msg_id = msg['parent_header'].get('msg_id')
         info = self._request_info['execute'].get(msg_id)
         if info and info.kind == 'prompt':
-           number = msg['content']['execution_count'] + 1
-           self._show_interpreter_prompt(number)
-           self._request_info['execute'].pop(msg_id)
+            content = msg['content']
+            if content['status'] == 'aborted':
+                self._show_interpreter_prompt()
+            else:
+                number = content['execution_count'] + 1
+                self._show_interpreter_prompt(number)
+            self._request_info['execute'].pop(msg_id)
         else:
-           super(IPythonWidget, self)._handle_execute_reply(msg)
+            super(IPythonWidget, self)._handle_execute_reply(msg)
 
     def _handle_history_reply(self, msg):
         """ Implemented to handle history tail replies, which are only supported
