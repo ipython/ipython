@@ -122,7 +122,6 @@ casper.notebook_test(function () {
     this.wait(500); // Wait for change to execute in kernel
 
     index = this.append_cell(
-        'print(selection.value)\n' +
         'for widget in selection:\n' +
         '    widget.values.append("z")\n' +
         '    widget.send_state()\n' +
