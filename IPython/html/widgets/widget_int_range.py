@@ -14,7 +14,7 @@ Represents a bounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CInt, Bool, List
+from IPython.utils.traitlets import Unicode, CInt, Bool, List, Enum
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -43,7 +43,8 @@ class BoundedIntTextWidget(DOMWidget):
 
 class IntSliderWidget(BoundedIntTextWidget):
     view_name = Unicode('IntSliderView', sync=True)
-    orientation = Unicode(u'horizontal', help="Vertical or horizontal.", sync=True)
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
+        help="Vertical or horizontal.", sync=True)
 
 
 class IntProgressWidget(BoundedIntTextWidget):

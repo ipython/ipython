@@ -14,7 +14,7 @@ Represents a bounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CFloat, Bool, List
+from IPython.utils.traitlets import Unicode, CFloat, Bool, List, Enum
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -41,7 +41,8 @@ class BoundedFloatTextWidget(DOMWidget):
 
 class FloatSliderWidget(BoundedFloatTextWidget):
     view_name = Unicode('FloatSliderView', sync=True)
-    orientation = Unicode(u'horizontal', help="Vertical or horizontal.", sync=True)
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
+        help="Vertical or horizontal.", sync=True)
 
 
 class FloatProgressWidget(BoundedFloatTextWidget):
