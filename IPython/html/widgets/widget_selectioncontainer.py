@@ -27,7 +27,7 @@ class AccordionWidget(DOMWidget):
     _titles = Dict(help="Titles of the pages", sync=True)
     selected_index = Int(0, sync=True)
 
-    children = List(Instance(DOMWidget))
+    children = List(Instance(DOMWidget), sync=True)
 
     # Public methods
     def set_title(self, index, title):

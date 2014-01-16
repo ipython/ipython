@@ -29,11 +29,20 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         update_children: function(old_list, new_list) {
-            this.$el.empty();
-            this.update_child_views(old_list, new_list);
-            _.each(new_list, function(element, index, list) {
-                this.$el.append(this.child_views[element.id].$el);
-            }, this)
+            this.do_diff(old_list, 
+                new_list, 
+                $.proxy(this.remove_child_model, this),
+                $.proxy(this.add_child_model, this));
+        },
+
+        remove_child_model: function(model) {
+            this.child_views[model.id].remove();
+            this.delete_child_view(model);
+        },
+
+        add_child_model: function(model) {
+            var view = this.create_child_view(model);
+            this.$el.append(view.$el);
         },
         
         update: function(){
@@ -188,11 +197,20 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         update_children: function(old_list, new_list) {
-            this.$el.empty();
-            this.update_child_views(old_list, new_list);
-            _.each(new_list, function(element, index, list) {
-                this.$body.append(this.child_views[element].$el);
-            }, this)
+            this.do_diff(old_list, 
+                new_list, 
+                $.proxy(this.remove_child_model, this),
+                $.proxy(this.add_child_model, this));
+        },
+
+        remove_child_model: function(model) {
+            this.child_views[model.id].remove();
+            this.delete_child_view(model);
+        },
+
+        add_child_model: function(model) {
+            var view = this.create_child_view(model);
+            this.$body.append(view.$el);
         },
         
         update: function(){

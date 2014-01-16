@@ -23,24 +23,13 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 .attr('id', guid)
                 .addClass('accordion');
             this.containers = [];
+            this.model_containers = {};
             this.update_children([], this.model.get('children'));
             this.model.on('change:children', function(model, value, options) {
                 this.update_children(model.previous('children'), value);
             }, this);
         },
         
-        update_children: function(old_list, new_list) {
-            _.each(this.containers, function(element, index, list) {
-                element.remove();
-            }, this);
-            this.containers = [];
-            this.update_child_views(old_list, new_list);
-            _.each(new_list, function(element, index, list) {
-                this.add_child_view(this.child_views[element]);
-            }, this)
-        },
-        
-
         update: function(options) {
             // Update the contents of this view
             //
@@ -76,9 +65,24 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
             return AccordionView.__super__.update.apply(this);
         },
+        
+        update_children: function(old_list, new_list) {
+            this.do_diff(old_list, 
+                new_list, 
+                $.proxy(this.remove_child_model, this),
+                $.proxy(this.add_child_model, this));
+        },
 
-        add_child_view: function(view) {
+        remove_child_model: function(model) {
+            var accordion_group = this.model_containers[model.id];
+            this.containers.splice(accordion_group.container_index, 1);
+            delete this.model_containers[model.id];
+            accordion_group.remove();
+            this.delete_child_view(model);
+        },
 
+        add_child_model: function(model) {
+            var view = this.create_child_view(model);
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
             var accordion_group = $('<div />')
@@ -108,7 +112,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             var accordion_inner = $('<div />')
                 .addClass('accordion-inner')
                 .appendTo(accordion_body);
-            this.containers.push(accordion_group);
+            var container_index = this.containers.push(accordion_group) - 1;
+            accordion_group.container_index = container_index;
+            this.model_containers[model.id] = accordion_group;
             accordion_inner.append(view.$el);
 
             this.update();
@@ -157,6 +163,56 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.add_child_view(this.child_views[element]);
             }, this)
         },
+        
+        update_children: function(old_list, new_list) {
+            this.do_diff(old_list, 
+                new_list, 
+                $.proxy(this.remove_child_model, this),
+                $.proxy(this.add_child_model, this));
+        },
+
+        remove_child_model: function(model) {
+            var view = this.child_views[model.id];
+            this.containers.splice(view.parent_tab.tab_text_index, 1);
+            view.parent_tab.remove();
+            view.parent_container.remove();
+            view.remove();
+            this.delete_child_view(model);
+        },
+
+        add_child_model: function(model) {
+            var view = this.create_child_view(model);
+            var index = this.containers.length;
+            var uuid = IPython.utils.uuid();
+
+            var that = this;
+            var tab = $('<li />')
+                .css('list-style-type', 'none')
+                .appendTo(this.$tabs);
+            view.parent_tab = tab;
+
+            var tab_text = $('<a />')
+                .attr('href', '#' + uuid)
+                .attr('data-toggle', 'tab') 
+                .html('Page ' + index)
+                .appendTo(tab)
+                .click(function (e) {
+            
+                    // Calling model.set will trigger all of the other views of the 
+                    // model to update.
+                    that.model.set("selected_index", index, {updated_view: this});
+                    that.touch();
+                    that.select_page(index);
+                });
+            tab.tab_text_index = this.containers.push(tab_text) - 1;
+
+            var contents_div = $('<div />', {id: uuid})
+                .addClass('tab-pane')
+                .addClass('fade')
+                .append(view.$el)
+                .appendTo(this.$tab_contents);
+            view.parent_container = contents_div;
+        },
 
         update: function(options) {
             // Update the contents of this view
@@ -179,36 +235,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 }
             }
             return TabView.__super__.update.apply(this);
-        },
-
-        add_child_view: function(view) {
-            var index = this.containers.length;
-            var uuid = IPython.utils.uuid();
-
-            var that = this;
-            var tab = $('<li />')
-                .css('list-style-type', 'none')
-                .appendTo(this.$tabs);
-            var tab_text = $('<a />')
-                .attr('href', '#' + uuid)
-                .attr('data-toggle', 'tab') 
-                .html('Page ' + index)
-                .appendTo(tab)
-                .click(function (e) {
-            
-                    // Calling model.set will trigger all of the other views of the 
-                    // model to update.
-                    that.model.set("selected_index", index, {updated_view: this});
-                    that.touch();
-                    that.select_page(index);
-                });
-            this.containers.push(tab_text);
-
-            var contents_div = $('<div />', {id: uuid})
-                .addClass('tab-pane')
-                .addClass('fade')
-                .append(view.$el)
-                .appendTo(this.$tab_contents);
         },
 
         select_page: function(index) {

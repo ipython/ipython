@@ -226,31 +226,18 @@ function(widget_manager, underscore, backbone){
             // triggered on model change
         },
 
-        child_view: function(child_model, options) {
+        create_child_view: function(child_model, options) {
             // create and return a child view, given a model and (optionally) a view name
             // if the view name is not given, it defaults to the model's default view attribute
             var child_view = this.model.widget_manager.create_view(child_model, options);
             this.child_views[child_model.id] = child_view;
             return child_view;
         },
-        
-        update_child_views: function(old_list, new_list) {
-            // this function takes an old list and new list of models
-            // views in child_views that correspond to deleted ids are deleted
-            // views corresponding to added ids are added child_views
-        
-            // delete old views
-            _.each(_.difference(old_list, new_list), function(element, index, list) {
-                var view = this.child_views[element.id];
-                delete this.child_views[element.id];
-                view.remove();
-            }, this);
-            
-            // add new views
-            _.each(_.difference(new_list, old_list), function(element, index, list) {
-                // this function adds the view to the child_views dictionary
-                this.child_view(element);
-            }, this);
+
+        delete_child_view: function(child_model, options) {
+            var view = this.child_views[child_model.id];
+            delete this.child_views[child_model.id];
+            view.remove();
         },
 
         do_diff: function(old_list, new_list, removed_callback, added_callback) {
