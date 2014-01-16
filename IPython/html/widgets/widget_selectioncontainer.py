@@ -14,20 +14,18 @@ pages.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import DOMWidget
+from .widget_container import ContainerWidget
 from IPython.utils.traitlets import Unicode, Dict, CInt, List, Instance
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class AccordionWidget(DOMWidget):
+class AccordionWidget(ContainerWidget):
     view_name = Unicode('AccordionView', sync=True)
 
     # Keys
     _titles = Dict(help="Titles of the pages", sync=True)
     selected_index = CInt(0, sync=True)
-
-    children = List(Instance(DOMWidget), sync=True)
 
     # Public methods
     def set_title(self, index, title):
