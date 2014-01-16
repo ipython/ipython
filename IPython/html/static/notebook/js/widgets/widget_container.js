@@ -15,9 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager) {
-    var ContainerView = IPython.DOMWidgetView.extend({
-        
+
+    var ContainerView = IPython.DOMWidgetView.extend({    
         render: function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-container');
             this.children={};
@@ -29,6 +30,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         update_children: function(old_list, new_list) {
+            // Called when the children list changes.
             this.do_diff(old_list, 
                 new_list, 
                 $.proxy(this.remove_child_model, this),
@@ -36,11 +38,13 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
 
         remove_child_model: function(model) {
+            // Called when a model is removed from the children list.
             this.child_views[model.id].remove();
             this.delete_child_view(model);
         },
 
         add_child_model: function(model) {
+            // Called when a model is added to the children list.
             var view = this.create_child_view(model);
             this.$el.append(view.$el);
         },
@@ -53,13 +57,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             return ContainerView.__super__.update.apply(this);
         },
     });
-
     widget_manager.register_widget_view('ContainerView', ContainerView);
 
 
-    var ModalView = IPython.DOMWidgetView.extend({
-        
+    var ModalView = IPython.DOMWidgetView.extend({ 
         render: function(){
+            // Called when view is rendered.
             var that = this;
             this.children={};
             this.update_children([], this.model.get('children'));
@@ -160,13 +163,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         hide: function() {
+            // Called when the modal hide button is clicked.
             this.$window.hide();
             this.$show_button.removeClass('btn-info');
         },
         
         show: function() {
+            // Called when the modal show button is clicked.
             this.$show_button.addClass('btn-info');
-
             this.$window.show();
             if (this.popped_out) {
                 this.$window.css("positon", "absolute");
@@ -178,6 +182,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         bring_to_front: function() {
+            // Make the modal top-most, z-ordered about the other modals.
             var $widget_modals = $(".widget-modal");
             var max_zindex = 0;
             $widget_modals.each(function (index, el){
@@ -197,6 +202,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         update_children: function(old_list, new_list) {
+            // Called when the children list is modified.
             this.do_diff(old_list, 
                 new_list, 
                 $.proxy(this.remove_child_model, this),
@@ -204,11 +210,13 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
 
         remove_child_model: function(model) {
+            // Called when a child is removed from children list.
             this.child_views[model.id].remove();
             this.delete_child_view(model);
         },
 
         add_child_model: function(model) {
+            // Called when a child is added to children list.
             var view = this.create_child_view(model);
             this.$body.append(view.$el);
         },
@@ -245,7 +253,8 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
         },
         
         _get_selector_element: function(selector) {
-
+            // Get an element view a 'special' jquery selector.  (see widget.js)
+            //
             // Since the modal actually isn't within the $el in the DOM, we need to extend
             // the selector logic to allow the user to set css on the modal if need be.
             // The convention used is:
@@ -263,8 +272,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
                 return ModalView.__super__._get_selector_element.apply(this, [selector]);
             }
         },
-        
     });
-
     widget_manager.register_widget_view('ModalView', ModalView);
 });

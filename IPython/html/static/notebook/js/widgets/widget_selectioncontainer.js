@@ -15,9 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
+
     var AccordionView = IPython.DOMWidgetView.extend({
-        
         render: function(){
+            // Called when view is rendered.
             var guid = 'accordion' + IPython.utils.uuid();
             this.$el
                 .attr('id', guid)
@@ -35,7 +36,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            
             if (options === undefined || options.updated_view != this) {
                 // Set tab titles
                 var titles = this.model.get('_titles');
@@ -67,6 +67,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
         
         update_children: function(old_list, new_list) {
+            // Called when the children list is modified.
             this.do_diff(old_list, 
                 new_list, 
                 $.proxy(this.remove_child_model, this),
@@ -74,6 +75,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         remove_child_model: function(model) {
+            // Called when a child is removed from children list.
             var accordion_group = this.model_containers[model.id];
             this.containers.splice(accordion_group.container_index, 1);
             delete this.model_containers[model.id];
@@ -82,6 +84,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         add_child_model: function(model) {
+            // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
@@ -126,17 +129,18 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             setTimeout(function(){ that.update(); }, 500);
         },
     });
-
     widget_manager.register_widget_view('AccordionView', AccordionView);
     
-    var TabView = IPython.DOMWidgetView.extend({
-        
+
+    var TabView = IPython.DOMWidgetView.extend({    
         initialize: function() {
+            // Public constructor.
             this.containers = [];
             TabView.__super__.initialize.apply(this, arguments);
         },
 
         render: function(){
+            // Called when view is rendered.
             var uuid = 'tabs'+IPython.utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})
@@ -152,19 +156,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.update_children(model.previous('children'), value);
             }, this);
         },
-        
+
         update_children: function(old_list, new_list) {
-            _.each(this.containers, function(element, index, list) {
-                element.remove();
-            }, this);
-            this.containers = [];
-            this.update_child_views(old_list, new_list);
-            _.each(new_list, function(element, index, list) {
-                this.add_child_view(this.child_views[element]);
-            }, this)
-        },
-        
-        update_children: function(old_list, new_list) {
+            // Called when the children list is modified.
             this.do_diff(old_list, 
                 new_list, 
                 $.proxy(this.remove_child_model, this),
@@ -172,6 +166,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         remove_child_model: function(model) {
+            // Called when a child is removed from children list.
             var view = this.child_views[model.id];
             this.containers.splice(view.parent_tab.tab_text_index, 1);
             view.parent_tab.remove();
@@ -181,6 +176,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         add_child_model: function(model) {
+            // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
@@ -238,11 +234,11 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         select_page: function(index) {
+            // Select a page.
             this.$tabs.find('li')
                 .removeClass('active');
             this.containers[index].tab('show');
         },
     });
-
     widget_manager.register_widget_view('TabView', TabView);
 });

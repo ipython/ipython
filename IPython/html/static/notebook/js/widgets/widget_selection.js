@@ -15,11 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
+
     var DropdownView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
         render : function(){
-            
+            // Called when view is rendered.            
             this.$el
                 .addClass('widget-hbox-single')
                 .html('');
@@ -101,8 +100,8 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return DropdownView.__super__.update.apply(this);
         },
 
-        // Handle when a value is clicked.
         handle_click: function (e) {
+            // Handle when a value is clicked.
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
@@ -111,13 +110,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
         
     });
-
     widget_manager.register_widget_view('DropdownView', DropdownView);
 
-    var RadioButtonsView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+
+    var RadioButtonsView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox');
             this.$label = $('<div />')
@@ -193,8 +191,8 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return RadioButtonsView.__super__.update.apply(this);
         },
 
-        // Handle when a value is clicked.
         handle_click: function (e) {
+            // Handle when a value is clicked.
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
@@ -202,14 +200,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
     });
-
     widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
 
 
-    var ToggleButtonsView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+    var ToggleButtonsView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -280,23 +276,21 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return ToggleButtonsView.__super__.update.apply(this);
         },
 
-        // Handle when a value is clicked.
         handle_click: function (e) {
+            // Handle when a value is clicked.
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
             this.model.set('value', $(e.target).html(), {updated_view: this});
             this.touch();
-        },
-        
+        },    
     });
-
     widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
 
-    var ListBoxView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+
+    var ListBoxView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox');
             this.$label = $('<div />')
@@ -364,16 +358,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return ListBoxView.__super__.update.apply(this);
         },
 
-        // Handle when a value is clicked.
         handle_click: function (e) {
+            // Handle when a value is clicked.
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
             this.model.set('value', $(e.target).html(), {updated_view: this});
             this.touch();
-        },
-        
+        },    
     });
-
     widget_manager.register_widget_view('ListBoxView', ListBoxView);
 });

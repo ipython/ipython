@@ -15,10 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
+
     var FloatSliderView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -107,24 +107,26 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return FloatSliderView.__super__.update.apply(this);
         },
         
-        // Handles: User input
-        events: { "slide" : "handleSliderChange" }, 
+        events: {
+            // Dictionary of events and their handlers.
+            "slide" : "handleSliderChange" 
+        }, 
+
         handleSliderChange: function(e, ui) { 
-            
+            // Handle when the slider value is changed.
+
             // Calling model.set will trigger all of the other views of the 
             // model to update.
             this.model.set('value', ui.value, {updated_view: this}); 
             this.touch();
         },
     });
-
     widget_manager.register_widget_view('FloatSliderView', FloatSliderView);
 
 
-    var FloatTextView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+    var FloatTextView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -144,7 +146,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-
             if (options === undefined || options.updated_view != this) {
                 var value = this.model.get('value');
                 if (parseFloat(this.$textbox.val()) != value) {
@@ -168,15 +169,20 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return FloatTextView.__super__.update.apply(this);
         },
         
+        events: {
+            // Dictionary of events and their handlers.
+
+            "keyup input" : "handleChanging",
+            "paste input" : "handleChanging",
+            "cut input" : "handleChanging",
+
+            // Fires only when control is validated or looses focus.
+            "change input" : "handleChanged"
+        }, 
         
-        events: {"keyup input" : "handleChanging",
-                "paste input" : "handleChanging",
-                "cut input" : "handleChanging",
-                "change input" : "handleChanged"}, // Fires only when control is validated or looses focus.
-        
-        // Handles and validates user input.
         handleChanging: function(e) { 
-            
+            // Handles and validates user input.
+        
             // Try to parse value as a float.
             var numericalValue = 0.0;
             if (e.target.value !== '') {
@@ -205,22 +211,19 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
         },
         
-        // Applies validated input.
         handleChanged: function(e) { 
-            // Update the textbox
+            // Applies validated input.
             if (this.model.get('value') != e.target.value) {
                 e.target.value = this.model.get('value');
             }
         }
     });
-
     widget_manager.register_widget_view('FloatTextView', FloatTextView);
 
 
-    var ProgressView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+    var ProgressView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -258,9 +261,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 this.$label.show();
             }
             return ProgressView.__super__.update.apply(this);
-        },
-        
+        }, 
     });
-
     widget_manager.register_widget_view('ProgressView', ProgressView);
 });

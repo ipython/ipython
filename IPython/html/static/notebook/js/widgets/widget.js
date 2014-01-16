@@ -18,10 +18,7 @@ define(["notebook/js/widgetmanager",
         "underscore",
         "backbone"], 
 function(widget_manager, underscore, backbone){
-    
-    //--------------------------------------------------------------------
-    // WidgetModel class
-    //--------------------------------------------------------------------
+
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
             // Construcctor
@@ -55,14 +52,15 @@ function(widget_manager, underscore, backbone){
         },
 
         send: function (content, callbacks) {
+            // Send a custom msg over the comm.
             if (this.comm !== undefined) {
                 var data = {method: 'custom', custom_content: content};
                 this.comm.send(data, callbacks);
             }
         },
 
-        // Handle when a widget is closed.
         _handle_comm_closed: function (msg) {
+            // Handle when a widget is closed.
             this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
@@ -70,9 +68,8 @@ function(widget_manager, underscore, backbone){
             // TODO: Handle deletion, like this.destroy(), and delete views, etc.
         },
 
-
-        // Handle incoming comm msg.
         _handle_comm_msg: function (msg) {
+            // Handle incoming comm msg.
             var method = msg.content.data.method;
             switch (method) {
                 case 'update':
@@ -87,9 +84,8 @@ function(widget_manager, underscore, backbone){
             }
         },
 
-
-        // Handle when a widget is updated via the python side.
         apply_update: function (state) {
+            // Handle when a widget is updated via the python side.
             for (var key in state) {
                 if (state.hasOwnProperty(key)) {
                     var value = state[key];
@@ -105,9 +101,10 @@ function(widget_manager, underscore, backbone){
             this.save();
         },
 
-
         _handle_status: function (msg, callbacks) {
-            //execution_state : ('busy', 'idle', 'starting')
+            // Handle status msgs.
+
+            // execution_state : ('busy', 'idle', 'starting')
             if (this.comm !== undefined) {
                 if (msg.content.execution_state ==='idle') {
                     // Send buffer if this message caused another message to be
@@ -124,9 +121,8 @@ function(widget_manager, underscore, backbone){
             }
         },
 
-
-        // Custom syncronization logic.
         _handle_sync: function (method, options) {
+            // Custom syncronization logic.
             var model_json = this.toJSON();
             var attr;
 
@@ -176,6 +172,7 @@ function(widget_manager, underscore, backbone){
         },
 
         _pack_models: function(value) {
+            // Replace models with model ids recursively.
             if (value instanceof Backbone.Model) {
                 return value.id;
             } else if (value instanceof Object) {
@@ -190,6 +187,7 @@ function(widget_manager, underscore, backbone){
         },
 
         _unpack_models: function(value) {
+            // Replace model ids with models recursively.
             if (value instanceof Object) {
                 var unpacked = {};
                 for (var key in value) {
@@ -210,11 +208,9 @@ function(widget_manager, underscore, backbone){
     widget_manager.register_widget_model('WidgetModel', WidgetModel);
 
 
-    //--------------------------------------------------------------------
-    // WidgetView class
-    //--------------------------------------------------------------------
     var WidgetView = Backbone.View.extend({
         initialize: function(parameters) {
+            // Public constructor.
             this.model.on('change',this.update,this);
             this.options = parameters.options;
             this.child_views = [];
@@ -222,19 +218,23 @@ function(widget_manager, underscore, backbone){
         },
 
         update: function(){
-            // update view to be consistent with this.model
-            // triggered on model change
+            // Triggered on model change.
+            //
+            // Update view to be consistent with this.model
         },
 
         create_child_view: function(child_model, options) {
-            // create and return a child view, given a model and (optionally) a view name
-            // if the view name is not given, it defaults to the model's default view attribute
+            // Create and return a child view.
+            //
+            // - given a model and (optionally) a view name if the view name is 
+            // not given, it defaults to the model's default view attribute.
             var child_view = this.model.widget_manager.create_view(child_model, options);
             this.child_views[child_model.id] = child_view;
             return child_view;
         },
 
         delete_child_view: function(child_model, options) {
+            // Delete a child view that was previously created using create_child_view.
             var view = this.child_views[child_model.id];
             delete this.child_views[child_model.id];
             view.remove();
@@ -266,31 +266,42 @@ function(widget_manager, underscore, backbone){
         },
 
         callbacks: function(){
+            // Create msg callbacks for a comm msg.
             return this.model.widget_manager.callbacks(this);
         },
 
         render: function(){
-            // render the view.  By default, this is only called the first time the view is created
+            // Render the view.
+            //
+            // By default, this is only called the first time the view is created
         },
+
         send: function (content) {
+            // Send a custom msg associated with this view.
             this.model.send(content, this.callbacks());
         },
 
         touch: function () {
+            // Associate recent model changes with this notebook.
             this.model.save(this.model.changedAttributes(), {patch: true, callbacks: this.callbacks()});
         },
 
     });
 
+
     var DOMWidgetView = WidgetView.extend({
         initialize: function (options) {
-            // TODO: make changes more granular (e.g., trigger on visible:change)
+            // Public constructor
+
+            // In the future we may want to make changes more granular 
+            // (e.g., trigger on visible:change).
             this.model.on('change', this.update, this);
             this.model.on('msg:custom', this.on_msg, this);
             DOMWidgetView.__super__.initialize.apply(this, arguments);
         },
         
         on_msg: function(msg) {
+            // Handle DOM specific msgs.
             switch(msg.msg_type) {
                 case 'add_class':
                     this.add_class(msg.selector, msg.class_list);
@@ -302,10 +313,12 @@ function(widget_manager, underscore, backbone){
         },
 
         add_class: function (selector, class_list) {
+            // Add a DOM class to an element.
             this._get_selector_element(selector).addClass(class_list);
         },
         
         remove_class: function (selector, class_list) {
+            // Remove a DOM class from an element.
             this._get_selector_element(selector).removeClass(class_list);
         },
     
@@ -340,10 +353,11 @@ function(widget_manager, underscore, backbone){
         },
 
         _get_selector_element: function (selector) {
-            // Get the elements via the css selector.  If the selector is
-            // blank, apply the style to the $el_to_style element.  If
-            // the $el_to_style element is not defined, use apply the 
-            // style to the view's element.
+            // Get the elements via the css selector.  
+
+            // If the selector is blank, apply the style to the $el_to_style 
+            // element.  If the $el_to_style element is not defined, use apply 
+            // the style to the view's element.
             var elements;
             if (selector === undefined || selector === null || selector === '') {
                 if (this.$el_to_style === undefined) {
@@ -362,5 +376,6 @@ function(widget_manager, underscore, backbone){
     IPython.WidgetView = WidgetView;
     IPython.DOMWidgetView = DOMWidgetView;
 
+    // Pass through widget_manager instance (probably not a good practice).
     return widget_manager;
 });

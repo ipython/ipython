@@ -15,10 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var ImageView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
+
+    var ImageView = IPython.DOMWidgetView.extend({  
         render : function(){
+            // Called when view is rendered.
             this.setElement($("<img />"));
             this.update(); // Set defaults.
         },
@@ -46,9 +46,6 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
             return ImageView.__super__.update.apply(this);
         },
-        
     });
-
     widget_manager.register_widget_view('ImageView', ImageView);
-
 });

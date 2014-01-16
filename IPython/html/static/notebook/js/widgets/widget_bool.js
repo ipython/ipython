@@ -15,10 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
+
     var CheckBoxView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -35,6 +35,8 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         handle_click: function() {
+            // Handles when the checkbox is clicked.
+
             // Calling model.set will trigger all of the other views of the 
             // model to update.
             var value = this.model.get('value');
@@ -65,13 +67,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
         
     });
-
     widget_manager.register_widget_view('CheckBoxView', CheckBoxView);
 
+
     var ToggleButtonView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
         render : function() {
+            // Called when view is rendered.
             var that = this;
             this.setElement($('<button />')
                 .addClass('btn')
@@ -110,8 +111,8 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return ToggleButtonView.__super__.update.apply(this);
         },
         
-        // Handles and validates user input.
         handle_click: function(e) { 
+            // Handles and validates user input.
 
             // Calling model.set will trigger all of the other views of the 
             // model to update.
@@ -120,7 +121,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
     });
-
     widget_manager.register_widget_view('ToggleButtonView', ToggleButtonView);
-
 });

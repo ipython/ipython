@@ -15,10 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var HTMLView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
+
+    var HTMLView = IPython.DOMWidgetView.extend({  
         render : function(){
+            // Called when view is rendered.
             this.update(); // Set defaults.
         },
         
@@ -30,16 +30,13 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.$el.html(this.model.get('value'));
             return HTMLView.__super__.update.apply(this);
         },
-        
     });
-
     widget_manager.register_widget_view('HTMLView', HTMLView);
 
 
-    var LatexView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
+    var LatexView = IPython.DOMWidgetView.extend({  
         render : function(){
+            // Called when view is rendered.
             this.update(); // Set defaults.
         },
         
@@ -52,16 +49,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
 
             return LatexView.__super__.update.apply(this);
-        },
-        
+        }, 
     });
-
     widget_manager.register_widget_view('LatexView', LatexView);
 
-    var TextAreaView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
+
+    var TextAreaView = IPython.DOMWidgetView.extend({  
         render: function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox')
                 .html('');
@@ -79,19 +74,18 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.model.on('msg:custom', $.proxy(this._handle_textarea_msg, this));
         },
 
-
         _handle_textarea_msg: function (content){
+            // Handle when a custom msg is recieved from the back-end.
             if (content.method == "scroll_to_bottom") {
                 this.scroll_to_bottom();                
             }
         },
 
-
         scroll_to_bottom: function (){
+            // Scroll the text-area view to the bottom.
             this.$textbox.scrollTop(this.$textbox[0].scrollHeight);
         },
 
-        
         update: function(options){
             // Update the contents of this view
             //
@@ -114,12 +108,15 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return TextAreaView.__super__.update.apply(this);
         },
         
-        events: {"keyup textarea": "handleChanging",
-                "paste textarea": "handleChanging",
-                "cut textarea": "handleChanging"},
+        events: {
+            // Dictionary of events and their handlers.
+            "keyup textarea": "handleChanging",
+            "paste textarea": "handleChanging",
+            "cut textarea": "handleChanging"
+        },
         
-        // Handles and validates user input.
         handleChanging: function(e) { 
+            // Handles and validates user input.
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
@@ -127,13 +124,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
     });
-
     widget_manager.register_widget_view('TextAreaView', TextAreaView);
 
-    var TextBoxView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
+
+    var TextBoxView = IPython.DOMWidgetView.extend({  
         render: function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single')
                 .html('');
@@ -173,13 +169,16 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return TextBoxView.__super__.update.apply(this);
         },
         
-        events: {"keyup input": "handleChanging",
-                "paste input": "handleChanging",
-                "cut input": "handleChanging",
-                "keypress input": "handleKeypress"},
+        events: {
+            // Dictionary of events and their handlers.
+            "keyup input": "handleChanging",
+            "paste input": "handleChanging",
+            "cut input": "handleChanging",
+            "keypress input": "handleKeypress"
+        },
         
-        // Handles and validates user input.
         handleChanging: function(e) { 
+            // Handles and validates user input.
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
@@ -187,13 +186,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
         
-        // Handles text submition
         handleKeypress: function(e) { 
+            // Handles text submition
             if (e.keyCode == 13) { // Return key
                 this.send({event: 'submit'});
             }
         },
     });
-
     widget_manager.register_widget_view('TextBoxView', TextBoxView);
 });

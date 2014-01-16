@@ -15,10 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var ButtonView = IPython.DOMWidgetView.extend({
-      
-        // Called when view is rendered.
+
+    var ButtonView = IPython.DOMWidgetView.extend({  
         render : function(){
+            // Called when view is rendered.
             this.setElement($("<button />")
                 .addClass('btn'));
 
@@ -49,14 +49,14 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
 
         events: {
+            // Dictionary of events and their handlers.
             'click': '_handle_click',
         },
         
         _handle_click: function(){
+            // Handles when the button is clicked.
             this.send({event: 'click'});
         },
     });
-
     widget_manager.register_widget_view('ButtonView', ButtonView);
-
 });

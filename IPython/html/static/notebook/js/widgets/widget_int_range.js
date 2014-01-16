@@ -15,10 +15,10 @@
  **/
 
 define(["notebook/js/widgets/widget"], function(widget_manager){
-    var IntSliderView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+
+    var IntSliderView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -106,23 +106,26 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return IntSliderView.__super__.update.apply(this);
         },
         
-        // Handles: User input
-        events: { "slide" : "handleSliderChange" }, 
+        events: {
+            // Dictionary of events and their handlers.
+            "slide" : "handleSliderChange"
+        }, 
+
         handleSliderChange: function(e, ui) { 
-            
+            // Called when the slider value is changed.
+
             // Calling model.set will trigger all of the other views of the 
             // model to update.
             this.model.set('value', ~~ui.value, {updated_view: this}); // Double bit-wise not to truncate decimel
             this.touch();
         },
     });
-
     widget_manager.register_widget_view('IntSliderView', IntSliderView);
 
-    var IntTextView = IPython.DOMWidgetView.extend({
-        
-        // Called when view is rendered.
+
+    var IntTextView = IPython.DOMWidgetView.extend({    
         render : function(){
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')
@@ -164,15 +167,19 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
             return IntTextView.__super__.update.apply(this);
         },
+
+        events: {
+            // Dictionary of events and their handlers.
+            "keyup input" : "handleChanging",
+            "paste input" : "handleChanging",
+            "cut input" : "handleChanging",
+
+            // Fires only when control is validated or looses focus.
+            "change input" : "handleChanged"
+        }, 
         
-        
-        events: {"keyup input" : "handleChanging",
-                "paste input" : "handleChanging",
-                "cut input" : "handleChanging",
-                "change input" : "handleChanged"}, // Fires only when control is validated or looses focus.
-        
-        // Handles and validates user input.
         handleChanging: function(e) { 
+            // Handles and validates user input.
             
             // Try to parse value as a float.
             var numericalValue = 0;
@@ -202,14 +209,12 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
         },
         
-        // Applies validated input.
         handleChanged: function(e) { 
-            // Update the textbox
+            // Applies validated input.
             if (this.model.get('value') != e.target.value) {
                 e.target.value = this.model.get('value');
             }
         }
     });
-
     widget_manager.register_widget_view('IntTextView', IntTextView);
 });
