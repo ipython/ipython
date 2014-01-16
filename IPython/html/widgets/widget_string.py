@@ -51,7 +51,7 @@ class TextBoxWidget(HTMLWidget):
         self.on_msg(self._handle_string_msg)
 
     def _handle_string_msg(self, content):
-        """Handle a msg from the front-end
+        """Handle a msg from the front-end.
 
         Parameters
         ----------
@@ -62,8 +62,9 @@ class TextBoxWidget(HTMLWidget):
                 handler(self)
 
     def on_submit(self, callback, remove=False):
-        """Register a callback to handle text submission (triggered when the 
-        user clicks enter).
+        """(Un)Register a callback to handle text submission.
+
+        Triggered when the user clicks enter.
 
         Parameters
         callback: Method handle

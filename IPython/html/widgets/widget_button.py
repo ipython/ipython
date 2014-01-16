@@ -30,17 +30,17 @@ class ButtonWidget(DOMWidget):
     description = Unicode('', help="Description of the button (label).", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
     
-
     def __init__(self, **kwargs):
+        """Constructor"""
         super(ButtonWidget, self).__init__(**kwargs)
         
         self._click_handlers = []
         self.on_msg(self._handle_button_msg)
 
-
     def on_click(self, callback, remove=False):
-        """Register a callback to execute when the button is clicked.  The
-        callback can either accept no parameters or one sender parameter:
+        """Register a callback to execute when the button is clicked.  
+
+        The callback can either accept no parameters or one sender parameter:
         - callback()
         - callback(sender)
         If the callback has a sender parameter, the ButtonWidget instance that
@@ -55,9 +55,8 @@ class ButtonWidget(DOMWidget):
         elif not callback in self._click_handlers:
             self._click_handlers.append(callback)
 
-
     def _handle_button_msg(self, content):
-        """Handle a msg from the front-end
+        """Handle a msg from the front-end.
 
         Parameters
         ----------
@@ -66,11 +65,10 @@ class ButtonWidget(DOMWidget):
         if 'event' in content and content['event'] == 'click':
             self._handle_click()
 
-
     def _handle_click(self):
-        """Handles when the button has been clicked.  Fires on_click
-        callbacks when appropriate."""
-        
+        """Handles when the button has been clicked.
+
+        Fires on_click callbacks when appropriate."""
         for handler in self._click_handlers:
             if callable(handler):
                 argspec = inspect.getargspec(handler)
@@ -88,4 +86,3 @@ class ButtonWidget(DOMWidget):
                 else:
                     raise TypeError('ButtonWidget click callback must ' \
                         'accept 0 or 1 arguments.')
-        

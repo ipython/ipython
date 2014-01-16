@@ -29,5 +29,6 @@ class ContainerWidget(DOMWidget):
     description = Unicode(sync=True)
     button_text = Unicode(sync=True)
 
+
 class ModalWidget(ContainerWidget):
     view_name = Unicode('ModalView', sync=True)

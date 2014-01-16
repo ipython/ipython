@@ -31,7 +31,7 @@ class AccordionWidget(DOMWidget):
 
     # Public methods
     def set_title(self, index, title):
-        """Sets the title of a container page
+        """Sets the title of a container page.
 
         Parameters
         ----------
@@ -42,9 +42,8 @@ class AccordionWidget(DOMWidget):
         self._titles[index] = title
         self.send_state('_titles')
 
-
     def get_title(self, index):
-        """Gets the title of a container pages
+        """Gets the title of a container pages.
 
         Parameters
         ----------

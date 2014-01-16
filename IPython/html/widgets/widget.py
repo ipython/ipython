@@ -31,8 +31,9 @@ class Widget(LoggingConfigurable):
     widgets = {}
 
     def on_widget_constructed(callback):
-        """Class method, registers a callback to be called when a widget is
-        constructed.  The callback must have the following signature:
+        """Registers a callback to be called when a widget is constructed.  
+
+        The callback must have the following signature:
         callback(widget)"""
         Widget.widget_construction_callback = callback
 
@@ -40,8 +41,6 @@ class Widget(LoggingConfigurable):
         """Class method, called when a widget is constructed."""
         if Widget.widget_construction_callback is not None and callable(Widget.widget_construction_callback):
             Widget.widget_construction_callback(widget)
-
-    
 
     # Public declarations (Instance level)
     model_name = Unicode('WidgetModel', help="""Name of the backbone model 
@@ -80,8 +79,7 @@ class Widget(LoggingConfigurable):
     _comm = Instance('IPython.kernel.comm.Comm')
     
     def __init__(self, **kwargs):
-        """Public constructor
-        """
+        """Public constructor"""
         self.closed = False
         self._property_lock = (None, None)
         self._display_callbacks = []
@@ -97,20 +95,20 @@ class Widget(LoggingConfigurable):
         self.close()
 
     def close(self):
-        """Close method.  Closes the widget which closes the underlying comm.
+        """Close method.  
+
+        Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
         if not self.closed:
             self._comm.close() 
             self._close()
 
-
     def _close(self):
         """Unsafe close"""
         del Widget.widgets[self.model_id]
         self._comm = None
         self.closed = True
-
 
     @property
     def comm(self):
@@ -147,7 +145,6 @@ class Widget(LoggingConfigurable):
             if 'custom_content' in data:
                 self._handle_custom_msg(data['custom_content'])
 
-
     def _handle_receive_state(self, sync_data):
         """Called when a state is received from the front-end."""
         for name in self.keys:
@@ -156,12 +153,10 @@ class Widget(LoggingConfigurable):
                 with self.property_lock(name, value):
                     setattr(self, name, value)
 
-
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
         for handler in self._msg_callbacks:
             handler(self, content)
-
 
     def _handle_property_changed(self, name, old, new):
         """Called when a property has been changed."""
@@ -198,10 +193,8 @@ class Widget(LoggingConfigurable):
         keys = self.keys if key is None else [key]
         return {k: self._pack_widgets(getattr(self, k)) for k in keys} 
 
-
     def _pack_widgets(self, values):
-        """This function recursively converts all widget instances to model id
-        strings.
+        """Recursively converts all widget instances to model id strings.
 
         Children widgets will be stored and transmitted to the front-end by 
         their model ids."""
@@ -220,10 +213,8 @@ class Widget(LoggingConfigurable):
         else:
             return values
 
-
     def _unpack_widgets(self, values):
-        """This function recursively converts all model id strings to widget 
-        instances.
+        """Recursively converts all model id strings to widget instances.
 
         Children widgets will be stored and transmitted to the front-end by 
         their model ids."""
@@ -245,7 +236,6 @@ class Widget(LoggingConfigurable):
         else:
             return values
 
-
     def send(self, content):
         """Sends a custom msg to the widget model in the front-end.
 
@@ -256,10 +246,8 @@ class Widget(LoggingConfigurable):
         """
         self._send({"method": "custom", "custom_content": content})
 
-
     def on_msg(self, callback, remove=False):
-        """Register or unregister a callback for when a custom msg is recieved 
-        from the front-end.
+        """(Un)Register a custom msg recieve callback.
 
         Parameters
         ----------
@@ -291,10 +279,8 @@ class Widget(LoggingConfigurable):
             else:
                 raise Exception('Callback must be callable.')
 
-
     def on_displayed(self, callback, remove=False):
-        """Register or unregister a callback to be called when the widget has 
-        been displayed.
+        """(Un)Register a widget displayed callback.
 
         Parameters
         ----------
@@ -312,20 +298,16 @@ class Widget(LoggingConfigurable):
             else:
                 raise Exception('Callback must be callable.')
 
-
     # Support methods
     def _ipython_display_(self, **kwargs):
-        """Function that is called when `IPython.display.display` is called on
-        the widget."""
-            
+        """Called when `IPython.display.display` is called on the widget."""
         # Show view.  By sending a display message, the comm is opened and the
         # initial state is sent.
         self._send({"method": "display"})
         self._handle_displayed(**kwargs)
 
-
     def _send(self, msg):
-        """Sends a message to the model in the front-end"""
+        """Sends a message to the model in the front-end."""
         self.comm.send(msg)
 
 
@@ -408,9 +390,8 @@ class DOMWidget(Widget):
         else:
             raise Exception('set_css only accepts 1-3 arguments')
 
-
     def add_class(self, class_names, selector=""):
-        """Add class[es] to a DOM element
+        """Add class[es] to a DOM element.
 
         Parameters
         ----------
@@ -428,9 +409,8 @@ class DOMWidget(Widget):
             "class_list": class_list,
             "selector": selector})
 
-
     def remove_class(self, class_names, selector=""):
-        """Remove class[es] from a DOM element
+        """Remove class[es] from a DOM element.
 
         Parameters
         ----------
