@@ -180,7 +180,6 @@ class NotebookWebApplication(web.Application):
             nbextensions_path = ipython_app.nbextensions_path,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
-            use_less=ipython_app.use_less,
             jinja2_env=Environment(loader=FileSystemLoader(template_path)),
         )
 
@@ -395,18 +394,6 @@ class NotebookApp(BaseIPythonApplication):
                       BROWSER environment variable to override it.
                       """)
     
-    use_less = Bool(False, config=True,
-                       help="""Wether to use Browser Side less-css parsing
-                       instead of compiled css version in templates that allows
-                       it. This is mainly convenient when working on the less
-                       file to avoid a build step, or if user want to overwrite
-                       some of the less variables without having to recompile
-                       everything.
-                       
-                       You will need to install the less.js component in the static directory
-                       either in the source tree or in your profile folder.
-                       """)
-
     webapp_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
                  "IPython notebook uses.")

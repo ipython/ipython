@@ -119,11 +119,6 @@ class IPythonHandler(AuthenticatedHandler):
         else:
             return app_log
     
-    @property
-    def use_less(self):
-        """Use less instead of css in templates"""
-        return self.settings.get('use_less', False)
-    
     #---------------------------------------------------------------
     # URLs
     #---------------------------------------------------------------
@@ -193,7 +188,6 @@ class IPythonHandler(AuthenticatedHandler):
             base_kernel_url=self.base_kernel_url,
             logged_in=self.logged_in,
             login_available=self.login_available,
-            use_less=self.use_less,
             static_url=self.static_url,
         )
     

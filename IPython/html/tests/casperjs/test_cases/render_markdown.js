@@ -10,7 +10,7 @@ casper.notebook_test(function () {
         cell.render();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown JS API works.');
+    this.test.assertEquals(output, '<h1 id=\"foo\">Foo</h1>', 'Markdown JS API works.');
     
     // Test menubar entries.
     output = this.evaluate(function () {
@@ -21,7 +21,7 @@ casper.notebook_test(function () {
         $('#run_cell').mouseenter().click();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown menubar items work.');
+    this.test.assertEquals(output, '<h1 id=\"foo\">Foo</h1>', 'Markdown menubar items work.');
     
     // Test toolbar buttons.
     output = this.evaluate(function () {
@@ -32,5 +32,5 @@ casper.notebook_test(function () {
         $('#run_b').click();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown toolbar items work.');
+    this.test.assertEquals(output, '<h1 id=\"foo\">Foo</h1>', 'Markdown toolbar items work.');
 });
