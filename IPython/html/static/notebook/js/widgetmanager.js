@@ -91,83 +91,15 @@
         },
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        WidgetManager.prototype.create_view = function(model, view_name, cell) {
-=======
-        WidgetManager.prototype.create_view = function(model, view_name, options) {
->>>>>>> Completely remove cell from model and view.
-            view_name = view_name || model.get('default_view_name');
-<<<<<<< HEAD
-=======
-    WidgetManager.prototype.create_view = function(model, view_name, cell, options) {
-        view_name = view_name || model.get('default_view_name');
->>>>>>> Add widget view options in creating child views
-            var ViewType = this.widget_view_types[view_name];
-=======
-=======
         WidgetManager.prototype.create_view = function(model, options) {
             var view_name = model.get('view_name');
->>>>>>> remove msg.content.data.view_name and corrosponding create_view param
             var ViewType = this._view_types[view_name];
->>>>>>> _model_types, _view_types, _models - and document what keys and values are
             if (ViewType !== undefined && ViewType !== null) {
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
-<<<<<<< HEAD
-<<<<<<< HEAD
-                /*
-                    // TODO: handle view deletion.  Don't forget to delete child views
-                    var that = this;
-                    view.$el.on("remove", function () { 
-                        var index = that.views.indexOf(view);
-                        if (index > -1) {
-                            that.views.splice(index, 1);
-=======
-        /*
-                // TODO: handle view deletion.  Don't forget to delete child views
-                var that = this;
-                view.$el.on("remove", function () { 
-                    var index = that.views.indexOf(view);
-                    if (index > -1) {
-                        that.views.splice(index, 1);
-                    }
-                    view.remove(); // Clean-up view 
-
-                    // Close the comm if there are no views left.
-                    if (that.views.length() === 0) {
-            //trigger comm close event?
-                        }
-
-                
-                        if (that.comm !== undefined) {
-                            that.comm.close();
-                            delete that.comm.model; // Delete ref so GC will collect widget model.
-                            delete that.comm;
->>>>>>> Add widget view options in creating child views
-                        }
-                        view.remove(); // Clean-up view 
-
-                        // Close the comm if there are no views left.
-                        if (that.views.length() === 0) {
-                //trigger comm close event?
-                            }
-
-                    
-                            if (that.comm !== undefined) {
-                                that.comm.close();
-                                delete that.comm.model; // Delete ref so GC will collect widget model.
-                                delete that.comm;
-                            }
-                            delete that.model_id; // Delete id from model so widget manager cleans up.
-                        });
-                */
-=======
->>>>>>> remove msg.content.data.view_name and corrosponding create_view param
                 return view;
             }
         },
