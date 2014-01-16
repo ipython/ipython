@@ -22,9 +22,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             this.$el
                 .addClass('widget-container');
             this.children={};
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
+            this.update_children([], this.model.get('_children'));
+            this.model.on('change:_children', function(model, value, options) {
+                this.update_children(model.previous('_children'), value);
             }, this);
             this.update()
         },
@@ -65,9 +65,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             // Called when view is rendered.
             var that = this;
             this.children={};
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
+            this.update_children([], this.model.get('_children'));
+            this.model.on('change:_children', function(model, value, options) {
+                this.update_children(model.previous('_children'), value);
             }, this);
             
             this.$el

@@ -25,9 +25,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 .addClass('accordion');
             this.containers = [];
             this.model_containers = {};
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
+            this.update_children([], this.model.get('_children'));
+            this.model.on('change:_children', function(model, value, options) {
+                this.update_children(model.previous('_children'), value);
             }, this);
         },
         
@@ -151,9 +151,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 .addClass('tab-content')
                 .appendTo(this.$el);
             this.containers = [];
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
+            this.update_children([], this.model.get('_children'));
+            this.model.on('change:_children', function(model, value, options) {
+                this.update_children(model.previous('_children'), value);
             }, this);
         },
 
