@@ -98,6 +98,7 @@
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.render();
+                IPython.keyboard_manager.register_events(view.$el);
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
                 return view;
