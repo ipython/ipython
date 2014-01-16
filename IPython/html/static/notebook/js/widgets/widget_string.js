@@ -110,9 +110,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         events: {
             // Dictionary of events and their handlers.
-            "keyup textarea": "handleChanging",
-            "paste textarea": "handleChanging",
-            "cut textarea": "handleChanging"
+            "keyup textarea" : "handleChanging",
+            "paste textarea" : "handleChanging",
+            "cut textarea"   : "handleChanging"
         },
         
         handleChanging: function(e) { 
@@ -171,10 +171,10 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         
         events: {
             // Dictionary of events and their handlers.
-            "keyup input": "handleChanging",
-            "paste input": "handleChanging",
-            "cut input": "handleChanging",
-            "keypress input": "handleKeypress"
+            "keyup input"    : "handleChanging",
+            "paste input"    : "handleChanging",
+            "cut input"      : "handleChanging",
+            "keypress input" : "handleKeypress"
         },
         
         handleChanging: function(e) { 

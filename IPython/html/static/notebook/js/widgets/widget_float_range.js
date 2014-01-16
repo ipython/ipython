@@ -172,9 +172,9 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         events: {
             // Dictionary of events and their handlers.
 
-            "keyup input" : "handleChanging",
-            "paste input" : "handleChanging",
-            "cut input" : "handleChanging",
+            "keyup input"  : "handleChanging",
+            "paste input"  : "handleChanging",
+            "cut input"    : "handleChanging",
 
             // Fires only when control is validated or looses focus.
             "change input" : "handleChanged"

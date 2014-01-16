@@ -179,8 +179,10 @@ class Widget(LoggingConfigurable):
         key : unicode (optional)
             A single property's name to sync with the front-end.
         """
-        self._send({"method": "update",
-            "state": self.get_state()})
+        self._send({
+            "method" : "update",
+            "state"  : self.get_state()
+        })
 
     def get_state(self, key=None):
         """Gets the widget state, or a piece of it.
@@ -405,9 +407,11 @@ class DOMWidget(Widget):
         if isinstance(class_list, list):
             class_list = ' '.join(class_list)
 
-        self.send({"msg_type": "add_class",
-            "class_list": class_list,
-            "selector": selector})
+        self.send({
+            "msg_type"   : "add_class",
+            "class_list" : class_list,
+            "selector"   : selector
+        })
 
     def remove_class(self, class_names, selector=""):
         """Remove class[es] from a DOM element.
@@ -424,6 +428,8 @@ class DOMWidget(Widget):
         if isinstance(class_list, list):
             class_list = ' '.join(class_list)
 
-        self.send({"msg_type": "remove_class",
-            "class_list": class_list,
-            "selector": selector})
+        self.send({
+            "msg_type"   : "remove_class",
+            "class_list" : class_list,
+            "selector"   : selector,
+        })
