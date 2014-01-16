@@ -1385,22 +1385,13 @@ ul.icons-ul{list-style-type:none;text-indent:-0.7142857142857143em;margin-left:2
 .start{-webkit-box-pack:start;-moz-box-pack:start;box-pack:start;}
 .end{-webkit-box-pack:end;-moz-box-pack:end;box-pack:end;}
 .center{-webkit-box-pack:center;-moz-box-pack:center;box-pack:center;}
-<<<<<<< HEAD
-<<<<<<< HEAD
+.align-start{-webkit-box-align:start;-moz-box-align:start;box-align:start;}
+.align-end{-webkit-box-align:end;-moz-box-align:end;box-align:end;}
+.align-center{-webkit-box-align:center;-moz-box-align:center;box-align:center;}
 div.error{margin:2em;text-align:center;}
 div.error>h1{font-size:500%;line-height:normal;}
 div.error>p{font-size:200%;line-height:normal;}
 div.traceback-wrapper{text-align:left;max-width:800px;margin:auto;}
-=======
-.align_start{-webkit-box-align:start;-moz-box-align:start;box-align:start;}
-.align_end{-webkit-box-align:end;-moz-box-align:end;box-align:end;}
-.align_center{-webkit-box-align:center;-moz-box-align:center;box-align:center;}
->>>>>>> Added flexible box model align properties.
-=======
-.align-start{-webkit-box-align:start;-moz-box-align:start;box-align:start;}
-.align-end{-webkit-box-align:end;-moz-box-align:end;box-align:end;}
-.align-center{-webkit-box-align:center;-moz-box-align:center;box-align:center;}
->>>>>>> Added flex properties to container.
 body{background-color:white;position:absolute;left:0px;right:0px;top:0px;bottom:0px;overflow:visible;}
 div#header{display:none;}
 #ipython_notebook{padding-left:16px;}
