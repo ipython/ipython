@@ -14,7 +14,7 @@ Represents an unbounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Float, Bool, List
+from IPython.utils.traitlets import Unicode, CFloat, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -23,6 +23,6 @@ class FloatTextWidget(DOMWidget):
     view_name = Unicode('FloatTextView', sync=True)
 
     # Keys
-    value = Float(0.0, help="Float value", sync=True) 
+    value = CFloat(0.0, help="Float value", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)

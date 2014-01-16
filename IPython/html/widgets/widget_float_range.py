@@ -14,18 +14,18 @@ Represents a bounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Float, Bool, List
+from IPython.utils.traitlets import Unicode, CFloat, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 class BoundedFloatTextWidget(DOMWidget):
     view_name = Unicode('FloatTextView', sync=True)
-    value = Float(0.0, help="Float value", sync=True) 
-    max = Float(100.0, help="Max value", sync=True)
-    min = Float(0.0, help="Min value", sync=True)
+    value = CFloat(0.0, help="Float value", sync=True) 
+    max = CFloat(100.0, help="Max value", sync=True)
+    min = CFloat(0.0, help="Min value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
-    step = Float(0.1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    step = CFloat(0.1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 

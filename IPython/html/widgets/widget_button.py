@@ -18,7 +18,7 @@ import inspect
 import types
 
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Bool, Int
+from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------
 # Classes

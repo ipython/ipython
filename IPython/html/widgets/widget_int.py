@@ -14,7 +14,7 @@ Represents an unbounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Int, Bool, List
+from IPython.utils.traitlets import Unicode, CInt, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -23,6 +23,6 @@ class IntTextWidget(DOMWidget):
     view_name = Unicode('IntTextView', sync=True)
 
     # Keys
-    value = Int(0, help="Int value", sync=True) 
+    value = CInt(0, help="Int value", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)

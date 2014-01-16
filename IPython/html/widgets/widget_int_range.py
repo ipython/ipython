@@ -14,7 +14,7 @@ Represents a bounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Int, Bool, List
+from IPython.utils.traitlets import Unicode, CInt, Bool, List
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -23,11 +23,11 @@ class BoundedIntTextWidget(DOMWidget):
     view_name = Unicode('IntTextView', sync=True)
 
     # Keys
-    value = Int(0, help="Int value", sync=True) 
-    max = Int(100, help="Max value", sync=True)
-    min = Int(0, help="Min value", sync=True)
+    value = CInt(0, help="Int value", sync=True) 
+    max = CInt(100, help="Max value", sync=True)
+    min = CInt(0, help="Min value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
-    step = Int(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 

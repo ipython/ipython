@@ -15,7 +15,7 @@ pages.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Dict, Int, List, Instance
+from IPython.utils.traitlets import Unicode, Dict, CInt, List, Instance
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -25,7 +25,7 @@ class AccordionWidget(DOMWidget):
 
     # Keys
     _titles = Dict(help="Titles of the pages", sync=True)
-    selected_index = Int(0, sync=True)
+    selected_index = CInt(0, sync=True)
 
     children = List(Instance(DOMWidget), sync=True)
 
