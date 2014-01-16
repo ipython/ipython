@@ -105,6 +105,7 @@ var IPython = (function (IPython) {
         }
     };
 
+    CodeCell.msg_cells = {};
 
     CodeCell.prototype = new IPython.Cell();
 
@@ -317,7 +318,12 @@ var IPython = (function (IPython) {
         }
         var callbacks = this.get_callbacks();
         
+        var old_msg_id = this.last_msg_id;
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        if (old_msg_id) {
+            delete CodeCell.msg_cells[old_msg_id];
+        }
+        CodeCell.msg_cells[this.last_msg_id] = this;
     };
     
     /**
