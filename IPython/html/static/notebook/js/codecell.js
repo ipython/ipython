@@ -530,6 +530,7 @@ var IPython = (function (IPython) {
             } else {
                 this.set_input_prompt();
             }
+            this.output_area.trusted = data.trusted || false;
             this.output_area.fromJSON(data.outputs);
             if (data.collapsed !== undefined) {
                 if (data.collapsed) {
@@ -552,6 +553,7 @@ var IPython = (function (IPython) {
         var outputs = this.output_area.toJSON();
         data.outputs = outputs;
         data.language = 'python';
+        data.trusted = this.output_area.trusted;
         data.collapsed = this.collapsed;
         return data;
     };

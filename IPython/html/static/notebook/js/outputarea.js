@@ -31,6 +31,7 @@ var IPython = (function (IPython) {
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
+        this.trusted = true;
         this.clear_queued = null;
         if (prompt_area === undefined) {
             this.prompt_area = true;
@@ -309,7 +310,7 @@ var IPython = (function (IPython) {
         });
         return json;
     };
-
+    
     OutputArea.prototype.append_output = function (json) {
         this.expand();
         // Clear the output if clear is queued.
@@ -331,6 +332,7 @@ var IPython = (function (IPython) {
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         }
+        
         this.outputs.push(json);
         
         // Only reset the height to automatic if the height is currently
@@ -526,12 +528,26 @@ var IPython = (function (IPython) {
         'text/plain'
     ];
 
+    OutputArea.safe_outputs = {
+        'text/plain' : true,
+        'image/png' : true,
+        'image/jpeg' : true
+    };
+    
     OutputArea.prototype.append_mime_type = function (json, element) {
-
         for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
             var append = OutputArea.append_map[type];
             if ((json[type] !== undefined) && append) {
+                if (!this.trusted && !OutputArea.safe_outputs[type]) {
+                    // not trusted show warning and do not display
+                    var content = {
+                        text : "Untrusted " + type + " output ignored.",
+                        stream : "stderr"
+                    }
+                    this.append_stream(content);
+                    continue;
+                }
                 var md = json.metadata || {};
                 append.apply(this, [json[type], md, element]);
                 return true;
@@ -757,6 +773,7 @@ var IPython = (function (IPython) {
             // clear all, no need for logic
             this.element.html("");
             this.outputs = [];
+            this.trusted = true;
             this.unscroll_area();
             return;
         };
@@ -768,13 +785,6 @@ var IPython = (function (IPython) {
     OutputArea.prototype.fromJSON = function (outputs) {
         var len = outputs.length;
         var data;
-
-        // We don't want to display javascript on load, so remove it from the
-        // display order for the duration of this function call, but be sure to
-        // put it back in there so incoming messages that contain javascript
-        // representations get displayed
-        var js_index = OutputArea.display_order.indexOf('application/javascript');
-        OutputArea.display_order.splice(js_index, 1);
 
         for (var i=0; i<len; i++) {
             data = outputs[i];
@@ -788,9 +798,6 @@ var IPython = (function (IPython) {
             
             this.append_output(data);
         }
-
-        // reinsert javascript into display order, see note above
-        OutputArea.display_order.splice(js_index, 0, 'application/javascript');
     };
 
 
