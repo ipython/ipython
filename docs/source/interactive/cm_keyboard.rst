@@ -12,6 +12,8 @@ Action             PC shortcut     Mac shortcut
 =================  ==============  ==================
 newline & indent   Enter           Enter             
 toggle overwrite   Insert          Insert            
+code completion    Tab             Tab
+help introspection Shift-Tab       Shift-Tab
 indent             Ctrl-]          Cmd-]             
 dedent             Ctrl-[          Cmd-[             
 select all         Ctrl-A          Cmd-A             
