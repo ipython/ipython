@@ -28,6 +28,16 @@ class BoundedFloatTextWidget(DOMWidget):
     step = CFloat(0.1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
+    def __init__(self, *pargs, **kwargs):
+        """Constructor"""
+        DOMWidget.__init__(self, *pargs, **kwargs)
+        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+
+    def _validate(self, name, old, new):
+        """Validate value, max, min"""
+        if self.min > new or new > self.max:
+            self.value = min(max(new, self.min), self.max)
+
 
 class FloatSliderWidget(BoundedFloatTextWidget):
     view_name = Unicode('FloatSliderView', sync=True)

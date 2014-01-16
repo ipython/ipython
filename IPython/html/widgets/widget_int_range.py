@@ -30,6 +30,16 @@ class BoundedIntTextWidget(DOMWidget):
     step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
+    def __init__(self, *pargs, **kwargs):
+        """Constructor"""
+        DOMWidget.__init__(self, *pargs, **kwargs)
+        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+
+    def _validate(self, name, old, new):
+        """Validate value, max, min"""
+        if self.min > new or new > self.max:
+            self.value = min(max(new, self.min), self.max)
+
 
 class IntSliderWidget(BoundedIntTextWidget):
     view_name = Unicode('IntSliderView', sync=True)
