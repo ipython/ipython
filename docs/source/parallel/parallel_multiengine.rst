@@ -522,13 +522,13 @@ be collected and raise a CompositeError, as demonstrated in the next section.
 
     In [69]: from IPython.parallel import require
 
-    In [70]: @require('re'):
+    In [70]: @require('re')
        ....: def findall(pat, x):
        ....:     # re is guaranteed to be available
        ....:     return re.findall(pat, x)
           
     # you can also pass modules themselves, that you already have locally:
-    In [71]: @require(time):
+    In [71]: @require(time)
        ....: def wait(t):
        ....:     time.sleep(t)
        ....:     return t
