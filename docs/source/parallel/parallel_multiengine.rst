@@ -377,7 +377,7 @@ The following examples demonstrate how to use the instance attributes:
     In [19]: ar.get()
     Out[19]: [10, 10]
 
-    In [20]: dview.targets = v.client.ids # all engines (4)
+    In [20]: dview.targets = rc.ids # all engines (4)
     
     In [21]: dview.block = True
 
@@ -588,9 +588,11 @@ If you want, you can even raise one of these original exceptions:
 
 .. sourcecode:: ipython
 
+    In [79]: from IPython.parallel import CompositeError
+
     In [80]: try:
        ....:     dview.execute('1/0', block=True)
-       ....: except parallel.error.CompositeError, e:
+       ....: except CompositeError, e:
        ....:     e.raise_exception()
        ....: 
        ....: 
@@ -669,12 +671,12 @@ You can change this limit to suit your needs with:
 
     In [20]: from IPython.parallel import CompositeError
     In [21]: CompositeError.tb_limit = 1
-    In [22]: %px a=b
+    In [22]: %px x=z
     [0:execute]: 
     ---------------------------------------------------------------------------
     NameError                                 Traceback (most recent call last)
-    ----> 1 a=b
-    NameError: name 'b' is not defined
+    ----> 1 x=z
+    NameError: name 'z' is not defined
 
     ... 3 more exceptions ...
 
