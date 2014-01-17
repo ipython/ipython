@@ -1315,7 +1315,6 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype._session_started = function(){
         this.kernel = this.session.kernel;
-        IPython.widget_manager.attach_comm_manager(this.kernel.comm_manager);
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
