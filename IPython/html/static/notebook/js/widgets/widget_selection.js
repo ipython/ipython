@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager){
+define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var DropdownView = IPython.DOMWidgetView.extend({
         render : function(){
@@ -114,7 +114,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
         },
         
     });
-    widget_manager.register_widget_view('DropdownView', DropdownView);
+    WidgetManager.register_widget_view('DropdownView', DropdownView);
 
 
     var RadioButtonsView = IPython.DOMWidgetView.extend({    
@@ -204,7 +204,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
     });
-    widget_manager.register_widget_view('RadioButtonsView', RadioButtonsView);
+    WidgetManager.register_widget_view('RadioButtonsView', RadioButtonsView);
 
 
     var ToggleButtonsView = IPython.DOMWidgetView.extend({    
@@ -289,7 +289,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },    
     });
-    widget_manager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
+    WidgetManager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
 
 
     var ListBoxView = IPython.DOMWidgetView.extend({    
@@ -371,5 +371,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },    
     });
-    widget_manager.register_widget_view('ListBoxView', ListBoxView);
+    WidgetManager.register_widget_view('ListBoxView', ListBoxView);
 });

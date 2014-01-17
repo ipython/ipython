@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager){
+define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var IntSliderView = IPython.DOMWidgetView.extend({    
         render : function(){
@@ -120,7 +120,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
     });
-    widget_manager.register_widget_view('IntSliderView', IntSliderView);
+    WidgetManager.register_widget_view('IntSliderView', IntSliderView);
 
 
     var IntTextView = IPython.DOMWidgetView.extend({    
@@ -216,5 +216,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
         }
     });
-    widget_manager.register_widget_view('IntTextView', IntTextView);
+    WidgetManager.register_widget_view('IntTextView', IntTextView);
 });

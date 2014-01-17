@@ -5,16 +5,6 @@
 //  the file COPYING, distributed as part of this software.
 //----------------------------------------------------------------------------
 
-//============================================================================
-// FloatWidget
-//============================================================================
-
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["notebook/js/widgets/widget"], function(widget_manager){
-    // The Views for this model are shared with the bounded float, and can be
-    // found in widget_float_range.js.
-});
+// This file is a place holder to maintain a one to one mapping of widget_*.py
+// files and widget_*.js widget and test files.  The Views for this model are 
+// shared with the bounded float, and can be found in widget_float_range.js.

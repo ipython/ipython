@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager){
+define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var ImageView = IPython.DOMWidgetView.extend({  
         render : function(){
@@ -47,5 +47,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return ImageView.__super__.update.apply(this);
         },
     });
-    widget_manager.register_widget_view('ImageView', ImageView);
+    WidgetManager.register_widget_view('ImageView', ImageView);
 });

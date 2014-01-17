@@ -23,7 +23,7 @@
     // elsewhere.
     define(["underscore",
              "backbone",
-            ], function (underscore, backbone) {
+            ], function (Underscore, Backbone) {
             
         Backbone.sync = function (method, model, options) {
             // Sync widget models to back-end.

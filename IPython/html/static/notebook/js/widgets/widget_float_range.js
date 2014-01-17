@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager){
+define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var FloatSliderView = IPython.DOMWidgetView.extend({
         render : function(){
@@ -121,7 +121,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.touch();
         },
     });
-    widget_manager.register_widget_view('FloatSliderView', FloatSliderView);
+    WidgetManager.register_widget_view('FloatSliderView', FloatSliderView);
 
 
     var FloatTextView = IPython.DOMWidgetView.extend({    
@@ -218,7 +218,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             }
         }
     });
-    widget_manager.register_widget_view('FloatTextView', FloatTextView);
+    WidgetManager.register_widget_view('FloatTextView', FloatTextView);
 
 
     var ProgressView = IPython.DOMWidgetView.extend({    
@@ -263,5 +263,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             return ProgressView.__super__.update.apply(this);
         }, 
     });
-    widget_manager.register_widget_view('ProgressView', ProgressView);
+    WidgetManager.register_widget_view('ProgressView', ProgressView);
 });

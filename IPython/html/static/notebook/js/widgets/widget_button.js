@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager){
+define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var ButtonView = IPython.DOMWidgetView.extend({  
         render : function(){
@@ -58,5 +58,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.send({event: 'click'});
         },
     });
-    widget_manager.register_widget_view('ButtonView', ButtonView);
+    WidgetManager.register_widget_view('ButtonView', ButtonView);
 });

@@ -17,7 +17,7 @@
 define(["notebook/js/widgetmanager",
         "underscore",
         "backbone"], 
-function(widget_manager, underscore, backbone){
+function(WidgetManager, Underscore, Backbone){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -211,7 +211,7 @@ function(widget_manager, underscore, backbone){
         },
 
     });
-    widget_manager.register_widget_model('WidgetModel', WidgetModel);
+    WidgetManager.register_widget_model('WidgetModel', WidgetModel);
 
 
     var WidgetView = Backbone.View.extend({
@@ -387,6 +387,6 @@ function(widget_manager, underscore, backbone){
     IPython.WidgetView = WidgetView;
     IPython.DOMWidgetView = DOMWidgetView;
 
-    // Pass through widget_manager instance (probably not a good practice).
-    return widget_manager;
+    // Pass through WidgetManager namespace.
+    return WidgetManager;
 });

@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager) {
+define(["notebook/js/widgets/widget"], function(WidgetManager) {
 
     var ContainerView = IPython.DOMWidgetView.extend({    
         render: function(){
@@ -57,7 +57,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             return ContainerView.__super__.update.apply(this);
         },
     });
-    widget_manager.register_widget_view('ContainerView', ContainerView);
+    WidgetManager.register_widget_view('ContainerView', ContainerView);
 
 
     var ModalView = IPython.DOMWidgetView.extend({ 
@@ -273,5 +273,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager) {
             }
         },
     });
-    widget_manager.register_widget_view('ModalView', ModalView);
+    WidgetManager.register_widget_view('ModalView', ModalView);
 });

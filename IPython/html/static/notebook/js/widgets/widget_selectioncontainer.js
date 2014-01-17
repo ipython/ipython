@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(widget_manager){
+define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var AccordionView = IPython.DOMWidgetView.extend({
         render: function(){
@@ -129,7 +129,7 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             setTimeout(function(){ that.update(); }, 500);
         },
     });
-    widget_manager.register_widget_view('AccordionView', AccordionView);
+    WidgetManager.register_widget_view('AccordionView', AccordionView);
     
 
     var TabView = IPython.DOMWidgetView.extend({    
@@ -240,5 +240,5 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
             this.containers[index].tab('show');
         },
     });
-    widget_manager.register_widget_view('TabView', TabView);
+    WidgetManager.register_widget_view('TabView', TabView);
 });
