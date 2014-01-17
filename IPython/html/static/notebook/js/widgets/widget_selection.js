@@ -68,14 +68,18 @@ define(["notebook/js/widgets/widget"], function(widget_manager){
                 }
                 
                 var items = this.model.get('values');
-                this.$droplist.html('');
+                var $replace_droplist = $('<ul />')
+                    .addClass('dropdown-menu');
                 for (var index in items) {
                     var that = this;
                     var item_button = $('<a href="#"/>')
                         .html(items[index])
                         .on('click', $.proxy(this.handle_click, this));
-                    this.$droplist.append($('<li />').append(item_button));
+                    $replace_droplist.append($('<li />').append(item_button));
                 }
+                this.$droplist.replaceWith($replace_droplist);
+                this.$droplist.remove();
+                this.$droplist = $replace_droplist;
                 
                 if (this.model.get('disabled')) {
                     this.$buttongroup.attr('disabled','disabled');
