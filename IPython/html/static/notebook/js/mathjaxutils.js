@@ -22,6 +22,7 @@ IPython.mathjaxutils = (function (IPython) {
                 tex2jax: {
                     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
                     displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+                    ignoreClass: "no-mathjax",
                     processEscapes: true,
                     processEnvironments: true
                 },
