@@ -186,7 +186,7 @@ will be assigned to another engine. If the dependency returns *anything other th
        ....: def wintask():
        ....:    do_windows_stuff()
     
-In this case, any time you apply ``mytask``, it will only run on an OSX machine.
+In this case, any time you apply ``mactask``, it will only run on an OSX machine.
 ``@depend`` is just like ``apply``, in that it has a ``@depend(f,*args,**kwargs)``
 signature.
 
