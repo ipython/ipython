@@ -47,9 +47,7 @@ var IPython = (function (IPython) {
         this.bind_events();
         this.init_iopub_handlers();
         this.comm_manager = new IPython.CommManager(this);
-        // TODO: make the comm manager an arg to the widget manager initialization
-        this.widget_manager = new IPython.WidgetManager();
-        this.widget_manager.attach_comm_manager(this.comm_manager);
+        this.widget_manager = new IPython.WidgetManager(this.comm_manager);
     };
 
 

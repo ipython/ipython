@@ -25,53 +25,67 @@
              "backbone",
             ], function (underscore, backbone) {
             
-        // Backbone.sync method must be in widgetmanager.js file instead of 
-        // widget.js so it can be overwritten for different contexts.
         Backbone.sync = function (method, model, options) {
+            // Sync widget models to back-end.
+            //
+            // Backbone.sync method must be in widgetmanager.js file instead of 
+            // widget.js so it can be overwritten for different contexts.
             var result = model._handle_sync(method, options);
             if (options.success) {
                 options.success(result);
             }
         }; 
 
+
         //--------------------------------------------------------------------
         // WidgetManager class
         //--------------------------------------------------------------------
-        var WidgetManager = function () {
-            this.comm_manager = null;
-            this._model_types = {}; /* Dictionary of model type names 
-                                      (target_name) and model types. */
-            this._view_types = {}; /* Dictionary of view names and view types. */
-            this._models = {}; /* Dictionary of model ids and model instances */
-        };
+        var WidgetManager = function (comm_manager) {
+            // Public constructor
+            WidgetManager._managers.push(this);
 
-
-        WidgetManager.prototype.attach_comm_manager = function (comm_manager) {
+            // Attach a comm manager to the 
             this.comm_manager = comm_manager;
 
             // Register already-registered widget model types with the comm manager.
-            for (var widget_model_name in this._model_types) {
-                // TODO: Should not be a for.
-                this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_comm_open, this));
+            for (var name in WidgetManager._model_types) {
+                if (WidgetManager._model_types.hasOwnProperty(name)) {
+                    this.comm_manager.register_target(name, $.proxy(this._handle_comm_open, this));
+
+                }
             }
         };
 
+        //--------------------------------------------------------------------
+        // Class level
+        //--------------------------------------------------------------------
+        WidgetManager._model_types = {}; /* Dictionary of model type names (target_name) and model types. */
+        WidgetManager._view_types = {}; /* Dictionary of view names and view types. */
+        WidgetManager._models = {}; /* Dictionary of model ids and model instances */
+        WidgetManager._managers = []; /* List of widget managers */
 
-        WidgetManager.prototype.register_widget_model = function (widget_model_name, widget_model_type) {
+        WidgetManager.register_widget_model = function (model_name, model_type) {
+            // Registers a widget model by name.
+            WidgetManager._model_types[model_name] = model_type;
+
             // Register the widget with the comm manager.  Make sure to pass this object's context
             // in so `this` works in the call back.
-            if (this.comm_manager !== null) {
-                this.comm_manager.register_target(widget_model_name, $.proxy(this._handle_comm_open, this));
+            for (var i = 0; i < WidgetManager._managers.length; i++) {
+                var instance = WidgetManager._managers[i];
+                if (instance.comm_manager !== null) {
+                    instance.comm_manager.register_target(model_name, $.proxy(instance._handle_comm_open, instance));
+                }
             }
-            this._model_types[widget_model_name] = widget_model_type;
         };
 
-
-        WidgetManager.prototype.register_widget_view = function (widget_view_name, widget_view_type) {
-            this._view_types[widget_view_name] = widget_view_type;
+        WidgetManager.register_widget_view = function (view_name, view_type) {
+            // Registers a widget view by name.
+            WidgetManager._view_types[view_name] = view_type;
         };
 
-
+        //--------------------------------------------------------------------
+        // Instance level
+        //--------------------------------------------------------------------
         WidgetManager.prototype.display_view = function(msg, model) {
             var cell = this.get_msg_cell(msg.parent_header.msg_id);
             if (cell === null) {
@@ -91,10 +105,9 @@
             }
         },
 
-
         WidgetManager.prototype.create_view = function(model, options) {
             var view_name = model.get('view_name');
-            var ViewType = this._view_types[view_name];
+            var ViewType = WidgetManager._view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
@@ -105,7 +118,6 @@
                 return view;
             }
         },
-
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
             var cell = null;
@@ -120,10 +132,7 @@
             // for the message.  get_cell callbacks are registered for
             // widget messages, so this block is actually checking to see if the
             // message was triggered by a widget.
-            var kernel = null;
-            if (this.comm_manager !== null) {
-                kernel = this.comm_manager.kernel;
-            }
+            var kernel = this.comm_manager.kernel;
             if (kernel !== undefined && kernel !== null) {
                 var callbacks = kernel.get_callbacks_for_msg(msg_id);
                 if (callbacks !== undefined && 
@@ -175,30 +184,22 @@
             return callbacks;
         };
 
-
         WidgetManager.prototype.get_model = function (model_id) {
-            var model = this._models[model_id];
+            var model = WidgetManager._models[model_id];
             if (model !== undefined && model.id == model_id) {
                 return model;
             }
             return null;
         };
 
-
         WidgetManager.prototype._handle_comm_open = function (comm, msg) {
+            var model_id = comm.comm_id;
             var widget_type_name = msg.content.target_name;
-            var widget_model = new this._model_types[widget_type_name](this, comm.comm_id, comm);
-            this._models[comm.comm_id] = widget_model; // comm_id == model_id
+            var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
+            WidgetManager._models[model_id] = widget_model;
         };
         
-        //--------------------------------------------------------------------
-        // Init code
-        //--------------------------------------------------------------------
         IPython.WidgetManager = WidgetManager;
-        if (IPython.widget_manager === undefined || IPython.widget_manager === null) {
-            IPython.widget_manager = new WidgetManager();    
-        }
-
-        return IPython.widget_manager;
+        return IPython.WidgetManager;
     });
 }());
