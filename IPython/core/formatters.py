@@ -149,30 +149,27 @@ class DisplayFormatter(Configurable):
         format_dict = {}
         md_dict = {}
 
-        # If _ipython_display_ is defined, use that to display this object.  If
-        # it returns NotImplemented, use the _repr_ logic (default).
-        if not hasattr(obj, '_ipython_display_') or obj._ipython_display_(**kwargs) == NotImplemented:
-            for format_type, formatter in self.formatters.items():
-                if include and format_type not in include:
-                    continue
-                if exclude and format_type in exclude:
-                    continue
-                
-                md = None
-                try:
-                    data = formatter(obj)
-                except:
-                    # FIXME: log the exception
-                    raise
-                
-                # formatters can return raw data or (data, metadata)
-                if isinstance(data, tuple) and len(data) == 2:
-                    data, md = data
-                
-                if data is not None:
-                    format_dict[format_type] = data
-                if md is not None:
-                    md_dict[format_type] = md
+        for format_type, formatter in self.formatters.items():
+            if include and format_type not in include:
+                continue
+            if exclude and format_type in exclude:
+                continue
+            
+            md = None
+            try:
+                data = formatter(obj)
+            except:
+                # FIXME: log the exception
+                raise
+            
+            # formatters can return raw data or (data, metadata)
+            if isinstance(data, tuple) and len(data) == 2:
+                data, md = data
+            
+            if data is not None:
+                format_dict[format_type] = data
+            if md is not None:
+                md_dict[format_type] = md
             
         return format_dict, md_dict
 
