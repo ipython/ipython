@@ -21,7 +21,7 @@ casper.notebook_test(function () {
     this.then(function () {
         // Check if the widget manager has been instanciated.
         this.test.assert(this.evaluate(function() {
-            return IPython.widget_manager != undefined; 
+            return IPython.notebook.kernel.widget_manager != undefined; 
         }), 'Notebook widget manager instanciated');
     });
 
@@ -72,5 +72,5 @@ casper.notebook_test(function () {
         // We also need to verify that the last state sent was correct.
         var last_state = this.get_output_cell(throttle_index, i).text;
         this.test.assert(last_state == "20\n", "Last state sent when throttling.");
-    })
+    });
 });
