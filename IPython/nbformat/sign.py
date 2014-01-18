@@ -19,7 +19,7 @@ import os
 
 from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Instance, Bytes, Enum
+from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode
 
 #-----------------------------------------------------------------------------
 # Code
@@ -62,104 +62,8 @@ def signature_removed(nb):
             nb['metadata']['signature'] = save_signature
 
 
-def notebook_signature(nb, secret, scheme):
-    """Compute a notebook's signature
-    
-    by hashing the entire contents of the notebook via HMAC digest.
-    scheme is the hashing scheme, which must be an attribute of the hashlib module,
-    as listed in hashlib.algorithms.
-    """
-    hmac = HMAC(secret, digestmod=getattr(hashlib, scheme))
-    # don't include the previous hash in the content to hash
-    with signature_removed(nb):
-        # sign the whole thing
-        for b in yield_everything(nb):
-            hmac.update(b)
-        
-    return hmac.hexdigest()
-
-
-def check_notebook_signature(nb, secret, scheme):
-    """Check a notebook's stored signature
-    
-    If a signature is stored in the notebook's metadata,
-    a new signature is computed and compared with the stored value.
-    
-    Returns True if the signature is found and matches, False otherwise.
-    
-    The following conditions must all be met for a notebook to be trusted:
-    - a signature is stored in the form 'scheme:hexdigest'
-    - the stored scheme matches the requested scheme
-    - the requested scheme is available from hashlib
-    - the computed hash from notebook_signature matches the stored hash
-    """
-    stored_signature = nb['metadata'].get('signature', None)
-    if not stored_signature \
-        or not isinstance(stored_signature, string_types) \
-        or ':' not in stored_signature:
-        return False
-    stored_scheme, sig = stored_signature.split(':', 1)
-    if scheme != stored_scheme:
-        return False
-    try:
-        my_signature = notebook_signature(nb, secret, scheme)
-    except AttributeError:
-        return False
-    return my_signature == sig
-
-
-def trust_notebook(nb, secret, scheme):
-    """Re-sign a notebook, indicating that its output is trusted
-    
-    stores 'scheme:hmac-hexdigest' in notebook.metadata.signature
-    
-    e.g. 'sha256:deadbeef123...'
-    """
-    signature = notebook_signature(nb, secret, scheme)
-    nb['metadata']['signature'] = "%s:%s" % (scheme, signature)
-
-
-def mark_trusted_cells(nb, secret, scheme):
-    """Mark cells as trusted if the notebook's signature can be verified
-    
-    Sets ``cell.trusted = True | False`` on all code cells,
-    depending on whether the stored signature can be verified.
-    """
-    if not nb['worksheets']:
-        # nothing to mark if there are no cells
-        return True
-    trusted = check_notebook_signature(nb, secret, scheme)
-    for cell in nb['worksheets'][0]['cells']:
-        if cell['cell_type'] == 'code':
-            cell['trusted'] = trusted
-    return trusted
-
-
-def check_trusted_cells(nb):
-    """Return whether all code cells are trusted
-    
-    If there are no code cells, return True.
-    """
-    if not nb['worksheets']:
-        return True
-    for cell in nb['worksheets'][0]['cells']:
-        if cell['cell_type'] != 'code':
-            continue
-        if not cell.get('trusted', False):
-            return False
-    return True
-
-
 class NotebookNotary(LoggingConfigurable):
-    """A class for configuring notebook signatures
-    
-    It stores the secret with which to sign notebooks,
-    and the hashing scheme to use for notebook signatures.
-    """
-    
-    scheme = Enum(hashlib.algorithms, default_value='sha256', config=True,
-        help="""The hashing algorithm used to sign notebooks."""
-    )
+    """A class for computing and verifying notebook signatures."""
     
     profile_dir = Instance("IPython.core.profiledir.ProfileDir")
     def _profile_dir_default(self):
@@ -172,28 +76,128 @@ class NotebookNotary(LoggingConfigurable):
             app.initialize()
         return app.profile_dir
     
+    algorithm = Enum(hashlib.algorithms, default_value='sha256', config=True,
+        help="""The hashing algorithm used to sign notebooks."""
+    )
+    def _algorithm_changed(self, name, old, new):
+        self.digestmod = getattr(hashlib, self.algorithm)
+    
+    digestmod = Any()
+    def _digestmod_default(self):
+        return getattr(hashlib, self.algorithm)
+    
+    secret_file = Unicode()
+    def _secret_file_default(self):
+        if self.profile_dir is None:
+            return ''
+        return os.path.join(self.profile_dir.security_dir, 'notebook_secret')
+    
     secret = Bytes(config=True,
         help="""The secret key with which notebooks are signed."""
     )
     def _secret_default(self):
         # note : this assumes an Application is running
-        profile_dir = self.profile_dir
-        secret_file = os.path.join(profile_dir.security_dir, 'notebook_secret')
-        if os.path.exists(secret_file):
-            with io.open(secret_file, 'rb') as f:
+        if os.path.exists(self.secret_file):
+            with io.open(self.secret_file, 'rb') as f:
                 return f.read()
         else:
             secret = base64.encodestring(os.urandom(1024))
-            self.log.info("Writing output secret to %s", secret_file)
-            with io.open(secret_file, 'wb') as f:
-                f.write(secret)
-            try:
-                os.chmod(secret_file, 0o600)
-            except OSError:
-                self.log.warn(
-                    "Could not set permissions on %s",
-                    secret_file
-                )
+            self._write_secret_file(secret)
             return secret
+    
+    def _write_secret_file(self, secret):
+        """write my secret to my secret_file"""
+        self.log.info("Writing output secret to %s", self.secret_file)
+        with io.open(self.secret_file, 'wb') as f:
+            f.write(secret)
+        try:
+            os.chmod(self.secret_file, 0o600)
+        except OSError:
+            self.log.warn(
+                "Could not set permissions on %s",
+                self.secret_file
+            )
+        return secret
+    
+    def compute_signature(self, nb):
+        """Compute a notebook's signature
+        
+        by hashing the entire contents of the notebook via HMAC digest.
+        """
+        hmac = HMAC(self.secret, digestmod=self.digestmod)
+        # don't include the previous hash in the content to hash
+        with signature_removed(nb):
+            # sign the whole thing
+            for b in yield_everything(nb):
+                hmac.update(b)
+        
+        return hmac.hexdigest()
+    
+    def check_signature(self, nb):
+        """Check a notebook's stored signature
+        
+        If a signature is stored in the notebook's metadata,
+        a new signature is computed and compared with the stored value.
+        
+        Returns True if the signature is found and matches, False otherwise.
+        
+        The following conditions must all be met for a notebook to be trusted:
+        - a signature is stored in the form 'scheme:hexdigest'
+        - the stored scheme matches the requested scheme
+        - the requested scheme is available from hashlib
+        - the computed hash from notebook_signature matches the stored hash
+        """
+        stored_signature = nb['metadata'].get('signature', None)
+        if not stored_signature \
+            or not isinstance(stored_signature, string_types) \
+            or ':' not in stored_signature:
+            return False
+        stored_algo, sig = stored_signature.split(':', 1)
+        if self.algorithm != stored_algo:
+            return False
+        my_signature = self.compute_signature(nb)
+        return my_signature == sig
+    
+    def sign(self, nb):
+        """Sign a notebook, indicating that its output is trusted
+        
+        stores 'algo:hmac-hexdigest' in notebook.metadata.signature
+        
+        e.g. 'sha256:deadbeef123...'
+        """
+        signature = self.compute_signature(nb)
+        nb['metadata']['signature'] = "%s:%s" % (self.algorithm, signature)
+    
+    def mark_cells(self, nb, trusted):
+        """Mark cells as trusted if the notebook's signature can be verified
+        
+        Sets ``cell.trusted = True | False`` on all code cells,
+        depending on whether the stored signature can be verified.
+        
+        This function is the inverse of check_cells
+        """
+        if not nb['worksheets']:
+            # nothing to mark if there are no cells
+            return
+        for cell in nb['worksheets'][0]['cells']:
+            if cell['cell_type'] == 'code':
+                cell['trusted'] = trusted
+    
+    def check_cells(self, nb):
+        """Return whether all code cells are trusted
+        
+        If there are no code cells, return True.
+        
+        This function is the inverse of mark_cells.
+        """
+        if not nb['worksheets']:
+            return True
+        for cell in nb['worksheets'][0]['cells']:
+            if cell['cell_type'] != 'code':
+                continue
+            if not cell.get('trusted', False):
+                return False
+        return True
+    
 
     

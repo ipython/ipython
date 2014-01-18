@@ -262,7 +262,7 @@ class NotebookTrustApp(BaseIPythonApplication):
             self.exit(1)
         with io.open(notebook_path, encoding='utf8') as f:
             nb = current.read(f, 'json')
-        sign.trust_notebook(nb, self.notary.secret, self.notary.signature_scheme)
+        self.notary.sign(nb)
         with io.open(notebook_path, 'w', encoding='utf8') as f:
             current.write(nb, f, 'json')
     
