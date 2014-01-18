@@ -79,22 +79,28 @@ def notebook_signature(nb, secret, scheme):
     return hmac.hexdigest()
 
 
-def check_notebook_signature(nb, secret):
+def check_notebook_signature(nb, secret, scheme):
     """Check a notebook's stored signature
     
     If a signature is stored in the notebook's metadata,
-    a new signature is computed using the same hashing scheme,
-    and compared.
+    a new signature is computed and compared with the stored value.
     
-    If no signature can be found, or the scheme of the existing signature is unavailable,
-    it will return False.
+    Returns True if the signature is found and matches, False otherwise.
+    
+    The following conditions must all be met for a notebook to be trusted:
+    - a signature is stored in the form 'scheme:hexdigest'
+    - the stored scheme matches the requested scheme
+    - the requested scheme is available from hashlib
+    - the computed hash from notebook_signature matches the stored hash
     """
     stored_signature = nb['metadata'].get('signature', None)
     if not stored_signature \
         or not isinstance(stored_signature, string_types) \
         or ':' not in stored_signature:
         return False
-    scheme, sig = stored_signature.split(':', 1)
+    stored_scheme, sig = stored_signature.split(':', 1)
+    if scheme != stored_scheme:
+        return False
     try:
         my_signature = notebook_signature(nb, secret, scheme)
     except AttributeError:
@@ -113,7 +119,7 @@ def trust_notebook(nb, secret, scheme):
     nb['metadata']['signature'] = "%s:%s" % (scheme, signature)
 
 
-def mark_trusted_cells(nb, secret):
+def mark_trusted_cells(nb, secret, scheme):
     """Mark cells as trusted if the notebook's signature can be verified
     
     Sets ``cell.trusted = True | False`` on all code cells,
@@ -122,7 +128,7 @@ def mark_trusted_cells(nb, secret):
     if not nb['worksheets']:
         # nothing to mark if there are no cells
         return True
-    trusted = check_notebook_signature(nb, secret)
+    trusted = check_notebook_signature(nb, secret, scheme)
     for cell in nb['worksheets'][0]['cells']:
         if cell['cell_type'] == 'code':
             cell['trusted'] = trusted
@@ -151,8 +157,8 @@ class NotebookNotary(LoggingConfigurable):
     and the hashing scheme to use for notebook signatures.
     """
     
-    signature_scheme = Enum(hashlib.algorithms, default_value='sha256', config=True,
-        help="""The signature scheme used to sign notebooks."""
+    scheme = Enum(hashlib.algorithms, default_value='sha256', config=True,
+        help="""The hashing algorithm used to sign notebooks."""
     )
     
     profile_dir = Instance("IPython.core.profiledir.ProfileDir")

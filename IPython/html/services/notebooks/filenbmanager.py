@@ -214,7 +214,7 @@ class FileNotebookManager(NotebookManager):
                 except Exception as e:
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
             model['content'] = nb
-            sign.mark_trusted_cells(nb, self.notary.secret)
+            sign.mark_trusted_cells(nb, self.notary.secret, self.notary.scheme)
         return model
 
     def save_notebook_model(self, model, name='', path=''):
@@ -239,7 +239,7 @@ class FileNotebookManager(NotebookManager):
         nb = current.to_notebook_json(model['content'])
         
         if sign.check_trusted_cells(nb):
-            sign.trust_notebook(nb, self.notary.secret, self.notary.signature_scheme)
+            sign.trust_notebook(nb, self.notary.secret, self.notary.scheme)
         
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
