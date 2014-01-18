@@ -1318,7 +1318,7 @@ var IPython = (function (IPython) {
         var that = this;
         IPython.dialog.modal({
             title : "Restart kernel or continue running?",
-            body : $("<p/>").html(
+            body : $("<p/>").text(
                 'Do you want to restart the current kernel?  You will lose all variables defined in it.'
             ),
             buttons : {
@@ -1781,7 +1781,7 @@ var IPython = (function (IPython) {
         var that = this;
         var dialog = $('<div/>').append(
             $("<p/>").addClass("rename-message")
-            .html('This notebook name already exists.')
+            .text('This notebook name already exists.')
         )
         $([IPython.events]).trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         IPython.dialog.modal({

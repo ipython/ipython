@@ -43,7 +43,7 @@ var IPython = (function (IPython) {
     NotificationWidget.prototype.set_message = function (msg, timeout, click_callback) {
         var callback = click_callback || function() {return false;};
         var that = this;
-        this.element.html(msg);
+        this.element.text(msg);
         this.element.fadeIn(100);
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
@@ -51,13 +51,13 @@ var IPython = (function (IPython) {
         }
         if (timeout !== undefined && timeout >=0) {
             this.timeout = setTimeout(function () {
-                that.element.fadeOut(100, function () {that.element.html('');});
+                that.element.fadeOut(100, function () {that.element.text('');});
                 that.timeout = null;
             }, timeout);
         } else {
             this.element.click(function() {
                 if( callback() != false ) {
-                    that.element.fadeOut(100, function () {that.element.html('');});
+                    that.element.fadeOut(100, function () {that.element.text('');});
                     that.element.unbind('click');
                 }
                 if (that.timeout !== undefined) {

@@ -32,7 +32,7 @@ var IPython = (function (IPython) {
         // The documentation
         var doc = $('<div/>').addClass('alert');
         doc.append(
-            $('<button/>').addClass('close').attr('data-dismiss','alert').html('&times')
+            $('<button/>').addClass('close').attr('data-dismiss','alert').html('&times;')
         ).append(
             'The IPython Notebook has two different keyboard input modes. <b>Edit mode</b> '+
             'allow you the type code/text into a cell and is indicated by a green cell '+
@@ -75,16 +75,16 @@ var IPython = (function (IPython) {
             help = command_shortcuts[i]['help'];
             shortcut = command_shortcuts[i]['shortcut'];
             cmd_col1.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').html(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').html(' : ' + help))
+                append($('<span/>').addClass('shortcut_key').text(shortcut)).
+                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
             );
         };
         for (i=half; i<n; i++) {
             help = command_shortcuts[i]['help'];
             shortcut = command_shortcuts[i]['shortcut'];
             cmd_col2.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').html(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').html(' : ' + help))
+                append($('<span/>').addClass('shortcut_key').text(shortcut)).
+                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
             );
         };
         cmd_sub_div.append(cmd_col1).append(cmd_col2);
@@ -108,16 +108,16 @@ var IPython = (function (IPython) {
             help = edit_shortcuts[i]['help'];
             shortcut = edit_shortcuts[i]['shortcut'];
             edit_col1.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').html(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').html(' : ' + help))
+                append($('<span/>').addClass('shortcut_key').text(shortcut)).
+                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
             );
         };
         for (i=half; i<n; i++) {
             help = edit_shortcuts[i]['help'];
             shortcut = edit_shortcuts[i]['shortcut'];
             edit_col2.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').html(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').html(' : ' + help))
+                append($('<span/>').addClass('shortcut_key').text(shortcut)).
+                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
             );
         };
         edit_sub_div.append(edit_col1).append(edit_col2);

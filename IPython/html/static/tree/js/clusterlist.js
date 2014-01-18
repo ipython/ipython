@@ -101,7 +101,7 @@ var IPython = (function (IPython) {
     ClusterItem.prototype.state_stopped = function () {
         var that = this;
         var profile_col = $('<span/>').addClass('profile_col span4').text(this.data.profile);
-        var status_col = $('<span/>').addClass('status_col span3').html('stopped');
+        var status_col = $('<span/>').addClass('status_col span3').text('stopped');
         var engines_col = $('<span/>').addClass('engine_col span3');
         var input = $('<input/>').attr('type','number')
                 .attr('min',1)
@@ -122,7 +122,7 @@ var IPython = (function (IPython) {
         start_button.click(function (e) {
             var n = that.element.find('.engine_num_input').val();
             if (!/^\d+$/.test(n) && n.length>0) {
-                status_col.html('invalid engine #');
+                status_col.text('invalid engine #');
             } else {
                 var settings = {
                     cache : false,
@@ -133,10 +133,10 @@ var IPython = (function (IPython) {
                         that.update_state(data);
                     },
                     error : function (data, status, xhr) {
-                        status_col.html("error starting cluster");
+                        status_col.text("error starting cluster");
                     }
                 };
-                status_col.html('starting');
+                status_col.text('starting');
                 var url = utils.url_join_encode(
                     that.baseProjectUrl(),
                     'clusters',
@@ -152,8 +152,8 @@ var IPython = (function (IPython) {
     ClusterItem.prototype.state_running = function () {
         var that = this;
         var profile_col = $('<span/>').addClass('profile_col span4').text(this.data.profile);
-        var status_col = $('<span/>').addClass('status_col span3').html('running');
-        var engines_col = $('<span/>').addClass('engines_col span3').html(this.data.n);
+        var status_col = $('<span/>').addClass('status_col span3').text('running');
+        var engines_col = $('<span/>').addClass('engines_col span3').text(this.data.n);
         var stop_button = $('<button/>').addClass("btn btn-mini").text("Stop");
         var action_col = $('<span/>').addClass('action_col span2').append(
             $("<span/>").addClass("item_buttons btn-group").append(
@@ -175,10 +175,10 @@ var IPython = (function (IPython) {
                 },
                 error : function (data, status, xhr) {
                     console.log('error',data);
-                    status_col.html("error stopping cluster");
+                    status_col.text("error stopping cluster");
                 }
             };
-            status_col.html('stopping');
+            status_col.text('stopping');
             var url = utils.url_join_encode(
                 that.baseProjectUrl(),
                 'clusters',
