@@ -17,16 +17,12 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-import base64
-import hashlib
-import io
 import os
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.core.application import BaseIPythonApplication
-from IPython.nbformat import current
+from IPython.nbformat import current, sign
 from IPython.utils import py3compat
-from IPython.utils.traitlets import Unicode, TraitError, Enum, Bytes
+from IPython.utils.traitlets import Instance, Unicode, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -46,34 +42,9 @@ class NotebookManager(LoggingConfigurable):
 
     filename_ext = Unicode(u'.ipynb')
     
-    signature_scheme = Enum(hashlib.algorithms, default_value='sha256', config=True,
-        help="""The signature scheme used to sign notebooks."""
-    )
-    
-    secret = Bytes(config=True,
-        help="""The secret key with which notebooks are signed."""
-    )
-    def _secret_default(self):
-        # note : this assumes an Application is running
-        profile_dir = BaseIPythonApplication.instance().profile_dir
-        secret_file = os.path.join(profile_dir.security_dir, 'notebook_secret')
-        if os.path.exists(secret_file):
-            with io.open(secret_file, 'rb') as f:
-                return f.read()
-        else:
-            secret = base64.encodestring(os.urandom(1024))
-            self.log.info("Writing output secret to %s", secret_file)
-            with io.open(secret_file, 'wb') as f:
-                f.write(secret)
-            try:
-                os.chmod(secret_file, 0o600)
-            except OSError:
-                self.log.warn(
-                    "Could not set permissions on %s",
-                    secret_file
-                )
-            return secret
-
+    notary = Instance(sign.NotebookNotary)
+    def _notary_default(self):
+        return sign.NotebookNotary(parent=self)
     
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?

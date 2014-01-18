@@ -10,11 +10,16 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import base64
 from contextlib import contextmanager
 import hashlib
 from hmac import HMAC
+import io
+import os
 
 from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
+from IPython.config import LoggingConfigurable
+from IPython.utils.traitlets import Instance, Bytes, Enum
 
 #-----------------------------------------------------------------------------
 # Code
@@ -138,4 +143,51 @@ def check_trusted_cells(nb):
             return False
     return True
 
-        
+
+class NotebookNotary(LoggingConfigurable):
+    """A class for configuring notebook signatures
+    
+    It stores the secret with which to sign notebooks,
+    and the hashing scheme to use for notebook signatures.
+    """
+    
+    signature_scheme = Enum(hashlib.algorithms, default_value='sha256', config=True,
+        help="""The signature scheme used to sign notebooks."""
+    )
+    
+    profile_dir = Instance("IPython.core.profiledir.ProfileDir")
+    def _profile_dir_default(self):
+        from IPython.core.application import BaseIPythonApplication
+        if BaseIPythonApplication.initialized():
+            app = BaseIPythonApplication.instance()
+        else:
+            # create an app, without the global instance
+            app = BaseIPythonApplication()
+            app.initialize()
+        return app.profile_dir
+    
+    secret = Bytes(config=True,
+        help="""The secret key with which notebooks are signed."""
+    )
+    def _secret_default(self):
+        # note : this assumes an Application is running
+        profile_dir = self.profile_dir
+        secret_file = os.path.join(profile_dir.security_dir, 'notebook_secret')
+        if os.path.exists(secret_file):
+            with io.open(secret_file, 'rb') as f:
+                return f.read()
+        else:
+            secret = base64.encodestring(os.urandom(1024))
+            self.log.info("Writing output secret to %s", secret_file)
+            with io.open(secret_file, 'wb') as f:
+                f.write(secret)
+            try:
+                os.chmod(secret_file, 0o600)
+            except OSError:
+                self.log.warn(
+                    "Could not set permissions on %s",
+                    secret_file
+                )
+            return secret
+
+    
