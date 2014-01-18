@@ -83,13 +83,12 @@ from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
     kernel_aliases,
 )
-from IPython.nbformat import current, sign
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import localhost
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
-    DottedObjectName, Instance,
+    DottedObjectName
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
@@ -218,10 +217,6 @@ class NotebookWebApplication(web.Application):
         return new_handlers
 
 
-#-----------------------------------------------------------------------------
-# Subcommands
-#-----------------------------------------------------------------------------
-
 class NbserverListApp(BaseIPythonApplication):
     
     description="List currently running notebook servers in this profile."
@@ -243,37 +238,6 @@ class NbserverListApp(BaseIPythonApplication):
                 print(json.dumps(serverinfo))
             else:
                 print(serverinfo['url'], "::", serverinfo['notebook_dir'])
-
-
-class NotebookTrustApp(BaseIPythonApplication):
-    
-    description="""Sign one or more IPython notebooks with your key,
-    to trust their dynamic (HTML, Javascript) output."""
-    
-    examples="""ipython notebook trust mynotebook.ipynb"""
-    
-    notary = Instance(sign.NotebookNotary)
-    def _notary_default(self):
-        return sign.NotebookNotary(parent=self, profile_dir=self.profile_dir)
-    
-    def sign_notebook(self, notebook_path):
-        if not os.path.exists(notebook_path):
-            self.log.error("Notebook missing: %s" % notebook_path)
-            self.exit(1)
-        with io.open(notebook_path, encoding='utf8') as f:
-            nb = current.read(f, 'json')
-        self.notary.sign(nb)
-        with io.open(notebook_path, 'w', encoding='utf8') as f:
-            current.write(nb, f, 'json')
-    
-    def start(self):
-        if not self.extra_args:
-            self.log.critical("Specify at least one notebook to sign.")
-            self.exit(1)
-        
-        for notebook_path in self.extra_args:
-            print("Signing notebook: %s" % notebook_path)
-            self.sign_notebook(notebook_path)
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -349,7 +313,6 @@ class NotebookApp(BaseIPythonApplication):
     
     subcommands = dict(
         list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
-        trust=(NotebookTrustApp, NotebookTrustApp.description),
     )
 
     kernel_argv = List(Unicode)

@@ -18,8 +18,11 @@ import io
 import os
 
 from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
-from IPython.config import LoggingConfigurable
 from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode
+from IPython.config import LoggingConfigurable
+from IPython.core.application import BaseIPythonApplication
+
+from .current import read, write
 
 #-----------------------------------------------------------------------------
 # Code
@@ -198,6 +201,41 @@ class NotebookNotary(LoggingConfigurable):
             if not cell.get('trusted', False):
                 return False
         return True
-    
 
+
+class TrustNotebookApp(BaseIPythonApplication):
     
+    description="""Sign one or more IPython notebooks with your key,
+    to trust their dynamic (HTML, Javascript) output.
+    
+    Otherwise, you will have to re-execute the notebook to see output.
+    """
+    
+    examples="""ipython trust mynotebook.ipynb and_this_one.ipynb"""
+    
+    notary = Instance(NotebookNotary)
+    def _notary_default(self):
+        return NotebookNotary(parent=self, profile_dir=self.profile_dir)
+    
+    def sign_notebook(self, notebook_path):
+        if not os.path.exists(notebook_path):
+            self.log.error("Notebook missing: %s" % notebook_path)
+            self.exit(1)
+        with io.open(notebook_path, encoding='utf8') as f:
+            nb = read(f, 'json')
+        if self.notary.check_signature(nb):
+            print("Notebook already signed: %s" % notebook_path)
+        else:
+            print("Signing notebook: %s" % notebook_path)
+            self.notary.sign(nb)
+            with io.open(notebook_path, 'w', encoding='utf8') as f:
+                write(nb, f, 'json')
+    
+    def start(self):
+        if not self.extra_args:
+            self.log.critical("Specify at least one notebook to sign.")
+            self.exit(1)
+        
+        for notebook_path in self.extra_args:
+            self.sign_notebook(notebook_path)
+
