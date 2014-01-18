@@ -19,7 +19,7 @@ import os
 
 from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
 from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode
-from IPython.config import LoggingConfigurable
+from IPython.config import LoggingConfigurable, MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
 
 from .current import read, write
@@ -71,9 +71,13 @@ class NotebookNotary(LoggingConfigurable):
     profile_dir = Instance("IPython.core.profiledir.ProfileDir")
     def _profile_dir_default(self):
         from IPython.core.application import BaseIPythonApplication
-        if BaseIPythonApplication.initialized():
-            app = BaseIPythonApplication.instance()
-        else:
+        app = None
+        try:
+            if BaseIPythonApplication.initialized():
+                app = BaseIPythonApplication.instance()
+        except MultipleInstanceError:
+            pass
+        if app is None:
             # create an app, without the global instance
             app = BaseIPythonApplication()
             app.initialize()
