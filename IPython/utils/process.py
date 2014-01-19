@@ -21,7 +21,7 @@ import sys
 import shlex
 
 # Our own
-if sys.platform == 'win32':
+if sys.platform == 'win32' or sys.platform == 'cli':
     from ._process_win32 import _find_cmd, system, getoutput, AvoidUNCPath, arg_split
 else:
     from ._process_posix import _find_cmd, system, getoutput, arg_split
@@ -109,7 +109,7 @@ def abbrev_cwd():
     cwd = py3compat.getcwd().replace('\\','/')
     drivepart = ''
     tail = cwd
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or sys.platform == 'cli':
         if len(cwd) < 4:
             return cwd
         drivepart,tail = os.path.splitdrive(cwd)

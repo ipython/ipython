@@ -66,6 +66,11 @@ class ParentPollerWindows(Thread):
         self.interrupt_handle = interrupt_handle
         self.parent_handle = parent_handle
 
+    class SECURITY_ATTRIBUTES(ctypes.Structure):
+        _fields_ = [ ("nLength", ctypes.c_int),
+                     ("lpSecurityDescriptor", ctypes.c_void_p),
+                     ("bInheritHandle", ctypes.c_int) ]
+
     @staticmethod
     def create_interrupt_event():
         """ Create an interrupt event handle.
@@ -78,13 +83,9 @@ class ParentPollerWindows(Thread):
         # Create a security attributes struct that permits inheritance of the
         # handle by new processes.
         # FIXME: We can clean up this mess by requiring pywin32 for IPython.
-        class SECURITY_ATTRIBUTES(ctypes.Structure):
-            _fields_ = [ ("nLength", ctypes.c_int),
-                         ("lpSecurityDescriptor", ctypes.c_void_p),
-                         ("bInheritHandle", ctypes.c_int) ]
-        sa = SECURITY_ATTRIBUTES()
+        sa = ParentPollerWindows.SECURITY_ATTRIBUTES()
         sa_p = ctypes.pointer(sa)
-        sa.nLength = ctypes.sizeof(SECURITY_ATTRIBUTES)
+        sa.nLength = ctypes.sizeof(ParentPollerWindows.SECURITY_ATTRIBUTES)
         sa.lpSecurityDescriptor = 0
         sa.bInheritHandle = 1
 

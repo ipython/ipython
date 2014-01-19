@@ -134,8 +134,10 @@ def multiple_replace(dict, text):
 
 # - I also need to split up the color schemes from the prompt specials
 # somehow.  I don't have a clean design for that quite yet.
-
-HOME = py3compat.str_to_unicode(os.environ.get("HOME","//////:::::ZZZZZ,,,~~~"))
+if sys.platform != 'cli':
+    HOME = py3compat.str_to_unicode(os.environ.get("HOME", "//////:::::ZZZZZ,,,~~~"))
+else:
+    HOME = py3compat.str_to_unicode(os.environ.get("HOME", ",://////ZZZZZ,,,~~~"))
 
 # This is needed on FreeBSD, and maybe other systems which symlink /home to
 # /usr/home, but retain the $HOME variable as pointing to /home
