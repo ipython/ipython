@@ -27,9 +27,9 @@ function assert_has(short_name, json, result, result2) {
     this.test.assertTrue(json[0].hasOwnProperty(short_name),
             'toJSON()   representation uses ' + short_name);
     this.test.assertTrue(result.hasOwnProperty(long_name),
-            'toJSON()   original embeded JSON keeps ' + long_name);
+            'toJSON()   original embedded JSON keeps ' + long_name);
     this.test.assertTrue(result2.hasOwnProperty(long_name),
-            'fromJSON() embeded ' + short_name + ' gets mime key ' + long_name);
+            'fromJSON() embedded ' + short_name + ' gets mime key ' + long_name);
 }
           
 // helper function for checkout that the first two cells have a particular
@@ -40,11 +40,11 @@ function check_output_area(output_type, keys) {
     this.wait_for_output(0);
     json = this.evaluate(function() {
         var json = IPython.notebook.get_cell(0).output_area.toJSON();
-        // appended cell will initially be empty, lets add it some output
-        var cell = IPython.notebook.get_cell(1).output_area.fromJSON(json);
+        // appended cell will initially be empty, let's add some output
+        IPython.notebook.get_cell(1).output_area.fromJSON(json);
         return json;
     });
-    // The evaluate call above happens asyncrhonously: wait for cell[1] to have output
+    // The evaluate call above happens asynchronously: wait for cell[1] to have output
     this.wait_for_output(1);
     var result = this.get_output_cell(0);
     var result2 = this.get_output_cell(1);
@@ -88,12 +88,19 @@ casper.notebook_test(function () {
         var num_cells = this.get_cells_length();
         this.test.assertEquals(num_cells, 2, '%%javascript magic works');
         this.test.assertTrue(result.hasOwnProperty('application/javascript'),
-            'testing JS embeded with mime key');
+            'testing JS embedded with mime key');
     });
 
     //this.thenEvaluate(function() { IPython.notebook.save_notebook(); });
+    this.then(function () {
+        clear_and_execute(this, [
+            "%%javascript",
+            "var a=5;"
+            ].join('\n'));
+    });
+   
 
-    this.then(function ( ) {
+    this.then(function () {
         check_output_area.apply(this, ['display_data', ['javascript']]);
 
     });
@@ -223,7 +230,9 @@ casper.notebook_test(function () {
              
     });
     
-    this.then(function ( ) {
+    this.wait_for_output(0, 1);
+    
+    this.then(function () {
         var long_name = 'text/superfancymimetype';
         var result = this.get_output_cell(0);
         this.test.assertTrue(result.hasOwnProperty(long_name),
