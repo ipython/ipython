@@ -244,6 +244,18 @@ def test_warn_error_method():
     nt.assert_in("text/html", captured.stderr)
     nt.assert_in("zero", captured.stderr)
 
+def test_nowarn_notimplemented():
+    f = HTMLFormatter()
+    class HTMLNotImplemented(object):
+        def _repr_html_(self):
+            raise NotImplementedError
+            return 1/0
+    h = HTMLNotImplemented()
+    with capture_output() as captured:
+        result = f(h)
+    nt.assert_is(result, None)
+    nt.assert_not_in("WARNING", captured.stderr)
+
 def test_warn_error_for_type():
     f = HTMLFormatter()
     f.for_type(int, lambda i: name_error)
