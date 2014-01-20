@@ -188,6 +188,9 @@ def warn_format_error(method, self, *args, **kwargs):
     """decorator for warning on failed format call"""
     try:
         r = method(self, *args, **kwargs)
+    except NotImplementedError as e:
+        # don't warn on NotImplementedErrors
+        return None
     except Exception as e:
         warn("Exception in %s formatter: %s" % (self.format_type, e))
         return None
