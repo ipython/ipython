@@ -240,7 +240,7 @@ def test_warn_error_method():
     with capture_output() as captured:
         result = f(bad)
     nt.assert_is(result, None)
-    nt.assert_in("WARNING", captured.stderr)
+    nt.assert_in("FormatterWarning", captured.stderr)
     nt.assert_in("text/html", captured.stderr)
     nt.assert_in("zero", captured.stderr)
 
@@ -254,7 +254,7 @@ def test_nowarn_notimplemented():
     with capture_output() as captured:
         result = f(h)
     nt.assert_is(result, None)
-    nt.assert_not_in("WARNING", captured.stderr)
+    nt.assert_not_in("FormatterWarning", captured.stderr)
 
 def test_warn_error_for_type():
     f = HTMLFormatter()
@@ -262,7 +262,7 @@ def test_warn_error_for_type():
     with capture_output() as captured:
         result = f(5)
     nt.assert_is(result, None)
-    nt.assert_in("WARNING", captured.stderr)
+    nt.assert_in("FormatterWarning", captured.stderr)
     nt.assert_in("text/html", captured.stderr)
     nt.assert_in("name_error", captured.stderr)
 
@@ -275,7 +275,7 @@ def test_warn_error_pretty_method():
     with capture_output() as captured:
         result = f(bad)
     nt.assert_is(result, None)
-    nt.assert_in("WARNING", captured.stderr)
+    nt.assert_in("FormatterWarning", captured.stderr)
     nt.assert_in("text/plain", captured.stderr)
     nt.assert_in("argument", captured.stderr)
 
