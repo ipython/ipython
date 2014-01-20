@@ -365,7 +365,7 @@ class NotebookApp(BaseIPythonApplication):
         """
     )
     def _cookie_secret_default(self):
-        return py3compat.str_to_bytes(os.urandom(1024))
+        return py3compat.cast_bytes_py2(os.urandom(1024))
 
     password = Unicode(u'', config=True,
                       help="""Hashed password to use for web authentication.
