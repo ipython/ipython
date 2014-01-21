@@ -277,48 +277,33 @@ class Widget(LoggingConfigurable):
         for handler in self._display_callbacks:
             handler(self, **kwargs)
 
-    def _pack_widgets(self, values):
+    def _pack_widgets(self, x):
         """Recursively converts all widget instances to model id strings.
 
         Children widgets will be stored and transmitted to the front-end by 
         their model ids."""
-        if isinstance(values, dict):
-            new_dict = {}
-            for key, value in values.items():
-                new_dict[key] = self._pack_widgets(value)
-            return new_dict
-        elif isinstance(values, list):
-            new_list = []
-            for value in values:
-                new_list.append(self._pack_widgets(value))
-            return new_list
-        elif isinstance(values, Widget):
-            return values.model_id
+        if isinstance(x, dict):
+            return {k: self._pack_widgets(v) for k, v in x.items()}
+        elif isinstance(x, list):
+            return [self._pack_widgets(v) for v in x]
+        elif isinstance(x, Widget):
+            return x.model_id
         else:
-            return values
+            return x
 
-    def _unpack_widgets(self, values):
+    def _unpack_widgets(self, x):
         """Recursively converts all model id strings to widget instances.
 
         Children widgets will be stored and transmitted to the front-end by 
         their model ids."""
-        if isinstance(values, dict):
-            new_dict = {}
-            for key, values in values.items():
-                new_dict[key] = self._unpack_widgets(values[key])
-            return new_dict
-        elif isinstance(values, list):
-            new_list = []
-            for value in values:
-                new_list.append(self._unpack_widgets(value))
-            return new_list
-        elif isinstance(values, string_types):
-            if values in Widget.widgets:
-                return Widget.widgets[values]
-            else:
-                return values
+        if isinstance(x, dict):
+            return {k: self._unpack_widgets(v) for k, v in x.items()}
+        elif isinstance(x, list):
+            return [self._unpack_widgets(v) for v in x]
+        elif isinstance(x, string_types):
+            return x if x not in Widget.widgets else Widget.widgets[x]
         else:
-            return values
+            return x
 
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""
