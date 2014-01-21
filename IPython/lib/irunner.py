@@ -39,6 +39,16 @@ import sys
 from IPython.external import pexpect
 from IPython.utils import py3compat
 
+# We want to use native strings on both versions of Python, and with two
+# different versions of pexpect.
+if py3compat.PY3:
+    try:
+        spawn = pexpect.spawnu   # Pexpect 3.0 +
+    except AttributeError:
+        spawn = pexpect.spawn    # pexpect-u fork
+else:
+    spawn = pexpect.spawn
+
 # Global usage strings, to avoid indentation issues when typing it below.
 USAGE = """
 Interactive script runner, type: %s
@@ -134,7 +144,7 @@ class InteractiveRunner(object):
 
         # Create child process and hold on to it so we don't have to re-create
         # for every single execution call
-        c = self.child = pexpect.spawn(self.program,self.args,timeout=None)
+        c = self.child = spawn(self.program,self.args,timeout=None)
         c.delaybeforesend = self.delaybeforesend
         # pexpect hard-codes the terminal size as (24,80) (rows,columns).
         # This causes problems because any line longer than 80 characters gets
