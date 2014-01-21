@@ -77,6 +77,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------    
     @property
     def keys(self):
+        """Gets a list of the traitlets that should be synced with the front-end."""
         if self._keys is None:
             self._keys = []
             for trait_name in self.trait_names():
@@ -86,6 +87,9 @@ class Widget(LoggingConfigurable):
 
     @property
     def comm(self):
+        """Gets the Comm associated with this widget.
+
+        If a Comm doesn't exist yet, a Comm will be created automagically."""
         if self._comm is None:
             # Create a comm.
             self._comm = Comm(target_name=self.model_name)
@@ -99,6 +103,9 @@ class Widget(LoggingConfigurable):
     
     @property
     def model_id(self):
+        """Gets the model id of this widget.
+
+        If a Comm doesn't exist yet, a Comm will be created automagically."""
         return self.comm.comm_id
 
     #-------------------------------------------------------------------------
