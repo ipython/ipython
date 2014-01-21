@@ -169,6 +169,7 @@ function(WidgetManager, Underscore, Backbone){
                             this.msg_buffer = _.extend(this.msg_buffer || {}, attrs);
                             break;
                         case 'update':
+                        case 'create':
                             this.msg_buffer = attrs;
                             break;
                         default:
