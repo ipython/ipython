@@ -23,6 +23,7 @@
     // elsewhere.
     define(["underscore",
              "backbone",
+            ], function (Underscore, Backbone) {
 
         //--------------------------------------------------------------------
         // WidgetManager class
