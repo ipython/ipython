@@ -281,7 +281,7 @@ class Widget(LoggingConfigurable):
         """Recursively converts all widget instances to model id strings.
 
         Children widgets will be stored and transmitted to the front-end by 
-        their model ids."""
+        their model ids.  Return value must be JSON-able."""
         if isinstance(x, dict):
             return {k: self._pack_widgets(v) for k, v in x.items()}
         elif isinstance(x, list):
@@ -289,7 +289,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, Widget):
             return x.model_id
         else:
-            return x
+            return x # Value must be JSON-able
 
     def _unpack_widgets(self, x):
         """Recursively converts all model id strings to widget instances.
