@@ -18,14 +18,79 @@ import types
 
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class Widget(LoggingConfigurable):
+class CallbackDispatcher(LoggingConfigurable):
+    acceptable_nargs = List([], help="""List of integers.
+        The number of arguments in the callbacks registered must match one of
+        the integers in this list.  If this list is empty or None, it will be
+        ignored.""")
 
+    def __init__(self, *pargs, **kwargs):
+        """Constructor"""
+        LoggingConfigurable.__init__(self, *pargs, **kwargs)
+        self.callbacks = {}
+
+    def __call__(self, *pargs, **kwargs):
+        """Call all of the registered callbacks that have the same number of
+        positional arguments."""
+        nargs = len(pargs)
+        self._validate_nargs(nargs)
+        if nargs in self.callbacks:
+            for callback in self.callbacks[nargs]:
+                callback(*pargs, **kwargs)
+
+    def register_callback(self, callback, remove=False):
+        """(Un)Register a callback
+
+        Parameters
+        ----------
+        callback: method handle
+            Method to be registered or unregisted.
+        remove=False: bool
+            Whether or not to unregister the callback."""
+
+        # Validate the number of arguments that the callback accepts.
+        nargs = self._get_nargs(callback)
+        self._validate_nargs(nargs)
+
+        # Get/create the appropriate list of callbacks.
+        if nargs not in self.callbacks:
+            self.callbacks[nargs] = []
+        callback_list = self.callbacks[nargs]
+
+        # (Un)Register the callback.
+        if remove and callback in callback_list:
+            callback_list.remove(callback)
+        else not remove and callback not in callback_list:
+            callback_list.append(callback)
+
+    def _validate_nargs(self, nargs):
+        if self.acceptable_nargs is not None and \
+            len(self.acceptable_nargs) > 0 and \
+            nargs not in self.acceptable_nargs:
+
+            raise TypeError('Invalid number of positional arguments.  See acceptable_nargs list.')
+
+    def _get_nargs(self, callback):
+        """Gets the number of arguments in a callback"""
+        if callable(callback):
+            argspec = inspect.getargspec(callback)
+            nargs = len(argspec[1]) # Only count vargs!
+
+            # Bound methods have an additional 'self' argument
+            if isinstance(callback, types.MethodType):
+                nargs -= 1
+            return nargs
+        else:
+            raise TypeError('Callback must be callable.')
+
+
+class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Class attributes
     #-------------------------------------------------------------------------
@@ -59,10 +124,13 @@ class Widget(LoggingConfigurable):
     def __init__(self, **kwargs):
         """Public constructor"""
         self.closed = False
+
         self._property_lock = (None, None)
-        self._display_callbacks = []
-        self._msg_callbacks = []
         self._keys = None
+
+        self._display_callbacks = CallbackDispatcher(acceptable_nargs=[0])
+        self._msg_callbacks = CallbackDispatcher(acceptable_nargs=[1, 2])
+
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
@@ -162,31 +230,11 @@ class Widget(LoggingConfigurable):
         ----------
         callback: method handler
             Can have a signature of:
-            - callback(content)
-            - callback(sender, content)
+            - callback(content)         Signature 1
+            - callback(sender, content) Signature 2
         remove: bool
             True if the callback should be unregistered."""
-        if remove and callback in self._msg_callbacks:
-            self._msg_callbacks.remove(callback)
-        elif not remove and not callback in self._msg_callbacks:
-            if callable(callback):
-                argspec = inspect.getargspec(callback)
-                nargs = len(argspec[0])
-
-                # Bound methods have an additional 'self' argument
-                if isinstance(callback, types.MethodType):
-                    nargs -= 1
-
-                # Call the callback
-                if nargs == 1:
-                    self._msg_callbacks.append(lambda sender, content: callback(content))
-                elif nargs == 2:
-                    self._msg_callbacks.append(callback)
-                else:
-                    raise TypeError('Widget msg callback must ' \
-                        'accept 1 or 2 arguments, not %d.' % nargs)
-            else:
-                raise Exception('Callback must be callable.')
+        self._msg_callbacks.register_callback(callback, remove=remove)
 
     def on_displayed(self, callback, remove=False):
         """(Un)Register a widget displayed callback.
@@ -199,13 +247,7 @@ class Widget(LoggingConfigurable):
               kwargs from display call passed through without modification.
         remove: bool
             True if the callback should be unregistered."""
-        if remove and callback in self._display_callbacks:
-            self._display_callbacks.remove(callback)
-        elif not remove and not callback in self._display_callbacks:
-            if callable(handler):
-                self._display_callbacks.append(callback)
-            else:
-                raise Exception('Callback must be callable.')
+        self._display_callbacks.register_callback(callback, remove=remove)
 
     #-------------------------------------------------------------------------
     # Support methods
@@ -262,8 +304,8 @@ class Widget(LoggingConfigurable):
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
-        for handler in self._msg_callbacks:
-            handler(self, content)
+        self._msg_callbacks(content) # Signature 1
+        self._msg_callbacks(self, content) # Signature 2
 
     def _handle_property_changed(self, name, old, new):
         """Called when a property has been changed."""
@@ -274,8 +316,7 @@ class Widget(LoggingConfigurable):
 
     def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance"""
-        for handler in self._display_callbacks:
-            handler(self, **kwargs)
+        self._display_callbacks(**kwargs)
 
     def _pack_widgets(self, x):
         """Recursively converts all widget instances to model id strings.

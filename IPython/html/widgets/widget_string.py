@@ -13,10 +13,7 @@ Represents a unicode string using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import inspect
-import types
-
-from .widget import DOMWidget
+from .widget import DOMWidget, CallbackDispatcher
 from IPython.utils.traitlets import Unicode, Bool, List
 
 #-----------------------------------------------------------------------------
@@ -47,7 +44,7 @@ class TextBoxWidget(HTMLWidget):
 
     def __init__(self, **kwargs):
         super(TextBoxWidget, self).__init__(**kwargs)
-        self._submission_callbacks = []        
+        self._submission_callbacks = CallbackDispatcher(acceptable_nargs=[0, 1])
         self.on_msg(self._handle_string_msg)
 
     def _handle_string_msg(self, content):
@@ -58,8 +55,8 @@ class TextBoxWidget(HTMLWidget):
         content: dict
             Content of the msg."""
         if 'event' in content and content['event'] == 'submit':
-            for handler in self._submission_callbacks:
-                handler(self)
+            self._submission_callbacks()
+            self._submission_callbacks(self)
 
     def on_submit(self, callback, remove=False):
         """(Un)Register a callback to handle text submission.
@@ -74,22 +71,4 @@ class TextBoxWidget(HTMLWidget):
             callback(sender)
         remove: bool (optional)
             Whether or not to unregister the callback"""
-        if remove and callback in self._submission_callbacks:
-            self._submission_callbacks.remove(callback)
-        elif not remove and not callback in self._submission_callbacks:
-            if callable(callback):
-                argspec = inspect.getargspec(callback)
-                nargs = len(argspec[0])
-
-                # Bound methods have an additional 'self' argument
-                if isinstance(callback, types.MethodType):
-                    nargs -= 1
-
-                # Call the callback
-                if nargs == 0:
-                    self._submission_callbacks.append(lambda sender: callback())
-                elif nargs == 1:
-                    self._submission_callbacks.append(callback)
-                else:
-                    raise TypeError('TextBoxWidget submit callback must ' \
-                        'accept 0 or 1 arguments.')
+        self._submission_callbacks.register_callback(callback, remove=remove)
