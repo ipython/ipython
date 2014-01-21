@@ -679,7 +679,7 @@ class Session(Configurable):
         to_send.append(DELIM)
         to_send.append(self.sign(msg_list))
         to_send.extend(msg_list)
-        stream.send_multipart(msg_list, flags, copy=copy)
+        stream.send_multipart(to_send, flags, copy=copy)
 
     def recv(self, socket, mode=zmq.NOBLOCK, content=True, copy=True):
         """Receive and unpack a message.
