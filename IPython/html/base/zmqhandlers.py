@@ -53,7 +53,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 
         # Check to see that origin matches host directly, including ports
         if origin != host:
-            self.log.critical("Cross Origin WebSocket Attempt.", exc_info=True)
+            self.log.critical("Cross Origin WebSocket Attempt.")
             raise web.HTTPError(404)
 
 
