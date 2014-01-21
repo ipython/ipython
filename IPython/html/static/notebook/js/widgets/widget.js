@@ -54,7 +54,7 @@ function(WidgetManager, Underscore, Backbone){
         send: function (content, callbacks) {
             // Send a custom msg over the comm.
             if (this.comm !== undefined) {
-                var data = {method: 'custom', custom_content: content};
+                var data = {method: 'custom', content: content};
                 this.comm.send(data, callbacks);
             }
         },
@@ -76,7 +76,7 @@ function(WidgetManager, Underscore, Backbone){
                     this.apply_update(msg.content.data.state);
                     break;
                 case 'custom':
-                    this.trigger('msg:custom', msg.content.data.custom_content);
+                    this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
                     this.widget_manager.display_view(msg, this);

@@ -153,7 +153,7 @@ class Widget(LoggingConfigurable):
         content : dict
             Content of the message to send.
         """
-        self._send({"method": "custom", "custom_content": content})
+        self._send({"method": "custom", "content": content})
 
     def on_msg(self, callback, remove=False):
         """(Un)Register a custom msg recieve callback.
@@ -249,8 +249,8 @@ class Widget(LoggingConfigurable):
 
         # Handle a custom msg from the front-end
         elif method == 'custom':
-            if 'custom_content' in data:
-                self._handle_custom_msg(data['custom_content'])
+            if 'content' in data:
+                self._handle_custom_msg(data['content'])
 
     def _handle_receive_state(self, sync_data):
         """Called when a state is received from the front-end."""
