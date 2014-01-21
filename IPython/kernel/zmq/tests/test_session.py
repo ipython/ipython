@@ -287,3 +287,27 @@ class TestSession(SessionTestCase):
         session = ss.Session(packer='msgpack.packb', unpacker='msgpack.unpackb')
         self._datetime_test(session)
     
+    def test_send_raw(self):
+        ctx = zmq.Context.instance()
+        A = ctx.socket(zmq.PAIR)
+        B = ctx.socket(zmq.PAIR)
+        A.bind("inproc://test")
+        B.connect("inproc://test")
+
+        msg = self.session.msg('execute', content=dict(a=10))
+        msg_list = [self.session.pack(msg[part]) for part in 
+                    ['header', 'parent_header', 'metadata', 'content']]
+        self.session.send_raw(A, msg_list, ident=b'foo')
+        
+        ident, new_msg_list = self.session.feed_identities(B.recv_multipart())
+        new_msg = self.session.unserialize(new_msg_list)
+        self.assertEqual(ident[0], b'foo')
+        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
+        self.assertEqual(new_msg['header'],msg['header'])
+        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['metadata'],msg['metadata'])
+
+        A.close()
+        B.close()
+        ctx.term()
