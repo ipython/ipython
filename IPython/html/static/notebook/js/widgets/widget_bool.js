@@ -59,7 +59,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -103,9 +103,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
                 var description = this.model.get('description');
                 if (description.length === 0) {
-                    this.$el.html(' '); // Preserve button height
+                    this.$el.text(' '); // Preserve button height
                 } else {
-                    this.$el.html(description);
+                    this.$el.text(description);
                 }
             }
             return ToggleButtonView.__super__.update.apply(this);

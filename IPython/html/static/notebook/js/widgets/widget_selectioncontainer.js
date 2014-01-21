@@ -46,7 +46,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                         accordian
                             .find('.accordion-heading')
                             .find('.accordion-toggle')
-                            .html(titles[page_index]);
+                            .text(titles[page_index]);
                     }
                 }
 
@@ -107,7 +107,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     that.model.set("selected_index", index, {updated_view: this});
                     that.touch();
                  })
-                .html('Page ' + index)
+                .text('Page ' + index)
                 .appendTo(accordion_heading);
             var accordion_body = $('<div />', {id: uuid})
                 .addClass('accordion-body collapse')
@@ -190,7 +190,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             var tab_text = $('<a />')
                 .attr('href', '#' + uuid)
                 .attr('data-toggle', 'tab') 
-                .html('Page ' + index)
+                .text('Page ' + index)
                 .appendTo(tab)
                 .click(function (e) {
             
@@ -221,7 +221,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 for (var page_index in titles) {
                     var tab_text = this.containers[page_index];
                     if (tab_text !== undefined) {
-                        tab_text.html(titles[page_index]);
+                        tab_text.text(titles[page_index]);
                     }
                 }
 

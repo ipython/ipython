@@ -31,12 +31,10 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
             var description = this.model.get('description');
-            description = description.replace(/ /g, '&nbsp;', 'm');
-            description = description.replace(/\n/g, '<br>\n', 'm');
             if (description.length === 0) {
-                this.$el.html('&nbsp;'); // Preserve button height
+                this.$el.text(' '); // Preserve button height
             } else {
-                this.$el.html(description);
+                this.$el.text(description);
             }
             
             if (this.model.get('disabled')) {

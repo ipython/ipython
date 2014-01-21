@@ -100,7 +100,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -162,7 +162,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -257,7 +257,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (description.length === 0) {
                 this.$label.hide();
             } else {
-                this.$label.html(description);
+                this.$label.text(description);
                 this.$label.show();
             }
             return ProgressView.__super__.update.apply(this);

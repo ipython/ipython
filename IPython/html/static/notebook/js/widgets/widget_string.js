@@ -27,7 +27,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            this.$el.html(this.model.get('value'));
+            this.$el.html(this.model.get('value')); // CAUTION! .html(...) CALL MANDITORY!!!
             return HTMLView.__super__.update.apply(this);
         },
     });
@@ -45,7 +45,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            this.$el.html(this.model.get('value'));
+            this.$el.text(this.model.get('value'));
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
 
             return LatexView.__super__.update.apply(this);
@@ -58,8 +58,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox')
-                .html('');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
@@ -101,7 +100,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -131,8 +130,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single')
-                .html('');
+                .addClass('widget-hbox-single');
             this.$label = $('<div />')
                 .addClass('widget-hlabel')
                 .appendTo(this.$el)
@@ -162,7 +160,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }

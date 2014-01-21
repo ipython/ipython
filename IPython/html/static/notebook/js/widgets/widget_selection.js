@@ -20,8 +20,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
         render : function(){
             // Called when view is rendered.            
             this.$el
-                .addClass('widget-hbox-single')
-                .html('');
+                .addClass('widget-hbox-single');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
@@ -34,14 +33,14 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             this.$droplabel = $('<button />')
                 .addClass('btn')
                 .addClass('widget-combo-btn')
-                .html('&nbsp;')
+                .text(' ')
                 .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
                 .addClass('btn')
                 .addClass('dropdown-toggle')
                 .addClass('widget-combo-carrot-btn')
                 .attr('data-toggle', 'dropdown')
-                .html('<span class="caret"></span>')
+                .append($('<span />').addClass("caret"))
                 .appendTo(this.$buttongroup);
             this.$droplist = $('<ul />')
                 .addClass('dropdown-menu')
@@ -59,12 +58,10 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
             if (options === undefined || options.updated_view != this) {
                 var selected_item_text = this.model.get('value');
-                selected_item_text = selected_item_text.replace(/ /g, '&nbsp;');
-                selected_item_text = selected_item_text.replace(/\n/g, '<br>\n');
                 if (selected_item_text.length === 0) {
-                    this.$droplabel.html('&nbsp;');
+                    this.$droplabel.text(' ');
                 } else {
-                    this.$droplabel.html(selected_item_text);    
+                    this.$droplabel.text(selected_item_text);
                 }
                 
                 var items = this.model.get('values');
@@ -73,7 +70,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 for (var index in items) {
                     var that = this;
                     var item_button = $('<a href="#"/>')
-                        .html(items[index])
+                        .text(items[index])
                         .on('click', $.proxy(this.handle_click, this));
                     $replace_droplist.append($('<li />').append(item_button));
                 }
@@ -97,7 +94,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -109,7 +106,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).html(), {updated_view: this});
+            this.model.set('value', $(e.target).text(), {updated_view: this});
             this.touch();
         },
         
@@ -148,7 +145,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     if (this.$el.find(item_query).length === 0) {
                         var $label = $('<label />')
                             .addClass('radio')
-                            .html(items[index])
+                            .text(items[index])
                             .appendTo(this.$container);
                         
                         $('<input />')
@@ -188,7 +185,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -239,7 +236,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                         $('<button />')
                             .attr('type', 'button')
                             .addClass('btn')
-                            .html(items[index])
+                            .text(items[index])
                             .appendTo(this.$buttongroup)
                             .on('click', $.proxy(this.handle_click, this));
                     }
@@ -255,7 +252,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 
                 // Remove items that no longer exist.
                 this.$buttongroup.find('button').each(function(i, obj) {
-                    var value = $(obj).html();
+                    var value = $(obj).text();
                     var found = false;
                     for (var index in items) {
                         if (items[index] == value) {
@@ -273,7 +270,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -285,7 +282,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).html(), {updated_view: this});
+            this.model.set('value', $(e.target).text(), {updated_view: this});
             this.touch();
         },    
     });
@@ -321,7 +318,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     var item_query = ' :contains("' + items[index] + '")';
                     if (this.$listbox.find(item_query).length === 0) {
                         $('<option />')
-                            .html(items[index])
+                            .text(items[index])
                             .attr('value', items[index])
                             .appendTo(this.$listbox)
                             .on('click', $.proxy(this.handle_click, this));
@@ -337,7 +334,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
                 // Remove items that no longer exist.
                 this.$listbox.find('option').each(function(i, obj) {
-                    var value = $(obj).html();
+                    var value = $(obj).text();
                     var found = false;
                     for (var index in items) {
                         if (items[index] == value) {
@@ -355,7 +352,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.html(description);
+                    this.$label.text(description);
                     this.$label.show();
                 }
             }
@@ -367,7 +364,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', $(e.target).html(), {updated_view: this});
+            this.model.set('value', $(e.target).text(), {updated_view: this});
             this.touch();
         },    
     });

@@ -71,7 +71,6 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             }, this);
             
             this.$el
-                .html('')
                 .on("remove", function(){
                     that.$window.remove();
                 });
@@ -135,7 +134,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 });
             this.$title = $('<div />')
                 .addClass('widget-modal-title')
-                .html('&nbsp;')
+                .text(' ')
                 .appendTo(this.$title_bar);
             this.$body = $('<div />')
                 .addClass('modal-body')
@@ -144,7 +143,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 .appendTo(this.$window);
             
             this.$show_button = $('<button />')
-                .html('&nbsp;')
+                .text(' ')
                 .addClass('btn btn-info widget-modal-show')
                 .appendTo(this.$el)
                 .click(function(){
@@ -227,21 +226,17 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
             var description = this.model.get('description');
-            description = description.replace(/ /g, '&nbsp;', 'm');
-            description = description.replace(/\n/g, '<br>\n', 'm');
             if (description.length === 0) {
-                this.$title.html('&nbsp;'); // Preserve title height
+                this.$title.text(' '); // Preserve title height
             } else {
-                this.$title.html(description);
+                this.$title.text(description);
             }
             
             var button_text = this.model.get('button_text');
-            button_text = button_text.replace(/ /g, '&nbsp;', 'm');
-            button_text = button_text.replace(/\n/g, '<br>\n', 'm');
             if (button_text.length === 0) {
-                this.$show_button.html('&nbsp;'); // Preserve button height
+                this.$show_button.text(' '); // Preserve button height
             } else {
-                this.$show_button.html(button_text);
+                this.$show_button.text(button_text);
             }
             
             if (!this._shown_once) {
