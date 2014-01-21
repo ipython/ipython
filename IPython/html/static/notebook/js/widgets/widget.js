@@ -193,9 +193,9 @@ function(WidgetManager, Underscore, Backbone){
         },
 
         save_changes: function(callbacks) {
-			// Push this model's state to the back-end
-			//
-			// This invokes a Backbone.Sync.
+            // Push this model's state to the back-end
+            //
+            // This invokes a Backbone.Sync.
             this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
         },
 
@@ -256,11 +256,11 @@ function(WidgetManager, Underscore, Backbone){
             //
             // -given a model and (optionally) a view name if the view name is 
             // not given, it defaults to the model's default view attribute.
-	    
+        
             // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
-	        // it would be great to have the widget manager add the cell metadata
-	        // to the subview without having to add it here.
-	        options = options || {};
+            // it would be great to have the widget manager add the cell metadata
+            // to the subview without having to add it here.
+            options = options || {};
             options.cell = this.options.cell;
             var child_view = this.model.widget_manager.create_view(child_model, options);
             this.child_views[child_model.id] = child_view;
