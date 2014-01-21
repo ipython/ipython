@@ -243,7 +243,7 @@ class DisplayHook(Configurable):
         if result is not None and not self.quiet():
             # If _ipython_display_ is defined, use that to display this object.  If
             # it returns NotImplemented, use the _repr_ logic (default).
-            if not hasattr(result, '_ipython_display_') or result._ipython_display_() == NotImplemented:
+            if not hasattr(result, '_ipython_display_') or result._ipython_display_() is NotImplemented:
                 self.start_displayhook()
                 self.write_output_prompt()
                 format_dict, md_dict = self.compute_format_data(result)
