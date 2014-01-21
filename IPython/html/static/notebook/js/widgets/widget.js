@@ -156,7 +156,7 @@ function(WidgetManager, Underscore, Backbone){
             }
 
             // Only sync if there are attributes to send to the back-end.
-            if (_.size(attrs) !== 0) {
+            if (attr.length > 0) {
                 var callbacks = options.callbacks || {};
                 if (this.pending_msgs >= this.msg_throttle) {
                     // The throttle has been exceeded, buffer the current msg so
@@ -166,7 +166,7 @@ function(WidgetManager, Underscore, Backbone){
                     // Combine updates if it is a 'patch' sync, otherwise replace updates
                     switch (method) {
                         case 'patch':
-                            this.msg_buffer = _.extend(this.msg_buffer || {}, attrs);
+                            this.msg_buffer = $.extend(this.msg_buffer || {}, attrs);
                             break;
                         case 'update':
                         case 'create':
