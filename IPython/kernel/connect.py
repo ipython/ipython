@@ -519,7 +519,7 @@ class ConnectionFileMixin(Configurable):
         """Create a zmq Socket and connect it to the kernel."""
         url = self._make_url(channel)
         socket_type = channel_socket_types[channel]
-        self.log.info("Connecting to: %s" % url)
+        self.log.debug("Connecting to: %s" % url)
         sock = self.context.socket(socket_type)
         if identity:
             sock.identity = identity

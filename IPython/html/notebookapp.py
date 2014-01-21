@@ -64,7 +64,7 @@ from tornado import web
 # Our own libraries
 from IPython.html import DEFAULT_STATIC_FILES_PATH
 from .base.handlers import Template404
-
+from .log import log_request
 from .services.kernels.kernelmanager import MappingKernelManager
 from .services.notebooks.nbmanager import NotebookManager
 from .services.notebooks.filenbmanager import FileNotebookManager
@@ -158,6 +158,7 @@ class NotebookWebApplication(web.Application):
         template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
         settings = dict(
             # basics
+            log_function=log_request,
             base_project_url=base_project_url,
             base_kernel_url=ipython_app.base_kernel_url,
             template_path=template_path,
