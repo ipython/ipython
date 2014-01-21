@@ -364,3 +364,6 @@ def onlyif_cmds_exist(*commands):
                             "is installed".format(cmd))
             raise e
     return null_deco
+
+if sys.version_info >= (3,4):
+    parametric = skip("Parametric tests don't work on Python >= 3.4")
