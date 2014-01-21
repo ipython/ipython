@@ -26,7 +26,9 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 class Widget(LoggingConfigurable):
 
-    # Shared declarations (Class level)
+    #-------------------------------------------------------------------------
+    # Class attributes
+    #-------------------------------------------------------------------------
     widget_construction_callback = None
     widgets = {}
 
@@ -42,42 +44,18 @@ class Widget(LoggingConfigurable):
         if Widget.widget_construction_callback is not None and callable(Widget.widget_construction_callback):
             Widget.widget_construction_callback(widget)
 
-    # Public declarations (Instance level)
+    #-------------------------------------------------------------------------
+    # Traits
+    #-------------------------------------------------------------------------
     model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
     view_name = Unicode(help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
-
-    @contextmanager
-    def property_lock(self, key, value):
-        """Lock a property-value pair.
-
-        NOTE: This, in addition to the single lock for all state changes, is 
-        flawed.  In the future we may want to look into buffering state changes 
-        back to the front-end."""
-        self._property_lock = (key, value)
-        try:
-            yield
-        finally:
-            self._property_lock = (None, None)
-
-    def should_send_property(self, key, value):
-        """Check the property lock (property_lock)"""
-        return key != self._property_lock[0] or \
-        value != self._property_lock[1]
-
-    @property
-    def keys(self):
-        if self._keys is None:
-            self._keys = []
-            for trait_name in self.trait_names():
-                if self.trait_metadata(trait_name, 'sync'):
-                    self._keys.append(trait_name)
-        return self._keys
-
-    # Private/protected declarations
     _comm = Instance('IPython.kernel.comm.Comm')
-    
+
+    #-------------------------------------------------------------------------
+    # (Con/de)structor
+    #-------------------------------------------------------------------------    
     def __init__(self, **kwargs):
         """Public constructor"""
         self.closed = False
@@ -94,21 +72,17 @@ class Widget(LoggingConfigurable):
         """Object disposal"""
         self.close()
 
-    def close(self):
-        """Close method.  
-
-        Closes the widget which closes the underlying comm.
-        When the comm is closed, all of the widget views are automatically
-        removed from the front-end."""
-        if not self.closed:
-            self._comm.close() 
-            self._close()
-
-    def _close(self):
-        """Unsafe close"""
-        del Widget.widgets[self.model_id]
-        self._comm = None
-        self.closed = True
+    #-------------------------------------------------------------------------
+    # Properties
+    #-------------------------------------------------------------------------    
+    @property
+    def keys(self):
+        if self._keys is None:
+            self._keys = []
+            for trait_name in self.trait_names():
+                if self.trait_metadata(trait_name, 'sync'):
+                    self._keys.append(trait_name)
+        return self._keys
 
     @property
     def comm(self):
@@ -127,50 +101,19 @@ class Widget(LoggingConfigurable):
     def model_id(self):
         return self.comm.comm_id
 
-    # Event handlers
-    def _handle_msg(self, msg):
-        """Called when a msg is received from the front-end"""
-        data = msg['content']['data']
-        method = data['method']
-        if not method in ['backbone', 'custom']:
-            self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
+    #-------------------------------------------------------------------------
+    # Methods
+    #-------------------------------------------------------------------------    
+    def close(self):
+        """Close method.  
 
-        # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
-        if method == 'backbone' and 'sync_data' in data:
-            sync_data = data['sync_data']
-            self._handle_receive_state(sync_data) # handles all methods
+        Closes the widget which closes the underlying comm.
+        When the comm is closed, all of the widget views are automatically
+        removed from the front-end."""
+        if not self.closed:
+            self._comm.close() 
+            self._close()
 
-        # Handle a custom msg from the front-end
-        elif method == 'custom':
-            if 'custom_content' in data:
-                self._handle_custom_msg(data['custom_content'])
-
-    def _handle_receive_state(self, sync_data):
-        """Called when a state is received from the front-end."""
-        for name in self.keys:
-            if name in sync_data:
-                value = self._unpack_widgets(sync_data[name])
-                with self.property_lock(name, value):
-                    setattr(self, name, value)
-
-    def _handle_custom_msg(self, content):
-        """Called when a custom msg is received."""
-        for handler in self._msg_callbacks:
-            handler(self, content)
-
-    def _handle_property_changed(self, name, old, new):
-        """Called when a property has been changed."""
-        # Make sure this isn't information that the front-end just sent us.
-        if self.should_send_property(name, new):
-            # Send new state to front-end
-            self.send_state(key=name)
-
-    def _handle_displayed(self, **kwargs):
-        """Called when a view has been displayed for this widget instance"""
-        for handler in self._display_callbacks:
-            handler(self, **kwargs)
-
-    # Public methods
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
 
@@ -194,49 +137,6 @@ class Widget(LoggingConfigurable):
         """
         keys = self.keys if key is None else [key]
         return {k: self._pack_widgets(getattr(self, k)) for k in keys} 
-
-    def _pack_widgets(self, values):
-        """Recursively converts all widget instances to model id strings.
-
-        Children widgets will be stored and transmitted to the front-end by 
-        their model ids."""
-        if isinstance(values, dict):
-            new_dict = {}
-            for key, value in values.items():
-                new_dict[key] = self._pack_widgets(value)
-            return new_dict
-        elif isinstance(values, list):
-            new_list = []
-            for value in values:
-                new_list.append(self._pack_widgets(value))
-            return new_list
-        elif isinstance(values, Widget):
-            return values.model_id
-        else:
-            return values
-
-    def _unpack_widgets(self, values):
-        """Recursively converts all model id strings to widget instances.
-
-        Children widgets will be stored and transmitted to the front-end by 
-        their model ids."""
-        if isinstance(values, dict):
-            new_dict = {}
-            for key, values in values.items():
-                new_dict[key] = self._unpack_widgets(values[key])
-            return new_dict
-        elif isinstance(values, list):
-            new_list = []
-            for value in values:
-                new_list.append(self._unpack_widgets(value))
-            return new_list
-        elif isinstance(values, string_types):
-            if values in Widget.widgets:
-                return Widget.widgets[values]
-            else:
-                return values
-        else:
-            return values
 
     def send(self, content):
         """Sends a custom msg to the widget model in the front-end.
@@ -300,7 +200,119 @@ class Widget(LoggingConfigurable):
             else:
                 raise Exception('Callback must be callable.')
 
+    #-------------------------------------------------------------------------
     # Support methods
+    #-------------------------------------------------------------------------
+    @contextmanager
+    def _property_lock(self, key, value):
+        """Lock a property-value pair.
+
+        NOTE: This, in addition to the single lock for all state changes, is 
+        flawed.  In the future we may want to look into buffering state changes 
+        back to the front-end."""
+        self._property_lock = (key, value)
+        try:
+            yield
+        finally:
+            self._property_lock = (None, None)
+
+    def _should_send_property(self, key, value):
+        """Check the property lock (property_lock)"""
+        return key != self._property_lock[0] or \
+        value != self._property_lock[1]
+    
+    def _close(self):
+        """Unsafe close"""
+        del Widget.widgets[self.model_id]
+        self._comm = None
+        self.closed = True
+
+    # Event handlers
+    def _handle_msg(self, msg):
+        """Called when a msg is received from the front-end"""
+        data = msg['content']['data']
+        method = data['method']
+        if not method in ['backbone', 'custom']:
+            self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
+
+        # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
+        if method == 'backbone' and 'sync_data' in data:
+            sync_data = data['sync_data']
+            self._handle_receive_state(sync_data) # handles all methods
+
+        # Handle a custom msg from the front-end
+        elif method == 'custom':
+            if 'custom_content' in data:
+                self._handle_custom_msg(data['custom_content'])
+
+    def _handle_receive_state(self, sync_data):
+        """Called when a state is received from the front-end."""
+        for name in self.keys:
+            if name in sync_data:
+                value = self._unpack_widgets(sync_data[name])
+                with self._property_lock(name, value):
+                    setattr(self, name, value)
+
+    def _handle_custom_msg(self, content):
+        """Called when a custom msg is received."""
+        for handler in self._msg_callbacks:
+            handler(self, content)
+
+    def _handle_property_changed(self, name, old, new):
+        """Called when a property has been changed."""
+        # Make sure this isn't information that the front-end just sent us.
+        if self._should_send_property(name, new):
+            # Send new state to front-end
+            self.send_state(key=name)
+
+    def _handle_displayed(self, **kwargs):
+        """Called when a view has been displayed for this widget instance"""
+        for handler in self._display_callbacks:
+            handler(self, **kwargs)
+
+    def _pack_widgets(self, values):
+        """Recursively converts all widget instances to model id strings.
+
+        Children widgets will be stored and transmitted to the front-end by 
+        their model ids."""
+        if isinstance(values, dict):
+            new_dict = {}
+            for key, value in values.items():
+                new_dict[key] = self._pack_widgets(value)
+            return new_dict
+        elif isinstance(values, list):
+            new_list = []
+            for value in values:
+                new_list.append(self._pack_widgets(value))
+            return new_list
+        elif isinstance(values, Widget):
+            return values.model_id
+        else:
+            return values
+
+    def _unpack_widgets(self, values):
+        """Recursively converts all model id strings to widget instances.
+
+        Children widgets will be stored and transmitted to the front-end by 
+        their model ids."""
+        if isinstance(values, dict):
+            new_dict = {}
+            for key, values in values.items():
+                new_dict[key] = self._unpack_widgets(values[key])
+            return new_dict
+        elif isinstance(values, list):
+            new_list = []
+            for value in values:
+                new_list.append(self._unpack_widgets(value))
+            return new_list
+        elif isinstance(values, string_types):
+            if values in Widget.widgets:
+                return Widget.widgets[values]
+            else:
+                return values
+        else:
+            return values
+
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""
         # Show view.  By sending a display message, the comm is opened and the
@@ -315,8 +327,6 @@ class Widget(LoggingConfigurable):
 
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether or not the widget is visible.", sync=True)
-
-    # Private/protected declarations
     _css = Dict(sync=True) # Internal CSS property dict
 
     def get_css(self, key, selector=""):
