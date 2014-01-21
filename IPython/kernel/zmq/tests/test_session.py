@@ -297,11 +297,9 @@ class TestSession(SessionTestCase):
         msg = self.session.msg('execute', content=dict(a=10))
         msg_list = [self.session.pack(msg[part]) for part in 
                     ['header', 'parent_header', 'metadata', 'content']]
-        print("old:", msg_list)
         self.session.send_raw(A, msg_list, ident=b'foo')
         
         ident, new_msg_list = self.session.feed_identities(B.recv_multipart())
-        print("new:", new_msg_list)
         new_msg = self.session.unserialize(new_msg_list)
         self.assertEqual(ident[0], b'foo')
         self.assertEqual(new_msg['msg_type'],msg['msg_type'])
