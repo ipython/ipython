@@ -253,7 +253,7 @@ class Widget(LoggingConfigurable):
     # Support methods
     #-------------------------------------------------------------------------
     @contextmanager
-    def _property_lock(self, key, value):
+    def _lock_property(self, key, value):
         """Lock a property-value pair.
 
         NOTE: This, in addition to the single lock for all state changes, is 
@@ -299,7 +299,7 @@ class Widget(LoggingConfigurable):
         for name in self.keys:
             if name in sync_data:
                 value = self._unpack_widgets(sync_data[name])
-                with self._property_lock(name, value):
+                with self._lock_property(name, value):
                     setattr(self, name, value)
 
     def _handle_custom_msg(self, content):
