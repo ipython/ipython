@@ -97,7 +97,6 @@ function(WidgetManager, Underscore, Backbone){
                     }
                 }
             }
-            //TODO: are there callbacks that make sense in this case?  If so, attach them here as an option 
         },
 
         _handle_status: function (msg, callbacks) {
