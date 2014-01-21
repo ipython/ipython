@@ -120,10 +120,15 @@ function(WidgetManager, Underscore, Backbone){
             }
         },
 
-        callbacks: function(callbacks) {
+        callbacks: function(view) {
             // Create msg callbacks for a comm msg.
+            var callbacks = this.widget_manager.callbacks(view);
+
+            if (callbacks.iopub === undefined) {
+                callbacks.iopub = {};
+            }
+
             var that = this;
-            if (callbacks.iopub === undefined) {callbacks.iopub = {};}
             callbacks.iopub.status = function (msg) {
                 that._handle_status(msg, callbacks);
             }
@@ -131,54 +136,57 @@ function(WidgetManager, Underscore, Backbone){
         },
 
         sync: function (method, model, options) {
-            var error = options.error || function() {console.error('Backbone sync error:', arguments);}
+
+            // Make sure a comm exists.
+            var error = options.error || function() {
+                console.error('Backbone sync error:', arguments);
+            }
             if (this.comm === undefined) {
                 error();
                 return false;
             }
 
-            var attrs = (method==='patch') ? options.attrs : model.toJSON(options);
-            
+            // Delete any key value pairs that the back-end already knows about.
+            var attrs = (method === 'patch') ? options.attrs : model.toJSON(options);
             if (this.key_value_lock !== null) {
-                var k = this.key_value_lock[0];
-                var v = this.key_value_lock[1];
-                if (attrs[k]===v) {
-                    delete attrs[k];
+                var key = this.key_value_lock[0];
+                var value = this.key_value_lock[1];
+                if (attrs[key] === value) {
+                    delete attrs[key];
                 }
             }
-            if (_.size(attrs) == 0) {
-                error();
-                return false;
-            }
-            var callbacks = model.callbacks(options.callbacks || {});
-            if (this.pending_msgs >= this.msg_throttle) {
-                // The throttle has been exceeded, buffer the current msg so
-                // it can be sent once the kernel has finished processing 
-                // some of the existing messages.
-                
-                // combine updates if it is a 'patch' sync, otherwise replace updates
-                switch (method) {
-                    case 'patch':
-                        this.msg_buffer = _.extend(this.msg_buffer || {}, attrs);
-                        break;
-                    case 'update':
-                        this.msg_buffer = attrs;
-                        break;
-                    default:
-                        error();
-                        return false;
-                }
-                this.msg_buffer_callbacks = callbacks;
 
-            } else {
-                // We haven't exceeded the throttle, send the message like 
-                // normal.  If this is a patch operation, just send the 
-                // changes.
-                var data = {method: 'backbone', sync_data: attrs};
-                this.comm.send(data, callbacks);
-                this.pending_msgs++;
+            // Only sync if there are attributes to send to the back-end.
+            if (_.size(attrs) !== 0) {
+                var callbacks = options.callbacks || {};
+                if (this.pending_msgs >= this.msg_throttle) {
+                    // The throttle has been exceeded, buffer the current msg so
+                    // it can be sent once the kernel has finished processing 
+                    // some of the existing messages.
+                    
+                    // Combine updates if it is a 'patch' sync, otherwise replace updates
+                    switch (method) {
+                        case 'patch':
+                            this.msg_buffer = _.extend(this.msg_buffer || {}, attrs);
+                            break;
+                        case 'update':
+                            this.msg_buffer = attrs;
+                            break;
+                        default:
+                            error();
+                            return false;
+                    }
+                    this.msg_buffer_callbacks = callbacks;
+
+                } else {
+                    // We haven't exceeded the throttle, send the message like 
+                    // normal.  If this is a patch operation, just send the 
+                    // changes.
+                    var data = {method: 'backbone', sync_data: attrs};
+                    this.comm.send(data, callbacks);
+                    this.pending_msgs++;
+                }
             }
-            
             // Since the comm is a one-way communication, assume the message 
             // arrived.  Don't call success since we don't have a model back from the server
             // this means we miss out on the 'sync' event.
@@ -293,7 +301,7 @@ function(WidgetManager, Underscore, Backbone){
 
         callbacks: function(){
             // Create msg callbacks for a comm msg.
-            return this.model.widget_manager.callbacks(this);
+            return this.model.callbacks(this);
         },
 
         render: function(){
