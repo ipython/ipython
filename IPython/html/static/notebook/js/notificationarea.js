@@ -69,17 +69,17 @@ var IPython = (function (IPython) {
 
     NotificationArea.prototype.init_notification_widgets = function() {
         var knw = this.new_notification_widget('kernel');
+        var $kernel_indic = $("#kernel_indicator");
 
         // Kernel events
         $([IPython.events]).on('status_idle.Kernel',function () {
             IPython.save_widget.update_document_title();
-            knw.set_message('Kernel Idle',200);
-            }
-        );
+            $kernel_indic.attr('class','icon-circle-blank').attr('title','Kernel Idle');
+        });
 
         $([IPython.events]).on('status_busy.Kernel',function () {
             window.document.title='(Busy) '+window.document.title;
-            knw.set_message("Kernel busy");
+            $kernel_indic.attr('class','icon-circle').attr('title','Kernel Busy');
         });
 
         $([IPython.events]).on('status_restarting.Kernel',function () {
