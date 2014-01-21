@@ -17,9 +17,9 @@ Authors:
 #-----------------------------------------------------------------------------
 
 try:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse # Py 3
 except ImportError:
-    from urlparse import urlparse
+    from urlparse import urlparse # Py 2
 
 try:
     from http.cookies import SimpleCookie  # Py 3
