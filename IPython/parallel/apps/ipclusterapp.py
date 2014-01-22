@@ -401,10 +401,8 @@ class IPClusterEngines(BaseParallelApplication):
         if self.clean_logs:
             log_dir = self.profile_dir.log_dir
             for f in os.listdir(log_dir):
-                if re.match(r'ip(engine|controller)z-\d+\.(log|err|out)',f):
+                if re.match(r'ip(engine|controller)-.+\.(log|err|out)',f):
                     os.remove(os.path.join(log_dir, f))
-        # This will remove old log files for ipcluster itself
-        # super(IPBaseParallelApplication, self).start_logging()
 
     def start(self):
         """Start the app for the engines subcommand."""
