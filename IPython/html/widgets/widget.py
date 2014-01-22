@@ -80,7 +80,12 @@ class CallbackDispatcher(LoggingConfigurable):
         """Gets the number of arguments in a callback"""
         if callable(callback):
             argspec = inspect.getargspec(callback)
-            nargs = len(argspec[1]) # Only count vargs!
+            if argspec[0] is None:
+                nargs = 0
+            elif argspec[3] is None:
+                nargs = len(argspec[0]) # Only count vargs!
+            else:
+                nargs = len(argspec[0]) - len(argspec[3]) # Subtract number of defaults.
 
             # Bound methods have an additional 'self' argument
             if isinstance(callback, types.MethodType):

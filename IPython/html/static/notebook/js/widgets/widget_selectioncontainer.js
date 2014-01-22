@@ -39,8 +39,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 // Set tab titles
                 var titles = this.model.get('_titles');
+                var that = this;
                 _.each(titles, function(title, page_index) {
-                    var accordian = this.containers[page_index];
+                    var accordian = that.containers[page_index];
                     if (accordian !== undefined) {
                         accordian
                             .find('.accordion-heading')
@@ -216,8 +217,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 // Set tab titles
                 var titles = this.model.get('_titles');
+                var that = this;
                 _.each(titles, function(title, page_index) {
-                   var tab_text = this.containers[page_index];
+                   var tab_text = that.containers[page_index];
                     if (tab_text !== undefined) {
                         tab_text.text(title);
                     } 

@@ -38,8 +38,8 @@
 
             // Register already-registered widget model types with the comm manager.
             var that = this;
-            _.each(WidgetManager._model_types, function(value, key) {
-                that.comm_manager.register_target(value, $.proxy(that._handle_comm_open, that));
+            _.each(WidgetManager._model_types, function(model_type, model_name) {
+                that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
             });
         };
 

@@ -67,10 +67,11 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 var items = this.model.get('values');
                 var $replace_droplist = $('<ul />')
                     .addClass('dropdown-menu');
+                var that = this;
                 _.each(items, function(item, i) {
                     var item_button = $('<a href="#"/>')
                         .text(item)
-                        .on('click', $.proxy(this.handle_click, this));
+                        .on('click', $.proxy(that.handle_click, that));
                     $replace_droplist.append($('<li />').append(item_button));
                 });
 
@@ -140,20 +141,21 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 // Add missing items to the DOM.
                 var items = this.model.get('values');
                 var disabled = this.model.get('disabled');
+                var that = this;
                 _.each(items, function(item, index) {
                     var item_query = ' :input[value="' + item + '"]';
-                    if (this.$el.find(item_query).length === 0) {
+                    if (that.$el.find(item_query).length === 0) {
                         var $label = $('<label />')
                             .addClass('radio')
                             .text(item)
-                            .appendTo(this.$container);
+                            .appendTo(that.$container);
                         
                         $('<input />')
                             .attr('type', 'radio')
-                            .addClass(this.model)
+                            .addClass(that.model)
                             .val(item)
                             .prependTo($label)
-                            .on('click', $.proxy(this.handle_click, this));
+                            .on('click', $.proxy(that.handle_click, that));
                     }
                     
                     var $item_element = this.$container.find(item_query);
@@ -230,15 +232,16 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 // Add missing items to the DOM.
                 var items = this.model.get('values');
                 var disabled = this.model.get('disabled');
+                var that = this;
                 _.each(items, function(item, index) {
                    var item_query = ' :contains("' + item + '")';
-                    if (this.$buttongroup.find(item_query).length === 0) {
+                    if (that.$buttongroup.find(item_query).length === 0) {
                         $('<button />')
                             .attr('type', 'button')
                             .addClass('btn')
                             .text(item)
-                            .appendTo(this.$buttongroup)
-                            .on('click', $.proxy(this.handle_click, this));
+                            .appendTo(that.$buttongroup)
+                            .on('click', $.proxy(that.handle_click, that));
                     }
                     
                     var $item_element = this.$buttongroup.find(item_query);
@@ -314,14 +317,15 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
                 var items = this.model.get('values');
+                var that = this;
                 _.each(items, function(item, index) {
                    var item_query = ' :contains("' + item + '")';
-                    if (this.$listbox.find(item_query).length === 0) {
+                    if (that.$listbox.find(item_query).length === 0) {
                         $('<option />')
                             .text(item)
                             .attr('value', item)
-                            .appendTo(this.$listbox)
-                            .on('click', $.proxy(this.handle_click, this));
+                            .appendTo(that.$listbox)
+                            .on('click', $.proxy(that.handle_click, that));
                     } 
                 });
 
