@@ -17,7 +17,7 @@ click events on the button and trigger backend code when the clicks are fired.
 import base64
 
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Bytes
+from IPython.utils.traitlets import Unicode, CUnicode, Bytes
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -27,8 +27,8 @@ class ImageWidget(DOMWidget):
     
     # Define the custom state properties to sync with the front-end
     format = Unicode('png', sync=True)
-    width = Unicode(sync=True) # TODO: C unicode
-    height = Unicode(sync=True)
+    width = CUnicode(sync=True)
+    height = CUnicode(sync=True)
     _b64value = Unicode(sync=True)
     
     value = Bytes()
