@@ -243,6 +243,24 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Get kernel info
+     *
+     * @param callback {function}
+     * @method object_info
+     *
+     * When calling this method, pass a callback function that expects one argument.
+     * The callback will be passed the complete `kernel_info_reply` message documented
+     * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#kernel-info)
+     */
+    Kernel.prototype.kernel_info = function (callback) {
+        var callbacks;
+        if (callback) {
+            callbacks = { shell : { reply : callback } };
+        }
+        return this.send_shell_message("kernel_info_request", {}, callbacks);
+    };
+
+    /**
      * Get info on an object
      *
      * @param objname {string}
