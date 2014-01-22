@@ -20,6 +20,8 @@ Authors:
 
 import sys
 
+from IPython.utils.py3compat import cast_bytes_py2
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -28,7 +30,7 @@ class appended_to_syspath(object):
     """A context for appending a directory to sys.path for a second."""
 
     def __init__(self, dir):
-        self.dir = dir
+        self.dir = cast_bytes_py2(dir, sys.getdefaultencoding())
 
     def __enter__(self):
         if self.dir not in sys.path:
@@ -50,7 +52,7 @@ class prepended_to_syspath(object):
     """A context for prepending a directory to sys.path for a second."""
 
     def __init__(self, dir):
-        self.dir = dir
+        self.dir = cast_bytes_py2(dir, sys.getdefaultencoding())
 
     def __enter__(self):
         if self.dir not in sys.path:
