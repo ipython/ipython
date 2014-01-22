@@ -66,7 +66,7 @@ class CallbackDispatcher(LoggingConfigurable):
         # (Un)Register the callback.
         if remove and callback in callback_list:
             callback_list.remove(callback)
-        else not remove and callback not in callback_list:
+        elif not remove and callback not in callback_list:
             callback_list.append(callback)
 
     def _validate_nargs(self, nargs):
