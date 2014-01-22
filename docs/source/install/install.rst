@@ -190,7 +190,7 @@ get.  These are:
 
 * readline (for command line editing, tab completion, etc.)
 * nose (to run the IPython test suite)
-* pexpect (to use things like irunner)
+* pexpect
 
 If you are comfortable installing these things yourself, have at it, otherwise
 read on for more details.
@@ -265,21 +265,17 @@ iptest command:
 pexpect
 -------
 
-The pexpect_ package is used in IPython's :command:`irunner` script, as well as
-for managing subprocesses. IPython now includes a version of pexpect in
-:mod:`IPython.external`, but if you have installed pexpect, IPython will use
+The pexpect_ package is used
+for managing subprocesses. IPython now includes a version of Pexpect in
+:mod:`IPython.external`, but if you have installed Pexpect, IPython will use
 that instead. On Unix platforms (including OS X), just do:
 
 .. code-block:: bash
 
     $ pip install pexpect
-    
-.. note::
 
-    On Python 3, you should actually install :mod:`pexpect-u`,
-    a unicode-safe fork of pexpect.
-
-Windows users are out of luck as pexpect does not run there.
+Pexpect doesn't work on Windows, and we use other APIs for controlling
+subprocesses.
 
 Dependencies for IPython.parallel (parallel computing)
 ======================================================

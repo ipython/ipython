@@ -83,7 +83,6 @@ def install():
         'ipcontroller',
         'ipengine',
         'ipcluster',
-        'irunner',
     ]
     programs = [suffix(p) for p in programs]
     scripts = pjoin(sys.prefix, 'scripts')
