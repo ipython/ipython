@@ -39,28 +39,26 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 // Set tab titles
                 var titles = this.model.get('_titles');
-                for (var page_index in titles) {
-
+                _.each(titles, function(title, page_index) {
                     var accordian = this.containers[page_index];
                     if (accordian !== undefined) {
                         accordian
                             .find('.accordion-heading')
                             .find('.accordion-toggle')
-                            .text(titles[page_index]);
+                            .text(title);
                     }
-                }
+                });
 
                 // Set selected page
                 var selected_index = this.model.get("selected_index");
                 if (0 <= selected_index && selected_index < this.containers.length) {
-                    for (var index in this.containers) {
+                    _.each(this.containers, function(container, index) {
                         if (index==selected_index) {
-                            this.containers[index].find('.accordion-body').collapse('show');    
+                            container.find('.accordion-body').collapse('show');    
                         } else {
-                            this.containers[index].find('.accordion-body').collapse('hide');    
+                            container.find('.accordion-body').collapse('hide');    
                         }
-                        
-                    }
+                    });
                 }
             }
             return AccordionView.__super__.update.apply(this);
@@ -218,12 +216,12 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 // Set tab titles
                 var titles = this.model.get('_titles');
-                for (var page_index in titles) {
-                    var tab_text = this.containers[page_index];
+                _.each(titles, function(title, page_index) {
+                   var tab_text = this.containers[page_index];
                     if (tab_text !== undefined) {
-                        tab_text.text(titles[page_index]);
-                    }
-                }
+                        tab_text.text(title);
+                    } 
+                });
 
                 var selected_index = this.model.get('selected_index');
                 if (0 <= selected_index && selected_index < this.containers.length) {

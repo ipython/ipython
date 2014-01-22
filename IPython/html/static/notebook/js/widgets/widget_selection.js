@@ -67,13 +67,13 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 var items = this.model.get('values');
                 var $replace_droplist = $('<ul />')
                     .addClass('dropdown-menu');
-                for (var index in items) {
-                    var that = this;
+                _.each(items, function(item, i) {
                     var item_button = $('<a href="#"/>')
-                        .text(items[index])
+                        .text(item)
                         .on('click', $.proxy(this.handle_click, this));
                     $replace_droplist.append($('<li />').append(item_button));
-                }
+                });
+
                 this.$droplist.replaceWith($replace_droplist);
                 this.$droplist.remove();
                 this.$droplist = $replace_droplist;
@@ -140,41 +140,41 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 // Add missing items to the DOM.
                 var items = this.model.get('values');
                 var disabled = this.model.get('disabled');
-                for (var index in items) {
-                    var item_query = ' :input[value="' + items[index] + '"]';
+                _.each(items, function(item, index) {
+                    var item_query = ' :input[value="' + item + '"]';
                     if (this.$el.find(item_query).length === 0) {
                         var $label = $('<label />')
                             .addClass('radio')
-                            .text(items[index])
+                            .text(item)
                             .appendTo(this.$container);
                         
                         $('<input />')
                             .attr('type', 'radio')
                             .addClass(this.model)
-                            .val(items[index])
+                            .val(item)
                             .prependTo($label)
                             .on('click', $.proxy(this.handle_click, this));
                     }
                     
                     var $item_element = this.$container.find(item_query);
-                    if (this.model.get('value') == items[index]) {
+                    if (this.model.get('value') == item) {
                         $item_element.prop('checked', true);
                     } else {
                         $item_element.prop('checked', false);
                     }
                     $item_element.prop('disabled', disabled);
-                }
+                });
                 
                 // Remove items that no longer exist.
                 this.$container.find('input').each(function(i, obj) {
                     var value = $(obj).val();
                     var found = false;
-                    for (var index in items) {
-                        if (items[index] == value) {
+                    _.each(items, function(item, index) {
+                        if (item == value) {
                             found = true;
                             break;
                         }
-                    }
+                    });
                     
                     if (!found) {
                         $(obj).parent().remove();
@@ -230,37 +230,37 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 // Add missing items to the DOM.
                 var items = this.model.get('values');
                 var disabled = this.model.get('disabled');
-                for (var index in items) {
-                    var item_query = ' :contains("' + items[index] + '")';
+                _.each(items, function(item, index) {
+                   var item_query = ' :contains("' + item + '")';
                     if (this.$buttongroup.find(item_query).length === 0) {
                         $('<button />')
                             .attr('type', 'button')
                             .addClass('btn')
-                            .text(items[index])
+                            .text(item)
                             .appendTo(this.$buttongroup)
                             .on('click', $.proxy(this.handle_click, this));
                     }
                     
                     var $item_element = this.$buttongroup.find(item_query);
-                    if (this.model.get('value') == items[index]) {
+                    if (this.model.get('value') == item) {
                         $item_element.addClass('active');
                     } else {
                         $item_element.removeClass('active');
                     }
-                    $item_element.prop('disabled', disabled);
-                }
+                    $item_element.prop('disabled', disabled); 
+                });
                 
                 // Remove items that no longer exist.
                 this.$buttongroup.find('button').each(function(i, obj) {
                     var value = $(obj).text();
                     var found = false;
-                    for (var index in items) {
-                        if (items[index] == value) {
+                    _.each(items, function(item, index) {
+                        if (item == value) {
                             found = true;
                             break;
                         }
-                    }
-                    
+                    });
+
                     if (!found) {
                         $(obj).remove();
                     }
@@ -314,16 +314,16 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
                 var items = this.model.get('values');
-                for (var index in items) {
-                    var item_query = ' :contains("' + items[index] + '")';
+                _.each(items, function(item, index) {
+                   var item_query = ' :contains("' + item + '")';
                     if (this.$listbox.find(item_query).length === 0) {
                         $('<option />')
-                            .text(items[index])
-                            .attr('value', items[index])
+                            .text(item)
+                            .attr('value', item)
                             .appendTo(this.$listbox)
                             .on('click', $.proxy(this.handle_click, this));
-                    }
-                }
+                    } 
+                });
 
                 // Select the correct element
                 this.$listbox.val(this.model.get('value'));
@@ -336,12 +336,12 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 this.$listbox.find('option').each(function(i, obj) {
                     var value = $(obj).text();
                     var found = false;
-                    for (var index in items) {
-                        if (items[index] == value) {
+                    _.each(items, function(item, index) {
+                        if (item == value) {
                             found = true;
                             break;
                         }
-                    }
+                    });
                     
                     if (!found) {
                         $(obj).remove();

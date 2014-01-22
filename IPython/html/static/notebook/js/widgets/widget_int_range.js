@@ -49,12 +49,12 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 // JQuery slider option keys.  These keys happen to have a
                 // one-to-one mapping with the corrosponding keys of the model.
                 var jquery_slider_keys = ['step', 'max', 'min', 'disabled'];
-                for (var index in jquery_slider_keys) {
-                    var key = jquery_slider_keys[index];
-                    if (this.model.get(key) !== undefined) {
-                        this.$slider.slider("option", key, this.model.get(key));
+                _.each(jquery_slider_keys, function(key, i) {
+                    var model_value = this.model.get(key);
+                    if (model_value !== undefined) {
+                        this.$slider.slider("option", key, model_value);
                     }
-                }
+                });
 
                 // WORKAROUND FOR JQUERY SLIDER BUG.
                 // The horizontal position of the slider handle

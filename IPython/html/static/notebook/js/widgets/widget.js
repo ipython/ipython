@@ -86,17 +86,14 @@ function(WidgetManager, Underscore, Backbone){
 
         apply_update: function (state) {
             // Handle when a widget is updated via the python side.
-            for (var key in state) {
-                if (state.hasOwnProperty(key)) {
-                    var value = state[key];
-                    this.key_value_lock = [key, value];
-                    try {
-                        this.set(key, this._unpack_models(value));
-                    } finally {
-                        this.key_value_lock = null;
-                    }
+            _.each(state, function(value, key) {
+                this.key_value_lock = [key, value];
+                try {
+                    this.set(key, this._unpack_models(value));
+                } finally {
+                    this.key_value_lock = null;
                 }
-            }
+            });
         },
 
         _handle_status: function (msg, callbacks) {
@@ -205,9 +202,9 @@ function(WidgetManager, Underscore, Backbone){
                 return value.id;
             } else if (value instanceof Object) {
                 var packed = {};
-                for (var key in value) {
-                    packed[key] = this._pack_models(value[key]);
-                }
+                _.each(value, function(sub_value, key) {
+                    packed[key] = this._pack_models(sub_value);
+                });
                 return packed;
             } else {
                 return value;
@@ -218,9 +215,9 @@ function(WidgetManager, Underscore, Backbone){
             // Replace model ids with models recursively.
             if (value instanceof Object) {
                 var unpacked = {};
-                for (var key in value) {
-                    unpacked[key] = this._unpack_models(value[key]);
-                }
+                _.each(value, function(sub_value, key) {
+                    unpacked[key] = this._unpack_models(sub_value);
+                });
                 return unpacked;
             } else {
                 var model = this.widget_manager.get_model(value);
@@ -369,20 +366,16 @@ function(WidgetManager, Underscore, Backbone){
      
             var css = this.model.get('_css');
             if (css === undefined) {return;}
-            for (var selector in css) {
-                if (css.hasOwnProperty(selector)) {
-                    // Apply the css traits to all elements that match the selector.
-                    var elements = this._get_selector_element(selector);
-                    if (elements.length > 0) {
-                        var css_traits = css[selector];    
-                        for (var css_key in css_traits) {
-                            if (css_traits.hasOwnProperty(css_key)) {
-                                elements.css(css_key, css_traits[css_key]);
-                            }
-                        }
-                    }
+            _.each(css, function(css_traits, selector){
+                // Apply the css traits to all elements that match the selector.
+                var elements = this._get_selector_element(selector);
+                if (elements.length > 0) {
+                    _.each(css_traits, function(css_value, css_key){
+                        elements.css(css_key, css_value);
+                    });
                 }
-            }
+            });
+                    
         },
 
         _get_selector_element: function (selector) {

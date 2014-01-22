@@ -34,14 +34,12 @@
 
             // Attach a comm manager to the 
             this.comm_manager = comm_manager;
+            this._models = {}; /* Dictionary of model ids and model instances */
 
             // Register already-registered widget model types with the comm manager.
-            for (var name in WidgetManager._model_types) {
-                if (WidgetManager._model_types.hasOwnProperty(name)) {
-                    this.comm_manager.register_target(name, $.proxy(this._handle_comm_open, this));
-
-                }
-            }
+            _.each(WidgetManager._model_types, function(value, key) {
+                this.comm_manager.register_target(value, $.proxy(this._handle_comm_open, this));
+            });
         };
 
         //--------------------------------------------------------------------
@@ -49,7 +47,6 @@
         //--------------------------------------------------------------------
         WidgetManager._model_types = {}; /* Dictionary of model type names (target_name) and model types. */
         WidgetManager._view_types = {}; /* Dictionary of view names and view types. */
-        WidgetManager._models = {}; /* Dictionary of model ids and model instances */
         WidgetManager._managers = []; /* List of widget managers */
 
         WidgetManager.register_widget_model = function (model_name, model_type) {
@@ -58,12 +55,11 @@
 
             // Register the widget with the comm manager.  Make sure to pass this object's context
             // in so `this` works in the call back.
-            for (var i = 0; i < WidgetManager._managers.length; i++) {
-                var instance = WidgetManager._managers[i];
+            _.each(WidgetManager._managers, function(instance, i) {
                 if (instance.comm_manager !== null) {
                     instance.comm_manager.register_target(model_name, $.proxy(instance._handle_comm_open, instance));
                 }
-            }
+            });
         };
 
         WidgetManager.register_widget_view = function (view_name, view_type) {
@@ -169,7 +165,7 @@
         };
 
         WidgetManager.prototype.get_model = function (model_id) {
-            var model = WidgetManager._models[model_id];
+            var model = this._models[model_id];
             if (model !== undefined && model.id == model_id) {
                 return model;
             }
@@ -180,7 +176,7 @@
             var model_id = comm.comm_id;
             var widget_type_name = msg.content.target_name;
             var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
-            WidgetManager._models[model_id] = widget_model;
+            this._models[model_id] = widget_model;
         };
         
         IPython.WidgetManager = WidgetManager;
