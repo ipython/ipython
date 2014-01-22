@@ -37,8 +37,9 @@
             this._models = {}; /* Dictionary of model ids and model instances */
 
             // Register already-registered widget model types with the comm manager.
+            var that = this;
             _.each(WidgetManager._model_types, function(value, key) {
-                this.comm_manager.register_target(value, $.proxy(this._handle_comm_open, this));
+                that.comm_manager.register_target(value, $.proxy(that._handle_comm_open, that));
             });
         };
 

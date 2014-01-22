@@ -172,7 +172,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     _.each(items, function(item, index) {
                         if (item == value) {
                             found = true;
-                            break;
+                            return false;
                         }
                     });
                     
@@ -257,7 +257,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     _.each(items, function(item, index) {
                         if (item == value) {
                             found = true;
-                            break;
+                            return false;
                         }
                     });
 
@@ -339,7 +339,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     _.each(items, function(item, index) {
                         if (item == value) {
                             found = true;
-                            break;
+                            return false;
                         }
                     });
                     
