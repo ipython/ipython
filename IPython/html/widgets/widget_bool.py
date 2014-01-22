@@ -19,15 +19,16 @@ from IPython.utils.traitlets import Unicode, Bool, List
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class CheckBoxWidget(DOMWidget):
-    view_name = Unicode('CheckBoxView', sync=True)
-
-    # Model Keys
+class _BoolWidget(DOMWidget):
     value = Bool(False, help="Bool value", sync=True)
     description = Unicode('', help="Description of the boolean (label).", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
 
-class ToggleButtonWidget(CheckBoxWidget):
+class CheckBoxWidget(_BoolWidget):
+    view_name = Unicode('CheckBoxView', sync=True)
+
+
+class ToggleButtonWidget(_BoolWidget):
     view_name = Unicode('ToggleButtonView', sync=True)
     

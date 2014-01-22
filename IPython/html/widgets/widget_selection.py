@@ -19,23 +19,24 @@ from IPython.utils.traitlets import Unicode, List, Bool
 #-----------------------------------------------------------------------------
 # SelectionWidget
 #-----------------------------------------------------------------------------
-class ToggleButtonsWidget(DOMWidget):
-    view_name = Unicode('ToggleButtonsView', sync=True)
-
-    # Keys
+class _SelectionWidget(DOMWidget):
     value = Unicode(help="Selected value", sync=True) # TODO: Any support
     values = List(help="List of values the user can select", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
-class DropdownWidget(ToggleButtonsWidget):
+class ToggleButtonsWidget(_SelectionWidget):
+    view_name = Unicode('ToggleButtonsView', sync=True)
+
+
+class DropdownWidget(_SelectionWidget):
     view_name = Unicode('DropdownView', sync=True)
 
 
-class RadioButtonsWidget(ToggleButtonsWidget):
+class RadioButtonsWidget(_SelectionWidget):
     view_name = Unicode('RadioButtonsView', sync=True)
     
 
-class ListBoxWidget(ToggleButtonsWidget):
+class ListBoxWidget(_SelectionWidget):
     view_name = Unicode('ListBoxView', sync=True)

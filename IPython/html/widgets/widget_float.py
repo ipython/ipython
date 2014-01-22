@@ -14,15 +14,46 @@ Represents an unbounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CFloat, Bool, List
+from IPython.utils.traitlets import Unicode, CFloat, Bool, List, Enum
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class FloatTextWidget(DOMWidget):
-    view_name = Unicode('FloatTextView', sync=True)
-
-    # Keys
+class _FloatWidget(DOMWidget):
     value = CFloat(0.0, help="Float value", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
+
+
+class _BoundedFloatWidget(_FloatWidget):
+    max = CFloat(100.0, help="Max value", sync=True)
+    min = CFloat(0.0, help="Min value", sync=True)
+    step = CFloat(0.1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+
+    def __init__(self, *pargs, **kwargs):
+        """Constructor"""
+        DOMWidget.__init__(self, *pargs, **kwargs)
+        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+
+    def _validate(self, name, old, new):
+        """Validate value, max, min."""
+        if self.min > new or new > self.max:
+            self.value = min(max(new, self.min), self.max)
+
+
+class FloatTextWidget(_FloatWidget):
+    view_name = Unicode('FloatTextView', sync=True)
+
+
+class BoundedFloatTextWidget(_BoundedFloatWidget):
+    view_name = Unicode('FloatTextView', sync=True)
+
+
+class FloatSliderWidget(_BoundedFloatWidget):
+    view_name = Unicode('FloatSliderView', sync=True)
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
+        help="Vertical or horizontal.", sync=True)
+
+
+class FloatProgressWidget(_BoundedFloatWidget):
+    view_name = Unicode('ProgressView', sync=True)

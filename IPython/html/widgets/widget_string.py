@@ -19,27 +19,28 @@ from IPython.utils.traitlets import Unicode, Bool, List
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class HTMLWidget(DOMWidget):
-    view_name = Unicode('HTMLView', sync=True)
-
-    # Keys
+class _StringWidget(DOMWidget):
     value = Unicode(help="String value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
-class LatexWidget(HTMLWidget):
+class HTMLWidget(_StringWidget):
+    view_name = Unicode('HTMLView', sync=True)    
+
+
+class LatexWidget(_StringWidget):
     view_name = Unicode('LatexView', sync=True)
 
 
-class TextAreaWidget(HTMLWidget):
+class TextAreaWidget(_StringWidget):
     view_name = Unicode('TextAreaView', sync=True)
 
     def scroll_to_bottom(self):
         self.send({"method": "scroll_to_bottom"})
 
 
-class TextBoxWidget(HTMLWidget):
+class TextBoxWidget(_StringWidget):
     view_name = Unicode('TextBoxView', sync=True)
 
     def __init__(self, **kwargs):
