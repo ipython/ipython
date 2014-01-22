@@ -60,7 +60,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
     WidgetManager.register_widget_view('ContainerView', ContainerView);
 
 
-    var ModalView = IPython.DOMWidgetView.extend({ 
+    var PopupView = IPython.DOMWidgetView.extend({ 
         render: function(){
             // Called when view is rendered.
             var that = this;
@@ -244,7 +244,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 this.show();
             }
             
-            return ModalView.__super__.update.apply(this);
+            return PopupView.__super__.update.apply(this);
         },
         
         _get_selector_element: function(selector) {
@@ -264,9 +264,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                     return this.$window.find(selector.substring(6));
                 }
             } else {
-                return ModalView.__super__._get_selector_element.apply(this, [selector]);
+                return PopupView.__super__._get_selector_element.apply(this, [selector]);
             }
         },
     });
-    WidgetManager.register_widget_view('ModalView', ModalView);
+    WidgetManager.register_widget_view('PopupView', PopupView);
 });

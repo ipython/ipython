@@ -45,8 +45,8 @@ class ContainerWidget(DOMWidget):
             self._children = children
 
 
-class ModalWidget(ContainerWidget):
-    view_name = Unicode('ModalView', sync=True)
+class PopupWidget(ContainerWidget):
+    view_name = Unicode('PopupView', sync=True)
     
     description = Unicode(sync=True)
     button_text = Unicode(sync=True)
