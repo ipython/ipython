@@ -77,7 +77,7 @@
                     " message was from.  Widget will not be displayed");
             } else {
                 var view = this.create_view(model, {cell: cell});
-                if (view === undefined) {
+                if (view === null) {
                     console.error("View creation failed", model);
                 }
                 if (cell.widget_subarea !== undefined
@@ -101,6 +101,7 @@
                 model.on('destroy', view.remove, view);
                 return view;
             }
+            return null;
         },
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
