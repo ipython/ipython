@@ -210,7 +210,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
             except Exception:
                 self.log.critical("Could not find existing kernel connection file %s", self.existing)
                 self.exit(1)
-            self.log.info("Connecting to existing kernel: %s" % cf)
+            self.log.debug("Connecting to existing kernel: %s" % cf)
             self.connection_file = cf
         else:
             # not existing, check if we are going to write the file
@@ -303,8 +303,8 @@ class IPythonConsoleApp(ConnectionFileMixin):
         base,ext = os.path.splitext(cf)
         base = os.path.basename(base)
         self.connection_file = os.path.basename(base)+'-ssh'+ext
-        self.log.critical("To connect another client via this tunnel, use:")
-        self.log.critical("--existing %s" % self.connection_file)
+        self.log.info("To connect another client via this tunnel, use:")
+        self.log.info("--existing %s" % self.connection_file)
     
     def _new_connection_file(self):
         cf = ''
