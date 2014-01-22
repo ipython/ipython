@@ -158,8 +158,8 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                             .on('click', $.proxy(that.handle_click, that));
                     }
                     
-                    var $item_element = this.$container.find(item_query);
-                    if (this.model.get('value') == item) {
+                    var $item_element = that.$container.find(item_query);
+                    if (that.model.get('value') == item) {
                         $item_element.prop('checked', true);
                     } else {
                         $item_element.prop('checked', false);
@@ -244,8 +244,8 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                             .on('click', $.proxy(that.handle_click, that));
                     }
                     
-                    var $item_element = this.$buttongroup.find(item_query);
-                    if (this.model.get('value') == item) {
+                    var $item_element = that.$buttongroup.find(item_query);
+                    if (that.model.get('value') == item) {
                         $item_element.addClass('active');
                     } else {
                         $item_element.removeClass('active');
