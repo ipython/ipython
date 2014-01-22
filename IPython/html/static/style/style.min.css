@@ -1545,7 +1545,7 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 #fonttest{font-family:monospace;}
 p{margin-bottom:0;}
 .end_space{height:200px;}
-.dirty .prompt{color:#808080;}
+.dirty .prompt{color:gray;}
 .celltoolbar{border:thin solid #CFCFCF;border-bottom:none;background:#EEE;border-radius:3px 3px 0px 0px;width:100%;-webkit-box-pack:end;height:22px;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;-webkit-box-direction:reverse;-moz-box-direction:reverse;box-direction:reverse;}
 .ctb_hideshow{display:none;vertical-align:bottom;padding-right:2px;}
 .celltoolbar>div{padding-top:0px;}

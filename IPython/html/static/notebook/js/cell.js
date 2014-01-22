@@ -100,7 +100,7 @@ var IPython = (function (IPython) {
      * @method mark_clean
      */
     Cell.prototype.mark_clean = function(){
-        this._clean_generation = this.code_mirror.changeGeneration()
+        this._clean_generation = this.code_mirror.changeGeneration();
         this.mark_maybe_dirty();
     }
 
@@ -158,7 +158,7 @@ var IPython = (function (IPython) {
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
                 $([IPython.events]).trigger("set_dirty.Notebook", {value: true});
-                that.mark_maybe_dirty()
+                that.mark_maybe_dirty();
             });
         }
         if (this.code_mirror) {
@@ -373,6 +373,7 @@ var IPython = (function (IPython) {
             this.metadata = data.metadata;
         }
         this.celltoolbar.rebuild();
+        this.mark_clean();
     };
 
 

@@ -503,6 +503,7 @@ var IPython = (function (IPython) {
                 }
             }
         }
+        this.mark_clean();
     };
 
 
