@@ -33,7 +33,7 @@ function(WidgetManager, Underscore, Backbone){
             // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
             this.pending_msgs = 0;
-            this.msg_throttle = 2;
+            this.msg_throttle = 3;
             this.msg_buffer = null;
             this.key_value_lock = null;
             this.id = model_id;
