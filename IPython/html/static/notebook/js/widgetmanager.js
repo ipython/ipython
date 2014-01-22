@@ -90,10 +90,18 @@
             }
         },
 
-        WidgetManager.prototype.create_view = function(model, options) {
+        WidgetManager.prototype.create_view = function(model, options, view) {
             var view_name = model.get('view_name');
             var ViewType = WidgetManager._view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
+
+                // If a view is passed into the method, use that view's cell as
+                // the cell for the view that is created.
+                options = options || {};
+                if (view !== undefined) {
+                    options.cell = view.options.cell;
+                }
+
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.render();

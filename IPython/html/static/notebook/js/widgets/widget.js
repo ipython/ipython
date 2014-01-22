@@ -261,7 +261,7 @@ function(WidgetManager, Underscore, Backbone){
             // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
-            var child_view = this.model.widget_manager.create_view(child_model, options || {});
+            var child_view = this.model.widget_manager.create_view(child_model, options || {}, this);
             this.child_views[child_model.id] = child_view;
             return child_view;
         },
