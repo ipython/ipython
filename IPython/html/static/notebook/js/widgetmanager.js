@@ -166,6 +166,7 @@
         };
 
         WidgetManager.prototype.get_model = function (model_id) {
+            // Look-up a model instance by its id.
             var model = this._models[model_id];
             if (model !== undefined && model.id == model_id) {
                 return model;
@@ -174,6 +175,7 @@
         };
 
         WidgetManager.prototype._handle_comm_open = function (comm, msg) {
+            // Handle when a comm is opened.
             var model_id = comm.comm_id;
             var widget_type_name = msg.content.target_name;
             var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);

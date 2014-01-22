@@ -132,6 +132,7 @@ function(WidgetManager, Underscore, Backbone){
         },
 
         sync: function (method, model, options) {
+            // Handle sync to the back-end.  Called when a model.save() is called.
 
             // Make sure a comm exists.
             var error = options.error || function() {
@@ -315,7 +316,6 @@ function(WidgetManager, Underscore, Backbone){
         touch: function () {
             this.model.save_changes(this.callbacks());
         },
-
     });
 
 
