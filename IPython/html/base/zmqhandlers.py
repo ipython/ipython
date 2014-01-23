@@ -48,6 +48,9 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         origin_header = self.request.headers.get("Origin")
         host = self.request.headers.get("Host")
 
+        if(origin_header == None or host == None):
+            return True
+
         parsed_origin = urlparse(origin_header)
         origin = parsed_origin.netloc
 
