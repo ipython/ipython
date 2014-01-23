@@ -27,12 +27,7 @@ class ContainerWidget(DOMWidget):
     children = List(Instance(DOMWidget))
     _children = List(Instance(DOMWidget), sync=True)
 
-    def __init__(self, *pargs, **kwargs):
-        """Constructor"""
-        DOMWidget.__init__(self, *pargs, **kwargs)
-        self.on_trait_change(self._validate, ['children'])
-
-    def _validate(self, name, old, new):
+    def _children_changed(self, name, old, new):
         """Validate children list.
 
         Makes sure only one instance of any given model can exist in the 
@@ -46,7 +41,7 @@ class ContainerWidget(DOMWidget):
             def add_item(i):
                 seen[i.model_id] = True
                 return i
-            return [add_item(i) for i in new if not i.model_id in seen]
+            self._children = [add_item(i) for i in new if not i.model_id in seen]
 
 
 class PopupWidget(ContainerWidget):
