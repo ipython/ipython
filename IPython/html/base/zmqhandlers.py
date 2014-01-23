@@ -49,7 +49,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         host = self.request.headers.get("Host")
 
         # If no header is provided, assume we can't verify origin
-        if(origin_header == None or host == None):
+        if(origin_header is None or host is None):
             return False
 
         parsed_origin = urlparse(origin_header)
