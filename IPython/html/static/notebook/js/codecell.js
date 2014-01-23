@@ -409,7 +409,12 @@ var IPython = (function (IPython) {
 
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
-        var ns = prompt_value || "&nbsp;";
+        var ns;
+        if (prompt_value == undefined) {
+            ns = "&nbsp;";
+        } else {
+            ns = encodeURIComponent(prompt_value);
+        }
         return 'In&nbsp;[' + ns + ']:';
     };
 
