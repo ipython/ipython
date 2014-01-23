@@ -43,19 +43,20 @@ from .handlers import IPythonHandler
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
 
-    def is_cross_origin(self):
+    def same_origin(self):
         """Check to see that origin and host match in the headers."""
         origin_header = self.request.headers.get("Origin")
         host = self.request.headers.get("Host")
 
+        # If no header is provided, assume we can't verify origin
         if(origin_header == None or host == None):
-            return True
+            return False
 
         parsed_origin = urlparse(origin_header)
         origin = parsed_origin.netloc
 
         # Check to see that origin matches host directly, including ports
-        return origin != host
+        return origin == host
 
     def clear_cookie(self, *args, **kwargs):
         """meaningless for websockets"""
@@ -106,7 +107,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def open(self, kernel_id):
         # Check to see that origin matches host directly, including ports
-        if self.is_cross_origin():
+        if not self.same_origin():
             self.log.warn("Cross Origin WebSocket Attempt.")
             raise web.HTTPError(404)
 
