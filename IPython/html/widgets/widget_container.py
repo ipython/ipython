@@ -36,13 +36,17 @@ class ContainerWidget(DOMWidget):
         """Validate children list.
 
         Makes sure only one instance of any given model can exist in the 
-        children list."""
+        children list.
+        An excellent post on uniqifiers is available at 
+            http://www.peterbe.com/plog/uniqifiers-benchmark
+        which provides the inspiration for using this implementation.  Below
+        I've implemented the `f5` algorithm using Python comprehensions."""
         if new is not None and isinstance(new, list):
-            children = []
-            for child in new:
-                if child not in children:
-                    children.append(child)
-            self._children = children
+            seen = {}
+            def add_item(i):
+                seen[i.model_id] = True
+                return i
+            return [add_item(i) for i in new if not i.model_id in seen]
 
 
 class PopupWidget(ContainerWidget):
