@@ -40,9 +40,12 @@ class CallbackDispatcher(LoggingConfigurable):
         positional arguments."""
         nargs = len(pargs)
         self._validate_nargs(nargs)
+        value = None
         if nargs in self.callbacks:
             for callback in self.callbacks[nargs]:
-                callback(*pargs, **kwargs)
+                local_value = callback(*pargs, **kwargs)
+                value = local_value if local_value is not None else value
+        return value
 
     def register_callback(self, callback, remove=False):
         """(Un)Register a callback
