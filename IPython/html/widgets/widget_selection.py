@@ -24,33 +24,35 @@ from IPython.utils.traitlets import Unicode, List, Bool, Any, Dict
 class _SelectionWidget(DOMWidget):
     value = Any(help="Selected value") 
     values = List(help="List of values the user can select")
-    value_names = Dict(help="""List of string representations for each value.  
+    labels = List(help="""List of string representations for each value.  
         These string representations are used to display the values in the
-        front-end.""")
+        front-end.""", sync=True) # Only synced to the back-end.
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
     _value = Unicode(sync=True) # Bi-directionally synced.
-    _values = List(sync=True) # Only back-end to front-end synced.
-    _reverse_value_names = Dict()
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
-        DOMWidget.__init__(self, *pargs, **kwargs)
         self.value_lock = Lock()
         self.on_trait_change(self._string_value_set, ['_value'])
+        DOMWidget.__init__(self, *pargs, **kwargs)
 
-    def _value_names_changed(self, name=None, old=None, new=None):
+    def _labels_changed(self, name=None, old=None, new=None):
         """Handles when the value_names Dict has been changed.
 
         This method sets the _reverse_value_names Dict to the inverse of the new
         value for the value_names Dict."""
-        self._reverse_value_names = {v:k for k, v in self.value_names.items()}
-        self._values_changed()
+        if len(new) != len(self.values):
+            raise TypeError('Labels list must be the same size as the values list.')
 
     def _values_changed(self, name=None, old=None, new=None):
-        """Called when values has been changed"""
-        self._values = [self._get_string_repr(v) for v in self.values]
+        """Handles when the value_names Dict has been changed.
+
+        This method sets the _reverse_value_names Dict to the inverse of the new
+        value for the value_names Dict."""
+        if len(new) != len(self.labels):
+            self.labels = [(self.labels[i] if i < len(self.labels) else str(v)) for i, v in enumerate(new)]
 
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
@@ -59,25 +61,18 @@ class _SelectionWidget(DOMWidget):
                 # Make sure the value is in the list of values.
                 if new in self.values:
                     # Set the string version of the value.
-                    self._value = self._get_string_repr(new)
+                    self._value = self.labels[self.values.index(new)]
                 else:
                     raise TypeError('Value must be a value in the values list.')
             finally:
                 self.value_lock.release()
 
-    def _get_string_repr(self, value):
-        """Get the string repr of a value"""
-        if value not in self.value_names:
-            self.value_names[value] = str(value)
-            self._value_names_changed()
-        return self.value_names[value]
-
     def _string_value_set(self, name, old, new):
         """Called when _value has been changed."""
         if self.value_lock.acquire(False):
             try:
-                if new in self._reverse_value_names:
-                    self.value = self._reverse_value_names[new]
+                if new in self.labels:
+                    self.value = self.values[self.labels.index(new)]
                 else:
                     self.value = None
             finally:

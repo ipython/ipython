@@ -64,7 +64,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$droplabel.text(selected_item_text);
                 }
                 
-                var items = this.model.get('_values');
+                var items = this.model.get('labels');
                 var $replace_droplist = $('<ul />')
                     .addClass('dropdown-menu');
                 var that = this;
@@ -139,7 +139,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('_values');
+                var items = this.model.get('labels');
                 var disabled = this.model.get('disabled');
                 var that = this;
                 _.each(items, function(item, index) {
@@ -230,7 +230,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('_values');
+                var items = this.model.get('labels');
                 var disabled = this.model.get('disabled');
                 var that = this;
                 _.each(items, function(item, index) {
@@ -316,7 +316,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('_values');
+                var items = this.model.get('labels');
                 var that = this;
                 _.each(items, function(item, index) {
                    var item_query = ' :contains("' + item + '")';
