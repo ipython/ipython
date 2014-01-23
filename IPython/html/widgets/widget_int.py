@@ -42,18 +42,18 @@ class _BoundedIntWidget(_IntWidget):
 
 
 class IntTextWidget(_IntWidget):
-    view_name = Unicode('IntTextView', sync=True)
+    _view_name = Unicode('IntTextView', sync=True)
 
 
 class BoundedIntTextWidget(_BoundedIntWidget):
-    view_name = Unicode('IntTextView', sync=True)
+    _view_name = Unicode('IntTextView', sync=True)
 
 
 class IntSliderWidget(_BoundedIntWidget):
-    view_name = Unicode('IntSliderView', sync=True)
+    _view_name = Unicode('IntSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
 
 
 class IntProgressWidget(_BoundedIntWidget):
-    view_name = Unicode('ProgressView', sync=True)
+    _view_name = Unicode('ProgressView', sync=True)

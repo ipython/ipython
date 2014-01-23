@@ -23,7 +23,7 @@ from IPython.utils.traitlets import Unicode, CUnicode, Bytes
 # Classes
 #-----------------------------------------------------------------------------
 class ImageWidget(DOMWidget):
-    view_name = Unicode('ImageView', sync=True)
+    _view_name = Unicode('ImageView', sync=True)
     
     # Define the custom state properties to sync with the front-end
     format = Unicode('png', sync=True)

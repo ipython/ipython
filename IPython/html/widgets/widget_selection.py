@@ -85,16 +85,16 @@ class _SelectionWidget(DOMWidget):
 
 
 class ToggleButtonsWidget(_SelectionWidget):
-    view_name = Unicode('ToggleButtonsView', sync=True)
+    _view_name = Unicode('ToggleButtonsView', sync=True)
 
 
 class DropdownWidget(_SelectionWidget):
-    view_name = Unicode('DropdownView', sync=True)
+    _view_name = Unicode('DropdownView', sync=True)
 
 
 class RadioButtonsWidget(_SelectionWidget):
-    view_name = Unicode('RadioButtonsView', sync=True)
+    _view_name = Unicode('RadioButtonsView', sync=True)
     
 
 class ListBoxWidget(_SelectionWidget):
-    view_name = Unicode('ListBoxView', sync=True)
+    _view_name = Unicode('ListBoxView', sync=True)

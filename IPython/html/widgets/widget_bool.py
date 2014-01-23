@@ -26,9 +26,9 @@ class _BoolWidget(DOMWidget):
 
 
 class CheckBoxWidget(_BoolWidget):
-    view_name = Unicode('CheckBoxView', sync=True)
+    _view_name = Unicode('CheckBoxView', sync=True)
 
 
 class ToggleButtonWidget(_BoolWidget):
-    view_name = Unicode('ToggleButtonView', sync=True)
+    _view_name = Unicode('ToggleButtonView', sync=True)
     

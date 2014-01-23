@@ -51,8 +51,8 @@ class _SelectionContainerWidget(ContainerWidget):
 
 
 class AccordionWidget(_SelectionContainerWidget):
-    view_name = Unicode('AccordionView', sync=True)
+    _view_name = Unicode('AccordionView', sync=True)
 
 
 class TabWidget(_SelectionContainerWidget):
-    view_name = Unicode('TabView', sync=True)
+    _view_name = Unicode('TabView', sync=True)

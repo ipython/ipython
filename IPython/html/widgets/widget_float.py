@@ -42,18 +42,18 @@ class _BoundedFloatWidget(_FloatWidget):
 
 
 class FloatTextWidget(_FloatWidget):
-    view_name = Unicode('FloatTextView', sync=True)
+    _view_name = Unicode('FloatTextView', sync=True)
 
 
 class BoundedFloatTextWidget(_BoundedFloatWidget):
-    view_name = Unicode('FloatTextView', sync=True)
+    _view_name = Unicode('FloatTextView', sync=True)
 
 
 class FloatSliderWidget(_BoundedFloatWidget):
-    view_name = Unicode('FloatSliderView', sync=True)
+    _view_name = Unicode('FloatSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
 
 
 class FloatProgressWidget(_BoundedFloatWidget):
-    view_name = Unicode('ProgressView', sync=True)
+    _view_name = Unicode('ProgressView', sync=True)

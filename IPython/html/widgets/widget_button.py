@@ -21,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Bool
 # Classes
 #-----------------------------------------------------------------------------
 class ButtonWidget(DOMWidget):
-    view_name = Unicode('ButtonView', sync=True)
+    _view_name = Unicode('ButtonView', sync=True)
 
     # Keys
     description = Unicode('', help="Description of the button (label).", sync=True)

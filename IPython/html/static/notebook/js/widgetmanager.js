@@ -91,7 +91,7 @@
         },
 
         WidgetManager.prototype.create_view = function(model, options, view) {
-            var view_name = model.get('view_name');
+            var view_name = model.get('_view_name');
             var ViewType = WidgetManager._view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
 

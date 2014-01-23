@@ -20,7 +20,7 @@ from IPython.utils.traitlets import Unicode, Bool, List, Instance
 # Classes
 #-----------------------------------------------------------------------------
 class ContainerWidget(DOMWidget):
-    view_name = Unicode('ContainerView', sync=True)
+    _view_name = Unicode('ContainerView', sync=True)
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
@@ -50,7 +50,7 @@ class ContainerWidget(DOMWidget):
 
 
 class PopupWidget(ContainerWidget):
-    view_name = Unicode('PopupView', sync=True)
+    _view_name = Unicode('PopupView', sync=True)
     
     description = Unicode(sync=True)
     button_text = Unicode(sync=True)

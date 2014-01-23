@@ -26,22 +26,22 @@ class _StringWidget(DOMWidget):
 
 
 class HTMLWidget(_StringWidget):
-    view_name = Unicode('HTMLView', sync=True)    
+    _view_name = Unicode('HTMLView', sync=True)    
 
 
 class LatexWidget(_StringWidget):
-    view_name = Unicode('LatexView', sync=True)
+    _view_name = Unicode('LatexView', sync=True)
 
 
 class TextAreaWidget(_StringWidget):
-    view_name = Unicode('TextAreaView', sync=True)
+    _view_name = Unicode('TextAreaView', sync=True)
 
     def scroll_to_bottom(self):
         self.send({"method": "scroll_to_bottom"})
 
 
 class TextBoxWidget(_StringWidget):
-    view_name = Unicode('TextBoxView', sync=True)
+    _view_name = Unicode('TextBoxView', sync=True)
 
     def __init__(self, **kwargs):
         super(TextBoxWidget, self).__init__(**kwargs)
