@@ -6,7 +6,7 @@ casper.notebook_test(function () {
     this.evaluate(function () {
         IPython.notebook.kernel.kernel_info(
             function(msg){
-                    IPyton._kernel_info_response = msg;
+                    IPython._kernel_info_response = msg;
             })
     });
 
@@ -18,7 +18,7 @@ casper.notebook_test(function () {
     });
 
     this.then(function () {
-        var kernel_info_response=  this.evaluate(function(){
+        var kernel_info_response =  this.evaluate(function(){
             return IPython._kernel_info_response;
         });
         this.test.assertTrue( kernel_info_response.msg_type === 'kernel_info_reply', 'Kernel info request return kernel_info_reply');
