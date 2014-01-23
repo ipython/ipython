@@ -190,10 +190,13 @@ get.  These are:
 
 * readline (for command line editing, tab completion, etc.)
 * nose (to run the IPython test suite)
-* pexpect
 
 If you are comfortable installing these things yourself, have at it, otherwise
 read on for more details.
+
+IPython uses several other modules, such as pexpect_ and path.py, if they are
+installed on your system, but it can also use bundled versions from
+:mod:`IPython.external`, so there's no need to install them separately.
 
 readline
 --------
@@ -261,21 +264,6 @@ iptest command:
 .. code-block:: bash
 
     $ iptest
-
-pexpect
--------
-
-The pexpect_ package is used
-for managing subprocesses. IPython now includes a version of Pexpect in
-:mod:`IPython.external`, but if you have installed Pexpect, IPython will use
-that instead. On Unix platforms (including OS X), just do:
-
-.. code-block:: bash
-
-    $ pip install pexpect
-
-Pexpect doesn't work on Windows, and we use other APIs for controlling
-subprocesses.
 
 Dependencies for IPython.parallel (parallel computing)
 ======================================================
@@ -437,7 +425,7 @@ On other platforms, you can get pandoc from `their website <http://johnmacfarlan
 .. _PyZMQ: https://github.com/zeromq/pyzmq
 .. _paramiko: https://github.com/robey/paramiko
 .. _pygments: http://pygments.org
-.. _pexpect: http://www.noah.org/wiki/Pexpect
+.. _pexpect: http://pexpect.readthedocs.org/en/latest/
 .. _Jinja: http://jinja.pocoo.org
 .. _Sphinx: http://sphinx-doc.org
 .. _pandoc: http://johnmacfarlane.net/pandoc
