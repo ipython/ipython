@@ -14,6 +14,7 @@
 import sys
 import nose.tools as nt
 from IPython.utils.process import process_handler
+from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -29,24 +30,22 @@ print(a, '.', b)
 
 IPython.embed()
 
-print 'bye!'
+print('bye!')
 """
 
 def test_ipython_embed():
-    """test that `ipython [subcommand] --help-all` works"""
-    #with TempFile as f:
-    #    f.write("some embed case goes here")
+    """test that `IPython.embed()` works"""
+    with NamedFileInTemporaryDirectory('file_with_embed.py') as f:
+        f.write(_sample_embed)
+        f.flush()
 
-    # run `python file_with_embed.py`
-    fname = '/home/pi/code/workspace/rambles/test_embed.py'
-    cmd = [sys.executable, fname]
+        # run `python file_with_embed.py`
+        cmd = [sys.executable, f.name]
 
-    #p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    print "\nhere's the command:", cmd
-    _, out, p = process_handler(cmd,
-            lambda p: (p.stdin.write("exit\r"), p.communicate()[:], p))
-    print out[1]
-    nt.assert_equal(p.returncode, 0)
-    nt.assert_equal(p.returncode, 0)
-#out, err, rc = tt.get_output_error_code(cmd)
+        _, out, p = process_handler(cmd,
+                lambda p: (p.stdin.write("exit\r"), p.communicate()[:], p))
+        nt.assert_equal(p.returncode, 0)
+        nt.assert_in('3 . 14', out[0])
+        nt.assert_in('IPython', out[0])
+        nt.assert_in('bye!', out[0])
 
