@@ -197,7 +197,7 @@ var IPython = (function (IPython) {
     }
 
     // easy access for julia monkey patching.
-    Tooltip.last_token_re = /[a-z_][0-9a-z._]+$/gi;
+    Tooltip.last_token_re = /[a-z_][0-9a-z._]*$/gi;
 
     Tooltip.prototype.extract_oir_token = function(line){
         // use internally just to make the request to the kernel
