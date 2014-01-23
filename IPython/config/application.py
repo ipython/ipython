@@ -507,12 +507,10 @@ class Application(SingletonConfigurable):
         """
         pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
         jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
-        config_found = False
         config = None
         for loader in [pyloader, jsonloader]:
             try:
                 config = loader.load_config()
-                config_found = True
             except ConfigFileNotFound:
                 pass
             except Exception:
@@ -529,8 +527,6 @@ class Application(SingletonConfigurable):
             if config:
                  yield config
 
-        if not config_found:
-            raise ConfigFileNotFound('Neither .json, nor .py config file found.')
         raise StopIteration
 
 
