@@ -65,7 +65,9 @@ function(WidgetManager, Underscore, Backbone){
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.model_id; // Delete id from model so widget manager cleans up.
-            // TODO: Handle deletion, like this.destroy(), and delete views, etc.
+            _.each(this.views, function(view, i) {
+                view.remove();
+            });
         },
 
         _handle_comm_msg: function (msg) {
