@@ -123,9 +123,8 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'for widget in selection:\n' +
-        '    widget.values.append("z")\n' +
-        '    widget.send_state()\n' +
-        '    widget.value = "z"');
+        '    widget.values = list(widget.values) + ["z"]\n' +
+        'selection[0].value = "z"');
     this.execute_cell_then(index, function(index){
 
         // Verify that selecting a combobox option updates all of the others.
