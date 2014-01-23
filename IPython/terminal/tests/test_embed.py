@@ -33,19 +33,22 @@ IPython.embed()
 print('bye!')
 """
 
+_exit = "exit\r".encode('UTF-8')
+
 def test_ipython_embed():
     """test that `IPython.embed()` works"""
     with NamedFileInTemporaryDirectory('file_with_embed.py') as f:
-        f.write(_sample_embed)
+        f.write(_sample_embed.encode('UTF-8'))
         f.flush()
 
         # run `python file_with_embed.py`
         cmd = [sys.executable, f.name]
 
         _, out, p = process_handler(cmd,
-                lambda p: (p.stdin.write("exit\r"), p.communicate()[:], p))
+                lambda p: (p.stdin.write(_exit), p.communicate()[:], p))
+        std = out[0].decode('UTF-8')
         nt.assert_equal(p.returncode, 0)
-        nt.assert_in('3 . 14', out[0])
-        nt.assert_in('IPython', out[0])
-        nt.assert_in('bye!', out[0])
+        nt.assert_in('3 . 14', std)
+        nt.assert_in('IPython', std)
+        nt.assert_in('bye!', std)
 
