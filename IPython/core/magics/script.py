@@ -209,11 +209,12 @@ class ScriptMagics(Magics):
             out, err = p.communicate(cell)
         except KeyboardInterrupt:
             try:
-                p.send_signal(signal.SIGINT)
-                time.sleep(0.1)
-                if p.poll() is not None:
-                    print("Process is interrupted.")
-                    return
+                if sys.platform != 'cli':
+                    p.send_signal(signal.SIGINT)
+                    time.sleep(0.1)
+                    if p.poll() is not None:
+                        print("Process is interrupted.")
+                        return
                 p.terminate()
                 time.sleep(0.1)
                 if p.poll() is not None:

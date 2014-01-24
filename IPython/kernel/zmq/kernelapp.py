@@ -74,7 +74,7 @@ kernel_aliases.update({
     'parent': 'IPKernelApp.parent_handle',
     'transport': 'IPKernelApp.transport',
 })
-if sys.platform.startswith('win'):
+if sys.platform.startswith('win') or sys.platform == 'cli':
     kernel_aliases['interrupt'] = 'IPKernelApp.interrupt'
 
 kernel_flags = dict(base_flags)
