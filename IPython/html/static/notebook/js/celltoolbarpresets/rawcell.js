@@ -33,7 +33,7 @@
         } else if (value === 'dialog'){
             var dialog = $('<div/>').append(
                 $("<p/>")
-                    .html("Set the MIME type of the raw cell:")
+                    .text("Set the MIME type of the raw cell:")
             ).append(
                 $("<br/>")
             ).append(

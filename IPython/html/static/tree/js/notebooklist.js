@@ -263,7 +263,7 @@ var IPython = (function (IPython) {
                 return false;
             });
         // var new_buttons = item.find('a'); // shutdown_button;
-        item.find(".item_buttons").html("").append(shutdown_button);
+        item.find(".item_buttons").text("").append(shutdown_button);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
@@ -308,7 +308,7 @@ var IPython = (function (IPython) {
                 });
                 return false;
             });
-        item.find(".item_buttons").html("").append(delete_button);
+        item.find(".item_buttons").text("").append(delete_button);
     };
 
 

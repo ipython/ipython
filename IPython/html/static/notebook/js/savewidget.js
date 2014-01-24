@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
         var that = this;
         var dialog = $('<div/>').append(
             $("<p/>").addClass("rename-message")
-                .html('Enter a new notebook name:')
+                .text('Enter a new notebook name:')
         ).append(
             $("<br/>")
         ).append(
@@ -88,7 +88,7 @@ var IPython = (function (IPython) {
                     click: function () {
                     var new_name = $(this).find('input').val();
                     if (!IPython.notebook.test_notebook_name(new_name)) {
-                        $(this).find('.rename-message').html(
+                        $(this).find('.rename-message').text(
                             "Invalid notebook name. Notebook names must "+
                             "have 1 or more characters and can contain any characters " +
                             "except :/\\. Please enter a new notebook name:"
@@ -116,7 +116,7 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.update_notebook_name = function () {
         var nbname = IPython.notebook.get_notebook_name();
-        this.element.find('span#notebook_name').html(nbname);
+        this.element.find('span#notebook_name').text(nbname);
     };
 
 
@@ -138,11 +138,11 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.set_save_status = function (msg) {
-        this.element.find('span#autosave_status').html(msg);
+        this.element.find('span#autosave_status').text(msg);
     }
 
     SaveWidget.prototype.set_checkpoint_status = function (msg) {
-        this.element.find('span#checkpoint_status').html(msg);
+        this.element.find('span#checkpoint_status').text(msg);
     }
 
     SaveWidget.prototype.set_last_checkpoint = function (checkpoint) {

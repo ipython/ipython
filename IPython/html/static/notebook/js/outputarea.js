@@ -61,7 +61,7 @@ var IPython = (function (IPython) {
         
         this.collapse_button.addClass("btn output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
-        this.collapse_button.html('. . .');
+        this.collapse_button.text('. . .');
         
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
@@ -442,7 +442,7 @@ var IPython = (function (IPython) {
         var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
-            toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
+            toinsert.find('div.prompt').addClass('output_prompt').text('Out[' + n + ']:');
         }
         this.append_mime_type(json, toinsert);
         this._safe_append(toinsert);
