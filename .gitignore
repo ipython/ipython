@@ -9,7 +9,6 @@ docs/gh-pages
 IPython/html/notebook/static/mathjax
 *.py[co]
 __pycache__
-build
 *.egg-info
 *~
 *.bak
