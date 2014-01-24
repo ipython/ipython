@@ -28,6 +28,7 @@ from nose import SkipTest
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
+from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core import debugger
 
@@ -474,3 +475,40 @@ def test_run__name__():
         
         _ip.magic('run -n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
+
+def test_run_tb():
+    """Test traceback offset in %run"""
+    with TemporaryDirectory() as td:
+        path = pjoin(td, 'foo.py')
+        with open(path, 'w') as f:
+            f.write('\n'.join([
+                "def foo():",
+                "    return bar()",
+                "def bar():",
+                "    raise RuntimeError('hello!')",
+                "foo()",
+            ]))
+        with capture_output() as io:
+            _ip.magic('run {}'.format(path))
+        out = io.stdout
+        nt.assert_not_in("execfile", out)
+        nt.assert_in("RuntimeError", out)
+        nt.assert_equal(out.count("---->"), 3)
+
+def test_script_tb():
+    """Test traceback offset in `ipython script.py`"""
+    with TemporaryDirectory() as td:
+        path = pjoin(td, 'foo.py')
+        with open(path, 'w') as f:
+            f.write('\n'.join([
+                "def foo():",
+                "    return bar()",
+                "def bar():",
+                "    raise RuntimeError('hello!')",
+                "foo()",
+            ]))
+        out, err = tt.ipexec(path)
+        nt.assert_not_in("execfile", out)
+        nt.assert_in("RuntimeError", out)
+        nt.assert_equal(out.count("---->"), 3)
+
