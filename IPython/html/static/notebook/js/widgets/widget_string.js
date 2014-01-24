@@ -172,7 +172,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             "keyup input"    : "handleChanging",
             "paste input"    : "handleChanging",
             "cut input"      : "handleChanging",
-            "keypress input" : "handleKeypress"
+            "keypress input" : "handleKeypress",
+            "blur input" : "handleBlur",
+            "focusout input" : "handleFocusOut"
         },
         
         handleChanging: function(e) { 
@@ -188,6 +190,31 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // Handles text submition
             if (e.keyCode == 13) { // Return key
                 this.send({event: 'submit'});
+                event.stopPropagation();
+                event.preventDefault();
+                return false;
+            }
+        },
+
+        handleBlur: function(e) { 
+            // Prevent a blur from firing if the blur was not user intended.
+            // This is a workaround for the return-key focus loss bug.
+            // TODO: Is the original bug actually a fault of the keyboard
+            // manager?
+            if (e.relatedTarget === null) {
+                event.stopPropagation();
+                event.preventDefault();
+                return false;
+            }
+        },
+
+        handleFocusOut: function(e) { 
+            // Prevent a blur from firing if the blur was not user intended.
+            // This is a workaround for the return-key focus loss bug.
+            if (e.relatedTarget === null) {
+                event.stopPropagation();
+                event.preventDefault();
+                return false;
             }
         },
     });
