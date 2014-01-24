@@ -72,6 +72,7 @@
         // Instance level
         //--------------------------------------------------------------------
         WidgetManager.prototype.display_view = function(msg, model) {
+            // Displays a view for a particular model.
             var cell = this.get_msg_cell(msg.parent_header.msg_id);
             if (cell === null) {
                 console.log("Could not determine where the display" + 
@@ -88,9 +89,10 @@
                     cell.widget_subarea.append(view.$el);
                 }
             }
-        },
+        };
 
         WidgetManager.prototype.create_view = function(model, options, view) {
+            // Creates a view for a particular model.
             var view_name = model.get('_view_name');
             var ViewType = WidgetManager._view_types[view_name];
             if (ViewType !== undefined && ViewType !== null) {
@@ -102,16 +104,29 @@
                     options.cell = view.options.cell;
                 }
 
+                // Create and render the view...
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.render();
-                IPython.keyboard_manager.register_events(view.$el);
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
+
+                this._handle_new_view(view);
                 return view;
             }
             return null;
-        },
+        };
+
+        WidgetManager.prototype._handle_new_view = function (view) {
+            // Called when a view has been created and rendered.
+
+            // If the view has a well defined element, inform the keyboard
+            // manager about the view's element, so as the element can
+            // escape the dreaded command mode.
+            if (view.$el !== undefined && view.$el !== null) {
+                IPython.keyboard_manager.register_events(view.$el);
+            }
+        }
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
             var cell = null;
