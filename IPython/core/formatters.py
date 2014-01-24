@@ -183,22 +183,31 @@ class DisplayFormatter(Configurable):
 # Formatters for specific format types (text, html, svg, etc.)
 #-----------------------------------------------------------------------------
 
+class FormatterWarning(UserWarning):
+    """Warning class for errors in formatters"""
+
 @decorator
 def warn_format_error(method, self, *args, **kwargs):
     """decorator for warning on failed format call"""
     try:
         r = method(self, *args, **kwargs)
+    except NotImplementedError as e:
+        # don't warn on NotImplementedErrors
+        return None
     except Exception as e:
-        warn("Exception in %s formatter: %s" % (self.format_type, e))
+        warnings.warn("Exception in %s formatter: %s" % (self.format_type, e),
+            FormatterWarning,
+        )
         return None
     if r is None or isinstance(r, self._return_type) or \
         (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
         return r
     else:
-        warn("%s formatter returned invalid type %s (expected %s) for object: %s" % (
-            self.format_type, type(r), self._return_type, pretty._safe_repr(args[0])
-        ))
-    
+        warnings.warn(
+            "%s formatter returned invalid type %s (expected %s) for object: %s" % \
+            (self.format_type, type(r), self._return_type, pretty._safe_repr(args[0])),
+            FormatterWarning
+        )
 
 
 class FormatterABC(with_metaclass(abc.ABCMeta, object)):
