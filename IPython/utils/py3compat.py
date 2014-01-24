@@ -181,9 +181,6 @@ else:
     def MethodType(func, instance):
         return types.MethodType(func, instance, type(instance))
     
-    # don't override system execfile on 2.x:
-    execfile = execfile
-    
     def doctest_refactor_print(func_or_str):
         return func_or_str
 

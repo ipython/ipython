@@ -2533,7 +2533,8 @@ class InteractiveShell(SingletonConfigurable):
             except:
                 if kw['raise_exceptions']:
                     raise
-                self.showtraceback()
+                # tb offset is 2 because we wrap execfile
+                self.showtraceback(tb_offset=2)
 
     def safe_execfile_ipy(self, fname):
         """Like safe_execfile, but for .ipy or .ipynb files with IPython syntax.
