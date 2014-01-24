@@ -20,7 +20,7 @@ from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 # Tests
 #-----------------------------------------------------------------------------
 
-_sample_embed = """
+_sample_embed = b"""
 from __future__ import print_function
 import IPython
 
@@ -33,12 +33,12 @@ IPython.embed()
 print('bye!')
 """
 
-_exit = "exit\r".encode('UTF-8')
+_exit = b"exit\r"
 
 def test_ipython_embed():
     """test that `IPython.embed()` works"""
     with NamedFileInTemporaryDirectory('file_with_embed.py') as f:
-        f.write(_sample_embed.encode('UTF-8'))
+        f.write(_sample_embed)
         f.flush()
 
         # run `python file_with_embed.py`
