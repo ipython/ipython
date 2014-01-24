@@ -288,7 +288,7 @@ class capture_output(object):
         sys.stderr = self.sys_stderr
 
 def unicode_std_stream(stream='stdout'):
-    """Get a wrapper to write unicode to stdout/stderr as UTF-8.
+    u"""Get a wrapper to write unicode to stdout/stderr as UTF-8.
 
     This ignores environment variables and default encodings, to reliably write
     unicode to stdout or stderr.
