@@ -160,9 +160,13 @@
         WidgetManager.prototype.callbacks = function (view) {
             // callback handlers specific a view
             var callbacks = {};
-            var cell = view.options.cell;
-            if (cell !== null) {
+            if (view !== undefined && 
+                view !== null && 
+                view.options.cell !== undefined && 
+                view.options.cell !== null) {
+
                 // Try to get output handlers
+                var cell = view.options.cell;
                 var handle_output = null;
                 var handle_clear_output = null;
                 if (cell.output_area !== undefined && cell.output_area !== null) {

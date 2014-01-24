@@ -176,8 +176,8 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
         },
         
         handleChanging: function(e) { 
-            // Handles and validates user input.
-            
+            // Handles user input.
+
             // Calling model.set will trigger all of the other views of the 
             // model to update.
             this.model.set('value', e.target.value, {updated_view: this});

@@ -56,6 +56,7 @@ function(WidgetManager, Underscore, Backbone){
             if (this.comm !== undefined) {
                 var data = {method: 'custom', content: content};
                 this.comm.send(data, callbacks);
+                this.pending_msgs++;
             }
         },
 
@@ -158,7 +159,13 @@ function(WidgetManager, Underscore, Backbone){
 
             // Only sync if there are attributes to send to the back-end.
             if (_.size(attrs) > 0) {
-                var callbacks = options.callbacks || {};
+
+                // If this message was sent via backbone itself, it will not
+                // have any callbacks.  It's important that we create callbacks
+                // so we can listen for status messages, etc...
+                var callbacks = options.callbacks || this.callbacks();
+
+                // Check throttle.
                 if (this.pending_msgs >= this.msg_throttle) {
                     // The throttle has been exceeded, buffer the current msg so
                     // it can be sent once the kernel has finished processing 
@@ -181,8 +188,7 @@ function(WidgetManager, Underscore, Backbone){
 
                 } else {
                     // We haven't exceeded the throttle, send the message like 
-                    // normal.  If this is a patch operation, just send the 
-                    // changes.
+                    // normal.
                     var data = {method: 'backbone', sync_data: attrs};
                     this.comm.send(data, callbacks);
                     this.pending_msgs++;
