@@ -14,17 +14,13 @@
 import glob
 import os
 import re
-import time
-from contextlib import contextmanager
+import tarfile
+import zipfile
+from io import BytesIO
 from os.path import basename, join as pjoin
 from unittest import TestCase
 
-import nose.tools as nt
-
-from IPython.external.decorator import decorator
-
 import IPython.testing.tools as tt
-import IPython.utils.path
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.html import nbextensions
@@ -80,7 +76,8 @@ class TestInstallNBExtension(TestCase):
     
     def assert_path_exists(self, path):
         if not os.path.exists(path):
-            self.fail(u"%s should exist" % path)
+            do_exist = os.listdir(os.path.dirname(path))
+            self.fail(u"%s should exist (found %s)" % (path, do_exist))
     
     def assert_not_path_exists(self, path):
         if os.path.exists(path):
@@ -199,3 +196,39 @@ class TestInstallNBExtension(TestCase):
         with tt.AssertNotPrints(re.compile(r'.+')):
             install_nbextension(self.src, verbose=0)
     
+    def test_install_zip(self):
+        path = pjoin(self.src, "myjsext.zip")
+        with zipfile.ZipFile(path, 'w') as f:
+            f.writestr("a.js", b"b();")
+            f.writestr("foo/a.js", b"foo();")
+        install_nbextension(path)
+        self.assert_installed("a.js")
+        self.assert_installed(pjoin("foo", "a.js"))
+    
+    def test_install_tar(self):
+        def _add_file(f, fname, buf):
+            info = tarfile.TarInfo(fname)
+            info.size = len(buf)
+            f.addfile(info, BytesIO(buf))
+        
+        for i,ext in enumerate((".tar.gz", ".tgz", ".tar.bz2")):
+            path = pjoin(self.src, "myjsext" + ext)
+            with tarfile.open(path, 'w') as f:
+                _add_file(f, "b%i.js" % i, b"b();")
+                _add_file(f, "foo/b%i.js" % i, b"foo();")
+            install_nbextension(path)
+            self.assert_installed("b%i.js" % i)
+            self.assert_installed(pjoin("foo", "b%i.js" % i))
+    
+    def test_install_url(self):
+        def fake_urlretrieve(url, dest):
+            touch(dest)
+        save_urlretrieve = nbextensions.urlretrieve
+        nbextensions.urlretrieve = fake_urlretrieve
+        try:
+            install_nbextension("http://example.com/path/to/foo.js")
+            self.assert_installed("foo.js")
+            install_nbextension("https://example.com/path/to/another/bar.js")
+            self.assert_installed("bar.js")
+        finally:
+            nbextensions.urlretrieve = save_urlretrieve

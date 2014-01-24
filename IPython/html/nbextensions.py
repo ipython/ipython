@@ -12,10 +12,21 @@ from __future__ import print_function
 
 import os
 import shutil
+import tarfile
+import zipfile
 from os.path import basename, join as pjoin
+
+# Deferred imports
+try:
+    from urllib.parse import urlparse  # Py3
+    from urllib.request import urlretrieve
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlretrieve
 
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import string_types, cast_unicode_py2
+from IPython.utils.tempdir import TemporaryDirectory
 
 
 def _should_copy(src, dest, verbose=1):
@@ -39,20 +50,29 @@ def _maybe_copy(src, dest, verbose=1):
         shutil.copy2(src, dest)
 
 
+def _safe_is_tarfile(path):
+    """safe version of is_tarfile, return False on IOError"""
+    try:
+        return tarfile.is_tarfile(path)
+    except IOError:
+        return False
+
+
 def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
     """Install a Javascript extension for the notebook
     
     Stages files and/or directories into IPYTHONDIR/nbextensions.
-    By default, this comparse modification time, and only stages files that need updating.
+    By default, this compares modification time, and only stages files that need updating.
     If `overwrite` is specified, matching files are purged before proceeding.
     
     Parameters
     ----------
     
-    files : list(paths)
-        One or more paths to existing files or directories to install.
+    files : list(paths or URLs)
+        One or more paths or URLs to existing files directories to install.
         These will be installed with their base name, so '/path/to/foo'
         will install to 'nbextensions/foo'.
+        Archives (zip or tarballs) will be extracted into the nbextensions directory.
     overwrite : bool [default: False]
         If True, always install the files, regardless of what may already be installed.
     ipython_dir : str [optional]
@@ -74,6 +94,33 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
         files = [files]
     
     for path in map(cast_unicode_py2, files):
+        
+        if path.startswith(('https://', 'http://')):
+            # Given a URL, download it
+            with TemporaryDirectory() as td:
+                filename = urlparse(path).path.split('/')[-1]
+                local_path = os.path.join(td, filename)
+                if verbose >= 1:
+                    print("downloading %s to %s" % (path, local_path))
+                urlretrieve(path, local_path)
+                # now install from the local copy
+                install_nbextension(local_path, overwrite, ipython_dir, verbose)
+            continue
+        
+        # handle archives
+        archive = None
+        if path.endswith('.zip'):
+            archive = zipfile.ZipFile(path)
+        elif _safe_is_tarfile(path):
+            archive = tarfile.open(path)
+        
+        if archive:
+            if verbose >= 1:
+                print("extracting %s to %s" % (path, nbext))
+            archive.extractall(nbext)
+            archive.close()
+            continue
+        
         dest = pjoin(nbext, basename(path))
         if overwrite and os.path.exists(dest):
             if verbose >= 1:
@@ -104,7 +151,6 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
 # install nbextension app
 #----------------------------------------------------------------------
 
-import logging
 from IPython.utils.traitlets import Bool, Enum
 from IPython.core.application import BaseIPythonApplication
 
@@ -136,9 +182,11 @@ class NBExtensionApp(BaseIPythonApplication):
     
     Usage
     
-        ipython install-nbextension file [more files or folders]
+        ipython install-nbextension file [more files, folders, archives or urls]
     
     This copies files and/or folders into the IPython nbextensions directory.
+    If a URL is given, it will be downloaded.
+    If an archive is given, it will be extracted into nbextensions.
     If the requested files are already up to date, no action is taken
     unless --overwrite is specified.
     """
