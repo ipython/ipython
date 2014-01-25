@@ -225,6 +225,8 @@ def interactive(f):
     # build new FunctionType, so it can have the right globals
     # interactive functions never have closures, that's kind of the point
     if sys.platform != 'cli':
+        # ipython does not implement FunctionType.__new__
+        # https://ironpython.codeplex.com/workitem/34932
         if isinstance(f, FunctionType):
             mainmod = __import__('__main__')
             f = FunctionType(f.__code__, mainmod.__dict__,
