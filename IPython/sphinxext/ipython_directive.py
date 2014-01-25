@@ -246,7 +246,7 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 class EmbeddedSphinxShell(object):
     """An embedded IPython instance to run inside Sphinx"""
 
-    def __init__(self, exec_lines=None,state=None):
+    def __init__(self, exec_lines=None, state=None):
 
         self.cout = StringIO()
 
