@@ -429,8 +429,11 @@ class EmbeddedSphinxShell(object):
             ret.append('')
 
         # context information
-        filename = self.state.document.current_source
-        lineno = self.state.document.current_line
+        filename = "Unknown"
+        lineno = 0
+        if self.state:
+            filename = self.state.document.current_source
+            lineno = self.state.document.current_line
 
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
