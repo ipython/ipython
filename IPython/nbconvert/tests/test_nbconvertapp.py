@@ -195,7 +195,7 @@ class TestNbConvertApp(TestsBase):
     
     @dec.onlyif_cmds_exist('pdflatex')
     @dec.onlyif_cmds_exist('pandoc')
-    def test_filename_spaces(self):
+    def test_filename_accent(self):
         """
         Generate PDFs if notebooks have an accent in their name?
         """
