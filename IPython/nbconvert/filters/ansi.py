@@ -121,28 +121,30 @@ def single_ansi2latex(code):
     """
     components = code.split(';')
     if len(components) > 1:
-        style = components[0][-1]
+        # Style is digits after '['
+        style = int(components[0].split('[')[-1])
         color = components[1][:-1]
     else:
-        style = '0'
+        style = 0
         color = components[0][-3:-1]
         
     # If the style is not normal (0), bold (1) or blinking (5) then treat it as normal
-    if style not in '015':
-        style = '0'
+    if style not in [0, 1, 5]:
+        style = 0
 
     for name, tcode in coloransi.color_templates:
         tstyle, tcolor = tcode.split(';')
+        tstyle = int(tstyle)
         if tstyle == style and tcolor == color:
             break
     else:
         return '', 0
 
-    if style == '5':
+    if style == 5:
         name = name[5:]                             # BlinkRed -> Red, etc
     name = name.lower()
 
-    if style in '15':
+    if style in [1, 5]:
         return r'\textbf{\color{'+name+'}', 1
     else:
         return r'{\color{'+name+'}', 1
@@ -173,5 +175,3 @@ def ansi2latex(text):
     if openbrack: 
         outstring += '}'*openbrack
     return outstring.strip()
-
-

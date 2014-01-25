@@ -76,7 +76,9 @@ class TestAnsi(TestsBase):
             'hel%slo' % TermColors.Green : r'hel{\color{green}lo}',
             'hello' : 'hello',
             u'hello\x1b[34mthere\x1b[mworld' : u'hello{\\color{blue}there}world',
-            u'hello\x1b[mthere': u'hellothere'
+            u'hello\x1b[mthere': u'hellothere',
+            u'hello\x1b[01;34mthere' : u"hello\\textbf{\\color{lightblue}there}",
+            u'hello\x1b[001;34mthere' : u"hello\\textbf{\\color{lightblue}there}"
             }
 
         for inval, outval in correct_outputs.items():
