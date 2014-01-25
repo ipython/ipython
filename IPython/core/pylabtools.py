@@ -165,7 +165,7 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
-def select_figure_format(shell, fmt, quality):
+def select_figure_format(shell, fmt, quality=90):
     """Select figure format for inline backend, can be 'png', 'retina', 'jpg', or 'svg'.
 
     Using this method ensures only one figure format is active at a time.
