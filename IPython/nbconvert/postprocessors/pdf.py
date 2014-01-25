@@ -31,10 +31,10 @@ class PDFPostProcessor(PostProcessorBase):
         How many times pdflatex will be called.
         """)
 
-    latex_command = List(["pdflatex", "{filename}"], config=True, help="""
+    latex_command = List([u"pdflatex", u"{filename}"], config=True, help="""
         Shell command used to compile PDF.""")
 
-    bib_command = List(["bibtex", "{filename}"], config=True, help="""
+    bib_command = List([u"bibtex", u"{filename}"], config=True, help="""
         Shell command used to run bibtex.""")
 
     verbose = Bool(False, config=True, help="""
@@ -69,6 +69,13 @@ class PDFPostProcessor(PostProcessorBase):
             or failed (False).
         """
         command = [c.format(filename=filename) for c in command_list]
+        #In windows and python 2.x there is a bug in subprocess.Popen and
+        # unicode commands are not supported
+        if sys.platform == 'win32' and sys.version_info < (3,0):
+            #We must use cp1252 encoding for calling subprocess.Popen
+            #Note that sys.stdin.encoding and encoding.DEFAULT_ENCODING
+            # could be different (cp437 in case of dos console)
+            command = [c.encode('cp1252') for c in command]        
         times = 'time' if count == 1 else 'times'
         self.log.info("Running %s %i %s: %s", command_list[0], count, times, command)
         with open(os.devnull, 'rb') as null:
