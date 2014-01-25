@@ -110,6 +110,7 @@ import re
 import sys
 import tempfile
 import ast
+import warnings
 
 # To keep compatibility with various python versions
 try:
@@ -245,12 +246,14 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 class EmbeddedSphinxShell(object):
     """An embedded IPython instance to run inside Sphinx"""
 
-    def __init__(self, exec_lines=None):
+    def __init__(self, exec_lines=None,state=None):
 
         self.cout = StringIO()
 
         if exec_lines is None:
             exec_lines = []
+
+        self.state = state
 
         # Create config object for IPython
         config = Config()
@@ -362,6 +365,8 @@ class EmbeddedSphinxShell(object):
         is_doctest = (decorator is not None and \
                      decorator.startswith('@doctest')) or self.is_doctest
         is_suppress = decorator=='@suppress' or self.is_suppress
+        is_okexcept = decorator=='@okexcept' or self.is_okexcept
+        is_okwarning = decorator=='@okwarning' or self.is_okwarning
         is_savefig = decorator is not None and \
                      decorator.startswith('@savefig')
 
@@ -385,28 +390,30 @@ class EmbeddedSphinxShell(object):
         else:
             store_history = True
 
-        for i, line in enumerate(input_lines):
-            if line.endswith(';'):
-                is_semicolon = True
+        # Note: catch_warnings is not thread safe
+        with warnings.catch_warnings(record=True) as ws:
+            for i, line in enumerate(input_lines):
+                if line.endswith(';'):
+                    is_semicolon = True
 
-            if i == 0:
-                # process the first input line
-                if is_verbatim:
-                    self.process_input_line('')
-                    self.IP.execution_count += 1 # increment it anyway
+                if i == 0:
+                    # process the first input line
+                    if is_verbatim:
+                        self.process_input_line('')
+                        self.IP.execution_count += 1 # increment it anyway
+                    else:
+                        # only submit the line in non-verbatim mode
+                        self.process_input_line(line, store_history=store_history)
+                    formatted_line = '%s %s'%(input_prompt, line)
                 else:
-                    # only submit the line in non-verbatim mode
-                    self.process_input_line(line, store_history=store_history)
-                formatted_line = '%s %s'%(input_prompt, line)
-            else:
-                # process a continuation line
-                if not is_verbatim:
-                    self.process_input_line(line, store_history=store_history)
+                    # process a continuation line
+                    if not is_verbatim:
+                        self.process_input_line(line, store_history=store_history)
 
-                formatted_line = '%s %s'%(continuation, line)
+                    formatted_line = '%s %s'%(continuation, line)
 
-            if not is_suppress:
-                ret.append(formatted_line)
+                if not is_suppress:
+                    ret.append(formatted_line)
 
         if not is_suppress and len(rest.strip()) and is_verbatim:
             # the "rest" is the standard output of the
@@ -420,6 +427,34 @@ class EmbeddedSphinxShell(object):
             ret.append(output)
         elif is_semicolon: # get spacing right
             ret.append('')
+
+        # context information
+        filename = self.state.document.current_source
+        lineno = self.state.document.current_line
+
+        # output any exceptions raised during execution to stdout
+        # unless :okexcept: has been specified.
+        if not is_okexcept and "Traceback" in output:
+            s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
+            s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
+            sys.stdout.write('\n\n>>>' + ('-' * 73))
+            sys.stdout.write(s)
+            sys.stdout.write(output)
+            sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
+
+        # output any warning raised during execution to stdout
+        # unless :okwarning: has been specified.
+        if not is_okwarning:
+            for w in ws:
+                s =  "\nWarning in %s at block ending on line %s\n" % (filename, lineno)
+                s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
+                sys.stdout.write('\n\n>>>' + ('-' * 73))
+                sys.stdout.write(s)
+                sys.stdout.write(('-' * 76) + '\n')
+                s=warnings.formatwarning(w.message, w.category,
+                                         w.filename, w.lineno, w.line)
+                sys.stdout.write(s)
+                sys.stdout.write('<<<' + ('-' * 73) + '\n')
 
         self.cout.truncate(0)
         return (ret, input_lines, output, is_doctest, decorator, image_file,
@@ -662,6 +697,8 @@ class IPythonDirective(Directive):
                     'suppress' : directives.flag,
                     'verbatim' : directives.flag,
                     'doctest' : directives.flag,
+                    'okexcept': directives.flag,
+                    'okwarning': directives.flag
                   }
 
     shell = None
@@ -712,7 +749,7 @@ class IPythonDirective(Directive):
 
             # Must be called after (potentially) importing matplotlib and
             # setting its backend since exec_lines might import pylab.
-            self.shell = EmbeddedSphinxShell(exec_lines)
+            self.shell = EmbeddedSphinxShell(exec_lines, self.state)
 
             # Store IPython directive to enable better error messages
             self.shell.directive = self
@@ -759,6 +796,8 @@ class IPythonDirective(Directive):
         self.shell.is_suppress = 'suppress' in options
         self.shell.is_doctest = 'doctest' in options
         self.shell.is_verbatim = 'verbatim' in options
+        self.shell.is_okexcept = 'okexcept' in options
+        self.shell.is_okwarning = 'okwarning' in options
 
         # handle pure python code
         if 'python' in self.arguments:
