@@ -27,6 +27,8 @@ from contextlib import contextmanager
 if sys.platform != 'cli':
     from io import StringIO
 else:
+    # io.StringIO is broken in ironpython
+    # https://ironpython.codeplex.com/workitem/34713
     from StringIO import StringIO
 from subprocess import Popen, PIPE
 

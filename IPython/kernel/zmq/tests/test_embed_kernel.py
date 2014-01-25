@@ -69,6 +69,7 @@ def setup_kernel(cmd):
     """
     args = [sys.executable, '-c', cmd]
     if sys.platform == 'cli':
+        # enable support for sys._getframe in ironpython
         args.insert(1, '-X:Frames')
     kernel = Popen(args, stdout=PIPE, stderr=PIPE, env=env)
     connection_file = os.path.join(IPYTHONDIR,

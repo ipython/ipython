@@ -67,6 +67,8 @@ class ParentPollerWindows(Thread):
         self.parent_handle = parent_handle
 
     class SECURITY_ATTRIBUTES(ctypes.Structure):
+    # moved out of create_interrupt_event due to a bug in ironpython implementation
+    # of ctypes: https://ironpython.codeplex.com/workitem/34839
         _fields_ = [ ("nLength", ctypes.c_int),
                      ("lpSecurityDescriptor", ctypes.c_void_p),
                      ("bInheritHandle", ctypes.c_int) ]
