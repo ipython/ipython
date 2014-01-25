@@ -81,7 +81,7 @@ class PDFPostProcessor(PostProcessorBase):
         with open(os.devnull, 'rb') as null:
             stdout = subprocess.PIPE if not self.verbose else None
             for index in range(count):
-                p = subprocess.Popen(command, stdout=stdout, stdin=null, shell=True)
+                p = subprocess.Popen(command, stdout=stdout, stdin=null)
                 out, err = p.communicate()
                 if p.returncode:
                     if self.verbose:
