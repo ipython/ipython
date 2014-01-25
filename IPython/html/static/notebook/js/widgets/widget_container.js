@@ -65,10 +65,6 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             // Called when view is rendered.
             var that = this;
             this.children={};
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
-            }, this);
             
             this.$el
                 .on("remove", function(){
@@ -159,6 +155,12 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             this.$el_to_style = this.$body;
             this._shown_once = false;
             this.popped_out = true;
+
+            this.update_children([], this.model.get('_children'));
+            this.model.on('change:_children', function(model, value, options) {
+                this.update_children(model.previous('_children'), value);
+            }, this);
+            this.update();
         },
         
         hide: function() {
