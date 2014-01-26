@@ -241,16 +241,21 @@ class DisplayHook(Configurable):
         """
         self.check_for_underscore()
         if result is not None and not self.quiet():
-            # If _ipython_display_ is defined, use that to display this object.  If
-            # it returns NotImplemented, use the _repr_ logic (default).
-            if not hasattr(result, '_ipython_display_') or result._ipython_display_() is NotImplemented:
-                self.start_displayhook()
-                self.write_output_prompt()
-                format_dict, md_dict = self.compute_format_data(result)
-                self.write_format_data(format_dict, md_dict)
-                self.update_user_ns(result)
-                self.log_output(format_dict)
-                self.finish_displayhook()
+            # If _ipython_display_ is defined, use that to display this object.
+            display_method = getattr(result, '_ipython_display_', None)
+            if display_method is not None:
+                try:
+                    return display_method()
+                except NotImplementedError:
+                    pass
+            
+            self.start_displayhook()
+            self.write_output_prompt()
+            format_dict, md_dict = self.compute_format_data(result)
+            self.write_format_data(format_dict, md_dict)
+            self.update_user_ns(result)
+            self.log_output(format_dict)
+            self.finish_displayhook()
 
     def flush(self):
         if not self.do_full_cache:
