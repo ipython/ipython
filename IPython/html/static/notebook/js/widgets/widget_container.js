@@ -16,22 +16,21 @@
 
 define(["notebook/js/widgets/widget"], function(WidgetManager) {
 
-    var ContainerView = IPython.DOMWidgetView.extend({    
+    var ContainerView = IPython.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
-            this.$el
-                .addClass('widget-container');
+            this.$el.addClass('widget-container');
             this.children={};
             this.update_children([], this.model.get('_children'));
             this.model.on('change:_children', function(model, value, options) {
                 this.update_children(model.previous('_children'), value);
             }, this);
-            this.update()
+            this.update();
         },
         
         update_children: function(old_list, new_list) {
             // Called when the children list changes.
-            this.do_diff(old_list, 
+            this.do_diff(old_list,
                 new_list, 
                 $.proxy(this.remove_child_model, this),
                 $.proxy(this.add_child_model, this));
@@ -57,17 +56,16 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             return ContainerView.__super__.update.apply(this);
         },
     });
+    
     WidgetManager.register_widget_view('ContainerView', ContainerView);
-
-
-    var PopupView = IPython.DOMWidgetView.extend({ 
+    
+    var PopupView = IPython.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
             var that = this;
             this.children={};
             
-            this.$el
-                .on("remove", function(){
+            this.$el.on("remove", function(){
                     that.$window.remove();
                 });
             this.$window = $('<div />')

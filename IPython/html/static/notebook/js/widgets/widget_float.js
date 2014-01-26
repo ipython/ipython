@@ -32,7 +32,7 @@ define(["notebook/js/widgets/widget",
     WidgetManager.register_widget_view('FloatSliderView', FloatSliderView);
 
 
-    var FloatTextView = IntTextView.extend({    
+    var FloatTextView = IntTextView.extend({
         _parse_value: function(value) {
             // Parse the value stored in a string.
             return  parseFloat(value);

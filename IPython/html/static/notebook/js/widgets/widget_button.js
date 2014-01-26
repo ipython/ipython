@@ -16,7 +16,7 @@
 
 define(["notebook/js/widgets/widget"], function(WidgetManager){
 
-    var ButtonView = IPython.DOMWidgetView.extend({  
+    var ButtonView = IPython.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.setElement($("<button />")

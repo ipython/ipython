@@ -18,7 +18,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
     var DropdownView = IPython.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.            
+            // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
             this.$label = $('<div />')

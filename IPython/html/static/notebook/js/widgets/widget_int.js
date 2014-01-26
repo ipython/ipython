@@ -16,7 +16,7 @@
 
 define(["notebook/js/widgets/widget"], function(WidgetManager){
 
-    var IntSliderView = IPython.DOMWidgetView.extend({    
+    var IntSliderView = IPython.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -32,7 +32,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // Put the slider in a container 
             this.$slider_container = $('<div />')
                 .addClass('widget-hslider')
-                .append(this.$slider);    
+                .append(this.$slider);
             this.$el_to_style = this.$slider_container; // Set default element to style
             this.$el.append(this.$slider_container);
             
@@ -218,7 +218,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             }
         },
         
-        handleChanged: function(e) { 
+        handleChanged: function(e) {
             // Applies validated input.
             if (this.model.get('value') != e.target.value) {
                 e.target.value = this.model.get('value');
@@ -233,7 +233,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
     WidgetManager.register_widget_view('IntTextView', IntTextView);
 
 
-    var ProgressView = IPython.DOMWidgetView.extend({    
+    var ProgressView = IPython.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
