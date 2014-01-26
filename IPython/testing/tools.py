@@ -24,7 +24,12 @@ import sys
 import tempfile
 
 from contextlib import contextmanager
-from io import StringIO
+if sys.platform != 'cli':
+    from io import StringIO
+else:
+    # io.StringIO is broken in ironpython
+    # https://ironpython.codeplex.com/workitem/34713
+    from StringIO import StringIO
 from subprocess import Popen, PIPE
 
 try:

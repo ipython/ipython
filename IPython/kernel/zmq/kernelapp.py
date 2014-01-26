@@ -74,7 +74,7 @@ kernel_aliases.update({
     'parent': 'IPKernelApp.parent_handle',
     'transport': 'IPKernelApp.transport',
 })
-if sys.platform.startswith('win'):
+if sys.platform.startswith('win') or sys.platform == 'cli':
     kernel_aliases['interrupt'] = 'IPKernelApp.interrupt'
 
 kernel_flags = dict(base_flags)
@@ -202,7 +202,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                                      ostream=sys.__stdout__)
 
     def init_poller(self):
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or sys.platform == 'cli':
             if self.interrupt or self.parent_handle:
                 self.poller = ParentPollerWindows(self.interrupt, self.parent_handle)
         elif self.parent_handle:

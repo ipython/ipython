@@ -190,9 +190,9 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
         _stdout, _stderr = stdout, stderr
 
     # Spawn a kernel.
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or sys.platform == 'cli': # windows or ironpython
         
-        if cwd:
+        if cwd and sys.platform == 'win32':
             # Popen on Python 2 on Windows cannot handle unicode cwd.
             cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
         
@@ -214,6 +214,10 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
                 if stderr is None:
                     cmd.append('--no-stderr')
 
+        # enable Ironpython support for sys._getframe
+        if sys.platform == 'cli':
+            cmd.insert(1, '-X:Frames')
+
         # Launch the kernel process.
         if independent:
             proc = Popen(cmd,
@@ -232,15 +236,13 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
                                          True, # Inheritable by new processes.
                                          DUPLICATE_SAME_ACCESS)
                 cmd +=[ '--parent=%i' % handle ]
-            
-            
             proc = Popen(cmd,
                          stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
         proc.win32_interrupt_event = interrupt_event
 
-    else:
+    else: # posix
         if independent:
             proc = Popen(cmd, preexec_fn=lambda: os.setsid(),
                          stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)

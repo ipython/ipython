@@ -12,8 +12,14 @@ import os
 import threading
 import time
 import uuid
-from io import StringIO, UnsupportedOperation
-
+from io import UnsupportedOperation
+import sys
+if sys.platform != 'cli':
+    from io import StringIO
+else:
+    # io.StringIO is broken in ironpython
+    # https://ironpython.codeplex.com/workitem/34713
+    from StringIO import StringIO
 import zmq
 
 from .session import extract_header

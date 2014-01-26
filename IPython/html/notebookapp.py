@@ -366,7 +366,7 @@ class NotebookApp(BaseIPythonApplication):
         """
     )
     def _cookie_secret_default(self):
-        return os.urandom(1024)
+        return py3compat.cast_bytes_py2(os.urandom(1024))
 
     password = Unicode(u'', config=True,
                       help="""Hashed password to use for web authentication.
@@ -681,15 +681,31 @@ class NotebookApp(BaseIPythonApplication):
         print(self.notebook_info())
         sys.stdout.write("Shutdown this notebook server (y/[n])? ")
         sys.stdout.flush()
-        r,w,x = select.select([sys.stdin], [], [], 5)
-        if r:
-            line = sys.stdin.readline()
-            if line.lower().startswith('y'):
-                self.log.critical("Shutdown confirmed")
-                ioloop.IOLoop.instance().stop()
-                return
+        if sys.platform != 'cli': # win32?
+            r,w,x = select.select([sys.stdin], [], [], 5)
+            if r:
+                line = sys.stdin.readline()
+                if line.lower().startswith('y'):
+                    self.log.critical("Shutdown confirmed")
+                    ioloop.IOLoop.instance().stop()
+                    return
+            else:
+                print("No answer for 5s:", end=' ')
         else:
-            print("No answer for 5s:", end=' ')
+            import msvcrt
+            startTime = time.time()
+            while True:
+                if msvcrt.kbhit():
+                    if msvcrt.getch().lower() == 'y':
+                        self.log.critical("Shutdown confirmed")
+                        ioloop.IOLoop.instance().stop()
+                        return
+                    break # any other key
+                elif time.time() - startTime > 5:
+                    print("No answer for 5s:", end=' ')
+                    break
+                time.sleep(0.1)
+
         print("resuming operation...")
         # no answer, or answer is no:
         # set it back to original SIGINT handler
