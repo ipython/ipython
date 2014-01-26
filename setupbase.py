@@ -164,6 +164,7 @@ def find_package_data():
         'IPython.qt.console' : ['resources/icon/*.svg'],
         'IPython.nbconvert' : nbconvert_templates +
             ['tests/files/*.*', 'exporters/tests/files/*.*'],
+        'IPython.nbconvert.filters' : ['marked.js'],
         'IPython.nbformat' : ['tests/*.ipynb']
     }
     return package_data

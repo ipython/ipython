@@ -448,6 +448,10 @@ IPython.utils = (function (IPython) {
 
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
     var browser = (function() {
+        if (typeof navigator === 'undefined') {
+            // navigator undefined in node
+            return 'None';
+        }
         var N= navigator.appName, ua= navigator.userAgent, tem;
         var M= ua.match(/(opera|chrome|safari|firefox|msie)\/?\s*(\.?\d+(\.\d+)*)/i);
         if (M && (tem= ua.match(/version\/([\.\d]+)/i))!= null) M[2]= tem[1];

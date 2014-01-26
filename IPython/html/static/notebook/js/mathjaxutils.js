@@ -106,12 +106,11 @@ IPython.mathjaxutils = (function (IPython) {
     //    math, then push the math string onto the storage array.
     //  The preProcess function is called on all blocks if it has been passed in
     var process_math = function (i, j, pre_process, math, blocks) {
-        var hub = MathJax.Hub;
         var block = blocks.slice(i, j + 1).join("").replace(/&/g, "&amp;") // use HTML entity for &
         .replace(/</g, "&lt;") // use HTML entity for <
         .replace(/>/g, "&gt;") // use HTML entity for >
         ;
-        if (hub.Browser.isMSIE) {
+        if (IPython.utils.browser === 'msie') {
             block = block.replace(/(%[^\n]*)\n/g, "$1<br/>\n");
         }
         while (j > i) {
@@ -133,10 +132,6 @@ IPython.mathjaxutils = (function (IPython) {
     //    (which will be a paragraph).
     //
     var remove_math = function (text) {
-        if (!window.MathJax) {
-            return [text, null];
-        }
-
         var math = []; // stores math strings for later
         var start;
         var end;
@@ -241,9 +236,6 @@ IPython.mathjaxutils = (function (IPython) {
     //    and clear the math array (no need to keep it around).
     //
     var replace_math = function (text, math) {
-        if (!window.MathJax) {
-            return text;
-        }
         text = text.replace(/@@(\d+)@@/g, function (match, n) {
             return math[n];
         });
