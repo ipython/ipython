@@ -303,6 +303,10 @@ var IPython = (function (IPython) {
         // move the bubble if it is not hidden
         // otherwise fade it
         var content = reply.content;
+        if (!content.found) {
+            // object not found, nothing to show
+            return;
+        }
         this.name = content.name;
 
         // do some math to have the tooltip arrow on more or less on left or right
