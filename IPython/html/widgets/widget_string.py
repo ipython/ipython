@@ -26,7 +26,7 @@ class _StringWidget(DOMWidget):
 
 
 class HTMLWidget(_StringWidget):
-    _view_name = Unicode('HTMLView', sync=True)    
+    _view_name = Unicode('HTMLView', sync=True)
 
 
 class LatexWidget(_StringWidget):
@@ -45,18 +45,17 @@ class TextBoxWidget(_StringWidget):
 
     def __init__(self, **kwargs):
         super(TextBoxWidget, self).__init__(**kwargs)
-        self._submission_callbacks = CallbackDispatcher(acceptable_nargs=[0, 1])
+        self._submission_callbacks = CallbackDispatcher()
         self.on_msg(self._handle_string_msg)
 
-    def _handle_string_msg(self, content):
+    def _handle_string_msg(self, _, content):
         """Handle a msg from the front-end.
 
         Parameters
         ----------
         content: dict
             Content of the msg."""
-        if 'event' in content and content['event'] == 'submit':
-            self._submission_callbacks()
+        if content.get('event', '') == 'submit':
             self._submission_callbacks(self)
 
     def on_submit(self, callback, remove=False):
@@ -65,11 +64,9 @@ class TextBoxWidget(_StringWidget):
         Triggered when the user clicks enter.
 
         Parameters
-        callback: Method handle
-            Function to be called when the text has been submitted.  Function
-            can have two possible signatures:
-            callback()
-            callback(sender)
+        ----------
+        callback: callable
+            Will be called with exactly one argument: the Widget instance
         remove: bool (optional)
-            Whether or not to unregister the callback"""
+            Whether to unregister the callback"""
         self._submission_callbacks.register_callback(callback, remove=remove)
