@@ -303,6 +303,10 @@ var IPython = (function (IPython) {
         // move the bubble if it is not hidden
         // otherwise fade it
         var content = reply.content;
+        if (!content.found) {
+            // object not found, nothing to show
+            return;
+        }
         this.name = content.name;
 
         // do some math to have the tooltip arrow on more or less on left or right
@@ -337,22 +341,22 @@ var IPython = (function (IPython) {
 
         // build docstring
         var defstring = content.call_def;
-        if (defstring == null) {
+        if (!defstring) {
             defstring = content.init_definition;
         }
-        if (defstring == null) {
+        if (!defstring) {
             defstring = content.definition;
         }
 
         var docstring = content.call_docstring;
-        if (docstring == null) {
+        if (!docstring) {
             docstring = content.init_docstring;
         }
-        if (docstring == null) {
+        if (!docstring) {
             docstring = content.docstring;
         }
 
-        if (docstring == null) {
+        if (!docstring) {
             // For reals this time, no docstring
             if (this._hide_if_no_docstring) {
                 return;
