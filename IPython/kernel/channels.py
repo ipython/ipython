@@ -137,7 +137,23 @@ class ZMQSocketChannel(Thread):
         terminates. :class:`RuntimeError` will be raised if
         :meth:`~threading.Thread.start` is called again.
         """
+        if self.ioloop is not None:
+            self.ioloop.stop()
         self.join()
+        self.close()
+    
+    def close(self):
+        if self.ioloop is not None:
+            try:
+                self.ioloop.close(all_fds=True)
+            except Exception:
+                pass
+        if self.socket is not None:
+            try:
+                self.socket.close(linger=0)
+            except Exception:
+                pass
+            self.socket = None
 
     @property
     def address(self):
@@ -198,15 +214,6 @@ class ShellChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
-        try:
-            self.socket.close()
-        except:
-            pass
-
-    def stop(self):
-        """Stop the channel's event loop and join its thread."""
-        self.ioloop.stop()
-        super(ShellChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -407,15 +414,6 @@ class IOPubChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
-        try:
-            self.socket.close()
-        except:
-            pass
-
-    def stop(self):
-        """Stop the channel's event loop and join its thread."""
-        self.ioloop.stop()
-        super(IOPubChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -475,15 +473,6 @@ class StdInChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
-        try:
-            self.socket.close()
-        except:
-            pass
-
-    def stop(self):
-        """Stop the channel's event loop and join its thread."""
-        self.ioloop.stop()
-        super(StdInChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -603,10 +592,6 @@ class HBChannel(ZMQSocketChannel):
                 # and close/reopen the socket, because the REQ/REP cycle has been broken
                 self._create_socket()
                 continue
-        try:
-            self.socket.close()
-        except:
-            pass
 
     def pause(self):
         """Pause the heartbeat."""
