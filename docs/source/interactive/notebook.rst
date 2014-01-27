@@ -166,6 +166,21 @@ started kernel. This can also be done by running the ``%qtconsole``
 
     :ref:`ipythonzmq`
 
+Saving and closing notebooks
+---------------------------
+The notebook will automatically save every several seconds. When you manually save your work,
+you create a new checkpoint. You can revert to a checkpoint even after the notebook auto-saves.
+To revert to a checkpoint, go to `File | Revert to Checkpoint`.
+
+When you try to exit a notebook without saving, you will be prompted to save your work.
+
+There are 3 separate things that you can close or stop:
+1. To close a notebook, you can close the browser tab where you're editing the notebook.
+2. You can stop the kernel associated with the notebook by going to `Kernel | Interrupt`, which
+stops execution of all functions in the current notebook.
+3. You can stop the notebook server, which stops all kernels. To close the notebook server,
+press :kbd:`Control-C` on the terminal running the server.
+
 Notebook user interface
 -----------------------
 
