@@ -94,8 +94,10 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png'):
-    """Convert a figure to svg or png for inline display."""
+def print_figure(fig, fmt='png', quality=90):
+    """Convert a figure to svg, png or jpg for inline display.
+    Quality is only relevant for jpg.
+    """
     from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
@@ -110,7 +112,7 @@ def print_figure(fig, fmt='png'):
         dpi = dpi * 2
         fmt = 'png'
     fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
-                            facecolor=fc, edgecolor=ec, dpi=dpi)
+                            facecolor=fc, edgecolor=ec, dpi=dpi, quality=quality)
     data = bytes_io.getvalue()
     return data
     
@@ -163,8 +165,8 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
-def select_figure_format(shell, fmt):
-    """Select figure format for inline backend, can be 'png', 'retina', or 'svg'.
+def select_figure_format(shell, fmt, quality=90):
+    """Select figure format for inline backend, can be 'png', 'retina', 'jpg', or 'svg'.
 
     Using this method ensures only one figure format is active at a time.
     """
@@ -173,18 +175,20 @@ def select_figure_format(shell, fmt):
 
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
+    jpg_formatter = shell.display_formatter.formatters['image/jpeg']
+
+    [ f.type_printers.pop(Figure, None) for f in {svg_formatter, png_formatter, jpg_formatter} ]
 
     if fmt == 'png':
-        svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
     elif fmt in ('png2x', 'retina'):
-        svg_formatter.pop(Figure, None)
         png_formatter.for_type(Figure, retina_figure)
+    elif fmt in ('jpg', 'jpeg'):
+        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
     elif fmt == 'svg':
-        png_formatter.pop(Figure, None)
         svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
     else:
-        raise ValueError("supported formats are: 'png', 'retina', 'svg', not %r" % fmt)
+        raise ValueError("supported formats are: 'png', 'retina', 'svg', 'jpg', not %r" % fmt)
 
     # set the format to be used in the backend()
     backend_inline._figure_format = fmt
@@ -338,5 +342,5 @@ def configure_inline_support(shell, backend):
             del shell._saved_rcParams
 
     # Setup the default figure format
-    select_figure_format(shell, cfg.figure_format)
+    select_figure_format(shell, cfg.figure_format, cfg.quality)
 

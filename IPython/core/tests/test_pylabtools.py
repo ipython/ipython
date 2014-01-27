@@ -26,6 +26,8 @@ import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
 from .. import pylabtools as pt
 
+from IPython.testing import decorators as dec
+
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
@@ -52,6 +54,16 @@ def test_figure_to_svg():
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
     nt.assert_in(b'doctype svg', svg)
+
+@dec.skip_without("PIL.Image")
+def test_figure_to_jpg():
+    # simple check for at least jpg-looking output
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot([1,2,3])
+    plt.draw()
+    jpg = pt.print_figure(fig, 'jpg')[:100].lower()
+    assert jpg.startswith(b'\xff\xd8')
 
 
 def test_import_pylab():
