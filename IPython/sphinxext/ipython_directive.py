@@ -246,14 +246,12 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
 class EmbeddedSphinxShell(object):
     """An embedded IPython instance to run inside Sphinx"""
 
-    def __init__(self, exec_lines=None, state=None):
+    def __init__(self, exec_lines=None):
 
         self.cout = StringIO()
 
         if exec_lines is None:
             exec_lines = []
-
-        self.state = state
 
         # Create config object for IPython
         config = Config()
@@ -293,6 +291,10 @@ class EmbeddedSphinxShell(object):
         self.is_suppress = False
 
         # Optionally, provide more detailed information to shell.
+        # this is assigned by the SetUp method of IPythonDirective
+        # to point at itself.
+        #
+        # So, you can access handy things at self.directive.state
         self.directive = None
 
         # on the first call to the savefig decorator, we'll import
@@ -431,9 +433,9 @@ class EmbeddedSphinxShell(object):
         # context information
         filename = "Unknown"
         lineno = 0
-        if self.state:
-            filename = self.state.document.current_source
-            lineno = self.state.document.current_line
+        if self.directive.state:
+            filename = self.directive.state.document.current_source
+            lineno = self.directive.state.document.current_line
 
         # output any exceptions raised during execution to stdout
         # unless :okexcept: has been specified.
@@ -752,7 +754,7 @@ class IPythonDirective(Directive):
 
             # Must be called after (potentially) importing matplotlib and
             # setting its backend since exec_lines might import pylab.
-            self.shell = EmbeddedSphinxShell(exec_lines, self.state)
+            self.shell = EmbeddedSphinxShell(exec_lines)
 
             # Store IPython directive to enable better error messages
             self.shell.directive = self
