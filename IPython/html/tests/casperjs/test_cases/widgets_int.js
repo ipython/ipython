@@ -15,7 +15,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(int_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create int cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -33,7 +33,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(int_widget.value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '1\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '1\n', 
             'Int textbox value set.');
         this.cell_element_function(int_index, int_text_query_2, 'val', ['']);
         this.sendKeys(int_text_query_2, '123456789');
@@ -43,7 +43,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(int_widget.value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '123456789\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '123456789\n', 
             'Long int textbox value set (probably triggers throttling).');
         this.cell_element_function(int_index, int_text_query_2, 'val', ['']);
         this.sendKeys(int_text_query_2, '12hello');
@@ -53,7 +53,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(int_widget.value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '12\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '12\n', 
             'Invald int textbox value caught and filtered.');
     });
     
@@ -74,7 +74,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(intrange_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create int range cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -96,7 +96,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Int range properties cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(intrange_index, slider_query), 
@@ -119,7 +119,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(intrange[0].value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '1\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '1\n', 
             'Int textbox set int range value');
 
         // Clear the int textbox value and then set it to 120 by emulating
@@ -132,7 +132,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(intrange[0].value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '50\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '50\n', 
             'Int textbox value bound');
 
         // Clear the int textbox value and then set it to 'hello world' by 
@@ -145,7 +145,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(intrange[0].value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '50\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '50\n', 
             'Invalid int textbox characters ignored');
     });    
 });

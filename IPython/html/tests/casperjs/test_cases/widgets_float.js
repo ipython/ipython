@@ -15,7 +15,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(float_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create float cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -33,7 +33,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(float_widget.value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '1.05\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '1.05\n', 
             'Float textbox value set.');
         this.cell_element_function(float_index, float_text_query_2, 'val', ['']);
         this.sendKeys(float_text_query_2, '123456789.0');
@@ -43,7 +43,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(float_widget.value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '123456789.0\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '123456789.0\n', 
             'Long float textbox value set (probably triggers throttling).');
         this.cell_element_function(float_index, float_text_query_2, 'val', ['']);
         this.sendKeys(float_text_query_2, '12hello');
@@ -53,7 +53,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell('print(float_widget.value)\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == '12.0\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, '12.0\n', 
             'Invald float textbox value caught and filtered.');
     });
     
@@ -73,7 +73,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(floatrange_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create float range cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -95,7 +95,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Float range properties cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(floatrange_index, slider_query), 

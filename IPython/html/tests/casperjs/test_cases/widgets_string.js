@@ -15,7 +15,7 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(string_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create string widget cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 

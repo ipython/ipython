@@ -15,7 +15,7 @@ casper.notebook_test(function () {
         'button.on_click(handle_click)');
     this.execute_cell_then(button_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create button cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -37,7 +37,7 @@ casper.notebook_test(function () {
     this.wait(500); // Wait for click to execute in kernel and write output
 
     this.then(function () {
-        this.test.assert(this.get_output_cell(button_index, 1).text == 'Clicked\n', 
+        this.test.assertEquals(this.get_output_cell(button_index, 1).text, 'Clicked\n', 
             'Button click event fires.');
     });
 });
