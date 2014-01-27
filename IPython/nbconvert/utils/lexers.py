@@ -4,12 +4,10 @@ Defines a variety of Pygments lexers for highlighting IPython code.
 
 This includes:
 
-    IPythonLexer
-    IPython3Lexer
+    IPythonLexer, IPython3Lexer
         Lexers for pure IPython (python + magic/shell commands)
 
-    IPythonPartialTracebackLexer
-    IPythonTracebackLexer
+    IPythonPartialTracebackLexer, IPythonTracebackLexer
         Supports 2.x and 3.x via keyword `python3`.  The partial traceback
         lexer reads everything but the Python code appearing in a traceback.
         The full lexer combines the partial lexer with an IPython lexer.
@@ -209,6 +207,7 @@ class IPythonConsoleLexer(Lexer):
         .. code-block:: ipythonconsole
 
             In [1]: raise Exception
+
             ---------------------------------------------------------------------------
             Exception                                 Traceback (most recent call last)
             <ipython-input-1-fca2ab0ca76b> in <module>()
