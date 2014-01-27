@@ -617,17 +617,16 @@ var IPython = (function (IPython) {
     var set_width_height = function (img, md, mime) {
         // set width and height of an img element from metadata
         var height = _get_metadata_key(md, 'height', mime);
-        if (height !== undefined) img.setAttribute('height', height);
+        if (height !== undefined) img.attr('height', height);
         var width = _get_metadata_key(md, 'width', mime);
-        if (width !== undefined) img.setAttribute('width', width);
+        if (width !== undefined) img.attr('width', width);
     };
     
     OutputArea.prototype.append_png = function (png, md, element) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
-        var img = $("<img/>");
-        img[0].setAttribute('src','data:image/png;base64,'+png);
-        set_width_height(img[0], md, 'image/png');
+        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        set_width_height(img, md, 'image/png');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
@@ -638,7 +637,7 @@ var IPython = (function (IPython) {
         var type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
-        set_width_height(img[0], md, 'image/jpeg');
+        set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
