@@ -45,7 +45,7 @@ casper.notebook_test(function () {
                 };
             });
             var prefix = "Image('" + fmt + "', retina=" + retina + ") ";
-            this.test.assertNotEquals(img, null, prefix + "img was displayed");
+            this.test.assertType(img, "object", prefix + "img was displayed");
             this.test.assertEquals(img.src.split(',')[0], "data:" + fmt + ";base64",
                 prefix + "data-uri prefix"
             );
