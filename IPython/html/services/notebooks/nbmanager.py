@@ -46,6 +46,26 @@ class NotebookManager(LoggingConfigurable):
     def _notary_default(self):
         return sign.NotebookNotary(parent=self)
     
+    def check_and_sign(self, nb, path, name):
+        """Check for trusted cells, and sign the notebook.
+        
+        Called as a part of saving notebooks.
+        """
+        if self.notary.check_cells(nb):
+            self.notary.sign(nb)
+        else:
+            self.log.warn("Saving untrusted notebook %s/%s", path, name)
+    
+    def mark_trusted_cells(self, nb, path, name):
+        """Mark cells as trusted if the notebook signature matches.
+        
+        Called as a part of loading notebooks.
+        """
+        trusted = self.notary.check_signature(nb)
+        if not trusted:
+            self.log.warn("Notebook %s/%s is not trusted", path, name)
+        self.notary.mark_cells(nb, trusted)
+    
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
         

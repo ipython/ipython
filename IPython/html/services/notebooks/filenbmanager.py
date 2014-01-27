@@ -26,7 +26,7 @@ import shutil
 from tornado import web
 
 from .nbmanager import NotebookManager
-from IPython.nbformat import current, sign
+from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 from IPython.utils import tz
 
@@ -213,11 +213,8 @@ class FileNotebookManager(NotebookManager):
                     nb = current.read(f, u'json')
                 except Exception as e:
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
+            self.mark_trusted_cells(nb, path, name)
             model['content'] = nb
-            trusted = self.notary.check_signature(nb)
-            if not trusted:
-                self.log.warn("Notebook %s/%s is not trusted", model['path'], model['name'])
-            self.notary.mark_cells(nb, trusted)
         return model
 
     def save_notebook_model(self, model, name='', path=''):
@@ -241,11 +238,7 @@ class FileNotebookManager(NotebookManager):
         os_path = self.get_os_path(new_name, new_path)
         nb = current.to_notebook_json(model['content'])
         
-        if self.notary.check_cells(nb):
-            self.notary.sign(nb)
-        else:
-            self.log.warn("Saving untrusted notebook %s/%s", new_path, new_name)
-            
+        self.check_and_sign(nb, new_path, new_name)
         
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
