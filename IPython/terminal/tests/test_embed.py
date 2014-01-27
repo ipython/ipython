@@ -40,6 +40,7 @@ def test_ipython_embed():
     with NamedFileInTemporaryDirectory('file_with_embed.py') as f:
         f.write(_sample_embed)
         f.flush()
+        f.close() # otherwise msft won't be able to read the file
 
         # run `python file_with_embed.py`
         cmd = [sys.executable, f.name]
