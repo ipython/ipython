@@ -44,8 +44,7 @@ def test_ipython_embed():
         # run `python file_with_embed.py`
         cmd = [sys.executable, f.name]
 
-        _, out, p = process_handler(cmd,
-                lambda p: (p.stdin.write(_exit), p.communicate()[:], p))
+        out, p = process_handler(cmd, lambda p: (p.communicate(_exit), p))
         std = out[0].decode('UTF-8')
         nt.assert_equal(p.returncode, 0)
         nt.assert_in('3 . 14', std)
