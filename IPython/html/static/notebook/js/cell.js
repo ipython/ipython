@@ -47,6 +47,7 @@ var IPython = (function (IPython) {
         this.cm_config = options.cm_config;
         this.cell_id = utils.uuid();
         this._options = options;
+        this._clean_generation = 0;
 
         // For JS VM engines optimisation, attributes should be all set (even
         // to null) in the constructor, and if possible, if different subclass
@@ -88,8 +89,20 @@ var IPython = (function (IPython) {
         return $.extend(true, {}, _class.options_default, options, overwrite)
 
     }
-
-
+   
+    /**
+     * Mark the current cell as clean.
+     *
+     * Store the current CodeMirror edit generation and add
+     * necessary class to the dom to mark the current cell source content
+     * as in sync with it's content.
+     *
+     * @method mark_clean
+     */
+    Cell.prototype.mark_clean = function(){
+        this._clean_generation = this.code_mirror.changeGeneration();
+        this.mark_maybe_dirty();
+    }
 
     /**
      * Empty. Subclasses must implement create_element.
@@ -140,9 +153,12 @@ var IPython = (function (IPython) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
             };
         });
+
+        var that = this;
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
                 $([IPython.events]).trigger("set_dirty.Notebook", {value: true});
+                that.mark_maybe_dirty();
             });
         }
         if (this.code_mirror) {
@@ -167,6 +183,26 @@ var IPython = (function (IPython) {
             });
         }
     };
+
+    Cell.prototype.mark_dirty = function(){
+        this._clean_generation = -1;
+        this.mark_maybe_dirty();
+    }
+
+    /**
+     * Mark a cell as dirty if necessary
+     */
+    Cell.prototype.mark_maybe_dirty = function() {
+        var clean = this.code_mirror.isClean(this._clean_generation)
+        if (this.element !== null){
+            if(clean) {
+              this.element.removeClass('dirty');
+            } else {
+              this.element.addClass('dirty');
+            }
+        }
+        $([IPython.events]).trigger("set_dirty.Cell", {value:!clean, cell: this});
+    }
 
     /**
      * Triger typsetting of math by mathjax on current cell element
@@ -337,6 +373,7 @@ var IPython = (function (IPython) {
             this.metadata = data.metadata;
         }
         this.celltoolbar.rebuild();
+        this.mark_clean();
     };
 
 
