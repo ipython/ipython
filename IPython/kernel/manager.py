@@ -240,11 +240,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         self.stop_restarter()
 
         # FIXME: Shutdown does not work on Windows due to ZMQ errors!
-        if sys.platform == 'win32':
-            self._kill_kernel()
-            return
-
-        if now:
+        if now or sys.platform == 'win32':
             if self.has_kernel:
                 self._kill_kernel()
         else:
@@ -267,6 +263,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             self.cleanup_ipc_files()
         else:
             self.cleanup_ipc_files()
+        
+        self._close_control_socket()
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
