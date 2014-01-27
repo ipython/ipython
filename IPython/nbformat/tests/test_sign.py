@@ -10,8 +10,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import hashlib
-
 from .. import sign
 from .base import TestsBase
 
@@ -34,7 +32,7 @@ class TestNotary(TestsBase):
     
     def test_algorithms(self):
         last_sig = ''
-        for algo in hashlib.algorithms:
+        for algo in sign.algorithms:
             self.notary.algorithm = algo
             self.notary.sign(self.nb)
             sig = self.nb.metadata.signature

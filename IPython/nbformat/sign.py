@@ -27,7 +27,11 @@ from .current import read, write
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
-
+try:
+    # Python 3
+    algorithms = hashlib.algorithms_guaranteed
+except AttributeError:
+    algorithms = hashlib.algorithms
 
 def yield_everything(obj):
     """Yield every item in a container as bytes
@@ -83,7 +87,7 @@ class NotebookNotary(LoggingConfigurable):
             app.initialize()
         return app.profile_dir
     
-    algorithm = Enum(hashlib.algorithms, default_value='sha256', config=True,
+    algorithm = Enum(algorithms, default_value='sha256', config=True,
         help="""The hashing algorithm used to sign notebooks."""
     )
     def _algorithm_changed(self, name, old, new):
