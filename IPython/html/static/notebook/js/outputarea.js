@@ -552,19 +552,22 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_javascript = function (js, md, container) {
+    OutputArea.prototype.append_javascript = function (js, md, element) {
         // We just eval the JS code, element appears in the local scope.
         var type = 'application/javascript';
-        var element = this.create_output_subarea(md, "output_javascript", type);
-        IPython.keyboard_manager.register_events(element);
-        container.append(element);
+        var toinsert = this.create_output_subarea(md, "output_javascript", type);
+        IPython.keyboard_manager.register_events(toinsert);
+        element.append(toinsert);
+        //backward compat, js should be eval'ed in a context where `container` is defined.
+        var container = element;
+        container.show = function(){console.log('Warning "container.show()" is deprecated.')};
         try {
             eval(js);
         } catch(err) {
             console.log(err);
-            this._append_javascript_error(err, element);
+            this._append_javascript_error(err, toinsert);
         }
-        return container;
+        return toinsert;
     };
 
 
