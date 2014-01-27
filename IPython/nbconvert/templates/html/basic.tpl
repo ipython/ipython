@@ -27,6 +27,11 @@ In&nbsp;[{{ cell.prompt_number }}]:
 </div>
 {%- endblock in_prompt %}
 
+{% block empty_in_prompt -%}
+<div class="prompt input_prompt">
+</div>
+{%- endblock empty_in_prompt %}
+
 {# 
   output_prompt doesn't do anything in HTML,
   because there is a prompt div in each output area (see output block)
@@ -54,14 +59,24 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock output %}
 
 {% block markdowncell scoped %}
+<div class="input">
+{{ self.empty_in_prompt() }}
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ cell.source  | markdown2html | strip_files_prefix }}
+</div>
+</div>
 </div>
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
+<div class="input">
+{{ self.empty_in_prompt() }}
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ ("#" * cell.level + cell.source) | replace('\n', ' ')  | markdown2html | strip_files_prefix | add_anchor }}
+</div>
+</div>
 </div>
 {% endblock headingcell %}
 
