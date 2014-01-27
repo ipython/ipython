@@ -23,11 +23,19 @@ class ZMQCompleter(Configurable):
         self.client =  client
         self.matches = []
 
-    def rlcomplete_request(self, text):
+    def _rl_get_lineinfo(self):
         import readline
         line = readline.get_line_buffer()
         cursor_pos = readline.get_endidx()
+        return line, cursor_pos
+
+    def rlcomplete_request(self, text):
+        line, cursor_pos = self._rl_get_lineinfo()
         return complete_request(text, line, cursor_pos)
+
+    def rlcomplete(self, text, state):
+        line, cursor_pos = self._rl_get_lineinfo()
+        return self.complete(text, line, cursor_pos, state)
 
     def complete_request(self, text, line, cursor_pos):
         # send completion request to kernel
@@ -37,30 +45,18 @@ class ZMQCompleter(Configurable):
 
         msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
-            return msg["content"]["matches"]
+            return msg['content']['matches']
         return []
 
-    def rlcomplete(self, text, state):
+    def complete(self, text, line, cursor_pos=None, state=0):
         if state == 0:
             try:
-                self.matches = self.rlcomplete_request(text)
+                self.matches = self.complete_request(text, line, cursor_pos)
             except Empty:
                 #print('WARNING: Kernel timeout on tab completion.')
                 pass
 
         try:
             return self.matches[state]
-        except IndexError:
-            return None
-
-    def complete(self, text, line, cursor_pos=None):
-        try:
-            self.matches = self.complete_request(text, line, cursor_pos)
-        except Empty:
-            #print('WARNING: Kernel timeout on tab completion.')
-            pass
-
-        try:
-            return self.matches[0]
         except IndexError:
             return None
