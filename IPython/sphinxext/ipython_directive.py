@@ -217,6 +217,9 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
                 if matchout or nextline.startswith('#'):
                     break
                 elif nextline.startswith(continuation):
+                    # ipython_rgxout says that the space after the colon is optional
+                    # If the space is there we must consume it, otherwise code
+                    # employing the cython_magic extension fails to work.
                     nextline = nextline[Nc:]
                     if nextline and nextline[0] == ' ':
                         nextline = nextline[1:]
