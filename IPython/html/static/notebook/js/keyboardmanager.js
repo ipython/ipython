@@ -276,9 +276,17 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
+        'shift+v' : {
+            help    : 'paste cell above',
+            help_index : 'eg',
+            handler : function (event) {
+                IPython.notebook.paste_cell_above();
+                return false;
+            }
+        },
         'v' : {
             help    : 'paste cell below',
-            help_index : 'eg',
+            help_index : 'eh',
             handler : function (event) {
                 IPython.notebook.paste_cell_below();
                 return false;
@@ -286,18 +294,10 @@ var IPython = (function (IPython) {
         },
         'd' : {
             help    : 'delete cell (press twice)',
-            help_index : 'ei',
+            help_index : 'ej',
+            count: 2,
             handler : function (event) {
-                var dc = IPython.keyboard_manager._delete_count;
-                if (dc === 0) {
-                    IPython.keyboard_manager._delete_count = 1;
-                    setTimeout(function () {
-                        IPython.keyboard_manager._delete_count = 0;
-                    }, 800);
-                } else if (dc === 1) {
-                    IPython.notebook.delete_cell();
-                    IPython.keyboard_manager._delete_count = 0;
-                }
+                IPython.notebook.delete_cell();
                 return false;
             }
         },
@@ -337,7 +337,7 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        't' : {
+        'r' : {
             help    : 'to raw',
             help_index : 'cc',
             handler : function (event) {
@@ -442,16 +442,18 @@ var IPython = (function (IPython) {
             }
         },
         'i' : {
-            help    : 'interrupt kernel',
+            help    : 'interrupt kernel (press twice)',
             help_index : 'ha',
+            count: 2,
             handler : function (event) {
                 IPython.notebook.kernel.interrupt();
                 return false;
             }
         },
-        '.' : {
-            help    : 'restart kernel',
+        '0' : {
+            help    : 'restart kernel (press twice)',
             help_index : 'hb',
+            count: 2,
             handler : function (event) {
                 IPython.notebook.restart_kernel();
                 return false;
@@ -467,7 +469,7 @@ var IPython = (function (IPython) {
         },
         'z' : {
             help    : 'undo last delete',
-            help_index : 'eh',
+            help_index : 'ei',
             handler : function (event) {
                 IPython.notebook.undelete_cell();
                 return false;
@@ -475,7 +477,7 @@ var IPython = (function (IPython) {
         },
         'shift+=' : {
             help    : 'merge cell below',
-            help_index : 'ej',
+            help_index : 'ek',
             handler : function (event) {
                 IPython.notebook.merge_cell_below();
                 return false;
@@ -486,8 +488,10 @@ var IPython = (function (IPython) {
 
     // Shortcut manager class
 
-    var ShortcutManager = function () {
+    var ShortcutManager = function (delay) {
         this._shortcuts = {}
+        this._counts = {}
+        this.delay = delay || 800; // delay in milliseconds
     }
 
     ShortcutManager.prototype.help = function () {
@@ -552,10 +556,12 @@ var IPython = (function (IPython) {
         }
         data.help_index = data.help_index || '';
         data.help = data.help || '';
+        data.count = data.count || 1;
         if (data.help_index === '') {
             data.help_index = 'zz';
         }
         shortcut = this.normalize_shortcut(shortcut);
+        this._counts[shortcut] = 0;
         this._shortcuts[shortcut] = data;
     }
 
@@ -567,16 +573,37 @@ var IPython = (function (IPython) {
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut) {
         shortcut = this.normalize_shortcut(shortcut);
+        delete this._counts[shortcut];
         delete this._shortcuts[shortcut];
+    }
+
+    ShortcutManager.prototype.count_handler = function (shortcut, event, handler) {
+        var that = this;
+        var c = this._counts;
+        if (c[shortcut] === 0) {
+            c[shortcut] = 1;
+            setTimeout(function () {
+                c[shortcut] = 0;
+            }, that.delay);
+        } else if (c[shortcut] === 1) {
+            c[shortcut] = 0;
+            return handler(event);
+        }
+        return false;
+
     }
 
     ShortcutManager.prototype.call_handler = function (event) {
         var shortcut = this.event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
-        if (data !== undefined) {
+        if (data) {
             var handler = data['handler'];
-            if (handler !== undefined) {
-                return handler(event);
+            if (handler) {
+                if (data.count === 1) {
+                    return handler(event);
+                } else if (data.count > 1) {
+                    return this.count_handler(shortcut, event, handler);
+                }
             }
         }
         return true;
@@ -589,7 +616,6 @@ var IPython = (function (IPython) {
     var KeyboardManager = function () {
         this.mode = 'command';
         this.enabled = true;
-        this._delete_count = 0;
         this.bind_events();
         this.command_shortcuts = new ShortcutManager();
         this.command_shortcuts.add_shortcuts(default_common_shortcuts);
