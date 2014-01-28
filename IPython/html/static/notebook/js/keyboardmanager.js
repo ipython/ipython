@@ -638,17 +638,17 @@ var IPython = (function (IPython) {
         delete this._shortcuts[shortcut];
     }
 
-    ShortcutManager.prototype.count_handler = function (shortcut, event, handler) {
+    ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
         var that = this;
         var c = this._counts;
-        if (c[shortcut] === 0) {
-            c[shortcut] = 1;
+        if (c[shortcut] === data.count-1) {
+            c[shortcut] = 0;
+            return data.handler(event);
+        } else {
+            c[shortcut] = c[shortcut] + 1;
             setTimeout(function () {
                 c[shortcut] = 0;
             }, that.delay);
-        } else if (c[shortcut] === 1) {
-            c[shortcut] = 0;
-            return handler(event);
         }
         return false;
 
@@ -663,7 +663,7 @@ var IPython = (function (IPython) {
                 if (data.count === 1) {
                     return handler(event);
                 } else if (data.count > 1) {
-                    return this.count_handler(shortcut, event, handler);
+                    return this.count_handler(shortcut, event, data);
                 }
             }
         }
