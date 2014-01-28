@@ -630,7 +630,7 @@ def test_user_expression():
     r = ip.user_expressions(query)
     import pprint
     pprint.pprint(r)
-    nt.assert_equal(r.keys(), query.keys())
+    nt.assert_equal(set(r.keys()), set(query.keys()))
     a = r['a']
     nt.assert_equal(set(['status', 'data', 'metadata']), set(a.keys()))
     nt.assert_equal(a['status'], 'ok')
