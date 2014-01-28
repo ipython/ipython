@@ -50,6 +50,7 @@ var IPython = (function (IPython) {
     }
     
     var browser = IPython.utils.browser[0];
+    var platform = IPython.utils.platform;
     
     if (browser === 'Firefox' || browser === 'Opera') {
         $.extend(_keycodes, _mozilla_keycodes);
@@ -78,24 +79,6 @@ var IPython = (function (IPython) {
     // Default keyboard shortcuts
 
     var default_common_shortcuts = {
-        'meta+s' : {
-            help    : 'save notebook',
-            help_index : 'fb',
-            handler : function (event) {
-                IPython.notebook.save_checkpoint();
-                event.preventDefault();
-                return false;
-            }
-        },
-        'ctrl+s' : {
-            help    : 'save notebook',
-            help_index : 'fc',
-            handler : function (event) {
-                IPython.notebook.save_checkpoint();
-                event.preventDefault();
-                return false;
-            }
-        },
         'shift' : {
             help    : '',
             help_index : '',
@@ -128,6 +111,30 @@ var IPython = (function (IPython) {
                 return false;
             }
         }
+    }
+
+    if (platform === 'MacOS') {
+        default_common_shortcuts['cmd+s'] =
+            {
+                help    : 'save notebook',
+                help_index : 'fb',
+                handler : function (event) {
+                    IPython.notebook.save_checkpoint();
+                    event.preventDefault();
+                    return false;
+                }
+            };
+    } else {
+        default_common_shortcuts['ctrl+s'] =
+            {
+                help    : 'save notebook',
+                help_index : 'fb',
+                handler : function (event) {
+                    IPython.notebook.save_checkpoint();
+                    event.preventDefault();
+                    return false;
+                }
+            };
     }
 
     // Edit mode defaults
@@ -195,6 +202,48 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
+        'tab' : {
+            help    : 'indent or complete',
+            help_index : 'ec',
+        },
+        'shift+tab' : {
+            help    : 'tooltip',
+            help_index : 'ed',
+        },
+    }
+
+    if (platform === 'MacOS') {
+        default_edit_shortcuts['cmd+/'] =
+            {
+                help    : 'toggle comment',
+                help_index : 'ee'
+            };
+        default_edit_shortcuts['cmd+]'] =
+            {
+                help    : 'indent',
+                help_index : 'ef'
+            };
+        default_edit_shortcuts['cmd+['] =
+            {
+                help    : 'dedent',
+                help_index : 'eg'
+            };
+    } else {
+        default_edit_shortcuts['ctrl+/'] =
+            {
+                help    : 'toggle comment',
+                help_index : 'ee'
+            };
+        default_edit_shortcuts['ctrl+]'] =
+            {
+                help    : 'indent',
+                help_index : 'ef'
+            };
+        default_edit_shortcuts['ctrl+['] =
+            {
+                help    : 'dedent',
+                help_index : 'eg'
+            };
     }
 
     // Command mode defaults
@@ -402,7 +451,7 @@ var IPython = (function (IPython) {
             }
         },
         'shift+o' : {
-            help    : 'toggle output',
+            help    : 'toggle output scroll',
             help_index : 'gc',
             handler : function (event) {
                 IPython.notebook.toggle_output_scroll();
@@ -483,6 +532,14 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
+        'shift+m' : {
+            help    : 'merge cell below',
+            help_index : 'ek',
+            handler : function (event) {
+                IPython.notebook.merge_cell_below();
+                return false;
+            }
+        },
     }
 
 
@@ -500,6 +557,9 @@ var IPython = (function (IPython) {
             var help_string = this._shortcuts[shortcut]['help'];
             var help_index = this._shortcuts[shortcut]['help_index'];
             if (help_string) {
+                if (platform === 'MacOS') {
+                    shortcut = shortcut.replace('meta', 'cmd');
+                }
                 help.push({
                     shortcut: shortcut,
                     help: help_string,
@@ -523,6 +583,7 @@ var IPython = (function (IPython) {
 
     ShortcutManager.prototype.normalize_shortcut = function (shortcut) {
         // Sort a sequence of + separated modifiers into the order alt+ctrl+meta+shift
+        shortcut = shortcut.replace('cmd', 'meta').toLowerCase();
         var values = shortcut.split("+");
         if (values.length === 1) {
             return this.normalize_key(values[0])

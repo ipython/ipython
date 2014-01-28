@@ -459,6 +459,16 @@ IPython.utils = (function (IPython) {
         return M;
     })();
 
+    // http://stackoverflow.com/questions/11219582/how-to-detect-my-browser-version-and-operating-system-using-javascript
+    var platform = (function () {
+        var OSName="Unknown OS";
+        if (navigator.appVersion.indexOf("Win")!=-1) OSName="Windows";
+        if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
+        if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
+        if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
+        return OSName
+    })();
+
     var is_or_has = function (a, b) {
         // Is b a child of a or a itself?
         return a.has(b).length !==0 || a.is(b);
@@ -500,6 +510,7 @@ IPython.utils = (function (IPython) {
         splitext : splitext,
         always_new : always_new,
         browser : browser,
+        platform: platform,
         is_or_has : is_or_has,
         is_focused : is_focused
     };
