@@ -32,12 +32,16 @@ class MockEvent(object):
 #-----------------------------------------------------------------------------
 class Test_magic_run_completer(unittest.TestCase):
     files = [u"aao.py", u"a.py", u"b.py", u"aao.txt"]
+    dirs = [u"adir", "bdir"]
 
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
         for fil in self.files:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
+        for d in self.dirs:
+            os.mkdir(join(self.BASETESTDIR, d))
+
         self.oldpath = py3compat.getcwd()
         os.chdir(self.BASETESTDIR)
 
@@ -51,7 +55,7 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u"%run a")
         mockself = None
         match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, set([u"a.py", u"aao.py"]))
+        self.assertEqual(match, {u"a.py", u"aao.py", u"adir/"})
 
     def test_2(self):
         """Test magic_run_completer, should match one alterntive
@@ -66,20 +70,20 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u'%run "a')
         mockself = None
         match = set(magic_run_completer(mockself, event))
-        self.assertEqual(match, set([u"a.py", u"aao.py"]))
+        self.assertEqual(match, {u"a.py", u"aao.py", u"adir/"})
 
     def test_completion_more_args(self):
         event = MockEvent(u'%run a.py ')
         match = set(magic_run_completer(None, event))
-        self.assertEqual(match, set(self.files))
+        self.assertEqual(match, set(self.files + self.dirs))
 
     def test_completion_in_dir(self):
         # Github issue #3459
         event = MockEvent(u'%run a.py {}'.format(join(self.BASETESTDIR, 'a')))
         print(repr(event.line))
         match = set(magic_run_completer(None, event))
-        self.assertEqual(match,
-            {join(self.BASETESTDIR, f) for f in (u'a.py', u'aao.py', u'aao.txt')})
+        self.assertEqual(match, {join(self.BASETESTDIR, f) for
+                                f in (u'a.py', u'aao.py', u'aao.txt', u'adir')})
 
 class Test_magic_run_completer_nonascii(unittest.TestCase):
     @onlyif_unicode_paths
