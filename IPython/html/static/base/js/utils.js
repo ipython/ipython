@@ -461,7 +461,11 @@ IPython.utils = (function (IPython) {
 
     // http://stackoverflow.com/questions/11219582/how-to-detect-my-browser-version-and-operating-system-using-javascript
     var platform = (function () {
-        var OSName="Unknown OS";
+        if (typeof navigator === 'undefined') {
+            // navigator undefined in node
+            return 'None';
+        }
+        var OSName="None";
         if (navigator.appVersion.indexOf("Win")!=-1) OSName="Windows";
         if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
         if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
