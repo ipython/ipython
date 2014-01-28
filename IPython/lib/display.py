@@ -220,7 +220,7 @@ class YouTubeVideo(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src = "http://www.youtube.com/embed/{0}".format(id)
+        src = "https://www.youtube.com/embed/{0}".format(id)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
 
 class VimeoVideo(IFrame):
