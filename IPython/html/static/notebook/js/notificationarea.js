@@ -88,7 +88,7 @@ var IPython = (function (IPython) {
         });
 
         $([IPython.events]).on('status_interrupting.Kernel',function () {
-            knw.set_message("Interrupting kernel");
+            knw.set_message("Interrupting kernel", 2000);
         });
 
         $([IPython.events]).on('status_dead.Kernel',function () {
