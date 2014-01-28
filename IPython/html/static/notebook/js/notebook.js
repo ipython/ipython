@@ -308,10 +308,7 @@ var IPython = (function (IPython) {
      * @return {Cell} Cell or null if no cell was found.
      */
     Notebook.prototype.get_msg_cell = function (msg_id) {
-        if (IPython.CodeCell.msg_cells[msg_id] !== undefined) {
-            return IPython.CodeCell.msg_cells[msg_id];
-        }
-        return null;
+        return IPython.CodeCell.msg_cells[msg_id] || null;
     };
 
     /**
