@@ -1,6 +1,6 @@
 """Utility for calling pandoc"""
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013 the IPython Development Team.
+# Copyright (c) 2014 the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,7 +10,6 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
 from __future__ import print_function
 
 # Stdlib imports
@@ -23,7 +22,6 @@ from io import TextIOWrapper, BytesIO
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
 from IPython.utils.process import is_cmd_found, FindCmdError
-
 
 from .exceptions import ConversionException
 
@@ -84,16 +82,14 @@ def get_pandoc_version():
     """
     global __version
 
-    if __version is not None:
-        return __version
-    else:
+    if __version is None:
         if not is_cmd_found('pandoc'):
             raise PandocMissing()
 
         out = subprocess.check_output( ['pandoc', '-v'], universal_newlines=True)
         pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
         __version = pv_re.search(out).group(0)
-        return __version
+    return __version
 
 
 def check_pandoc_version():
@@ -130,6 +126,3 @@ def clean_cache():
     __version = None
 
 __version = None
-
-
-

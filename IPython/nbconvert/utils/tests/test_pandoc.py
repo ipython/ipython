@@ -1,5 +1,4 @@
 """Test Pandoc module"""
-
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2014 The IPython Development Team
 #
