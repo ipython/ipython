@@ -65,9 +65,9 @@ casper.notebook_test(function () {
     var multicontainer2_query = '.widget-area .widget-subarea .accordion';
     var multicontainer2_index = this.append_cell(
         'multicontainer = widgets.AccordionWidget()\n' +
-        'page1 = widgets.TextBoxWidget()\n' +
-        'page2 = widgets.TextBoxWidget()\n' +
-        'page3 = widgets.TextBoxWidget()\n' +
+        'page1 = widgets.TextWidget()\n' +
+        'page2 = widgets.TextWidget()\n' +
+        'page3 = widgets.TextWidget()\n' +
         'multicontainer.children = [page1, page2, page3]\n' +
         'multicontainer.set_title(2, "good")\n' +
         'display(multicontainer)\n' +
