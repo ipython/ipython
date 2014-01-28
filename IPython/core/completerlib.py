@@ -253,7 +253,11 @@ def magic_run_completer(self, event):
     """Complete files that end in .py or .ipy or .ipynb for the %run command.
     """
     comps = arg_split(event.line, strict=False)
-    relpath = (len(comps) > 1 and comps[-1] or '').strip("'\"")
+    # relpath should be the current token that we need to complete.
+    if (len(comps) > 1) and (not event.line.endswith(' ')):
+        relpath = comps[-1].strip("'\"")
+    else:
+        relpath = ''
 
     #print("\nev=", event)  # dbg
     #print("rp=", relpath)  # dbg
@@ -270,7 +274,7 @@ def magic_run_completer(self, event):
     # be arguments to the input script.
 
     if any(magic_run_re.match(c) for c in comps):
-        pys =  [f.replace('\\','/') for f in lglob('*')]
+        pys =  [f.replace('\\','/') for f in lglob(relpath+'*')]
     else:
         pys =  [f.replace('\\','/')
                 for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
