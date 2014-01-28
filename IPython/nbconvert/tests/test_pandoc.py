@@ -1,7 +1,7 @@
 """Test Pandoc module"""
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
+#  Copyright (C) 2014 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -10,24 +10,16 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
 import os
+
+from IPython.testing import decorators as dec
 
 from .base import TestsBase
 from ..utils import pandoc
 
-from IPython.testing import decorators as dec
-
-#-----------------------------------------------------------------------------
-# Constants
-#-----------------------------------------------------------------------------
-
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
-
-
 class TestPandoc(TestsBase):
     """Collection of Pandoc tests"""
 
@@ -50,9 +42,8 @@ class TestPandoc(TestsBase):
         assert pandoc_function_raised_missing(pandoc.get_pandoc_version) == False
         assert pandoc_function_raised_missing(pandoc.check_pandoc_version) == False
         assert pandoc_function_raised_missing(pandoc.pandoc, "", "markdown", "html") == False
-
         
-    @dec.onlyif_cmds_exist('pandoc')        
+    @dec.onlyif_cmds_exist('pandoc')
     def test_minimal_version(self):
         original_minversion = pandoc._minimal_version
 
@@ -61,9 +52,7 @@ class TestPandoc(TestsBase):
 
         pandoc._minimal_version = pandoc.get_pandoc_version()
         assert pandoc.check_pandoc_version()
-        
 
-        
 
 def pandoc_function_raised_missing(f, *args, **kwargs):
     try:
