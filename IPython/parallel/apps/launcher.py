@@ -82,6 +82,12 @@ ipengine_cmd_argv = [sys.executable, "-m", "IPython.parallel.engine"]
 
 ipcontroller_cmd_argv = [sys.executable, "-m", "IPython.parallel.controller"]
 
+if WINDOWS and sys.version_info < (3,):
+    # `python -m package` doesn't work on Windows Python 2,
+    # but `python -m module` does.
+    ipengine_cmd_argv = [sys.executable, "-m", "IPython.parallel.apps.ipengineapp"]
+    ipcontroller_cmd_argv = [sys.executable, "-m", "IPython.parallel.apps.ipcontrollerapp"]
+
 #-----------------------------------------------------------------------------
 # Base launchers and errors
 #-----------------------------------------------------------------------------
