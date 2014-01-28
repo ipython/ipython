@@ -197,7 +197,6 @@ class Connect(object):
     """
     updating = False
     def __init__(self, *args):
-        
         self.objects = args
         for obj,attr in args:
             obj.on_trait_change(self._update, attr)
