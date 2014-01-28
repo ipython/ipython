@@ -13,8 +13,8 @@ import os
 
 from IPython.testing import decorators as dec
 
-from .base import TestsBase
-from ..utils import pandoc
+from IPython.nbconvert.tests.base import TestsBase
+from .. import pandoc
 
 #-----------------------------------------------------------------------------
 # Classes and functions
