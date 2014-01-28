@@ -205,8 +205,10 @@ class Connect(object):
     @contextlib.contextmanager
     def _busy_updating(self):
         self.updating = True
-        yield
-        self.updating = False
+        try:
+            yield
+        finally:
+            self.updating = False
 
     def _update(self, name, old, new):
         if self.updating:
