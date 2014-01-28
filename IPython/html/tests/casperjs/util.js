@@ -59,19 +59,17 @@ casper.delete_current_notebook = function () {
 
 // wait for output in a given cell
 casper.wait_for_output = function (cell_num) {
-    this.then(function() {
-        this.waitFor(function (c) {
-            return this.evaluate(function get_output(c) {
-                var cell = IPython.notebook.get_cell(c);
-                return cell.output_area.outputs.length != 0;
-            },
-            // pass parameter from the test suite js to the browser code js
-            {c : cell_num});
+    this.waitFor(function (c) {
+        return this.evaluate(function get_output(c) {
+            var cell = IPython.notebook.get_cell(c);
+            return cell.output_area.outputs.length != 0;
         },
-        function then() { },
-        function timeout() {
-            this.echo("wait_for_output timedout!");
-        });
+        // pass parameter from the test suite js to the browser code js
+        {c : cell_num});
+    },
+    function then() { },
+    function timeout() {
+        this.echo("wait_for_output timed out!");
     });
 };
 

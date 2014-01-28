@@ -105,6 +105,7 @@ var IPython = (function (IPython) {
         }
     };
 
+    CodeCell.msg_cells = {};
 
     CodeCell.prototype = new IPython.Cell();
 
@@ -132,8 +133,28 @@ var IPython = (function (IPython) {
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
+
+        var widget_area = $('<div/>')
+            .addClass('widget-area')
+            .hide();
+        this.widget_area = widget_area;
+        var widget_prompt = $('<div/>')
+            .addClass('prompt')
+            .appendTo(widget_area);
+        var widget_subarea = $('<div/>')
+            .addClass('widget-subarea')
+            .appendTo(widget_area);
+        this.widget_subarea = widget_subarea;
+        var widget_clear_buton = $('<button />')
+            .addClass('close')
+            .html('&times;')
+            .click(function() {
+                widget_area.slideUp('', function(){ widget_subarea.html(''); });
+                })
+            .appendTo(widget_prompt);
+
         var output = $('<div></div>');
-        cell.append(input).append(output);
+        cell.append(input).append(widget_area).append(output);
         this.element = cell;
         this.output_area = new IPython.OutputArea(output, true);
         this.completer = new IPython.Completer(this);
@@ -283,6 +304,13 @@ var IPython = (function (IPython) {
      */
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output();
+        
+        // Clear widget area
+        this.widget_subarea.html('');
+        this.widget_subarea.height('');
+        this.widget_area.height('');
+        this.widget_area.hide();
+
         this.set_input_prompt('*');
         this.element.addClass("running");
         if (this.last_msg_id) {
@@ -290,7 +318,12 @@ var IPython = (function (IPython) {
         }
         var callbacks = this.get_callbacks();
         
+        var old_msg_id = this.last_msg_id;
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        if (old_msg_id) {
+            delete CodeCell.msg_cells[old_msg_id];
+        }
+        CodeCell.msg_cells[this.last_msg_id] = this;
     };
     
     /**

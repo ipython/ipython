@@ -21,7 +21,18 @@
       require.config({
           baseUrl: '{{static_url("")}}',
           paths: {
-            nbextensions : '{{ base_project_url }}nbextensions'
+            nbextensions : '{{ base_project_url }}nbextensions',
+            underscore : '{{static_url("components/underscore/underscore-min")}}',
+            backbone : '{{static_url("components/backbone/backbone-min")}}', 
+          },
+          shim: {
+            underscore: {
+              exports: '_'
+            },
+            backbone: {
+              deps: ["underscore", "jquery"],
+              exports: "Backbone"
+            }
           }
       });
     </script>

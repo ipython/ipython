@@ -110,12 +110,23 @@ def display(*objs, **kwargs):
 
     from IPython.core.interactiveshell import InteractiveShell
 
-    if raw:
-        for obj in objs:
-            publish_display_data('display', obj, metadata)
-    else:
+    if not raw:
         format = InteractiveShell.instance().display_formatter.format
-        for obj in objs:
+
+    for obj in objs:
+
+        # If _ipython_display_ is defined, use that to display this object.
+        display_method = getattr(obj, '_ipython_display_', None)
+        if display_method is not None:
+            try:
+                display_method(**kwargs)
+            except NotImplementedError:
+                pass
+            else:
+                continue
+        if raw:
+            publish_display_data('display', obj, metadata)
+        else:
             format_dict, md_dict = format(obj, include=include, exclude=exclude)
             if metadata:
                 # kwarg-specified metadata gets precedence

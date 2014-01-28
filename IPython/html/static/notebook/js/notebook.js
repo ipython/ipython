@@ -301,6 +301,17 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Try to get a particular cell by msg_id.
+     * 
+     * @method get_msg_cell
+     * @param {String} msg_id A message UUID
+     * @return {Cell} Cell or null if no cell was found.
+     */
+    Notebook.prototype.get_msg_cell = function (msg_id) {
+        return IPython.CodeCell.msg_cells[msg_id] || null;
+    };
+
+    /**
      * Count the cells in this notebook.
      * 
      * @method ncells
@@ -1295,7 +1306,8 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Once a session is started, link the code cells to the kernel
+     * Once a session is started, link the code cells to the kernel and pass the 
+     * comm manager to the widget manager
      *
      */
     Notebook.prototype._session_started = function(){

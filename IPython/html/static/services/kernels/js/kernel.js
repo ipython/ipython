@@ -47,6 +47,7 @@ var IPython = (function (IPython) {
         this.bind_events();
         this.init_iopub_handlers();
         this.comm_manager = new IPython.CommManager(this);
+        this.widget_manager = new IPython.WidgetManager(this.comm_manager);
     };
 
 
@@ -507,7 +508,7 @@ var IPython = (function (IPython) {
             try {
                 callbacks.iopub.status(msg);
             } catch (e) {
-                console.log("Exception in status msg handler", e);
+                console.log("Exception in status msg handler", e, e.stack);
             }
         }
         

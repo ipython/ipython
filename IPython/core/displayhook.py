@@ -241,6 +241,14 @@ class DisplayHook(Configurable):
         """
         self.check_for_underscore()
         if result is not None and not self.quiet():
+            # If _ipython_display_ is defined, use that to display this object.
+            display_method = getattr(result, '_ipython_display_', None)
+            if display_method is not None:
+                try:
+                    return display_method()
+                except NotImplementedError:
+                    pass
+            
             self.start_displayhook()
             self.write_output_prompt()
             format_dict, md_dict = self.compute_format_data(result)
