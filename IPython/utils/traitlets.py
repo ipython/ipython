@@ -67,6 +67,7 @@ except:
 from .importstring import import_item
 from IPython.utils import py3compat
 from IPython.utils.py3compat import iteritems
+from IPython.testing.skipdoctest import skip_doctest
 
 SequenceTypes = (list, tuple, set, frozenset)
 
@@ -182,6 +183,7 @@ def getmembers(object, predicate=None):
     results.sort()
     return results
 
+@skip_doctest
 class Connect(object):
     """Connect traits from different objects together so they remain in sync.
 
