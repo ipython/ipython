@@ -33,18 +33,18 @@ class LatexWidget(_StringWidget):
     _view_name = Unicode('LatexView', sync=True)
 
 
-class TextAreaWidget(_StringWidget):
-    _view_name = Unicode('TextAreaView', sync=True)
+class TextareaWidget(_StringWidget):
+    _view_name = Unicode('TextareaView', sync=True)
 
     def scroll_to_bottom(self):
         self.send({"method": "scroll_to_bottom"})
 
 
-class TextBoxWidget(_StringWidget):
-    _view_name = Unicode('TextBoxView', sync=True)
+class TextWidget(_StringWidget):
+    _view_name = Unicode('TextView', sync=True)
 
     def __init__(self, **kwargs):
-        super(TextBoxWidget, self).__init__(**kwargs)
+        super(TextWidget, self).__init__(**kwargs)
         self._submission_callbacks = CallbackDispatcher()
         self.on_msg(self._handle_string_msg)
 

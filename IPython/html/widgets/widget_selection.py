@@ -91,5 +91,5 @@ class RadioButtonsWidget(_SelectionWidget):
     _view_name = Unicode('RadioButtonsView', sync=True)
     
 
-class ListBoxWidget(_SelectionWidget):
-    _view_name = Unicode('ListBoxView', sync=True)
+class SelectWidget(_SelectionWidget):
+    _view_name = Unicode('SelectView', sync=True)

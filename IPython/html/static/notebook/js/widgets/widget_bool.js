@@ -16,7 +16,7 @@
 
 define(["notebook/js/widgets/widget"], function(WidgetManager){
 
-    var CheckBoxView = IPython.DOMWidgetView.extend({
+    var CheckboxView = IPython.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -63,11 +63,11 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$label.show();
                 }
             }
-            return CheckBoxView.__super__.update.apply(this);
+            return CheckboxView.__super__.update.apply(this);
         },
         
     });
-    WidgetManager.register_widget_view('CheckBoxView', CheckBoxView);
+    WidgetManager.register_widget_view('CheckboxView', CheckboxView);
 
 
     var ToggleButtonView = IPython.DOMWidgetView.extend({

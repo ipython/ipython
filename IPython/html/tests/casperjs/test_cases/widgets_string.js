@@ -7,8 +7,8 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var string_index = this.append_cell(
-        'string_widget = [widgets.TextBoxWidget(value = "xyz"),\n' +
-        '    widgets.TextAreaWidget(value = "xyz"),\n' +
+        'string_widget = [widgets.TextWidget(value = "xyz"),\n' +
+        '    widgets.TextareaWidget(value = "xyz"),\n' +
         '    widgets.HTMLWidget(value = "xyz"),\n' +
         '    widgets.LatexWidget(value = "$\\\\LaTeX{}$")]\n' +
         '[display(widget) for widget in string_widget]\n'+

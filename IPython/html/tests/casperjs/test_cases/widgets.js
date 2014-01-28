@@ -27,7 +27,7 @@ casper.notebook_test(function () {
 
     throttle_index = this.append_cell(
         'import time\n' +
-        'textbox = widgets.TextBoxWidget()\n' +
+        'textbox = widgets.TextWidget()\n' +
         'display(textbox)\n'+
         'textbox.add_class("my-throttle-textbox")\n' +
         'def handle_change(name, old, new):\n' +

@@ -10,9 +10,9 @@ casper.notebook_test(function () {
     var multicontainer1_query = '.widget-area .widget-subarea div div.nav-tabs';
     var multicontainer1_index = this.append_cell(
         'multicontainer = widgets.TabWidget()\n' +
-        'page1 = widgets.TextBoxWidget()\n' +
-        'page2 = widgets.TextBoxWidget()\n' +
-        'page3 = widgets.TextBoxWidget()\n' +
+        'page1 = widgets.TextWidget()\n' +
+        'page2 = widgets.TextWidget()\n' +
+        'page3 = widgets.TextWidget()\n' +
         'multicontainer.children = [page1, page2, page3]\n' +
         'display(multicontainer)\n' +
         'multicontainer.selected_index = 0\n' +

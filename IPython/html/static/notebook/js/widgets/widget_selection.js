@@ -292,7 +292,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
     WidgetManager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
 
 
-    var ListBoxView = IPython.DOMWidgetView.extend({    
+    var SelectView = IPython.DOMWidgetView.extend({    
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -360,7 +360,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$label.show();
                 }
             }
-            return ListBoxView.__super__.update.apply(this);
+            return SelectView.__super__.update.apply(this);
         },
 
         handle_click: function (e) {
@@ -372,5 +372,5 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             this.touch();
         },    
     });
-    WidgetManager.register_widget_view('ListBoxView', ListBoxView);
+    WidgetManager.register_widget_view('SelectView', SelectView);
 });

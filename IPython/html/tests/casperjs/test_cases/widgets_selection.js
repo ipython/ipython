@@ -47,7 +47,7 @@ casper.notebook_test(function () {
         'selection = [widgets.DropdownWidget(values=values),\n' +
         '    widgets.ToggleButtonsWidget(values=values),\n' +
         '    widgets.RadioButtonsWidget(values=values),\n' +
-        '    widgets.ListBoxWidget(values=values)]\n' +
+        '    widgets.SelectWidget(values=values)]\n' +
         '[display(selection[i]) for i in range(4)]\n' +
         'for widget in selection:\n' +
         '    def handle_change(name,old,new):\n' +

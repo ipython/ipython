@@ -7,7 +7,7 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var bool_index = this.append_cell(
-        'bool_widgets = [widgets.CheckBoxWidget(description="Title", value=True),\n' +
+        'bool_widgets = [widgets.CheckboxWidget(description="Title", value=True),\n' +
         '    widgets.ToggleButtonWidget(description="Title", value=True)]\n' +
         'display(bool_widgets[0])\n' +
         'display(bool_widgets[1])\n' +
