@@ -30,17 +30,14 @@ class ButtonWidget(DOMWidget):
     def __init__(self, **kwargs):
         """Constructor"""
         super(ButtonWidget, self).__init__(**kwargs)
-        self._click_handlers = CallbackDispatcher(acceptable_nargs=[0, 1])
+        self._click_handlers = CallbackDispatcher()
         self.on_msg(self._handle_button_msg)
 
     def on_click(self, callback, remove=False):
-        """Register a callback to execute when the button is clicked.  
+        """Register a callback to execute when the button is clicked.
 
-        The callback can either accept no parameters or one sender parameter:
-        - callback()
-        - callback(sender)
-        If the callback has a sender parameter, the ButtonWidget instance that
-        called the callback will be passed into the method as the sender.
+        The callback will be called with one argument,
+        the clicked button widget instance.
 
         Parameters
         ----------
@@ -48,13 +45,12 @@ class ButtonWidget(DOMWidget):
             Set to true to remove the callback from the list of callbacks."""
         self._click_handlers.register_callback(callback, remove=remove)
 
-    def _handle_button_msg(self, content):
+    def _handle_button_msg(self, _, content):
         """Handle a msg from the front-end.
 
         Parameters
         ----------
         content: dict
             Content of the msg."""
-        if 'event' in content and content['event'] == 'click':
-            self._click_handlers()
+        if content.get('event', '') == 'click':
             self._click_handlers(self)

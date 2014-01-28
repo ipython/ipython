@@ -21,7 +21,7 @@ function(WidgetManager, Underscore, Backbone){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
-            // Construcctor
+            // Constructor
             //
             // Creates a WidgetModel instance.
             //
@@ -111,7 +111,7 @@ function(WidgetManager, Underscore, Backbone){
                     if (this.msg_buffer !== null &&
                         this.msg_throttle === this.pending_msgs) {
                         var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
-                        this.comm.send(data, callbacks);  
+                        this.comm.send(data, callbacks);
                         this.msg_buffer = null;
                     } else {
                         --this.pending_msgs;
@@ -131,7 +131,7 @@ function(WidgetManager, Underscore, Backbone){
             var that = this;
             callbacks.iopub.status = function (msg) {
                 that._handle_status(msg, callbacks);
-            }
+            };
             return callbacks;
         },
 
@@ -141,7 +141,7 @@ function(WidgetManager, Underscore, Backbone){
             // Make sure a comm exists.
             var error = options.error || function() {
                 console.error('Backbone sync error:', arguments);
-            }
+            };
             if (this.comm === undefined) {
                 error();
                 return false;
@@ -233,7 +233,7 @@ function(WidgetManager, Underscore, Backbone){
                 return unpacked;
             } else {
                 var model = this.widget_manager.get_model(value);
-                if (model !== null) {
+                if (model) {
                     return model;
                 } else {
                     return value;
@@ -279,7 +279,7 @@ function(WidgetManager, Underscore, Backbone){
             var view = this.child_views[child_model.id];
             if (view !== undefined) {
                 delete this.child_views[child_model.id];
-                view.remove();    
+                view.remove();
             }
         },
 
@@ -373,7 +373,7 @@ function(WidgetManager, Underscore, Backbone){
             // to render
             var e = this.$el;
             var visible = this.model.get('visible');
-            setTimeout(function() {e.toggle(visible)},0);
+            setTimeout(function() {e.toggle(visible);},0);
      
             var css = this.model.get('_css');
             if (css === undefined) {return;}
@@ -387,17 +387,16 @@ function(WidgetManager, Underscore, Backbone){
                     });
                 }
             });
-                    
         },
 
         _get_selector_element: function (selector) {
-            // Get the elements via the css selector.  
+            // Get the elements via the css selector.
 
             // If the selector is blank, apply the style to the $el_to_style 
             // element.  If the $el_to_style element is not defined, use apply 
             // the style to the view's element.
             var elements;
-            if (selector === undefined || selector === null || selector === '') {
+            if (!selector) {
                 if (this.$el_to_style === undefined) {
                     elements = this.$el;
                 } else {

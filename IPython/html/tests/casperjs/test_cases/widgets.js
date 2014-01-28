@@ -6,7 +6,7 @@ casper.notebook_test(function () {
     
         // Check if the WidgetManager class is defined.
         this.test.assert(this.evaluate(function() {
-            return IPython.WidgetManager != undefined; 
+            return IPython.WidgetManager !== undefined; 
         }), 'WidgetManager class is defined');
     });
 
@@ -19,10 +19,10 @@ casper.notebook_test(function () {
     this.wait(500); // Wait for require.js async callbacks to load dependencies.
 
     this.then(function () {
-        // Check if the widget manager has been instanciated.
+        // Check if the widget manager has been instantiated.
         this.test.assert(this.evaluate(function() {
-            return IPython.notebook.kernel.widget_manager != undefined; 
-        }), 'Notebook widget manager instanciated');
+            return IPython.notebook.kernel.widget_manager !== undefined; 
+        }), 'Notebook widget manager instantiated');
     });
 
     throttle_index = this.append_cell(
@@ -33,10 +33,10 @@ casper.notebook_test(function () {
         'def handle_change(name, old, new):\n' +
         '    print(len(new))\n' +
         '    time.sleep(0.5)\n' +
-        'textbox.on_trait_change(handle_change)\n' +
+        'textbox.on_trait_change(handle_change, "value")\n' +
         'print("Success")');
     this.execute_cell_then(throttle_index, function(index){
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Test throttling cell executed with correct output');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -53,24 +53,17 @@ casper.notebook_test(function () {
     this.wait(2000); // Wait for clicks to execute in kernel
 
     this.then(function(){
-        var resume = true;
-        var i = 0;
-        while (resume) {
-            i++;
-            var output = this.get_output_cell(throttle_index, i);  
-            if (output === undefined || output === null) {
-                resume = false;
-                i--;
-            }
-        }
+        var outputs = this.evaluate(function(i) {
+            return IPython.notebook.get_cell(i).output_area.outputs;
+        }, {i : throttle_index});
 
         // Only 4 outputs should have printed, but because of timing, sometimes
         // 5 outputs will print.  All we need to do is verify num outputs <= 5
         // because that is much less than 20.
-        this.test.assert(i <= 5, 'Messages throttled.');
+        this.test.assert(outputs.length <= 5, 'Messages throttled.');
 
         // We also need to verify that the last state sent was correct.
-        var last_state = this.get_output_cell(throttle_index, i).text;
-        this.test.assert(last_state == "20\n", "Last state sent when throttling.");
+        var last_state = outputs[outputs.length-1].text;
+        this.test.assertEquals(last_state, "20\n", "Last state sent when throttling.");
     });
 });

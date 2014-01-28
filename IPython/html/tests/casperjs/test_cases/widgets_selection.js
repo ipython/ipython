@@ -6,10 +6,10 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(index);
 
-    var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-btn'
-    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group[data-toggle="buttons-radio"]'
-    var radio_selector = '.widget-area .widget-subarea .widget-hbox .vbox'
-    var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox'
+    var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-btn';
+    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group[data-toggle="buttons-radio"]';
+    var radio_selector = '.widget-area .widget-subarea .widget-hbox .vbox';
+    var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox';
 
     var selection_index;
     var selection_values = 'abcd';
@@ -30,7 +30,7 @@ casper.notebook_test(function () {
                 combo_state == state;
         }
         return true;
-    }
+    };
 
     var verify_selection = function(context, index){
         for (var i = 0; i < selection_values.length; i++) {
@@ -39,7 +39,7 @@ casper.notebook_test(function () {
             }
         }
         return true;
-    }
+    };
 
 //values=["' + selection_values + '"[i] for i in range(4)]
     selection_index = this.append_cell(
@@ -56,7 +56,7 @@ casper.notebook_test(function () {
         '    widget.on_trait_change(handle_change, "value")\n' +
         'print("Success")\n');
     this.execute_cell_then(selection_index, function(index){
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create selection cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -84,7 +84,7 @@ casper.notebook_test(function () {
         '    widget.value = "a"\n' +
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Python select item executed with correct output.');
 
         // Verify that the first item is selected.

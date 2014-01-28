@@ -14,7 +14,7 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(bool_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create bool widget cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -57,7 +57,7 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Change bool widget value cell executed with correct output.');
 
         this.test.assert(! this.cell_element_function(bool_index, 

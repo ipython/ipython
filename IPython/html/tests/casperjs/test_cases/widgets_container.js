@@ -15,7 +15,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(container_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create container cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -40,7 +40,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Set container class CSS cell executed with correct output.');
         
         this.test.assert(this.cell_element_function(container_index, 
@@ -53,7 +53,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Remove container class cell executed with correct output.');
 
         this.test.assert(! this.cell_element_exists(container_index, 
@@ -66,7 +66,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Display container child executed with correct output.');
 
         this.test.assert(! this.cell_element_exists(index, 

@@ -115,17 +115,23 @@ def display(*objs, **kwargs):
 
     for obj in objs:
 
-        # If _ipython_display_ is defined, use that to display this object.  If
-        # it returns NotImplemented, use the _repr_ logic (default).
-        if not hasattr(obj, '_ipython_display_') or obj._ipython_display_(**kwargs) is NotImplemented:
-            if raw:
-                publish_display_data('display', obj, metadata)
-            else:            
-                format_dict, md_dict = format(obj, include=include, exclude=exclude)
-                if metadata:
-                    # kwarg-specified metadata gets precedence
-                    _merge(md_dict, metadata)
-                publish_display_data('display', format_dict, md_dict)
+        # If _ipython_display_ is defined, use that to display this object.
+        display_method = getattr(obj, '_ipython_display_', None)
+        if display_method is not None:
+            try:
+                display_method(**kwargs)
+            except NotImplementedError:
+                pass
+            else:
+                continue
+        if raw:
+            publish_display_data('display', obj, metadata)
+        else:
+            format_dict, md_dict = format(obj, include=include, exclude=exclude)
+            if metadata:
+                # kwarg-specified metadata gets precedence
+                _merge(md_dict, metadata)
+            publish_display_data('display', format_dict, md_dict)
 
 
 def display_pretty(*objs, **kwargs):

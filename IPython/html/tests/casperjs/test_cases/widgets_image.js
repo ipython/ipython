@@ -32,7 +32,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(image_index, function(index){
 
-        this.test.assert(this.get_output_cell(index).text == 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create image executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -49,12 +49,12 @@ casper.notebook_test(function () {
         this.captureSelector(capture_filename, '.my-test-image');
         var stream = fs.open(capture_filename, 'rb');
         var captured = btoa(stream.read());
-        stream.close()
+        stream.close();
         fs.remove(capture_filename);
 
         // Uncomment line below to output captured image data to a text file.
         // fs.write('./captured.txt', captured, 'w');
 
-        this.test.assert(test_results==captured, "Red image data displayed correctly.");
+        this.test.assertEquals(test_results, captured, "Red image data displayed correctly.");
     });    
 });

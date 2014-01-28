@@ -82,8 +82,7 @@
                 if (view === null) {
                     console.error("View creation failed", model);
                 }
-                if (cell.widget_subarea !== undefined
-                    && cell.widget_subarea !== null) {
+                if (cell.widget_subarea) {
                     
                     cell.widget_area.show();
                     cell.widget_subarea.append(view.$el);
@@ -95,7 +94,7 @@
             // Creates a view for a particular model.
             var view_name = model.get('_view_name');
             var ViewType = WidgetManager._view_types[view_name];
-            if (ViewType !== undefined && ViewType !== null) {
+            if (ViewType) {
 
                 // If a view is passed into the method, use that view's cell as
                 // the cell for the view that is created.
@@ -106,7 +105,7 @@
 
                 // Create and render the view...
                 var parameters = {model: model, options: options};
-                var view = new ViewType(parameters);
+                view = new ViewType(parameters);
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
@@ -123,33 +122,31 @@
             // If the view has a well defined element, inform the keyboard
             // manager about the view's element, so as the element can
             // escape the dreaded command mode.
-            if (view.$el !== undefined && view.$el !== null) {
+            if (view.$el) {
                 IPython.keyboard_manager.register_events(view.$el);
             }
-        }
+        };
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
             var cell = null;
             // First, check to see if the msg was triggered by cell execution.
-            if (IPython.notebook !== undefined && IPython.notebook !== null) {
+            if (IPython.notebook) {
                 cell = IPython.notebook.get_msg_cell(msg_id);
             }
             if (cell !== null) {
-                return cell
+                return cell;
             }
             // Second, check to see if a get_cell callback was defined
             // for the message.  get_cell callbacks are registered for
             // widget messages, so this block is actually checking to see if the
             // message was triggered by a widget.
             var kernel = this.comm_manager.kernel;
-            if (kernel !== undefined && kernel !== null) {
+            if (kernel) {
                 var callbacks = kernel.get_callbacks_for_msg(msg_id);
-                if (callbacks !== undefined && 
-                    callbacks.iopub !== undefined && 
+                if (callbacks && callbacks.iopub &&
                     callbacks.iopub.get_cell !== undefined) {
-
                     return callbacks.iopub.get_cell();
-                }    
+                }
             }
             
             // Not triggered by a cell or widget (no get_cell callback 
@@ -160,16 +157,13 @@
         WidgetManager.prototype.callbacks = function (view) {
             // callback handlers specific a view
             var callbacks = {};
-            if (view !== undefined && 
-                view !== null && 
-                view.options.cell !== undefined && 
-                view.options.cell !== null) {
+            if (view && view.options.cell) {
 
                 // Try to get output handlers
                 var cell = view.options.cell;
                 var handle_output = null;
                 var handle_clear_output = null;
-                if (cell.output_area !== undefined && cell.output_area !== null) {
+                if (cell.output_area) {
                     handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
                     handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
                 }
