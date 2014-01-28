@@ -70,7 +70,13 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
 
     kernel_cmd = List(Unicode, config=True,
         help="""The Popen Command to launch the kernel.
-        Override this if you have a custom
+        Override this if you have a custom kernel.
+        If kernel_cmd is specified in a configuration file,
+        IPython does not pass any arguments to the kernel,
+        because it cannot make any assumptions about the 
+        arguments that the kernel understands. In particular,
+        this means that the kernel does not receive the
+        option --debug if it given on the IPython command line.
         """
     )
 
