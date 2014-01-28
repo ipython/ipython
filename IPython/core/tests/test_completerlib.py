@@ -32,7 +32,7 @@ class MockEvent(object):
 #-----------------------------------------------------------------------------
 class Test_magic_run_completer(unittest.TestCase):
     files = [u"aao.py", u"a.py", u"b.py", u"aao.txt"]
-    dirs = [u"adir", "bdir"]
+    dirs = [u"adir/", "bdir/"]
 
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
@@ -83,7 +83,7 @@ class Test_magic_run_completer(unittest.TestCase):
         print(repr(event.line))
         match = set(magic_run_completer(None, event))
         self.assertEqual(match, {join(self.BASETESTDIR, f) for
-                                f in (u'a.py', u'aao.py', u'aao.txt', u'adir')})
+                                f in (u'a.py', u'aao.py', u'aao.txt', u'adir/')})
 
 class Test_magic_run_completer_nonascii(unittest.TestCase):
     @onlyif_unicode_paths

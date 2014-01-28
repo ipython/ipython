@@ -267,20 +267,23 @@ def magic_run_completer(self, event):
     isdir = os.path.isdir
     relpath, tilde_expand, tilde_val = expand_user(relpath)
 
-    dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*') if isdir(f)]
-
     # Find if the user has already typed the first filename, after which we
     # should complete on all files, since after the first one other files may
     # be arguments to the input script.
 
     if any(magic_run_re.match(c) for c in comps):
-        pys =  [f.replace('\\','/') for f in lglob(relpath+'*')]
+        matches =  [f.replace('\\','/') + ('/' if isdir(f) else '')
+                            for f in lglob(relpath+'*')]
     else:
+        dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*') if isdir(f)]
         pys =  [f.replace('\\','/')
                 for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
                 lglob(relpath+'*.ipynb') + lglob(relpath + '*.pyw')]
+
+        matches = dirs + pys
+
     #print('run comp:', dirs+pys) # dbg
-    return [compress_user(p, tilde_expand, tilde_val) for p in dirs+pys]
+    return [compress_user(p, tilde_expand, tilde_val) for p in matches]
 
 
 def cd_completer(self, event):
