@@ -31,9 +31,11 @@ class MockEvent(object):
 # Test functions begin
 #-----------------------------------------------------------------------------
 class Test_magic_run_completer(unittest.TestCase):
+    files = [u"aao.py", u"a.py", u"b.py", u"aao.txt"]
+
     def setUp(self):
         self.BASETESTDIR = tempfile.mkdtemp()
-        for fil in [u"aao.py", u"a.py", u"b.py", u"aao.txt"]:
+        for fil in self.files:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
         self.oldpath = py3compat.getcwd()
@@ -65,6 +67,11 @@ class Test_magic_run_completer(unittest.TestCase):
         mockself = None
         match = set(magic_run_completer(mockself, event))
         self.assertEqual(match, set([u"a.py", u"aao.py"]))
+
+    def test_completion_more_args(self):
+        event = MockEvent(u'%run a.py ')
+        match = set(magic_run_completer(None, event))
+        self.assertEqual(match, set(self.files))
 
     def test_completion_in_dir(self):
         # Github issue #3459
