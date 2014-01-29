@@ -605,22 +605,23 @@ command-line application), there are a few options:
   as described above.  Effectively, this embeds your application in IPython
   rather than the other way round.
 
+* Use :class:`IPython.qt.console.rich_ipython_widget.RichIPythonWidget` in your
+  Qt application. This will embed the console widget in your GUI and start the
+  kernel in a separate process, so code typed into the console cannot access
+  objects in your application.
+
 * Start a standard IPython kernel in the process of the external Qt
   application.  See :file:`examples/lib/ipkernel_qtapp.py` for an example.  Due
   to IPython's two-process model, the QtConsole itself will live in another
   process with its own QApplication, and thus cannot be embedded in the main
   GUI.
 
-* Start a special IPython kernel, the :class:`InProcessKernel`,
-  that allows a QtConsole in the same process.  See
-  :file:`examples/inprocess/embedded_qtconsole.py` for an example.  While
-  the QtConsole can now be embedded in the main GUI, one cannot connect to
-  the kernel from other consoles as there are no real ZMQ sockets anymore.
-  Moreover, the default, system-wide configuration will not be loaded and
-  applied.
-
-* Start an IPython kernel in a separate subprocess and communicate with it via
-  the ZMQ sockets.
+* Start a special IPython kernel, the
+  :class:`IPython.kernel.inprocess.ipkernel.InProcessKernel`, that allows a
+  QtConsole in the same process. See :file:`examples/inprocess/embedded_qtconsole.py`
+  for an example. While the QtConsole can now be embedded in the main GUI, one
+  cannot connect to the kernel from other consoles as there are no real ZMQ
+  sockets anymore.
 
 Regressions
 ===========
