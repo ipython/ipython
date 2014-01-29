@@ -267,7 +267,7 @@ class FileLink(object):
 
     def __init__(self,
                  path,
-                 url_prefix='files/',
+                 url_prefix='',
                  result_html_prefix='',
                  result_html_suffix='<br>'):
         """
@@ -328,7 +328,7 @@ class FileLinks(FileLink):
     """
     def __init__(self,
                  path,
-                 url_prefix='files/',
+                 url_prefix='',
                  included_suffixes=None,
                  result_html_prefix='',
                  result_html_suffix='<br>',

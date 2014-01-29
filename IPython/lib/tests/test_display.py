@@ -47,7 +47,7 @@ def test_existing_path_FileLink():
     tf = NamedTemporaryFile()
     fl = display.FileLink(tf.name)
     actual = fl._repr_html_()
-    expected = "<a href='files/%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
+    expected = "<a href='%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
     nt.assert_equal(actual,expected)
 
 def test_existing_path_FileLink_repr():
@@ -93,9 +93,9 @@ def test_existing_path_FileLinks():
     # the links should always have forward slashes, even on windows, so replace
     # backslashes with forward slashes here
     expected = ["%s/<br>" % td,
-                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" %\
+                "&nbsp;&nbsp;<a href='%s' target='_blank'>%s</a><br>" %\
                  (tf2.name.replace("\\","/"),split(tf2.name)[1]),
-                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" %\
+                "&nbsp;&nbsp;<a href='%s' target='_blank'>%s</a><br>" %\
                  (tf1.name.replace("\\","/"),split(tf1.name)[1])]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
