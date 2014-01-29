@@ -14,7 +14,9 @@ This module does not import anything from matplotlib.
 #-----------------------------------------------------------------------------
 
 from IPython.config.configurable import SingletonConfigurable
-from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, Bool, Int, TraitError
+from IPython.utils.traitlets import (
+    Dict, Instance, CaselessStrEnum, Set, Bool, Int, TraitError, Unicode
+)
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -63,21 +65,25 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
+    figure_formats = Set({'png'}, config=True,
+                          help="""A set of figure formats to enable: 'png', 
+                          'retina', 'jpeg', 'svg', 'pdf'.""")
 
-    figure_format = CaselessStrEnum(['svg', 'png', 'retina', 'jpg'],
-                                    default_value='png', config=True,
-                                    help="""The image format for figures with the inline
-                                    backend. JPEG requires the PIL/Pillow library.""")
-
-    def _figure_format_changed(self, name, old, new):
+    def _figure_formats_changed(self, name, old, new):
         from IPython.core.pylabtools import select_figure_format
-        if new in {"jpg", "jpeg"}:
+        if 'jpg' in new or 'jpeg' in new:
             if not pil_available():
                 raise TraitError("Requires PIL/Pillow for JPG figures")
         if self.shell is None:
             return
         else:
             select_figure_format(self.shell, new)
+
+    figure_format = Unicode()
+
+    def _figure_format_changed(self, name, old, new):
+        if new:
+            self.figure_formats = {new}
 
     quality = Int(default_value=90, config=True,
                   help="Quality of compression [10-100], currently for lossy JPEG only.")
