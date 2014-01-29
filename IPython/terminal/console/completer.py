@@ -8,9 +8,10 @@ except ImportError:
     from Queue import Empty  # Py 2
 
 from IPython.config import Configurable
+from IPython.core.completer import IPCompleter
 from IPython.utils.traitlets import Float
 
-class ZMQCompleter(Configurable):
+class ZMQCompleter(IPCompleter):
     """Client-side completion machinery.
 
     How it works: self.complete will be called multiple times, with
