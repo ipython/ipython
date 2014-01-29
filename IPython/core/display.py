@@ -271,6 +271,24 @@ def display_javascript(*objs, **kwargs):
     """
     _display_mimetype('application/javascript', objs, **kwargs)
 
+
+def display_pdf(*objs, **kwargs):
+    """Display the PDF representation of an object.
+
+    Parameters
+    ----------
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw javascript data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
+    """
+    _display_mimetype('application/pdf', objs, **kwargs)
+
+
 #-----------------------------------------------------------------------------
 # Smart classes
 #-----------------------------------------------------------------------------
