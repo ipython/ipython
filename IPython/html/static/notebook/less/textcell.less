@@ -16,7 +16,7 @@ div.text_cell_render {
     resize: none;
     width:  inherit;
     border-style: none;
-    padding: 5px;
+    padding: 0.5em 0.5em 0.5em @code_padding;
     color: @textColor;
 }
 
@@ -32,3 +32,6 @@ h1,h2,h3,h4,h5,h6 {
     }
 }
 
+div.cell.text_cell.rendered {
+    padding: 0px;
+}
