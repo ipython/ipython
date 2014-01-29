@@ -82,8 +82,11 @@ class Test_magic_run_completer(unittest.TestCase):
         event = MockEvent(u'%run a.py {}'.format(join(self.BASETESTDIR, 'a')))
         print(repr(event.line))
         match = set(magic_run_completer(None, event))
-        self.assertEqual(match, {join(self.BASETESTDIR, f) for
-                                f in (u'a.py', u'aao.py', u'aao.txt', u'adir/')})
+        # We specifically use replace here rather than normpath, because
+        # at one point there were duplicates 'adir' and 'adir/', and normpath
+        # would hide the failure for that.
+        self.assertEqual(match, {join(self.BASETESTDIR, f).replace('\\','/')
+                            for f in (u'a.py', u'aao.py', u'aao.txt', u'adir/')})
 
 class Test_magic_run_completer_nonascii(unittest.TestCase):
     @onlyif_unicode_paths
