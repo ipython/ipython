@@ -287,6 +287,21 @@ class TestView(ClusterTestCase):
             assert_array_equal(B,C)
     
     @skip_without('numpy')
+    def test_apply_numpy_object_dtype(self):
+        """view.apply(f, ndarray) with dtype=object"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal
+        view = self.client[-1]
+        
+        A = numpy.array([dict(a=5)])
+        B = view.apply_sync(lambda x:x, A)
+        assert_array_equal(A,B)
+        
+        A = numpy.array([(0, dict(b=10))], dtype=[('i', int), ('o', object)])
+        B = view.apply_sync(lambda x:x, A)
+        assert_array_equal(A,B)
+    
+    @skip_without('numpy')
     def test_push_pull_recarray(self):
         """push/pull recarrays"""
         import numpy
