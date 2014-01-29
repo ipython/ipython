@@ -847,7 +847,6 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -878,7 +877,9 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
+                if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
+                    target_cell.render();
+                }
                 this.set_dirty(true);
             };
         };
@@ -910,7 +911,6 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -947,8 +947,10 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
+                if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
+                    target_cell.render();
+                }
             };
-            this.edit_mode();
             this.set_dirty(true);
             $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
