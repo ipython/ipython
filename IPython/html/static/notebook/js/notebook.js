@@ -1443,11 +1443,7 @@ var IPython = (function (IPython) {
             return;
         }
   
-        // Only insert a new cell, if we ended up in an already populated cell
-        var next_text = this.get_cell(cell_index+1).get_text();
-        if (/\S/.test(next_text) === true) {
-            this.insert_cell_below('code');
-        }
+        this.insert_cell_below('code');
         this.select(cell_index+1);
         this.edit_mode();
         this.set_dirty(true);
