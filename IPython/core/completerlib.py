@@ -17,11 +17,18 @@ from __future__ import print_function
 
 # Stdlib imports
 import glob
-import imp
 import inspect
 import os
 import re
 import sys
+
+try:
+    # Python 3
+    from importlib.machinery import all_suffixes
+    _suffixes = all_suffixes()
+except ImportError:
+    from imp import get_suffixes
+    _suffixes = [ s[0] for s in get_suffixes() ]
 
 # Third-party imports
 from time import time
@@ -51,7 +58,7 @@ TIMEOUT_GIVEUP = 20
 import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
                        r'(?P<package>[/\\]__init__)?'
                        r'(?P<suffix>%s)$' %
-                       r'|'.join(re.escape(s[0]) for s in imp.get_suffixes()))
+                       r'|'.join(re.escape(s) for s in _suffixes))
 
 # RE for the ipython %run command (python + ipython scripts)
 magic_run_re = re.compile(r'.*(\.ipy|\.ipynb|\.py[w]?)$')
