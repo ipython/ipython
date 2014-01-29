@@ -23,7 +23,7 @@ import re
 import sys
 
 try:
-    # Python 3
+    # Python >= 3.3
     from importlib.machinery import all_suffixes
     _suffixes = all_suffixes()
 except ImportError:
