@@ -211,9 +211,15 @@ class BaseIPythonApplication(Application):
             return crashhandler.crash_handler_lite(etype, evalue, tb)
     
     def _ipython_dir_changed(self, name, old, new):
-        if old in sys.path:
-            sys.path.remove(old)
-        sys.path.append(os.path.abspath(new))
+        str_old = py3compat.cast_bytes_py2(os.path.abspath(old),
+            sys.getfilesystemencoding()
+        )
+        if str_old in sys.path:
+            sys.path.remove(str_old)
+        str_path = py3compat.cast_bytes_py2(os.path.abspath(new),
+            sys.getfilesystemencoding()
+        )
+        sys.path.append(str_path)
         if not os.path.isdir(new):
             os.makedirs(new, mode=0o777)
         readme = os.path.join(new, 'README')
