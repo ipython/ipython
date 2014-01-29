@@ -79,7 +79,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Traits
     #-------------------------------------------------------------------------
-    model_name = Unicode('WidgetModel', help="""Name of the backbone model 
+    _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
     _view_name = Unicode(help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
@@ -121,7 +121,7 @@ class Widget(LoggingConfigurable):
         If a Comm doesn't exist yet, a Comm will be created automagically."""
         if self._comm is None:
             # Create a comm.
-            self._comm = Comm(target_name=self.model_name)
+            self._comm = Comm(target_name=self._model_name)
             self._comm.on_msg(self._handle_msg)
             self._comm.on_close(self._close)
             Widget.widgets[self.model_id] = self
