@@ -91,7 +91,7 @@ var IPython = (function (IPython) {
             help    : 'run cell',
             help_index : 'ba',
             handler : function (event) {
-                IPython.notebook.execute_cell();
+                IPython.notebook.execute_cell_and_select_below();
                 return false;
             }
         },
@@ -99,7 +99,7 @@ var IPython = (function (IPython) {
             help    : 'run cell, select below',
             help_index : 'bb',
             handler : function (event) {
-                IPython.notebook.execute_cell_and_select_below();
+                IPython.notebook.execute_cell();
                 return false;
             }
         },
