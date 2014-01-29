@@ -21,6 +21,7 @@ import os
 import sys
 from subprocess import Popen, PIPE
 
+from IPython.utils.encoding import getdefaultencoding
 from IPython.utils.py3compat import cast_bytes_py2
 
 #-----------------------------------------------------------------------------
@@ -188,12 +189,14 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
         _stderr = PIPE if stderr is None else stderr
     else:
         _stdout, _stderr = stdout, stderr
-
+    
+    encoding = getdefaultencoding(prefer_stream=False)
+    
     # Spawn a kernel.
     if sys.platform == 'win32':
-        
+        # Popen on Python 2 on Windows cannot handle unicode args or cwd
+        cmd = [ cast_bytes_py2(c, encoding) for c in cmd ]
         if cwd:
-            # Popen on Python 2 on Windows cannot handle unicode cwd.
             cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
         
         from IPython.kernel.zmq.parentpoller import ParentPollerWindows

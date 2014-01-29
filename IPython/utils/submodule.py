@@ -66,7 +66,11 @@ def check_submodule_status(root=None):
     for submodule in submodules:
         if not os.path.exists(submodule):
             return 'missing'
-
+    
+    # Popen can't handle unicode cwd on Windows Python 2
+    if sys.platform == 'win32' and sys.version_info[0] < 3 \
+        and not isinstance(root, bytes):
+        root = root.encode(sys.getfilesystemencoding() or 'ascii')
     # check with git submodule status
     proc = subprocess.Popen('git submodule status',
                             stdout=subprocess.PIPE,
@@ -75,12 +79,12 @@ def check_submodule_status(root=None):
                             cwd=root,
     )
     status, _ = proc.communicate()
-    status = status.decode("ascii")
+    status = status.decode("ascii", "replace")
 
     for line in status.splitlines():
-        if status.startswith('-'):
+        if line.startswith('-'):
             return 'missing'
-        elif status.startswith('+'):
+        elif line.startswith('+'):
             return 'unclean'
 
     return 'clean'
