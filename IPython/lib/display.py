@@ -44,7 +44,7 @@ class YouTubeVideo(IFrame):
 
     e.g. to embed the video on this page:
 
-    http://www.youtube.com/watch?v=foo
+    https://www.youtube.com/watch?v=foo
 
     you would do:
 
@@ -64,7 +64,7 @@ class YouTubeVideo(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src = "http://www.youtube.com/embed/{0}".format(id)
+        src = "https://www.youtube.com/embed/{0}".format(id)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
 
 class VimeoVideo(IFrame):
@@ -73,7 +73,7 @@ class VimeoVideo(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="http://player.vimeo.com/video/{0}".format(id)
+        src="https://player.vimeo.com/video/{0}".format(id)
         super(VimeoVideo, self).__init__(src, width, height, **kwargs)
 
 class ScribdDocument(IFrame):
@@ -89,7 +89,7 @@ class ScribdDocument(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="http://www.scribd.com/embeds/{0}/content".format(id)
+        src="https://www.scribd.com/embeds/{0}/content".format(id)
         super(ScribdDocument, self).__init__(src, width, height, **kwargs)
 
 class FileLink(object):
