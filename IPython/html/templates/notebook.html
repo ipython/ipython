@@ -51,7 +51,7 @@ class="notebook_app"
     <div class="container">
     <ul id="menus" class="nav">
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
-            <ul class="dropdown-menu">
+            <ul id="file_menu" class="dropdown-menu">
                 <li id="new_notebook"
                     title="Make a new notebook (Opens a new window)">
                     <a href="#">New</a></li>
@@ -94,7 +94,7 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
-            <ul class="dropdown-menu">
+            <ul id="edit_menu" class="dropdown-menu">
                 <li id="cut_cell"><a href="#">Cut Cell</a></li>
                 <li id="copy_cell"><a href="#">Copy Cell</a></li>
                 <li id="paste_cell_above" class="disabled"><a href="#">Paste Cell Above</a></li>
@@ -114,7 +114,7 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">View</a>
-            <ul class="dropdown-menu">
+            <ul id="view_menu" class="dropdown-menu">
                 <li id="toggle_header"
                     title="Show/Hide the IPython Notebook logo and notebook title (above menu bar)">
                     <a href="#">Toggle Header</a></li>
@@ -124,7 +124,7 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Insert</a>
-            <ul class="dropdown-menu">
+            <ul id="insert_menu" class="dropdown-menu">
                 <li id="insert_cell_above"
                     title="Insert an empty Code cell above the currently active cell">
                     <a href="#">Insert Cell Above</a></li>
@@ -134,7 +134,7 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Cell</a>
-            <ul class="dropdown-menu">
+            <ul id="cell_menu" class="dropdown-menu">
                 <li id="run_cell" title="Run this cell, and move cursor to the next one">
                     <a href="#">Run</a></li>
                 <li id="run_cell_select_below" title="Run this cell, select below">
@@ -205,7 +205,7 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Kernel</a>
-            <ul class="dropdown-menu">
+            <ul id="kernel_menu" class="dropdown-menu">
                 <li id="int_kernel"
                     title="Send KeyboardInterrupt (CTRL-C) to the Kernel">
                     <a href="#">Interrupt</a></li>
@@ -215,7 +215,7 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
-            <ul class="dropdown-menu" title="Opens in a new window">
+            <ul id="help_menu" class="dropdown-menu">
                 <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
                 <li><a href="http://ipython.org/ipython-doc/stable/interactive/notebook.html" target="_blank">Notebook Help</a></li>
                 <li id="keyboard_shortcuts" title="Opens a tooltip with all keyboard shortcuts"><a href="#">Keyboard Shortcuts</a></li>
