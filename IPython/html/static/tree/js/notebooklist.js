@@ -318,6 +318,7 @@ var IPython = (function (IPython) {
             .addClass('btn btn-primary btn-mini upload_button')
             .click(function (e) {
                 var nbname = item.find('.item_name > input').val();
+                var path = that.notebookPath();
                 var nbdata = item.data('nbdata');
                 var content_type = 'application/json';
                 var model = {
@@ -331,7 +332,7 @@ var IPython = (function (IPython) {
                     data : JSON.stringify(model),
                     headers : {'Content-Type': content_type},
                     success : function (data, status, xhr) {
-                        that.add_link(data, nbname, item);
+                        that.add_link(path, nbname, item);
                         that.add_delete_button(item);
                     },
                     error : function (data, status, xhr) {
