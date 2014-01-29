@@ -1296,6 +1296,21 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Hide/show the output of all cells.
+     * 
+     * @method toggle_all_output
+     */
+    Notebook.prototype.toggle_all_output = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.toggle_output();
+            }
+        });
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.set_dirty(true);
+    };
+
+    /**
      * Toggle a scrollbar for long cell outputs.
      * 
      * @method toggle_output_scroll
@@ -1310,6 +1325,20 @@ var IPython = (function (IPython) {
         }
     };
 
+    /**
+     * Toggle the scrolling of long output on all cells.
+     * 
+     * @method toggle_all_output_scrolling
+     */
+    Notebook.prototype.toggle_all_output_scroll = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.toggle_output_scroll();
+            }
+        });
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.set_dirty(true);
+    };
 
     // Other cell functions: line numbers, ...
 
