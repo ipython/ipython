@@ -558,9 +558,11 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
         IPython.keyboard_manager.register_events(toinsert);
         element.append(toinsert);
+        // FIXME TODO : remove `container element for 3.0` 
         //backward compat, js should be eval'ed in a context where `container` is defined.
         var container = element;
         container.show = function(){console.log('Warning "container.show()" is deprecated.')};
+        // end backward compat
         try {
             eval(js);
         } catch(err) {
