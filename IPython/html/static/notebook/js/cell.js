@@ -295,7 +295,7 @@ var IPython = (function (IPython) {
         setTimeout(function () {
             var isf = IPython.utils.is_focused;
             if (!isf(that.element.find('div.CodeMirror'))) {
-                this.code_mirror.focus();
+                that.code_mirror.focus();
             }
         }, 1);
     }
