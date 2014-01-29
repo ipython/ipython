@@ -501,6 +501,9 @@ class ZMQInteractiveShell(InteractiveShell):
         self.payload_manager.write_payload(payload)
 
     def _showtraceback(self, etype, evalue, stb):
+        # try to preserve ordering of tracebacks and print statements
+        sys.stdout.flush()
+        sys.stderr.flush()
 
         exc_content = {
             u'traceback' : stb,
