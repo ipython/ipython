@@ -41,6 +41,13 @@ from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
 from IPython.utils.py3compat import cast_unicode
 
+# builtin docstrings to ignore
+_func_call_docstring = types.FunctionType.__call__.__doc__
+_object_init_docstring = object.__init__.__doc__
+_builtin_type_docstrings = {
+    t.__doc__ for t in (types.ModuleType, types.MethodType, types.FunctionType)
+}
+
 #****************************************************************************
 # Builtin color schemes
 
@@ -741,8 +748,7 @@ class Inspector:
                 init_def = self._getdef(obj_init,oname)
                 init_ds  = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
-                if init_ds and \
-                       init_ds.startswith('x.__init__(...) initializes'):
+                if init_ds == _object_init_docstring:
                     init_ds = None
 
             if init_def or init_ds:
@@ -765,10 +771,7 @@ class Inspector:
                 else:
                     class_ds = getdoc(cls)
                 # Skip Python's auto-generated docstrings
-                if class_ds and \
-                       (class_ds.startswith('function(code, globals[,') or \
-                   class_ds.startswith('instancemethod(function, instance,') or \
-                   class_ds.startswith('module(name[,') ):
+                if class_ds in _builtin_type_docstrings:
                     class_ds = None
                 if class_ds and ds != class_ds:
                     out['class_docstring'] = class_ds
@@ -777,8 +780,7 @@ class Inspector:
             try:
                 init_ds = getdoc(obj.__init__)
                 # Skip Python's auto-generated docstrings
-                if init_ds and \
-                       init_ds.startswith('x.__init__(...) initializes'):
+                if init_ds == _object_init_docstring:
                     init_ds = None
             except AttributeError:
                 init_ds = None
@@ -792,7 +794,7 @@ class Inspector:
                     out['call_def'] = self.format(call_def)
                 call_ds = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
-                if call_ds and call_ds.startswith('x.__call__(...) <==> x(...)'):
+                if call_ds == _func_call_docstring:
                     call_ds = None
                 if call_ds:
                     out['call_docstring'] = call_ds
