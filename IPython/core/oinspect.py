@@ -738,7 +738,6 @@ class Inspector:
                 init_def = self._getdef(obj_init,oname)
                 init_ds  = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
-                print(init_ds)
                 if init_ds == _object_init_docstring:
                     init_ds = None
 
