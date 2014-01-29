@@ -71,10 +71,15 @@ class TestAnsi(TestsBase):
             '%s' % (TermColors.Red)  : r'{\color{red}}',
             'hello%s' % TermColors.Blue: r'hello{\color{blue}}',
             'he%s%sllo' % (TermColors.Green, TermColors.Cyan) : r'he{\color{green}}{\color{cyan}llo}',
-            '%shello' % TermColors.Yellow : r'{\color{yellow}hello}',
-            '{0}h{0}e{0}l{0}l{0}o{0}'.format(TermColors.White) : r'{\color{white}h}{\color{white}e}{\color{white}l}{\color{white}l}{\color{white}o}{\color{white}}',
+            '%shello' % TermColors.Yellow : r'\textbf{\color{yellow}hello}',
+            '{0}h{0}e{0}l{0}l{0}o{0}'.format(TermColors.White) : r'\textbf{\color{white}h}\textbf{\color{white}e}\textbf{\color{white}l}\textbf{\color{white}l}\textbf{\color{white}o}\textbf{\color{white}}',
             'hel%slo' % TermColors.Green : r'hel{\color{green}lo}',
-            'hello' : 'hello'}
+            'hello' : 'hello',
+            u'hello\x1b[34mthere\x1b[mworld' : u'hello{\\color{blue}there}world',
+            u'hello\x1b[mthere': u'hellothere',
+            u'hello\x1b[01;34mthere' : u"hello\\textbf{\\color{lightblue}there}",
+            u'hello\x1b[001;34mthere' : u"hello\\textbf{\\color{lightblue}there}"
+            }
 
         for inval, outval in correct_outputs.items():
             self._try_ansi2latex(inval, outval)

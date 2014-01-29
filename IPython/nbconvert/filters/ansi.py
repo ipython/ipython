@@ -106,37 +106,55 @@ def ansi2html(text):
 
 
 def single_ansi2latex(code):
-    """Converts single ansi markup to latex format
+    """Converts single ansi markup to latex format.
 
     Return latex code and number of open brackets.
+
+    Accepts codes like '\x1b[1;32m' (bold, red) and the short form '\x1b[32m' (red)
+
+    Colors are matched to those defined in coloransi, which defines colors
+    using the 0, 1 (bold) and 5 (blinking) styles. Styles 1 and 5 are
+    interpreted as bold. All other styles are mapped to 0. Note that in
+    coloransi, a style of 1 does not just mean bold; for example, Brown is
+    "0;33", but Yellow is "1;33". An empty string is returned for unrecognised
+    codes and the "reset" code '\x1b[m'.
     """
-    for color in coloransi.color_templates:
+    components = code.split(';')
+    if len(components) > 1:
+        # Style is digits after '['
+        style = int(components[0].split('[')[-1])
+        color = components[1][:-1]
+    else:
+        style = 0
+        color = components[0][-3:-1]
+        
+    # If the style is not normal (0), bold (1) or blinking (5) then treat it as normal
+    if style not in [0, 1, 5]:
+        style = 0
 
-        #Make sure to get the color code (which is a part of the overall style)
-        # i.e.  0;31 is valid
-        #       31 is also valid, and means the same thing
-        #coloransi.color_templates stores the longer of the two formats %d;%d
-        #Get the short format so we can parse that too.  Short format only exist
-        #if no other formating is applied (the other number must be a 0)!
-        style_code = getattr(coloransi.TermColors, color[0])
-        color_code = style_code.split(';')[1]
-        is_normal = style_code.split(';')[0] == '0'
+    for name, tcode in coloransi.color_templates:
+        tstyle, tcolor = tcode.split(';')
+        tstyle = int(tstyle)
+        if tstyle == style and tcolor == color:
+            break
+    else:
+        return '', 0
 
-        # regular weight
-        if (code == style_code) or (is_normal and code == color_code):
-            
-            return r'{\color{'+color[0].lower()+'}', 1
-        # bold
-        if code == style_code[:3]+str(1)+style_code[3:]:
-            return r'\textbf{\color{'+color[0].lower()+'}', 1
-    return '', 0
+    if style == 5:
+        name = name[5:]                             # BlinkRed -> Red, etc
+    name = name.lower()
+
+    if style in [1, 5]:
+        return r'\textbf{\color{'+name+'}', 1
+    else:
+        return r'{\color{'+name+'}', 1
 
 def ansi2latex(text):
     """Converts ansi formated text to latex version
 
     based on https://bitbucket.org/birkenfeld/sphinx-contrib/ansi.py
     """
-    color_pattern = re.compile('\x1b\\[([^m]+)m')
+    color_pattern = re.compile('\x1b\\[([^m]*)m')
     last_end = 0
     openbrack = 0
     outstring = ''
@@ -146,8 +164,9 @@ def ansi2latex(text):
         if openbrack:
             outstring += '}'*openbrack
             openbrack = 0
-        if not (match.group() == coloransi.TermColors.Normal or openbrack):
-            texform, openbrack = single_ansi2latex(match.group())
+        code = match.group()
+        if not (code == coloransi.TermColors.Normal or openbrack):
+            texform, openbrack = single_ansi2latex(code)
             outstring += texform
         last_end = match.end()
     
