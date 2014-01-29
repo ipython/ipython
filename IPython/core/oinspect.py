@@ -44,9 +44,9 @@ from IPython.utils.py3compat import cast_unicode
 # builtin docstrings to ignore
 _func_call_docstring = types.FunctionType.__call__.__doc__
 _object_init_docstring = object.__init__.__doc__
-_builtin_type_docstrings = {
+_builtin_type_docstrings = set([
     t.__doc__ for t in (types.ModuleType, types.MethodType, types.FunctionType)
-}
+])
 
 #****************************************************************************
 # Builtin color schemes
