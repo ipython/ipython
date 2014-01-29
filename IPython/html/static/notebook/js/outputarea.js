@@ -613,19 +613,20 @@ var IPython = (function (IPython) {
             });
         }, 250);
     };
-
-
+    
+    var set_width_height = function (img, md, mime) {
+        // set width and height of an img element from metadata
+        var height = _get_metadata_key(md, 'height', mime);
+        if (height !== undefined) img.attr('height', height);
+        var width = _get_metadata_key(md, 'width', mime);
+        if (width !== undefined) img.attr('width', width);
+    };
+    
     OutputArea.prototype.append_png = function (png, md, element) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
-        var img = $("<img/>");
-        img[0].setAttribute('src','data:image/png;base64,'+png);
-        if (md['height']) {
-            img[0].setAttribute('height', md['height']);
-        }
-        if (md['width']) {
-            img[0].setAttribute('width', md['width']);
-        }
+        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        set_width_height(img, md, 'image/png');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
@@ -636,12 +637,7 @@ var IPython = (function (IPython) {
         var type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
-        if (md['height']) {
-            img.attr('height', md['height']);
-        }
-        if (md['width']) {
-            img.attr('width', md['width']);
-        }
+        set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
