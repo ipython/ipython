@@ -322,6 +322,10 @@ class BaseIPythonApplication(Application):
                     self.exit(1)
             else:
                 self.log.info("Using existing profile dir: %r"%location)
+            # if profile_dir is specified explicitly, set profile name
+            dir_name = os.path.basename(p.location)
+            if dir_name.startswith('profile_'):
+                self.profile = dir_name[8:]
 
         self.profile_dir = p
         self.config_file_paths.append(p.location)
