@@ -74,7 +74,11 @@ def safe_unicode(e):
 if sys.version_info[0] >= 3:
     PY3 = True
     
-    input = input
+    # keep reference to builtin_mod because the kernel overrides that value
+    # to forward requests to a frontend.
+    def input(prompt=''):
+        return builtin_mod.input(prompt)
+    
     builtin_mod_name = "builtins"
     import builtins as builtin_mod
     
@@ -131,7 +135,11 @@ if sys.version_info[0] >= 3:
 else:
     PY3 = False
     
-    input = raw_input
+    # keep reference to builtin_mod because the kernel overrides that value
+    # to forward requests to a frontend.
+    def input(prompt=''):
+        return builtin_mod.raw_input(prompt)
+    
     builtin_mod_name = "__builtin__"
     import __builtin__ as builtin_mod
     
