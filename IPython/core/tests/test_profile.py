@@ -36,7 +36,8 @@ from IPython.core.profiledir import ProfileDir
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
-
+from IPython.utils.process import getoutput
+from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -151,3 +152,15 @@ def test_list_bundled_profiles():
     bundled_true = [u'cluster', u'math', u'pysh', u'sympy']
     bundled = sorted(list_bundled_profiles())
     nt.assert_equal(bundled, bundled_true)
+
+
+def test_profile_create_ipython_dir():
+    """ipython profile create respects --ipython-dir"""
+    with TemporaryDirectory() as td:
+        getoutput([sys.executable, '-m', 'IPython', 'profile', 'create',
+             'foo', '--ipython-dir=%s' % td])
+        profile_dir = os.path.join(td, 'profile_foo')
+        assert os.path.exists(profile_dir)
+        ipython_config = os.path.join(profile_dir, 'ipython_config.py')
+        assert os.path.exists(ipython_config)
+        

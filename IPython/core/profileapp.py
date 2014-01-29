@@ -285,8 +285,8 @@ class ProfileCreate(BaseIPythonApplication):
             app.log = self.log
             app.overwrite = self.overwrite
             app.copy_config_files=True
-            app.profile = self.profile
-            app.init_profile_dir()
+            app.ipython_dir=self.ipython_dir
+            app.profile_dir=self.profile_dir
             app.init_config_files()
 
     def stage_default_config_file(self):
