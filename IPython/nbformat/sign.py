@@ -18,9 +18,9 @@ import io
 import os
 
 from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
-from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode
+from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode, Bool
 from IPython.config import LoggingConfigurable, MultipleInstanceError
-from IPython.core.application import BaseIPythonApplication
+from IPython.core.application import BaseIPythonApplication, base_flags
 
 from .current import read, write
 
@@ -118,7 +118,7 @@ class NotebookNotary(LoggingConfigurable):
     
     def _write_secret_file(self, secret):
         """write my secret to my secret_file"""
-        self.log.info("Writing output secret to %s", self.secret_file)
+        self.log.info("Writing notebook-signing key to %s", self.secret_file)
         with io.open(self.secret_file, 'wb') as f:
             f.write(secret)
         try:
@@ -211,6 +211,18 @@ class NotebookNotary(LoggingConfigurable):
         return True
 
 
+trust_flags = {
+    'reset' : (
+        {'TrustNotebookApp' : { 'reset' : True}},
+        """Generate a new key for notebook signature.
+        All previously signed notebooks will become untrusted.
+        """
+    ),
+}
+trust_flags.update(base_flags)
+trust_flags.pop('init')
+
+
 class TrustNotebookApp(BaseIPythonApplication):
     
     description="""Sign one or more IPython notebooks with your key,
@@ -219,7 +231,15 @@ class TrustNotebookApp(BaseIPythonApplication):
     Otherwise, you will have to re-execute the notebook to see output.
     """
     
-    examples="""ipython trust mynotebook.ipynb and_this_one.ipynb"""
+    examples = """ipython trust mynotebook.ipynb and_this_one.ipynb"""
+    
+    flags = trust_flags
+    
+    reset = Bool(False, config=True,
+        help="""If True, generate a new key for notebook signature.
+        After reset, all previously signed notebooks will become untrusted.
+        """
+    )
     
     notary = Instance(NotebookNotary)
     def _notary_default(self):
@@ -239,7 +259,15 @@ class TrustNotebookApp(BaseIPythonApplication):
             with io.open(notebook_path, 'w', encoding='utf8') as f:
                 write(nb, f, 'json')
     
+    def generate_new_key(self):
+        """Generate a new notebook signature key"""
+        print("Generating new notebook key: %s" % self.notary.secret_file)
+        self.notary._write_secret_file(os.urandom(1024))
+    
     def start(self):
+        if self.reset:
+            self.generate_new_key()
+            return
         if not self.extra_args:
             self.log.critical("Specify at least one notebook to sign.")
             self.exit(1)
