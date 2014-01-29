@@ -57,7 +57,7 @@ TIMEOUT_GIVEUP = 20
 import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
                        r'(?P<package>[/\\]__init__)?'
                        r'(?P<suffix>%s)$' %
-                       r'|'.join(re.escape(s[0]) for s in _suffixes))
+                       r'|'.join(re.escape(s) for s in _suffixes))
 
 # RE for the ipython %run command (python + ipython scripts)
 magic_run_re = re.compile(r'.*(\.ipy|\.py[w]?)$')
