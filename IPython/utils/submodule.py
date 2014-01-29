@@ -82,9 +82,9 @@ def check_submodule_status(root=None):
     status = status.decode("ascii", "replace")
 
     for line in status.splitlines():
-        if status.startswith('-'):
+        if line.startswith('-'):
             return 'missing'
-        elif status.startswith('+'):
+        elif line.startswith('+'):
             return 'unclean'
 
     return 'clean'
