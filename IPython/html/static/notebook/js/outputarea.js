@@ -41,7 +41,85 @@ var IPython = (function (IPython) {
         this.style();
         this.bind_events();
     };
-    
+
+    /**
+     * Class properties
+     **/
+
+    /**
+     * Threshold to trigger autoscroll when the OutputArea is resized,
+     * typically when new outputs are added.
+     *
+     * Behavior is undefined if autoscroll is lower than minimum_scroll_threshold,
+     * unless it is < 0, in which case autoscroll will never be triggered
+     *
+     * @property auto_scroll_threshold
+     * @type Number
+     * @default 100
+     *
+     **/
+    OutputArea.auto_scroll_threshold = 100;
+
+    /**
+     * Lower limit (in lines) for OutputArea to be made scrollable. OutputAreas
+     * shorter than this are never scrolled.
+     *
+     * @property minimum_scroll_threshold
+     * @type Number
+     * @default 20
+     *
+     **/
+    OutputArea.minimum_scroll_threshold = 20;
+
+
+
+    OutputArea.mime_map = {
+        "text/plain" : "text",
+        "text/html" : "html",
+        "image/svg+xml" : "svg",
+        "image/png" : "png",
+        "image/jpeg" : "jpeg",
+        "text/latex" : "latex",
+        "application/json" : "json",
+        "application/javascript" : "javascript",
+    };
+
+    OutputArea.mime_map_r = {
+        "text" : "text/plain",
+        "html" : "text/html",
+        "svg" : "image/svg+xml",
+        "png" : "image/png",
+        "jpeg" : "image/jpeg",
+        "latex" : "text/latex",
+        "json" : "application/json",
+        "javascript" : "application/javascript",
+    };
+
+    OutputArea.display_order = [
+        'application/javascript',
+        'text/html',
+        'text/latex',
+        'image/svg+xml',
+        'image/png',
+        'image/jpeg',
+        'text/plain'
+    ];
+
+    OutputArea.append_map = {
+        "text/plain" : OutputArea.prototype.append_text,
+        "text/html" : OutputArea.prototype.append_html,
+        "image/svg+xml" : OutputArea.prototype.append_svg,
+        "image/png" : OutputArea.prototype.append_png,
+        "image/jpeg" : OutputArea.prototype.append_jpeg,
+        "text/latex" : OutputArea.prototype.append_latex,
+        "application/json" : OutputArea.prototype.append_json,
+        "application/javascript" : OutputArea.prototype.append_javascript,
+    };
+
+    /**
+     * Class prototypes
+     **/
+
     OutputArea.prototype.create_elements = function () {
         this.element = $("<div/>");
         this.collapse_button = $("<div/>");
@@ -159,33 +237,6 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Threshold to trigger autoscroll when the OutputArea is resized,
-     * typically when new outputs are added.
-     *
-     * Behavior is undefined if autoscroll is lower than minimum_scroll_threshold,
-     * unless it is < 0, in which case autoscroll will never be triggered
-     *
-     * @property auto_scroll_threshold
-     * @type Number
-     * @default 100
-     *
-     **/
-    OutputArea.auto_scroll_threshold = 100;
-
-
-    /**
-     * Lower limit (in lines) for OutputArea to be made scrollable. OutputAreas
-     * shorter than this are never scrolled.
-     *
-     * @property minimum_scroll_threshold
-     * @type Number
-     * @default 20
-     *
-     **/
-    OutputArea.minimum_scroll_threshold = 20;
-
-
-    /**
      *
      * Scroll OutputArea if height supperior than a threshold (in lines).
      *
@@ -254,28 +305,7 @@ var IPython = (function (IPython) {
         }
         this.append_output(json);
     };
-
-    OutputArea.mime_map = {
-        "text/plain" : "text",
-        "text/html" : "html",
-        "image/svg+xml" : "svg",
-        "image/png" : "png",
-        "image/jpeg" : "jpeg",
-        "text/latex" : "latex",
-        "application/json" : "json",
-        "application/javascript" : "javascript",
-    };
     
-    OutputArea.mime_map_r = {
-        "text" : "text/plain",
-        "html" : "text/html",
-        "svg" : "image/svg+xml",
-        "png" : "image/png",
-        "jpeg" : "image/jpeg",
-        "latex" : "text/latex",
-        "json" : "application/json",
-        "javascript" : "application/javascript",
-    };
     
     OutputArea.prototype.rename_keys = function (data, key_map) {
         var remapped = {};
@@ -516,15 +546,6 @@ var IPython = (function (IPython) {
         }
     };
 
-    OutputArea.display_order = [
-        'application/javascript',
-        'text/html',
-        'text/latex',
-        'image/svg+xml',
-        'image/png',
-        'image/jpeg',
-        'text/plain'
-    ];
 
     OutputArea.prototype.append_mime_type = function (json, element) {
 
@@ -670,16 +691,6 @@ var IPython = (function (IPython) {
         return toinsert;
     };
 
-    OutputArea.append_map = {
-        "text/plain" : OutputArea.prototype.append_text,
-        "text/html" : OutputArea.prototype.append_html,
-        "image/svg+xml" : OutputArea.prototype.append_svg,
-        "image/png" : OutputArea.prototype.append_png,
-        "image/jpeg" : OutputArea.prototype.append_jpeg,
-        "text/latex" : OutputArea.prototype.append_latex,
-        "application/json" : OutputArea.prototype.append_json,
-        "application/javascript" : OutputArea.prototype.append_javascript,
-    };
 
     OutputArea.prototype.append_raw_input = function (msg) {
         var that = this;
