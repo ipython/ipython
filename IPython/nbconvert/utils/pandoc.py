@@ -72,11 +72,9 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
 def get_pandoc_version():
     """Gets the Pandoc version if Pandoc is installed.
     
-    Returns
-    -------
     If the minimal version is not met, it will probe Pandoc for its version, cache it and return that value.
     If the minimal version is met, it will return the cached version and stop probing Pandoc 
-    (unless `clean_cache()` is called).
+    (unless :func:`clean_cache()` is called).
 
     Raises
     ------
