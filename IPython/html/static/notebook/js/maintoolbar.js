@@ -110,6 +110,14 @@ var IPython = (function (IPython) {
                     callback : function () {
                         IPython.notebook.session.interrupt_kernel();
                         }
+                },
+                {
+                    id : 'repeat_b',
+                    label : 'Restart Kernel',
+                    icon : 'icon-repeat',
+                    callback : function () {
+                        IPython.notebook.restart_kernel();
+                        }
                 }
             ],'run_int');
     };

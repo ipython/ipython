@@ -178,12 +178,6 @@ var IPython = (function (IPython) {
         this.element.find('#move_cell_down').click(function () {
             IPython.notebook.move_cell_down();
         });
-        this.element.find('#select_previous').click(function () {
-            IPython.notebook.select_prev();
-        });
-        this.element.find('#select_next').click(function () {
-            IPython.notebook.select_next();
-        });
         this.element.find('#edit_nb_metadata').click(function () {
             IPython.notebook.edit_metadata();
         });
@@ -252,21 +246,27 @@ var IPython = (function (IPython) {
         this.element.find('#to_heading6').click(function () {
             IPython.notebook.to_heading(undefined, 6);
         });
-        this.element.find('#toggle_output').click(function () {
+        
+        this.element.find('#toggle_current_output').click(function () {
             IPython.notebook.toggle_output();
         });
-        this.element.find('#collapse_all_output').click(function () {
-            IPython.notebook.collapse_all_output();
+        this.element.find('#toggle_current_output_scroll').click(function () {
+            IPython.notebook.toggle_output_scroll();
         });
-        this.element.find('#scroll_all_output').click(function () {
-            IPython.notebook.scroll_all_output();
+        this.element.find('#clear_current_output').click(function () {
+            IPython.notebook.clear_output();
         });
-        this.element.find('#expand_all_output').click(function () {
-            IPython.notebook.expand_all_output();
+        
+        this.element.find('#toggle_all_output').click(function () {
+            IPython.notebook.toggle_all_output();
+        });
+        this.element.find('#toggle_all_output_scroll').click(function () {
+            IPython.notebook.toggle_all_output_scroll();
         });
         this.element.find('#clear_all_output').click(function () {
             IPython.notebook.clear_all_output();
         });
+        
         // Kernel
         this.element.find('#int_kernel').click(function () {
             IPython.notebook.session.interrupt_kernel();

@@ -1165,24 +1165,119 @@ var IPython = (function (IPython) {
     /**
      * Hide a cell's output.
      * 
-     * @method collapse
+     * @method collapse_output
      * @param {Number} index A cell's numeric index
      */
-    Notebook.prototype.collapse = function (index) {
+    Notebook.prototype.collapse_output = function (index) {
         var i = this.index_or_selected(index);
-        this.get_cell(i).collapse();
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.collapse_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Hide each code cell's output area.
+     * 
+     * @method collapse_all_output
+     */
+    Notebook.prototype.collapse_all_output = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.collapse_output();
+            }
+        });
+        // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
 
     /**
      * Show a cell's output.
      * 
-     * @method expand
+     * @method expand_output
      * @param {Number} index A cell's numeric index
      */
-    Notebook.prototype.expand = function (index) {
+    Notebook.prototype.expand_output = function (index) {
         var i = this.index_or_selected(index);
-        this.get_cell(i).expand();
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.expand_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Expand each code cell's output area, and remove scrollbars.
+     * 
+     * @method expand_all_output
+     */
+    Notebook.prototype.expand_all_output = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.expand_output();
+            }
+        });
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.set_dirty(true);
+    };
+
+    /**
+     * Clear the selected CodeCell's output area.
+     * 
+     * @method clear_output
+     * @param {Number} index A cell's numeric index
+     */
+    Notebook.prototype.clear_output = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.clear_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Clear each code cell's output area.
+     * 
+     * @method clear_all_output
+     */
+    Notebook.prototype.clear_all_output = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.clear_output();
+            }
+        });
+        this.set_dirty(true);
+    };
+
+    /**
+     * Scroll the selected CodeCell's output area.
+     * 
+     * @method scroll_output
+     * @param {Number} index A cell's numeric index
+     */
+    Notebook.prototype.scroll_output = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.scroll_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Expand each code cell's output area, and add a scrollbar for long output.
+     * 
+     * @method scroll_all_output
+     */
+    Notebook.prototype.scroll_all_output = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.scroll_output();
+            }
+        });
+        // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
 
@@ -1193,7 +1288,25 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
-        this.get_cell(i).toggle_output();
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.toggle_output();
+            this.set_dirty(true);
+        }
+    };
+
+    /**
+     * Hide/show the output of all cells.
+     * 
+     * @method toggle_all_output
+     */
+    Notebook.prototype.toggle_all_output = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.toggle_output();
+            }
+        });
+        // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
 
@@ -1205,81 +1318,27 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.toggle_output_scroll = function (index) {
         var i = this.index_or_selected(index);
-        this.get_cell(i).toggle_output_scroll();
+        var cell = this.get_cell(i);
+        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+            cell.toggle_output_scroll();
+            this.set_dirty(true);
+        }
     };
 
     /**
-     * Hide each code cell's output area.
+     * Toggle the scrolling of long output on all cells.
      * 
-     * @method collapse_all_output
+     * @method toggle_all_output_scrolling
      */
-    Notebook.prototype.collapse_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].output_area.collapse();
+    Notebook.prototype.toggle_all_output_scroll = function () {
+        $.map(this.get_cells(), function (cell, i) {
+            if (cell instanceof IPython.CodeCell) {
+                cell.toggle_output_scroll();
             }
-        };
+        });
         // this should not be set if the `collapse` key is removed from nbformat
         this.set_dirty(true);
     };
-
-    /**
-     * Expand each code cell's output area, and add a scrollbar for long output.
-     * 
-     * @method scroll_all_output
-     */
-    Notebook.prototype.scroll_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].output_area.expand();
-                cells[i].output_area.scroll_if_long();
-            }
-        };
-        // this should not be set if the `collapse` key is removed from nbformat
-        this.set_dirty(true);
-    };
-
-    /**
-     * Expand each code cell's output area, and remove scrollbars.
-     * 
-     * @method expand_all_output
-     */
-    Notebook.prototype.expand_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].output_area.expand();
-                cells[i].output_area.unscroll_area();
-            }
-        };
-        // this should not be set if the `collapse` key is removed from nbformat
-        this.set_dirty(true);
-    };
-
-    /**
-     * Clear each code cell's output area.
-     * 
-     * @method clear_all_output
-     */
-    Notebook.prototype.clear_all_output = function () {
-        var ncells = this.ncells();
-        var cells = this.get_cells();
-        for (var i=0; i<ncells; i++) {
-            if (cells[i] instanceof IPython.CodeCell) {
-                cells[i].clear_output();
-                // Make all In[] prompts blank, as well
-                // TODO: make this configurable (via checkbox?)
-                cells[i].set_input_prompt();
-            }
-        };
-        this.set_dirty(true);
-    };
-
 
     // Other cell functions: line numbers, ...
 

@@ -451,7 +451,7 @@ var IPython = (function (IPython) {
             }
         },
         'shift+o' : {
-            help    : 'toggle output scroll',
+            help    : 'toggle output scrolling',
             help_index : 'gc',
             handler : function (event) {
                 IPython.notebook.toggle_output_scroll();
