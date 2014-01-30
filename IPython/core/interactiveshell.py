@@ -572,6 +572,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Temporary files used for various purposes.  Deleted at exit.
         self.tempfiles = []
+        self.tempdirs = []
 
         # Keep track of readline usage (later set by init_readline)
         self.has_readline = False
@@ -3004,15 +3005,19 @@ class InteractiveShell(SingletonConfigurable):
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.
 
-        This makes a call to tempfile.mktemp, but it registers the created
-        filename internally so ipython cleans it up at exit time.
+        This makes a call to tempfile.mkstemp (created in a tempfile.mkdtemp),
+        but it registers the created filename internally so ipython cleans it up
+        at exit time.
 
         Optional inputs:
 
           - data(None): if data is given, it gets written out to the temp file
             immediately, and the file is closed again."""
 
-        filename = tempfile.mktemp('.py', prefix)
+        dirname = tempfile.mkdtemp(prefix=prefix)
+        self.tempdirs.append(dirname)
+
+        handle, filename = tempfile.mkstemp('.py', prefix, dir=dirname)
         self.tempfiles.append(filename)
 
         if data:
@@ -3165,10 +3170,16 @@ class InteractiveShell(SingletonConfigurable):
         # history db
         self.history_manager.end_session()
 
-        # Cleanup all tempfiles left around
+        # Cleanup all tempfiles and folders left around
         for tfile in self.tempfiles:
             try:
                 os.unlink(tfile)
+            except OSError:
+                pass
+
+        for tdir in self.tempdirs:
+            try:
+                os.rmdir(tdir)
             except OSError:
                 pass
 
