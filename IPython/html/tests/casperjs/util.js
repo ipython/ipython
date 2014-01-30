@@ -30,6 +30,15 @@ casper.open_new_notebook = function () {
     this.waitForSelector('.CodeMirror-code');
     // and make sure the kernel has started
     this.waitFor( this.kernel_running  );
+    // track the IPython busy/idle state
+    this.thenEvaluate(function () {
+        $([IPython.events]).on('status_idle.Kernel',function () {
+            IPython._status = 'idle';
+        });
+        $([IPython.events]).on('status_busy.Kernel',function () {
+            IPython._status = 'busy';
+        });
+    });
 };
 
 // return whether or not the kernel is running
@@ -57,8 +66,19 @@ casper.delete_current_notebook = function () {
     });
 };
 
+casper.wait_for_idle = function () {
+    this.then(function () {
+        this.waitFor(function () {
+            return this.evaluate(function () {
+                return IPython._status == 'idle';
+            });
+        });
+    });
+};
+
 // wait for the nth output in a given cell
 casper.wait_for_output = function (cell_num, out_num) {
+    this.wait_for_idle();
     out_num = out_num || 0;
     this.then(function() {
         this.waitFor(function (c, o) {
@@ -111,7 +131,7 @@ casper.set_cell_text = function(index, text){
     this.evaluate(function (index, text) {
         var cell = IPython.notebook.get_cell(index);
         cell.set_text(text);
-    }, index, text);        
+    }, index, text);
 };
 
 // Inserts a cell at the bottom of the notebook
@@ -124,7 +144,7 @@ casper.insert_cell_at_bottom = function(cell_type){
     return this.evaluate(function (cell_type) {
         var cell = IPython.notebook.insert_cell_at_bottom(cell_type);
         return IPython.notebook.find_cell_index(cell);
-    }, cell_type);        
+    }, cell_type);
 };
 
 // Insert a cell at the bottom of the notebook and set the cells text.
@@ -145,7 +165,7 @@ casper.execute_cell = function(index){
         that.evaluate(function (index) {
             var cell = IPython.notebook.get_cell(index);
             cell.execute();
-        }, index);            
+        }, index);
     });
     return index;
 };
@@ -157,7 +177,7 @@ casper.execute_cell = function(index){
 casper.execute_cell_then = function(index, then_callback) {
     var return_val = this.execute_cell(index);
 
-    this.wait_for_output(index);
+    this.wait_for_idle();
 
     var that = this;
     this.then(function(){ 
