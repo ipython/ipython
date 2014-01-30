@@ -172,9 +172,11 @@ def select_figure_formats(shell, formats, quality=90):
     Parameters
     ==========
     shell : InteractiveShell
-        The main IPython instance
+        The main IPython instance.
     formats : list
         One or a set of figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
+    quality : int
+        A percentage for the quality of JPEG figures.
     """
     from matplotlib.figure import Figure
     from IPython.kernel.zmq.pylab import backend_inline
