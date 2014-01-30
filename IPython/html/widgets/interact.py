@@ -135,4 +135,5 @@ def interactive(f, **kwargs):
 
 def interact(f, **kwargs):
     w = interactive(f, **kwargs)
+    f.widget = w
     display(w)
