@@ -22,7 +22,7 @@ casper.notebook_test(function () {
         var cell = IPython.notebook.get_cell(0);
         cell.set_text('a=11; print(a)');
         cell.clear_output();
-        IPython.utils.press_ctrl_enter();
+        IPython.utils.press_shift_enter();
     });
 
     this.wait_for_output(0);
@@ -31,7 +31,7 @@ casper.notebook_test(function () {
         var result = this.get_output_cell(0);
         var num_cells = this.get_cells_length();
         this.test.assertEquals(result.text, '11\n', 'cell execute (using ctrl-enter)');
-        this.test.assertEquals(num_cells, 2, 'ctrl-enter adds a new cell at the bottom')
+        this.test.assertEquals(num_cells, 2, 'shift-enter adds a new cell at the bottom')
     });
     
     // do it again with the keyboard shortcut
@@ -41,7 +41,7 @@ casper.notebook_test(function () {
         var cell = IPython.notebook.get_cell(0);
         cell.set_text('a=12; print(a)');
         cell.clear_output();
-        IPython.utils.press_shift_enter();
+        IPython.utils.press_ctrl_enter();
     });
 
     this.wait_for_output(0);
@@ -50,7 +50,7 @@ casper.notebook_test(function () {
         var result = this.get_output_cell(0);
         var num_cells = this.get_cells_length();
         this.test.assertEquals(result.text, '12\n', 'cell execute (using shift-enter)');
-        this.test.assertEquals(num_cells, 1, 'shift-enter adds no new cell at the bottom')
+        this.test.assertEquals(num_cells, 1, 'ctrl-enter adds no new cell at the bottom')
     });
 
     // press the "play" triangle button in the toolbar
