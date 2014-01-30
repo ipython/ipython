@@ -452,7 +452,8 @@ def check_for_dependencies():
     check_for_sphinx()
     check_for_pygments()
     check_for_nose()
-    check_for_pexpect()
+    if os.name == 'posix':
+        check_for_pexpect()
     check_for_pyzmq()
     check_for_tornado()
     check_for_readline()

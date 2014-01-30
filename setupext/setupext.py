@@ -107,7 +107,7 @@ def check_for_pexpect():
     try:
         import pexpect
     except ImportError:
-        print_status("pexpect", "no (required for running standalone doctests)")
+        print_status("pexpect", "no (will use bundled version in IPython.external)")
         return False
     else:
         print_status("pexpect", pexpect.__version__)
