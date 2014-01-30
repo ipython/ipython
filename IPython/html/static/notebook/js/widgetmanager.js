@@ -85,6 +85,10 @@
                 if (cell.widget_subarea) {
                     
                     cell.widget_area.show();
+                    // Have the IPython keyboard manager disable its event
+                    // handling so the widget can capture keyboard input.
+                    // Note, this is only done on the outer most widget.
+                    IPython.keyboard_manager.register_events(view.$el);
                     cell.widget_subarea.append(view.$el);
                 }
             }
@@ -118,13 +122,6 @@
 
         WidgetManager.prototype._handle_new_view = function (view) {
             // Called when a view has been created and rendered.
-
-            // If the view has a well defined element, inform the keyboard
-            // manager about the view's element, so as the element can
-            // escape the dreaded command mode.
-            if (view.$el) {
-                IPython.keyboard_manager.register_events(view.$el);
-            }
         };
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
