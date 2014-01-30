@@ -35,3 +35,6 @@ def test_locate_help():
 
 def test_locate_profile_help():
     tt.help_all_output_test("locate profile")
+
+def test_trust_help():
+    tt.help_all_output_test("trust")

@@ -35,8 +35,10 @@ casper.notebook_test(function () {
         });
 
         this.then(function () {
-            var result = this.get_output_cell(0);
-            this.test.assertFalsy(result, "after shutdown: no execution results");
+            var outputs = this.evaluate(function() {
+                return IPython.notebook.get_cell(0).output_area.outputs;
+            })
+            this.test.assertEquals(outputs.length, 0, "after shutdown: no execution results");
             this.test.assertNot(this.kernel_running(),
                 'after shutdown: IPython.notebook.kernel.running is false ');
         });

@@ -207,12 +207,13 @@ class FileNotebookManager(NotebookManager):
         model['path'] = path
         model['last_modified'] = last_modified
         model['created'] = created
-        if content is True:
+        if content:
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
                     nb = current.read(f, u'json')
                 except Exception as e:
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
+            self.mark_trusted_cells(nb, path, name)
             model['content'] = nb
         return model
 
@@ -236,6 +237,9 @@ class FileNotebookManager(NotebookManager):
         # Save the notebook file
         os_path = self.get_os_path(new_name, new_path)
         nb = current.to_notebook_json(model['content'])
+        
+        self.check_and_sign(nb, new_path, new_name)
+        
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
         try:

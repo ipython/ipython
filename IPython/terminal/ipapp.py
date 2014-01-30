@@ -249,6 +249,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         nbconvert=('IPython.nbconvert.nbconvertapp.NbConvertApp',
             "Convert notebooks to/from other formats."
         ),
+        trust=('IPython.nbformat.sign.TrustNotebookApp',
+            "Sign notebooks to trust their potentially unsafe contents at load."
+        ),
     ))
 
     # *do* autocreate requested profile, but don't create the config file.

@@ -57,15 +57,18 @@ casper.delete_current_notebook = function () {
     });
 };
 
-// wait for output in a given cell
-casper.wait_for_output = function (cell_num) {
-    this.waitFor(function (c) {
-        return this.evaluate(function get_output(c) {
-            var cell = IPython.notebook.get_cell(c);
-            return cell.output_area.outputs.length != 0;
-        },
-        // pass parameter from the test suite js to the browser code js
-        {c : cell_num});
+// wait for the nth output in a given cell
+casper.wait_for_output = function (cell_num, out_num) {
+    out_num = out_num || 0;
+    this.then(function() {
+        this.waitFor(function (c, o) {
+            return this.evaluate(function get_output(c, o) {
+                var cell = IPython.notebook.get_cell(c);
+                return cell.output_area.outputs.length > o;
+            },
+            // pass parameter from the test suite js to the browser code js
+            {c : cell_num, o : out_num});
+        });
     },
     function then() { },
     function timeout() {
@@ -73,7 +76,7 @@ casper.wait_for_output = function (cell_num) {
     });
 };
 
-// return the output of a given cell
+// return an output of a given cell
 casper.get_output_cell = function (cell_num, out_num) {
     out_num = out_num || 0;
     var result = casper.evaluate(function (c, o) {
@@ -81,7 +84,18 @@ casper.get_output_cell = function (cell_num, out_num) {
         return cell.output_area.outputs[o];
     },
     {c : cell_num, o : out_num});
-    return result;
+    if (!result) {
+        var num_outputs = casper.evaluate(function (c) {
+            var cell = IPython.notebook.get_cell(c);
+            return cell.output_area.outputs.length;
+        },
+        {c : cell_num});
+        this.test.assertTrue(false,
+            "Cell " + cell_num + " has no output #" + out_num + " (" + num_outputs + " total)"
+        );
+    } else {
+        return result;
+    }
 };
 
 // return the number of cells in the notebook
