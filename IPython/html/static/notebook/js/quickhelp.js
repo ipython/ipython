@@ -35,7 +35,7 @@ var IPython = (function (IPython) {
             $('<button/>').addClass('close').attr('data-dismiss','alert').html('&times;')
         ).append(
             'The IPython Notebook has two different keyboard input modes. <b>Edit mode</b> '+
-            'allow you the type code/text into a cell and is indicated by a green cell '+
+            'allows you to type code/text into a cell and is indicated by a green cell '+
             'border. <b>Command mode</b> binds the keyboard to notebook level actions '+
             'and is indicated by a grey cell border.'
         )
