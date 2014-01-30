@@ -717,3 +717,20 @@ def clear_output(wait=False):
         io.stdout.flush()
         print('\033[2K\r', file=io.stderr, end='')
         io.stderr.flush()
+
+
+def select_matplotlib_formats(formats, quality=90):
+    """Select figure formats for the inline backend.
+
+    Parameters
+    ==========
+    formats : list
+        One or a set of figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
+    quality : int
+        A percentage for the quality of JPEG figures.
+    """
+    from IPython.core.interactiveshell import InteractiveShell
+    from IPython.core.pylabtools import select_figure_formats
+    shell = InteractiveShell.instance()
+    select_figure_formats(shell, formats, quality=90)
+

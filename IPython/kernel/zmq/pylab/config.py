@@ -70,14 +70,14 @@ class InlineBackend(InlineBackendConfig):
                           'retina', 'jpeg', 'svg', 'pdf'.""")
 
     def _figure_formats_changed(self, name, old, new):
-        from IPython.core.pylabtools import select_figure_format
+        from IPython.core.pylabtools import select_figure_formats
         if 'jpg' in new or 'jpeg' in new:
             if not pil_available():
                 raise TraitError("Requires PIL/Pillow for JPG figures")
         if self.shell is None:
             return
         else:
-            select_figure_format(self.shell, new)
+            select_figure_formats(self.shell, new)
 
     figure_format = Unicode(config=True, help="""The figure format to enable (deprecated
                                          use `figure_formats` instead)""")

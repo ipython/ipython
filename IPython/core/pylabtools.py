@@ -166,7 +166,7 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
-def select_figure_format(shell, formats, quality=90):
+def select_figure_formats(shell, formats, quality=90):
     """Select figure formats for the inline backend.
 
     Parameters
@@ -352,5 +352,5 @@ def configure_inline_support(shell, backend):
             del shell._saved_rcParams
 
     # Setup the default figure format
-    select_figure_format(shell, cfg.figure_formats, cfg.quality)
+    select_figure_formats(shell, cfg.figure_formats, cfg.quality)
 
