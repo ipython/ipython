@@ -79,7 +79,8 @@ class InlineBackend(InlineBackendConfig):
         else:
             select_figure_format(self.shell, new)
 
-    figure_format = Unicode()
+    figure_format = Unicode(config=True, help="""The figure format to enable (deprecated
+                                         use `figure_formats` instead)""")
 
     def _figure_format_changed(self, name, old, new):
         if new:
