@@ -83,6 +83,24 @@ An example usage of the directive is:
 See http://matplotlib.org/sampledoc/ipython_directive.html for additional
 documentation.
 
+Pseudo-Decorators
+=================
+
+In addition to the Pseudo-Decorators/options described at the above link,
+several enhancements have been made.
+The directive will emit a message to the console at build-time if
+code-execution resulted in an exception or warning. You can suppress these on
+a per-block basis by specifying the :okexcept: or :okwarning: options:
+
+.. code-block:: rst
+
+    .. ipython::
+        :okexcept:
+        :okwarning:
+
+        In [1]: 1/0
+        In [2]: # raise warning.
+
 ToDo
 ----
 
