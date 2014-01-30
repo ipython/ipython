@@ -83,15 +83,18 @@
                     console.error("View creation failed", model);
                 }
                 if (cell.widget_subarea) {
-                    
                     cell.widget_area.show();
-                    // Have the IPython keyboard manager disable its event
-                    // handling so the widget can capture keyboard input.
-                    // Note, this is only done on the outer most widget.
-                    IPython.keyboard_manager.register_events(view.$el);
+                    this._handle_display_view(view);
                     cell.widget_subarea.append(view.$el);
                 }
             }
+        };
+
+        WidgetManager.prototype._handle_display_view = function (view) {
+            // Have the IPython keyboard manager disable its event
+            // handling so the widget can capture keyboard input.
+            // Note, this is only done on the outer most widget.
+            IPython.keyboard_manager.register_events(view.$el);
         };
 
         WidgetManager.prototype.create_view = function(model, options, view) {
@@ -113,15 +116,9 @@
                 view.render();
                 model.views.push(view);
                 model.on('destroy', view.remove, view);
-
-                this._handle_new_view(view);
                 return view;
             }
             return null;
-        };
-
-        WidgetManager.prototype._handle_new_view = function (view) {
-            // Called when a view has been created and rendered.
         };
 
         WidgetManager.prototype.get_msg_cell = function (msg_id) {
