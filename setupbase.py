@@ -557,6 +557,30 @@ def require_submodules(command):
     return DecoratedCommand
 
 #---------------------------------------------------------------------------
+# bdist related
+#---------------------------------------------------------------------------
+
+def get_bdist_wheel():
+    """Construct bdist_wheel command for building wheels
+    
+    Constructs py2-none-any tag, instead of py2.7-none-any
+    """
+    class RequiresWheel(Command):
+        def run(self):
+            print("bdist_wheel requires the wheel package")
+    if 'setuptools' not in sys.modules:
+        return RequiresWheel
+    else:
+        try:
+            from wheel.bdist_wheel import bdist_wheel
+        except ImportError:
+            return RequiresWheel
+        class bdist_wheel_tag(bdist_wheel):
+            def get_tag(self):
+                return ('py%i' % sys.version_info[0], 'none', 'any')
+        return bdist_wheel_tag
+
+#---------------------------------------------------------------------------
 # Notebook related
 #---------------------------------------------------------------------------
 
