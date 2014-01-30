@@ -196,8 +196,10 @@ class Widget(LoggingConfigurable):
         Parameters
         ----------
         callback: callable
-            callback will be passed two arguments when a message arrives:
+            callback will be passed two arguments when a message arrives::
+            
                 callback(widget, content)
+            
         remove: bool
             True if the callback should be unregistered."""
         self._msg_callbacks.register_callback(callback, remove=remove)
@@ -208,8 +210,10 @@ class Widget(LoggingConfigurable):
         Parameters
         ----------
         callback: method handler
-            Must have a signature of:
+            Must have a signature of::
+            
                 callback(widget, **kwargs)
+            
             kwargs from display are passed through without modification.
         remove: bool
             True if the callback should be unregistered."""
