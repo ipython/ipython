@@ -314,10 +314,13 @@ if 'setuptools' in sys.modules:
                                   "ipython_win_post_install.py"}}
 
 else:
-    # If we are running without setuptools, call this function which will
+    # If we are installing without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
     # just to make life easy for users.
-    check_for_dependencies()
+    for install_cmd in ('install', 'symlink'):
+        if install_cmd in sys.argv:
+            check_for_dependencies()
+            break
     # scripts has to be a non-empty list, or install_scripts isn't called
     setup_args['scripts'] = [e.split('=')[0].strip() for e in find_entry_points()]
 
