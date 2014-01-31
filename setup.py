@@ -67,6 +67,7 @@ from setupbase import (
     update_submodules,
     require_submodules,
     UpdateSubmodules,
+    get_bdist_wheel,
     CompileCSS,
     JavascriptVersion,
     install_symlinked,
@@ -242,8 +243,8 @@ setup_args['cmdclass'] = {
 # For some commands, use setuptools.  Note that we do NOT list install here!
 # If you want a setuptools-enhanced install, just run 'setupegg.py install'
 needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
-           'bdist', 'bdist_dumb', 'bdist_wininst', 'install_egg_info',
-           'egg_info', 'easy_install', 'upload',
+           'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
+           'egg_info', 'easy_install', 'upload', 'install_egg_info',
             ))
 if sys.platform == 'win32':
     # Depend on setuptools for install on *Windows only*
@@ -259,43 +260,42 @@ if len(needs_setuptools.intersection(sys.argv)) > 0:
 # specific to setup
 setuptools_extra_args = {}
 
+# setuptools requirements
+
+extras_require = dict(
+    parallel = 'pyzmq>=2.1.11',
+    qtconsole = ['pyzmq>=2.1.11', 'pygments'],
+    zmq = 'pyzmq>=2.1.11',
+    doc = ['Sphinx>=1.1', 'numpydoc'],
+    test = 'nose>=0.10.1',
+    notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
+    nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
+)
+everything = set()
+for deps in extras_require.values():
+    if not isinstance(deps, list):
+        deps = [deps]
+    for dep in deps:
+        everything.add(dep)
+extras_require['all'] = everything
+install_requires = []
+if sys.platform == 'darwin':
+    install_requires.append('readline')
+elif sys.platform.startswith('win'):
+    # Pyreadline has unicode and Python 3 fixes in 2.0
+    install_requires.append('pyreadline>=2.0')
+    
+
 if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
+    setup_args['cmdclass']['bdist_wheel'] = get_bdist_wheel()
     
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
-    setup_args['extras_require'] = dict(
-        parallel = 'pyzmq>=2.1.11',
-        qtconsole = ['pyzmq>=2.1.11', 'pygments'],
-        zmq = 'pyzmq>=2.1.11',
-        doc = ['Sphinx>=1.1', 'numpydoc'],
-        test = 'nose>=0.10.1',
-        notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
-        nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
-    )
-    everything = set()
-    for deps in setup_args['extras_require'].values():
-        if not isinstance(deps, list):
-            deps = [deps]
-        for dep in deps:
-            everything.add(dep)
-    setup_args['extras_require']['all'] = everything
-    
-    requires = setup_args.setdefault('install_requires', [])
-    setupext.display_status = False
-    if not setupext.check_for_readline():
-        if sys.platform == 'darwin':
-            requires.append('readline')
-        elif sys.platform.startswith('win'):
-            # Pyreadline 64 bit windows issue solved in versions >=1.7.1
-            # Also solves issues with some older versions of pyreadline that
-            # satisfy the unconstrained depdendency.
-            requires.append('pyreadline>=1.7.1')
-        else:
-            pass
-            # do we want to install readline here?
+    setup_args['extras_require'] = extras_require
+    requires = setup_args['install_requires'] = install_requires
 
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows
