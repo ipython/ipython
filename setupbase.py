@@ -570,8 +570,19 @@ def get_bdist_wheel():
     Constructs py2-none-any tag, instead of py2.7-none-any
     """
     class RequiresWheel(Command):
+        description = "Dummy command for missing bdist_wheel"
+        user_options = []
+
+        def initialize_options(self):
+            pass
+
+        def finalize_options(self):
+            pass
+
         def run(self):
             print("bdist_wheel requires the wheel package")
+            sys.exit(1)
+
     if 'setuptools' not in sys.modules:
         return RequiresWheel
     else:
