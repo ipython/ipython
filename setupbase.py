@@ -127,23 +127,44 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     
-    # exclude static things that we don't ship (e.g. mathjax)
-    excludes = ['mathjax']
+    # exclude components from the walk,
+    # we will build the components separately
+    excludes = ['components']
     
     # add 'static/' prefix to exclusions, and tuplify for use in startswith
-    excludes = tuple([os.path.join('static', ex) for ex in excludes])
+    excludes = tuple([pjoin('static', ex) for ex in excludes])
     
     # walk notebook resources:
     cwd = os.getcwd()
     os.chdir(os.path.join('IPython', 'html'))
-    static_walk = list(os.walk('static'))
     static_data = []
-    for parent, dirs, files in static_walk:
+    for parent, dirs, files in os.walk('static'):
         if parent.startswith(excludes):
             continue
         for f in files:
-            static_data.append(os.path.join(parent, f))
-
+            static_data.append(pjoin(parent, f))
+    components = pjoin("static", "components")
+    # select the components we actually need to install
+    # (there are lots of resources we bundle for sdist-reasons that we don't actually use)
+    static_data.extend([
+        pjoin(components, "backbone", "backbone-min.js"),
+        pjoin(components, "bootstrap", "bootstrap", "js", "bootstrap.min.js"),
+        pjoin(components, "font-awesome", "build", "assets", "font", "*.*"),
+        pjoin(components, "highlight.js", "build", "highlight.pack.js"),
+        pjoin(components, "jquery", "jquery.min.js"),
+        pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
+        pjoin(components, "jquery-ui", "themes", "smoothness", "jquery-ui.min.css"),
+        pjoin(components, "marked", "lib", "marked.js"),
+        pjoin(components, "require", "require.js"),
+        pjoin(components, "underscore", "underscore-min.js"),
+    ])
+    
+    # Ship all of Codemirror's CSS and JS
+    for parent, dirs, files in os.walk(pjoin(components, 'codemirror')):
+        for f in files:
+            if f.endswith(('.js', '.css')):
+                static_data.append(pjoin(parent, f))
+    
     os.chdir(os.path.join('tests',))
     js_tests = glob('casperjs/*.*') +  glob('casperjs/*/*')
 
