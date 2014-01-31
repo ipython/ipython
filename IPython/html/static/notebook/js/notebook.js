@@ -847,7 +847,6 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -878,7 +877,9 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
+                if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
+                    target_cell.render();
+                }
                 this.set_dirty(true);
             };
         };
@@ -910,7 +911,6 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -947,8 +947,10 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
+                if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
+                    target_cell.render();
+                }
             };
-            this.edit_mode();
             this.set_dirty(true);
             $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
@@ -1441,11 +1443,7 @@ var IPython = (function (IPython) {
             return;
         }
   
-        // Only insert a new cell, if we ended up in an already populated cell
-        var next_text = this.get_cell(cell_index+1).get_text();
-        if (/\S/.test(next_text) === true) {
-            this.insert_cell_below('code');
-        }
+        this.insert_cell_below('code');
         this.select(cell_index+1);
         this.edit_mode();
         this.set_dirty(true);

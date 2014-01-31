@@ -88,18 +88,18 @@ var IPython = (function (IPython) {
             }
         },
         'shift+enter' : {
-            help    : 'run cell',
+            help    : 'run cell, select below',
             help_index : 'ba',
             handler : function (event) {
-                IPython.notebook.execute_cell();
+                IPython.notebook.execute_cell_and_select_below();
                 return false;
             }
         },
         'ctrl+enter' : {
-            help    : 'run cell, select below',
+            help    : 'run cell',
             help_index : 'bb',
             handler : function (event) {
-                IPython.notebook.execute_cell_and_select_below();
+                IPython.notebook.execute_cell();
                 return false;
             }
         },
