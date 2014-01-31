@@ -20,12 +20,8 @@ var IPython = (function (IPython) {
     "use strict";
 
     // TextCell base class
-<<<<<<< HEAD
     var keycodes = IPython.keyboard.keycodes;
-=======
-    var key = IPython.utils.keycodes;
     var security = IPython.security;
->>>>>>> 8e23f06... Adding security.js with 1st attempt at is_safe.
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
@@ -246,6 +242,17 @@ var IPython = (function (IPython) {
         this.element.find('div.text_cell_render').html(text);
     };
 
+    TextCell.prototype.insert_security_warning = function() {
+        // Inject a security warning into the TextCell's rendered div.
+        var e = this.element.find('div.text_cell_render');
+        e.empty();
+        var warning = "This cell contains content that is unsafe from a security " +
+                      "standpoint. This unsafe content includes all JavaScript code " +
+                      "and CSS styling. To fix the problem, please edit the cell " +
+                      "and remove the unsafe content."
+        e.append($('<div/>').addClass('alert alert-error').text(warning));
+    }
+
     /**
      * @method at_top
      * @return {Boolean}
@@ -349,26 +356,20 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            html = $(IPython.mathjaxutils.replace_math(html, math));
-            // Links in markdown cells should open in new tabs.
-            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
-            try {
-                // TODO: This HTML needs to be treated as potentially dangerous
-                // user input and should be handled before set_rendered.         
+            var safe = security.is_safe(html);
+            if (safe) {
+                html = $(IPython.mathjaxutils.replace_math(html, math));
+                // links in markdown cells should open in new tabs
+                html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
                 this.set_rendered(html);
-            } catch (e) {
-                console.log("Error running Javascript in Markdown:");
-                console.log(e);
-                this.set_rendered(
-                    $("<div/>")
-                        .append($("<div/>").text('Error rendering Markdown!').addClass("js-error"))
-                        .append($("<div/>").text(e.toString()).addClass("js-error"))
-                        .html()
-                );
+            } else {
+                this.insert_security_warning();
             }
             this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
-            this.typeset();
+            if (safe) {
+                this.typeset();
+            }
         }
         return cont;
     };
@@ -533,24 +534,24 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            var h = $(IPython.mathjaxutils.replace_math(html, math));
-            // add id and linkback anchor
-            var hash = h.text().replace(/ /g, '-');
-            h.attr('id', hash);
-            h.append(
-                $('<a/>')
-                    .addClass('anchor-link')
-                    .attr('href', '#' + hash)
-                    .text('¶')
-            );
-            // TODO: This HTML needs to be treated as potentially dangerous
-            // user input and should be handled before set_rendered.         
-            this.set_rendered(h);
-            this.typeset();
-            this.element.find('div.input_area').hide();
+            var safe = security.is_safe(html);
+            if (safe) {
+                var h = $(IPython.mathjaxutils.replace_math(html, math));
+                // add id and linkback anchor
+                var hash = h.text().replace(/ /g, '-');
+                h.attr('id', hash);
+                h.append(
+                    $('<a/>')
+                        .addClass('anchor-link')
+                        .attr('href', '#' + hash)
+                        .text('¶')
+                );
+                this.set_rendered(h);
+            } else {
+                this.insert_security_warning();
+            }
+            this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-
-        }
         return cont;
     };
 
