@@ -84,3 +84,4 @@ Extensions bundled with IPython
    rmagic
    storemagic
    sympyprinting
+   version_information
