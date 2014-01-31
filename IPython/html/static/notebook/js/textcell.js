@@ -21,6 +21,7 @@ var IPython = (function (IPython) {
 
     // TextCell base class
     var key = IPython.utils.keycodes;
+    var security = IPython.security;
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
