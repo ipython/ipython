@@ -127,7 +127,7 @@ var IPython = (function (IPython) {
                 return;
             }
             console.log('WebSocket connection failed: ', ws_url)
-            msg = "A WebSocket connection to could not be established." +
+            msg = "A WebSocket connection could not be established." +
                 " You will NOT be able to run code. Check your" +
                 " network connection or notebook server configuration.";
             IPython.dialog.modal({
