@@ -524,14 +524,6 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'shift+=' : {
-            help    : 'merge cell below',
-            help_index : 'ek',
-            handler : function (event) {
-                IPython.notebook.merge_cell_below();
-                return false;
-            }
-        },
         'shift+m' : {
             help    : 'merge cell below',
             help_index : 'ek',
