@@ -236,10 +236,9 @@ def find_data_files():
     """
     Find IPython's data_files.
 
-    Most of these are docs.
+    Just man pages at this point.
     """
 
-    docdirbase  = pjoin('share', 'doc', 'ipython')
     manpagebase = pjoin('share', 'man', 'man1')
 
     # Simple file lists can be made by hand
@@ -248,24 +247,8 @@ def find_data_files():
         # When running from a source tree, the manpages aren't gzipped
         manpages = [f for f in glob(pjoin('docs','man','*.1')) if isfile(f)]
 
-    igridhelpfiles = [f for f in glob(pjoin('IPython','extensions','igrid_help.*')) if isfile(f)]
-
-    # For nested structures, use the utility above
-    example_files = make_dir_struct(
-        'data',
-        pjoin('docs','examples'),
-        pjoin(docdirbase,'examples')
-    )
-    manual_files = make_dir_struct(
-        'data',
-        pjoin('docs','html'),
-        pjoin(docdirbase,'manual')
-    )
-
     # And assemble the entire output list
-    data_files = [ (manpagebase, manpages),
-                   (pjoin(docdirbase, 'extensions'), igridhelpfiles),
-                   ] + manual_files + example_files
+    data_files = [ (manpagebase, manpages) ]
 
     return data_files
 
