@@ -189,7 +189,8 @@ class TestNbConvertApp(TestsBase):
         """
         Can notebook names include accents?
         """
-        with self.create_temp_cwd(['nb*.ipynb']):
+        with self.create_temp_cwd():
+            self.create_empty_notebook(u'nb1_análisis.ipynb')
             self.call('nbconvert --log-level 0 --to python nb1_*')
             assert os.path.isfile(u'nb1_análisis.py')
     
@@ -199,7 +200,8 @@ class TestNbConvertApp(TestsBase):
         """
         Generate PDFs if notebooks have an accent in their name?
         """
-        with self.create_temp_cwd(['nb*.ipynb']):
+        with self.create_temp_cwd():
+            self.create_empty_notebook(u'nb1_análisis.ipynb')
             o,e = self.call('nbconvert --log-level 0 --to latex '
                             '"nb1_*" --post PDF '
                             '--PDFPostProcessor.verbose=True')
