@@ -84,7 +84,7 @@ class NotebookNotary(LoggingConfigurable):
         if app is None:
             # create an app, without the global instance
             app = BaseIPythonApplication()
-            app.initialize()
+            app.initialize(argv=[])
         return app.profile_dir
     
     algorithm = Enum(algorithms, default_value='sha256', config=True,
