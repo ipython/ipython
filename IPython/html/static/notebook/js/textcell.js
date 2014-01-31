@@ -20,7 +20,12 @@ var IPython = (function (IPython) {
     "use strict";
 
     // TextCell base class
+<<<<<<< HEAD
     var keycodes = IPython.keyboard.keycodes;
+=======
+    var key = IPython.utils.keycodes;
+    var security = IPython.security;
+>>>>>>> 8e23f06... Adding security.js with 1st attempt at is_safe.
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'

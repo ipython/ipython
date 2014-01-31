@@ -488,6 +488,15 @@ IPython.utils = (function (IPython) {
         }
     }
 
+    var get_attr_names = function (e) {
+        // Get the names of all the HTML attributes of the element e.
+        var el = $(e)[0];
+        var arr = [];
+        for (var i=0, attrs=el.attributes, l=attrs.length; i<l; i++){
+            arr.push(attrs.item(i).nodeName);
+        }
+        return arr;
+    }
 
     return {
         regex_split : regex_split,
@@ -507,7 +516,8 @@ IPython.utils = (function (IPython) {
         browser : browser,
         platform: platform,
         is_or_has : is_or_has,
-        is_focused : is_focused
+        is_focused : is_focused,
+        get_attr_names: get_attr_names
     };
 
 }(IPython));
