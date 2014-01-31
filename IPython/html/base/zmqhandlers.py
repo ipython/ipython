@@ -17,6 +17,11 @@ Authors:
 #-----------------------------------------------------------------------------
 
 try:
+    from urllib.parse import urlparse # Py 3
+except ImportError:
+    from urlparse import urlparse # Py 2
+
+try:
     from http.cookies import SimpleCookie  # Py 3
 except ImportError:
     from Cookie import SimpleCookie  # Py 2
@@ -37,7 +42,30 @@ from .handlers import IPythonHandler
 #-----------------------------------------------------------------------------
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
-    
+
+    def same_origin(self):
+        """Check to see that origin and host match in the headers."""
+
+        # The difference between version 8 and 13 is that in 8 the
+        # client sends a "Sec-Websocket-Origin" header and in 13 it's
+        # simply "Origin".
+        if self.request.headers.get("Sec-WebSocket-Version") in ("7", "8"):
+            origin_header = self.request.headers.get("Sec-Websocket-Origin")
+        else:
+            origin_header = self.request.headers.get("Origin")
+
+        host = self.request.headers.get("Host")
+
+        # If no header is provided, assume we can't verify origin
+        if(origin_header is None or host is None):
+            return False
+
+        parsed_origin = urlparse(origin_header)
+        origin = parsed_origin.netloc
+
+        # Check to see that origin matches host directly, including ports
+        return origin == host
+
     def clear_cookie(self, *args, **kwargs):
         """meaningless for websockets"""
         pass
@@ -86,6 +114,11 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def open(self, kernel_id):
+        # Check to see that origin matches host directly, including ports
+        if not self.same_origin():
+            self.log.warn("Cross Origin WebSocket Attempt.")
+            raise web.HTTPError(404)
+
         self.kernel_id = cast_unicode(kernel_id, 'ascii')
         self.session = Session(config=self.config)
         self.save_on_message = self.on_message
