@@ -572,12 +572,41 @@ def get_bdist_wheel():
         return RequiresWheel
     else:
         try:
-            from wheel.bdist_wheel import bdist_wheel
+            from wheel.bdist_wheel import bdist_wheel, read_pkg_info, write_pkg_info
         except ImportError:
             return RequiresWheel
+        
         class bdist_wheel_tag(bdist_wheel):
+
             def get_tag(self):
                 return ('py%i' % sys.version_info[0], 'none', 'any')
+
+            def add_requirements(self, metadata_path):
+                """transform platform-dependent requirements"""
+                pkg_info = read_pkg_info(metadata_path)
+                # pkg_info is an email.Message object (?!)
+                # we have to remove the unconditional 'readline' and/or 'pyreadline' entries
+                # and transform them to conditionals
+                requires = pkg_info.get_all('Requires-Dist')
+                del pkg_info['Requires-Dist']
+                def _remove_startswith(lis, prefix):
+                    """like list.remove, but with startswith instead of =="""
+                    found = False
+                    for idx, item in enumerate(lis):
+                        if item.startswith(prefix):
+                            found = True
+                            break
+                    if found:
+                        lis.pop(idx)
+                
+                for pkg in ("readline", "pyreadline"):
+                    _remove_startswith(requires, pkg)
+                requires.append("readline; sys.platform == 'darwin'")
+                requires.append("pyreadline (>=2.0); sys.platform == 'win32'")
+                for r in requires:
+                    pkg_info['Requires-Dist'] = r
+                write_pkg_info(metadata_path, pkg_info)
+        
         return bdist_wheel_tag
 
 #---------------------------------------------------------------------------
