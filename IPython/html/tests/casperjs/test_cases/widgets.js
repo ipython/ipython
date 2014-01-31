@@ -45,15 +45,15 @@ casper.notebook_test(function () {
             '.my-throttle-textbox'), 'Textbox exists.');
 
         // Send 20 characters
-        this.sendKeys('.my-throttle-textbox', '...................A');
+        this.sendKeys('.my-throttle-textbox', '....................');
     });
 
     this.waitFor(function check() {
         var outputs = this.evaluate(function(i) {
             return IPython.notebook.get_cell(i).output_area.outputs;
         }, {i : throttle_index});
-        var output = outputs[outputs.length-1].text;
-        return (output[output.length-1] == 'A');
+        var output = outputs[outputs.length-1].text.trim();
+        return (output == '20');
         
     }, function then() { 
         var outputs = this.evaluate(function(i) {

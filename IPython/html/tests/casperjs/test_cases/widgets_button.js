@@ -34,11 +34,10 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea button', 'click');
     });
 
-    this.waitFor(function check() {
-        return (this.get_output_cell(button_index, 1).text == 'Clicked\n');
-    }, function then() {
-        this.test.assert(true, 'Button click event fires.');
-    }), function timeout() {
-        this.test.assert(false, 'Button click event fires.');
+    this.wait_for_output(button_index, 1);
+
+    this.then(function () {
+        this.test.assertEquals(this.get_output_cell(button_index, 1).text, 'Clicked\n', 
+            'Button click event fires.');
     });
 });

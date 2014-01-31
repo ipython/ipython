@@ -94,6 +94,27 @@ casper.wait_for_output = function (cell_num, out_num) {
     });
 };
 
+// wait for a widget msg que to reach 0
+//
+// Parameters
+// ----------
+// widget_info : object
+//      Object which contains info related to the widget.  The model_id property
+//      is used to identify the widget.
+casper.wait_for_widget = function (widget_info) {
+    this.waitFor(function () {
+        var pending = this.evaluate(function (m) {
+            return IPython.notebook.kernel.widget_manager.get_model(m).pending_msgs;
+        }, {m: widget_info.model_id});
+
+        if (pending == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    });
+}
+
 // return an output of a given cell
 casper.get_output_cell = function (cell_num, out_num) {
     out_num = out_num || 0;

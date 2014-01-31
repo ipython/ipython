@@ -93,33 +93,33 @@ casper.notebook_test(function () {
         // Verify that selecting a radio button updates all of the others.
         this.cell_element_function(selection_index, radio_selector + ' .radio:nth-child(2) input', 'click');
     });
-    this.wait(500);
+    this.wait_for_idle();
     this.then(function () {
         this.test.assert(verify_selection(this, 1), 'Radio button selection updated view states correctly.');
 
         // Verify that selecting a list option updates all of the others.
         this.cell_element_function(selection_index, list_selector + ' option:nth-child(3)', 'click');
     });
-    this.wait(500);
+    this.wait_for_idle();
     this.then(function () {
         this.test.assert(verify_selection(this, 2), 'List selection updated view states correctly.');
 
         // Verify that selecting a multibutton option updates all of the others.
         this.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(4)', 'click');
     });
-    this.wait(500);
+    this.wait_for_idle();
     this.then(function () {
         this.test.assert(verify_selection(this, 3), 'Multibutton selection updated view states correctly.');
 
         // Verify that selecting a combobox option updates all of the others.
         this.cell_element_function(selection_index, '.widget-area .widget-subarea .widget-hbox-single .btn-group ul.dropdown-menu li:nth-child(3) a', 'click');
     });
-    this.wait(500);
+    this.wait_for_idle();
     this.then(function () {
         this.test.assert(verify_selection(this, 2), 'Combobox selection updated view states correctly.');
     });
 
-    this.wait(500); // Wait for change to execute in kernel
+    this.wait_for_idle();
 
     index = this.append_cell(
         'for widget in selection:\n' +
