@@ -116,6 +116,10 @@ class DocTestFinder(doctest.DocTestFinder):
             return module.__name__ == object.__module__
         elif isinstance(object, property):
             return True # [XX] no way not be sure.
+        elif inspect.ismethoddescriptor(object):
+            # Unbound PyQt signals reach this point in Python 3.4b3, and we want
+            # to avoid throwing an error. See also http://bugs.python.org/issue3158
+            return False
         else:
             raise ValueError("object must be a class or function, got %r" % object)
 
