@@ -17,6 +17,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from collections import OrderedDict
 import os
 from shutil import copyfile
 import sys
@@ -45,7 +46,7 @@ class ExtensionManager(Configurable):
     the only argument.  You can do anything you want with IPython at
     that point, including defining new magic and aliases, adding new
     components, etc.
-    
+
     You can also optionally define an :func:`unload_ipython_extension(ipython)`
     function, which will be called if the user unloads or reloads the extension.
     The extension manager will only call :func:`load_ipython_extension` again
@@ -65,7 +66,7 @@ class ExtensionManager(Configurable):
         self.shell.on_trait_change(
             self._on_ipython_dir_changed, 'ipython_dir'
         )
-        self.loaded = set()
+        self.loaded = OrderedDict()
 
     def __del__(self):
         self.shell.on_trait_change(
@@ -89,16 +90,16 @@ class ExtensionManager(Configurable):
         """
         if module_str in self.loaded:
             return "already loaded"
-        
+
         from IPython.utils.syspathcontext import prepended_to_syspath
-        
+
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
                 with prepended_to_syspath(self.ipython_extension_dir):
                     __import__(module_str)
             mod = sys.modules[module_str]
             if self._call_load_ipython_extension(mod):
-                self.loaded.add(module_str)
+                self.loaded[module_str] = mod
             else:
                 return "no load function"
 
@@ -107,18 +108,18 @@ class ExtensionManager(Configurable):
 
         This function looks up the extension's name in ``sys.modules`` and
         simply calls ``mod.unload_ipython_extension(self)``.
-        
+
         Returns the string "no unload function" if the extension doesn't define
         a function to unload itself, "not loaded" if the extension isn't loaded,
         otherwise None.
         """
         if module_str not in self.loaded:
             return "not loaded"
-        
+
         if module_str in sys.modules:
             mod = sys.modules[module_str]
             if self._call_unload_ipython_extension(mod):
-                self.loaded.discard(module_str)
+                self.loaded.pop(module_str)
             else:
                 return "no unload function"
 
@@ -138,7 +139,7 @@ class ExtensionManager(Configurable):
             with prepended_to_syspath(self.ipython_extension_dir):
                 reload(mod)
             if self._call_load_ipython_extension(mod):
-                self.loaded.add(module_str)
+                self.loaded[module_str] = mod
         else:
             self.load_extension(module_str)
 
@@ -153,7 +154,7 @@ class ExtensionManager(Configurable):
             return True
 
     def install_extension(self, url, filename=None):
-        """Download and install an IPython extension. 
+        """Download and install an IPython extension.
 
         If filename is given, the file will be so named (inside the extension
         directory). Otherwise, the name from the URL will be used. The file must
@@ -187,3 +188,78 @@ class ExtensionManager(Configurable):
         filename = os.path.join(self.ipython_extension_dir, filename)
         copy(url, filename)
         return filename
+
+    @staticmethod
+    def list_available_extensions():
+        """List IPython extensions which define ``ipython_extension``
+        setuptools ``entry_points``
+
+        Like so::
+
+            setup(
+                #...
+                entry_points='''
+                [ipython_extensions]
+                myextension = myextension_pkg.module
+                ''')
+
+        Or like::
+
+            entry_points['ipython_extensions'] = [
+                'myextension = myextension_pkg.module']
+
+        """
+        import pkg_resources
+        return pkg_resources.iter_entry_points(group='ipython_extensions')
+
+    def print_extensions(self):
+        """Print a list of Loaded, Registered, and IPYTHONDIR extensions
+
+        * 'Loaded' extensions are already loaded in the IPython config.
+        * 'Registered' extensions define  ``ipython_extension``
+          ``entry_points`` in their ``setup.py`` files.
+        * IPYTHONDIR extensions are located in IPYTHONDIR,
+          and must contain a function named ``load_ipython_extension``.
+        """
+        import pkgutil
+        from collections import namedtuple
+        _Extension = namedtuple('Extension', ('name', 'path'))
+        class Extension(_Extension):
+            def _repr_pretty_(self):
+                return u' %s - %r' % (self.name, self.path)
+
+        loaded = [Extension(name, mod.__file__)
+                  for name, mod in self.loaded.items()]
+        registered = []
+
+        for ext in ExtensionManager.list_available_extensions():
+            path_ = pkgutil.find_loader(ext.module_name).filename
+            registered.append(Extension(ext.name, path_))
+
+        return ExtensionDisplay(loaded, registered,
+                                self.ipython_extension_dir)
+
+
+class ExtensionDisplay(object):
+    def __init__(self, loaded, registered, ipython_extension_dir):
+        self.loaded = loaded
+        self.registered = registered
+        self.ipython_extension_dir = ipython_extension_dir
+
+    def _repr_pretty_(self, p, cycle):
+        def __repr_pretty(self):
+            yield "Loaded:\n"
+            for ext in self.loaded:
+                yield ext._repr_pretty_()
+                yield '\n'
+            yield "\nRegistered:\n"
+            for ext in self.registered:
+                yield ext._repr_pretty_()
+                yield '\n'
+            yield "\nIPYTHONDIR:\n"
+
+            import glob
+            for path_ in glob.glob(
+                os.path.join(self.ipython_extension_dir, '*')):
+                yield u' %r\n' % path_
+        p.text(u''.join(__repr_pretty(self)))

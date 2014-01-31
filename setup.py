@@ -123,7 +123,7 @@ def require_clean_submodules():
     this is not a distutils command.
     """
     # PACKAGERS: Add a return here to skip checks for git submodules
-    
+
     # don't do anything if nothing is actually supposed to happen
     for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
         if do_nothing in sys.argv:
@@ -263,9 +263,29 @@ if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
-    
+
     setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
+    setuptools_extra_args['entry_points'] = {
+        'console_scripts':find_entry_points(),
+        'ipython_extensions': [
+            'autoreload = IPython.extensions.autoreload',
+            'cythonmagic = IPython.extensions.cythonmagic [cython]',
+            'octavemagic = IPython.extensions.octavemagic [numpy, octave]',
+            'parallelmagic = IPython.extensions.parallelmagic',
+            'rmagic = IPython.extensions.rmagic [numpy, rmagic]',
+            'storemagic = IPython.extensions.storemagic',
+            'sympyprinting = IPython.extensions.sympyprinting [sympy]',
+        ],
+        'ipython_exporters': [
+            'custom = IPython.nbconvert.exporters.templateexporter:TemplateExporter',
+            'html = IPython.nbconvert.exporters.html:HTMLExporter',
+            'slides = IPython.nbconvert.exporters.slides:SlidesExporter',
+            'latex = IPython.nbconvert.exporters.latex:LatexExporter',
+            'markdown = IPython.nbconvert.exporters.markdown:MarkdownExporter',
+            'python = IPython.nbconvert.exporters.python:PythonExporter',
+            'rst = IPython.nbconvert.exporters.rst:RSTExporter',
+        ],
+    }
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.11',
         qtconsole = ['pyzmq>=2.1.11', 'pygments'],
@@ -273,7 +293,13 @@ if 'setuptools' in sys.modules:
         doc = ['Sphinx>=1.1', 'numpydoc'],
         test = 'nose>=0.10.1',
         notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
-        nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
+        nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3'],
+        # IPython extensions
+        cython = 'cython',
+        numpy = 'numpy',
+        octave = 'oct2py',
+        rmagic = 'rpy2',
+        sympy = 'sympy',
     )
     everything = set()
     for deps in setup_args['extras_require'].values():
@@ -282,7 +308,7 @@ if 'setuptools' in sys.modules:
         for dep in deps:
             everything.add(dep)
     setup_args['extras_require']['all'] = everything
-    
+
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
     if not setupext.check_for_readline():

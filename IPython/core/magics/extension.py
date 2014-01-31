@@ -57,11 +57,14 @@ class ExtensionMagics(Magics):
 
     @line_magic
     def load_ext(self, module_str):
-        """Load an IPython extension by its module name."""
+        """Load an IPython extension by its module name.
+
+        Use ``%lsext`` to list Loaded, Registered, and IPYTHONDIR extensions.
+        """
         if not module_str:
             raise UsageError('Missing module name.')
         res = self.shell.extension_manager.load_extension(module_str)
-        
+
         if res == 'already loaded':
             print("The %s extension is already loaded. To reload it, use:" % module_str)
             print("  %reload_ext", module_str)
@@ -71,15 +74,15 @@ class ExtensionMagics(Magics):
     @line_magic
     def unload_ext(self, module_str):
         """Unload an IPython extension by its module name.
-        
+
         Not all extensions can be unloaded, only those which define an
         ``unload_ipython_extension`` function.
         """
         if not module_str:
             raise UsageError('Missing module name.')
-        
+
         res = self.shell.extension_manager.unload_extension(module_str)
-        
+
         if res == 'no unload function':
             print("The %s extension doesn't define how to unload it." % module_str)
         elif res == "not loaded":
@@ -91,3 +94,23 @@ class ExtensionMagics(Magics):
         if not module_str:
             raise UsageError('Missing module name.')
         self.shell.extension_manager.reload_extension(module_str)
+
+    @line_magic
+    def lsext(self, _):
+        """List Loaded, Registered, and IPYTHONDIR extensions
+
+        * 'Loaded' extensions are already loaded in the IPython config.
+        * 'Registered' extensions define  ``ipython_extension``
+          ``entry_points`` in their ``setup.py`` files.
+        * IPYTHONDIR extensions are located in IPYTHONDIR,
+          and must contain a function named ``load_ipython_extension``.
+
+        Any Python module on ``sys.path`` with a ``load_ipython_extension``
+        function may be an IPython extension.
+
+        If the extension is not listed here, it may very well be
+        still ``%load_ext``-able. You might consider searching
+        ``sys.path`` + IPYTHONDIR/extensions for modules with
+        ``load_ipython_extension`` functions.
+        """
+        return self.shell.extension_manager.print_extensions()
