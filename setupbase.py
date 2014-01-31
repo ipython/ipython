@@ -149,13 +149,13 @@ def find_package_data():
     static_data.extend([
         pjoin(components, "backbone", "backbone-min.js"),
         pjoin(components, "bootstrap", "bootstrap", "js", "bootstrap.min.js"),
-        pjoin(components, "font-awesome", "build", "assets", "font", "*.*"),
+        pjoin(components, "font-awesome", "build", "assets", "font-awesome", "font", "*.*"),
         pjoin(components, "highlight.js", "build", "highlight.pack.js"),
         pjoin(components, "jquery", "jquery.min.js"),
         pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
         pjoin(components, "jquery-ui", "themes", "smoothness", "jquery-ui.min.css"),
         pjoin(components, "marked", "lib", "marked.js"),
-        pjoin(components, "require", "require.js"),
+        pjoin(components, "requirejs", "require.js"),
         pjoin(components, "underscore", "underscore-min.js"),
     ])
     
@@ -178,7 +178,6 @@ def find_package_data():
         'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.core.tests' : ['*.png', '*.jpg'],
         'IPython.lib.tests' : ['*.wav'],
-        'IPython.testing' : ['*.txt'],
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.html.tests' : js_tests,
@@ -188,6 +187,17 @@ def find_package_data():
         'IPython.nbconvert.filters' : ['marked.js'],
         'IPython.nbformat' : ['tests/*.ipynb']
     }
+    
+    # verify that package_data makes sense
+    for pkg, data in package_data.items():
+        pkg_root = pjoin(*pkg.split('.'))
+        for d in data:
+            path = pjoin(pkg_root, d)
+            if '*' in path:
+                assert len(glob(path)) > 0, "No files match pattern %s" % path
+            else:
+                assert os.path.exists(path), "Missing package data: %s" % path
+
     return package_data
 
 
