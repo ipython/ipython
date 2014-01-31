@@ -1838,7 +1838,24 @@ var IPython = (function (IPython) {
         );
         $.ajax(url, settings);
     };
-    
+
+    Notebook.prototype.delete = function (nbname) {
+        var that = this;
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "DELETE",
+            dataType: "json",
+        };
+        var url = utils.url_join_encode(
+            this._baseProjectUrl,
+            'api/notebooks',
+            this.notebook_path,
+            this.notebook_name
+        );
+        $.ajax(url, settings);
+    };
+
     
     Notebook.prototype.rename_success = function (json, status, xhr) {
         this.notebook_name = json.name;
