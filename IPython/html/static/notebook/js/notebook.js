@@ -1839,7 +1839,7 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
 
-    Notebook.prototype.delete = function (nbname) {
+    Notebook.prototype.delete = function () {
         var that = this;
         var settings = {
             processData : false,
