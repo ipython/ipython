@@ -288,8 +288,16 @@ var IPython = (function (IPython) {
      * @method focus_editor
      */
     Cell.prototype.focus_editor = function () {
+        var that = this;
         this.refresh();
-        this.code_mirror.focus();
+        // Only focus the CM editor if it is not focused already. This prevents jumps
+        // related to the previous prompt position.
+        setTimeout(function () {
+            var isf = IPython.utils.is_focused;
+            if (!isf(that.element.find('div.CodeMirror'))) {
+                that.code_mirror.focus();
+            }
+        }, 1);
     }
 
     /**

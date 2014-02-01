@@ -740,18 +740,15 @@ var IPython = (function (IPython) {
     KeyboardManager.prototype.register_events = function (e) {
         var that = this;
         e.on('focusin', function () {
-            that.command_mode();
             that.disable();
         });
         e.on('focusout', function () {
-            that.command_mode();
             that.enable();
         });
         // There are times (raw_input) where we remove the element from the DOM before
         // focusout is called. In this case we bind to the remove event of jQueryUI,
         // which gets triggered upon removal.
         e.on('remove', function () {
-            that.command_mode();
             that.enable();
         });
     }
