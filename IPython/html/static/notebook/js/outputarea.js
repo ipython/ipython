@@ -743,7 +743,12 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.handle_clear_output = function (msg) {
-        this.clear_output(msg.content.wait);
+        // msg spec v4 had stdout, stderr, display keys
+        // v4.1 replaced these with just wait
+        // The default behavior is the same (stdout=stderr=display=True, wait=False),
+        // so v4 messages will still be properly handled,
+        // except for the rarely used clearing less than all output.
+        this.clear_output(msg.content.wait || false);
     };
 
 
