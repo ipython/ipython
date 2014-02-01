@@ -5,6 +5,13 @@
 ======================
 
 
+Versioning
+==========
+
+The IPython message specification is versioned independently of IPython.
+The current version of the specification is 4.1.
+
+
 Introduction
 ============
 
@@ -1001,6 +1008,14 @@ Message type: ``clear_output``::
         'wait' : bool,
     }
 
+.. versionchanged:: 4.1
+
+    'stdout', 'stderr', and 'display' boolean keys for selective clearing are removed,
+    and 'wait' is added.
+    The selective clearing keys are ignored in v4 and the default behavior remains the same,
+    so v4 clear_output messages will be safely handled by a v4.1 frontend.
+
+
 Messages on the stdin ROUTER/DEALER sockets
 ===========================================
 
@@ -1071,7 +1086,9 @@ access to the message between the monitor's send, and the monitor's recv.
 Custom Messages
 ===============
 
-IPython 2.0 adds a messaging system for developers to add their own objects with Frontend
+.. versionadded:: 4.1
+
+IPython 2.0 (msgspec v4.1) adds a messaging system for developers to add their own objects with Frontend
 and Kernel-side components, and allow them to communicate with each other.
 To do this, IPython adds a notion of a ``Comm``, which exists on both sides,
 and can communicate in either direction.
@@ -1080,8 +1097,6 @@ These messages are fully symmetrical - both the Kernel and the Frontend can send
 and no messages expect a reply.
 The Kernel listens for these messages on the Shell channel,
 and the Frontend listens for them on the IOPub channel.
-
-.. versionadded:: 2.0
 
 Opening a Comm
 --------------
