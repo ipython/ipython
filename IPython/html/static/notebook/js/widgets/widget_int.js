@@ -38,7 +38,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-hreadout')
                 .hide();
             
             // Set defaults.
@@ -76,6 +76,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 this.$slider.slider('option', 'orientation', orientation);
                 value = this.model.get('value');
                 this.$slider.slider('option', 'value', value);
+                this.$readout.text(value);
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
@@ -88,6 +89,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$label
                         .removeClass('widget-hlabel')
                         .addClass('widget-vlabel');
+                    this.$readout
+                        .removeClass('widget-hreadout')
+                        .addClass('widget-vreadout');
 
                 } else {
                     this.$slider_container
@@ -99,6 +103,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$label
                         .removeClass('widget-vlabel')
                         .addClass('widget-hlabel');
+                    this.$readout
+                        .removeClass('widget-vreadout')
+                        .addClass('widget-hreadout');
                 }
 
                 var description = this.model.get('description');
