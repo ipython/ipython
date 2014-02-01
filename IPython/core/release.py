@@ -39,7 +39,7 @@ version = __version__  # backwards compatibility name
 version_info = (_version_major, _version_minor, _version_patch, _version_extra)
 
 # Change this when incrementing the kernel protocol version
-kernel_protocol_version_info = (4, 0)
+kernel_protocol_version_info = (4, 1)
 
 description = "IPython: Productive Interactive Computing"
 
