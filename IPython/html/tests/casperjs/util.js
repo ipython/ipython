@@ -18,17 +18,10 @@ casper.open_new_notebook = function () {
 
     this.withPopup('', function () {this.waitForSelector('.CodeMirror-code');});
     this.then(function () {
-        // XXX: Kind of odd, the next line works for one test, but not when
-        // running multiple tests back-to-back, so we will just point the main
-        // casper browser to the same URL as the popup we just grabbed.
-
-        //this.page = this.popups[0];
         this.open(this.popups[0].url);
     });
 
-    // initially, the cells aren't created, so wait for them to appear
-    this.waitForSelector('.CodeMirror-code');
-    // and make sure the kernel has started
+    // Make sure the kernel has started
     this.waitFor( this.kernel_running  );
     // track the IPython busy/idle state
     this.thenEvaluate(function () {
@@ -41,7 +34,7 @@ casper.open_new_notebook = function () {
     });
 };
 
-// return whether or not the kernel is running
+// Return whether or not the kernel is running.
 casper.kernel_running = function kernel_running() {
     return this.evaluate(function kernel_running() {
         return IPython.notebook.kernel.running;
@@ -53,16 +46,15 @@ casper.shutdown_current_kernel = function () {
     this.thenEvaluate(function() {
         IPython.notebook.kernel.kill();
     });
+    // We close the page right after this so we need to give it time to complete.
+    this.wait(1000);
 };
 
 // Delete created notebook.
 casper.delete_current_notebook = function () {
+    // For some unknown reason, this doesn't work?!?
     this.thenEvaluate(function() {
-        var nbData = $('body').data();
-        var url = nbData.baseProjectUrl + 'notebooks/' + nbData.notebookId;
-        $.ajax(url, {
-            type: 'DELETE',
-        });
+        IPython.notebook.delete();
     });
 };
 
@@ -135,9 +127,7 @@ casper.set_cell_text = function(index, text){
 // Inserts a cell at the bottom of the notebook
 // Returns the new cell's index.
 casper.insert_cell_at_bottom = function(cell_type){
-    if (cell_type===undefined) {
-        cell_type = 'code';
-    }
+    cell_type = cell_type || 'code';
 
     return this.evaluate(function (cell_type) {
         var cell = IPython.notebook.insert_cell_at_bottom(cell_type);
@@ -210,15 +200,20 @@ casper.cell_element_function = function(index, selector, function_name, function
 casper.notebook_test = function(test) {
     this.open_new_notebook();
     this.then(test);
-    //XXX: we get sporadic error messages when shutting down some of the tests.
-    //     Since the entire server will go down at the end of running the test
-    //     suite, it's ok for now to not try to shut anything down.
+
+    // Kill the kernel and delete the notebook.
     this.shutdown_current_kernel();
+    // This is still broken but shouldn't be a problem for now.
+    // this.delete_current_notebook();
     
-    //XXX: the implementation of delete_current_notebook is currently broken
-    //     it's not a big deal, since the notebook directory will be deleted on
-    //     cleanup, but we should add tests for deleting the notebook separately
-    //this.delete_current_notebook();
+    // This is required to clean up the page we just finished with. If we don't call this
+    // casperjs will leak file descriptors of all the open WebSockets in that page. We
+    // have to set this.page=null so that next time casper.start runs, it will create a
+    // new page from scratch.
+    this.then(function () {
+        this.page.close();
+        this.page = null;
+    });
     
     // Run the browser automation.
     this.run(function() {

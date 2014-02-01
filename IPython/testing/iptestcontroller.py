@@ -167,6 +167,7 @@ class JSController(TestController):
         self.section = section
 
         self.ipydir = TemporaryDirectory()
+        # print(self.ipydir.name)
         self.dirs.append(self.ipydir)
         self.env['IPYTHONDIR'] = self.ipydir.name
 
