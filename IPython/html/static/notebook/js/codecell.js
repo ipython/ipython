@@ -90,14 +90,46 @@ var IPython = (function (IPython) {
         );
     };
 
+
+    var complete_function =  function(cm, callback, options){
+        IPython.tooltip.remove_and_cancel_tooltip();
+        if (cm.somethingSelected()) {
+                return;
+            }
+        var cur = cm.getCursor();
+        // var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
+        //    if (pre_cursor.trim() === "") {
+        //        // Don't autocomplete if the part of the line before the cursor
+        //        // is empty.  In this case, let CodeMirror handle indentation.
+        //        return false;
+        //    }
+        IPython.notebook.kernel.complete(cm.getLine(cm.getCursor().line), cur.ch, function(msg){
+            console.log(msg);
+            callback(
+                {list:msg.content.matches, from:{line:cm.getCursor().line, ch:cm.getCursor().ch - msg.content.matched_text.length }, to: cm.getCursor()}
+            )
+        });
+    };
+
+
     CodeCell.options_default = {
         cm_config : {
             extraKeys: {
-                "Tab" :  "indentMore",
+                //"Tab" :  "indentMore",
                 "Shift-Tab" : "indentLess",
                 "Backspace" : "delSpaceToPrevTabStop",
                 "Cmd-/" : "toggleComment",
-                "Ctrl-/" : "toggleComment"
+                "Ctrl-/" : "toggleComment",
+                "Tab": function(cm) {
+                        console.log('ctrl+space');
+                        CodeMirror.showHint(
+                                cm,
+                                complete_function,
+                                { 
+                                    async : true
+                                }
+                        );
+                }
             },
             mode: 'ipython',
             theme: 'ipython',
@@ -268,22 +300,22 @@ var IPython = (function (IPython) {
                 IPython.tooltip.request(that);
                 event.stop();
                 return true;
-        } else if (event.keyCode === key.TAB && event.type == 'keydown') {
-            // Tab completion.
-            IPython.tooltip.remove_and_cancel_tooltip();
-            if (editor.somethingSelected()) {
-                return false;
-            }
-            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
-            if (pre_cursor.trim() === "") {
-                // Don't autocomplete if the part of the line before the cursor
-                // is empty.  In this case, let CodeMirror handle indentation.
-                return false;
-            } else {
-                event.stop();
-                this.completer.startCompletion();
-                return true;
-            }
+        //} else if (event.keyCode === key.TAB && event.type == 'keydown') {
+        //    // Tab completion.
+        //    IPython.tooltip.remove_and_cancel_tooltip();
+        //    if (editor.somethingSelected()) {
+        //        return false;
+        //    }
+        //    var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
+        //    if (pre_cursor.trim() === "") {
+        //        // Don't autocomplete if the part of the line before the cursor
+        //        // is empty.  In this case, let CodeMirror handle indentation.
+        //        return false;
+        //    } else {
+        //        event.stop();
+        //        this.completer.startCompletion();
+        //        return true;
+        //    }
         } else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.

@@ -12,6 +12,7 @@ window.mathjax_url = "{{mathjax_url}}";
 </script>
 
 <link rel="stylesheet" href="{{ static_url("components/codemirror/lib/codemirror.css") }}">
+<link rel="stylesheet" href="{{ static_url("components/codemirror/addon/hint/show-hint.css")  }}">
 
 {{super()}}
 
@@ -301,6 +302,7 @@ class="notebook_app"
 <script src="{{ static_url("components/codemirror/addon/mode/overlay.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/edit/matchbrackets.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/comment/comment.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/addon/hint/show-hint.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/javascript/javascript.js") }}" charset="utf-8"></script>
