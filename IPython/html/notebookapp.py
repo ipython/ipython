@@ -589,11 +589,8 @@ class NotebookApp(BaseIPythonApplication):
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
-        self.kernel_argv = []
-        # Kernel should inherit default config file from frontend
-        self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
         # Kernel should get *absolute* path to profile directory
-        self.kernel_argv.extend(["--profile-dir", self.profile_dir.location])
+        self.kernel_argv = ["--profile-dir", self.profile_dir.location]
 
     def init_configurables(self):
         # force Session default to be secure

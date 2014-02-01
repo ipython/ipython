@@ -118,16 +118,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     def _config_file_name_default(self):
         return 'ipython_config.py'
     
-    # inherit config file name from parent:
-    parent_appname = Unicode(config=True)
-    def _parent_appname_changed(self, name, old, new):
-        if self.config_file_specified:
-            # it was manually specified, ignore
-            return
-        self.config_file_name = new.replace('-','_') + u'_config.py'
-        # don't let this count as specifying the config file
-        self.config_file_specified.remove(self.config_file_name)
-        
     # connection info:
     
     @property
