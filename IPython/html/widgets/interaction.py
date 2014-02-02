@@ -22,9 +22,10 @@ from inspect import getcallargs
 
 from IPython.html.widgets import (Widget, TextWidget,
     FloatSliderWidget, IntSliderWidget, CheckboxWidget, DropdownWidget,
-    ContainerWidget)
+    ContainerWidget, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
+from IPython.utils.traitlets import HasTraits, Any, Unicode
 
 #-----------------------------------------------------------------------------
 # Classes and Functions
@@ -107,7 +108,7 @@ def _widget_abbrev(o):
 
 def _widget_from_abbrev(abbrev):
     """Build a Widget intstance given an abbreviation or Widget."""
-    if isinstance(abbrev, Widget):
+    if isinstance(abbrev, Widget) or isinstance(abbrev, const):
         return abbrev
     
     widget = _widget_abbrev(abbrev)
@@ -211,8 +212,10 @@ def interactive(f, *args, **kwargs):
     kwargs_widgets.extend(_widgets_from_abbreviations(sorted(kwargs.items(), key = lambda x: x[0])))
 
     # This has to be done as an assignment, not using container.children.append,
-    # so that traitlets notices the update.
-    container.children = args_widgets + kwargs_widgets
+    # so that traitlets notices the update. We skip any objects (such as const) that
+    # are not DOMWidgets.
+    c = [w for w in args_widgets+kwargs_widgets if isinstance(w, DOMWidget)]
+    container.children = c
 
     # Build the callback
     def call_f(name, old, new):
@@ -260,6 +263,13 @@ def interact(*args, **kwargs):
             display(w)
             return f
         return dec
+
+class const(HasTraits):
+    """A pseudo-widget whose value is constant and never client synced."""
+    value = Any(help="Any Python object")
+    description = Unicode('', help="Any Python object")
+    def __init__(self, value, **kwargs):
+        super(const, self).__init__(value=value, **kwargs)
 
 def annotate(**kwargs):
     """Python 3 compatible function annotation for Python 2."""
