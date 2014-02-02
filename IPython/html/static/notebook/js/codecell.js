@@ -105,14 +105,70 @@ var IPython = (function (IPython) {
             return;
         }
         IPython.notebook.kernel.complete(cm.getLine(cm.getCursor().line), cur.ch, function(msg){
-            console.log(msg);
             callback(
                 {list:msg.content.matches, from:{line:cm.getCursor().line, ch:cm.getCursor().ch - msg.content.matched_text.length }, to: cm.getCursor()}
             )
         });
     };
+    
+    /**
+     * is pass is true completion will be triger
+     * __and__ the key will be handled py codemirror. eg:
+     * `np.` will complete on `np.` not `np`
+     *
+     *  in the other hand, `tab` shoudl trigger completion without happending 
+     *  a tab char to the document.
+     **/
+    var ccc = function(pass){
+        return function(cm) {
+            var cur = cm.getCursor();
+            setTimeout(function() {
+              if (!cm.state.completionActive)
+                CodeMirror.showHint(cm, complete_function, {
+                    async: true,
+                    extraKeys:{
+                        "Tab" : 
+                            function(cp, obj){
+                                console.log(obj);
+                                var data = obj.data;
+                                if(!data){
+                                    return;
+                                }
+                                var cpl = obj.data.list;
+                                if(cpl.length===1){
+                                    obj.pick();
+                                }
+                                var c0 = cpl[0];
+                                var c1 = cpl[cpl.length-1];
+                                var common = '';
+                                console.log('c0:',c0,c1);
+                                var ml  = Math.min(c0.length,c1.length);
+                                for(var i =0; i<ml; i=i+1){
+                                    if(c0[i]===c1[i]){
+                                        common = common + c0[i];
 
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                console.log('common:',common);
+                                if(common !== ''){
+                                    cm.replaceRange(common, data.from, data.to);
+                                }
+                            }, 
+                        //"goDown" : 
+                    }
+                
+                } );
+            }, 100);
+            if(pass===true){
+                return CodeMirror.Pass;
+            } else {
+                return;
+            }
 
+        }; 
+    };
     CodeCell.options_default = {
         cm_config : {
             extraKeys: {
@@ -121,16 +177,8 @@ var IPython = (function (IPython) {
                 "Backspace" : "delSpaceToPrevTabStop",
                 "Cmd-/" : "toggleComment",
                 "Ctrl-/" : "toggleComment",
-                "Tab": function(cm) {
-                        console.log('ctrl+space');
-                        CodeMirror.showHint(
-                                cm,
-                                complete_function,
-                                { 
-                                    async : true
-                                }
-                        );
-                }
+                "Tab":ccc(false),
+                "'.'":ccc(true),
             },
             mode: 'ipython',
             theme: 'ipython',
@@ -284,7 +332,7 @@ var IPython = (function (IPython) {
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
+            if (!that.at_bottom() || that.code_mirror.state.completionActive) {
                 event.stop();
                 return false;
             } else {
