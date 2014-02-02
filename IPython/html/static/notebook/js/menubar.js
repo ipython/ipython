@@ -213,6 +213,9 @@ var IPython = (function (IPython) {
         this.element.find('#run_all_cells').click(function () {
             IPython.notebook.execute_all_cells();
         });
+        this.element.find('#run_all_cells_skip_exceptions').click(function () {
+            IPython.notebook.execute_all_cells(true);
+        });
         this.element.find('#run_all_cells_above').click(function () {
             IPython.notebook.execute_cells_above();
         });

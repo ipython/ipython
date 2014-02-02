@@ -1411,12 +1411,12 @@ var IPython = (function (IPython) {
      * 
      * @method execute_cell
      */
-    Notebook.prototype.execute_cell = function () {
+    Notebook.prototype.execute_cell = function (skip_exceptions) {
         // mode = shift, ctrl, alt
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
         
-        cell.execute();
+        cell.execute(skip_exceptions);
         this.command_mode();
         cell.focus_cell();
         this.set_dirty(true);
@@ -1500,8 +1500,8 @@ var IPython = (function (IPython) {
      * 
      * @method execute_all_cells
      */
-    Notebook.prototype.execute_all_cells = function () {
-        this.execute_cell_range(0, this.ncells());
+    Notebook.prototype.execute_all_cells = function (skip_exceptions) {
+        this.execute_cell_range(0, this.ncells(), skip_exceptions);
         this.scroll_to_bottom();
     };
 
@@ -1512,10 +1512,10 @@ var IPython = (function (IPython) {
      * @param {Number} start Index of the first cell to execute (inclusive)
      * @param {Number} end Index of the last cell to execute (exclusive)
      */
-    Notebook.prototype.execute_cell_range = function (start, end) {
+    Notebook.prototype.execute_cell_range = function (start, end, skip_exceptions) {
         for (var i=start; i<end; i++) {
             this.select(i);
-            this.execute_cell();
+            this.execute_cell(skip_exceptions);
         };
     };
 

@@ -348,6 +348,11 @@ class Kernel(Configurable):
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
             return
+
+        if u'skip_exceptions' in content and content[u'skip_exceptions']:
+            skip_exceptions = True
+        else:
+            skip_exceptions = False
         
         md = self._make_metadata(parent['metadata'])
 
@@ -465,7 +470,7 @@ class Kernel(Configurable):
         
         self.log.debug("%s", reply_msg)
 
-        if not silent and reply_msg['content']['status'] == u'error':
+        if not silent and reply_msg['content']['status'] == u'error' and not skip_exceptions:
             self._abort_queues()
 
         self._publish_status(u'idle', parent)

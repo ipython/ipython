@@ -302,7 +302,12 @@ var IPython = (function (IPython) {
      * Execute current code cell to the kernel
      * @method execute
      */
-    CodeCell.prototype.execute = function () {
+    CodeCell.prototype.execute = function (skip_exceptions) {
+
+        if(typeof skip_exceptions === 'undefined') {
+          skip_exceptions = false;
+        }
+
         this.output_area.clear_output();
         
         // Clear widget area
@@ -319,7 +324,7 @@ var IPython = (function (IPython) {
         var callbacks = this.get_callbacks();
         
         var old_msg_id = this.last_msg_id;
-        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true, skip_exceptions: skip_exceptions});
         if (old_msg_id) {
             delete CodeCell.msg_cells[old_msg_id];
         }
