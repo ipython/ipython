@@ -9,4 +9,4 @@ from .widget_int import IntTextWidget, BoundedIntTextWidget, IntSliderWidget, In
 from .widget_selection import RadioButtonsWidget, ToggleButtonsWidget, DropdownWidget, SelectWidget
 from .widget_selectioncontainer import TabWidget, AccordionWidget
 from .widget_string import HTMLWidget, LatexWidget, TextWidget, TextareaWidget
-from .interaction import interact, interactive
+from .interaction import interact, interactive, annotate
