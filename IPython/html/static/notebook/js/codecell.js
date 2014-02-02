@@ -70,7 +70,6 @@ var IPython = (function (IPython) {
         this.celltoolbar = null;
         this.output_area = null;
         this.last_msg_id = null;
-        this.completer = null;
 
 
         var cm_overwrite_options  = {
@@ -112,14 +111,24 @@ var IPython = (function (IPython) {
         // TODO
         // we will probably want one more level of indirection here not to directly call the callback but merge 
         // the completion result from many sources if necessary. 
-        // TODO also, 
-        // Do not try to trigger completion is kernel is busy. 
+       if(IPython.skip_kernel_completion){
+            // call callback with empty result
+            finish_complete_callback({list:[], from:cur, to:cur})
+        }
         IPython.notebook.kernel.complete(cm.getLine(cur.line), cur.ch, function(msg){
             finish_complete_callback(
                 {list:msg.content.matches, from:{line:cur.line, ch:cur.ch - msg.content.matched_text.length }, to:cur}
             )
         });
     };
+
+    $([IPython.events]).on('status_busy.Kernel', function () {
+        IPython.skip_kernel_completion = true;
+    });
+    $([IPython.events]).on('status_idle.Kernel', function () {
+        IPython.skip_kernel_completion = false;
+    });
+
     
     /**
      * is pass is true completion will be triger
@@ -260,7 +269,6 @@ var IPython = (function (IPython) {
         cell.append(input).append(widget_area).append(output);
         this.element = cell;
         this.output_area = new IPython.OutputArea(output, true);
-        this.completer = new IPython.Completer(this);
     };
 
     /** @method bind_events */
