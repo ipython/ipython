@@ -90,8 +90,12 @@ var IPython = (function (IPython) {
         );
     };
 
-
-    var complete_function =  function(cm, callback, options){
+    /**
+     * complete function that should be passed to CodeMirror
+     * show-hint in order to fetch the completion. and call 
+     * `finish_complete_callback` once done with the formatted result.
+     **/
+    var complete_function =  function(cm, finish_complete_callback, options){
         IPython.tooltip.remove_and_cancel_tooltip();
         if (cm.somethingSelected()) {
                 return;
@@ -104,9 +108,15 @@ var IPython = (function (IPython) {
             CodeMirror.commands.indentMore(cm)
             return;
         }
-        IPython.notebook.kernel.complete(cm.getLine(cm.getCursor().line), cur.ch, function(msg){
-            callback(
-                {list:msg.content.matches, from:{line:cm.getCursor().line, ch:cm.getCursor().ch - msg.content.matched_text.length }, to: cm.getCursor()}
+
+        // TODO
+        // we will probably want one more level of indirection here not to directly call the callback but merge 
+        // the completion result from many sources if necessary. 
+        // TODO also, 
+        // Do not try to trigger completion is kernel is busy. 
+        IPython.notebook.kernel.complete(cm.getLine(cur.line), cur.ch, function(msg){
+            finish_complete_callback(
+                {list:msg.content.matches, from:{line:cur.line, ch:cur.ch - msg.content.matched_text.length }, to:cur}
             )
         });
     };
@@ -119,7 +129,7 @@ var IPython = (function (IPython) {
      *  in the other hand, `tab` shoudl trigger completion without happending 
      *  a tab char to the document.
      **/
-    var ccc = function(pass){
+    var completion_request = function(pass){
         return function(cm) {
             var cur = cm.getCursor();
             setTimeout(function() {
@@ -127,36 +137,44 @@ var IPython = (function (IPython) {
                 CodeMirror.showHint(cm, complete_function, {
                     async: true,
                     extraKeys:{
+                        /**
+                         * Tab should not pick() the result
+                         * but insert the longuest common prefix. 
+                         * this is doable only on patched version of CM
+                         * for now.
+                         **/
                         "Tab" : 
                             function(cp, obj){
-                                console.log(obj);
                                 var data = obj.data;
+                                // CM not patched, fails gracefully by pick() highlight result.
                                 if(!data){
                                     return;
                                 }
+                                // if only one object, pick() it
+                                // as it is the only completion
                                 var cpl = obj.data.list;
                                 if(cpl.length===1){
                                     obj.pick();
                                 }
+
+                                // if completion list is sorted, 
+                                // longuest prefix of all list, is longuest prefix 
+                                // between first and last. 
                                 var c0 = cpl[0];
                                 var c1 = cpl[cpl.length-1];
                                 var common = '';
-                                console.log('c0:',c0,c1);
                                 var ml  = Math.min(c0.length,c1.length);
                                 for(var i =0; i<ml; i=i+1){
                                     if(c0[i]===c1[i]){
                                         common = common + c0[i];
-
                                     } else {
                                         break;
                                     }
                                 }
-                                console.log('common:',common);
                                 if(common !== ''){
                                     cm.replaceRange(common, data.from, data.to);
                                 }
-                            }, 
-                        //"goDown" : 
+                            }
                     }
                 
                 } );
@@ -169,6 +187,10 @@ var IPython = (function (IPython) {
 
         }; 
     };
+   
+    CodeMirror.commands.complete_passthrough = completion_request(true);
+    CodeMirror.commands.complete_request = completion_request(false);
+
     CodeCell.options_default = {
         cm_config : {
             extraKeys: {
@@ -177,8 +199,8 @@ var IPython = (function (IPython) {
                 "Backspace" : "delSpaceToPrevTabStop",
                 "Cmd-/" : "toggleComment",
                 "Ctrl-/" : "toggleComment",
-                "Tab":ccc(false),
-                "'.'":ccc(true),
+                "Tab": "complete_request",
+                "'.'": "complete_passthrough",
             },
             mode: 'ipython',
             theme: 'ipython',
