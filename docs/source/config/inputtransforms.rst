@@ -43,6 +43,14 @@ to tell when a block of input is complete, and
 to transform complete cells. If you add a transformer, you should make sure that
 it gets added to both.
 
+These transformers may raise :exc:`SyntaxError` if the input code is invalid, but
+in most cases it is clearer to pass unrecognised code through unmodified and let
+Python's own parser decide whether it is valid.
+
+.. versionchanged:: 2.0
+
+   Added the option to raise :exc:`SyntaxError`.
+
 Stateless transformations
 -------------------------
 
