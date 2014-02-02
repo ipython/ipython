@@ -237,11 +237,29 @@ def interactive(f, *args, **kwargs):
 
     return container
 
-def interact(f, *args, **kwargs):
+def interact(*args, **kwargs):
     """Interact with a function using widgets."""
-    w = interactive(f, *args, **kwargs)
-    f.widget = w
-    display(w)
+    if args and callable(args[0]):
+        # This branch handles the cases:
+        # 1. interact(f, *args, **kwargs)
+        # 2. @interact
+        #    def f(*args, **kwargs):
+        #        ...
+        f = args[0]
+        w = interactive(f, *args[1:], **kwargs)
+        f.widget = w
+        display(w)
+    else:
+        # This branch handles the case:
+        # @interact(10, 20, a=30, b=40)
+        # def f(*args, **kwargs):
+        #     ...
+        def dec(f):
+            w = interactive(f, *args, **kwargs)
+            f.widget = w
+            display(w)
+            return f
+        return dec
 
 def annotate(**kwargs):
     """Python 3 compatible function annotation for Python 2."""
