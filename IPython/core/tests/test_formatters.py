@@ -8,6 +8,7 @@ except:
     numpy = None
 import nose.tools as nt
 
+from IPython.config import Config
 from IPython.core.formatters import (
     PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key
 )
@@ -289,3 +290,33 @@ def test_pdf_formatter():
     pdf = MakePDF()
     f = PDFFormatter()
     nt.assert_equal(f(pdf), 'PDF')
+
+def test_print_method_bound():
+    f = HTMLFormatter()
+    class MyHTML(object):
+        def _repr_html_(self):
+            return "hello"
+
+    with capture_output() as captured:
+        result = f(MyHTML)
+    nt.assert_is(result, None)
+    nt.assert_not_in("FormatterWarning", captured.stderr)
+
+    with capture_output() as captured:
+        result = f(MyHTML())
+    nt.assert_equal(result, "hello")
+    nt.assert_equal(captured.stderr, "")
+
+def test_format_config():
+    """config objects don't pretend to support fancy reprs with lazy attrs"""
+    f = HTMLFormatter()
+    cfg = Config()
+    with capture_output() as captured:
+        result = f(cfg)
+    nt.assert_is(result, None)
+    nt.assert_equal(captured.stderr, "")
+
+    with capture_output() as captured:
+        result = f(Config)
+    nt.assert_is(result, None)
+    nt.assert_equal(captured.stderr, "")

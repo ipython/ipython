@@ -26,6 +26,7 @@ Authors:
 # Stdlib imports
 import abc
 import sys
+import types
 import warnings
 
 from IPython.external.decorator import decorator
@@ -312,7 +313,8 @@ class BaseFormatter(Configurable):
                 return printer(obj)
             # Finally look for special method names
             method = pretty._safe_getattr(obj, self.print_method, None)
-            if method is not None:
+            # print_method must be a bound method:
+            if isinstance(method, types.MethodType) and method.__self__ is not None:
                 return method()
             return None
         else:
