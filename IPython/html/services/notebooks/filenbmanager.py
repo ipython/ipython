@@ -153,6 +153,38 @@ class FileNotebookManager(NotebookManager):
         nbpath = self.get_os_path(name, path=path)
         return os.path.isfile(nbpath)
 
+    def list_dirs(self, path):
+        """List the directories for a given API style path."""
+        path = path.strip('/')
+        os_path = self.get_os_path('', path)
+        dir_names = os.listdir(os_path)
+        dirs = []
+        for name in dir_names:
+            os_path = self.get_os_path(name, path)
+            if os.path.isdir(os_path) and not name.startswith('.'):
+                model = self.get_dir_model(name, path)
+                dirs.append(model)
+        dirs = sorted(dirs, key=lambda item: item['name'])
+        return dirs
+
+    def get_dir_model(self, name, path=''):
+        """Get the directory model given a directory name and its API style path"""
+        path = path.strip('/')
+        os_path = self.get_os_path(name, path)
+        if not os.path.isdir(os_path):
+            raise IOError('directory does not exist: %r' % os_path)
+        info = os.stat(os_path)
+        last_modified = tz.utcfromtimestamp(info.st_mtime)
+        created = tz.utcfromtimestamp(info.st_ctime)
+        # Create the notebook model.
+        model ={}
+        model['name'] = name
+        model['path'] = path
+        model['last_modified'] = last_modified
+        model['created'] = created
+        model['type'] = 'directory'
+        return model
+
     def list_notebooks(self, path):
         """Returns a list of dictionaries that are the standard model
         for all notebooks in the relative 'path'.
@@ -175,6 +207,7 @@ class FileNotebookManager(NotebookManager):
             model = self.get_notebook_model(name, path, content=False)
             notebooks.append(model)
         notebooks = sorted(notebooks, key=lambda item: item['name'])
+        notebooks = self.list_dirs(path) + notebooks
         return notebooks
 
     def get_notebook_model(self, name, path='', content=True):

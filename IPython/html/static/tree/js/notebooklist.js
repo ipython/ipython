@@ -167,6 +167,7 @@ var IPython = (function (IPython) {
         if (param !== undefined && param.msg) {
             message = param.msg;
         }
+        console.log(data);
         var len = data.length;
         this.clear_list();
         if (len === 0) {
