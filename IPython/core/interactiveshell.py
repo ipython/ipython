@@ -2632,6 +2632,10 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
+        # If any of our input transformation (input_transformer_manager or
+        # prefilter_manager) raises an exception, we store it in this variable
+        # so that we can display the error after logging the input and storing
+        # it in the history.
         preprocessing_exc_tuple = None
         try:
             # Static input transformations
@@ -2661,7 +2665,6 @@ class InteractiveShell(SingletonConfigurable):
         # Display the exception if input processing failed.
         if preprocessing_exc_tuple is not None:
             self.showtraceback(preprocessing_exc_tuple)
-            del preprocessing_exc_tuple  # Break reference cycle
             if store_history:
                 self.execution_count += 1
             return
