@@ -224,7 +224,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             'interactive' is True; otherwise, it is False.
         """
         self._input_splitter.reset()
-        complete = self._input_splitter.push(source)
+        try:
+            complete = self._input_splitter.push(source)
+        except SyntaxError:
+            return True
         if interactive:
             complete = not self._input_splitter.push_accepts_more()
         return complete

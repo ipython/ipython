@@ -33,6 +33,7 @@ from os.path import join
 import nose.tools as nt
 
 # Our own
+from IPython.core.inputtransformer import InputTransformer
 from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
 from IPython.testing import tools as tt
 from IPython.utils import io
@@ -672,6 +673,43 @@ def test_user_expression():
     
 
 
+
+
+class TestSyntaxErrorTransformer(unittest.TestCase):
+    """Check that SyntaxError raised by an input transformer is handled by run_cell()"""
+
+    class SyntaxErrorTransformer(InputTransformer):
+
+        def push(self, line):
+            pos = line.find('syntaxerror')
+            if pos >= 0:
+                e = SyntaxError('input contains "syntaxerror"')
+                e.text = line
+                e.offset = pos + 1
+                raise e
+            return line
+
+        def reset(self):
+            pass
+
+    def setUp(self):
+        self.transformer = TestSyntaxErrorTransformer.SyntaxErrorTransformer()
+        ip.input_splitter.python_line_transforms.append(self.transformer)
+        ip.input_transformer_manager.python_line_transforms.append(self.transformer)
+
+    def tearDown(self):
+        ip.input_splitter.python_line_transforms.remove(self.transformer)
+        ip.input_transformer_manager.python_line_transforms.remove(self.transformer)
+
+    def test_syntaxerror_input_transformer(self):
+        with tt.AssertPrints('1234'):
+            ip.run_cell('1234')
+        with tt.AssertPrints('SyntaxError: invalid syntax'):
+            ip.run_cell('1 2 3')   # plain python syntax error
+        with tt.AssertPrints('SyntaxError: input contains "syntaxerror"'):
+            ip.run_cell('2345  # syntaxerror')  # input transformer syntax error
+        with tt.AssertPrints('3456'):
+            ip.run_cell('3456')
 
 
 

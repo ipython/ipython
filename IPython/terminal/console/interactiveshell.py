@@ -464,7 +464,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
-                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    source_raw = self.input_splitter.raw_reset()
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
                 except KeyboardInterrupt:
@@ -486,13 +486,18 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # asynchronously by signal handlers, for example.
                 self.showtraceback()
             else:
-                self.input_splitter.push(line)
-                more = self.input_splitter.push_accepts_more()
+                try:
+                    self.input_splitter.push(line)
+                    more = self.input_splitter.push_accepts_more()
+                except SyntaxError:
+                    # Run the code directly - run_cell takes care of displaying
+                    # the exception.
+                    more = False
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
                 if not more:
-                    source_raw = self.input_splitter.source_raw_reset()[1]
+                    source_raw = self.input_splitter.raw_reset()
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     self.run_cell(source_raw)
                 

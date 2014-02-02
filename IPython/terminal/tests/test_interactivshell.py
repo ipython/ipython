@@ -17,11 +17,67 @@ Authors
 #-----------------------------------------------------------------------------
 # stdlib
 import sys
+import types
 import unittest
 
+from IPython.core.inputtransformer import InputTransformer
 from IPython.testing.decorators import skipif
 from IPython.utils import py3compat
 from IPython.testing import tools as tt
+
+# Decorator for interaction loop tests -----------------------------------------
+
+class mock_input_helper(object):
+    """Machinery for tests of the main interact loop.
+
+    Used by the mock_input decorator.
+    """
+    def __init__(self, testgen):
+        self.testgen = testgen
+        self.exception = None
+        self.ip = get_ipython()
+
+    def __enter__(self):
+        self.orig_raw_input = self.ip.raw_input
+        self.ip.raw_input = self.fake_input
+        return self
+
+    def __exit__(self, etype, value, tb):
+        self.ip.raw_input = self.orig_raw_input
+
+    def fake_input(self, prompt):
+        try:
+            return next(self.testgen)
+        except StopIteration:
+            self.ip.exit_now = True
+            return u''
+        except:
+            self.exception = sys.exc_info()
+            self.ip.exit_now = True
+            return u''
+
+def mock_input(testfunc):
+    """Decorator for tests of the main interact loop.
+
+    Write the test as a generator, yield-ing the input strings, which IPython
+    will see as if they were typed in at the prompt.
+    """
+    def test_method(self):
+        testgen = testfunc(self)
+        with mock_input_helper(testgen) as mih:
+            mih.ip.interact(display_banner=False)
+
+        if mih.exception is not None:
+            # Re-raise captured exception
+            etype, value, tb = mih.exception
+            import traceback
+            traceback.print_tb(tb, file=sys.stdout)
+            del tb  # Avoid reference loop
+            raise value
+
+    return test_method
+
+# Test classes -----------------------------------------------------------------
 
 class InteractiveShellTestCase(unittest.TestCase):
     def rl_hist_entries(self, rl, n):
@@ -171,6 +227,42 @@ class InteractiveShellTestCase(unittest.TestCase):
         expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
         self.assertEqual(hist, expected)
     
+    @mock_input
+    def test_inputtransformer_syntaxerror(self):
+        ip = get_ipython()
+        transformer = SyntaxErrorTransformer()
+        ip.input_splitter.python_line_transforms.append(transformer)
+        ip.input_transformer_manager.python_line_transforms.append(transformer)
+
+        try:
+            #raise Exception
+            with tt.AssertPrints('4', suppress=False):
+                yield u'print(2*2)'
+
+            with tt.AssertPrints('SyntaxError: input contains', suppress=False):
+                yield u'print(2345) # syntaxerror'
+
+            with tt.AssertPrints('16', suppress=False):
+                yield u'print(4*4)'
+
+        finally:
+            ip.input_splitter.python_line_transforms.remove(transformer)
+            ip.input_transformer_manager.python_line_transforms.remove(transformer)
+
+
+class SyntaxErrorTransformer(InputTransformer):
+    def push(self, line):
+        pos = line.find('syntaxerror')
+        if pos >= 0:
+            e = SyntaxError('input contains "syntaxerror"')
+            e.text = line
+            e.offset = pos + 1
+            raise e
+        return line
+
+    def reset(self):
+        pass
+
 class TerminalMagicsTestCase(unittest.TestCase):
     def test_paste_magics_message(self):
         """Test that an IndentationError while using paste magics doesn't

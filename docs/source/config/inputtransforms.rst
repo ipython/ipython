@@ -46,6 +46,14 @@ it gets added to both, e.g.::
     ip.input_splitter.logical_line_transforms.append(my_transformer())
     ip.input_transformer_manager.logical_line_transforms.append(my_transformer())
 
+These transformers may raise :exc:`SyntaxError` if the input code is invalid, but
+in most cases it is clearer to pass unrecognised code through unmodified and let
+Python's own parser decide whether it is valid.
+
+.. versionchanged:: 2.0
+
+   Added the option to raise :exc:`SyntaxError`.
+
 Stateless transformations
 -------------------------
 

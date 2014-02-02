@@ -343,7 +343,7 @@ class EmbeddedSphinxShell(object):
             splitter.push(line)
             more = splitter.push_accepts_more()
             if not more:
-                source_raw = splitter.source_raw_reset()[1]
+                source_raw = splitter.raw_reset()
                 self.IP.run_cell(source_raw, store_history=store_history)
         finally:
             sys.stdout = stdout
