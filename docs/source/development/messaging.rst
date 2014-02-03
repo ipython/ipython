@@ -827,12 +827,6 @@ frontend to decide which to use and how. A single message should contain all
 possible representations of the same information. Each representation should
 be a JSON'able data structure, and should be a valid MIME type.
 
-Some questions remain about this design:
-
-* Do we use this message type for pyout/displayhook? Probably not, because
-  the displayhook also has to handle the Out prompt display. On the other hand
-  we could put that information into the metadata section.
-
 Message type: ``display_data``::
 
     content = {
