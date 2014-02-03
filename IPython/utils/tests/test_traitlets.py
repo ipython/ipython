@@ -993,6 +993,8 @@ class TestBind(TestCase):
         # Change one of the values to make sure they stay in sync.
         a.value = 5
         self.assertEqual(a.value, b.value)
+        b.value = 6
+        self.assertEqual(a.value, b.value)
 
     def test_bind_different(self):
         """Verify two traitlets of different types can be bound together using bind."""
@@ -1014,6 +1016,8 @@ class TestBind(TestCase):
         # Change one of the values to make sure they stay in sync.
         a.value = 5
         self.assertEqual(a.value, b.count)
+        b.count = 4
+        self.assertEqual(a.value, b.count)
 
     def test_unbind(self):
         """Verify two binded traitlets can be unbinded."""
@@ -1032,3 +1036,40 @@ class TestBind(TestCase):
         # Change one of the values to make sure they stay in sync.
         a.value = 5
         self.assertNotEqual(a.value, b.value)
+
+    def test_callbacks(self):
+        """Verify two binded traitlets have their callbacks called once."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+        
+        # Register callbacks that count.
+        callback_count = []
+        def a_callback(name, old, new):
+            callback_count.append('a')
+        a.on_trait_change(a_callback, 'value')
+        def b_callback(name, old, new):
+            callback_count.append('b')
+        b.on_trait_change(b_callback, 'count')
+
+        # Conenct the two classes.
+        c = bind((a, 'value'), (b, 'count'))
+
+        # Make sure b's count was set to a's value once.
+        self.assertEqual(''.join(callback_count), 'b')
+        del callback_count[:]
+
+        # Make sure a's value was set to b's count once.
+        b.count = 5
+        self.assertEqual(''.join(callback_count), 'ba')
+        del callback_count[:]
+
+        # Make sure b's count was set to a's value once.
+        a.value = 4
+        self.assertEqual(''.join(callback_count), 'ab')
+        del callback_count[:]

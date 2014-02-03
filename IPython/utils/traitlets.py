@@ -202,13 +202,15 @@ class bind(object):
         if len(args) < 2:
             raise TypeError('At least two traitlets must be provided.')
 
-        self.objects = args
-        for obj,attr in args:
-            obj.on_trait_change(self._update, attr)
-
-        # Syncronize the traitlets initially.
+        self.objects = {}
         initial = getattr(args[0][0], args[0][1])
-        self._update(args[0][1], initial, initial)
+        for obj,attr in args:
+            if getattr(obj, attr) != initial:
+                setattr(obj, attr, initial)
+
+            callback = self._make_closure(obj,attr)
+            obj.on_trait_change(callback, attr)
+            self.objects[(obj,attr)] = callback
 
     @contextlib.contextmanager
     def _busy_updating(self):
@@ -218,16 +220,23 @@ class bind(object):
         finally:
             self.updating = False
 
-    def _update(self, name, old, new):
+    def _make_closure(self, sending_obj, sending_attr):
+        def update(name, old, new):
+            self._update(sending_obj, sending_attr, new)
+        return update
+
+    def _update(self, sending_obj, sending_attr, new):
         if self.updating:
             return
         with self._busy_updating():
-            for obj,attr in self.objects:
-                setattr(obj, attr, new)
+            for obj,attr in self.objects.keys():
+                if obj is not sending_obj or attr != sending_attr:
+                    setattr(obj, attr, new)
     
     def unbind(self):
-        for obj,attr in self.objects:
-            obj.on_trait_change(self._update, attr, remove=True)
+        for key, callback in self.objects.items():
+            (obj,attr) = key
+            obj.on_trait_change(callback, attr, remove=True)
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
