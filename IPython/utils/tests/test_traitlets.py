@@ -973,3 +973,61 @@ def test_dict_assignment():
     d['a'] = 5
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
+
+def test_connect_same:
+    """Verify two traitlets of the same type can be bound together using Connect"""
+
+    # Create two simple classes with Int traitlets.
+    class A():
+        value = Int()
+    a = A(value=9)
+    b = A(value=8)
+
+    # Conenct the two classes.
+    c = Connect((a, 'value'), (b, 'value'))
+
+    # Make sure the values are the same at the point of connection.
+    assertEqual(a.value, b.value)
+
+    # Change one of the values to make sure they stay in sync.
+    a.value = 5
+    assertEqual(a.value, b.value)
+
+def test_connect_different:
+    """Verify two traitlets of different types can be bound together using Connect"""
+
+    # Create two simple classes with Int traitlets.
+    class A():
+        value = Int()
+    class B():
+        count = Int()
+    a = A(value=9)
+    b = B(count=8)
+
+    # Conenct the two classes.
+    c = Connect((a, 'value'), (b, 'count'))
+
+    # Make sure the values are the same at the point of connection.
+    assertEqual(a.value, b.count)
+
+    # Change one of the values to make sure they stay in sync.
+    a.value = 5
+    assertEqual(a.value, b.count)
+
+def test_disconnect:
+    """Verify two connected traitlets can be disconnected"""
+
+    # Create two simple classes with Int traitlets.
+    class A():
+        value = Int()
+    a = A(value=9)
+    b = A(value=8)
+
+    # Conenct the two classes.
+    c = Connect((a, 'value'), (b, 'value'))
+    a.value = 4
+    c.disconnect()
+
+    # Change one of the values to make sure they stay in sync.
+    a.value = 5
+    assertNotEqual(a.value, b.value)
