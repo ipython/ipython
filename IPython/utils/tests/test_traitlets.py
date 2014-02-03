@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName, CRegExp
+    ObjectName, DottedObjectName, CRegExp, bind
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -973,3 +973,103 @@ def test_dict_assignment():
     d['a'] = 5
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
+
+class TestBind(TestCase):
+    def test_connect_same(self):
+        """Verify two traitlets of the same type can be bound together using bind."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        a = A(value=9)
+        b = A(value=8)
+
+        # Conenct the two classes.
+        c = bind((a, 'value'), (b, 'value'))
+
+        # Make sure the values are the same at the point of binding.
+        self.assertEqual(a.value, b.value)
+
+        # Change one of the values to make sure they stay in sync.
+        a.value = 5
+        self.assertEqual(a.value, b.value)
+        b.value = 6
+        self.assertEqual(a.value, b.value)
+
+    def test_bind_different(self):
+        """Verify two traitlets of different types can be bound together using bind."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+
+        # Conenct the two classes.
+        c = bind((a, 'value'), (b, 'count'))
+
+        # Make sure the values are the same at the point of binding.
+        self.assertEqual(a.value, b.count)
+
+        # Change one of the values to make sure they stay in sync.
+        a.value = 5
+        self.assertEqual(a.value, b.count)
+        b.count = 4
+        self.assertEqual(a.value, b.count)
+
+    def test_unbind(self):
+        """Verify two binded traitlets can be unbinded."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        a = A(value=9)
+        b = A(value=8)
+
+        # Conenct the two classes.
+        c = bind((a, 'value'), (b, 'value'))
+        a.value = 4
+        c.unbind()
+
+        # Change one of the values to make sure they stay in sync.
+        a.value = 5
+        self.assertNotEqual(a.value, b.value)
+
+    def test_callbacks(self):
+        """Verify two binded traitlets have their callbacks called once."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+        
+        # Register callbacks that count.
+        callback_count = []
+        def a_callback(name, old, new):
+            callback_count.append('a')
+        a.on_trait_change(a_callback, 'value')
+        def b_callback(name, old, new):
+            callback_count.append('b')
+        b.on_trait_change(b_callback, 'count')
+
+        # Conenct the two classes.
+        c = bind((a, 'value'), (b, 'count'))
+
+        # Make sure b's count was set to a's value once.
+        self.assertEqual(''.join(callback_count), 'b')
+        del callback_count[:]
+
+        # Make sure a's value was set to b's count once.
+        b.count = 5
+        self.assertEqual(''.join(callback_count), 'ba')
+        del callback_count[:]
+
+        # Make sure b's count was set to a's value once.
+        a.value = 4
+        self.assertEqual(''.join(callback_count), 'ab')
+        del callback_count[:]

@@ -52,7 +52,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-
+import contextlib
 import inspect
 import re
 import sys
@@ -67,6 +67,7 @@ except:
 from .importstring import import_item
 from IPython.utils import py3compat
 from IPython.utils.py3compat import iteritems
+from IPython.testing.skipdoctest import skip_doctest
 
 SequenceTypes = (list, tuple, set, frozenset)
 
@@ -182,6 +183,60 @@ def getmembers(object, predicate=None):
     results.sort()
     return results
 
+@skip_doctest
+class bind(object):
+    """Bind traits from different objects together so they remain in sync.
+
+    Parameters
+    ----------
+    obj : pairs of objects/attributes
+
+    Examples
+    --------
+
+    >>> c = bind((obj1, 'value'), (obj2, 'value'), (obj3, 'value'))
+    >>> obj1.value = 5 # updates other objects as well
+    """
+    updating = False
+    def __init__(self, *args):
+        if len(args) < 2:
+            raise TypeError('At least two traitlets must be provided.')
+
+        self.objects = {}
+        initial = getattr(args[0][0], args[0][1])
+        for obj,attr in args:
+            if getattr(obj, attr) != initial:
+                setattr(obj, attr, initial)
+
+            callback = self._make_closure(obj,attr)
+            obj.on_trait_change(callback, attr)
+            self.objects[(obj,attr)] = callback
+
+    @contextlib.contextmanager
+    def _busy_updating(self):
+        self.updating = True
+        try:
+            yield
+        finally:
+            self.updating = False
+
+    def _make_closure(self, sending_obj, sending_attr):
+        def update(name, old, new):
+            self._update(sending_obj, sending_attr, new)
+        return update
+
+    def _update(self, sending_obj, sending_attr, new):
+        if self.updating:
+            return
+        with self._busy_updating():
+            for obj,attr in self.objects.keys():
+                if obj is not sending_obj or attr != sending_attr:
+                    setattr(obj, attr, new)
+    
+    def unbind(self):
+        for key, callback in self.objects.items():
+            (obj,attr) = key
+            obj.on_trait_change(callback, attr, remove=True)
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
