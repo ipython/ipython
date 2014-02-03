@@ -29,6 +29,16 @@ from ..utils import url_path_join, path2url, url2path, url_escape
 class TreeHandler(IPythonHandler):
     """Render the tree view, listing notebooks, clusters, etc."""
 
+    def generate_breadcrumbs(self, path):
+        breadcrumbs = [(url_escape(url_path_join(self.base_project_url, 'tree')), '')]
+        comps = path.split('/')
+        ncomps = len(comps)
+        for i in range(ncomps):
+            if comps[i]:
+                link = url_escape(url_path_join(self.base_project_url, 'tree', *comps[0:i+1]))
+                breadcrumbs.append((link, comps[i]))
+        return breadcrumbs
+
     @web.authenticated
     def get(self, path='', name=None):
         path = path.strip('/')
@@ -44,10 +54,12 @@ class TreeHandler(IPythonHandler):
             if not nbm.path_exists(path=path):
                 # no such directory, 404
                 raise web.HTTPError(404)
+            breadcrumbs = self.generate_breadcrumbs(path)
             self.write(self.render_template('tree.html',
                 project=self.project_dir,
                 tree_url_path=path,
                 notebook_path=path,
+                breadcrumbs=breadcrumbs
             ))
 
 
