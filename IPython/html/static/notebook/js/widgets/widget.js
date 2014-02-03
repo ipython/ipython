@@ -17,7 +17,7 @@
 define(["notebook/js/widgetmanager",
         "underscore",
         "backbone"], 
-function(WidgetManager, Underscore, Backbone){
+function(WidgetManager, _, Backbone){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
