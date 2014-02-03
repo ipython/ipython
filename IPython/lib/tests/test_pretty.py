@@ -181,4 +181,19 @@ def test_really_bad_repr():
     nt.assert_in("failed", output)
     nt.assert_in("BadException: unknown", output)
     nt.assert_in("unknown type", output)
+
+
+class SA(object):
+    pass
+
+class SB(SA):
+    pass
+
+def test_super_repr():
+    output = pretty.pretty(super(SA))
+    nt.assert_in("SA", output)
+
+    sb = SB()
+    output = pretty.pretty(super(SA, sb))
+    nt.assert_in("SA", output)
     
