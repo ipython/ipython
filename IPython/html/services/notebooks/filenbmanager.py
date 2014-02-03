@@ -202,12 +202,16 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
+        index = []
         notebooks = []
         for name in notebook_names:
             model = self.get_notebook_model(name, path, content=False)
-            notebooks.append(model)
+            if name.lower() == 'index.ipynb':
+                index.append(model)
+            else:
+                notebooks.append(model)
         notebooks = sorted(notebooks, key=lambda item: item['name'])
-        notebooks = self.list_dirs(path) + notebooks
+        notebooks = index + self.list_dirs(path) + notebooks
         return notebooks
 
     def get_notebook_model(self, name, path='', content=True):
