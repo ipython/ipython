@@ -199,9 +199,16 @@ class Connect(object):
     """
     updating = False
     def __init__(self, *args):
+        if len(args) < 2:
+            raise TypeError('At least two traitlets must be provided.')
+
         self.objects = args
         for obj,attr in args:
             obj.on_trait_change(self._update, attr)
+
+        # Syncronize the traitlets initially.
+        initial = getattr(args[0][0], args[0][1])
+        self._update(args[0][1], initial, initial)
 
     @contextlib.contextmanager
     def _busy_updating(self):
