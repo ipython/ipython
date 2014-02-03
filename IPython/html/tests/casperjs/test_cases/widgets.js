@@ -23,6 +23,7 @@ casper.notebook_test(function () {
         }), 'Notebook widget manager instantiated');
     });
 
+    var textbox = {};
     throttle_index = this.append_cell(
         'import time\n' +
         'textbox = widgets.TextWidget()\n' +
@@ -32,10 +33,9 @@ casper.notebook_test(function () {
         '    print(len(new))\n' +
         '    time.sleep(0.5)\n' +
         'textbox.on_trait_change(handle_change, "value")\n' +
-        'print("Success")');
+        'print(textbox.model_id)');
     this.execute_cell_then(throttle_index, function(index){
-        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
-            'Test throttling cell executed with correct output');
+        textbox.model_id = this.get_output_cell(index).text.trim();
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea'),
@@ -48,14 +48,9 @@ casper.notebook_test(function () {
         this.sendKeys('.my-throttle-textbox', '....................');
     });
 
-    this.waitFor(function check() {
-        var outputs = this.evaluate(function(i) {
-            return IPython.notebook.get_cell(i).output_area.outputs;
-        }, {i : throttle_index});
-        var output = outputs[outputs.length-1].text.trim();
-        return (output == '20');
-        
-    }, function then() { 
+    this.wait_for_widget(textbox);
+
+    this.then(function () { 
         var outputs = this.evaluate(function(i) {
             return IPython.notebook.get_cell(i).output_area.outputs;
         }, {i : throttle_index});
