@@ -34,16 +34,20 @@ class _SelectionWidget(DOMWidget):
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
-        self.value_lock = Lock()
-        self.on_trait_change(self._string_value_set, ['_value'])
-        DOMWidget.__init__(self, *pargs, **kwargs)
+        self._ignore_validation = True
+        try:
+            self.value_lock = Lock()
+            self.on_trait_change(self._string_value_set, ['_value'])
+            DOMWidget.__init__(self, *pargs, **kwargs)
+        finally:
+            self._ignore_validation = True
 
     def _labels_changed(self, name=None, old=None, new=None):
         """Handles when the value_names Dict has been changed.
 
         This method sets the _reverse_value_names Dict to the inverse of the new
         value for the value_names Dict."""
-        if len(new) != len(self.values):
+        if not self._ignore_validation and len(new) != len(self.values):
             raise TypeError('Labels list must be the same size as the values list.')
 
     def _values_changed(self, name=None, old=None, new=None):
