@@ -223,17 +223,20 @@
 
 .widget-hbox-single {
     /* Single line horizontal widgets */
-    height : 30px;
-
     .widget-hbox();
+    height : 30px;
+}
+
+.widget-vbox {
+    /* Vertical widgets */ 
+    .widget-box();
+    .vbox();
 }
 
 .widget-vbox-single {
     /* For vertical slides */ 
+    .widget-vbox();
     width : 30px;
-
-    .widget-box();
-    .vbox();
 }
 
 .widget-modal {
