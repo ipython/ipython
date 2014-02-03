@@ -19,7 +19,8 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
     var ContainerView = IPython.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
-            this.$el.addClass('widget-container');
+            this.$el.addClass('widget-container')
+                .addClass('vbox');
             this.children={};
             this.update_children([], this.model.get('_children'));
             this.model.on('change:_children', function(model, value, options) {
@@ -134,6 +135,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 .addClass('modal-body')
                 .addClass('widget-modal-body')
                 .addClass('widget-container')
+                .addClass('vbox')
                 .appendTo(this.$window);
             
             this.$show_button = $('<button />')
