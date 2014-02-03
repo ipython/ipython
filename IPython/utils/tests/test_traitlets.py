@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName, CRegExp, Connect
+    ObjectName, DottedObjectName, CRegExp, bind
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -974,9 +974,9 @@ def test_dict_assignment():
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
 
-class TestConnect(TestCase):
+class TestBind(TestCase):
     def test_connect_same(self):
-        """Verify two traitlets of the same type can be bound together using Connect"""
+        """Verify two traitlets of the same type can be bound together using bind."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -985,17 +985,17 @@ class TestConnect(TestCase):
         b = A(value=8)
 
         # Conenct the two classes.
-        c = Connect((a, 'value'), (b, 'value'))
+        c = bind((a, 'value'), (b, 'value'))
 
-        # Make sure the values are the same at the point of connection.
+        # Make sure the values are the same at the point of binding.
         self.assertEqual(a.value, b.value)
 
         # Change one of the values to make sure they stay in sync.
         a.value = 5
         self.assertEqual(a.value, b.value)
 
-    def test_connect_different(self):
-        """Verify two traitlets of different types can be bound together using Connect"""
+    def test_bind_different(self):
+        """Verify two traitlets of different types can be bound together using bind."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -1006,17 +1006,17 @@ class TestConnect(TestCase):
         b = B(count=8)
 
         # Conenct the two classes.
-        c = Connect((a, 'value'), (b, 'count'))
+        c = bind((a, 'value'), (b, 'count'))
 
-        # Make sure the values are the same at the point of connection.
+        # Make sure the values are the same at the point of binding.
         self.assertEqual(a.value, b.count)
 
         # Change one of the values to make sure they stay in sync.
         a.value = 5
         self.assertEqual(a.value, b.count)
 
-    def test_disconnect(self):
-        """Verify two connected traitlets can be disconnected"""
+    def test_unbind(self):
+        """Verify two binded traitlets can be unbinded."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -1025,9 +1025,9 @@ class TestConnect(TestCase):
         b = A(value=8)
 
         # Conenct the two classes.
-        c = Connect((a, 'value'), (b, 'value'))
+        c = bind((a, 'value'), (b, 'value'))
         a.value = 4
-        c.disconnect()
+        c.unbind()
 
         # Change one of the values to make sure they stay in sync.
         a.value = 5

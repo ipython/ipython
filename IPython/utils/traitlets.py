@@ -184,8 +184,8 @@ def getmembers(object, predicate=None):
     return results
 
 @skip_doctest
-class Connect(object):
-    """Connect traits from different objects together so they remain in sync.
+class bind(object):
+    """Bind traits from different objects together so they remain in sync.
 
     Parameters
     ----------
@@ -194,7 +194,7 @@ class Connect(object):
     Examples
     --------
 
-    >>> c = Connect((obj1, 'value'), (obj2, 'value'), (obj3, 'value'))
+    >>> c = bind((obj1, 'value'), (obj2, 'value'), (obj3, 'value'))
     >>> obj1.value = 5 # updates other objects as well
     """
     updating = False
@@ -225,7 +225,7 @@ class Connect(object):
             for obj,attr in self.objects:
                 setattr(obj, attr, new)
     
-    def disconnect(self):
+    def unbind(self):
         for obj,attr in self.objects:
             obj.on_trait_change(self._update, attr, remove=True)
 
