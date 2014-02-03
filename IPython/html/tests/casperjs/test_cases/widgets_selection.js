@@ -1,16 +1,27 @@
 // Test selection class
 casper.notebook_test(function () {
-    index = this.append_cell(
+    var index = this.append_cell(
         'from IPython.html import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'print("Success")');
     this.execute_cell_then(index);
 
+    var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox';
+    index = this.append_cell(
+        's = widgets.SelectWidget(labels=["A", "B"], values=["a", "b"])\n' +
+        'display(s)\n' +
+        'print("Success")');
+    this.execute_cell_then(index, function(index){
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
+            'Create select with default labels and values executed with correct output.');
+
+        this.test.assert(this.cell_element_exists(index, list_selector),
+            'Widget list exists.');
+    });
+
     var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-btn';
     var multibtn_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group[data-toggle="buttons-radio"]';
     var radio_selector = '.widget-area .widget-subarea .widget-hbox .vbox';
-    var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox';
-
     var selection_index;
     var selection_values = 'abcd';
     var check_state = function(context, index, state){

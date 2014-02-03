@@ -34,23 +34,33 @@ class _SelectionWidget(DOMWidget):
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
-        self.value_lock = Lock()
-        self.on_trait_change(self._string_value_set, ['_value'])
-        DOMWidget.__init__(self, *pargs, **kwargs)
+        self._labels_lock = Lock()
+        with self._labels_lock:
+            self.value_lock = Lock()
+            self.on_trait_change(self._string_value_set, ['_value'])
+            DOMWidget.__init__(self, *pargs, **kwargs)
+        self._validate_labels()
 
     def _labels_changed(self, name=None, old=None, new=None):
         """Handles when the value_names Dict has been changed.
 
         This method sets the _reverse_value_names Dict to the inverse of the new
         value for the value_names Dict."""
-        if len(new) != len(self.values):
-            raise TypeError('Labels list must be the same size as the values list.')
+        if self._labels_lock.acquire(False):
+            try:
+                if len(new) != len(self.values):
+                    raise TypeError('Labels list must be the same size as the values list.')
+            finally:
+                self._labels_lock.release()
 
     def _values_changed(self, name=None, old=None, new=None):
         """Handles when the value_names Dict has been changed.
 
         This method sets the _reverse_value_names Dict to the inverse of the new
         value for the value_names Dict."""
+        self._validate_labels()
+
+    def _validate_labels(self):
         if len(new) != len(self.labels):
             self.labels = [(self.labels[i] if i < len(self.labels) else str(v)) for i, v in enumerate(new)]
 
