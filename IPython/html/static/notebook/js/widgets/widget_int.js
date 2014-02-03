@@ -25,16 +25,21 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 .appendTo(this.$el)
                 .addClass('widget-hlabel')
                 .hide();
+            
             this.$slider = $('<div />')
                 .slider({})
                 .addClass('slider');
-            
             // Put the slider in a container 
             this.$slider_container = $('<div />')
                 .addClass('widget-hslider')
-                .append(this.$slider);
+                .append(this.$slider)
             this.$el_to_style = this.$slider_container; // Set default element to style
             this.$el.append(this.$slider_container);
+            
+            this.$readout = $('<div/>')
+                .appendTo(this.$el)
+                .addClass('widget-hreadout')
+                .hide();
             
             // Set defaults.
             this.update();
@@ -71,6 +76,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 this.$slider.slider('option', 'orientation', orientation);
                 value = this.model.get('value');
                 this.$slider.slider('option', 'value', value);
+                this.$readout.text(value);
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
@@ -83,6 +89,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$label
                         .removeClass('widget-hlabel')
                         .addClass('widget-vlabel');
+                    this.$readout
+                        .removeClass('widget-hreadout')
+                        .addClass('widget-vreadout');
 
                 } else {
                     this.$slider_container
@@ -94,6 +103,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     this.$label
                         .removeClass('widget-vlabel')
                         .addClass('widget-hlabel');
+                    this.$readout
+                        .removeClass('widget-vreadout')
+                        .addClass('widget-hreadout');
                 }
 
                 var description = this.model.get('description');
@@ -102,6 +114,13 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 } else {
                     this.$label.text(description);
                     this.$label.show();
+                }
+                
+                var readout = this.model.get('readout');
+                if (readout) {
+                    this.$readout.show();
+                } else {
+                    this.$readout.hide();
                 }
             }
             return IntSliderView.__super__.update.apply(this);
@@ -117,7 +136,9 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value', this._validate_slide_value(ui.value), {updated_view: this});
+            var actual_value = this._validate_slide_value(ui.value);
+            this.model.set('value', actual_value, {updated_view: this});
+            this.$readout.text(actual_value);
             this.touch();
         },
 
