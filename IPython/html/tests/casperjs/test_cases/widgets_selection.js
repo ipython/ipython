@@ -123,7 +123,9 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'for widget in selection:\n' +
-        '    widget.values = list(widget.values) + ["z"]\n' +
+        '    d = widget.values.copy()\n' +
+        '    d["z"] = "z"\n' +
+        '    widget.values = d\n' +
         'selection[0].value = "z"');
     this.execute_cell_then(index, function(index){
 

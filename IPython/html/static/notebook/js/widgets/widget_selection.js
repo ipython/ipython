@@ -57,14 +57,14 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
 
             if (options === undefined || options.updated_view != this) {
-                var selected_item_text = this.model.get('_value');
+                var selected_item_text = this.model.get('value_name');
                 if (selected_item_text.length === 0) {
                     this.$droplabel.text(' ');
                 } else {
                     this.$droplabel.text(selected_item_text);
                 }
                 
-                var items = this.model.get('labels');
+                var items = this.model.get('value_names');
                 var $replace_droplist = $('<ul />')
                     .addClass('dropdown-menu');
                 var that = this;
@@ -107,7 +107,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('_value', $(e.target).text(), {updated_view: this});
+            this.model.set('value_name', $(e.target).text(), {updated_view: this});
             this.touch();
         },
         
@@ -139,7 +139,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('labels');
+                var items = this.model.get('value_names');
                 var disabled = this.model.get('disabled');
                 var that = this;
                 _.each(items, function(item, index) {
@@ -159,7 +159,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     }
                     
                     var $item_element = that.$container.find(item_query);
-                    if (that.model.get('_value') == item) {
+                    if (that.model.get('value_name') == item) {
                         $item_element.prop('checked', true);
                     } else {
                         $item_element.prop('checked', false);
@@ -199,14 +199,14 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('_value', $(e.target).val(), {updated_view: this});
+            this.model.set('value_name', $(e.target).val(), {updated_view: this});
             this.touch();
         },
     });
     WidgetManager.register_widget_view('RadioButtonsView', RadioButtonsView);
 
 
-    var ToggleButtonsView = IPython.DOMWidgetView.extend({    
+    var ToggleButtonsView = IPython.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -230,7 +230,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('labels');
+                var items = this.model.get('value_names');
                 var disabled = this.model.get('disabled');
                 var that = this;
                 _.each(items, function(item, index) {
@@ -245,7 +245,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                     }
                     
                     var $item_element = that.$buttongroup.find(item_query);
-                    if (that.model.get('_value') == item) {
+                    if (that.model.get('value_name') == item) {
                         $item_element.addClass('active');
                     } else {
                         $item_element.removeClass('active');
@@ -285,7 +285,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('_value', $(e.target).text(), {updated_view: this});
+            this.model.set('value_name', $(e.target).text(), {updated_view: this});
             this.touch();
         },    
     });
@@ -316,21 +316,21 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('labels');
+                var items = this.model.get('value_names');
                 var that = this;
                 _.each(items, function(item, index) {
                    var item_query = ' :contains("' + item + '")';
                     if (that.$listbox.find(item_query).length === 0) {
                         $('<option />')
                             .text(item)
-                            .attr('_value', item)
+                            .attr('value_name', item)
                             .appendTo(that.$listbox)
                             .on('click', $.proxy(that.handle_click, that));
                     } 
                 });
 
                 // Select the correct element
-                this.$listbox.val(this.model.get('_value'));
+                this.$listbox.val(this.model.get('value_name'));
                 
                 // Disable listbox if needed
                 var disabled = this.model.get('disabled');
@@ -368,7 +368,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('_value', $(e.target).text(), {updated_view: this});
+            this.model.set('value_name', $(e.target).text(), {updated_view: this});
             this.touch();
         },    
     });
