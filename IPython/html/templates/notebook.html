@@ -215,18 +215,35 @@ class="notebook_app"
             </ul>
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
-            <ul id="help_menu" class="dropdown-menu">
-                <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
-                <li><a href="http://ipython.org/ipython-doc/stable/interactive/notebook.html" target="_blank">Notebook Help</a></li>
+            <ul  id="help_menu" class="dropdown-menu">
                 <li id="keyboard_shortcuts" title="Opens a tooltip with all keyboard shortcuts"><a href="#">Keyboard Shortcuts</a></li>
-                <li><a href="http://ipython.org/ipython-doc/dev/interactive/cm_keyboard.html" target="_blank">Editor Shortcuts</a></li>
                 <li class="divider"></li>
-                <li><a href="http://docs.python.org" target="_blank">Python</a></li>
-                <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></li>
-                <li><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a></li>
-                <li><a href="http://matplotlib.org/" target="_blank">Matplotlib</a></li>
-                <li><a href="http://docs.sympy.org/dev/index.html" target="_blank">SymPy</a></li>
-                <li><a href="http://pandas.pydata.org/pandas-docs/stable/" target="_blank">pandas</a></li>
+                {% set
+                    sections = (
+                        (
+                            ("http://ipython.org/documentation.html","IPython Help",True),
+                            ("http://ipython.org/ipython-doc/stable/interactive/notebook.html","Notebook Help",True),
+                            ("http://ipython.org/ipython-doc/dev/interactive/cm_keyboard.html","Editor Shortcuts",True),
+                        ),(
+                            ("http://docs.python.org","Python",True),
+                            ("http://docs.scipy.org/doc/numpy/reference/","NumPy",True),
+                            ("http://docs.scipy.org/doc/scipy/reference/","SciPy",True),
+                            ("http://matplotlib.org/contents.html","Matplotlib",True),
+                            ("http://docs.sympy.org/dev/index.html","SymPy",True),
+                            ("http://pandas.pydata.org/pandas-docs/stable/","pandas", True)
+                        )
+                    )
+                %}
+
+                {% for helplinks in sections %}
+                    {% for link in helplinks %}
+                        <li><a href="{{link[0]}}" {{'target="_blank" title="Opens in a new window"' if link[2]}}>{{link[1]}}{{'<i class="icon-external-link menu-icon pull-right"></i>' if link[2]}}</a></li>
+                    {% endfor %}
+                    {% if not loop.last %}
+                        <li class="divider"></li>
+                    {% endif %}
+                {% endfor %}
+                </li>
             </ul>
         </li>
     </ul>
