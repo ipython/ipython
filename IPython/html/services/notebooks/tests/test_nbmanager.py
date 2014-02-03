@@ -68,7 +68,7 @@ class TestNotebookManager(TestCase):
         try:
             os.makedirs(os_path)
         except OSError:
-            print("Directory already exists.")
+            print("Directory already exists: %r" % os_path)
 
     def test_create_notebook_model(self):
         with TemporaryDirectory() as td:
