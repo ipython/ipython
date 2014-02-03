@@ -153,6 +153,8 @@ class FileNotebookManager(NotebookManager):
         nbpath = self.get_os_path(name, path=path)
         return os.path.isfile(nbpath)
 
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
     def list_dirs(self, path):
         """List the directories for a given API style path."""
         path = path.strip('/')
@@ -167,6 +169,8 @@ class FileNotebookManager(NotebookManager):
         dirs = sorted(dirs, key=lambda item: item['name'])
         return dirs
 
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
     def get_dir_model(self, name, path=''):
         """Get the directory model given a directory name and its API style path"""
         path = path.strip('/')

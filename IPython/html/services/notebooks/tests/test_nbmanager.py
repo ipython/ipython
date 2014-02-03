@@ -15,6 +15,7 @@ from IPython.html.utils import url_path_join
 from ..filenbmanager import FileNotebookManager
 from ..nbmanager import NotebookManager
 
+
 class TestFileNotebookManager(TestCase):
 
     def test_nb_dir(self):
