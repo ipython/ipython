@@ -34,20 +34,20 @@ ul#tabs a{padding-top:4px;padding-bottom:4px}
 .list_toolbar{padding:4px 0 4px 0}
 .list_toolbar [class*="span"]{min-height:26px}
 .list_header{font-weight:bold}
-.list_container{margin-top:4px;margin-bottom:16px;border:1px solid #ababab;border-radius:4px}
+.list_container{margin-top:4px;margin-bottom:20px;border:1px solid #ababab;border-radius:4px}
 .list_container>div{border-bottom:1px solid #ababab}.list_container>div:hover .list-item{background-color:#f00}
 .list_container>div:last-child{border:none}
 .list_item:hover .list_item{background-color:#ddd}
 .list_item a{text-decoration:none}
-.list_header>div,.list_item>div{padding-top:4px;padding-bottom:4px;padding-left:7px;padding-right:7px}
-.item_name{line-height:22px}
+.list_header>div,.list_item>div{padding-top:4px;padding-bottom:4px;padding-left:7px;padding-right:7px;height:22px;line-height:22px}
+.item_name{line-height:22px;height:26px}
 .item_icon{font-size:14px;color:#5e5e5e;margin-right:7px}
 .item_buttons{line-height:1em}
 .toolbar_info{height:26px;line-height:26px}
-input.nbname_input{padding-top:3px;padding-bottom:3px;height:14px;line-height:14px;margin:0}
+input.nbname_input,input.engine_num_input{padding-top:3px;padding-bottom:3px;height:14px;line-height:14px;margin:0}
+input.engine_num_input{width:60px}
 .highlight_text{color:#00f}
 #project_name>.breadcrumb{padding:0;margin-bottom:0;background-color:transparent;font-weight:bold}
-input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:60px}
 .ansibold{font-weight:bold}
 .ansiblack{color:#000}
 .ansired{color:#8b0000}

@@ -167,31 +167,31 @@ var IPython = (function (IPython) {
         if (param !== undefined && param.msg) {
             message = param.msg;
         }
+        var item = null;
         var len = data.length;
         this.clear_list();
         if (len === 0) {
-            $(this.new_notebook_item(0))
-                .append(
-                    $('<div style="margin:auto;text-align:center;color:grey"/>')
-                    .text(message)
-                );
+            var item = this.new_notebook_item(0);
+            var span12 = item.children().first();
+            span12.empty();
+            span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message))
         }
         var path = this.notebookPath();
         var offset = 0;
         if (path !== '') {
-            var item = this.new_notebook_item(0);
+            item = this.new_notebook_item(0);
             this.add_dir(path, '..', item);
             offset = 1;
         }
         for (var i=0; i<len; i++) {
             if (data[i].type === 'directory') {
                 var name = data[i].name;
-                var item = this.new_notebook_item(i+offset);
+                item = this.new_notebook_item(i+offset);
                 this.add_dir(path, name, item);
             } else {
                 var name = data[i].name;
                 var nbname = utils.splitext(name)[0];
-                var item = this.new_notebook_item(i+offset);
+                item = this.new_notebook_item(i+offset);
                 this.add_link(path, nbname, item);
                 name = utils.url_path_join(path, name);
                 if(this.sessions[name] === undefined){
