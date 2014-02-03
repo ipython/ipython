@@ -281,7 +281,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_shutdown_button = function (item, session) {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini").
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini btn-danger").
             click(function (e) {
                 var settings = {
                     processData : false,
