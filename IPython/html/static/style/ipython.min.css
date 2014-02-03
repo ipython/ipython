@@ -38,7 +38,7 @@ div.traceback-wrapper{text-align:left;max-width:800px;margin:auto}
 .list_container>div:last-child{border:none}
 .list_item:hover .list_item{background-color:#ddd}
 .list_item a{text-decoration:none}
-.list_item .span12{padding:5px}
+.list_item .span12{padding:4px}
 .item_name{line-height:24px}
 .item_icon{font-size:14px;color:#5e5e5e;margin-left:5px;margin-right:8px}
 .list_container>div>span,.list_container>div>div{padding:8px}
