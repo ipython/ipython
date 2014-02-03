@@ -5,21 +5,25 @@
  * Author: IPython Development Team
  */
 
-#tabs {
+@dashboard_tb_pad: 4px;
+@dashboard_lr_pad: 7px;
+
+
+ul#tabs {
+    margin-bottom: @dashboard_tb_pad;
+}
+
+ul#tabs a {
+    padding-top: @dashboard_tb_pad;
+    padding-bottom: @dashboard_tb_pad;
 }
 
 .list_toolbar {
-    padding: 5px;
-    height: 25px;
-    line-height: 25px;
+    padding: @dashboard_tb_pad 0 @dashboard_tb_pad 0;
 }
 
-.toolbar_info {
-    float: left;
-}
-
-.toolbar_buttons {
-    float: right;
+.list_toolbar [class*="span"] {
+    min-height: 26px;
 }
 
 .list_header {
@@ -27,7 +31,7 @@
 }
 
 .list_container {
-  margin-top: 16px;
+  margin-top: @dashboard_tb_pad;
   margin-bottom: 16px;
   border: 1px solid @border_color;
   border-radius: 4px;
@@ -49,38 +53,39 @@
     background-color: #ddd;
   };
   a {text-decoration: none;}
-  .span12 {padding: 3px;}
+}
+
+.list_header>div, .list_item>div {
+    padding-top: @dashboard_tb_pad;
+    padding-bottom: @dashboard_tb_pad;
+    padding-left: @dashboard_lr_pad;
+    padding-right: @dashboard_lr_pad;
 }
 
 .item_name {
-    line-height: 24px;
+    line-height: 22px;
 }
 
 .item_icon {
-    font-size: 14px;
+    font-size: 14px; 
     color: darken(@border_color, 30%);
-    margin-left: 5px;
-    margin-right: 8px;
+    margin-right: @dashboard_lr_pad;
 }
 
-.list_container > div > span, .list_container > div > div {
-  padding: 8px;
+.item_buttons {
+    line-height: 1em;
 }
 
-.profile_col {
-}
-
-.status_col {
-}
-
-.engines_col {
-}
-
-.action_col {
+.toolbar_info {
+    height: 26px;
+    line-height: 26px;
 }
 
 input.nbname_input {
-    height: 15px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    height: 14px;
+    line-height: 14px;
     margin: 0px;
 }
 
