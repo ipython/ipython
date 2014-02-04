@@ -151,6 +151,40 @@ And the following methods are changed:
   type strings in addition to plain types. This removes the need for ``for_type_by_name()``,
   but it remains for backward compatibility.
 
+Notebook Widgets
+----------------
+
+Available in the new `IPython.html.widgets` namespace, widgets provide an easy
+way for IPython notebook users to display GUI controls in the IPython notebook.
+IPython comes with bundle of built-in widgets and also the ability for users
+to define their own widgets.  A widget is displayed in the front-end using
+using a view.  For example, a FloatRangeWidget can be displayed using a
+FloatSliderView (which is the default if no view is specified when displaying
+the widget).  IPython also comes with a bundle of views and the ability for the
+user to define custom views.  One widget can be displayed multiple times, in on
+or more cells, using one or more views.  All views will automatically remain in
+sync with the widget which is accessible in the back-end.
+
+The widget layer provides an MVC-like architecture on top of the comm layer.
+It's useful for widgets that can be expressed via a list of properties.
+Widgets work by synchronizing IPython traitlet models in the back-end with
+backbone models in the front-end. The widget layer automatically handles
+
+* delta compression (only sending the state information that has changed)
+* wiring the message callbacks to the correct cells automatically
+* inter-view synchronization (handled by backbone)
+* message throttling (to avoid flooding the kernel)
+* parent/child relationships between views (which one can override to specify custom parent/child relationships)
+* ability to manipulate the widget view's DOM from python using CSS, $().addClass, and $().removeClass methods
+
+Signing Notebooks
+-----------------
+
+To prevent untrusted code from executing on users' behalf when notebooks open,
+we have added a signature to the notebook, stored in metadata.
+
+For more information, see :ref:`signing_notebooks`.
+
 Other changes
 -------------
 
@@ -191,6 +225,20 @@ Other changes
   download the open notebook in various formats. This is powered by
   nbconvert.
 
+* :exc:`~IPython.nbconvert.utils.pandoc.PandocMissing` exceptions will be
+  raised if Pandoc is unavailable, and warnings will be printed if the version
+  found is too old. The recommended Pandoc version for use with nbconvert is
+  1.12.1.
+
+* The InlineBackend.figure_format flag now supports JPEG output if PIL/Pillow is available.
+* The new ``InlineBackend.quality`` flag is a Integer in the range [10, 100] which controls
+  the quality of figures where higher values give nicer images (currently JPEG only).
+
+* Input transformers (see :doc:`/config/inputtransforms`) may now raise
+  :exc:`SyntaxError` if they determine that input is invalid. The input
+  transformation machinery in IPython will handle displaying the exception to
+  the user and resetting state.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 Backwards incompatible changes
@@ -226,5 +274,12 @@ Backwards incompatible changes
   actually used by the code. The input transformer system offers much
   more powerful APIs to work with input code. See
   :doc:`/config/inputtransforms` for details.
+
+* :class:`IPython.core.inputsplitter.IPythonInputSplitter` no longer has a method
+  ``source_raw_reset()``, but gains :meth:`~IPython.core.inputsplitter.IPythonInputSplitter.raw_reset`
+  instead. Use of ``source_raw_reset`` can be replaced with::
+
+      raw = isp.source_raw
+      transformed = isp.source_reset()
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
