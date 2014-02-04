@@ -71,6 +71,10 @@ class _SelectionWidget(DOMWidget):
             self.value_names = list(new.keys())
         finally:
             self._in_values_changed = False
+        
+        # ensure that the chosen value is one of the choices
+        if self.value not in new.values():
+            self.value = next(iter(new.values()))
     
     def _value_names_changed(self, name, old, new):
         if not self._in_values_changed:
@@ -80,13 +84,13 @@ class _SelectionWidget(DOMWidget):
         """Called when value has been changed"""
         if self.value_lock.acquire(False):
             try:
-                # Make sure the value is one of the options
+                # Reverse dictionary lookup for the value name
                 for k,v in self.values.items():
                     if new == v:
                         # set the selected value name
                         self.value_name = k
                         return
-                raise TraitError('Value not found: %r' % new)
+                raise KeyError(new)
             finally:
                 self.value_lock.release()
 
@@ -94,10 +98,7 @@ class _SelectionWidget(DOMWidget):
         """Called when the value name has been changed (typically by the frontend)."""
         if self.value_lock.acquire(False):
             try:
-                if new in self.values:
-                    self.value = self.values[new]
-                else:
-                    self.value = None
+                self.value = self.values[new]
             finally:
                 self.value_lock.release()
 
