@@ -76,7 +76,7 @@ casper.notebook_test(function () {
             'Widget list exists.');
 
         // Verify that no items are selected.
-        this.test.assert(verify_selection(this, -1), 'No items selected.');
+        this.test.assert(verify_selection(this, 0), 'Default first item selected.');
     });
 
     index = this.append_cell(
@@ -123,7 +123,9 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'for widget in selection:\n' +
-        '    widget.values = list(widget.values) + ["z"]\n' +
+        '    d = widget.values.copy()\n' +
+        '    d["z"] = "z"\n' +
+        '    widget.values = d\n' +
         'selection[0].value = "z"');
     this.execute_cell_then(index, function(index){
 
