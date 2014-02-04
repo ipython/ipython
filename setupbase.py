@@ -149,7 +149,7 @@ def find_package_data():
     static_data.extend([
         pjoin(components, "backbone", "backbone-min.js"),
         pjoin(components, "bootstrap", "bootstrap", "js", "bootstrap.min.js"),
-        pjoin(components, "font-awesome", "build", "assets", "font-awesome", "font", "*.*"),
+        pjoin(components, "font-awesome", "font", "*.*"),
         pjoin(components, "highlight.js", "build", "highlight.pack.js"),
         pjoin(components, "jquery", "jquery.min.js"),
         pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
