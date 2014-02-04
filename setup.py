@@ -263,20 +263,17 @@ setuptools_extra_args = {}
 # setuptools requirements
 
 extras_require = dict(
-    parallel = 'pyzmq>=2.1.11',
+    parallel = ['pyzmq>=2.1.11'],
     qtconsole = ['pyzmq>=2.1.11', 'pygments'],
-    zmq = 'pyzmq>=2.1.11',
+    zmq = ['pyzmq>=2.1.11'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
-    test = 'nose>=0.10.1',
+    test = ['nose>=0.10.1'],
     notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
     nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
 )
 everything = set()
 for deps in extras_require.values():
-    if not isinstance(deps, list):
-        deps = [deps]
-    for dep in deps:
-        everything.add(dep)
+    everything.update(deps)
 extras_require['all'] = everything
 install_requires = []
 if sys.platform == 'darwin':
@@ -284,7 +281,6 @@ if sys.platform == 'darwin':
 elif sys.platform.startswith('win'):
     # Pyreadline has unicode and Python 3 fixes in 2.0
     install_requires.append('pyreadline>=2.0')
-    
 
 if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
