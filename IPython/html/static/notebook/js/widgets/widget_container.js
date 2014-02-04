@@ -75,6 +75,14 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 .mousedown(function(){
                     that.bring_to_front();
                 });
+
+            // Set the elements array since the this.$window element is not child
+            // of this.$el and the parent widget manager or other widgets may
+            // need to know about all of the top-level widgets.  The IPython
+            // widget manager uses this to register the elements with the
+            // keyboard manager.
+            this.additional_elements = [this.$window]
+
             this.$title_bar = $('<div />')
                 .addClass('popover-title')
                 .appendTo(this.$window)
