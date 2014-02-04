@@ -12,12 +12,7 @@ casper.notebook_test(function () {
         cell.execute();
     });
 
-    this.waitFor(function(){
-        return this.evaluate(function() {
-            return $("#notification_kernel")[0].textContent.indexOf('busy') !== -1;
-        });
-    });
-
+    this.wait_for_busy();
 
     // interrupt using menu item (Kernel -> Interrupt)
     this.thenClick('li#int_kernel');

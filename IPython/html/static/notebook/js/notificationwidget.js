@@ -26,6 +26,9 @@ var IPython = (function (IPython) {
         this.element.hide();
         var that = this;
 
+        this.inner = $('<span/>');
+        this.element.append(this.inner);
+
     };
 
 
@@ -40,10 +43,13 @@ var IPython = (function (IPython) {
     // if timeout <= 0
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
-    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback) {
+    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, opts) {
+        var opts = opts || {};
         var callback = click_callback || function() {return false;};
         var that = this;
-        this.element.text(msg);
+        this.inner.attr('class', opts.icon);
+        this.inner.attr('title', opts.title);
+        this.inner.text(msg);
         this.element.fadeIn(100);
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
@@ -51,13 +57,13 @@ var IPython = (function (IPython) {
         }
         if (timeout !== undefined && timeout >=0) {
             this.timeout = setTimeout(function () {
-                that.element.fadeOut(100, function () {that.element.text('');});
+                that.element.fadeOut(100, function () {that.inner.text('');});
                 that.timeout = null;
             }, timeout);
         } else {
             this.element.click(function() {
                 if( callback() != false ) {
-                    that.element.fadeOut(100, function () {that.element.text('');});
+                    that.element.fadeOut(100, function () {that.inner.text('');});
                     that.element.unbind('click');
                 }
                 if (that.timeout !== undefined) {
@@ -70,7 +76,7 @@ var IPython = (function (IPython) {
 
 
     NotificationWidget.prototype.get_message = function () {
-        return this.element.html();
+        return this.inner.html();
     };
 
 

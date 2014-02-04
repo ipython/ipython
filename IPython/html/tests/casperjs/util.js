@@ -58,6 +58,14 @@ casper.delete_current_notebook = function () {
     });
 };
 
+casper.wait_for_busy = function () {
+    this.waitFor(function () {
+        return this.evaluate(function () {
+            return IPython._status == 'busy';
+        });
+    });
+};
+
 casper.wait_for_idle = function () {
     this.waitFor(function () {
         return this.evaluate(function () {
