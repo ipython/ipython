@@ -9,9 +9,17 @@
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# Code
+# Imports
 #-----------------------------------------------------------------------------
+from IPython.utils.py3compat import PY3
+if PY3:
+    from html.parser import HTMLParser
+else:
+    from HTMLParser import HTMLParser
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
 
 __all__ = ['citation2latex']
 
@@ -32,41 +40,72 @@ def citation2latex(s):
     Any HTML tag can be used, which allows the citations to be formatted
     in HTML in any manner.
     """
-    try:
-        from lxml import html
-    except ImportError:
-        return s
+    parser = CitationParser()
+    parser.feed(s)
+    parser.close()
+    outtext = u''
+    startpos = 0
+    for citation in parser.citelist:
+            outtext += s[startpos:citation[1]]
+            outtext += '\\cite{%s}'%citation[0]
+            startpos = citation[2] if len(citation)==3 else -1
+    outtext += s[startpos:] if startpos != -1 else ''
+    return outtext
 
-    tree = html.fragment_fromstring(s, create_parent='div')
-    _process_node_cite(tree)
-    s = html.tostring(tree, encoding='unicode')
-    if s.endswith('</div>'):
-        s = s[:-6]
-    if s.startswith('<div>'):
-        s = s[5:]
-    return s
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
+class CitationParser(HTMLParser):
+    """Citation Parser
 
-
-def _process_node_cite(node):
-    """Do the citation replacement as we walk the lxml tree."""
+    Replaces html tags with data-cite attribute with respective latex \\cite.
     
-    def _get(o, name):
-        value = getattr(o, name, None)
-        return '' if value is None else value
+    Inherites from HTMLParser, overrides:
+     - handle_starttag
+     - handle_endtag
+    """
+    # number of open tags
+    opentags = None
+    # list of found citations
+    citelist = None
+    # active citation tag
+    citetag = None
+
+    def __init__(self):
+        self.citelist = []
+        self.opentags = 0
+        HTMLParser.__init__(self)
     
-    if 'data-cite' in node.attrib:
-        cite = '\cite{%(ref)s}' % {'ref': node.attrib['data-cite']}
-        prev = node.getprevious()
-        if prev is not None:
-            prev.tail = _get(prev, 'tail') + cite + _get(node, 'tail')
-        else:
-            parent = node.getparent()
-            if parent is not None:
-                parent.text = _get(parent, 'text') + cite + _get(node, 'tail')
-        try:
-            node.getparent().remove(node)
-        except AttributeError:
-            pass
-    else:
-        for child in node:
-            _process_node_cite(child)
+    def get_offset(self):
+        # Compute startposition in source
+        lin, offset = self.getpos()
+        pos = 0
+        for i in range(lin-1):
+            pos = self.data.find('\n',pos) + 1
+        return pos + offset
+        
+    def handle_starttag(self, tag, attrs):
+        # for each tag check if attributes are present and if no citation is active
+        if self.opentags == 0 and len(attrs)>0:
+            for atr, data in attrs:
+                if atr.lower() == 'data-cite':
+                    self.citetag = tag
+                    self.opentags = 1
+                    self.citelist.append([data, self.get_offset()])
+                    return
+                
+        if tag == self.citetag:
+            # found an open citation tag but not the starting one  
+            self.opentags += 1
+  
+    def handle_endtag(self, tag):
+        if tag == self.citetag:
+            # found citation tag check if starting one
+            if self.opentags == 1:
+                pos = self.get_offset()
+                self.citelist[-1].append(pos+len(tag)+3)
+            self.opentags -= 1
+        
+    def feed(self, data):
+        self.data = data
+        HTMLParser.feed(self, data)
