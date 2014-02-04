@@ -67,10 +67,9 @@ def _widget_abbrev_single_value(o):
     if isinstance(o, string_types):
         return TextWidget(value=unicode_type(o))
     elif isinstance(o, dict):
-        labels = [unicode_type(k) for k in o]
-        values = o.values()
-        w = DropdownWidget(value=values[0], values=values, labels=labels)
-        return w
+        # get a single value in a Python 2+3 way:
+        value = next(iter(o.values()))
+        return DropdownWidget(value=value, values=o)
     elif isinstance(o, bool):
         return CheckboxWidget(value=o)
     elif isinstance(o, float):
