@@ -226,7 +226,7 @@ def prepare_controllers(options):
 
     if testgroups:
         py_testgroups = [g for g in testgroups if (g in py_test_group_names) \
-                                                or g.startswith('IPython')]
+                                                or g.startswith('IPython.')]
         js_testgroups = [g for g in testgroups if g in js_test_group_names]
     else:
         py_testgroups = py_test_group_names
