@@ -3,6 +3,90 @@
 Issues closed in the 1.0 development cycle
 ==========================================
 
+
+Issues closed in 1.2
+--------------------
+
+GitHub stats for 2013/09/09 - 2014/02/04
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 13 authors contributed 79 commits.
+
+* Benjamin Ragan-Kelley
+* Doug Blank
+* Fernando Perez
+* James Porter
+* Juergen Hasch
+* Julian Taylor
+* Kyle Kelley
+* Lawrence Fu
+* Matthias Bussonnier
+* Pascal Schetelat
+* Puneeth Chaganti
+* Takeshi Kanmae
+* Thomas Kluyver
+
+We closed a total of 50 issues, 34 pull requests and 16 regular issues;
+this is the full list (generated with the script :file:`tools/github_stats.py`):
+
+Pull Requests (34):
+
+* :ghpull:`4972`: Work around problem in doctest discovery in Python 3.4 with PyQt
+* :ghpull:`4934`: `ipython profile create` respects `--ipython-dir`
+* :ghpull:`4845`: Add Origin Checking.
+* :ghpull:`4928`: use importlib.machinery when available
+* :ghpull:`4849`: Various unicode fixes (mostly on Windows)
+* :ghpull:`4880`: set profile name from profile_dir
+* :ghpull:`4908`: detect builtin docstrings in oinspect
+* :ghpull:`4909`: sort dictionary keys before comparison, ordering is not guaranteed
+* :ghpull:`4903`: use https for all embeds
+* :ghpull:`4868`: Static path fixes
+* :ghpull:`4820`: fix regex for cleaning old logs with ipcluster
+* :ghpull:`4840`: Error in Session.send_raw()
+* :ghpull:`4762`: whitelist alphanumeric characters for cookie_name
+* :ghpull:`4748`: fix race condition in profiledir creation.
+* :ghpull:`4720`: never use ssh multiplexer in tunnels
+* :ghpull:`4738`: don't inject help into user_ns
+* :ghpull:`4722`: allow purging local results as long as they are not outstanding
+* :ghpull:`4668`: Make non-ASCII docstring unicode
+* :ghpull:`4639`: Minor import fix to get qtconsole with --pylab=qt working
+* :ghpull:`4453`: Play nice with App Nap
+* :ghpull:`4609`: Fix bytes regex for Python 3.
+* :ghpull:`4488`: fix typo in message spec doc
+* :ghpull:`4346`: getpass() on Windows & Python 2 needs bytes prompt
+* :ghpull:`4230`: Switch correctly to the user's default matplotlib backend after inline.
+* :ghpull:`4214`: engine ID metadata should be unicode, not bytes
+* :ghpull:`4232`: no highlight if no language specified
+* :ghpull:`4218`: Fix display of SyntaxError when .py file is modified
+* :ghpull:`4217`: avoid importing numpy at the module level
+* :ghpull:`4213`: fixed dead link in examples/notebooks readme to Part 3
+* :ghpull:`4183`: ESC should be handled by CM if tooltip is not on
+* :ghpull:`4193`: Update for #3549: Append Firefox overflow-x fix
+* :ghpull:`4205`: use TextIOWrapper when communicating with pandoc subprocess
+* :ghpull:`4204`: remove some extraneous print statements from IPython.parallel
+* :ghpull:`4201`: HeadingCells cannot be split or merged
+
+Issues (16):
+
+* :ghissue:`4892`: IPython.qt test failure with python3.4
+* :ghissue:`4810`: ipcluster bug in clean_logs flag
+* :ghissue:`4765`: missing build script for highlight.js
+* :ghissue:`4761`: ipv6 address triggers cookie exception
+* :ghissue:`4721`: purge_results with jobid crashing - looking for insight
+* :ghissue:`4602`: "ipcluster stop" fails after "ipcluster start --daemonize" using python3.3
+* :ghissue:`3386`: Magic %paste not working in Python 3.3.2. TypeError: Type str doesn't support the buffer API
+* :ghissue:`4485`: Incorrect info in "Messaging in IPython" documentation. 
+* :ghissue:`4351`: /parallel/apps/launcher.py error
+* :ghissue:`4334`: NotebookApp.webapp_settings static_url_prefix causes crash
+* :ghissue:`4039`: Celltoolbar example issue
+* :ghissue:`4256`: IPython no longer handles unicode file names 
+* :ghissue:`4122`: Nbconvert [windows]: Inconsistent line endings in markdown cells exported to latex 
+* :ghissue:`3819`: nbconvert add extra blank line to code block on Windows.
+* :ghissue:`4203`: remove spurious print statement from parallel annoted functions
+* :ghissue:`4200`: Notebook: merging a heading cell and markdown cell cannot be undone
+
+
 Issues closed in 1.1
 --------------------
 
