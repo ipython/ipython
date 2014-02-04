@@ -250,6 +250,34 @@ casper.notebook_test = function(test) {
     });
 };
 
+casper.wait_for_dashboard = function () {
+    // Wait for the dashboard list to load.
+    casper.waitForSelector('.list_item');
+}
+
+casper.open_dashboard = function () {
+    // Start casper by opening the dashboard page.
+    var baseUrl = this.get_notebook_server();
+    this.start(baseUrl);
+    this.wait_for_dashboard();
+}
+
+casper.dashboard_test = function (test) {
+    // Open the dashboard page and run a test.
+    this.open_dashboard();
+    this.then(test);
+
+    this.then(function () {
+        this.page.close();
+        this.page = null;
+    });
+    
+    // Run the browser automation.
+    this.run(function() {
+        this.test.done();
+    });
+}
+
 casper.options.waitTimeout=10000
 casper.on('waitFor.timeout', function onWaitForTimeout(timeout) {
     this.echo("Timeout for " + casper.get_notebook_server());

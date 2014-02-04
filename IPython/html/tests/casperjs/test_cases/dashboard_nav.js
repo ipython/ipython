@@ -1,7 +1,4 @@
-casper.wait_for_list = function () {
-    casper.waitForSelector('.list_item');
-    // casper.wait(500);
-}
+
 
 casper.get_list_items = function () {
     return this.evaluate(function () {
@@ -14,7 +11,7 @@ casper.get_list_items = function () {
     });
 }
 
-casper.test_items = function (test, baseUrl) {
+casper.test_items = function (baseUrl) {
     casper.then(function () {
         var items = casper.get_list_items();
         casper.each(items, function (self, item) {
@@ -22,9 +19,9 @@ casper.test_items = function (test, baseUrl) {
                 var followed_url = baseUrl+item.link;
                 if (!followed_url.match('/\.\.$')) {
                     casper.thenOpen(baseUrl+item.link, function () {
-                        casper.wait_for_list();
-                        test.assertEquals(this.getCurrentUrl(), followed_url, 'Testing dashboard link: '+followed_url);
-                        casper.test_items(test, baseUrl);
+                        casper.wait_for_dashboard();
+                        this.test.assertEquals(this.getCurrentUrl(), followed_url, 'Testing dashboard link: '+followed_url);
+                        casper.test_items(baseUrl);
                         this.back();
                     });
                 }
@@ -33,13 +30,8 @@ casper.test_items = function (test, baseUrl) {
     });
 }
 
-casper.test.begin('Testing dashboard navigation', function (test) {
-    var baseUrl = casper.get_notebook_server();
-    casper.start(baseUrl);
-    casper.echo(baseUrl);
-    casper.wait_for_list();
-    casper.test_items(test, baseUrl);
-    casper.run(function() {
-        test.done();
-    });
-});
+casper.dashboard_test(function () {
+    baseUrl = this.get_notebook_server()
+    casper.test_items(baseUrl);
+})
+
