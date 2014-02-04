@@ -93,8 +93,14 @@
         WidgetManager.prototype._handle_display_view = function (view) {
             // Have the IPython keyboard manager disable its event
             // handling so the widget can capture keyboard input.
-            // Note, this is only done on the outer most widget.
-            IPython.keyboard_manager.register_events(view.$el);
+            // Note, this is only done on the outer most widgets.
+            if (view.elements) {
+                for (var i = 0; i < view.elements.length; i++) {
+                    IPython.keyboard_manager.register_events(view.elements[i]);
+                }
+            } else {
+                IPython.keyboard_manager.register_events(view.$el);
+            }
         };
 
         WidgetManager.prototype.create_view = function(model, options, view) {
