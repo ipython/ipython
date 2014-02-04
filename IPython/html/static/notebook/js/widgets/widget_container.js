@@ -81,7 +81,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             // need to know about all of the top-level widgets.  The IPython
             // widget manager uses this to register the elements with the
             // keyboard manager.
-            this.elements = [this.$el, this.$window]
+            this.additional_elements = [this.$window]
 
             this.$title_bar = $('<div />')
                 .addClass('popover-title')
