@@ -26,7 +26,6 @@ import shutil
 import sys
 import tempfile
 
-from subprocess import check_output
 from unittest import TestCase
 
 import nose.tools as nt
@@ -154,11 +153,13 @@ def test_list_bundled_profiles():
     nt.assert_equal(bundled, bundled_true)
 
 
+@dec.skipif(sys.version_info < (2,7), "python -m doesn't work on 2.6")
 def test_profile_create_ipython_dir():
     """ipython profile create respects --ipython-dir"""
+    from subprocess import check_output, STDOUT
     with TemporaryDirectory() as td:
         check_output([sys.executable, '-m', 'IPython', 'profile', 'create',
-             'foo', '--ipython-dir=%s' % td])
+             'foo', '--ipython-dir=%s' % td], stderr=STDOUT)
         profile_dir = os.path.join(td, 'profile_foo')
         assert os.path.exists(profile_dir)
         ipython_config = os.path.join(profile_dir, 'ipython_config.py')
