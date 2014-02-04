@@ -45,7 +45,7 @@ def citation2latex(s):
             outtext += s[startpos:citation[1]]
             outtext += '\\cite{%s}'%citation[0]
             startpos = citation[2] if len(citation)==3 else -1
-    outtext += s[startpos:] if startpos <> -1 else ''
+    outtext += s[startpos:] if startpos != -1 else ''
     return outtext
 
 #-----------------------------------------------------------------------------
