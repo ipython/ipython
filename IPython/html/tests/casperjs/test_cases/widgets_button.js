@@ -34,7 +34,7 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea button', 'click');
     });
 
-    this.wait(500); // Wait for click to execute in kernel and write output
+    this.wait_for_output(button_index, 1);
 
     this.then(function () {
         this.test.assertEquals(this.get_output_cell(button_index, 1).text, 'Clicked\n', 

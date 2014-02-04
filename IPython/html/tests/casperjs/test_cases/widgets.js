@@ -16,8 +16,6 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(index);
 
-    this.wait(500); // Wait for require.js async callbacks to load dependencies.
-
     this.then(function () {
         // Check if the widget manager has been instantiated.
         this.test.assert(this.evaluate(function() {
@@ -25,19 +23,19 @@ casper.notebook_test(function () {
         }), 'Notebook widget manager instantiated');
     });
 
+    var textbox = {};
     throttle_index = this.append_cell(
         'import time\n' +
         'textbox = widgets.TextWidget()\n' +
-        'display(textbox)\n'+
+        'display(textbox)\n' +
         'textbox.add_class("my-throttle-textbox")\n' +
         'def handle_change(name, old, new):\n' +
         '    print(len(new))\n' +
         '    time.sleep(0.5)\n' +
         'textbox.on_trait_change(handle_change, "value")\n' +
-        'print("Success")');
+        'print(textbox.model_id)');
     this.execute_cell_then(throttle_index, function(index){
-        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
-            'Test throttling cell executed with correct output');
+        textbox.model_id = this.get_output_cell(index).text.trim();
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea'),
@@ -50,9 +48,9 @@ casper.notebook_test(function () {
         this.sendKeys('.my-throttle-textbox', '....................');
     });
 
-    this.wait(2000); // Wait for clicks to execute in kernel
+    this.wait_for_widget(textbox);
 
-    this.then(function(){
+    this.then(function () { 
         var outputs = this.evaluate(function(i) {
             return IPython.notebook.get_cell(i).output_area.outputs;
         }, {i : throttle_index});

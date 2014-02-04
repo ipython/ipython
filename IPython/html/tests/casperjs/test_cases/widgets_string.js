@@ -38,13 +38,6 @@ casper.notebook_test(function () {
             '.widget-area .widget-subarea .widget-hbox-single input[type=text]', 'val')=='xyz',
             'Python set textbox value.');
 
-    });
-
-    this.wait(500); // Wait for change to execute in kernel
-
-    index = this.append_cell('print(string_widget.value)');
-    this.execute_cell_then(index, function(index){
-
         this.test.assert(this.cell_element_exists(string_index, 
             '.widget-area .widget-subarea div span.MathJax_Preview'),
             'MathJax parsed the LaTeX successfully.');

@@ -36,7 +36,7 @@ casper.notebook_test(function () {
         this.click(multicontainer1_query + ' li:nth-child(2) a');
     });
 
-    this.wait(500); // Wait for change to execute in kernel
+    this.wait_for_idle();
 
     index = this.append_cell(
         'print(multicontainer.selected_index)\n' +
@@ -98,7 +98,7 @@ casper.notebook_test(function () {
         this.click(multicontainer2_query + ' .accordion-group:nth-child(2) .accordion-heading .accordion-toggle');
     });
 
-    this.wait(500); // Wait for change to execute in kernel
+    this.wait_for_idle();
 
     index = this.append_cell('print(multicontainer.selected_index)'); // 0 based
     this.execute_cell_then(index, function(index){
