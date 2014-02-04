@@ -26,6 +26,7 @@ import shutil
 import sys
 import tempfile
 
+from subprocess import check_output
 from unittest import TestCase
 
 import nose.tools as nt
@@ -36,7 +37,6 @@ from IPython.core.profiledir import ProfileDir
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
-from IPython.utils.process import getoutput
 from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
@@ -157,7 +157,7 @@ def test_list_bundled_profiles():
 def test_profile_create_ipython_dir():
     """ipython profile create respects --ipython-dir"""
     with TemporaryDirectory() as td:
-        getoutput([sys.executable, '-m', 'IPython', 'profile', 'create',
+        check_output([sys.executable, '-m', 'IPython', 'profile', 'create',
              'foo', '--ipython-dir=%s' % td])
         profile_dir = os.path.join(td, 'profile_foo')
         assert os.path.exists(profile_dir)
