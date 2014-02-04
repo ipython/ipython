@@ -218,6 +218,16 @@ class ModuleReloader(object):
 
             try:
                 pymtime = os.stat(py_filename).st_mtime
+                # Hack to OS X  Ordinary users do not have permission
+                # to compile pyc, st_mtime do not change
+                if sys.platform == 'darwin' and ext.lower() == '.py':
+                    import py_compile
+
+                    try:
+                        py_compile.compile(filename)
+                    except IOError as e:
+                        continue
+
                 if pymtime <= os.stat(pyc_filename).st_mtime:
                     continue
                 if self.failed.get(py_filename, None) == pymtime:
