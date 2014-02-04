@@ -203,12 +203,13 @@ class NotebookNotary(LoggingConfigurable):
         """
         if not nb['worksheets']:
             return True
+        trusted = True
         for cell in nb['worksheets'][0]['cells']:
             if cell['cell_type'] != 'code':
                 continue
-            if not cell.get('trusted', False):
-                return False
-        return True
+            if not cell.pop('trusted', False):
+                trusted = False
+        return trusted
 
 
 trust_flags = {

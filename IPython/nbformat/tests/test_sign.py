@@ -103,6 +103,10 @@ class TestNotary(TestsBase):
         nb = self.nb
         self.notary.mark_cells(nb, True)
         self.assertTrue(self.notary.check_cells(nb))
+        for cell in nb.worksheets[0].cells:
+            self.assertNotIn('trusted', cell)
         self.notary.mark_cells(nb, False)
         self.assertFalse(self.notary.check_cells(nb))
+        for cell in nb.worksheets[0].cells:
+            self.assertNotIn('trusted', cell)
 
