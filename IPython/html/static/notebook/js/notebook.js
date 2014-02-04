@@ -1040,6 +1040,7 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
+            new_cell.focus_cell();
         };
     };
 
@@ -1053,6 +1054,7 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_below(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
+            new_cell.focus_cell();
         };
     };
 
