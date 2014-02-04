@@ -40,7 +40,7 @@ class _SelectionWidget(DOMWidget):
     The keys of this dictionary are also available as value_names.
     """)
     value_name = Unicode(help="The name of the selected value", sync=True)
-    value_names = List(Unicode, help="""List of names for each value.
+    value_names = List(Unicode, help="""Read-only list of names for each value.
         
         If values is specified as a list, this is the string representation of each element.
         Otherwise, it is the keys of the values dictionary.
@@ -52,6 +52,7 @@ class _SelectionWidget(DOMWidget):
 
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
+        self._in_values_changed = False
         if 'values' in kwargs:
             values = kwargs['values']
             # convert list values to an dict of {str(v):v}
@@ -65,11 +66,15 @@ class _SelectionWidget(DOMWidget):
 
         Setting values implies setting value names from the keys of the dict.
         """
-        self.value_names = list(new.keys())
+        self._in_values_changed = True
+        try:
+            self.value_names = list(new.keys())
+        finally:
+            self._in_values_changed = False
     
     def _value_names_changed(self, name, old, new):
-        if len(new) != len(self.values):
-            raise TraitError("Expected %i value names, got %i." % (len(self.values), len(new)))
+        if not self._in_values_changed:
+            raise TraitError("value_names is a read-only proxy to values.keys(). Use the values dict instead.")
 
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
