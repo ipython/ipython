@@ -678,7 +678,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
 def _super_pprint(obj, p, cycle):
     """The pprint for the super type."""
     p.begin_group(8, '<super: ')
-    p.pretty(obj.__self_class__)
+    p.pretty(obj.__thisclass__)
     p.text(',')
     p.breakable()
     p.pretty(obj.__self__)
