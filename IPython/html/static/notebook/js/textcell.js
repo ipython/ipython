@@ -235,17 +235,17 @@ var IPython = (function (IPython) {
     /**
      * setter :{{#crossLink "TextCell/set_rendered"}}{{/crossLink}}
      * @method get_rendered
-     * @return {html} html of rendered element
+     * @return {text} text of rendered element
      * */
     TextCell.prototype.get_rendered = function() {
-        return this.element.find('div.text_cell_render').html();
+        return this.element.find('div.text_cell_render').text(); 
     };
 
     /**
      * @method set_rendered
      */
     TextCell.prototype.set_rendered = function(text) {
-        this.element.find('div.text_cell_render').html(text);
+        this.element.find('div.text_cell_render').text(text); 
     };
 
     /**
@@ -348,17 +348,25 @@ var IPython = (function (IPython) {
             var text_and_math = IPython.mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
+
+            // TODO: The following code takes user input and creates HTML.  This
+            // operation has the potential to produce unsafe HTML and should
+            // be scrubbed...
             var html = marked.parser(marked.lexer(text));
             html = $(IPython.mathjaxutils.replace_math(html, math));
-            // links in markdown cells should open in new tabs
+            // Links in markdown cells should open in new tabs.
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+            var rendered = this.element.find('div.text_cell_render');
             try {
-                this.set_rendered(html);
+                rendered.html(html); // CAUTION! html(...) CALL MANDITORY!!!
             } catch (e) {
                 console.log("Error running Javascript in Markdown:");
                 console.log(e);
-                this.set_rendered($("<div/>").addClass("js-error").html(
-                    "Error rendering Markdown!<br/>" + e.toString())
+                rendered.empty();
+                rendered.append(
+                    $("<div/>")
+                        .append($("<div/>").text('Error rendering Markdown!').addClass("js-error"))
+                        .append($("<div/>").text(e.toString()).addClass("js-error"))
                 );
             }
             this.element.find('div.text_cell_input').hide();
@@ -503,17 +511,10 @@ var IPython = (function (IPython) {
         return this.level;
     };
 
-
-    HeadingCell.prototype.set_rendered = function (html) {
-        this.element.find("div.text_cell_render").html(html);
-    };
-
-
     HeadingCell.prototype.get_rendered = function () {
         var r = this.element.find("div.text_cell_render");
-        return r.children().first().html();
+        return r.children().first().text(); 
     };
-
 
     HeadingCell.prototype.render = function () {
         var cont = IPython.TextCell.prototype.render.apply(this);
@@ -527,6 +528,11 @@ var IPython = (function (IPython) {
             var text_and_math = IPython.mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
+
+
+            // TODO: The following code takes user input and creates HTML.  This
+            // operation has the potential to produce unsafe HTML and should
+            // be scrubbed...
             var html = marked.parser(marked.lexer(text));
             var h = $(IPython.mathjaxutils.replace_math(html, math));
             // add id and linkback anchor
@@ -539,10 +545,12 @@ var IPython = (function (IPython) {
                     .text('¶')
             );
             
-            this.set_rendered(h);
+            var rendered = this.element.find("div.text_cell_render");
+            rendered.html(h); // CAUTION! .html(...) CALL MANDITORY!!!
             this.typeset();
+
             this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
+            rendered.show();
 
         };
         return cont;
