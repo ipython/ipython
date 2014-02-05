@@ -112,6 +112,26 @@ class NotebookManager(LoggingConfigurable):
         """
         return basename
 
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
+    def list_dirs(self, path):
+        """List the directory models for a given API style path."""
+        raise NotImplementedError('must be implemented in a subclass')
+
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
+    def get_dir_model(self, name, path=''):
+        """Get the directory model given a directory name and its API style path.
+        
+        The keys in the model should be:
+        * name
+        * path
+        * last_modified
+        * created
+        * type='directory'
+        """
+        raise NotImplementedError('must be implemented in a subclass')
+
     def list_notebooks(self, path=''):
         """Return a list of notebook dicts without content.
 

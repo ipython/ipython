@@ -159,12 +159,17 @@ class FileNotebookManager(NotebookManager):
         """List the directories for a given API style path."""
         path = path.strip('/')
         os_path = self.get_os_path('', path)
+        if not os.path.isdir(os_path):
+            raise web.HTTPError(404, u'diretory does not exist: %r' % os_path)
         dir_names = os.listdir(os_path)
         dirs = []
         for name in dir_names:
             os_path = self.get_os_path(name, path)
             if os.path.isdir(os_path) and not name.startswith('.'):
-                model = self.get_dir_model(name, path)
+                try:
+                    model = self.get_dir_model(name, path)
+                except IOError:
+                    pass
                 dirs.append(model)
         dirs = sorted(dirs, key=lambda item: item['name'])
         return dirs
@@ -206,16 +211,8 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
-        index = []
-        notebooks = []
-        for name in notebook_names:
-            model = self.get_notebook_model(name, path, content=False)
-            if name.lower() == 'index.ipynb':
-                index.append(model)
-            else:
-                notebooks.append(model)
+        notebooks = [self.get_notebook_model(name, path, content=False) for name in notebook_names]
         notebooks = sorted(notebooks, key=lambda item: item['name'])
-        notebooks = index + self.list_dirs(path) + notebooks
         return notebooks
 
     def get_notebook_model(self, name, path='', content=True):
@@ -248,6 +245,7 @@ class FileNotebookManager(NotebookManager):
         model['path'] = path
         model['last_modified'] = last_modified
         model['created'] = created
+        model['type'] = 'notebook'
         if content:
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
@@ -264,7 +262,7 @@ class FileNotebookManager(NotebookManager):
 
         if 'content' not in model:
             raise web.HTTPError(400, u'No notebook JSON data provided')
-        
+
         # One checkpoint should always exist
         if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):
             self.create_checkpoint(name, path)

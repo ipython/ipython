@@ -24,7 +24,7 @@ from IPython.utils.data import uniq_stable
 # TODO: Remove this after we create the contents web service and directories are
 # no longer listed by the notebook web service.
 def notebooks_only(nb_list):
-    return [nb for nb in nb_list if 'type' not in nb]
+    return [nb for nb in nb_list if nb['type']=='notebook']
 
 
 class NBAPI(object):
