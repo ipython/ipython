@@ -86,6 +86,7 @@ class InProcessShellChannel(InProcessChannel):
         'object_info',
         'history',
         'shutdown',
+        'kernel_info',
     ]
 
     #--------------------------------------------------------------------------
