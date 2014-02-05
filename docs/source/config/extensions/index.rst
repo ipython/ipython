@@ -7,7 +7,7 @@ IPython extensions
 A level above configuration are IPython extensions, Python modules which modify
 the behaviour of the shell. They are referred to by an importable module name,
 and can be placed anywhere you'd normally import from, or in
-``$IPYTHONDIR/extensions/``.
+``.ipython/extensions/``.
 
 Getting extensions
 ==================
@@ -61,11 +61,15 @@ Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiv
 :meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and 
 :meth:`~IPython.core.interactiveshell.InteractiveShell.drop_by_id` (to remove variables on unloading).
 
+.. seealso::
+
+   :ref:`defining_magics`
+
 You can put your extension modules anywhere you want, as long as they can be
 imported by Python's standard import mechanism. However, to make it easy to
-write extensions, you can also put your extensions in
-``os.path.join(ip.ipython_dir, 'extensions')``. This directory is added to
-``sys.path`` automatically.
+write extensions, you can also put your extensions in :file:`extensions/`
+within the :ref:`IPython directory <ipythondir>`. This directory is
+added to :data:`sys.path` automatically.
 
 When your extension is ready for general use, please add it to the `extensions
 index <https://github.com/ipython/ipython/wiki/Extensions-Index>`_.
