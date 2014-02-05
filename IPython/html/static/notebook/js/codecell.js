@@ -105,7 +105,7 @@ var IPython = (function (IPython) {
         if (pre_cursor.trim() === "") {
             // Don't autocomplete if the part of the line before the cursor
             // is empty.  In this case, let CodeMirror handle indentation.
-            CodeMirror.commands.indentMore(cm)
+            CodeMirror.commands.indentMore(cm);
             return;
         }
 
@@ -114,12 +114,12 @@ var IPython = (function (IPython) {
         // the completion result from many sources if necessary. 
        if(IPython.skip_kernel_completion){
             // call callback with empty result
-            finish_complete_callback({list:[], from:cur, to:cur})
+            finish_complete_callback({list:[], from:cur, to:cur});
         }
         IPython.notebook.kernel.complete(cm.getLine(cur.line), cur.ch, function(msg){
             finish_complete_callback(
                 {list:msg.content.matches, from:{line:cur.line, ch:cur.ch - msg.content.matched_text.length }, to:cur}
-            )
+            );
         });
     };
 
@@ -131,6 +131,103 @@ var IPython = (function (IPython) {
     });
 
     
+    // From wikibooks
+    // https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#JavaScript
+    function longestCommonSubstring(str1, str2){
+        if (!str1 || !str2)
+            return {
+                length: 0,
+                sequence: "",
+                offset: 0
+            };
+     
+        var sequence = "",
+            str1Length = str1.length,
+            str2Length = str2.length,
+            num = new Array(str1Length),
+            maxlen = 0,
+            lastSubsBegin = 0;
+     
+        for (var i = 0; i < str1Length; i++) {
+            var subArray = new Array(str2Length);
+            for (var j = 0; j < str2Length; j++)
+                subArray[j] = 0;
+            num[i] = subArray;
+        }
+        var thisSubsBegin = null;
+        for (var i = 0; i < str1Length; i++)
+        {
+            for (var j = 0; j < str2Length; j++)
+            {
+                if (str1[i] !== str2[j])
+                    num[i][j] = 0;
+                else
+                {
+                    if ((i === 0) || (j === 0))
+                        num[i][j] = 1;
+                    else
+                        num[i][j] = 1 + num[i - 1][j - 1];
+     
+                    if (num[i][j] > maxlen)
+                    {
+                        maxlen = num[i][j];
+                        thisSubsBegin = i - num[i][j] + 1;
+                        if (lastSubsBegin === thisSubsBegin)
+                        {//if the current LCS is the same as the last time this block ran
+                            sequence += str1[i];
+                        }
+                        else //this block resets the string builder if a different LCS is found
+                        {
+                            lastSubsBegin = thisSubsBegin;
+                            sequence= ""; //clear it
+                            sequence += str1.substr(lastSubsBegin, (i + 1) - lastSubsBegin);
+                        }
+                    }
+                }
+            }
+        }
+        return {
+            length: maxlen,
+            sequence: sequence,
+            offset: thisSubsBegin
+        };
+    }
+    
+    
+    /**
+     * Tab should not pick() the result
+     * but insert the longuest common prefix. 
+     * this is doable only on master CM
+     * for now.
+     **/
+    var insertLonguestCommonSubstring = function(cm){
+        return function(cp, obj){
+            var data = obj.data;
+            // CM not patched, fails gracefully by pick() highlight result.
+            if(!data && console !== undefined){
+                console.log('need more recent version of codemirror to completer to common prefix');
+                return;
+            }
+            // if only one object, pick() it
+            // as it is the only completion
+            
+            var cpl = obj.data.list;
+            if(cpl.length===1){
+                obj.pick();
+            }
+            
+            var common;
+            var c0 = cpl[0];
+            var c1 = cpl[cpl.length-1];
+            
+            common = longestCommonSubstring(c0, c1).sequence;
+
+            if(common !== undefined ){
+                cm.replaceRange(common, data.from, data.to);
+            }
+        };
+    };
+    
     /**
      * is pass is true completion will be triger
      * __and__ the key will be handled py codemirror. eg:
@@ -141,7 +238,6 @@ var IPython = (function (IPython) {
      **/
     var completion_request = function(pass){
         return function(cm) {
-            var cur = cm.getCursor();
             setTimeout(function() {
               if (!cm.state.completionActive)
                 CodeMirror.showHint(cm, complete_function, {
@@ -150,41 +246,12 @@ var IPython = (function (IPython) {
                         /**
                          * Tab should not pick() the result
                          * but insert the longuest common prefix. 
-                         * this is doable only on patched version of CM
+                         * this is doable only on master of CM
                          * for now.
                          **/
-                        "Tab" : 
-                            function(cp, obj){
-                                var data = obj.data;
-                                // CM not patched, fails gracefully by pick() highlight result.
-                                if(!data){
-                                    return;
-                                }
-                                // if only one object, pick() it
-                                // as it is the only completion
-                                var cpl = obj.data.list;
-                                if(cpl.length===1){
-                                    obj.pick();
-                                }
-
-                                // if completion list is sorted, 
-                                // longuest prefix of all list, is longuest prefix 
-                                // between first and last. 
-                                var c0 = cpl[0];
-                                var c1 = cpl[cpl.length-1];
-                                var common = '';
-                                var ml  = Math.min(c0.length,c1.length);
-                                for(var i =0; i<ml; i=i+1){
-                                    if(c0[i]===c1[i]){
-                                        common = common + c0[i];
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                if(common !== ''){
-                                    cm.replaceRange(common, data.from, data.to);
-                                }
-                            }
+                        // need codemirror closure here for now.
+                        // TODO though wether longuest common subsequece would make sens.
+                        "Tab" : insertLonguestCommonSubstring(cm)
                     }
                 
                 } );
@@ -198,8 +265,8 @@ var IPython = (function (IPython) {
         }; 
     };
    
-    CodeMirror.commands.complete_passthrough = completion_request(true);
-    CodeMirror.commands.complete_request = completion_request(false);
+    CodeMirror.commands.completePassthrough = completion_request(true);
+    CodeMirror.commands.completeRequest = completion_request(false);
 
     CodeCell.options_default = {
         cm_config : {
@@ -209,8 +276,8 @@ var IPython = (function (IPython) {
                 "Backspace" : "delSpaceToPrevTabStop",
                 "Cmd-/" : "toggleComment",
                 "Ctrl-/" : "toggleComment",
-                "Tab": "complete_request",
-                "'.'": "complete_passthrough",
+                "Tab": "completeRequest",
+                "'.'": "completePassthrough",
             },
             mode: 'ipython',
             theme: 'ipython',
@@ -310,7 +377,6 @@ var IPython = (function (IPython) {
             tooltip_closed = IPython.tooltip.remove_and_cancel_tooltip();
         }
 
-        var cur = editor.getCursor();
         if (event.keyCode === key.ENTER){
             this.auto_highlight();
         }
