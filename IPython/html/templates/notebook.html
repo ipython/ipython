@@ -238,7 +238,10 @@ class="notebook_app"
 
                 {% for helplinks in sections %}
                     {% for link in helplinks %}
-                        <li><a href="{{link[0]}}" {{'target="_blank" title="Opens in a new window"' if link[2]}}>{{link[1]}}{{'<i class="icon-external-link menu-icon pull-right"></i>' if link[2]}}</a></li>
+                        <li><a href="{{link[0]}}" {{'target="_blank" title="Opens in a new window"' if link[2]}}>
+                        {{'<i class="icon-external-link menu-icon pull-right"></i>' if link[2]}}
+                        {{link[1]}}
+                        </a></li>
                     {% endfor %}
                     {% if not loop.last %}
                         <li class="divider"></li>
