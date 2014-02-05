@@ -1,5 +1,5 @@
 var xor = function (a, b) {return !a ^ !b;}; 
-var isArray = function (a) {return toString.call(a) === "[object Array]";};
+var isArray = function (a) {console.log(toString.call(a)); return toString.call(a) === "[object Array]";};
 var recursive_compare = function(a, b) {
     // Recursively compare two objects.
     var same = true;
