@@ -462,6 +462,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             inst = new_meth(cls, **kw)
         inst._trait_values = {}
         inst._trait_notifiers = {}
+        inst._single_notifiers = {}
         inst._trait_dyn_inits = {}
         # Here we tell all the TraitType instances to set their default
         # values on the instance.
@@ -504,33 +505,36 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # Call them all now
         for c in callables:
             # Traits catches and logs errors here.  I allow them to raise
-            if callable(c):
-                argspec = inspect.getargspec(c)
-                nargs = len(argspec[0])
-                # Bound methods have an additional 'self' argument
-                # I don't know how to treat unbound methods, but they
-                # can't really be used for callbacks.
-                if isinstance(c, types.MethodType):
-                    offset = -1
-                else:
-                    offset = 0
-                if nargs + offset == 0:
-                    c()
-                elif nargs + offset == 1:
-                    c(name)
-                elif nargs + offset == 2:
-                    c(name, new_value)
-                elif nargs + offset == 3:
-                    c(name, old_value, new_value)
-                else:
-                    raise TraitError('a trait changed callback '
-                                        'must have 0-3 arguments.')
+            argspec = inspect.getargspec(c)
+            nargs = len(argspec[0])
+            # Bound methods have an additional 'self' argument
+            # I don't know how to treat unbound methods, but they
+            # can't really be used for callbacks.
+            if isinstance(c, types.MethodType):
+                offset = -1
+            else:
+                offset = 0
+            if nargs + offset == 0:
+                c()
+            elif nargs + offset == 1:
+                c(name)
+            elif nargs + offset == 2:
+                c(name, new_value)
+            elif nargs + offset == 3:
+                c(name, old_value, new_value)
             else:
                 raise TraitError('a trait changed callback '
-                                    'must be callable.')
+                                    'must have 0-3 arguments.')
+
+        # Now ones from on_change (_single_notifiers), which have a different signature.
+        cb = self._single_notifiers.get(name, None)
+        if cb is not None:
+            cb(new_value)
 
 
     def _add_notifiers(self, handler, name):
+        if not callable(handler):
+            raise TraitError('a trait handler must be a callable, got: %r' % handler)
         if name not in self._trait_notifiers:
             nlist = []
             self._trait_notifiers[name] = nlist
@@ -540,6 +544,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             nlist.append(handler)
 
     def _remove_notifiers(self, handler, name):
+        if not callable(handler):
+            raise TraitError('a trait handler must be a callable, got: %r' % handler)
         if name in self._trait_notifiers:
             nlist = self._trait_notifiers[name]
             try:
@@ -582,6 +588,34 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             names = parse_notifier_name(name)
             for n in names:
                 self._add_notifiers(handler, n)
+
+    def on_change(self, name, handler=None):
+        """A simplified API for registering an on change handler.
+        
+        This method presents a simplified API for registering a handler
+        that is called when a single trait changes. This is like
+        `on_trait_change`, but with a couple of important differences:
+        
+        * It is called after the handlers registered by `on_trait_change`
+          and the static `_on_*_changed` methods.
+        * Only one handler per trait can be registered. When you set the
+          handler for a trait, a previous one for that trait is cleared.
+          This makes it useful for working interactively with handlers
+          that slowly mutate.
+        * The handler only takes a single argument, the new value.
+
+        Parameters
+        ----------
+        name : str
+            The string name of a single trait.
+        handler : callable
+            A callable that is called when a trait changes.  Its
+            signature must be `handler(new)`. Pass a value of `None`
+            to clear the handler.
+        """
+        if not (callable(handler) or (handler is None)):
+            raise TraitError('a trait handler must be a callable or None, got: %r' % handler)
+        self._single_notifiers[name] = handler
 
     @classmethod
     def class_trait_names(cls, **metadata):
