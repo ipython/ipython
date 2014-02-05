@@ -443,7 +443,15 @@ IPython.utils = (function (IPython) {
         } else {
             return [filename, ''];
         }
-    }
+    };
+
+
+    var get_data = function(key) {
+        // get a url-encoded item from body.data and decode it
+        // we should never have any encoded URLs anywhere else in code
+        // until we are building an actual request
+        return decodeURIComponent($('body').data(key));
+    };
 
 
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
@@ -508,6 +516,7 @@ IPython.utils = (function (IPython) {
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
+        get_data : get_data,
         url_path_join : url_path_join,
         url_join_encode : url_join_encode,
         encode_uri_components : encode_uri_components,
