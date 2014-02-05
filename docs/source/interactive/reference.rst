@@ -24,8 +24,7 @@ files for each profile, and the files look like :file:`ipython_config.py` or
 :file:`ipython_config_{frontendname}.py`.  Profile directories look like
 :file:`profile_{profilename}` and are typically installed in the :envvar:`IPYTHONDIR` directory,
 which defaults to :file:`$HOME/.ipython`. For Windows users, :envvar:`HOME`
-resolves to :file:`C:\\Documents and Settings\\YourUserName` in most
-instances.
+resolves to :file:`C:\\Users\\{YourUserName}` in most instances.
 
 
 Eventloop integration
