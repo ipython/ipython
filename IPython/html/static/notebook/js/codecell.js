@@ -89,13 +89,14 @@ var IPython = (function (IPython) {
             function() { that.auto_highlight(); }
         );
     };
-
+    
+    
     /**
      * complete function that should be passed to CodeMirror
      * show-hint in order to fetch the completion. and call 
      * `finish_complete_callback` once done with the formatted result.
      **/
-    var complete_function =  function(cm, finish_complete_callback, options){
+    var _complete_function =  function(cm, finish_complete_callback, options){
         IPython.tooltip.remove_and_cancel_tooltip();
         if (cm.somethingSelected()) {
                 return;
@@ -122,6 +123,62 @@ var IPython = (function (IPython) {
             );
         });
     };
+    
+    var MultiHint = function(){
+        this.complete_source = [];
+        this._complete_callback = undefined;
+        this._pending_requests = 0;
+        this._pending_results = null;
+        
+        
+    };
+    
+    MultiHint.prototype._gather_source = function(obj){
+        
+        this._pending_requests = this._pending_requests -1;
+        
+        console.log('pr:',this._pending_results);
+        if(!this._pending_results){
+            this._pending_results = obj;
+            
+        } else {
+            for(var idx in obj.list){
+                this._pending_results.list.push(obj.list[idx]);
+            }
+        }
+        //this._pending_requests--;
+        console.log('in gather', this._pending_requests);
+        if(this._pending_requests === 0){
+            this._complete_callback(this._pending_results);
+            this._pending_results = undefined;
+        }
+    };
+    
+    MultiHint.prototype.complete = function(cm, finish_complete_callback, options){
+        
+        this._complete_callback = finish_complete_callback;
+        console.log(this.complete_source.lenght, this.complete_source)
+        for(var i=0 ; i < this.complete_source.length; i++){
+            this._pending_requests = this._pending_requests +1;
+            console.log('in loop', this);
+            this.complete_source[i](cm, $.proxy(this._gather_source,this), options);
+        }
+        return ;
+    };
+    
+    var m_complete_function = function(cm, finish_complete_callback, options){
+        var wrap = function(obj){
+            obj.list.push('aaa---just a test');
+            obj.list.sort();
+            finish_complete_callback(obj);
+        };
+      return _complete_function(cm, wrap, options);
+    };
+    
+    var m_complete = new MultiHint();
+    m_complete.complete_source.push(m_complete_function);
+    m_complete.complete_source.push(function(cm,cb,opt){cb({list:['aa','bb','cc']});});
+    var complete_function = $.proxy(MultiHint.prototype.complete, m_complete);
 
     $([IPython.events]).on('status_busy.Kernel', function () {
         IPython.skip_kernel_completion = true;
