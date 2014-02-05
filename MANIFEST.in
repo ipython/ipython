@@ -35,3 +35,4 @@ global-exclude *.pyc
 global-exclude *.pyo
 global-exclude .dircopy.log
 global-exclude .git
+global-exclude .ipynb_checkpoints

@@ -127,23 +127,44 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     
-    # exclude static things that we don't ship (e.g. mathjax)
-    excludes = ['mathjax']
+    # exclude components from the walk,
+    # we will build the components separately
+    excludes = ['components']
     
     # add 'static/' prefix to exclusions, and tuplify for use in startswith
-    excludes = tuple([os.path.join('static', ex) for ex in excludes])
+    excludes = tuple([pjoin('static', ex) for ex in excludes])
     
     # walk notebook resources:
     cwd = os.getcwd()
     os.chdir(os.path.join('IPython', 'html'))
-    static_walk = list(os.walk('static'))
     static_data = []
-    for parent, dirs, files in static_walk:
+    for parent, dirs, files in os.walk('static'):
         if parent.startswith(excludes):
             continue
         for f in files:
-            static_data.append(os.path.join(parent, f))
-
+            static_data.append(pjoin(parent, f))
+    components = pjoin("static", "components")
+    # select the components we actually need to install
+    # (there are lots of resources we bundle for sdist-reasons that we don't actually use)
+    static_data.extend([
+        pjoin(components, "backbone", "backbone-min.js"),
+        pjoin(components, "bootstrap", "bootstrap", "js", "bootstrap.min.js"),
+        pjoin(components, "font-awesome", "font", "*.*"),
+        pjoin(components, "highlight.js", "build", "highlight.pack.js"),
+        pjoin(components, "jquery", "jquery.min.js"),
+        pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
+        pjoin(components, "jquery-ui", "themes", "smoothness", "jquery-ui.min.css"),
+        pjoin(components, "marked", "lib", "marked.js"),
+        pjoin(components, "requirejs", "require.js"),
+        pjoin(components, "underscore", "underscore-min.js"),
+    ])
+    
+    # Ship all of Codemirror's CSS and JS
+    for parent, dirs, files in os.walk(pjoin(components, 'codemirror')):
+        for f in files:
+            if f.endswith(('.js', '.css')):
+                static_data.append(pjoin(parent, f))
+    
     os.chdir(os.path.join('tests',))
     js_tests = glob('casperjs/*.*') +  glob('casperjs/*/*')
 
@@ -157,7 +178,6 @@ def find_package_data():
         'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.core.tests' : ['*.png', '*.jpg'],
         'IPython.lib.tests' : ['*.wav'],
-        'IPython.testing' : ['*.txt'],
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.html.tests' : js_tests,
@@ -167,6 +187,17 @@ def find_package_data():
         'IPython.nbconvert.filters' : ['marked.js'],
         'IPython.nbformat' : ['tests/*.ipynb']
     }
+    
+    # verify that package_data makes sense
+    for pkg, data in package_data.items():
+        pkg_root = pjoin(*pkg.split('.'))
+        for d in data:
+            path = pjoin(pkg_root, d)
+            if '*' in path:
+                assert len(glob(path)) > 0, "No files match pattern %s" % path
+            else:
+                assert os.path.exists(path), "Missing package data: %s" % path
+
     return package_data
 
 
@@ -215,10 +246,9 @@ def find_data_files():
     """
     Find IPython's data_files.
 
-    Most of these are docs.
+    Just man pages at this point.
     """
 
-    docdirbase  = pjoin('share', 'doc', 'ipython')
     manpagebase = pjoin('share', 'man', 'man1')
 
     # Simple file lists can be made by hand
@@ -227,24 +257,8 @@ def find_data_files():
         # When running from a source tree, the manpages aren't gzipped
         manpages = [f for f in glob(pjoin('docs','man','*.1')) if isfile(f)]
 
-    igridhelpfiles = [f for f in glob(pjoin('IPython','extensions','igrid_help.*')) if isfile(f)]
-
-    # For nested structures, use the utility above
-    example_files = make_dir_struct(
-        'data',
-        pjoin('docs','examples'),
-        pjoin(docdirbase,'examples')
-    )
-    manual_files = make_dir_struct(
-        'data',
-        pjoin('docs','html'),
-        pjoin(docdirbase,'manual')
-    )
-
     # And assemble the entire output list
-    data_files = [ (manpagebase, manpages),
-                   (pjoin(docdirbase, 'extensions'), igridhelpfiles),
-                   ] + manual_files + example_files
+    data_files = [ (manpagebase, manpages) ]
 
     return data_files
 
@@ -452,7 +466,8 @@ def check_for_dependencies():
     check_for_sphinx()
     check_for_pygments()
     check_for_nose()
-    check_for_pexpect()
+    if os.name == 'posix':
+        check_for_pexpect()
     check_for_pyzmq()
     check_for_tornado()
     check_for_readline()
@@ -554,6 +569,70 @@ def require_submodules(command):
                 sys.exit(1)
             command.run(self)
     return DecoratedCommand
+
+#---------------------------------------------------------------------------
+# bdist related
+#---------------------------------------------------------------------------
+
+def get_bdist_wheel():
+    """Construct bdist_wheel command for building wheels
+    
+    Constructs py2-none-any tag, instead of py2.7-none-any
+    """
+    class RequiresWheel(Command):
+        description = "Dummy command for missing bdist_wheel"
+        user_options = []
+
+        def initialize_options(self):
+            pass
+
+        def finalize_options(self):
+            pass
+
+        def run(self):
+            print("bdist_wheel requires the wheel package")
+            sys.exit(1)
+
+    if 'setuptools' not in sys.modules:
+        return RequiresWheel
+    else:
+        try:
+            from wheel.bdist_wheel import bdist_wheel, read_pkg_info, write_pkg_info
+        except ImportError:
+            return RequiresWheel
+        
+        class bdist_wheel_tag(bdist_wheel):
+
+            def get_tag(self):
+                return ('py%i' % sys.version_info[0], 'none', 'any')
+
+            def add_requirements(self, metadata_path):
+                """transform platform-dependent requirements"""
+                pkg_info = read_pkg_info(metadata_path)
+                # pkg_info is an email.Message object (?!)
+                # we have to remove the unconditional 'readline' and/or 'pyreadline' entries
+                # and transform them to conditionals
+                requires = pkg_info.get_all('Requires-Dist')
+                del pkg_info['Requires-Dist']
+                def _remove_startswith(lis, prefix):
+                    """like list.remove, but with startswith instead of =="""
+                    found = False
+                    for idx, item in enumerate(lis):
+                        if item.startswith(prefix):
+                            found = True
+                            break
+                    if found:
+                        lis.pop(idx)
+                
+                for pkg in ("readline", "pyreadline"):
+                    _remove_startswith(requires, pkg)
+                requires.append("readline; sys.platform == 'darwin'")
+                requires.append("pyreadline (>=2.0); sys.platform == 'win32'")
+                for r in requires:
+                    pkg_info['Requires-Dist'] = r
+                write_pkg_info(metadata_path, pkg_info)
+        
+        return bdist_wheel_tag
 
 #---------------------------------------------------------------------------
 # Notebook related
