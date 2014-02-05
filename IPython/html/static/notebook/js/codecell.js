@@ -17,18 +17,20 @@
 
 
 /* local util for codemirror */
-var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
+var posEq = function (a, b) {
+    "use strict";
+    return a.line === b.line && a.ch === b.ch;
+};
 
 /**
- *
  * function to delete until previous non blanking space character
  * or first multiple of 4 tabstop.
  * @private
  */
 CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
-    var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
+    var from = cm.getCursor(true), to = cm.getCursor(false);
     if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
-    var cur = cm.getCursor(), line = cm.getLine(cur.line);
+    var cur = cm.getCursor();
     var tabsize = cm.getOption('tabSize');
     var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
     from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
@@ -44,7 +46,6 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
 var IPython = (function (IPython) {
     "use strict";
 
-    var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
 
     /**
@@ -241,7 +242,7 @@ var IPython = (function (IPython) {
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
-        this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
@@ -502,7 +503,7 @@ var IPython = (function (IPython) {
             this.focus_editor();
         }
         return cont;
-    }
+    };
 
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};
@@ -542,7 +543,7 @@ var IPython = (function (IPython) {
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns;
-        if (prompt_value == undefined) {
+        if (prompt_value === undefined) {
             ns = "&nbsp;";
         } else {
             ns = encodeURIComponent(prompt_value);
