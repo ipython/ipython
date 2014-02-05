@@ -589,7 +589,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             for n in names:
                 self._add_notifiers(handler, n)
 
-    def on_change(self, name, handler=None):
+    def on_change(self, handler, name):
         """A simplified API for registering an on change handler.
         
         This method presents a simplified API for registering a handler

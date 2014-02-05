@@ -414,7 +414,7 @@ class TestHasTraitsNotify(TestCase):
         class A(HasTraits):
             a = Int
         a = A()
-        self.assertRaises(TraitError, a.on_change, 'a', 10)
+        self.assertRaises(TraitError, a.on_change, 10, 'a')
         self.assertRaises(TraitError, a.on_trait_change, 10, 'a')
         self.assertRaises(TraitError, a.on_trait_change, 10, 'a', remove=True)
 
@@ -422,13 +422,13 @@ class TestHasTraitsNotify(TestCase):
         class A(HasTraits):
             a = Int
         a = A()
-        a.on_change('a', self.notify3)
+        a.on_change(self.notify3, 'a')
         a.a = 10
         self.assertTrue(10 in self._notify3)
-        a.on_change('a', self.notify4)
+        a.on_change(self.notify4, 'a')
         a.a = 20
         self.assertTrue(40 in self._notify4)
-        a.on_change('a')
+        a.on_change(None, 'a')
         self._notify3 = []
         self._notify4 = []
         a.a = 10
