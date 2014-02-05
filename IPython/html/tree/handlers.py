@@ -19,7 +19,7 @@ import os
 
 from tornado import web
 from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
-from ..utils import url_path_join, path2url, url2path, url_escape
+from ..utils import url_path_join, path2url, url2path, url_escape, is_hidden
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -62,8 +62,8 @@ class TreeHandler(IPythonHandler):
             self.log.debug("Redirecting %s to %s", self.request.path, url)
             self.redirect(url)
         else:
-            if not nbm.path_exists(path=path):
-                # no such directory, 404
+            if not nbm.path_exists(path=path) or nbm.is_hidden(path):
+                # Directory is hidden or does not exist.
                 raise web.HTTPError(404)
             breadcrumbs = self.generate_breadcrumbs(path)
             page_title = self.generate_page_title(path)

@@ -11,10 +11,13 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
+
 import nose.tools as nt
 
 import IPython.testing.tools as tt
-from IPython.html.utils import url_escape, url_unescape
+from IPython.html.utils import url_escape, url_unescape, is_hidden
+from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -59,3 +62,14 @@ def test_url_unescape():
         '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
     nt.assert_equal(path, '/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
 
+def test_is_hidden():
+    with TemporaryDirectory() as root:
+        subdir1 = os.path.join(root, 'subdir')
+        os.makedirs(subdir1)
+        nt.assert_equal(is_hidden(root, subdir1), False)
+        subdir2 = os.path.join(root, '.subdir2')
+        os.makedirs(subdir2)
+        nt.assert_equal(is_hidden(root, subdir2), True)
+        subdir34 = os.path.join(root, 'subdir3', '.subdir4')
+        os.makedirs(subdir34)
+        nt.assert_equal(is_hidden(root, subdir34), True)

@@ -29,6 +29,7 @@ from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 from IPython.utils import tz
+from IPython.html.utils import is_hidden
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -108,7 +109,26 @@ class FileNotebookManager(NotebookManager):
         path = path.strip('/')
         os_path = self.get_os_path(path=path)
         return os.path.isdir(os_path)
-    
+
+    def is_hidden(self, path):
+        """Does the API style path correspond to a hidden directory or file?
+        
+        Parameters
+        ----------
+        path : string
+            The path to check. This is an API path (`/` separated,
+            relative to base notebook-dir).
+        
+        Returns
+        -------
+        exists : bool
+            Whether the path is hidden.
+        
+        """
+        path = path.strip('/')
+        os_path = self.get_os_path(path=path)
+        return is_hidden(self.notebook_dir, os_path)
+
     def get_os_path(self, name=None, path=''):
         """Given a notebook name and a URL path, return its file system
         path.
@@ -159,13 +179,13 @@ class FileNotebookManager(NotebookManager):
         """List the directories for a given API style path."""
         path = path.strip('/')
         os_path = self.get_os_path('', path)
-        if not os.path.isdir(os_path):
-            raise web.HTTPError(404, u'diretory does not exist: %r' % os_path)
+        if not os.path.isdir(os_path) or is_hidden(self.notebook_dir, os_path):
+            raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
         dir_names = os.listdir(os_path)
         dirs = []
         for name in dir_names:
             os_path = self.get_os_path(name, path)
-            if os.path.isdir(os_path) and not name.startswith('.'):
+            if os.path.isdir(os_path) and not is_hidden(self.notebook_dir, os_path):
                 try:
                     model = self.get_dir_model(name, path)
                 except IOError:

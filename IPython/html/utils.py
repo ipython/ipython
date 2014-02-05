@@ -12,13 +12,21 @@ Authors:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import os
+import stat
+
 try:
     from urllib.parse import quote, unquote
 except ImportError:
     from urllib import quote, unquote
 
 from IPython.utils import py3compat
+
+# UF_HIDDEN is a stat flag not defined in the stat module.
+# It is used by BSD to indicate hidden files.
+UF_HIDDEN = getattr(stat, 'UF_HIDDEN', 32768)
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -71,4 +79,29 @@ def url_unescape(path):
         py3compat.str_to_unicode(unquote(p))
         for p in py3compat.unicode_to_str(path).split('/')
     ])
+
+def is_hidden(absolute_root, absolute_path):
+    """Is a file is hidden or contained in a hidden directory.
+    
+    Hidden is determined by either name starting with '.' or the UF_HIDDEN
+    flag as reported by stat.
+    
+    Parameters
+    ----------
+    absolute_root : unicode
+    absolute_path : unicode
+    """
+    inside_root = absolute_path[len(absolute_root):]
+    if any(part.startswith('.') for part in inside_root.split(os.sep)):
+        return True
+    
+    # check UF_HIDDEN on any location up to root
+    path = absolute_path
+    while path and path.startswith(absolute_root) and path != absolute_root:
+        st = os.stat(path)
+        if getattr(st, 'st_flags', 0) & UF_HIDDEN:
+            return True
+        path = os.path.dirname(path)
+
+    return False
 
