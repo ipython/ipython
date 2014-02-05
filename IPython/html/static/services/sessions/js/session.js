@@ -14,13 +14,14 @@ var IPython = (function (IPython) {
     
     var utils = IPython.utils;
     
-    var Session = function(notebook_name, notebook_path, notebook){
+    var Session = function(notebook, options){
         this.kernel = null;
         this.id = null;
-        this.name = notebook_name;
-        this.path = notebook_path;
         this.notebook = notebook;
-        this._baseProjectUrl = notebook.baseProjectUrl();
+        this.name = notebook.notebook_name;
+        this.path = notebook.notebook_path;
+        this.base_project_url = notebook.base_project_url;
+        this.base_kernel_url = options.base_kernel_url || utils.get_data("baseKernelUrl");
     };
     
     Session.prototype.start = function(callback) {
@@ -44,7 +45,7 @@ var IPython = (function (IPython) {
                 }
             },
         };
-        var url = utils.url_join_encode(this._baseProjectUrl, 'api/sessions');
+        var url = utils.url_join_encode(this.base_project_url, 'api/sessions');
         $.ajax(url, settings);
     };
     
@@ -64,7 +65,7 @@ var IPython = (function (IPython) {
             data: JSON.stringify(model),
             dataType : "json",
         };
-        var url = utils.url_join_encode(this._baseProjectUrl, 'api/sessions', this.id);
+        var url = utils.url_join_encode(this.base_project_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     
@@ -76,7 +77,7 @@ var IPython = (function (IPython) {
             dataType : "json",
         };
         this.kernel.running = false;
-        var url = utils.url_join_encode(this._baseProjectUrl, 'api/sessions', this.id);
+        var url = utils.url_join_encode(this.base_project_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     
@@ -88,7 +89,7 @@ var IPython = (function (IPython) {
      */
     Session.prototype._handle_start_success = function (data, status, xhr) {
         this.id = data.id;
-        var base_url = utils.url_path_join($('body').data('baseKernelUrl'), "api/kernels");
+        var base_url = utils.url_join_encode(this.base_kernel_url, "api/kernels");
         this.kernel = new IPython.Kernel(base_url);
         this.kernel._kernel_started(data.kernel);
     };

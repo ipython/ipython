@@ -14,7 +14,7 @@ var IPython = (function (IPython) {
     
     var utils = IPython.utils;
 
-    var NotebookList = function (selector) {
+    var NotebookList = function (selector, options) {
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -23,16 +23,10 @@ var IPython = (function (IPython) {
         }
         this.notebooks_list = [];
         this.sessions = {};
+        this.base_project_url = options.base_project_url || utils.get_data("baseProjectUrl");
+        this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
     };
 
-    NotebookList.prototype.baseProjectUrl = function () {
-        return $('body').data('baseProjectUrl');
-    };
-
-    NotebookList.prototype.notebookPath = function() {
-        return $('body').data('notebookPath');
-    };
-    
     NotebookList.prototype.style = function () {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
@@ -112,7 +106,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(that.sessions_loaded, this)
         };
-        var url = this.baseProjectUrl() + 'api/sessions';
+        var url = utils.url_join_encode(this.base_project_url, 'api/sessions');
         $.ajax(url,settings);
     };
 
@@ -152,10 +146,10 @@ var IPython = (function (IPython) {
         };
 
         var url = utils.url_join_encode(
-                this.baseProjectUrl(),
+                this.base_project_url,
                 'api',
                 'notebooks',
-                this.notebookPath()
+                this.notebook_path
         );
         $.ajax(url, settings);
     };
@@ -175,7 +169,7 @@ var IPython = (function (IPython) {
             span12.empty();
             span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message));
         }
-        var path = this.notebookPath();
+        var path = this.notebook_path;
         var offset = 0;
         if (path !== '') {
             item = this.new_notebook_item(0);
@@ -233,7 +227,7 @@ var IPython = (function (IPython) {
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
-                    this.baseProjectUrl(),
+                    this.base_project_url,
                     "tree",
                     path,
                     name
@@ -250,7 +244,7 @@ var IPython = (function (IPython) {
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
-                    this.baseProjectUrl(),
+                    this.base_project_url,
                     "notebooks",
                     path,
                     nbname
@@ -291,7 +285,7 @@ var IPython = (function (IPython) {
                     }
                 };
                 var url = utils.url_join_encode(
-                    that.baseProjectUrl(),
+                    that.base_project_url,
                     'api/sessions',
                     session
                 );
@@ -331,9 +325,9 @@ var IPython = (function (IPython) {
                                     }
                                 };
                                 var url = utils.url_join_encode(
-                                    notebooklist.baseProjectUrl(),
+                                    notebooklist.base_project_url,
                                     'api/notebooks',
-                                    notebooklist.notebookPath(),
+                                    notebooklist.notebook_path,
                                     nbname
                                 );
                                 $.ajax(url, settings);
@@ -357,7 +351,7 @@ var IPython = (function (IPython) {
                 if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {
                     nbname = nbname + ".ipynb";
                 }
-                var path = that.notebookPath();
+                var path = that.notebook_path;
                 var nbdata = item.data('nbdata');
                 var content_type = 'application/json';
                 var model = {
@@ -380,9 +374,9 @@ var IPython = (function (IPython) {
                 };
 
                 var url = utils.url_join_encode(
-                    that.baseProjectUrl(),
+                    that.base_project_url,
                     'api/notebooks',
-                    that.notebookPath(),
+                    that.notebook_path,
                     nbname
                 );
                 $.ajax(url, settings);
@@ -402,8 +396,8 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook = function(){
-        var path = this.notebookPath();
-        var base_project_url = this.baseProjectUrl();
+        var path = this.notebook_path;
+        var base_project_url = this.base_project_url;
         var settings = {
             processData : false,
             cache : false,

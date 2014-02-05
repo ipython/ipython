@@ -30,16 +30,14 @@ var IPython = (function (IPython) {
      *
      * @param selector {string} selector for the menubar element in DOM
      * @param {object} [options]
-     *      @param [options.baseProjectUrl] {String} String to use for the
-     *      Base Project url, default would be to inspect
+     *      @param [options.base_project_url] {String} String to use for the
+     *      base project url. Default is to inspect
      *      $('body').data('baseProjectUrl');
      *      does not support change for now is set through this option
      */
     var MenuBar = function (selector, options) {
         options = options || {};
-        if (options.baseProjectUrl !== undefined) {
-            this._baseProjectUrl = options.baseProjectUrl;
-        }
+        this.base_project_url = options.base_project_url || IPython.utils.get_data("baseProjectUrl");
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -48,16 +46,6 @@ var IPython = (function (IPython) {
         }
     };
 
-    MenuBar.prototype.baseProjectUrl = function(){
-        return this._baseProjectUrl || $('body').data('baseProjectUrl');
-    };
-
-    MenuBar.prototype.notebookPath = function() {
-        var path = $('body').data('notebookPath');
-        path = decodeURIComponent(path);
-        return path;
-    };
-    
     MenuBar.prototype.style = function () {
         this.element.addClass('border-box-sizing');
         this.element.find("li").click(function (event, ui) {
@@ -75,16 +63,16 @@ var IPython = (function (IPython) {
         if (IPython.notebook.dirty) {
             IPython.notebook.save_notebook({async : false});
         }
-        var url = utils.url_path_join(
-            this.baseProjectUrl(),
+        var url = utils.url_join_encode(
+            this.base_project_url,
             'nbconvert',
             format,
-            this.notebookPath(),
+            this.notebook_path,
             notebook_name + '.ipynb'
         ) + "?download=" + download.toString();
 
         window.open(url);
-    }
+    };
 
     MenuBar.prototype.bind_events = function () {
         //  File
@@ -94,9 +82,9 @@ var IPython = (function (IPython) {
         });
         this.element.find('#open_notebook').click(function () {
             window.open(utils.url_join_encode(
-                that.baseProjectUrl(),
+                IPython.notebook.base_url,
                 'tree',
-                that.notebookPath()
+                IPython.notebook.notebook_path
             ));
         });
         this.element.find('#copy_notebook').click(function () {
@@ -104,15 +92,17 @@ var IPython = (function (IPython) {
             return false;
         });
         this.element.find('#download_ipynb').click(function () {
-            var notebook_name = IPython.notebook.get_notebook_name();
+            var base_url = IPython.notebook.base_url;
+            var notebook_path = IPython.notebook.notebook_path;
+            var notebook_name = IPython.notebook.notebook_name;
             if (IPython.notebook.dirty) {
                 IPython.notebook.save_notebook({async : false});
             }
             
             var url = utils.url_join_encode(
-                that.baseProjectUrl(),
+                base_url,
                 'files',
-                that.notebookPath(),
+                notebook_path,
                 notebook_name + '.ipynb'
             );
             window.location.assign(url);

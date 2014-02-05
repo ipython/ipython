@@ -8,7 +8,6 @@
 //============================================================================
 // On document ready
 //============================================================================
-"use strict";
 
 // for the time beeing, we have to pass marked as a parameter here,
 // as injecting require.js make marked not to put itself in the globals,
@@ -18,28 +17,28 @@ require(['components/marked/lib/marked',
          'notebook/js/widgets/init'],
 
 function (marked) {
+    "use strict";
 
-    window.marked = marked
+    window.marked = marked;
 
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
     // see https://github.com/marijnh/CodeMirror2/issues/670
-    if(CodeMirror.getMode(1,'text/plain').indent == undefined ){
+    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
         console.log('patching CM for undefined indent');
         CodeMirror.modes.null = function() {
-            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0}}
-        }
+            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
+        };
     }
 
     CodeMirror.patchedGetMode = function(config, mode){
             var cmmode = CodeMirror.getMode(config, mode);
-            if(cmmode.indent == null)
-            {
+            if(cmmode.indent === null) {
                 console.log('patch mode "' , mode, '" on the fly');
-                cmmode.indent = function(){return 0};
+                cmmode.indent = function(){return 0;};
             }
             return cmmode;
-        }
+        };
     // end monkey patching CodeMirror
 
     IPython.mathjaxutils.init();
@@ -47,35 +46,32 @@ function (marked) {
     $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
 
-    var baseProjectUrl = $('body').data('baseProjectUrl');
-    var notebookPath = $('body').data('notebookPath');
-    var notebookName = $('body').data('notebookName');
-    notebookName = decodeURIComponent(notebookName);
-    notebookPath = decodeURIComponent(notebookPath);
-    console.log(notebookName);
-    if (notebookPath == 'None'){
-        notebookPath = "";
-    }
+    var opts = {
+        base_project_url : IPython.utils.get_data("baseProjectUrl"),
+        base_kernel_url : IPython.utils.get_data("baseKernelUrl"),
+        notebook_path : IPython.utils.get_data("notebookPath"),
+        notebook_name : IPython.utils.get_data('notebookName')
+    };
 
     IPython.page = new IPython.Page();
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp();
-    IPython.login_widget = new IPython.LoginWidget('span#login_widget',{baseProjectUrl:baseProjectUrl});
-    IPython.notebook = new IPython.Notebook('div#notebook',{baseProjectUrl:baseProjectUrl, notebookPath:notebookPath, notebookName:notebookName});
+    IPython.login_widget = new IPython.LoginWidget('span#login_widget', opts);
+    IPython.notebook = new IPython.Notebook('div#notebook', opts);
     IPython.keyboard_manager = new IPython.KeyboardManager();
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
-    IPython.menubar = new IPython.MenuBar('#menubar',{baseProjectUrl:baseProjectUrl, notebookPath: notebookPath})
-    IPython.toolbar = new IPython.MainToolBar('#maintoolbar-container')
-    IPython.tooltip = new IPython.Tooltip()
-    IPython.notification_area = new IPython.NotificationArea('#notification_area')
+    IPython.menubar = new IPython.MenuBar('#menubar', opts);
+    IPython.toolbar = new IPython.MainToolBar('#maintoolbar-container');
+    IPython.tooltip = new IPython.Tooltip();
+    IPython.notification_area = new IPython.NotificationArea('#notification_area');
     IPython.notification_area.init_notification_widgets();
 
     IPython.layout_manager.do_resize();
 
     $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
                      '<span id="test2" style="font-weight: bold;">x</span>'+
-                     '<span id="test3" style="font-style: italic;">x</span></pre></div>')
+                     '<span id="test3" style="font-style: italic;">x</span></pre></div>');
     var nh = $('#test1').innerHeight();
     var bh = $('#test2').innerHeight();
     var ih = $('#test3').innerHeight();
@@ -101,7 +97,7 @@ function (marked) {
     
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     $([IPython.events]).trigger('app_initialized.NotebookApp');
-    IPython.notebook.load_notebook(notebookName, notebookPath);
+    IPython.notebook.load_notebook(opts.notebook_name, opts.notebook_path);
 
     if (marked) {
         marked.setOptions({
@@ -121,8 +117,6 @@ function (marked) {
                 }
                 return highlighted.value;
             }
-        })
+        });
     }
-}
-
-);
+});

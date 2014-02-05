@@ -14,17 +14,17 @@ var IPython = (function (IPython) {
     
     var utils = IPython.utils;
 
-    var ClusterList = function (selector) {
+    var ClusterList = function (selector, options) {
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
             this.bind_events();
         }
-    };
-
-    ClusterList.prototype.baseProjectUrl = function(){
-        return this._baseProjectUrl || $('body').data('baseProjectUrl');
+        options = options || {};
+        this.options = options;
+        this.base_project_url = options.base_project_url || utils.get_data("baseProjectUrl");
+        this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
     };
 
     ClusterList.prototype.style = function () {
@@ -51,7 +51,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.load_list_success, this)
         };
-        var url = utils.url_join_encode(this.baseProjectUrl(), 'clusters');
+        var url = utils.url_join_encode(this.base_project_url, 'clusters');
         $.ajax(url, settings);
     };
 
@@ -65,7 +65,7 @@ var IPython = (function (IPython) {
         var len = data.length;
         for (var i=0; i<len; i++) {
             var element = $('<div/>');
-            var item = new ClusterItem(element);
+            var item = new ClusterItem(element, this.options);
             item.update_state(data[i]);
             element.data('item', item);
             this.element.append(element);
@@ -73,16 +73,13 @@ var IPython = (function (IPython) {
     };
 
 
-    var ClusterItem = function (element) {
+    var ClusterItem = function (element, options) {
         this.element = $(element);
+        this.base_project_url = options.base_project_url || utils.get_data("baseProjectUrl");
+        this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
         this.data = null;
         this.style();
     };
-
-    ClusterItem.prototype.baseProjectUrl = function(){
-        return this._baseProjectUrl || $('body').data('baseProjectUrl');
-    };
-
 
     ClusterItem.prototype.style = function () {
         this.element.addClass('list_item').addClass("row-fluid");
@@ -138,7 +135,7 @@ var IPython = (function (IPython) {
                 };
                 status_col.text('starting');
                 var url = utils.url_join_encode(
-                    that.baseProjectUrl(),
+                    that.base_project_url,
                     'clusters',
                     that.data.profile,
                     'start'
@@ -180,7 +177,7 @@ var IPython = (function (IPython) {
             };
             status_col.text('stopping');
             var url = utils.url_join_encode(
-                that.baseProjectUrl(),
+                that.base_project_url,
                 'clusters',
                 that.data.profile,
                 'stop'
