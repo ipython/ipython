@@ -42,13 +42,13 @@ class FilesTest(NotebookTestBase):
             r.raise_for_status()
             self.assertEqual(r.text, 'foo')
             r = requests.get(url_path_join(url, 'files', d, '.foo'))
-            self.assertEqual(r.status_code, 403)
+            self.assertEqual(r.status_code, 404)
             
         for d in hidden:
             path = pjoin(nbdir, d.replace('/', os.sep))
             for foo in ('foo', '.foo'):
                 r = requests.get(url_path_join(url, 'files', d, foo))
-                self.assertEqual(r.status_code, 403)
+                self.assertEqual(r.status_code, 404)
     
     def test_old_files_redirect(self):
         """pre-2.0 'files/' prefixed links are properly redirected"""
