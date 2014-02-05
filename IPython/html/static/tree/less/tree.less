@@ -11,6 +11,7 @@
 // are not less variables so we have to track them statically.
 @btn_small_height: 26px;
 @btn_mini_height: 22px;
+@dark_dashboard_color: darken(@border_color, 30%);
 
 ul#tabs {
     margin-bottom: @dashboard_tb_pad;
@@ -19,6 +20,20 @@ ul#tabs {
 ul#tabs a {
     padding-top: @dashboard_tb_pad;
     padding-bottom: @dashboard_tb_pad;
+}
+
+ul.breadcrumb {
+    a:focus, a:hover {
+        text-decoration: none;
+    }
+    i.icon-home {
+        font-size: 16px;
+        margin-right: 4px;
+    }
+    
+    span {
+        color: @dark_dashboard_color;
+    }
 }
 
 .list_toolbar {
@@ -74,7 +89,7 @@ ul#tabs a {
 
 .item_icon {
     font-size: 14px; 
-    color: darken(@border_color, 30%);
+    color: @dark_dashboard_color;
     margin-right: @dashboard_lr_pad;
 }
 

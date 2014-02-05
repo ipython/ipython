@@ -31,6 +31,9 @@ div.traceback-wrapper{text-align:left;max-width:800px;margin:auto}
 .alternate_upload input.fileinput{background-color:#f00;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;height:26px}
 ul#tabs{margin-bottom:4px}
 ul#tabs a{padding-top:4px;padding-bottom:4px}
+ul.breadcrumb a:focus,ul.breadcrumb a:hover{text-decoration:none}
+ul.breadcrumb i.icon-home{font-size:16px;margin-right:4px}
+ul.breadcrumb span{color:#5e5e5e}
 .list_toolbar{padding:4px 0 4px 0}
 .list_toolbar [class*="span"]{min-height:26px}
 .list_header{font-weight:bold}

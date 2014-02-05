@@ -51,7 +51,7 @@ data-base-kernel-url="{{base_kernel_url}}"
           <div id="notebook_list_header" class="row-fluid list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
-                    <li><span><a href="{{breadcrumbs[0][0]}}">/</a></span></li>
+                    <li><a href="{{breadcrumbs[0][0]}}"><i class="icon-home"></i></a><span>/</span></li>
                     {% for crumb in breadcrumbs[1:] %}
                         <li><a href="{{crumb[0]}}">{{crumb[1]}}</a> <span>/</span></li>
                     {% endfor %}
