@@ -18,9 +18,12 @@ casper.test_items = function (baseUrl) {
             if (!item.label.match('.ipynb$')) {
                 var followed_url = baseUrl+item.link;
                 if (!followed_url.match('/\.\.$')) {
-                    casper.thenOpen(baseUrl+item.link, function () {
+                    casper.thenOpen(followed_url, function () {
                         casper.wait_for_dashboard();
-                        this.test.assertEquals(this.getCurrentUrl(), followed_url, 'Testing dashboard link: '+followed_url);
+                        // getCurrentUrl is with host, and url-decoded,
+                        // but item.link is without host, and url-encoded
+                        var expected = baseUrl + decodeURIComponent(item.link);
+                        this.test.assertEquals(this.getCurrentUrl(), expected, 'Testing dashboard link: ' + expected);
                         casper.test_items(baseUrl);
                         this.back();
                     });
@@ -31,7 +34,7 @@ casper.test_items = function (baseUrl) {
 }
 
 casper.dashboard_test(function () {
-    baseUrl = this.get_notebook_server()
+    baseUrl = this.get_notebook_server();
     casper.test_items(baseUrl);
 })
 
