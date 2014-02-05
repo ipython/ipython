@@ -39,6 +39,18 @@ class TreeHandler(IPythonHandler):
                 breadcrumbs.append((link, comps[i]))
         return breadcrumbs
 
+    def generate_page_title(self, path):
+        comps = path.split('/')
+        if len(comps) > 3:
+            for i in range(len(comps)-2):
+                comps.pop(0)
+            comps.insert(0, '...')
+        page_title = url_escape(url_path_join(*comps))
+        if page_title:
+            return '/'+page_title+'/'
+        else:
+            return '/'
+
     @web.authenticated
     def get(self, path='', name=None):
         path = path.strip('/')
@@ -55,9 +67,10 @@ class TreeHandler(IPythonHandler):
                 # no such directory, 404
                 raise web.HTTPError(404)
             breadcrumbs = self.generate_breadcrumbs(path)
+            page_title = self.generate_page_title(path)
             self.write(self.render_template('tree.html',
                 project=self.project_dir,
-                tree_url_path=path,
+                page_title=page_title,
                 notebook_path=path,
                 breadcrumbs=breadcrumbs
             ))
