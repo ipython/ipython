@@ -491,12 +491,18 @@ var IPython = (function (IPython) {
             if ((json[type] !== undefined) && append) {
                 if (!this.trusted && !OutputArea.safe_outputs[type]) {
                     // not trusted show warning and do not display
-                    var content = {
-                        text : "Untrusted " + type + " output ignored.",
-                        stream : "stderr"
+                    var is_safe = false;
+                    if (type==='text/html' || type==='text/svg') {
+                        is_safe = IPython.security.is_safe(json[type]);
                     }
-                    this.append_stream(content);
-                    continue;
+                    if (!is_safe) {
+                        var content = {
+                            text : "Untrusted " + type + " output ignored.",
+                            stream : "stderr"
+                        }
+                        this.append_stream(content);
+                        continue;
+                    }
                 }
                 var md = json.metadata || {};
                 var toinsert = append.apply(this, [json[type], md, element]);
