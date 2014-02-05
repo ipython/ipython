@@ -210,6 +210,15 @@ function(WidgetManager, _, Backbone){
             // Replace models with model ids recursively.
             if (value instanceof Backbone.Model) {
                 return value.id;
+
+            } else if ($.isArray(value)) {
+                var packed = [];
+                var that = this;
+                _.each(value, function(sub_value, key) {
+                    packed.push(that._pack_models(sub_value));
+                });
+                return packed;
+
             } else if (value instanceof Object) {
                 var packed = {};
                 var that = this;
@@ -217,6 +226,7 @@ function(WidgetManager, _, Backbone){
                     packed[key] = that._pack_models(sub_value);
                 });
                 return packed;
+
             } else {
                 return value;
             }
@@ -224,13 +234,22 @@ function(WidgetManager, _, Backbone){
 
         _unpack_models: function(value) {
             // Replace model ids with models recursively.
-            if (value instanceof Object) {
+            if ($.isArray(value)) {
+                var unpacked = [];
+                var that = this;
+                _.each(value, function(sub_value, key) {
+                    unpacked.push(that._unpack_models(sub_value));
+                });
+                return unpacked;
+
+            } else if (value instanceof Object) {
                 var unpacked = {};
                 var that = this;
                 _.each(value, function(sub_value, key) {
                     unpacked[key] = that._unpack_models(sub_value);
                 });
                 return unpacked;
+
             } else {
                 var model = this.widget_manager.get_model(value);
                 if (model) {

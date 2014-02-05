@@ -1,3 +1,33 @@
+var xor = function (a, b) {return !a ^ !b;}; 
+var isArray = function (a) {return toString.call(a) === "[object Array]" || toString.call(a) === "[object RuntimeArray]";};
+var recursive_compare = function(a, b) {
+    // Recursively compare two objects.
+    var same = true;
+    same = same && !xor(a instanceof Object, b instanceof Object);
+    same = same && !xor(isArray(a), isArray(b));
+
+    if (same) {
+        if (a instanceof Object) {
+            for (var key in a) {
+                if (a.hasOwnProperty(key) && !recursive_compare(a[key], b[key])) {
+                    same = false;
+                    break;
+                }
+            }
+            for (var key in b) {
+                if (b.hasOwnProperty(key) && !recursive_compare(a[key], b[key])) {
+                    same = false;
+                    break;
+                }
+            }
+        } else {
+            return a === b;
+        }    
+    }
+    
+    return same;
+}
+
 // Test the widget framework.
 casper.notebook_test(function () {
     var index;
@@ -21,6 +51,43 @@ casper.notebook_test(function () {
         this.test.assert(this.evaluate(function() {
             return IPython.notebook.kernel.widget_manager !== undefined; 
         }), 'Notebook widget manager instantiated');
+
+        // Functions that can be used to test the packing and unpacking APIs
+        var that = this;
+        var test_pack = function (input) {
+            var output = that.evaluate(function(input) {
+                var model = new IPython.WidgetModel(IPython.notebook.kernel.widget_manager, undefined);
+                var results = model._pack_models(input);
+                delete model;
+                return results;
+            }, {input: input});
+            that.test.assert(recursive_compare(input, output), 
+                JSON.stringify(input) + ' passed through Model._pack_model unchanged');
+        };
+        var test_unpack = function (input) {
+            var output = that.evaluate(function(input) {
+                var model = new IPython.WidgetModel(IPython.notebook.kernel.widget_manager, undefined);
+                var results = model._unpack_models(input);
+                delete model;
+                return results;
+            }, {input: input});
+            that.test.assert(recursive_compare(input, output), 
+                JSON.stringify(input) + ' passed through Model._unpack_model unchanged');
+        };
+        var test_packing = function(input) {
+            test_pack(input);
+            test_unpack(input);
+        };
+        
+        test_packing({0: 'hi', 1: 'bye'})
+        test_packing(['hi', 'bye'])
+        test_packing(['hi', 5])
+        test_packing(['hi', '5'])
+        test_packing([1.0, 0])
+        test_packing([1.0, false])
+        test_packing([1, false])
+        test_packing([1, false, {a: 'hi'}])
+        test_packing([1, false, ['hi']])
     });
 
     var textbox = {};
