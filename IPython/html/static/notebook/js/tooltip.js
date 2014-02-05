@@ -369,8 +369,10 @@ var IPython = (function (IPython) {
         this._hidden = false;
         this.text.children().remove();
 
+        // TODO: SCRUB
         var pre = $('<pre/>').html(utils.fixConsole(docstring)); // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...) CALL!
         if (defstring) {
+            // TODO: SCRUB
             var defstring_html = $('<pre/>').html(utils.fixConsole(defstring)); // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...) CALL!
             this.text.append(defstring_html);
         }

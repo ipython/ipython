@@ -349,7 +349,7 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
 
-            // TODO: The following code takes user input and creates HTML.  This
+            // The following code takes user input and creates HTML.  This
             // operation has the potential to produce unsafe HTML and should
             // be scrubbed...
             var html = marked.parser(marked.lexer(text));
@@ -358,6 +358,7 @@ var IPython = (function (IPython) {
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             var rendered = this.element.find('div.text_cell_render');
             try {
+                // TODO: SCRUB
                 rendered.html(html); // CAUTION! html(...) CALL MANDITORY!!!
             } catch (e) {
                 console.log("Error running Javascript in Markdown:");
@@ -530,7 +531,7 @@ var IPython = (function (IPython) {
             math = text_and_math[1];
 
 
-            // TODO: The following code takes user input and creates HTML.  This
+            // The following code takes user input and creates HTML.  This
             // operation has the potential to produce unsafe HTML and should
             // be scrubbed...
             var html = marked.parser(marked.lexer(text));
@@ -546,6 +547,7 @@ var IPython = (function (IPython) {
             );
             
             var rendered = this.element.find("div.text_cell_render");
+            // TODO: SCRUB
             rendered.html(h); // CAUTION! .html(...) CALL MANDITORY!!!
             this.typeset();
 

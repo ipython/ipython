@@ -546,6 +546,8 @@ var IPython = (function (IPython) {
         if (extra_class){
             toinsert.addClass(extra_class);
         }
+
+        // TODO: SCRUB
         toinsert.append($("<pre/>").html(data)); // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...) CALL
         element.append(toinsert);
         return toinsert;

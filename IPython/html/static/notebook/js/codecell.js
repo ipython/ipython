@@ -466,8 +466,7 @@ var IPython = (function (IPython) {
         var prompt_text = CodeCell.input_prompt_function(this.input_prompt_number, nline);
         var prompt = this.element.find('div.input_prompt');
         prompt.text(prompt_text);
-        prompt.html(prompt.html().replace(/\n/g,'<br/>')); /* CAUTION! .html(...)
-         CALL IS REQUIRED HERE TO CONVERT NEW LINES TO BR ELEMENTS */
+        prompt.html(prompt.html().replace(/\n/g,'<br/>')); // CAUTION! .html(...) CALL IS REQUIRED HERE TO CONVERT NEW LINES TO BR ELEMENTS
     };
 
     CodeCell.prototype.clear_input = function () {
