@@ -44,12 +44,11 @@ class TreeHandler(IPythonHandler):
         if len(comps) > 3:
             for i in range(len(comps)-2):
                 comps.pop(0)
-            comps.insert(0, '...')
         page_title = url_escape(url_path_join(*comps))
         if page_title:
-            return '/'+page_title+'/'
+            return page_title+'/'
         else:
-            return '/'
+            return 'Home'
 
     @web.authenticated
     def get(self, path='', name=None):
