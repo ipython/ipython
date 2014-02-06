@@ -1802,7 +1802,10 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.rename = function (nbname) {
         var that = this;
-        var data = {name: nbname + '.ipynb'};
+        if (!nbname.match(/\.ipynb$/)) {
+            nbname = nbname + ".ipynb";
+        }
+        var data = {name: nbname};
         var settings = {
             processData : false,
             cache : false,
