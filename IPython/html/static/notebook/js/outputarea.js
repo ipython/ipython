@@ -443,6 +443,8 @@ var IPython = (function (IPython) {
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
                 var pre = this.element.find('div.'+subclass).last().find('pre');
+                
+                // TODO: SCRUB
                 var html = utils.fixCarriageReturn(
                     pre.html() + utils.fixConsole(text)); // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...)
                 pre.html(html); // CAUTION! html(...) CALL MANDITORY!!!
