@@ -235,10 +235,10 @@ var IPython = (function (IPython) {
     /**
      * setter :{{#crossLink "TextCell/set_rendered"}}{{/crossLink}}
      * @method get_rendered
-     * @return {text} text of rendered element
+     * @return {html} html of rendered element
      * */
     TextCell.prototype.get_rendered = function() {
-        return this.element.find('div.text_cell_render').text(); 
+        return this.element.find('div.text_cell_render').html(); // HTML return- safe
     };
 
     /**
@@ -514,7 +514,7 @@ var IPython = (function (IPython) {
 
     HeadingCell.prototype.get_rendered = function () {
         var r = this.element.find("div.text_cell_render");
-        return r.children().first().text(); 
+        return r.children().first().html(); // HTML return- safe.
     };
 
     HeadingCell.prototype.render = function () {
