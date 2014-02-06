@@ -1502,8 +1502,9 @@ p{margin-bottom:0}
 i.menu-icon{padding-top:4px}
 ul#help_menu li a{overflow:hidden;padding-right:2.2em}ul#help_menu li a i{margin-right:-1.2em}
 #notification_area{z-index:10}
+.indicator_area{color:#777;padding:4px 3px;margin:0;width:11px;z-index:10}
+#kernel_indicator{margin-right:-16px}
 .notification_widget{color:#777;padding:1px 12px;margin:2px 4px;z-index:10;border:1px solid #ccc;border-radius:4px;background:rgba(240,240,240,0.5)}.notification_widget.span{padding-right:2px}
-#indicator_area{color:#777;padding:2px 2px;margin:2px -9px 2px 4px;z-index:10}
 div#pager_splitter{height:8px}
 #pager-container{position:relative;padding:15px 0}
 div#pager{overflow:auto;display:none}div#pager pre{font-size:13px;line-height:1.231em;color:#000;background-color:#f7f7f7;padding:.4em}
