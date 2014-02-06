@@ -11,10 +11,6 @@ You start IPython with the command::
 
     $ ipython [options] files
 
-.. note::
-
-  For IPython on Python 3, use ``ipython3`` in place of ``ipython``.
-
 If invoked with no options, it executes all the files listed in sequence
 and drops you into the interpreter while still acknowledging any options
 you may have set in your ipython_config.py. This behavior is different from
@@ -24,12 +20,11 @@ file and ignore your configuration setup.
 Please note that some of the configuration options are not available at
 the command line, simply because they are not practical here. Look into
 your configuration files for details on those. There are separate configuration 
-files for each profile, and the files look like "ipython_config.py" or 
-"ipython_config_<frontendname>.py".  Profile directories look like 
-"profile_profilename" and are typically installed in the IPYTHONDIR directory,
+files for each profile, and the files look like :file:`ipython_config.py` or
+:file:`ipython_config_{frontendname}.py`.  Profile directories look like
+:file:`profile_{profilename}` and are typically installed in the :envvar:`IPYTHONDIR` directory,
 which defaults to :file:`$HOME/.ipython`. For Windows users, :envvar:`HOME`
-resolves to :file:`C:\\Documents and Settings\\YourUserName` in most
-instances.
+resolves to :file:`C:\\Users\\{YourUserName}` in most instances.
 
 
 Eventloop integration
@@ -164,6 +159,8 @@ An example (with automagic on) should clarify all this:
     In [6]: cd ipython
 
     /home/fperez/ipython
+
+.. _defining_magics:
 
 Defining your own magics
 ++++++++++++++++++++++++
