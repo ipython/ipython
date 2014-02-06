@@ -107,7 +107,7 @@ def _widget_abbrev(o):
 
 def _widget_from_abbrev(abbrev):
     """Build a Widget intstance given an abbreviation or Widget."""
-    if isinstance(abbrev, Widget) or isinstance(abbrev, const):
+    if isinstance(abbrev, Widget) or isinstance(abbrev, fixed):
         return abbrev
     
     widget = _widget_abbrev(abbrev)
@@ -190,7 +190,7 @@ def interactive(__interact_f, **kwargs):
     kwargs_widgets.extend(_widgets_from_abbreviations(sorted(kwargs.items(), key = lambda x: x[0])))
 
     # This has to be done as an assignment, not using container.children.append,
-    # so that traitlets notices the update. We skip any objects (such as const) that
+    # so that traitlets notices the update. We skip any objects (such as fixed) that
     # are not DOMWidgets.
     c = [w for w in kwargs_widgets if isinstance(w, DOMWidget)]
     container.children = c
@@ -240,9 +240,9 @@ def interact(__interact_f=None, **kwargs):
             return f
         return dec
 
-class const(HasTraits):
-    """A pseudo-widget whose value is constant and never client synced."""
+class fixed(HasTraits):
+    """A pseudo-widget whose value is fixed and never synced to the client."""
     value = Any(help="Any Python object")
     description = Unicode('', help="Any Python object")
     def __init__(self, value, **kwargs):
-        super(const, self).__init__(value=value, **kwargs)
+        super(fixed, self).__init__(value=value, **kwargs)
