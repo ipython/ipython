@@ -128,6 +128,12 @@ class InProcessShellChannel(InProcessChannel):
         # FIXME: What to do here?
         raise NotImplementedError('Cannot shutdown in-process kernel')
 
+    def kernel_info(self):
+        """Request kernel info."""
+        msg = self.client.session.msg('kernel_info_request')
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
+
     #--------------------------------------------------------------------------
     # Protected interface
     #--------------------------------------------------------------------------
