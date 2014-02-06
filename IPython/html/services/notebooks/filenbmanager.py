@@ -29,6 +29,7 @@ from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 from IPython.utils import tz
+from IPython.html.utils import is_hidden
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -108,7 +109,26 @@ class FileNotebookManager(NotebookManager):
         path = path.strip('/')
         os_path = self.get_os_path(path=path)
         return os.path.isdir(os_path)
-    
+
+    def is_hidden(self, path):
+        """Does the API style path correspond to a hidden directory or file?
+        
+        Parameters
+        ----------
+        path : string
+            The path to check. This is an API path (`/` separated,
+            relative to base notebook-dir).
+        
+        Returns
+        -------
+        exists : bool
+            Whether the path is hidden.
+        
+        """
+        path = path.strip('/')
+        os_path = self.get_os_path(path=path)
+        return is_hidden(os_path, self.notebook_dir)
+
     def get_os_path(self, name=None, path=''):
         """Given a notebook name and a URL path, return its file system
         path.
@@ -153,6 +173,47 @@ class FileNotebookManager(NotebookManager):
         nbpath = self.get_os_path(name, path=path)
         return os.path.isfile(nbpath)
 
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
+    def list_dirs(self, path):
+        """List the directories for a given API style path."""
+        path = path.strip('/')
+        os_path = self.get_os_path('', path)
+        if not os.path.isdir(os_path) or is_hidden(os_path, self.notebook_dir):
+            raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
+        dir_names = os.listdir(os_path)
+        dirs = []
+        for name in dir_names:
+            os_path = self.get_os_path(name, path)
+            if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir):
+                try:
+                    model = self.get_dir_model(name, path)
+                except IOError:
+                    pass
+                dirs.append(model)
+        dirs = sorted(dirs, key=lambda item: item['name'])
+        return dirs
+
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
+    def get_dir_model(self, name, path=''):
+        """Get the directory model given a directory name and its API style path"""
+        path = path.strip('/')
+        os_path = self.get_os_path(name, path)
+        if not os.path.isdir(os_path):
+            raise IOError('directory does not exist: %r' % os_path)
+        info = os.stat(os_path)
+        last_modified = tz.utcfromtimestamp(info.st_mtime)
+        created = tz.utcfromtimestamp(info.st_ctime)
+        # Create the notebook model.
+        model ={}
+        model['name'] = name
+        model['path'] = path
+        model['last_modified'] = last_modified
+        model['created'] = created
+        model['type'] = 'directory'
+        return model
+
     def list_notebooks(self, path):
         """Returns a list of dictionaries that are the standard model
         for all notebooks in the relative 'path'.
@@ -170,10 +231,7 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
-        notebooks = []
-        for name in notebook_names:
-            model = self.get_notebook_model(name, path, content=False)
-            notebooks.append(model)
+        notebooks = [self.get_notebook_model(name, path, content=False) for name in notebook_names]
         notebooks = sorted(notebooks, key=lambda item: item['name'])
         return notebooks
 
@@ -207,6 +265,7 @@ class FileNotebookManager(NotebookManager):
         model['path'] = path
         model['last_modified'] = last_modified
         model['created'] = created
+        model['type'] = 'notebook'
         if content:
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
@@ -223,7 +282,7 @@ class FileNotebookManager(NotebookManager):
 
         if 'content' not in model:
             raise web.HTTPError(400, u'No notebook JSON data provided')
-        
+
         # One checkpoint should always exist
         if self.notebook_exists(name, path) and not self.list_checkpoints(name, path):
             self.create_checkpoint(name, path)

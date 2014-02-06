@@ -70,11 +70,10 @@ var IPython = (function (IPython) {
             var reader = new FileReader();
             reader.readAsText(f);
             var name_and_ext = utils.splitext(f.name);
-            var nbname = name_and_ext[0];
             var file_ext = name_and_ext[1];
             if (file_ext === '.ipynb') {
                 var item = that.new_notebook_item(0);
-                that.add_name_input(nbname, item);
+                that.add_name_input(f.name, item);
                 // Store the notebook item in the reader so we can use it later
                 // to know which item it belongs to.
                 $(reader).data('item', item);
@@ -167,26 +166,37 @@ var IPython = (function (IPython) {
         if (param !== undefined && param.msg) {
             message = param.msg;
         }
+        var item = null;
         var len = data.length;
         this.clear_list();
         if (len === 0) {
-            $(this.new_notebook_item(0))
-                .append(
-                    $('<div style="margin:auto;text-align:center;color:grey"/>')
-                    .text(message)
-                );
+            item = this.new_notebook_item(0);
+            var span12 = item.children().first();
+            span12.empty();
+            span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message));
+        }
+        var path = this.notebookPath();
+        var offset = 0;
+        if (path !== '') {
+            item = this.new_notebook_item(0);
+            this.add_dir(path, '..', item);
+            offset = 1;
         }
         for (var i=0; i<len; i++) {
-            var name = data[i].name;
-            var path = this.notebookPath();
-            var nbname = utils.splitext(name)[0];
-            var item = this.new_notebook_item(i);
-            this.add_link(path, nbname, item);
-            name = utils.url_path_join(path, name);
-            if(this.sessions[name] === undefined){
-                this.add_delete_button(item);
+            if (data[i].type === 'directory') {
+                var name = data[i].name;
+                item = this.new_notebook_item(i+offset);
+                this.add_dir(path, name, item);
             } else {
-                this.add_shutdown_button(item,this.sessions[name]);
+                var name = data[i].name;
+                item = this.new_notebook_item(i+offset);
+                this.add_link(path, name, item);
+                name = utils.url_path_join(path, name);
+                if(this.sessions[name] === undefined){
+                    this.add_delete_button(item);
+                } else {
+                    this.add_shutdown_button(item,this.sessions[name]);
+                }
             }
         }
     };
@@ -197,6 +207,8 @@ var IPython = (function (IPython) {
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
         item.append($("<div/>").addClass("span12").append(
+            $('<i/>').addClass('item_icon')
+        ).append(
             $("<a/>").addClass("item_link").append(
                 $("<span/>").addClass("item_name")
             )
@@ -213,17 +225,35 @@ var IPython = (function (IPython) {
     };
 
 
+    NotebookList.prototype.add_dir = function (path, name, item) {
+        item.data('name', name);
+        item.data('path', path);
+        item.find(".item_name").text(name);
+        item.find(".item_icon").addClass('icon-folder-open');
+        item.find("a.item_link")
+            .attr('href',
+                utils.url_join_encode(
+                    this.baseProjectUrl(),
+                    "tree",
+                    path,
+                    name
+                )
+            );
+    };
+
+
     NotebookList.prototype.add_link = function (path, nbname, item) {
         item.data('nbname', nbname);
         item.data('path', path);
         item.find(".item_name").text(nbname);
+        item.find(".item_icon").addClass('icon-book');
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
                     this.baseProjectUrl(),
                     "notebooks",
                     path,
-                    nbname + ".ipynb"
+                    nbname
                 )
             ).attr('target','_blank');
     };
@@ -231,10 +261,11 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_name_input = function (nbname, item) {
         item.data('nbname', nbname);
+        item.find(".item_icon").addClass('icon-book');
         item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("nbname_input")
-            .attr('value', nbname)
+            .attr('value', utils.splitext(nbname)[0])
             .attr('size', '30')
             .attr('type', 'text')
         );
@@ -248,7 +279,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_shutdown_button = function (item, session) {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini").
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini btn-danger").
             click(function (e) {
                 var settings = {
                     processData : false,
@@ -303,7 +334,7 @@ var IPython = (function (IPython) {
                                     notebooklist.baseProjectUrl(),
                                     'api/notebooks',
                                     notebooklist.notebookPath(),
-                                    nbname + '.ipynb'
+                                    nbname
                                 );
                                 $.ajax(url, settings);
                             }
@@ -323,6 +354,9 @@ var IPython = (function (IPython) {
             .addClass('btn btn-primary btn-mini upload_button')
             .click(function (e) {
                 var nbname = item.find('.item_name > input').val();
+                if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {
+                    nbname = nbname + ".ipynb";
+                }
                 var path = that.notebookPath();
                 var nbdata = item.data('nbdata');
                 var content_type = 'application/json';
@@ -349,7 +383,7 @@ var IPython = (function (IPython) {
                     that.baseProjectUrl(),
                     'api/notebooks',
                     that.notebookPath(),
-                    nbname + '.ipynb'
+                    nbname
                 );
                 $.ajax(url, settings);
                 return false;

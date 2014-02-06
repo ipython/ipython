@@ -22,7 +22,6 @@ import json
 import logging
 import os
 import re
-import stat
 import sys
 import traceback
 try:
@@ -42,10 +41,7 @@ except ImportError:
 from IPython.config import Application
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import string_types
-
-# UF_HIDDEN is a stat flag not defined in the stat module.
-# It is used by BSD to indicate hidden files.
-UF_HIDDEN = getattr(stat, 'UF_HIDDEN', 32768)
+from IPython.html.utils import is_hidden
 
 #-----------------------------------------------------------------------------
 # Top-level handlers
@@ -269,28 +265,9 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
         """
         abs_path = super(AuthenticatedFileHandler, self).validate_absolute_path(root, absolute_path)
         abs_root = os.path.abspath(root)
-        self.forbid_hidden(abs_root, abs_path)
+        if is_hidden(abs_path, abs_root):
+            raise web.HTTPError(404)
         return abs_path
-    
-    def forbid_hidden(self, absolute_root, absolute_path):
-        """Raise 403 if a file is hidden or contained in a hidden directory.
-        
-        Hidden is determined by either name starting with '.'
-        or the UF_HIDDEN flag as reported by stat
-        """
-        inside_root = absolute_path[len(absolute_root):]
-        if any(part.startswith('.') for part in inside_root.split(os.sep)):
-            raise web.HTTPError(403)
-        
-        # check UF_HIDDEN on any location up to root
-        path = absolute_path
-        while path and path.startswith(absolute_root) and path != absolute_root:
-            st = os.stat(path)
-            if getattr(st, 'st_flags', 0) & UF_HIDDEN:
-                raise web.HTTPError(403)
-            path = os.path.dirname(path)
-        
-        return absolute_path
 
 
 def json_errors(method):

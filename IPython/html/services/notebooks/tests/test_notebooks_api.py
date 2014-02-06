@@ -21,6 +21,12 @@ from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 
 
+# TODO: Remove this after we create the contents web service and directories are
+# no longer listed by the notebook web service.
+def notebooks_only(nb_list):
+    return [nb for nb in nb_list if nb['type']=='notebook']
+
+
 class NBAPI(object):
     """Wrapper for notebook API calls."""
     def __init__(self, base_url):
@@ -125,25 +131,25 @@ class APITest(NotebookTestBase):
             os.unlink(pjoin(nbdir, 'inroot.ipynb'))
 
     def test_list_notebooks(self):
-        nbs = self.nb_api.list().json()
+        nbs = notebooks_only(self.nb_api.list().json())
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'inroot.ipynb')
 
-        nbs = self.nb_api.list('/Directory with spaces in/').json()
+        nbs = notebooks_only(self.nb_api.list('/Directory with spaces in/').json())
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'inspace.ipynb')
 
-        nbs = self.nb_api.list(u'/unicodé/').json()
+        nbs = notebooks_only(self.nb_api.list(u'/unicodé/').json())
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'innonascii.ipynb')
         self.assertEqual(nbs[0]['path'], u'unicodé')
 
-        nbs = self.nb_api.list('/foo/bar/').json()
+        nbs = notebooks_only(self.nb_api.list('/foo/bar/').json())
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'baz.ipynb')
         self.assertEqual(nbs[0]['path'], 'foo/bar')
 
-        nbs = self.nb_api.list('foo').json()
+        nbs = notebooks_only(self.nb_api.list('foo').json())
         self.assertEqual(len(nbs), 4)
         nbnames = { normalize('NFC', n['name']) for n in nbs }
         expected = [ u'a.ipynb', u'b.ipynb', u'name with spaces.ipynb', u'unicodé.ipynb']
@@ -231,7 +237,7 @@ class APITest(NotebookTestBase):
             self.assertEqual(resp.status_code, 204)
 
         for d in self.dirs + ['/']:
-            nbs = self.nb_api.list(d).json()
+            nbs = notebooks_only(self.nb_api.list(d).json())
             self.assertEqual(len(nbs), 0)
 
     def test_rename(self):
@@ -240,7 +246,7 @@ class APITest(NotebookTestBase):
         self.assertEqual(resp.json()['name'], 'z.ipynb')
         assert os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'z.ipynb'))
 
-        nbs = self.nb_api.list('foo').json()
+        nbs = notebooks_only(self.nb_api.list('foo').json())
         nbnames = set(n['name'] for n in nbs)
         self.assertIn('z.ipynb', nbnames)
         self.assertNotIn('a.ipynb', nbnames)

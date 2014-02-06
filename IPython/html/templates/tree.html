@@ -1,6 +1,6 @@
 {% extends "page.html" %}
 
-{% block title %}IPython Dashboard{% endblock %}
+{% block title %}{{page_title}}{% endblock %}
 
 
 {% block stylesheet %}
@@ -22,33 +22,38 @@ data-base-kernel-url="{{base_kernel_url}}"
 
 <div id="ipython-main-app" class="container">
 
-<div id="tabs" class="tabbable">
-    <ul class="nav nav-tabs" id="tabs">
+<div id="tab_content" class="tabbable">
+    <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
         <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
     </ul>
 
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
-        <div id="notebook_toolbar">
-            <form id='alternate_upload'  class='alternate_upload' >
-                <span id="drag_info" style="position:absolute" >
-                    To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
-                    </span>
-                <input type="file" name="datafile" class="fileinput" multiple='multiple'>
-            </form>
-            <span id="notebook_buttons">
-                <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small">Refresh</button>
-                <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
-            </span>
+        <div id="notebook_toolbar" class="row-fluid">
+            <div class="span8">
+                <form id='alternate_upload'  class='alternate_upload' >
+                    <span id="drag_info" style="position:absolute" >
+                        To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
+                        </span>
+                    <input type="file" name="datafile" class="fileinput" multiple='multiple'>
+                </form>
+            </div>
+            <div class="span4 clearfix">
+                <span id="notebook_buttons" class="pull-right">
+                    <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
+                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                </span>
+            </div>
         </div>
 
         <div id="notebook_list">
           <div id="notebook_list_header" class="row-fluid list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
-                    {% for component in tree_url_path.strip('/').split('/') %}
-                        <li>{{component}} <span>/</span></li>
+                    <li><a href="{{breadcrumbs[0][0]}}"><i class="icon-home"></i></a><span>/</span></li>
+                    {% for crumb in breadcrumbs[1:] %}
+                        <li><a href="{{crumb[0]}}">{{crumb[1]}}</a> <span>/</span></li>
                     {% endfor %}
                 </ul>
               </div>
@@ -58,20 +63,23 @@ data-base-kernel-url="{{base_kernel_url}}"
     
     <div id="clusters" class="tab-pane">
 
-        <div id="cluster_toolbar">
-            <span id="cluster_list_info">IPython parallel computing clusters</span>
-
-            <span id="cluster_buttons">
-                <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-small">Refresh</button>
-            </span>
+        <div id="cluster_toolbar" class="row-fluid">
+            <div class="span8">
+                <span id="cluster_list_info">IPython parallel computing clusters</span>
+            </div>
+            <div class="span4" class="clearfix">
+                <span id="cluster_buttons" class="pull-right">
+                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                </span>
+            </div>
         </div>
 
         <div id="cluster_list">
             <div id="cluster_list_header" class="row-fluid list_header">
-                <span class="profile_col span4">profile</span>
-                <span class="status_col span3">status</span>
-                <span class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</span>
-                <span class="action_col span2">action</span>
+                <div class="profile_col span4">profile</div>
+                <div class="status_col span3">status</div>
+                <div class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</div>
+                <div class="action_col span2">action</div>
             </div>
         </div>
     </div>

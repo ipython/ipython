@@ -82,7 +82,24 @@ class NotebookManager(LoggingConfigurable):
             Whether the path does indeed exist.
         """
         raise NotImplementedError
-    
+
+    def is_hidden(self, path):
+        """Does the API style path correspond to a hidden directory or file?
+        
+        Parameters
+        ----------
+        path : string
+            The path to check. This is an API path (`/` separated,
+            relative to base notebook-dir).
+        
+        Returns
+        -------
+        exists : bool
+            Whether the path is hidden.
+        
+        """
+        raise NotImplementedError
+
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
         if not os.path.isabs(new):
@@ -111,6 +128,26 @@ class NotebookManager(LoggingConfigurable):
             The URL path of the notebooks directory
         """
         return basename
+
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
+    def list_dirs(self, path):
+        """List the directory models for a given API style path."""
+        raise NotImplementedError('must be implemented in a subclass')
+
+    # TODO: Remove this after we create the contents web service and directories are
+    # no longer listed by the notebook web service.
+    def get_dir_model(self, name, path=''):
+        """Get the directory model given a directory name and its API style path.
+        
+        The keys in the model should be:
+        * name
+        * path
+        * last_modified
+        * created
+        * type='directory'
+        """
+        raise NotImplementedError('must be implemented in a subclass')
 
     def list_notebooks(self, path=''):
         """Return a list of notebook dicts without content.

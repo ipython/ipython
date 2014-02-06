@@ -167,9 +167,12 @@ class JSController(TestController):
         self.section = section
 
         self.ipydir = TemporaryDirectory()
-        # print(self.ipydir.name)
+        self.nbdir = TemporaryDirectory()
+        print("Running notebook tests in directory: %r" % self.nbdir.name)
+        os.makedirs(os.path.join(self.nbdir.name, os.path.join('subdir1', 'subdir1a')))
+        os.makedirs(os.path.join(self.nbdir.name, os.path.join('subdir2', 'subdir2a')))
         self.dirs.append(self.ipydir)
-        self.env['IPYTHONDIR'] = self.ipydir.name
+        self.dirs.append(self.nbdir)
 
     def launch(self):
         # start the ipython notebook, so we get the port number
@@ -191,7 +194,7 @@ class JSController(TestController):
     def _init_server(self):
         "Start the notebook server in a separate process"
         self.queue = q = Queue()
-        self.server = Process(target=run_webapp, args=(q, self.ipydir.name))
+        self.server = Process(target=run_webapp, args=(q, self.ipydir.name, self.nbdir.name))
         self.server.start()
         self.server_port = q.get()
 
@@ -202,18 +205,17 @@ class JSController(TestController):
 
 js_test_group_names = {'js'}
 
-def run_webapp(q, nbdir, loglevel=0):
+def run_webapp(q, ipydir, nbdir, loglevel=0):
     """start the IPython Notebook, and pass port back to the queue"""
     import os
     import IPython.html.notebookapp as nbapp
     import sys
     sys.stderr = open(os.devnull, 'w')
-    os.environ["IPYTHONDIR"] = nbdir
     server = nbapp.NotebookApp()
     args = ['--no-browser']
-    args.append('--notebook-dir='+nbdir)
-    args.append('--profile-dir='+nbdir)
-    args.append('--log-level='+str(loglevel))
+    args.extend(['--ipython-dir', ipydir])
+    args.extend(['--notebook-dir', nbdir])
+    args.extend(['--log-level', str(loglevel)])
     server.initialize(args)
     # communicate the port number to the parent process
     q.put(server.port)

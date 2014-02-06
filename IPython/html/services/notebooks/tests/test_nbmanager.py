@@ -15,6 +15,7 @@ from IPython.html.utils import url_path_join
 from ..filenbmanager import FileNotebookManager
 from ..nbmanager import NotebookManager
 
+
 class TestFileNotebookManager(TestCase):
 
     def test_nb_dir(self):
@@ -67,7 +68,7 @@ class TestNotebookManager(TestCase):
         try:
             os.makedirs(os_path)
         except OSError:
-            print("Directory already exists.")
+            print("Directory already exists: %r" % os_path)
 
     def test_create_notebook_model(self):
         with TemporaryDirectory() as td:
