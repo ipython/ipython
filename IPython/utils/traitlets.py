@@ -490,51 +490,59 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
     def _notify_trait(self, name, old_value, new_value):
 
         # First dynamic ones
-        callables = []
-        callables.extend(self._trait_notifiers.get(name,[]))
-        callables.extend(self._trait_notifiers.get('anytrait',[]))
+        handlers = []
+        handlers.extend(self._trait_notifiers.get(name,[]))
+        handlers.extend(self._trait_notifiers.get('anytrait',[]))
 
         # Now static ones
         try:
-            cb = getattr(self, '_%s_changed' % name)
+            h = getattr(self, '_%s_changed' % name)
         except:
             pass
         else:
-            callables.append(cb)
+            handlers.append(h)
+
+        h = self._single_notifiers.get(name, None)
+        if h is not None:
+            handlers.append(h)
 
         # Call them all now
-        for c in callables:
-            # Traits catches and logs errors here.  I allow them to raise
-            argspec = inspect.getargspec(c)
-            nargs = len(argspec[0])
-            # Bound methods have an additional 'self' argument
-            # I don't know how to treat unbound methods, but they
-            # can't really be used for callbacks.
-            if isinstance(c, types.MethodType):
-                offset = -1
-            else:
-                offset = 0
-            if nargs + offset == 0:
-                c()
-            elif nargs + offset == 1:
-                c(name)
-            elif nargs + offset == 2:
-                c(name, new_value)
-            elif nargs + offset == 3:
-                c(name, old_value, new_value)
-            else:
-                raise TraitError('a trait changed callback '
-                                    'must have 0-3 arguments.')
+        for h in handlers:
+            self._call_handler(h, name, old_value, new_value)
 
-        # Now ones from on_change (_single_notifiers), which have a different signature.
-        cb = self._single_notifiers.get(name, None)
-        if cb is not None:
-            cb(new_value)
-
-
-    def _add_notifiers(self, handler, name):
+    def _check_handler(self, handler):
         if not callable(handler):
             raise TraitError('a trait handler must be a callable, got: %r' % handler)
+        argspec = inspect.getargspec(handler)
+        nargs = len(argspec[0])
+        if isinstance(handler, types.MethodType):
+            offset = -1
+        else:
+            offset = 0
+        if nargs+offset > 3:
+            raise TraitError('a trait change handler must have 0-3 arguments')
+
+    def _call_handler(self, handler, name, old_value, new_value):
+        argspec = inspect.getargspec(handler)
+        nargs = len(argspec[0])
+        # Bound methods have an additional 'self' argument
+        # I don't know how to treat unbound methods, but they
+        # can't really be used for callbacks.
+        if isinstance(handler, types.MethodType):
+            offset = -1
+        else:
+            offset = 0
+        if nargs + offset == 0:
+            handler()
+        elif nargs + offset == 1:
+            handler(name)
+        elif nargs + offset == 2:
+            handler(name, new_value)
+        elif nargs + offset == 3:
+            handler(name, old_value, new_value)
+
+    def _add_notifiers(self, handler, name):
+        self._check_handler(handler)
         if name not in self._trait_notifiers:
             nlist = []
             self._trait_notifiers[name] = nlist
@@ -613,8 +621,11 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             signature must be `handler(new)`. Pass a value of `None`
             to clear the handler.
         """
-        if not (callable(handler) or (handler is None)):
-            raise TraitError('a trait handler must be a callable or None, got: %r' % handler)
+        if handler is None:
+            self._single_notifiers[name] = handler
+            return
+        # This raises if there is a problem
+        self._check_handler(handler)
         self._single_notifiers[name] = handler
 
     @classmethod

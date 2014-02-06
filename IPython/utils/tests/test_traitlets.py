@@ -227,11 +227,11 @@ class TestHasTraitsNotify(TestCase):
     def notify2(self, name, old, new):
         self._notify2.append((name, old, new))
 
-    def notify3(self, new):
-        self._notify3.append(new)
+    def notify3(self, name, old, new):
+        self._notify3.append((name, old, new))
 
-    def notify4(self, new):
-        self._notify4.append(2*new)
+    def notify4(self, name, old, new):
+        self._notify4.append((name, old, 2*new))
 
 
     def test_notify_all(self):
@@ -418,22 +418,32 @@ class TestHasTraitsNotify(TestCase):
         self.assertRaises(TraitError, a.on_trait_change, 10, 'a')
         self.assertRaises(TraitError, a.on_trait_change, 10, 'a', remove=True)
 
+    def test_wrong_signature(self):
+        class A(HasTraits):
+            a = Int
+        a = A()
+        def bad_handler(a, b, c, d, e, f):
+            pass
+        self.assertRaises(TraitError, a.on_trait_change, bad_handler, 'a')
+        self.assertRaises(TraitError, a.on_change, bad_handler, 'a')
+        
+
     def test_notify_on_change(self):
         class A(HasTraits):
             a = Int
         a = A()
         a.on_change(self.notify3, 'a')
         a.a = 10
-        self.assertTrue(10 in self._notify3)
+        self.assertTrue(('a',0,10) in self._notify3)
         a.on_change(self.notify4, 'a')
         a.a = 20
-        self.assertTrue(40 in self._notify4)
+        self.assertTrue(('a',10,40) in self._notify4)
         a.on_change(None, 'a')
         self._notify3 = []
         self._notify4 = []
         a.a = 10
-        self.assertTrue(10 not in self._notify3)
-        self.assertTrue(20 not in self._notify4)
+        self.assertTrue(('a',20,10) not in self._notify3)
+        self.assertTrue(('a',20,10) not in self._notify4)
 
 
 class TestHasTraits(TestCase):
