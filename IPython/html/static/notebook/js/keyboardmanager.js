@@ -510,7 +510,7 @@ var IPython = (function (IPython) {
         },
         'h' : {
             help    : 'keyboard shortcuts',
-            help_index : 'gd',
+            help_index : 'ge',
             handler : function (event) {
                 IPython.quick_help.show_keyboard_shortcuts();
                 return false;
@@ -529,6 +529,14 @@ var IPython = (function (IPython) {
             help_index : 'ek',
             handler : function (event) {
                 IPython.notebook.merge_cell_below();
+                return false;
+            }
+        },
+        'q' : {
+            help    : 'toggle pager',
+            help_index : 'gd',
+            handler : function (event) {
+                IPython.pager.toggle();
                 return false;
             }
         },
