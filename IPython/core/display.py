@@ -24,7 +24,7 @@ import struct
 
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
                                      unicode_type)
-
+from IPython.testing.skipdoctest import skip_doctest
 from .displaypub import publish_display_data
 
 #-----------------------------------------------------------------------------
@@ -719,18 +719,53 @@ def clear_output(wait=False):
         io.stderr.flush()
 
 
-def select_matplotlib_formats(formats, quality=90):
-    """Select figure formats for the inline backend.
+@skip_doctest
+def set_matplotlib_formats(*formats, **kwargs):
+    """Select figure formats for the inline backend. Optionally pass quality for JPEG.
+
+    For example, this enables PNG and JPEG output with a JPEG quality of 90%::
+
+        In [1]: set_matplotlib_formats('png', 'jpeg', quality=90)
+
+    To set this in your config files use the following::
+    
+        c.InlineBackend.figure_formats = {'pdf', 'png', 'svg'}
 
     Parameters
-    ==========
-    formats : list
+    ----------
+    *formats : list, tuple
         One or a set of figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
     quality : int
-        A percentage for the quality of JPEG figures.
+        A percentage for the quality of JPEG figures. Defaults to 90.
     """
     from IPython.core.interactiveshell import InteractiveShell
     from IPython.core.pylabtools import select_figure_formats
     shell = InteractiveShell.instance()
     select_figure_formats(shell, formats, quality=90)
+
+@skip_doctest
+def set_matplotlib_close(close):
+    """Should the inline backend close all figures automatically.
+    
+    By default, the inline backend used in the IPython Notebook will close all
+    matplotlib figures automatically after each cell is run. This means that
+    plots in different cells won't interfere. Sometimes, you may want to make
+    a plot in one cell and then refine it in later cells. This can be accomplished
+    by::
+    
+        In [1]: set_matplotlib_close(False)
+    
+    To set this in your config files use the following::
+    
+        c.InlineBackend.close_figures = False
+    
+    Parameters
+    ----------
+    close : bool
+        Should all matplotlib figures be automatically closed after each cell is
+        run?
+    """
+    from IPython.kernel.zmq.pylab.backend_inline import InlineBackend
+    ilbe = InlineBackend.instance()
+    ilbe.close_figures = close
 
