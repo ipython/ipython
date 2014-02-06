@@ -127,7 +127,7 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         os_path = self.get_os_path(path=path)
-        return is_hidden(self.notebook_dir, os_path)
+        return is_hidden(os_path, self.notebook_dir)
 
     def get_os_path(self, name=None, path=''):
         """Given a notebook name and a URL path, return its file system
@@ -179,13 +179,13 @@ class FileNotebookManager(NotebookManager):
         """List the directories for a given API style path."""
         path = path.strip('/')
         os_path = self.get_os_path('', path)
-        if not os.path.isdir(os_path) or is_hidden(self.notebook_dir, os_path):
+        if not os.path.isdir(os_path) or is_hidden(os_path, self.notebook_dir):
             raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
         dir_names = os.listdir(os_path)
         dirs = []
         for name in dir_names:
             os_path = self.get_os_path(name, path)
-            if os.path.isdir(os_path) and not is_hidden(self.notebook_dir, os_path):
+            if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir):
                 try:
                     model = self.get_dir_model(name, path)
                 except IOError:
