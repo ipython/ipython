@@ -50,6 +50,7 @@ class FakeShell(object):
     def run_code(self, code):
         self.events.trigger('pre_run_cell')
         exec(code, self.ns)
+        self.auto_magics.post_execute_hook()
 
     def push(self, items):
         self.ns.update(items)
@@ -59,6 +60,7 @@ class FakeShell(object):
 
     def magic_aimport(self, parameter, stream=None):
         self.auto_magics.aimport(parameter, stream=stream)
+        self.auto_magics.post_execute_hook()
 
 
 class Fixture(object):
@@ -168,12 +170,10 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
             self.shell.magic_aimport(mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            nt.assert_true(("Modules to reload:\n%s" % mod_name) in
-                           stream.getvalue())
+            nt.assert_in(("Modules to reload:\n%s" % mod_name), stream.getvalue())
 
-            nt.assert_raises(
-                ImportError,
-                self.shell.magic_aimport, "tmpmod_as318989e89ds")
+            with nt.assert_raises(ImportError):
+                self.shell.magic_aimport("tmpmod_as318989e89ds")
         else:
             self.shell.magic_autoreload("2")
             self.shell.run_code("import %s" % mod_name)
