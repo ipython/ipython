@@ -288,11 +288,6 @@ IPython.utils = (function (IPython) {
     // are set in the css file.
     function fixConsole(txt) {
         txt = xmlencode(txt);
-        var re = /\033\[([\dA-Fa-f;]*?)m/;
-        var opened = false;
-        var cmds = [];
-        var opener = "";
-        var closer = "";
 
         // Strip all ANSI codes that are not color related.  Matches
         // all ANSI codes that do not end with "m".
@@ -362,7 +357,7 @@ IPython.utils = (function (IPython) {
     var press = function (key) {
         var key_press =  $.Event('keydown', {which: key});
         $(document).trigger(key_press);
-    }
+    };
 
     var press_up = function() { press(keycodes.UP); };
     var press_down = function() { press(keycodes.DOWN); };
@@ -385,7 +380,7 @@ IPython.utils = (function (IPython) {
     var points_to_pixels = function (points) {
         // A reasonably good way of converting between points and pixels.
         var test = $('<div style="display: none; width: 10000pt; padding:0; border:0;"></div>');
-        $(body).append(test);
+        $('body').append(test);
         var pixel_per_point = test.width()/10000;
         test.remove();
         return Math.floor(points*pixel_per_point);
@@ -459,7 +454,6 @@ IPython.utils = (function (IPython) {
         }
     };
 
-
     var get_body_data = function(key) {
         // get a url-encoded item from body.data and decode it
         // we should never have any encoded URLs anywhere else in code
@@ -498,7 +492,7 @@ IPython.utils = (function (IPython) {
     var is_or_has = function (a, b) {
         // Is b a child of a or a itself?
         return a.has(b).length !==0 || a.is(b);
-    }
+    };
 
     var is_focused = function (e) {
         // Is element e, or one of its children focused?
@@ -513,7 +507,70 @@ IPython.utils = (function (IPython) {
         } else {
             return false;
         }
-    }
+    };
+
+
+    // From wikibooks
+    // https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#JavaScript
+    var longestCommonSubstring = function(str1, str2){
+        if (!str1 || !str2)
+            return {
+                length: 0,
+                sequence: "",
+                offset: 0
+            };
+
+        var sequence = "",
+            str1Length = str1.length,
+            str2Length = str2.length,
+            num = new Array(str1Length),
+            maxlen = 0,
+            lastSubsBegin = 0;
+
+        for (var i = 0; i < str1Length; i++) {
+            var subArray = new Array(str2Length);
+            for (var j = 0; j < str2Length; j++)
+                subArray[j] = 0;
+            num[i] = subArray;
+        }
+        var thisSubsBegin = null;
+        for (var i = 0; i < str1Length; i++)
+        {
+            for (var j = 0; j < str2Length; j++)
+            {
+                if (str1[i] !== str2[j])
+                    num[i][j] = 0;
+                else
+                {
+                    if ((i === 0) || (j === 0))
+                        num[i][j] = 1;
+                    else
+                        num[i][j] = 1 + num[i - 1][j - 1];
+
+                    if (num[i][j] > maxlen)
+                    {
+                        maxlen = num[i][j];
+                        thisSubsBegin = i - num[i][j] + 1;
+                        if (lastSubsBegin === thisSubsBegin)
+                        {//if the current LCS is the same as the last time this block ran
+                            sequence += str1[i];
+                        }
+                        else //this block resets the string builder if a different LCS is found
+                        {
+                            lastSubsBegin = thisSubsBegin;
+                            sequence= ""; //clear it
+                            sequence += str1.substr(lastSubsBegin, (i + 1) - lastSubsBegin);
+                        }
+                    }
+                }
+            }
+        }
+        return {
+            length: maxlen,
+            sequence: sequence,
+            offset: thisSubsBegin
+        };
+    };
 
 
     return {
@@ -540,7 +597,8 @@ IPython.utils = (function (IPython) {
         browser : browser,
         platform: platform,
         is_or_has : is_or_has,
-        is_focused : is_focused
+        is_focused : is_focused,
+        longestCommonSubstring : longestCommonSubstring
     };
 
 }(IPython));

@@ -16,37 +16,25 @@
  */
 
 
-/* local util for codemirror */
-var posEq = function (a, b) {
-    "use strict";
-    return a.line === b.line && a.ch === b.ch;
-};
-
-/**
- * function to delete until previous non blanking space character
- * or first multiple of 4 tabstop.
- * @private
- */
-CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
-    var from = cm.getCursor(true), to = cm.getCursor(false);
-    if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
-    var cur = cm.getCursor();
-    var tabsize = cm.getOption('tabSize');
-    var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-    from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
-    var select = cm.getRange(from,cur);
-    if( select.match(/^\ +$/) !== null){
-        cm.replaceRange("",from,cur);
-    } else {
-        cm.deleteH(-1,"char");
-    }
-};
 
 
 var IPython = (function (IPython) {
     "use strict";
 
     var key   = IPython.utils.keycodes;
+    var cmutils   = IPython.cmutils;
+    var recent_cm = cmutils.recent_cm;
+    var MultiHint = IPython.cmutils.MultiHint;
+
+
+    /**
+     * Common prefix on tab-tab , and codemirror anyhint will be disabled.
+     * warn in console
+     **/
+    if(!recent_cm(CodeMirror)){
+        console.log('Codemirror version is '+CodeMirror.version);
+        console.log('you will need a more recent version (>3.21.1)to have access to full functionality.');
+    }
 
     /**
      * A Cell conceived to write code.
@@ -97,6 +85,11 @@ var IPython = (function (IPython) {
      * `finish_complete_callback` once done with the formatted result.
      **/
     var _complete_function =  function(cm, finish_complete_callback, options){
+        
+        // this shoudl be moved into the manycompleter.
+        //
+        // TODO
+        //
         IPython.tooltip.remove_and_cancel_tooltip();
         if (cm.somethingSelected()) {
                 return;
@@ -124,72 +117,14 @@ var IPython = (function (IPython) {
         });
     };
     
-    var MultiHint = function(){
-        this.complete_source = [];
-        this._complete_callback = undefined;
-        this._pending_requests = 0;
-        this._pending_results = null;
-        
-        
-    };
-    
-    MultiHint.prototype._gather_source = function(obj){
-        
-        this._pending_requests = this._pending_requests -1;
-
-        console.log('pr:',this._pending_results);
-        if(!this._pending_results){
-            this._pending_results = obj;
-            
-        } else {
-            for(var idx in obj.list){
-                this._pending_results.list = this._pending_results.list || [];
-                this._pending_results.list.push(obj.list[idx]);
-                
-            }
-             
-            this._pending_results.from = this._pending_results.from || obj.from;
-            this._pending_results.to = this._pending_results.to || obj.to;
-        }
-        //console.log('merge completion from:',this._pending_results.from, 'to:', this._pending_results.to);
-        //console.log('in gather', this._pending_requests);
-        if(this._pending_requests === 0){
-            this._complete_callback(this._pending_results);
-            this._pending_results = undefined;
-        }
-    };
-    
-    MultiHint.prototype.complete = function(cm, finish_complete_callback, options){
-        
-        this._complete_callback = finish_complete_callback;
-        for(var i=0 ; i < this.complete_source.length; i++){
-            this._pending_requests = this._pending_requests +1;
-            console.log('in loop', this);
-            this.complete_source[i](cm, $.proxy(this._gather_source,this), options);
-        }
-        return ;
-    };
-    
-    var m_complete_function = function(cm, finish_complete_callback, options){
-        var wrap = function(obj){
-            obj.list.sort();
-            finish_complete_callback(obj);
-        };
-      return _complete_function(cm, wrap, options);
-    };
-    
     var m_complete = new MultiHint();
     
-    // hack as I can't restart my server for now
-    $.getScript('/static/components/codemirror/addon/hint/anyword-hint.js');
-    
-    m_complete.complete_source.push(m_complete_function);
-    //m_complete.complete_source.push(function(cm,cb,opt){cb({list:['aa','bb']});});
+    m_complete.complete_source.push(_complete_function);
     m_complete.complete_source.push(
         function (cm,cb,opt){
             var any = CodeMirror.hint.anyword ;
             // bug in codemirror anyhint, works only on begining of line.
-            if(!any ){
+            if(!any || !recent_cm(CodeMirror)){
                 cb({});
             } else {
                 var res = any(cm,opt);
@@ -210,104 +145,10 @@ var IPython = (function (IPython) {
     });
 
     
-    // From wikibooks
-    // https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#JavaScript
-    function longestCommonSubstring(str1, str2){
-        if (!str1 || !str2)
-            return {
-                length: 0,
-                sequence: "",
-                offset: 0
-            };
-     
-        var sequence = "",
-            str1Length = str1.length,
-            str2Length = str2.length,
-            num = new Array(str1Length),
-            maxlen = 0,
-            lastSubsBegin = 0;
-     
-        for (var i = 0; i < str1Length; i++) {
-            var subArray = new Array(str2Length);
-            for (var j = 0; j < str2Length; j++)
-                subArray[j] = 0;
-            num[i] = subArray;
-        }
-        var thisSubsBegin = null;
-        for (var i = 0; i < str1Length; i++)
-        {
-            for (var j = 0; j < str2Length; j++)
-            {
-                if (str1[i] !== str2[j])
-                    num[i][j] = 0;
-                else
-                {
-                    if ((i === 0) || (j === 0))
-                        num[i][j] = 1;
-                    else
-                        num[i][j] = 1 + num[i - 1][j - 1];
-     
-                    if (num[i][j] > maxlen)
-                    {
-                        maxlen = num[i][j];
-                        thisSubsBegin = i - num[i][j] + 1;
-                        if (lastSubsBegin === thisSubsBegin)
-                        {//if the current LCS is the same as the last time this block ran
-                            sequence += str1[i];
-                        }
-                        else //this block resets the string builder if a different LCS is found
-                        {
-                            lastSubsBegin = thisSubsBegin;
-                            sequence= ""; //clear it
-                            sequence += str1.substr(lastSubsBegin, (i + 1) - lastSubsBegin);
-                        }
-                    }
-                }
-            }
-        }
-        return {
-            length: maxlen,
-            sequence: sequence,
-            offset: thisSubsBegin
-        };
-    }
+   
     
     
-    /**
-     * Tab should not pick() the result
-     * but insert the longuest common prefix. 
-     * this is doable only on master CM
-     * for now.
-     **/
-    var insertLonguestCommonSubstring = function(cm){
-        return function(cp, obj){
-            var data = obj.data;
-            // CM not patched, fails gracefully by pick() highlight result.
-            if(!data && console !== undefined){
-                console.log('need more recent version of codemirror to completer to common prefix');
-                return;
-            }
-            // if only one object, pick() it
-            // as it is the only completion
-            
-            var cpl = obj.data.list;
-            if(cpl.length===1){
-                console.log('picking with tab');
-                obj.pick();
-                return;
-            }
-            
-            var common;
-            var c0 = cpl[0];
-            var c1 = cpl[cpl.length-1];
-            
-            common = longestCommonSubstring(c0, c1).sequence;
 
-            if(common !== undefined ){
-                cm.replaceRange(common, data.from, data.to);
-            }
-        };
-    };
     
     /**
      * is pass is true completion will be triger
@@ -332,7 +173,7 @@ var IPython = (function (IPython) {
                          **/
                         // need codemirror closure here for now.
                         // TODO though wether longuest common subsequece would make sens.
-                        "Tab" : insertLonguestCommonSubstring(cm)
+                        "Tab" : cmutils.insertLonguestCommonSubstring(cm)
                     }
                 
                 } );
@@ -352,7 +193,6 @@ var IPython = (function (IPython) {
     CodeCell.options_default = {
         cm_config : {
             extraKeys: {
-                //"Tab" :  "indentMore",
                 "Shift-Tab" : "indentLess",
                 "Backspace" : "delSpaceToPrevTabStop",
                 "Cmd-/" : "toggleComment",
