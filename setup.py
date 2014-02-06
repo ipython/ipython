@@ -58,6 +58,7 @@ from setupbase import (
     setup_args,
     find_packages,
     find_package_data,
+    check_package_data,
     find_entry_points,
     build_scripts_entrypt,
     find_data_files,
@@ -191,11 +192,21 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 
 packages = find_packages()
 package_data = find_package_data()
+
 data_files = find_data_files()
 
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
+
+def maybe_check_package_data():
+    for should_check in ('bdist', 'sdist', 'build', 'install'):
+        for arg in sys.argv:
+            if arg.startswith(should_check):
+                check_package_data(package_data)
+                return
+
+maybe_check_package_data()
 
 #---------------------------------------------------------------------------
 # custom distutils commands

@@ -188,7 +188,11 @@ def find_package_data():
         'IPython.nbformat' : ['tests/*.ipynb']
     }
     
-    # verify that package_data makes sense
+    return package_data
+
+def check_package_data(package_data):
+    """verify that package_data globs make sense"""
+    print("checking package data")
     for pkg, data in package_data.items():
         pkg_root = pjoin(*pkg.split('.'))
         for d in data:
@@ -197,8 +201,6 @@ def find_package_data():
                 assert len(glob(path)) > 0, "No files match pattern %s" % path
             else:
                 assert os.path.exists(path), "Missing package data: %s" % path
-
-    return package_data
 
 
 #---------------------------------------------------------------------------
