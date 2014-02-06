@@ -147,7 +147,7 @@ var IPython = (function (IPython) {
         this.widget_subarea = widget_subarea;
         var widget_clear_buton = $('<button />')
             .addClass('close')
-            .text('\u00D7')
+            .html('&times;')  // Literal = safe
             .click(function() {
                 widget_area.slideUp('', function(){ widget_subarea.text(''); });
                 })
