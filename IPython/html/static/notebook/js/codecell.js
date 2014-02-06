@@ -136,18 +136,23 @@ var IPython = (function (IPython) {
     MultiHint.prototype._gather_source = function(obj){
         
         this._pending_requests = this._pending_requests -1;
-        
+
         console.log('pr:',this._pending_results);
         if(!this._pending_results){
             this._pending_results = obj;
             
         } else {
             for(var idx in obj.list){
+                this._pending_results.list = this._pending_results.list || [];
                 this._pending_results.list.push(obj.list[idx]);
+                
             }
+             
+            this._pending_results.from = this._pending_results.from || obj.from;
+            this._pending_results.to = this._pending_results.to || obj.to;
         }
-        //this._pending_requests--;
-        console.log('in gather', this._pending_requests);
+        //console.log('merge completion from:',this._pending_results.from, 'to:', this._pending_results.to);
+        //console.log('in gather', this._pending_requests);
         if(this._pending_requests === 0){
             this._complete_callback(this._pending_results);
             this._pending_results = undefined;
@@ -157,7 +162,6 @@ var IPython = (function (IPython) {
     MultiHint.prototype.complete = function(cm, finish_complete_callback, options){
         
         this._complete_callback = finish_complete_callback;
-        console.log(this.complete_source.lenght, this.complete_source)
         for(var i=0 ; i < this.complete_source.length; i++){
             this._pending_requests = this._pending_requests +1;
             console.log('in loop', this);
@@ -168,7 +172,6 @@ var IPython = (function (IPython) {
     
     var m_complete_function = function(cm, finish_complete_callback, options){
         var wrap = function(obj){
-            obj.list.push('aaa---just a test');
             obj.list.sort();
             finish_complete_callback(obj);
         };
@@ -176,8 +179,27 @@ var IPython = (function (IPython) {
     };
     
     var m_complete = new MultiHint();
+    
+    // hack as I can't restart my server for now
+    $.getScript('/static/components/codemirror/addon/hint/anyword-hint.js');
+    
     m_complete.complete_source.push(m_complete_function);
-    m_complete.complete_source.push(function(cm,cb,opt){cb({list:['aa','bb','cc']});});
+    //m_complete.complete_source.push(function(cm,cb,opt){cb({list:['aa','bb']});});
+    m_complete.complete_source.push(
+        function (cm,cb,opt){
+            var any = CodeMirror.hint.anyword ;
+            // bug in codemirror anyhint, works only on begining of line.
+            if(!any ){
+                cb({});
+            } else {
+                var res = any(cm,opt);
+                cb(res);
+                //cb({});
+            }
+        }
+    );
+    
+    
     var complete_function = $.proxy(MultiHint.prototype.complete, m_complete);
 
     $([IPython.events]).on('status_busy.Kernel', function () {
@@ -270,7 +292,9 @@ var IPython = (function (IPython) {
             
             var cpl = obj.data.list;
             if(cpl.length===1){
+                console.log('picking with tab');
                 obj.pick();
+                return;
             }
             
             var common;
