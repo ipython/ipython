@@ -20,7 +20,7 @@ var IPython = (function (IPython) {
         this.notebook = notebook;
         this.name = notebook.notebook_name;
         this.path = notebook.notebook_path;
-        this.base_project_url = notebook.base_project_url;
+        this.base_url = notebook.base_url;
         this.base_kernel_url = options.base_kernel_url || utils.get_data("baseKernelUrl");
     };
     
@@ -45,7 +45,7 @@ var IPython = (function (IPython) {
                 }
             },
         };
-        var url = utils.url_join_encode(this.base_project_url, 'api/sessions');
+        var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
     };
     
@@ -65,7 +65,7 @@ var IPython = (function (IPython) {
             data: JSON.stringify(model),
             dataType : "json",
         };
-        var url = utils.url_join_encode(this.base_project_url, 'api/sessions', this.id);
+        var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     
@@ -77,7 +77,7 @@ var IPython = (function (IPython) {
             dataType : "json",
         };
         this.kernel.running = false;
-        var url = utils.url_join_encode(this.base_project_url, 'api/sessions', this.id);
+        var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
     

@@ -23,7 +23,7 @@ var IPython = (function (IPython) {
         }
         this.notebooks_list = [];
         this.sessions = {};
-        this.base_project_url = options.base_project_url || utils.get_data("baseProjectUrl");
+        this.base_url = options.base_url || utils.get_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
     };
 
@@ -106,7 +106,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(that.sessions_loaded, this)
         };
-        var url = utils.url_join_encode(this.base_project_url, 'api/sessions');
+        var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url,settings);
     };
 
@@ -146,7 +146,7 @@ var IPython = (function (IPython) {
         };
 
         var url = utils.url_join_encode(
-                this.base_project_url,
+                this.base_url,
                 'api',
                 'notebooks',
                 this.notebook_path
@@ -227,7 +227,7 @@ var IPython = (function (IPython) {
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
-                    this.base_project_url,
+                    this.base_url,
                     "tree",
                     path,
                     name
@@ -244,7 +244,7 @@ var IPython = (function (IPython) {
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
-                    this.base_project_url,
+                    this.base_url,
                     "notebooks",
                     path,
                     nbname
@@ -285,7 +285,7 @@ var IPython = (function (IPython) {
                     }
                 };
                 var url = utils.url_join_encode(
-                    that.base_project_url,
+                    that.base_url,
                     'api/sessions',
                     session
                 );
@@ -325,7 +325,7 @@ var IPython = (function (IPython) {
                                     }
                                 };
                                 var url = utils.url_join_encode(
-                                    notebooklist.base_project_url,
+                                    notebooklist.base_url,
                                     'api/notebooks',
                                     notebooklist.notebook_path,
                                     nbname
@@ -374,7 +374,7 @@ var IPython = (function (IPython) {
                 };
 
                 var url = utils.url_join_encode(
-                    that.base_project_url,
+                    that.base_url,
                     'api/notebooks',
                     that.notebook_path,
                     nbname
@@ -397,7 +397,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.new_notebook = function(){
         var path = this.notebook_path;
-        var base_project_url = this.base_project_url;
+        var base_url = this.base_url;
         var settings = {
             processData : false,
             cache : false,
@@ -408,7 +408,7 @@ var IPython = (function (IPython) {
                 var notebook_name = data.name;
                 window.open(
                     utils.url_join_encode(
-                        base_project_url,
+                        base_url,
                         'notebooks',
                         path,
                         notebook_name),
@@ -417,7 +417,7 @@ var IPython = (function (IPython) {
             }
         };
         var url = utils.url_join_encode(
-            base_project_url,
+            base_url,
             'api/notebooks',
             path
         );

@@ -58,7 +58,7 @@ class NotebookRedirectHandler(IPythonHandler):
         nbm = self.notebook_manager
         if nbm.path_exists(path):
             # it's a *directory*, redirect to /tree
-            url = url_path_join(self.base_project_url, 'tree', path)
+            url = url_path_join(self.base_url, 'tree', path)
         else:
             # otherwise, redirect to /files
             if '/files/' in path:
@@ -73,7 +73,7 @@ class NotebookRedirectHandler(IPythonHandler):
                 if not os.path.exists(files_path):
                     path = path.replace('/files/', '/', 1)
             
-            url = url_path_join(self.base_project_url, 'files', path)
+            url = url_path_join(self.base_url, 'files', path)
         url = url_escape(url)
         self.log.debug("Redirecting %s to %s", self.request.path, url)
         self.redirect(url)

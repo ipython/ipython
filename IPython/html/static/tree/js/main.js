@@ -19,7 +19,7 @@ $(document).ready(function () {
     });
     
     var opts = {
-        base_project_url : IPython.utils.get_data("baseProjectUrl"),
+        base_url : IPython.utils.get_data("baseUrl"),
         notebook_path : IPython.utils.get_data("notebookPath"),
     };
     IPython.notebook_list = new IPython.NotebookList('#notebook_list', opts);

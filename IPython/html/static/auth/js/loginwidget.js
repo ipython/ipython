@@ -14,7 +14,7 @@ var IPython = (function (IPython) {
 
     var LoginWidget = function (selector, options) {
         options = options || {};
-        this.base_project_url = options.base_project_url || IPython.utils.get_data("baseProjectUrl");
+        this.base_url = options.base_url || IPython.utils.get_data("baseUrl");
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -32,13 +32,13 @@ var IPython = (function (IPython) {
         var that = this;
         this.element.find("button#logout").click(function () {
             window.location = IPythin.utils.url_join_encode(
-                that.base_project_url,
+                that.base_url,
                 "logout"
             );
         });
         this.element.find("button#login").click(function () {
             window.location = IPythin.utils.url_join_encode(
-                that.base_project_url,
+                that.base_url,
                 "login"
             );
         });

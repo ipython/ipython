@@ -30,14 +30,14 @@ var IPython = (function (IPython) {
      *
      * @param selector {string} selector for the menubar element in DOM
      * @param {object} [options]
-     *      @param [options.base_project_url] {String} String to use for the
+     *      @param [options.base_url] {String} String to use for the
      *      base project url. Default is to inspect
-     *      $('body').data('baseProjectUrl');
+     *      $('body').data('baseUrl');
      *      does not support change for now is set through this option
      */
     var MenuBar = function (selector, options) {
         options = options || {};
-        this.base_project_url = options.base_project_url || IPython.utils.get_data("baseProjectUrl");
+        this.base_url = options.base_url || IPython.utils.get_data("baseUrl");
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -64,7 +64,7 @@ var IPython = (function (IPython) {
             IPython.notebook.save_notebook({async : false});
         }
         var url = utils.url_join_encode(
-            this.base_project_url,
+            this.base_url,
             'nbconvert',
             format,
             this.notebook_path,

@@ -23,7 +23,7 @@ var IPython = (function (IPython) {
         }
         options = options || {};
         this.options = options;
-        this.base_project_url = options.base_project_url || utils.get_data("baseProjectUrl");
+        this.base_url = options.base_url || utils.get_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
     };
 
@@ -51,7 +51,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.load_list_success, this)
         };
-        var url = utils.url_join_encode(this.base_project_url, 'clusters');
+        var url = utils.url_join_encode(this.base_url, 'clusters');
         $.ajax(url, settings);
     };
 
@@ -75,7 +75,7 @@ var IPython = (function (IPython) {
 
     var ClusterItem = function (element, options) {
         this.element = $(element);
-        this.base_project_url = options.base_project_url || utils.get_data("baseProjectUrl");
+        this.base_url = options.base_url || utils.get_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
         this.data = null;
         this.style();
@@ -135,7 +135,7 @@ var IPython = (function (IPython) {
                 };
                 status_col.text('starting');
                 var url = utils.url_join_encode(
-                    that.base_project_url,
+                    that.base_url,
                     'clusters',
                     that.data.profile,
                     'start'
@@ -177,7 +177,7 @@ var IPython = (function (IPython) {
             };
             status_col.text('stopping');
             var url = utils.url_join_encode(
-                that.base_project_url,
+                that.base_url,
                 'clusters',
                 that.data.profile,
                 'stop'
