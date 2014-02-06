@@ -462,6 +462,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             inst = new_meth(cls, **kw)
         inst._trait_values = {}
         inst._trait_notifiers = {}
+        inst._single_notifiers = {}
         inst._trait_dyn_inits = {}
         # Here we tell all the TraitType instances to set their default
         # values on the instance.
@@ -489,48 +490,59 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
     def _notify_trait(self, name, old_value, new_value):
 
         # First dynamic ones
-        callables = []
-        callables.extend(self._trait_notifiers.get(name,[]))
-        callables.extend(self._trait_notifiers.get('anytrait',[]))
+        handlers = []
+        handlers.extend(self._trait_notifiers.get(name,[]))
+        handlers.extend(self._trait_notifiers.get('anytrait',[]))
 
         # Now static ones
         try:
-            cb = getattr(self, '_%s_changed' % name)
+            h = getattr(self, '_%s_changed' % name)
         except:
             pass
         else:
-            callables.append(cb)
+            handlers.append(h)
+
+        h = self._single_notifiers.get(name, None)
+        if h is not None:
+            handlers.append(h)
 
         # Call them all now
-        for c in callables:
-            # Traits catches and logs errors here.  I allow them to raise
-            if callable(c):
-                argspec = inspect.getargspec(c)
-                nargs = len(argspec[0])
-                # Bound methods have an additional 'self' argument
-                # I don't know how to treat unbound methods, but they
-                # can't really be used for callbacks.
-                if isinstance(c, types.MethodType):
-                    offset = -1
-                else:
-                    offset = 0
-                if nargs + offset == 0:
-                    c()
-                elif nargs + offset == 1:
-                    c(name)
-                elif nargs + offset == 2:
-                    c(name, new_value)
-                elif nargs + offset == 3:
-                    c(name, old_value, new_value)
-                else:
-                    raise TraitError('a trait changed callback '
-                                        'must have 0-3 arguments.')
-            else:
-                raise TraitError('a trait changed callback '
-                                    'must be callable.')
+        for h in handlers:
+            self._call_handler(h, name, old_value, new_value)
 
+    def _check_handler(self, handler):
+        if not callable(handler):
+            raise TraitError('a trait handler must be a callable, got: %r' % handler)
+        argspec = inspect.getargspec(handler)
+        nargs = len(argspec[0])
+        if isinstance(handler, types.MethodType):
+            offset = -1
+        else:
+            offset = 0
+        if nargs+offset > 3:
+            raise TraitError('a trait change handler must have 0-3 arguments')
+
+    def _call_handler(self, handler, name, old_value, new_value):
+        argspec = inspect.getargspec(handler)
+        nargs = len(argspec[0])
+        # Bound methods have an additional 'self' argument
+        # I don't know how to treat unbound methods, but they
+        # can't really be used for callbacks.
+        if isinstance(handler, types.MethodType):
+            offset = -1
+        else:
+            offset = 0
+        if nargs + offset == 0:
+            handler()
+        elif nargs + offset == 1:
+            handler(name)
+        elif nargs + offset == 2:
+            handler(name, new_value)
+        elif nargs + offset == 3:
+            handler(name, old_value, new_value)
 
     def _add_notifiers(self, handler, name):
+        self._check_handler(handler)
         if name not in self._trait_notifiers:
             nlist = []
             self._trait_notifiers[name] = nlist
@@ -540,6 +552,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             nlist.append(handler)
 
     def _remove_notifiers(self, handler, name):
+        if not callable(handler):
+            raise TraitError('a trait handler must be a callable, got: %r' % handler)
         if name in self._trait_notifiers:
             nlist = self._trait_notifiers[name]
             try:
@@ -582,6 +596,37 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             names = parse_notifier_name(name)
             for n in names:
                 self._add_notifiers(handler, n)
+
+    def on_change(self, handler, name):
+        """A simplified API for registering an on change handler.
+        
+        This method presents a simplified API for registering a handler
+        that is called when a single trait changes. This is like
+        `on_trait_change`, but with a couple of important differences:
+        
+        * It is called after the handlers registered by `on_trait_change`
+          and the static `_on_*_changed` methods.
+        * Only one handler per trait can be registered. When you set the
+          handler for a trait, a previous one for that trait is cleared.
+          This makes it useful for working interactively with handlers
+          that slowly mutate.
+        * The handler only takes a single argument, the new value.
+
+        Parameters
+        ----------
+        name : str
+            The string name of a single trait.
+        handler : callable
+            A callable that is called when a trait changes.  Its
+            signature must be `handler(new)`. Pass a value of `None`
+            to clear the handler.
+        """
+        if handler is None:
+            self._single_notifiers[name] = handler
+            return
+        # This raises if there is a problem
+        self._check_handler(handler)
+        self._single_notifiers[name] = handler
 
     @classmethod
     def class_trait_names(cls, **metadata):
