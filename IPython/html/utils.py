@@ -94,7 +94,7 @@ def is_hidden(abs_path, abs_root=''):
         The absolute path to check for hidden directories.
     abs_root : unicode
         The absolute path of the root directory in which hidden directories
-        should be check for.
+        should be checked for.
     """
     if not abs_root:
         abs_root = abs_path.split(os.sep, 1)[0] + os.sep
