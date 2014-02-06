@@ -59,7 +59,8 @@ var IPython = (function (IPython) {
 
     MenuBar.prototype._nbconvert = function (format, download) {
         download = download || false;
-        var notebook_name = IPython.notebook.get_notebook_name();
+        var notebook_path = IPython.notebook.notebook_path;
+        var notebook_name = IPython.notebook.notebook_name;
         if (IPython.notebook.dirty) {
             IPython.notebook.save_notebook({async : false});
         }
@@ -67,8 +68,8 @@ var IPython = (function (IPython) {
             this.base_url,
             'nbconvert',
             format,
-            this.notebook_path,
-            notebook_name + '.ipynb'
+            notebook_path,
+            notebook_name
         ) + "?download=" + download.toString();
 
         window.open(url);
@@ -103,7 +104,7 @@ var IPython = (function (IPython) {
                 base_url,
                 'files',
                 notebook_path,
-                notebook_name + '.ipynb'
+                notebook_name
             );
             window.location.assign(url);
         });
