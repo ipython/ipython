@@ -32,7 +32,7 @@ var IPython = (function (IPython) {
         // The documentation
         var doc = $('<div/>').addClass('alert');
         doc.append(
-            $('<button/>').addClass('close').attr('data-dismiss','alert').text('\u00D7')
+            $('<button/>').addClass('close').attr('data-dismiss','alert').html('&times;') // Literal = safe
         ).append(
             'The IPython Notebook has two different keyboard input modes. <b>Edit mode</b> '+
             'allows you to type code/text into a cell and is indicated by a green cell '+
