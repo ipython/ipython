@@ -426,7 +426,6 @@ class TestHasTraitsNotify(TestCase):
             pass
         self.assertRaises(TraitError, a.on_trait_change, bad_handler, 'a')
         self.assertRaises(TraitError, a.on_change, bad_handler, 'a')
-        
 
     def test_notify_on_change(self):
         class A(HasTraits):
