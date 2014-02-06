@@ -36,6 +36,9 @@ div.prompt {
 div.inner_cell {
     .vbox();
     .box-flex1();
+
+    /* This is required for FF to add scrollbars when code cells overflow. */
+    overflow: auto;
 }
 
 /* This is needed so that empty prompt areas can collapse to zero height when there
