@@ -56,7 +56,7 @@ var IPython = (function (IPython) {
      * TODO: remove once we update codemirror.
      **/
     var recent_cm = function(CodeMirror){
-    
+        return true;
         var cmv =  CodeMirror.version.split('.');    
         if(parseInt(cmv[0]) >= 4){
             return true;
@@ -66,6 +66,7 @@ var IPython = (function (IPython) {
             }
         }
         return false;
+        
     };
     
     /**
@@ -74,7 +75,6 @@ var IPython = (function (IPython) {
      * this is doable only on master CM
      * for now.
      **/
-    
     var insertLonguestCommonSubstring = function(cm){
         return function(cp, obj){
             var data = obj.data;
@@ -104,31 +104,44 @@ var IPython = (function (IPython) {
         };
     };
     
+    /**
+     * Proxy object to fetch completion from manysources at one.
+     * push normal codemirror async sources  to `this.complete_source`.
+     * and use `this.complete` as a new completion callback
+     */
     var MultiHint = function(){
         this.complete_source = [];
         this._complete_callback = undefined;
         this._pending_requests = 0;
         this._pending_results = null;
-        
-        
     };
     
+    /**
+     * gather response from source, and trigger the real codemirror
+     * callback once theyhave all responded.
+     **/
     MultiHint.prototype._gather_source = function(obj){
-        
+        console.log('gatherer', obj);
         this._pending_requests = this._pending_requests -1;
-
+        
+        // TODO
+        // Codemirror provide 2 kinds of completions form : 
+        // {from;to;[str]}
+        // or 
+        // [{from,to,str}]
+        // when merging we shoudl absolutly use the second
+        // as source are inconsistent
         if(!this._pending_results){
-            this._pending_results = obj;
-            
-        } else {
-            for(var idx in obj.list){
-                this._pending_results.list = this._pending_results.list || [];
-                this._pending_results.list.push(obj.list[idx]);
-                
-            }
-             
-            this._pending_results.from = this._pending_results.from || obj.from;
-            this._pending_results.to = this._pending_results.to || obj.to;
+            this._pending_results = {list:[]};
+        } 
+        for(var idx in obj.list){
+            //this._pending_results.list = this._pending_results.list || [];
+            var tmp ={};
+            tmp.text = obj.list[idx];
+            tmp.from = obj.from;  
+            tmp.to = obj.to;
+            this._pending_results.list.push(tmp);
+
         }
         
         if(this._pending_requests === 0){
@@ -137,6 +150,8 @@ var IPython = (function (IPython) {
         }
     };
     
+    // this shoudl probably be `$.proxy`'d or `_.bind`'ed  to work 
+    // but we try to avoid reference to jquery or underscore here. 
     MultiHint.prototype.complete = function(cm, finish_complete_callback, options){
         
         this._complete_callback = finish_complete_callback;
