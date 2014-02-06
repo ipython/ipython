@@ -246,17 +246,3 @@ class const(HasTraits):
     description = Unicode('', help="Any Python object")
     def __init__(self, value, **kwargs):
         super(const, self).__init__(value=value, **kwargs)
-
-def annotate(**kwargs):
-    """Python 3 compatible function annotation for Python 2."""
-    if not kwargs:
-        raise ValueError('annotations must be provided as keyword arguments')
-    def dec(f):
-        if hasattr(f, '__annotations__'):
-            for k, v in kwargs.items():
-                f.__annotations__[k] = v
-        else:
-            f.__annotations__ = kwargs
-        return f
-    return dec
-
