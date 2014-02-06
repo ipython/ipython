@@ -40,7 +40,7 @@ def _matches(o, pattern):
     return all(isinstance(obj,kind) for obj,kind in comps)
 
 
-def _get_min_max_value(min, max, value):
+def _get_min_max_value(min, max, value=None, step=None):
     """Return min, max, value given input values with possible None."""
     if value is None:
         if not max > min:
@@ -60,6 +60,10 @@ def _get_min_max_value(min, max, value):
             raise TypeError('expected a number, got: %r' % value)
     else:
         raise ValueError('unable to infer range, value from: ({0}, {1}, {2})'.format(min, max, value))
+    if step:
+        # ensure value is on a step
+        r = (value - min) % step
+        value = value - r
     return min, max, value
 
 def _widget_abbrev_single_value(o):
@@ -85,19 +89,19 @@ def _widget_abbrev(o):
     """Make widgets from abbreviations: single values, lists or tuples."""
     if isinstance(o, (list, tuple)):
         if _matches(o, (int, int)):
-            min, max, value = _get_min_max_value(o[0], o[1], None)
+            min, max, value = _get_min_max_value(o[0], o[1])
             return IntSliderWidget(value=value, min=min, max=max)
         elif _matches(o, (int, int, int)):
-            min, max, value = _get_min_max_value(o[0], o[1], None)
+            min, max, value = _get_min_max_value(o[0], o[1], step=o[2])
             return IntSliderWidget(value=value, min=min, max=max, step=o[2])
         elif _matches(o, (float, float)):
-            min, max, value = _get_min_max_value(o[0], o[1], None)
+            min, max, value = _get_min_max_value(o[0], o[1])
             return FloatSliderWidget(value=value, min=min, max=max)
         elif _matches(o, (float, float, float)):
-            min, max, value = _get_min_max_value(o[0], o[1], None)
+            min, max, value = _get_min_max_value(o[0], o[1], step=o[2])
             return FloatSliderWidget(value=value, min=min, max=max, step=o[2])
         elif _matches(o, (float, float, int)):
-            min, max, value = _get_min_max_value(o[0], o[1], None)
+            min, max, value = _get_min_max_value(o[0], o[1], step=o[2])
             return FloatSliderWidget(value=value, min=min, max=max, step=float(o[2]))
         elif all(isinstance(x, string_types) for x in o):
             return DropdownWidget(value=unicode_type(o[0]),
