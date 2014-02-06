@@ -639,7 +639,7 @@ var IPython = (function (IPython) {
         if (c[shortcut] === data.count-1) {
             c[shortcut] = 0;
             var timer = t[shortcut];
-            if (timer) {clearTimeout(timer);}
+            if (timer) {clearTimeout(timer); delete t[shortcut];}
             return data.handler(event);
         } else {
             c[shortcut] = c[shortcut] + 1;
