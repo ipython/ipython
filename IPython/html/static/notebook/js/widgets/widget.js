@@ -32,7 +32,7 @@ function(WidgetManager, _, Backbone){
             //      An ID unique to this model.
             // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
-            this._set_calls = 0;
+            this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
@@ -138,8 +138,13 @@ function(WidgetManager, _, Backbone){
 
         set: function(key, val, options) {
             // Set a value.
-            this._set_calls++;
-            return WidgetModel.__super__.set.apply(this, arguments);
+            var return_value = WidgetModel.__super__.set.apply(this, arguments);
+
+            // Backbone only remembers the diff of the most recent set()
+            // opertation.  Calling set multiple times in a row results in a 
+            // loss of diff information.  Here we keep our own running diff.
+            this._buffered_state_diff = $.extend(this._buffered_state_diff, this.changedAttributes() || {});
+            return return_value;
         },
 
         sync: function (method, model, options) {
@@ -205,26 +210,14 @@ function(WidgetManager, _, Backbone){
             // Since the comm is a one-way communication, assume the message 
             // arrived.  Don't call success since we don't have a model back from the server
             // this means we miss out on the 'sync' event.
-            this._set_calls = 0;
+            this._buffered_state_diff = {};
         },
 
         save_changes: function(callbacks) {
             // Push this model's state to the back-end
             //
             // This invokes a Backbone.Sync.
-
-            // Backbone only remembers the diff of the most recent set()
-            // opertation.  Calling set multiple times in a row results in a 
-            // loss of diff information which means we need to send a full 
-            // state.  If diffing is important to the user, model.set(...) should
-            // only be called once prior to a view.touch().  If multiple 
-            // parameters need to be set, use the model.set({key1: val1, key2: val2, ...}) 
-            // signature.
-            if (self._set_calls <= 1) {
-                this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
-            } else {
-                this.save(null, {patch: false, callbacks: callbacks});
-            }
+            this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
         },
 
         _pack_models: function(value) {
