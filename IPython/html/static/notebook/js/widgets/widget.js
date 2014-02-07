@@ -148,7 +148,7 @@ function(WidgetManager, _, Backbone){
             }
 
             // Delete any key value pairs that the back-end already knows about.
-            var attrs = (method === 'patch') ? model.changed : model.toJSON(options);
+            var attrs = (method === 'patch') ? options.attrs : model.toJSON(options);
             if (this.key_value_lock !== null) {
                 var key = this.key_value_lock[0];
                 var value = this.key_value_lock[1];
