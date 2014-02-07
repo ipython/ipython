@@ -181,7 +181,14 @@ class JSController(TestController):
         import IPython.html.tests as t
         test_dir = os.path.join(os.path.dirname(t.__file__), 'casperjs')
         includes = '--includes=' + os.path.join(test_dir,'util.js')
-        test_cases = os.path.join(test_dir, 'test_cases')
+
+        if self.section == 'js':
+            test_cases = os.path.join(test_dir, 'test_cases')
+        elif self.section == 'notebook':
+            test_cases = os.path.join(test_dir, 'test_cases', 'notebook')
+        elif self.section == 'widgets':
+            test_cases = os.path.join(test_dir, 'test_cases', 'widgets')
+        
         port = '--port=' + str(self.server_port)
         self.cmd = ['casperjs', 'test', port, includes, test_cases]
 
@@ -203,7 +210,7 @@ class JSController(TestController):
         self.server.join()
         TestController.cleanup(self)
 
-js_test_group_names = {'js'}
+js_test_group_names = {'js', 'notebook', 'widgets'}
 
 def run_webapp(q, ipydir, nbdir, loglevel=0):
     """start the IPython Notebook, and pass port back to the queue"""
