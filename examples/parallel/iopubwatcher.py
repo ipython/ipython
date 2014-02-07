@@ -14,35 +14,29 @@ Authors
 * MinRK
 """
 
-import os
 import sys
 import json
 import zmq
 
 from IPython.kernel.zmq.session import Session
-from IPython.parallel.util import disambiguate_url
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.path import get_security_file
 
 def main(connection_file):
     """watch iopub channel, and print messages"""
-    
+
     ctx = zmq.Context.instance()
-    
+
     with open(connection_file) as f:
         cfg = json.loads(f.read())
-    
-    location = cfg['location']
-    reg_url = cfg['url']
-    session = Session(key=str_to_bytes(cfg['exec_key']))
-    
-    query = ctx.socket(zmq.DEALER)
-    query.connect(disambiguate_url(cfg['url'], location))
-    session.send(query, "connection_request")
-    idents,msg = session.recv(query, mode=0)
-    c = msg['content']
-    iopub_url = disambiguate_url(c['iopub'], location)
+
+    reg_url = cfg['interface']
+    iopub_port = cfg['iopub']
+    iopub_url = "%s:%s"%(reg_url, iopub_port)
+
+    session = Session(key=str_to_bytes(cfg['key']))
     sub = ctx.socket(zmq.SUB)
+
     # This will subscribe to all messages:
     sub.setsockopt(zmq.SUBSCRIBE, b'')
     # replace with b'' with b'engine.1.stdout' to subscribe only to engine 1's stdout
