@@ -98,7 +98,7 @@ casper.notebook_test(function () {
                     this.touch();
                 },
             });
-            WidgetManager.register_widget_view('MultiSetView', MultiSetView);
+            IPython.WidgetManager.register_widget_view('MultiSetView', MultiSetView);
         }, {});
     });
 
