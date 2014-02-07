@@ -14,12 +14,17 @@
     display: box;
     box-orient: horizontal;
     box-align: stretch;
+
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
 }
 
 .hbox > * {
     -webkit-box-flex: 0;
     -moz-box-flex: 0;
     box-flex: 0;
+    flex: 0;
 }
 
 .vbox {
@@ -36,30 +41,38 @@
     box-align: stretch;
     /* width must be 100% to force FF to behave like webkit */
     width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 .vbox > * {
     -webkit-box-flex: 0;
     -moz-box-flex: 0;
     box-flex: 0;
+    flex: 0;
 }
 
 .reverse {
     -webkit-box-direction: reverse;
     -moz-box-direction: reverse;
     box-direction: reverse;
+    flex-direction: column-reverse;
 }
 
 .box-flex0 {
     -webkit-box-flex: 0;
     -moz-box-flex: 0;
     box-flex: 0;
+    flex: 0;
 }
 
 .box-flex1 {
     -webkit-box-flex: 1;
     -moz-box-flex: 1;
     box-flex: 1;
+    flex: 1;
 }
 
 .box-flex {
@@ -70,15 +83,24 @@
     -webkit-box-flex: 2;
     -moz-box-flex: 2;
     box-flex: 2;
+    flex: 2;
 }
 
 .box-group1 {
+    /* 
+    Deprecated
+        Grouping isn't supported in http://dev.w3.org/csswg/css-flexbox/
+    */
     -webkit-box-flex-group: 1;
     -moz-box-flex-group: 1;
     box-flex-group: 1;
 }
 
 .box-group2 {
+    /* 
+    Deprecated
+        Grouping isn't supported in http://dev.w3.org/csswg/css-flexbox/
+    */
     -webkit-box-flex-group: 2;
     -moz-box-flex-group: 2;
     box-flex-group: 2;
@@ -88,34 +110,40 @@
     -webkit-box-pack: start;
     -moz-box-pack: start;
     box-pack: start;
+    justify-content: flex-start;
 }
 
 .end {
     -webkit-box-pack: end;
     -moz-box-pack: end;
     box-pack: end;
+    justify-content: flex-end;
 }
 
 .center {
     -webkit-box-pack: center;
     -moz-box-pack: center;
     box-pack: center;
+    justify-content: center;
 }
 
 .align-start {
-	-webkit-box-align: start;
-	-moz-box-align: start;
-	box-align: start;
+    -webkit-box-align: start;
+    -moz-box-align: start;
+    box-align: start;
+    align-content: flex-start;
 }
 
 .align-end {
-	-webkit-box-align: end;
-	-moz-box-align: end;
-	box-align: end;
+    -webkit-box-align: end;
+    -moz-box-align: end;
+    box-align: end;
+    align-content: flex-end;
 }
 
 .align-center {
-	-webkit-box-align: center;
-	-moz-box-align: center;
-	box-align: center;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    box-align: center;
+    align-content: center;
 }
