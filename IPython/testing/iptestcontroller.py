@@ -183,11 +183,11 @@ class JSController(TestController):
         includes = '--includes=' + os.path.join(test_dir,'util.js')
 
         if self.section == 'js':
-            test_cases = os.path.join(test_dir, 'test_cases')
+            test_cases = os.path.join(test_dir, 'js')
         elif self.section == 'notebook':
-            test_cases = os.path.join(test_dir, 'test_cases', 'notebook')
+            test_cases = os.path.join(test_dir, 'notebook')
         elif self.section == 'widgets':
-            test_cases = os.path.join(test_dir, 'test_cases', 'widgets')
+            test_cases = os.path.join(test_dir, 'widgets')
         
         port = '--port=' + str(self.server_port)
         self.cmd = ['casperjs', 'test', port, includes, test_cases]
