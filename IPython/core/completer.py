@@ -66,7 +66,10 @@ Notes:
 # Imports
 #-----------------------------------------------------------------------------
 
-import __main__
+try:
+    import __main__
+except ImportError:
+    pass
 import glob
 import inspect
 import itertools

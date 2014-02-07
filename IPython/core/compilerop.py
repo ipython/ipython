@@ -45,7 +45,10 @@ import time
 # this is used as a bitmask to extract future-related code flags.
 PyCF_MASK = functools.reduce(operator.or_,
                              (getattr(__future__, fname).compiler_flag
-                              for fname in __future__.all_feature_names))
+                              for fname in __future__.all_feature_names
+                              if (hasattr(__future__, fname) and
+                                  hasattr(getattr(__future__, fname), "compiler_flag"))),
+                              0)
 
 #-----------------------------------------------------------------------------
 # Local utilities

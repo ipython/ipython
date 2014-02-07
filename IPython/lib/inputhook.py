@@ -18,6 +18,8 @@ try:
     import ctypes
 except ImportError:
     ctypes = None
+except SystemError:
+    ctypes = None
 import os
 import sys
 from distutils.version import LooseVersion as V

@@ -1,0 +1,61 @@
+"""
+cli-specific implementation of process utilities.
+
+cli - Common Language Infrastructure for IronPython. Code
+      can run on any operating system. Check os.name for os-
+      specific settings.
+
+This file is only meant to be imported by process.py, not by end-users.
+"""
+
+# Import cli libraries:
+import clr
+import System
+
+# Import Python libraries:
+import os
+
+# Import IPython libraries:
+from IPython.utils import py3compat
+from ._process_common import arg_split
+
+def _find_cmd(cmd):
+    """Find the full path to a command using which."""
+    os_path_sep = ":" if os.name == "posix" else ";"
+    paths = System.Environment.GetEnvironmentVariable("PATH").Split(os_path_sep)
+    for path in paths:
+        filename = os.path.join(path, cmd)
+        if System.IO.File.Exists(filename):
+            return py3compat.bytes_to_str(filename)
+    raise OSError("command %r not found" % cmd)
+
+def system(cmd):
+    """
+    system(cmd) should work in a cli environment on Mac OSX, Linux,
+    and Windows
+    """
+    psi = System.Diagnostics.ProcessStartInfo(cmd)
+    psi.RedirectStandardOutput = True
+    psi.RedirectStandardError = True
+    psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal
+    psi.UseShellExecute = False
+    # Start up process:
+    reg = System.Diagnostics.Process.Start(psi)
+
+def getoutput(cmd):
+    """
+    getoutput(cmd) should work in a cli environment on Mac OSX, Linux,
+    and Windows
+    """
+    psi = System.Diagnostics.ProcessStartInfo(cmd)
+    psi.RedirectStandardOutput = True
+    psi.RedirectStandardError = True
+    psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal
+    psi.UseShellExecute = False
+    # Start up process:
+    reg = System.Diagnostics.Process.Start(psi)
+    myOutput = reg.StandardOutput
+    output = myOutput.ReadToEnd()
+    myError = reg.StandardError
+    error = myError.ReadToEnd()
+    return output
