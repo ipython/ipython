@@ -114,7 +114,7 @@ def _widget_from_abbrev(abbrev):
     
     widget = _widget_abbrev(abbrev)
     if widget is None:
-        raise ValueError("%r cannot be transformed to a Widget" % abbrev)
+        raise ValueError("%r cannot be transformed to a Widget" % (abbrev,))
     return widget
 
 def _yield_abbreviations_for_parameter(param, kwargs):
