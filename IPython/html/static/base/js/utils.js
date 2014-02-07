@@ -417,15 +417,21 @@ IPython.utils = (function (IPython) {
                 url = url + arguments[i];
             }
         }
+        url = url.replace(/\/\/+/, '/');
         return url;
     };
     
+    var parse_url = function (url) {
+        var a = document.createElement("a");
+        a.href = url;
+        return a;
+    };
     
     var encode_uri_components = function (uri) {
         // encode just the components of a multi-segment uri,
         // leaving '/' separators
         return uri.split('/').map(encodeURIComponent).join('/');
-    }
+    };
     
     var url_join_encode = function () {
         // join a sequence of url components with '/',
@@ -517,6 +523,7 @@ IPython.utils = (function (IPython) {
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
         get_body_data : get_body_data,
+        parse_url : parse_url,
         url_path_join : url_path_join,
         url_join_encode : url_join_encode,
         encode_uri_components : encode_uri_components,
