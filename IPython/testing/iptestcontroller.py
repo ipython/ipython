@@ -238,7 +238,7 @@ def prepare_controllers(options):
             js_testgroups = [g for g in testgroups if g not in py_testgroups]
     else:
         py_testgroups = py_test_group_names
-        js_testgroups = all_js_group_names()
+        js_testgroups = all_js_groups()
         if not options.all:
             test_sections['parallel'].enabled = False
 
