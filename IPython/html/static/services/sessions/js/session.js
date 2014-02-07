@@ -89,8 +89,8 @@ var IPython = (function (IPython) {
      */
     Session.prototype._handle_start_success = function (data, status, xhr) {
         this.id = data.id;
-        var base_url = utils.url_join_encode(this.base_kernel_url, "api/kernels");
-        this.kernel = new IPython.Kernel(base_url);
+        var kernel_service_url = utils.url_path_join(this.base_kernel_url, "api/kernels");
+        this.kernel = new IPython.Kernel(kernel_service_url);
         this.kernel._kernel_started(data.kernel);
     };
     
