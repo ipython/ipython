@@ -32,6 +32,7 @@ function(WidgetManager, _, Backbone){
             //      An ID unique to this model.
             // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
+            this._set_calls = 0;
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
@@ -135,6 +136,12 @@ function(WidgetManager, _, Backbone){
             return callbacks;
         },
 
+        set: function(key, val, options) {
+            // Set a value.
+            this._set_calls++;
+            return WidgetModel.__super__.set.apply(this, arguments);
+        },
+
         sync: function (method, model, options) {
             // Handle sync to the back-end.  Called when a model.save() is called.
 
@@ -158,6 +165,7 @@ function(WidgetManager, _, Backbone){
             }
 
             // Only sync if there are attributes to send to the back-end.
+            attrs = this._pack_models(attrs);
             if (_.size(attrs) > 0) {
 
                 // If this message was sent via backbone itself, it will not
@@ -197,13 +205,26 @@ function(WidgetManager, _, Backbone){
             // Since the comm is a one-way communication, assume the message 
             // arrived.  Don't call success since we don't have a model back from the server
             // this means we miss out on the 'sync' event.
+            this._set_calls = 0;
         },
 
         save_changes: function(callbacks) {
             // Push this model's state to the back-end
             //
             // This invokes a Backbone.Sync.
-            this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
+
+            // Backbone only remembers the diff of the most recent set()
+            // opertation.  Calling set multiple times in a row results in a 
+            // loss of diff information which means we need to send a full 
+            // state.  If diffing is important to the user, model.set(...) should
+            // only be called once prior to a view.touch().  If multiple 
+            // parameters need to be set, use the model.set({key1: val1, key2: val2, ...}) 
+            // signature.
+            if (self._set_calls <= 1) {
+                this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
+            } else {
+                this.save(null, {patch: false, callbacks: callbacks});
+            }
         },
 
         _pack_models: function(value) {
