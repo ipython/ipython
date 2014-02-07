@@ -190,6 +190,7 @@ def find_package_data():
     
     return package_data
 
+
 def check_package_data(package_data):
     """verify that package_data globs make sense"""
     print("checking package data")
@@ -201,6 +202,18 @@ def check_package_data(package_data):
                 assert len(glob(path)) > 0, "No files match pattern %s" % path
             else:
                 assert os.path.exists(path), "Missing package data: %s" % path
+
+
+def check_package_data_first(command):
+    """decorator for checking package_data before running a given command
+    
+    Probably only needs to wrap build_py
+    """
+    class DecoratedCommand(command):
+        def run(self):
+            check_package_data(self.package_data)
+            command.run(self)
+    return DecoratedCommand
 
 
 #---------------------------------------------------------------------------

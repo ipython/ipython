@@ -58,7 +58,7 @@ from setupbase import (
     setup_args,
     find_packages,
     find_package_data,
-    check_package_data,
+    check_package_data_first,
     find_entry_points,
     build_scripts_entrypt,
     find_data_files,
@@ -199,15 +199,6 @@ setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
 
-def maybe_check_package_data():
-    for should_check in ('bdist', 'sdist', 'build', 'install'):
-        for arg in sys.argv:
-            if arg.startswith(should_check):
-                check_package_data(package_data)
-                return
-
-maybe_check_package_data()
-
 #---------------------------------------------------------------------------
 # custom distutils commands
 #---------------------------------------------------------------------------
@@ -235,7 +226,7 @@ class UploadWindowsInstallers(upload):
             self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
-    'build_py': git_prebuild('IPython'),
+    'build_py': check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
