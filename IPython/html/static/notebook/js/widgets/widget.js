@@ -203,7 +203,7 @@ function(WidgetManager, _, Backbone){
             // Push this model's state to the back-end
             //
             // This invokes a Backbone.Sync.
-            this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
+            this.save({patch: true, callbacks: callbacks});
         },
 
         _pack_models: function(value) {
