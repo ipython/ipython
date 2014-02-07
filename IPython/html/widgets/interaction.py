@@ -230,6 +230,7 @@ def interact(__interact_f=None, **kwargs):
         w = interactive(f, **kwargs)
         f.widget = w
         display(w)
+        return f
     else:
         # This branch handles the case:
         # @interact(a=30, b=40)
