@@ -53,7 +53,7 @@ class IntSliderWidget(_BoundedIntWidget):
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
-    readout = Bool(False, help="Display the current value of the slider next to it.", sync=True)
+    readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 
 class IntProgressWidget(_BoundedIntWidget):

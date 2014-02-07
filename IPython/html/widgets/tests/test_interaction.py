@@ -133,6 +133,7 @@ def test_single_value_float():
             min= -a if a > 0 else 3*a,
             max= 3*a if a > 0 else -a,
             step=0.1,
+            readout=True,
         )
 
 def test_single_value_int():
@@ -147,6 +148,7 @@ def test_single_value_int():
             min= -a if a > 0 else 3*a,
             max= 3*a if a > 0 else -a,
             step=1,
+            readout=True,
         )
 
 def test_list_tuple_2_int():
@@ -162,6 +164,7 @@ def test_list_tuple_2_int():
             min=min,
             max=max,
             step=1,
+            readout=True,
         )
         check_widgets(c, tup=d, lis=d)
 
@@ -178,6 +181,7 @@ def test_list_tuple_3_int():
             min=min,
             max=max,
             step=step,
+            readout=True,
         )
         check_widgets(c, tup=d, lis=d)
 
@@ -194,6 +198,7 @@ def test_list_tuple_2_float():
             min=min,
             max=max,
             step=.1,
+            readout=True,
         )
         check_widgets(c, tup=d, lis=d)
 
@@ -212,6 +217,7 @@ def test_list_tuple_3_float():
             min=min,
             max=max,
             step=step,
+            readout=True,
         )
         check_widgets(c, tup=d, lis=d)
 
