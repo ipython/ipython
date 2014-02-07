@@ -159,20 +159,24 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch()
 
+js_prefix = 'js-'
+
 def get_js_test_dir():
     import IPython.html.tests as t
-    return os.path.join(os.path.dirname(t.__file__), 'casperjs')
+    return os.path.join(os.path.dirname(t.__file__), 'casperjs','')
 
 def all_js_groups():
     import glob
-    return glob.glob(get_js_test_dir() + '*/')
+    test_dir = get_js_test_dir()
+    all_subdirs = glob.glob(test_dir + '*/')
+    return [js_prefix+os.path.relpath(x, test_dir) for x in all_subdirs]
 
 class JSController(TestController):
     """Run CasperJS tests """
     def __init__(self, section):
         """Create new test runner."""
         TestController.__init__(self)
-        self.section = section
+        self.section = section[len(js_prefix):]
 
         self.ipydir = TemporaryDirectory()
         self.nbdir = TemporaryDirectory()
