@@ -47,10 +47,10 @@ function (marked) {
     $('div#notebook_panel').addClass('border-box-sizing');
 
     var opts = {
-        base_url : IPython.utils.get_data("baseUrl"),
-        base_kernel_url : IPython.utils.get_data("baseKernelUrl"),
-        notebook_path : IPython.utils.get_data("notebookPath"),
-        notebook_name : IPython.utils.get_data('notebookName')
+        base_url : IPython.utils.get_body_data("baseUrl"),
+        base_kernel_url : IPython.utils.get_body_data("baseKernelUrl"),
+        notebook_path : IPython.utils.get_body_data("notebookPath"),
+        notebook_name : IPython.utils.get_body_data('notebookName')
     };
 
     IPython.page = new IPython.Page();

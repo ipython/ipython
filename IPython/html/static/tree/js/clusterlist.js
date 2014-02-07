@@ -23,8 +23,8 @@ var IPython = (function (IPython) {
         }
         options = options || {};
         this.options = options;
-        this.base_url = options.base_url || utils.get_data("baseUrl");
-        this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
     };
 
     ClusterList.prototype.style = function () {
@@ -75,8 +75,8 @@ var IPython = (function (IPython) {
 
     var ClusterItem = function (element, options) {
         this.element = $(element);
-        this.base_url = options.base_url || utils.get_data("baseUrl");
-        this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
         this.data = null;
         this.style();
     };

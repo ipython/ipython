@@ -19,8 +19,8 @@ $(document).ready(function () {
     });
     
     var opts = {
-        base_url : IPython.utils.get_data("baseUrl"),
-        notebook_path : IPython.utils.get_data("notebookPath"),
+        base_url : IPython.utils.get_body_data("baseUrl"),
+        notebook_path : IPython.utils.get_body_data("notebookPath"),
     };
     IPython.notebook_list = new IPython.NotebookList('#notebook_list', opts);
     IPython.cluster_list = new IPython.ClusterList('#cluster_list', opts);

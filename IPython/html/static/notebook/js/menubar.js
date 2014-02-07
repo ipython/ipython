@@ -37,7 +37,7 @@ var IPython = (function (IPython) {
      */
     var MenuBar = function (selector, options) {
         options = options || {};
-        this.base_url = options.base_url || IPython.utils.get_data("baseUrl");
+        this.base_url = options.base_url || IPython.utils.get_body_data("baseUrl");
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);

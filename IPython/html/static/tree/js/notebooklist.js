@@ -23,8 +23,8 @@ var IPython = (function (IPython) {
         }
         this.notebooks_list = [];
         this.sessions = {};
-        this.base_url = options.base_url || utils.get_data("baseUrl");
-        this.notebook_path = options.notebook_path || utils.get_data("notebookPath");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
     };
 
     NotebookList.prototype.style = function () {

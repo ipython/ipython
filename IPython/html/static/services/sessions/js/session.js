@@ -21,7 +21,7 @@ var IPython = (function (IPython) {
         this.name = notebook.notebook_name;
         this.path = notebook.notebook_path;
         this.base_url = notebook.base_url;
-        this.base_kernel_url = options.base_kernel_url || utils.get_data("baseKernelUrl");
+        this.base_kernel_url = options.base_kernel_url || utils.get_body_data("baseKernelUrl");
     };
     
     Session.prototype.start = function(callback) {
