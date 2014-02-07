@@ -144,10 +144,6 @@ var IPython = (function (IPython) {
         IPython.skip_kernel_completion = false;
     });
 
-    
-   
-    
-    
 
     
     /**

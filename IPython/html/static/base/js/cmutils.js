@@ -93,13 +93,14 @@ var IPython = (function (IPython) {
             }
             
             var common;
-            var c0 = cpl[0];
-            var c1 = cpl[cpl.length-1];
+            var comp0 = cpl[0];
+            var c0 = comp0.text;
+            var c1 = cpl[cpl.length-1].text;
             
             common = longestCommonSubstring(c0, c1).sequence;
 
             if(common !== undefined ){
-                cm.replaceRange(common, data.from, data.to);
+                cm.replaceRange(common, comp0.from, comp0.to);
             }
         };
     };
@@ -121,10 +122,8 @@ var IPython = (function (IPython) {
      * callback once theyhave all responded.
      **/
     MultiHint.prototype._gather_source = function(obj){
-        console.log('gatherer', obj);
         this._pending_requests = this._pending_requests -1;
         
-        // TODO
         // Codemirror provide 2 kinds of completions form : 
         // {from;to;[str]}
         // or 
@@ -134,17 +133,25 @@ var IPython = (function (IPython) {
         if(!this._pending_results){
             this._pending_results = {list:[]};
         } 
+        
+        // rely on underscore, usable in node, not jQuery
+        var known_completions = _.map(this._pending_results.list,function(x){return x.text});
+
         for(var idx in obj.list){
-            //this._pending_results.list = this._pending_results.list || [];
+            //should deduplicate result from the different sources here
             var tmp ={};
             tmp.text = obj.list[idx];
+            if(known_completions.indexOf(tmp.text)!== -1){
+                continue;
+            }
             tmp.from = obj.from;  
             tmp.to = obj.to;
             this._pending_results.list.push(tmp);
-
         }
         
+        
         if(this._pending_requests === 0){
+            
             this._complete_callback(this._pending_results);
             this._pending_results = undefined;
         }
