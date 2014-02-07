@@ -201,13 +201,13 @@ def interactive(__interact_f, **kwargs):
 
     # Build the callback
     def call_f(name, old, new):
-        container.args = []
+        container.kwargs = {}
         for widget in kwargs_widgets:
             value = widget.value
             container.kwargs[widget.description] = value
         if co:
             clear_output(wait=True)
-        container.result = f(*container.args, **container.kwargs)
+        container.result = f(**container.kwargs)
 
     # Wire up the widgets
     for widget in kwargs_widgets:
