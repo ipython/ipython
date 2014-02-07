@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName, CRegExp, bind
+    ObjectName, DottedObjectName, CRegExp, link
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -974,9 +974,9 @@ def test_dict_assignment():
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
 
-class TestBind(TestCase):
+class TestLink(TestCase):
     def test_connect_same(self):
-        """Verify two traitlets of the same type can be bound together using bind."""
+        """Verify two traitlets of the same type can be linked together using link."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -985,9 +985,9 @@ class TestBind(TestCase):
         b = A(value=8)
 
         # Conenct the two classes.
-        c = bind((a, 'value'), (b, 'value'))
+        c = link((a, 'value'), (b, 'value'))
 
-        # Make sure the values are the same at the point of binding.
+        # Make sure the values are the same at the point of linking.
         self.assertEqual(a.value, b.value)
 
         # Change one of the values to make sure they stay in sync.
@@ -996,8 +996,8 @@ class TestBind(TestCase):
         b.value = 6
         self.assertEqual(a.value, b.value)
 
-    def test_bind_different(self):
-        """Verify two traitlets of different types can be bound together using bind."""
+    def test_link_different(self):
+        """Verify two traitlets of different types can be linked together using link."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -1008,9 +1008,9 @@ class TestBind(TestCase):
         b = B(count=8)
 
         # Conenct the two classes.
-        c = bind((a, 'value'), (b, 'count'))
+        c = link((a, 'value'), (b, 'count'))
 
-        # Make sure the values are the same at the point of binding.
+        # Make sure the values are the same at the point of linking.
         self.assertEqual(a.value, b.count)
 
         # Change one of the values to make sure they stay in sync.
@@ -1019,8 +1019,8 @@ class TestBind(TestCase):
         b.count = 4
         self.assertEqual(a.value, b.count)
 
-    def test_unbind(self):
-        """Verify two binded traitlets can be unbinded."""
+    def test_unlink(self):
+        """Verify two linked traitlets can be unlinked."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -1028,17 +1028,17 @@ class TestBind(TestCase):
         a = A(value=9)
         b = A(value=8)
 
-        # Conenct the two classes.
-        c = bind((a, 'value'), (b, 'value'))
+        # Connect the two classes.
+        c = link((a, 'value'), (b, 'value'))
         a.value = 4
-        c.unbind()
+        c.unlink()
 
-        # Change one of the values to make sure they stay in sync.
+        # Change one of the values to make sure they don't stay in sync.
         a.value = 5
         self.assertNotEqual(a.value, b.value)
 
     def test_callbacks(self):
-        """Verify two binded traitlets have their callbacks called once."""
+        """Verify two linked traitlets have their callbacks called once."""
 
         # Create two simple classes with Int traitlets.
         class A(HasTraits):
@@ -1057,8 +1057,8 @@ class TestBind(TestCase):
             callback_count.append('b')
         b.on_trait_change(b_callback, 'count')
 
-        # Conenct the two classes.
-        c = bind((a, 'value'), (b, 'count'))
+        # Connect the two classes.
+        c = link((a, 'value'), (b, 'count'))
 
         # Make sure b's count was set to a's value once.
         self.assertEqual(''.join(callback_count), 'b')
