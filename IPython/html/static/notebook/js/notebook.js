@@ -534,6 +534,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.command_mode = function () {
         if (this.mode !== 'command') {
+            $([IPython.events]).trigger('command_mode.Notebook');
             var index = this.get_edit_index();
             var cell = this.get_cell(index);
             if (cell) {
@@ -546,6 +547,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.edit_mode = function () {
         if (this.mode !== 'edit') {
+            $([IPython.events]).trigger('edit_mode.Notebook');
             var cell = this.get_selected_cell();
             if (cell === null) {return;}  // No cell is selected
             // We need to set the mode to edit to prevent reentering this method

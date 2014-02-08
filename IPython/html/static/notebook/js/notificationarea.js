@@ -69,17 +69,29 @@ var IPython = (function (IPython) {
 
     NotificationArea.prototype.init_notification_widgets = function() {
         var knw = this.new_notification_widget('kernel');
-        var $kernel_indic = $("#kernel_indicator");
+        var $kernel_ind_icon = $("#kernel_indicator_icon");
+        var $modal_ind_icon = $("#modal_indicator_icon");
+
+        // Command/Edit mode
+        $([IPython.events]).on('edit_mode.Notebook',function () {
+            IPython.save_widget.update_document_title();
+            $modal_ind_icon.attr('class','icon-pencil').attr('title','Edit Mode');
+        });
+
+        $([IPython.events]).on('command_mode.Notebook',function () {
+            IPython.save_widget.update_document_title();
+            $modal_ind_icon.attr('class','').attr('title','Command Mode');
+        });
 
         // Kernel events
         $([IPython.events]).on('status_idle.Kernel',function () {
             IPython.save_widget.update_document_title();
-            $kernel_indic.attr('class','icon-circle-blank').attr('title','Kernel Idle');
+            $kernel_ind_icon.attr('class','icon-circle-blank').attr('title','Kernel Idle');
         });
 
         $([IPython.events]).on('status_busy.Kernel',function () {
             window.document.title='(Busy) '+window.document.title;
-            $kernel_indic.attr('class','icon-circle').attr('title','Kernel Busy');
+            $kernel_ind_icon.attr('class','icon-circle').attr('title','Kernel Busy');
         });
 
         $([IPython.events]).on('status_restarting.Kernel',function () {
