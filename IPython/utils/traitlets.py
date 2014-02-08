@@ -184,8 +184,8 @@ def getmembers(object, predicate=None):
     return results
 
 @skip_doctest
-class bind(object):
-    """Bind traits from different objects together so they remain in sync.
+class link(object):
+    """Link traits from different objects together so they remain in sync.
 
     Parameters
     ----------
@@ -194,7 +194,7 @@ class bind(object):
     Examples
     --------
 
-    >>> c = bind((obj1, 'value'), (obj2, 'value'), (obj3, 'value'))
+    >>> c = link((obj1, 'value'), (obj2, 'value'), (obj3, 'value'))
     >>> obj1.value = 5 # updates other objects as well
     """
     updating = False
@@ -233,7 +233,7 @@ class bind(object):
                 if obj is not sending_obj or attr != sending_attr:
                     setattr(obj, attr, new)
     
-    def unbind(self):
+    def unlink(self):
         for key, callback in self.objects.items():
             (obj,attr) = key
             obj.on_trait_change(callback, attr, remove=True)

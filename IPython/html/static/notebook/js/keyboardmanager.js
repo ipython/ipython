@@ -540,6 +540,7 @@ var IPython = (function (IPython) {
     var ShortcutManager = function (delay) {
         this._shortcuts = {}
         this._counts = {}
+        this._timers = {}
         this.delay = delay || 800; // delay in milliseconds
     }
 
@@ -633,17 +634,21 @@ var IPython = (function (IPython) {
     ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
         var that = this;
         var c = this._counts;
+        var t = this._timers;
+        var timer = null;
         if (c[shortcut] === data.count-1) {
             c[shortcut] = 0;
+            var timer = t[shortcut];
+            if (timer) {clearTimeout(timer); delete t[shortcut];}
             return data.handler(event);
         } else {
             c[shortcut] = c[shortcut] + 1;
-            setTimeout(function () {
+            timer = setTimeout(function () {
                 c[shortcut] = 0;
             }, that.delay);
+            t[shortcut] = timer;
         }
         return false;
-
     }
 
     ShortcutManager.prototype.call_handler = function (event) {
