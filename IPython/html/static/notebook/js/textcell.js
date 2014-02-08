@@ -327,9 +327,24 @@ var IPython = (function (IPython) {
         TextCell.apply(this, [options]);
     };
 
+    
+    CodeMirror.defineMode("gfm-ipython", function(config, parserConfig) {
+      var overlay = {
+        token: function(stream, state) {
+          var ch;
+          if (stream.match("iPython")) {
+            return "itsuppercasei";
+          }
+          while (stream.next() != null && !stream.match("iPython", false)) {}
+          return null;
+        }
+      };
+      return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "gfm"), overlay);
+    });
+    
     MarkdownCell.options_default = {
         cm_config: {
-            mode: 'gfm'
+            mode: 'gfm-ipython'
         },
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     }

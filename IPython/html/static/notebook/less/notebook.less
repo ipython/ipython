@@ -65,3 +65,26 @@ p {
 .end_space {
     height: 200px;
 }
+
+// IPython, it's Uppercase I with the right Codemirror overlay !
+.cm-itsuppercasei{
+    color:darkred;
+    background-color: hsl(0, 100%, 90%);
+}
+
+.cm-itsuppercasei:after
+{
+    position: absolute;
+    content: "It's uppercase I: IPython";
+    color: #FFF;
+    font-weight:bold;
+    left: 0px;
+    background: darkred;
+    padding: 3px 10px;
+    white-space: nowrap;
+    visibility: hidden;
+}
+
+.cm-itsuppercasei:hover:after{
+    visibility: visible;
+}
