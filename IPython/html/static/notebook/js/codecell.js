@@ -79,37 +79,26 @@ var IPython = (function (IPython) {
     };
     
     
+    $([IPython.events]).on('status_busy.Kernel', function () {
+        IPython.skip_kernel_completion = true;
+    });
+    
+    $([IPython.events]).on('status_idle.Kernel', function () {
+        IPython.skip_kernel_completion = false;
+    });
+    
     /**
      * complete function that should be passed to CodeMirror
      * show-hint in order to fetch the completion. and call 
      * `finish_complete_callback` once done with the formatted result.
      **/
-    var _complete_function =  function(cm, finish_complete_callback, options){
-        
-        // this shoudl be moved into the manycompleter.
-        //
-        // TODO
-        //
-        IPython.tooltip.remove_and_cancel_tooltip();
-        if (cm.somethingSelected()) {
-                return;
-            }
+    var complete_from_kernel =  function(cm, finish_complete_callback, options){
         var cur = cm.getCursor();
-        var pre_cursor = cm.getRange({line:cur.line,ch:0},cur);
-        if (pre_cursor.trim() === "") {
-            // Don't autocomplete if the part of the line before the cursor
-            // is empty.  In this case, let CodeMirror handle indentation.
-            CodeMirror.commands.indentMore(cm);
-            return;
-        }
-
-        // TODO
-        // we will probably want one more level of indirection here not to directly call the callback but merge 
-        // the completion result from many sources if necessary. 
-       if(IPython.skip_kernel_completion){
+        if(IPython.skip_kernel_completion){
             // call callback with empty result
             finish_complete_callback({list:[], from:cur, to:cur});
         }
+        
         IPython.notebook.kernel.complete(cm.getLine(cur.line), cur.ch, function(msg){
             finish_complete_callback(
                 {list:msg.content.matches, from:{line:cur.line, ch:cur.ch - msg.content.matched_text.length }, to:cur}
@@ -117,77 +106,50 @@ var IPython = (function (IPython) {
         });
     };
     
-    var m_complete = new MultiHint();
-    
-    m_complete.complete_source.push(_complete_function);
-    m_complete.complete_source.push(
-        function (cm,cb,opt){
-            var any = CodeMirror.hint.anyword ;
-            // bug in codemirror anyhint, works only on begining of line.
-            if(!any || !recent_cm(CodeMirror)){
-                cb({});
-            } else {
-                var res = any(cm,opt);
-                cb(res);
-                //cb({});
-            }
+    /**
+     * wrapper arround CodeMirror.hit.anyword
+     * to make it no-op if buggy.
+     **/
+    var complete_from_anyword = function (cm, cb, opt){
+        var any = CodeMirror.hint.anyword ;
+        // bug in codemirror anyhint, works only on begining of line.
+        if(!any || !recent_cm(CodeMirror)){
+            cb({});
+        } else {
+            cb(any(cm,opt));
         }
-    );
+    }
     
+    var m_complete = new MultiHint();
+    m_complete.complete_source.push(complete_from_kernel);
+    m_complete.complete_source.push(complete_from_anyword);
+    var complete_from_mixed_sources = $.proxy(MultiHint.prototype.complete, m_complete);
     
-    var complete_function = $.proxy(MultiHint.prototype.complete, m_complete);
-
-    $([IPython.events]).on('status_busy.Kernel', function () {
-        IPython.skip_kernel_completion = true;
-    });
-    $([IPython.events]).on('status_idle.Kernel', function () {
-        IPython.skip_kernel_completion = false;
-    });
-
-
     
     /**
-     * is pass is true completion will be triger
-     * __and__ the key will be handled py codemirror. eg:
-     * `np.` will complete on `np.` not `np`
-     *
-     *  in the other hand, `tab` shoudl trigger completion without happending 
-     *  a tab char to the document.
+     * Decorator that shoudl protect any function that woudl be iinvoked via tab. 
+     * It keep sure that tab can be used to indent text and that nothing happend on selected text
      **/
-    var completion_request = function(pass){
-        return function(cm) {
-            setTimeout(function() {
-              if (!cm.state.completionActive)
-                CodeMirror.showHint(cm, complete_function, {
-                    async: true,
-                    // if characters is inserted to not autopick 
-                    // or `foo.` automatically complete to `foo.foo`
-                    completeSingle: !pass,
-                    extraKeys:{
-                        /**
-                         * Tab should not pick() the result
-                         * but insert the longuest common prefix. 
-                         * this is doable only on master of CM
-                         * for now.
-                         **/
-                        // need codemirror closure here for now.
-                        // TODO though wether longuest common subsequece would make sens.
-                        "Tab" : cmutils.insertLonguestCommonSubstring(cm)
-                    }
-                
-                } );
-            }, 100);
-            if(pass===true){
-                return CodeMirror.Pass;
-            } else {
+    var protect_tab = function(callback){
+        return function(cm){
+            IPython.tooltip.remove_and_cancel_tooltip();
+            if (cm.somethingSelected()) {
+                    return;
+                }
+            var cur = cm.getCursor();
+            var pre_cursor = cm.getRange({line:cur.line,ch:0},cur);
+            if (pre_cursor.trim() === "") {
+                // Don't autocomplete if the part of the line before the cursor
+                // is empty.  In this case, let CodeMirror handle indentation.
+                CodeMirror.commands.indentMore(cm);
                 return;
             }
+            return callback(cm);
+        }
+    }
 
-        }; 
-    };
-   
-    CodeMirror.commands.completePassthrough = completion_request(true);
-    CodeMirror.commands.completeRequest = completion_request(false);
+    CodeMirror.commands.completePassthrough = protect_tab(cmutils.completion_request(true, complete_from_mixed_sources));
+    CodeMirror.commands.completeRequest = cmutils.completion_request(false, complete_from_mixed_sources);
 
     CodeCell.options_default = {
         cm_config : {

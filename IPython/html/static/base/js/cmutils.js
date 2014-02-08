@@ -23,6 +23,7 @@ var posEq = function (a, b) {
  * @private
  */
 CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
+    "use strict";
     var from = cm.getCursor(true), to = cm.getCursor(false);
     if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
     var cur = cm.getCursor();
@@ -37,7 +38,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
     }
 };
 
-var IPython = (function (IPython) {
+var IPython = (function (IPython, CodeMirror) {
     var utils = IPython.utils;
     
     var longestCommonSubstring = utils.longestCommonSubstring;
@@ -136,7 +137,7 @@ var IPython = (function (IPython) {
         } 
         
         // rely on underscore, usable in node, not jQuery
-        var known_completions = _.map(this._pending_results.list,function(x){return x.text});
+        var known_completions = _.map(this._pending_results.list,function(x){return x.text;});
 
         for(var idx in obj.list){
             //should deduplicate result from the different sources here
@@ -164,18 +165,63 @@ var IPython = (function (IPython) {
         this._complete_callback = finish_complete_callback;
         for(var i=0 ; i < this.complete_source.length; i++){
             this._pending_requests = this._pending_requests +1;
-            this.complete_source[i](cm, $.proxy(this._gather_source,this), options);
+            this.complete_source[i](cm, _.bind(this._gather_source,this), options);
         }
         return ;
     };
     
+    /**
+     * This set up all the bindings option for the completions
+     * once the completer is invoked
+     * 
+     * if pass is true completion will be triger
+     * __and__ the key will be handled py codemirror. eg:
+     * typing `np.` will show on `np.` not `np`.
+     *
+     * in the other hand, `tab` should trigger completion without
+     * happending a tab char to the document.
+     **/
+    var completion_request = function(pass, complete_function){
+        return function(cm) {
+            setTimeout(function() {
+              if (!cm.state.completionActive)
+                CodeMirror.showHint(cm, complete_function, {
+                    async: true,
+                    // if characters is inserted do not autopick 
+                    // or `foo.` automatically complete to `foo.foo`
+                    completeSingle: !pass,
+                    extraKeys: {
+                        /**
+                         * Tab should not pick() the result
+                         * but insert the longuest common prefix. 
+                         * this is doable only on master of CM
+                         * for now.
+                         **/
+                        // need codemirror closure here for now.
+                        // TODO though wether longuest common subsequece would make sens.
+                        // and/or LCS of array of string.
+                        "Tab" : insertLonguestCommonSubstring(cm)
+                    }
+                
+                } );
+            }, 100);
+            // we may want to lower this timeout, but that's what is used in 
+            // Codemirror examples.
+            if(pass===true){
+                return CodeMirror.Pass;
+            } else {
+                return;
+            }
+
+        }; 
+    };
     
     IPython.cmutils = {
-        MultiHint : MultiHint,
         insertLonguestCommonSubstring: insertLonguestCommonSubstring,
+        completion_request: completion_request,
+        MultiHint : MultiHint,
         recent_cm:recent_cm,
-    
     };
 
     return IPython;
-}(IPython));
+}(IPython, CodeMirror));
