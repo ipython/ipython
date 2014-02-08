@@ -159,7 +159,7 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch()
 
-js_prefix = 'js-'
+js_prefix = 'js/'
 
 def get_js_test_dir():
     import IPython.html.tests as t
