@@ -76,6 +76,8 @@ var IPython = (function (IPython) {
         this.element.focusout(
             function() { that.auto_highlight(); }
         );
+        
+
     };
     
     
@@ -160,6 +162,9 @@ var IPython = (function (IPython) {
               if (!cm.state.completionActive)
                 CodeMirror.showHint(cm, complete_function, {
                     async: true,
+                    // if characters is inserted to not autopick 
+                    // or `foo.` automatically complete to `foo.foo`
+                    completeSingle: !pass,
                     extraKeys:{
                         /**
                          * Tab should not pick() the result
@@ -227,6 +232,12 @@ var IPython = (function (IPython) {
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror.on("startCompletion",function(){
+            console.log("startComp event fired")
+        });
+        this.code_mirror.on("endCompletion",function(){
+            console.log("endComp event fired");
+        });
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
