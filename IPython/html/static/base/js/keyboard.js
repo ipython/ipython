@@ -77,6 +77,63 @@ IPython.keyboard = (function (IPython) {
         }
     }
 
+    var normalize_key = function (key) {
+        return inv_keycodes[keycodes[key]];
+    }
+
+    var normalize_shortcut = function (shortcut) {
+        // Put a shortcut into normalized form:
+        // 1. Make lowercase
+        // 2. Replace cmd by meta
+        // 3. Sort '+' separated modifiers into the order alt+ctrl+meta+shift
+        // 4. Normalize keys
+        shortcut = shortcut.toLowerCase().replace('cmd', 'meta');
+        var values = shortcut.split("+");
+        if (values.length === 1) {
+            return normalize_key(values[0])
+        } else {
+            var modifiers = values.slice(0,-1);
+            var key = normalize_key(values[values.length-1]);
+            modifiers.sort();
+            return modifiers.join('+') + '+' + key;
+        }
+    }
+
+    var shortcut_to_event = function (shortcut, type) {
+        // Convert a shortcut (shift+r) to a jQuery Event object
+        type = type || 'keydown';
+        shortcut = normalize_shortcut(shortcut);
+        var values = shortcut.split("+");
+        var modifiers = values.slice(0,-1);
+        var key = values[values.length-1];
+        var opts = {which: keycodes[key]};
+        if (modifiers.indexOf('alt') !== -1) {opts.altKey = true;}
+        if (modifiers.indexOf('ctrl') !== -1) {opts.ctrlKey = true;}
+        if (modifiers.indexOf('meta') !== -1) {opts.metaKey = true;}
+        if (modifiers.indexOf('shift') !== -1) {opts.shiftKey = true;}
+        return $.Event(type, opts);
+    }
+
+    var event_to_shortcut = function (event) {
+        // Convert a jQuery Event object to a shortcut (shift+r)
+        var shortcut = '';
+        var key = inv_keycodes[event.which]
+        if (event.altKey && key !== 'alt') {shortcut += 'alt+';}
+        if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl+';}
+        if (event.metaKey && key !== 'meta') {shortcut += 'meta+';}
+        if (event.shiftKey && key !== 'shift') {shortcut += 'shift+';}
+        shortcut += key;
+        return shortcut
+    }
+
+    var trigger_keydown = function (shortcut, element) {
+        // Trigger shortcut keydown on an element
+        element = element || document;
+        element = $(element);
+        var event = shortcut_to_event(shortcut, 'keydown');
+        element.trigger(event);
+    }
+
 
     // Shortcut manager class
 
@@ -113,36 +170,6 @@ IPython.keyboard = (function (IPython) {
         return help;
     }
 
-    ShortcutManager.prototype.normalize_key = function (key) {
-        return inv_keycodes[keycodes[key]];
-    }
-
-    ShortcutManager.prototype.normalize_shortcut = function (shortcut) {
-        // Sort a sequence of + separated modifiers into the order alt+ctrl+meta+shift
-        shortcut = shortcut.replace('cmd', 'meta').toLowerCase();
-        var values = shortcut.split("+");
-        if (values.length === 1) {
-            return this.normalize_key(values[0])
-        } else {
-            var modifiers = values.slice(0,-1);
-            var key = this.normalize_key(values[values.length-1]);
-            modifiers.sort();
-            return modifiers.join('+') + '+' + key;
-        }
-    }
-
-    ShortcutManager.prototype.event_to_shortcut = function (event) {
-        // Convert a jQuery keyboard event to a strong based keyboard shortcut
-        var shortcut = '';
-        var key = inv_keycodes[event.which]
-        if (event.altKey && key !== 'alt') {shortcut += 'alt+';}
-        if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl+';}
-        if (event.metaKey && key !== 'meta') {shortcut += 'meta+';}
-        if (event.shiftKey && key !== 'shift') {shortcut += 'shift+';}
-        shortcut += key;
-        return shortcut
-    }
-
     ShortcutManager.prototype.clear_shortcuts = function () {
         this._shortcuts = {};
     }
@@ -157,7 +184,7 @@ IPython.keyboard = (function (IPython) {
         if (data.help_index === '') {
             data.help_index = 'zz';
         }
-        shortcut = this.normalize_shortcut(shortcut);
+        shortcut = normalize_shortcut(shortcut);
         this._counts[shortcut] = 0;
         this._shortcuts[shortcut] = data;
     }
@@ -169,7 +196,7 @@ IPython.keyboard = (function (IPython) {
     }
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut) {
-        shortcut = this.normalize_shortcut(shortcut);
+        shortcut = normalize_shortcut(shortcut);
         delete this._counts[shortcut];
         delete this._shortcuts[shortcut];
     }
@@ -195,7 +222,7 @@ IPython.keyboard = (function (IPython) {
     }
 
     ShortcutManager.prototype.call_handler = function (event) {
-        var shortcut = this.event_to_shortcut(event);
+        var shortcut = event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
         if (data) {
             var handler = data['handler'];
@@ -213,7 +240,12 @@ IPython.keyboard = (function (IPython) {
     return {
         keycodes : keycodes,
         inv_keycodes : inv_keycodes,
-        ShortcutManager : ShortcutManager
+        ShortcutManager : ShortcutManager,
+        normalize_key : normalize_key,
+        normalize_shortcut : normalize_shortcut,
+        shortcut_to_event : shortcut_to_event,
+        event_to_shortcut : event_to_shortcut,
+        trigger_keydown : trigger_keydown
     }
 
 }(IPython));
