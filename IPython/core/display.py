@@ -730,6 +730,7 @@ def set_matplotlib_formats(*formats, **kwargs):
     To set this in your config files use the following::
     
         c.InlineBackend.figure_formats = {'pdf', 'png', 'svg'}
+        c.InlineBackend.quality = 90
 
     Parameters
     ----------
