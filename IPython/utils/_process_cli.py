@@ -21,8 +21,7 @@ from ._process_common import arg_split
 
 def _find_cmd(cmd):
     """Find the full path to a command using which."""
-    os_path_sep = ":" if os.name == "posix" else ";"
-    paths = System.Environment.GetEnvironmentVariable("PATH").Split(os_path_sep)
+    paths = System.Environment.GetEnvironmentVariable("PATH").Split(os.pathsep)
     for path in paths:
         filename = os.path.join(path, cmd)
         if System.IO.File.Exists(filename):

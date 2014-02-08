@@ -18,7 +18,7 @@ try:
     import ctypes
 except ImportError:
     ctypes = None
-except SystemError:
+except SystemError: # IronPython issue, 2/8/2014
     ctypes = None
 import os
 import sys
