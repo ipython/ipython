@@ -163,7 +163,7 @@ js_prefix = 'js/'
 
 def get_js_test_dir():
     import IPython.html.tests as t
-    return os.path.join(os.path.dirname(t.__file__), 'casperjs','')
+    return os.path.join(os.path.dirname(t.__file__), '')
 
 def all_js_groups():
     import glob
