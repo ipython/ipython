@@ -16,8 +16,6 @@
  */
 
 
-
-
 var IPython = (function (IPython) {
     "use strict";
 
@@ -232,12 +230,6 @@ var IPython = (function (IPython) {
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
-        this.code_mirror.on("startCompletion",function(){
-            console.log("startComp event fired")
-        });
-        this.code_mirror.on("endCompletion",function(){
-            console.log("endComp event fired");
-        });
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
@@ -343,10 +335,13 @@ var IPython = (function (IPython) {
                 event.stop();
                 return true;
             }
-            if (that.code_mirror.options.keyMap === "vim-insert") {
+            if (that.code_mirror.options.keyMap === "vim-insert" ||
+                that.code_mirror.state.completionActive) {
                 // vim keyMap is active and in insert mode. In this case we leave vim
                 // insert mode, but remain in notebook edit mode.
                 // Let' CM handle this event and prevent global handling.
+                
+                // same if completer is poped up.
                 event.stop();
                 return false;
             } else {

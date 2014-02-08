@@ -122,6 +122,7 @@ var IPython = (function (IPython) {
      * callback once theyhave all responded.
      **/
     MultiHint.prototype._gather_source = function(obj){
+
         this._pending_requests = this._pending_requests -1;
         
         // Codemirror provide 2 kinds of completions form : 
@@ -151,7 +152,6 @@ var IPython = (function (IPython) {
         
         
         if(this._pending_requests === 0){
-            
             this._complete_callback(this._pending_results);
             this._pending_results = undefined;
         }
