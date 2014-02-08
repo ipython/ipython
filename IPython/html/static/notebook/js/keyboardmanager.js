@@ -533,10 +533,10 @@ var IPython = (function (IPython) {
             }
         },
         'q' : {
-            help    : 'toggle pager',
+            help    : 'close pager',
             help_index : 'gd',
             handler : function (event) {
-                IPython.pager.toggle();
+                IPython.pager.collapse();
                 return false;
             }
         },
