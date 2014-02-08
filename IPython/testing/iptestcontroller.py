@@ -176,7 +176,7 @@ class JSController(TestController):
     def __init__(self, section):
         """Create new test runner."""
         TestController.__init__(self)
-        self.section = section[len(js_prefix):]
+        self.section = section
 
         self.ipydir = TemporaryDirectory()
         self.nbdir = TemporaryDirectory()
@@ -191,7 +191,7 @@ class JSController(TestController):
         self._init_server()
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
-        test_cases = os.path.join(js_test_dir, self.section)
+        test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
         port = '--port=' + str(self.server_port)
         self.cmd = ['casperjs', 'test', port, includes, test_cases]
         super(JSController, self).launch()
