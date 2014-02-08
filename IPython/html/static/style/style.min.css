@@ -1268,11 +1268,11 @@ a .icon-rotate-90:before,a .icon-rotate-180:before,a .icon-rotate-270:before,a .
 .border-box-sizing{box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}
 .corner-all{border-radius:4px}
 .hbox{display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch}
-.hbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:0}
+.hbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:auto}
 .vbox{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;display:flex;flex-direction:column;align-items:stretch}
-.vbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:0}
+.vbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:auto}
 .reverse{-webkit-box-direction:reverse;-moz-box-direction:reverse;box-direction:reverse;flex-direction:column-reverse}
-.box-flex0{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:0}
+.box-flex0{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:auto}
 .box-flex1{-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
 .box-flex{-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
 .box-flex2{-webkit-box-flex:2;-moz-box-flex:2;box-flex:2;flex:2}
