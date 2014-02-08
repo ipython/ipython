@@ -746,7 +746,7 @@ def set_matplotlib_formats(*formats, **kwargs):
 
 @skip_doctest
 def set_matplotlib_close(close):
-    """Should the inline backend close all figures automatically.
+    """Set whether the inline backend closes all figures automatically or not.
     
     By default, the inline backend used in the IPython Notebook will close all
     matplotlib figures automatically after each cell is run. This means that
