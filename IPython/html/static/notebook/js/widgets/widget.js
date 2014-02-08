@@ -141,7 +141,7 @@ function(WidgetManager, _, Backbone){
             var return_value = WidgetModel.__super__.set.apply(this, arguments);
 
             // Backbone only remembers the diff of the most recent set()
-            // opertation.  Calling set multiple times in a row results in a 
+            // operation.  Calling set multiple times in a row results in a 
             // loss of diff information.  Here we keep our own running diff.
             this._buffered_state_diff = $.extend(this._buffered_state_diff, this.changedAttributes() || {});
             return return_value;
