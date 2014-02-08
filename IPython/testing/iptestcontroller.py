@@ -169,7 +169,7 @@ def all_js_groups():
     import glob
     test_dir = get_js_test_dir()
     all_subdirs = glob.glob(test_dir + '*/')
-    return [js_prefix+os.path.relpath(x, test_dir) for x in all_subdirs]
+    return [js_prefix+os.path.relpath(x, test_dir) for x in all_subdirs if os.path.relpath(x, test_dir) != '__pycache__']
 
 class JSController(TestController):
     """Run CasperJS tests """
