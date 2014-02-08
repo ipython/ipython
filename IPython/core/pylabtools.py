@@ -25,6 +25,7 @@ from io import BytesIO
 
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
+from IPython.utils import py3compat
 
 # If user specifies a GUI, that dictates the backend, otherwise we read the
 # user's mpl default from the mpl rc structure
@@ -165,10 +166,17 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
-def select_figure_format(shell, fmt, quality=90):
-    """Select figure format for inline backend, can be 'png', 'retina', 'jpg', or 'svg'.
+def select_figure_formats(shell, formats, quality=90):
+    """Select figure formats for the inline backend.
 
-    Using this method ensures only one figure format is active at a time.
+    Parameters
+    ==========
+    shell : InteractiveShell
+        The main IPython instance.
+    formats : list
+        One or a set of figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
+    quality : int
+        A percentage for the quality of JPEG figures.
     """
     from matplotlib.figure import Figure
     from IPython.kernel.zmq.pylab import backend_inline
@@ -176,22 +184,26 @@ def select_figure_format(shell, fmt, quality=90):
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
     jpg_formatter = shell.display_formatter.formatters['image/jpeg']
+    pdf_formatter = shell.display_formatter.formatters['application/pdf']
+
+    if isinstance(formats, py3compat.string_types):
+        formats = {formats}
 
     [ f.type_printers.pop(Figure, None) for f in {svg_formatter, png_formatter, jpg_formatter} ]
 
-    if fmt == 'png':
-        png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
-    elif fmt in ('png2x', 'retina'):
-        png_formatter.for_type(Figure, retina_figure)
-    elif fmt in ('jpg', 'jpeg'):
-        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
-    elif fmt == 'svg':
-        svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
-    else:
-        raise ValueError("supported formats are: 'png', 'retina', 'svg', 'jpg', not %r" % fmt)
-
-    # set the format to be used in the backend()
-    backend_inline._figure_format = fmt
+    for fmt in formats:
+        if fmt == 'png':
+            png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
+        elif fmt in ('png2x', 'retina'):
+            png_formatter.for_type(Figure, retina_figure)
+        elif fmt in ('jpg', 'jpeg'):
+            jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
+        elif fmt == 'svg':
+            svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
+        elif fmt == 'pdf':
+            pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf'))
+        else:
+            raise ValueError("supported formats are: 'png', 'retina', 'svg', 'jpg', 'pdf' not %r" % fmt)
 
 #-----------------------------------------------------------------------------
 # Code for initializing matplotlib and importing pylab
@@ -342,5 +354,5 @@ def configure_inline_support(shell, backend):
             del shell._saved_rcParams
 
     # Setup the default figure format
-    select_figure_format(shell, cfg.figure_format, cfg.quality)
+    select_figure_formats(shell, cfg.figure_formats, cfg.quality)
 

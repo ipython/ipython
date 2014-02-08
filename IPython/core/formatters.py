@@ -93,6 +93,7 @@ class DisplayFormatter(Configurable):
             HTMLFormatter,
             SVGFormatter,
             PNGFormatter,
+            PDFFormatter,
             JPEGFormatter,
             LatexFormatter,
             JSONFormatter,
@@ -116,6 +117,7 @@ class DisplayFormatter(Configurable):
         * text/latex
         * application/json
         * application/javascript
+        * application/pdf
         * image/png
         * image/jpeg
         * image/svg+xml
@@ -766,11 +768,29 @@ class JavascriptFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_javascript_')
 
+
+class PDFFormatter(BaseFormatter):
+    """A PDF formatter.
+
+    To defined the callables that compute to PDF representation of your
+    objects, define a :meth:`_repr_pdf_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+
+    The return value of this formatter should be raw PDF data, *not*
+    base64 encoded.
+    """
+    format_type = Unicode('application/pdf')
+
+    print_method = ObjectName('_repr_pdf_')
+
+
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)
 FormatterABC.register(HTMLFormatter)
 FormatterABC.register(SVGFormatter)
 FormatterABC.register(PNGFormatter)
+FormatterABC.register(PDFFormatter)
 FormatterABC.register(JPEGFormatter)
 FormatterABC.register(LatexFormatter)
 FormatterABC.register(JSONFormatter)
@@ -789,6 +809,7 @@ def format_display_data(obj, include=None, exclude=None):
     * text/latex
     * application/json
     * application/javascript
+    * application/pdf
     * image/png
     * image/jpeg
     * image/svg+xml

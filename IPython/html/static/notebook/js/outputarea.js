@@ -252,6 +252,7 @@ var IPython = (function (IPython) {
         'image/svg+xml',
         'image/png',
         'image/jpeg',
+        'application/pdf',
         'text/plain'
     ];
 
@@ -620,6 +621,17 @@ var IPython = (function (IPython) {
     };
 
 
+    OutputArea.prototype.append_pdf = function (pdf, md, element) {
+        var type = 'application/pdf';
+        var toinsert = this.create_output_subarea(md, "output_pdf", type);
+        var a = $('<a/>').attr('href', 'data:application/pdf;base64,'+pdf);
+        a.attr('target', '_blank');
+        a.text('View PDF')
+        toinsert.append(a);
+        element.append(toinsert);
+        return toinsert;
+     }
+
     OutputArea.prototype.append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
@@ -807,6 +819,7 @@ var IPython = (function (IPython) {
         "image/svg+xml" : "svg",
         "image/png" : "png",
         "image/jpeg" : "jpeg",
+        "application/pdf" : "pdf",
         "text/latex" : "latex",
         "application/json" : "json",
         "application/javascript" : "javascript",
@@ -818,6 +831,7 @@ var IPython = (function (IPython) {
         "svg" : "image/svg+xml",
         "png" : "image/png",
         "jpeg" : "image/jpeg",
+        "pdf" : "application/pdf",
         "latex" : "text/latex",
         "json" : "application/json",
         "javascript" : "application/javascript",
@@ -830,6 +844,7 @@ var IPython = (function (IPython) {
         'image/svg+xml',
         'image/png',
         'image/jpeg',
+        'application/pdf',
         'text/plain'
     ];
 
@@ -842,6 +857,7 @@ var IPython = (function (IPython) {
         "text/latex" : OutputArea.prototype.append_latex,
         "application/json" : OutputArea.prototype.append_json,
         "application/javascript" : OutputArea.prototype.append_javascript,
+        "application/pdf" : OutputArea.prototype.append_pdf
     };
 
     IPython.OutputArea = OutputArea;

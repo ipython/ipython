@@ -69,10 +69,12 @@ def test_encode_images():
     # invalid data, but the header and footer are from real files
     pngdata = b'\x89PNG\r\n\x1a\nblahblahnotactuallyvalidIEND\xaeB`\x82'
     jpegdata = b'\xff\xd8\xff\xe0\x00\x10JFIFblahblahjpeg(\xa0\x0f\xff\xd9'
+    pdfdata = b'%PDF-1.\ntrailer<</Root<</Pages<</Kids[<</MediaBox[0 0 3 3]>>]>>>>>>'
     
     fmt = {
         'image/png'  : pngdata,
         'image/jpeg' : jpegdata,
+        'application/pdf' : pdfdata
     }
     encoded = encode_images(fmt)
     for key, value in iteritems(fmt):
