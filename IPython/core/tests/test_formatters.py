@@ -8,7 +8,9 @@ except:
     numpy = None
 import nose.tools as nt
 
-from IPython.core.formatters import PlainTextFormatter, HTMLFormatter, _mod_name_key
+from IPython.core.formatters import (
+    PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key
+)
 from IPython.utils.io import capture_output
 
 class A(object):
@@ -279,4 +281,11 @@ def test_warn_error_pretty_method():
     nt.assert_in("text/plain", captured.stderr)
     nt.assert_in("argument", captured.stderr)
 
+class MakePDF(object):
+    def _repr_pdf_(self):
+        return 'PDF'
 
+def test_pdf_formatter():
+    pdf = MakePDF()
+    f = PDFFormatter()
+    nt.assert_equal(f(pdf), 'PDF')

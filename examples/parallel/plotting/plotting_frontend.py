@@ -7,9 +7,9 @@ engines::
 
     ipcluster start -n 4
 
-Then start ipython in pylab mode::
+Then start ipython with matplotlib integration::
 
-    ipython -pylab
+    ipython --matplotlib
     
 Then a simple "run plotting_frontend.py" in IPython will run the
 example.  When this is done, all the variables (such as number, downx, etc.)
@@ -17,8 +17,7 @@ are available in IPython, so for example you can make additional plots.
 """
 from __future__ import print_function
 
-import numpy as N
-from pylab import *
+import matplotlib.pyplot as plt
 from IPython.parallel import Client
 
 # Connect to the cluster
@@ -44,18 +43,18 @@ print("downsampled number: ", sum(d_number))
 # Make a scatter plot of the gathered data
 # These calls to matplotlib could be replaced by calls to pygist or
 # another plotting package.
-figure(1)
+plt.figure(1)
 # wait for downx/y
 downx = downx.get()
 downy = downy.get()
-scatter(downx, downy)
-xlabel('x')
-ylabel('y')
-figure(2)
+plt.scatter(downx, downy)
+plt.xlabel('x')
+plt.ylabel('y')
+plt.figure(2)
 # wait for downpx/y
 downpx = downpx.get()
 downpy = downpy.get()
-scatter(downpx, downpy)
-xlabel('px')
-ylabel('py')
-show()
+plt.scatter(downpx, downpy)
+plt.xlabel('px')
+plt.ylabel('py')
+plt.show()

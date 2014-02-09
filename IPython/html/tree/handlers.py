@@ -30,12 +30,12 @@ class TreeHandler(IPythonHandler):
     """Render the tree view, listing notebooks, clusters, etc."""
 
     def generate_breadcrumbs(self, path):
-        breadcrumbs = [(url_escape(url_path_join(self.base_project_url, 'tree')), '')]
+        breadcrumbs = [(url_escape(url_path_join(self.base_url, 'tree')), '')]
         comps = path.split('/')
         ncomps = len(comps)
         for i in range(ncomps):
             if comps[i]:
-                link = url_escape(url_path_join(self.base_project_url, 'tree', *comps[0:i+1]))
+                link = url_escape(url_path_join(self.base_url, 'tree', *comps[0:i+1]))
                 breadcrumbs.append((link, comps[i]))
         return breadcrumbs
 
@@ -57,7 +57,7 @@ class TreeHandler(IPythonHandler):
         if name is not None:
             # is a notebook, redirect to notebook handler
             url = url_escape(url_path_join(
-                self.base_project_url, 'notebooks', path, name
+                self.base_url, 'notebooks', path, name
             ))
             self.log.debug("Redirecting %s to %s", self.request.path, url)
             self.redirect(url)
@@ -81,7 +81,7 @@ class TreeRedirectHandler(IPythonHandler):
     @web.authenticated
     def get(self, path=''):
         url = url_escape(url_path_join(
-            self.base_project_url, 'tree', path.strip('/')
+            self.base_url, 'tree', path.strip('/')
         ))
         self.log.debug("Redirecting %s to %s", self.request.path, url)
         self.redirect(url)

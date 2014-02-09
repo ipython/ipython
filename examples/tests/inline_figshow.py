@@ -1,7 +1,7 @@
 """Manual test for figure.show() in the inline matplotlib backend.
 
 This script should be loaded for interactive use (via %load) into a qtconsole
-or notebook initialized with the pylab inline backend.  
+or notebook initialized with the inline backend.
 
 Expected behavior: only *one* copy of the figure is shown.
 
@@ -14,7 +14,7 @@ https://github.com/matplotlib/matplotlib/issues/835
 import numpy as np
 import matplotlib.pyplot as plt
 
-plt.ioff()                                                                      
+plt.ioff()
 x = np.random.uniform(-5, 5, size=(100))
 y = np.random.uniform(-5, 5, size=(100))
 f = plt.figure()

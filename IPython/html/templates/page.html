@@ -21,7 +21,7 @@
       require.config({
           baseUrl: '{{static_url("")}}',
           paths: {
-            nbextensions : '{{ base_project_url }}nbextensions',
+            nbextensions : '{{ base_url }}nbextensions',
             underscore : '{{static_url("components/underscore/underscore-min")}}',
             backbone : '{{static_url("components/backbone/backbone-min")}}', 
           },
@@ -54,7 +54,7 @@
 <div id="header" class="navbar navbar-static-top">
   <div class="navbar-inner navbar-nobg">
     <div class="container">
-    <div id="ipython_notebook" class="nav brand pull-left"><a href="{{base_project_url}}tree/{{notebook_path}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
+    <div id="ipython_notebook" class="nav brand pull-left"><a href="{{base_url}}tree/{{notebook_path}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
 
     {% block login_widget %}
 

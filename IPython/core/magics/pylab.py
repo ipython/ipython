@@ -47,28 +47,32 @@ class PylabMagics(Magics):
         """Set up matplotlib to work interactively.
         
         This function lets you activate matplotlib interactive support
-        at any point during an IPython session.
-        It does not import anything into the interactive namespace.
+        at any point during an IPython session. It does not import anything
+        into the interactive namespace.
         
-        If you are using the inline matplotlib backend for embedded figures,
-        you can adjust its behavior via the %config magic::
+        If you are using the inline matplotlib backend in the IPython Notebook
+        you can set which figure formats are enabled using the following::
+        
+            In [1]: from IPython.display import set_matplotlib_formats
+            
+            In [2]: set_matplotlib_formats('pdf', 'svg')
 
-            # enable SVG figures, necessary for SVG+XHTML export in the qtconsole
-            In [1]: %config InlineBackend.figure_format = 'svg'
-
-            # change the behavior of closing all figures at the end of each
-            # execution (cell), or allowing reuse of active figures across
-            # cells:
-            In [2]: %config InlineBackend.close_figures = False
+        See the docstring of `IPython.display.set_matplotlib_formats` and
+        `IPython.display.set_matplotlib_close` for more information on
+        changing the behavior of the inline backend.
 
         Examples
         --------
-        In this case, where the MPL default is TkAgg::
+        To enable the inline backend for usage with the IPython Notebook::
+        
+            In [1]: %matplotlib inline
+
+        In this case, where the matplotlib default is TkAgg::
 
             In [2]: %matplotlib
             Using matplotlib backend: TkAgg
 
-        But you can explicitly request a different backend::
+        But you can explicitly request a different GUI backend::
 
             In [3]: %matplotlib qt
         """

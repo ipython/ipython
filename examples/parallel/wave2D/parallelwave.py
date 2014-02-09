@@ -202,8 +202,8 @@ if __name__ == '__main__':
     # if ns.save is True, then u_hist stores the history of u as a list
     # If the partion scheme is Nx1, then u can be reconstructed via 'gather':
     if ns.save and partition[-1] == 1:
-        import pylab
+        import matplotlib.pyplot as plt
         view.execute('u_last=u_hist[-1]')
         u_last = view.gather('u_last', block=True)
-        pylab.pcolor(u_last)
-        pylab.show()
+        plt.pcolor(u_last)
+        plt.show()

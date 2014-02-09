@@ -47,7 +47,7 @@ class NotebookHandler(IPythonHandler):
             The URL path of the notebook.
         """
         return url_escape(url_path_join(
-            self.base_project_url, 'api', 'notebooks', path, name
+            self.base_url, 'api', 'notebooks', path, name
         ))
 
     def _finish_model(self, model, location=True):
@@ -242,7 +242,7 @@ class NotebookCheckpointsHandler(IPythonHandler):
         nbm = self.notebook_manager
         checkpoint = nbm.create_checkpoint(name, path)
         data = json.dumps(checkpoint, default=date_default)
-        location = url_path_join(self.base_project_url, 'api/notebooks',
+        location = url_path_join(self.base_url, 'api/notebooks',
             path, name, 'checkpoints', checkpoint['id'])
         self.set_header('Location', url_escape(location))
         self.set_status(201)

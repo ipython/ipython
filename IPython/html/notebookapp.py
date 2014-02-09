@@ -133,42 +133,42 @@ def load_handlers(name):
 class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, notebook_manager,
-                 cluster_manager, session_manager, log, base_project_url,
+                 cluster_manager, session_manager, log, base_url,
                  settings_overrides):
 
         settings = self.init_settings(
             ipython_app, kernel_manager, notebook_manager, cluster_manager,
-            session_manager, log, base_project_url, settings_overrides)
+            session_manager, log, base_url, settings_overrides)
         handlers = self.init_handlers(settings)
 
         super(NotebookWebApplication, self).__init__(handlers, **settings)
 
     def init_settings(self, ipython_app, kernel_manager, notebook_manager,
-                      cluster_manager, session_manager, log, base_project_url,
+                      cluster_manager, session_manager, log, base_url,
                       settings_overrides):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
-        # base_project_url will always be unicode, which will in turn
+        # base_url will always be unicode, which will in turn
         # make the patterns unicode, and ultimately result in unicode
         # keys in kwargs to handler._execute(**kwargs) in tornado.
-        # This enforces that base_project_url be ascii in that situation.
+        # This enforces that base_url be ascii in that situation.
         # 
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
-        base_project_url = py3compat.unicode_to_str(base_project_url, 'ascii')
+        base_url = py3compat.unicode_to_str(base_url, 'ascii')
         template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
         settings = dict(
             # basics
             log_function=log_request,
-            base_project_url=base_project_url,
+            base_url=base_url,
             base_kernel_url=ipython_app.base_kernel_url,
             template_path=template_path,
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
-            static_url_prefix = url_path_join(base_project_url,'/static/'),
+            static_url_prefix = url_path_join(base_url,'/static/'),
             
             # authentication
             cookie_secret=ipython_app.cookie_secret,
-            login_url=url_path_join(base_project_url,'/login'),
+            login_url=url_path_join(base_url,'/login'),
             password=ipython_app.password,
             
             # managers
@@ -206,10 +206,10 @@ class NotebookWebApplication(web.Application):
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         ])
-        # prepend base_project_url onto the patterns that we match
+        # prepend base_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
-            pattern = url_path_join(settings['base_project_url'], handler[0])
+            pattern = url_path_join(settings['base_url'], handler[0])
             new_handler = tuple([pattern] + list(handler[1:]))
             new_handlers.append(new_handler)
         # add 404 on the end, which will catch everything that falls through
@@ -414,17 +414,22 @@ class NotebookApp(BaseIPythonApplication):
         if not new:
             self.mathjax_url = u''
 
-    base_project_url = Unicode('/', config=True,
+    base_url = Unicode('/', config=True,
                                help='''The base URL for the notebook server.
 
                                Leading and trailing slashes can be omitted,
                                and will automatically be added.
                                ''')
-    def _base_project_url_changed(self, name, old, new):
+    def _base_url_changed(self, name, old, new):
         if not new.startswith('/'):
-            self.base_project_url = '/'+new
+            self.base_url = '/'+new
         elif not new.endswith('/'):
-            self.base_project_url = new+'/'
+            self.base_url = new+'/'
+    
+    base_project_url = Unicode('/', config=True, help="""DEPRECATED use base_url""")
+    def _base_project_url_changed(self, name, old, new):
+        self.log.warn("base_project_url is deprecated, use base_url")
+        self.base_url = new
 
     base_kernel_url = Unicode('/', config=True,
                                help='''The base URL for the kernel server
@@ -473,12 +478,12 @@ class NotebookApp(BaseIPythonApplication):
         if not self.enable_mathjax:
             return u''
         static_url_prefix = self.webapp_settings.get("static_url_prefix",
-                         url_path_join(self.base_project_url, "static")
+                         url_path_join(self.base_url, "static")
         )
         
         # try local mathjax, either in nbextensions/mathjax or static/mathjax
         for (url_prefix, search_path) in [
-            (url_path_join(self.base_project_url, "nbextensions"), self.nbextensions_path),
+            (url_path_join(self.base_url, "nbextensions"), self.nbextensions_path),
             (static_url_prefix, self.static_file_path),
         ]:
             self.log.debug("searching for local mathjax in %s", search_path)
@@ -586,7 +591,7 @@ class NotebookApp(BaseIPythonApplication):
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, 
             self.cluster_manager, self.session_manager,
-            self.log, self.base_project_url, self.webapp_settings
+            self.log, self.base_url, self.webapp_settings
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)
@@ -639,7 +644,7 @@ class NotebookApp(BaseIPythonApplication):
 
     def _url(self, ip):
         proto = 'https' if self.certfile else 'http'
-        return "%s://%s:%i%s" % (proto, ip, self.port, self.base_project_url)
+        return "%s://%s:%i%s" % (proto, ip, self.port, self.base_url)
 
     def init_signal(self):
         if not sys.platform.startswith('win'):
@@ -745,7 +750,7 @@ class NotebookApp(BaseIPythonApplication):
                 'hostname': self.ip if self.ip else 'localhost',
                 'port': self.port,
                 'secure': bool(self.certfile),
-                'base_project_url': self.base_project_url,
+                'base_url': self.base_url,
                 'notebook_dir': os.path.abspath(self.notebook_manager.notebook_dir),
                }
 

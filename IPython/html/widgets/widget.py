@@ -14,6 +14,7 @@ in the IPython notebook front-end.
 #-----------------------------------------------------------------------------
 from contextlib import contextmanager
 
+from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple
@@ -33,7 +34,11 @@ class CallbackDispatcher(LoggingConfigurable):
             try:
                 local_value = callback(*args, **kwargs)
             except Exception as e:
-                self.log.warn("Exception in callback %s: %s", callback, e)
+                ip = get_ipython()
+                if ip is None:
+                    self.log.warn("Exception in callback %s: %s", callback, e, exc_info=True)
+                else:
+                    ip.showtraceback()
             else:
                 value = local_value if local_value is not None else value
         return value
@@ -54,6 +59,18 @@ class CallbackDispatcher(LoggingConfigurable):
         elif not remove and callback not in self.callbacks:
             self.callbacks.append(callback)
 
+def _show_traceback(method):
+    """decorator for showing tracebacks in IPython"""
+    def m(self, *args, **kwargs):
+        try:
+            return(method(self, *args, **kwargs))
+        except Exception as e:
+            ip = get_ipython()
+            if ip is None:
+                self.log.warn("Exception in widget method %s: %s", method, e, exc_info=True)
+            else:
+                ip.showtraceback()
+    return m
 
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
@@ -241,6 +258,7 @@ class Widget(LoggingConfigurable):
         value != self._property_lock[1]
     
     # Event handlers
+    @_show_traceback
     def _handle_msg(self, msg):
         """Called when a msg is received from the front-end"""
         data = msg['content']['data']

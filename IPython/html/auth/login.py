@@ -32,13 +32,13 @@ class LoginHandler(IPythonHandler):
 
     def _render(self, message=None):
         self.write(self.render_template('login.html',
-                next=url_escape(self.get_argument('next', default=self.base_project_url)),
+                next=url_escape(self.get_argument('next', default=self.base_url)),
                 message=message,
         ))
 
     def get(self):
         if self.current_user:
-            self.redirect(self.get_argument('next', default=self.base_project_url))
+            self.redirect(self.get_argument('next', default=self.base_url))
         else:
             self._render()
 
@@ -51,7 +51,7 @@ class LoginHandler(IPythonHandler):
                 self._render(message={'error': 'Invalid password'})
                 return
 
-        self.redirect(self.get_argument('next', default=self.base_project_url))
+        self.redirect(self.get_argument('next', default=self.base_url))
 
 
 #-----------------------------------------------------------------------------

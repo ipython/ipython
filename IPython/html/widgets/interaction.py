@@ -20,6 +20,7 @@ except ImportError:
     from IPython.utils.signatures import signature, Parameter
 from inspect import getcallargs
 
+from IPython.core.getipython import get_ipython
 from IPython.html.widgets import (Widget, TextWidget,
     FloatSliderWidget, IntSliderWidget, CheckboxWidget, DropdownWidget,
     ContainerWidget, DOMWidget)
@@ -205,7 +206,14 @@ def interactive(__interact_f, **kwargs):
             container.kwargs[widget.description] = value
         if co:
             clear_output(wait=True)
-        container.result = f(**container.kwargs)
+        try:
+            container.result = f(**container.kwargs)
+        except Exception as e:
+            ip = get_ipython()
+            if ip is None:
+                container.log.warn("Exception in interact callback: %s", e, exc_info=True)
+            else:
+                ip.showtraceback()
 
     # Wire up the widgets
     for widget in kwargs_widgets:

@@ -13,12 +13,12 @@ Categories=Development;Utility;
 StartupNotify=false
 Terminal=false
 Type=Application
-Actions=Pylab;Pylabinline;
+Actions=Matplotlib;Matplotlibinline;
 
-[Desktop Action Pylab]
-Name=Pylab
-Exec=ipython qtconsole --pylab
+[Desktop Action Matplotlib]
+Name=Matplotlib
+Exec=ipython qtconsole --matplotlib
 
-[Desktop Action Pylabinline]
-Name=Pylab (inline plots)
-Exec=ipython qtconsole --pylab=inline
+[Desktop Action Matplotlibinline]
+Name=Matplotlib (inline plots)
+Exec=ipython qtconsole --matplotlib=inline

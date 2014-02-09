@@ -100,8 +100,9 @@ var IPython = (function (IPython) {
                     label : 'Run Cell',
                     icon : 'icon-play',
                     callback : function () {
-                    IPython.notebook.execute_cell();
-                        }
+                        // emulate default shift-enter behavior
+                        IPython.notebook.execute_cell_and_select_below();
+                    }
                 },
                 {
                     id : 'interrupt_b',

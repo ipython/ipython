@@ -119,6 +119,8 @@ PNG64 = b'iVBORw0KG'
 JPEG = b'\xff\xd8'
 # front of JPEG base64-encoded
 JPEG64 = b'/9'
+# front of PDF base64-encoded
+PDF64 = b'JVBER'
 
 def encode_images(format_dict):
     """b64-encodes images in a displaypub format dict
@@ -136,7 +138,7 @@ def encode_images(format_dict):
 
     format_dict : dict
         A copy of the same dictionary,
-        but binary image data ('image/png' or 'image/jpeg')
+        but binary image data ('image/png', 'image/jpeg' or 'application/pdf')
         is base64-encoded.
 
     """
@@ -155,6 +157,13 @@ def encode_images(format_dict):
         if not jpegdata.startswith(JPEG64):
             jpegdata = encodebytes(jpegdata)
         encoded['image/jpeg'] = jpegdata.decode('ascii')
+
+    pdfdata = format_dict.get('application/pdf')
+    if isinstance(pdfdata, bytes):
+        # make sure we don't double-encode
+        if not pdfdata.startswith(PDF64):
+            pdfdata = encodebytes(pdfdata)
+        encoded['application/pdf'] = pdfdata.decode('ascii')
 
     return encoded
 
