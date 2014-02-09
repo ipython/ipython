@@ -630,7 +630,7 @@ class SSHLauncher(LocalProcessLauncher):
                 break
         local_dir = os.path.dirname(local)
         if not os.path.exists(local_dir):
-            os.makedirs(local_dir)
+            os.makedirs(local_dir, 775)
         check_output(self.scp_cmd + [full_remote, local])
     
     def fetch_files(self):
