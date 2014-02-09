@@ -178,15 +178,16 @@ class JSController(TestController):
         TestController.__init__(self)
         self.section = section
 
+
+    def launch(self):
         self.ipydir = TemporaryDirectory()
         self.nbdir = TemporaryDirectory()
-        print("Running notebook tests in directory: %r" % self.nbdir.name)
+        print("Running %s tests in directory: %r" % (self.section, self.nbdir.name))
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
         self.dirs.append(self.ipydir)
         self.dirs.append(self.nbdir)
-
-    def launch(self):
+        
         # start the ipython notebook, so we get the port number
         self._init_server()
         js_test_dir = get_js_test_dir()
