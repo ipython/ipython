@@ -58,6 +58,30 @@ def _safe_is_tarfile(path):
         return False
 
 
+def check_nbextension(files, ipython_dir=None):
+    """Check whether nbextension files have been installed
+    
+    files should be a list of relative paths within nbextensions.
+    
+    Returns True if all files are found, False if any are missing.
+    """
+    ipython_dir = ipython_dir or get_ipython_dir()
+    nbext = pjoin(ipython_dir, u'nbextensions')
+    # make sure nbextensions dir exists
+    if not os.path.exists(nbext):
+        return False
+    
+    if isinstance(files, string_types):
+        # one file given, turn it into a list
+        files = [files]
+    
+    for file in files:
+        if not os.path.exists(pjoin(nbext, file)):
+            return False
+    
+    return True
+
+
 def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None, verbose=1):
     """Install a Javascript extension for the notebook
     
