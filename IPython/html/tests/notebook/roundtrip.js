@@ -64,9 +64,12 @@ function clear_and_execute(that, code) {
         IPython.notebook.get_cell(0).clear_output();
         IPython.notebook.get_cell(1).clear_output();
     });
-    that.set_cell_text(0, code);
-    that.execute_cell(0);
-}
+    that.then(function () {
+        that.set_cell_text(0, code);
+        that.execute_cell(0);
+        that.wait_for_idle();
+    });
+};
 
 casper.notebook_test(function () {
     this.evaluate(function () {
@@ -77,13 +80,9 @@ casper.notebook_test(function () {
             "IPython.notebook.insert_cell_below('code')"
             ].join('\n')
             );
-
-        cell.execute();
     });
 
-    this.wait_for_output(0);
-
-    this.then(function ( ) {
+    this.execute_cell_then(0, function () {
         var result = this.get_output_cell(0);
         var num_cells = this.get_cells_length();
         this.test.assertEquals(num_cells, 2, '%%javascript magic works');
