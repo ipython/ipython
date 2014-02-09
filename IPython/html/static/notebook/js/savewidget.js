@@ -127,7 +127,7 @@ var IPython = (function (IPython) {
     
     SaveWidget.prototype.update_address_bar = function(){
         var nbname = IPython.notebook.notebook_name;
-        var path = IPython.notebook.notebookPath();
+        var path = IPython.notebook.notebook_path;
         var state = {path : utils.url_join_encode(path, nbname)};
         window.history.replaceState(state, "", utils.url_join_encode(
             "/notebooks",

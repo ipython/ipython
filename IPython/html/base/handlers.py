@@ -133,8 +133,8 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings.get('mathjax_url', '')
     
     @property
-    def base_project_url(self):
-        return self.settings.get('base_project_url', '/')
+    def base_url(self):
+        return self.settings.get('base_url', '/')
     
     @property
     def base_kernel_url(self):
@@ -180,7 +180,7 @@ class IPythonHandler(AuthenticatedHandler):
     @property
     def template_namespace(self):
         return dict(
-            base_project_url=self.base_project_url,
+            base_url=self.base_url,
             base_kernel_url=self.base_kernel_url,
             logged_in=self.logged_in,
             login_available=self.login_available,

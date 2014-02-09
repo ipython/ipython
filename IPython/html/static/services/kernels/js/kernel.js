@@ -25,12 +25,12 @@ var IPython = (function (IPython) {
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (base_url) {
+    var Kernel = function (kernel_service_url) {
         this.kernel_id = null;
         this.shell_channel = null;
         this.iopub_channel = null;
         this.stdin_channel = null;
-        this.base_url = base_url;
+        this.kernel_service_url = kernel_service_url;
         this.running = false;
         this.username = "username";
         this.session_id = utils.uuid();
@@ -94,8 +94,7 @@ var IPython = (function (IPython) {
         params = params || {};
         if (!this.running) {
             var qs = $.param(params);
-            var url = this.base_url + '?' + qs;
-            $.post(url,
+            $.post(utils.url_join_encode(this.kernel_service_url) + '?' + qs,
                 $.proxy(this._kernel_started, this),
                 'json'
             );
@@ -114,8 +113,7 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
         if (this.running) {
             this.stop_channels();
-            var url = utils.url_join_encode(this.kernel_url, "restart");
-            $.post(url,
+            $.post(utils.url_join_encode(this.kernel_url, "restart"),
                 $.proxy(this._kernel_started, this),
                 'json'
             );
@@ -133,8 +131,10 @@ var IPython = (function (IPython) {
             var prot = location.protocol.replace('http', 'ws') + "//";
             ws_url = prot + location.host + ws_url;
         }
-        this.ws_url = ws_url;
-        this.kernel_url = utils.url_join_encode(this.base_url, this.kernel_id);
+        var parsed = utils.parse_url(ws_url);
+        this.ws_host = parsed.protocol + "//" + parsed.host;
+        this.kernel_url = utils.url_path_join(this.kernel_service_url, this.kernel_id);
+        this.ws_url = utils.url_path_join(parsed.pathname, this.kernel_url);
         this.start_channels();
     };
 
@@ -155,12 +155,18 @@ var IPython = (function (IPython) {
     Kernel.prototype.start_channels = function () {
         var that = this;
         this.stop_channels();
-        var ws_url = this.ws_url + this.kernel_url;
-        console.log("Starting WebSockets:", ws_url);
-        this.shell_channel = new this.WebSocket(ws_url + "/shell");
-        this.stdin_channel = new this.WebSocket(ws_url + "/stdin");
-        this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
+        console.log("Starting WebSockets:", this.ws_host + this.ws_url);
+        this.shell_channel = new this.WebSocket(
+            this.ws_host + utils.url_join_encode(this.ws_url, "shell")
+        );
+        this.stdin_channel = new this.WebSocket(
+            this.ws_host + utils.url_join_encode(this.ws_url, "stdin")
+        );
+        this.iopub_channel = new this.WebSocket(
+            this.ws_host + utils.url_join_encode(this.ws_url, "iopub")
+        );
         
+        var ws_host_url = this.ws_host + this.ws_url;
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
             if (already_called_onclose){
@@ -168,7 +174,7 @@ var IPython = (function (IPython) {
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                that._websocket_closed(ws_url, true);
+                that._websocket_closed(ws_host_url, true);
             }
         };
         var ws_closed_late = function(evt){
@@ -177,7 +183,7 @@ var IPython = (function (IPython) {
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                that._websocket_closed(ws_url, false);
+                that._websocket_closed(ws_host_url, false);
             }
         };
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
@@ -387,7 +393,7 @@ var IPython = (function (IPython) {
     Kernel.prototype.interrupt = function () {
         if (this.running) {
             $([IPython.events]).trigger('status_interrupting.Kernel', {kernel: this});
-            $.post(this.kernel_url + "/interrupt");
+            $.post(utils.url_join_encode(this.kernel_url, "interrupt"));
         }
     };
 
@@ -399,7 +405,7 @@ var IPython = (function (IPython) {
                 cache : false,
                 type : "DELETE"
             };
-            $.ajax(this.kernel_url, settings);
+            $.ajax(utils.url_join_encode(this.kernel_url), settings);
         }
     };
 

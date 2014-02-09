@@ -15,12 +15,16 @@ $(document).ready(function () {
     IPython.page = new IPython.Page();
 
     $('#new_notebook').button().click(function (e) {
-        IPython.notebook_list.new_notebook($('body').data('baseProjectUrl'))
+        IPython.notebook_list.new_notebook()
     });
-
-    IPython.notebook_list = new IPython.NotebookList('#notebook_list');
-    IPython.cluster_list = new IPython.ClusterList('#cluster_list');
-    IPython.login_widget = new IPython.LoginWidget('#login_widget');
+    
+    var opts = {
+        base_url : IPython.utils.get_body_data("baseUrl"),
+        notebook_path : IPython.utils.get_body_data("notebookPath"),
+    };
+    IPython.notebook_list = new IPython.NotebookList('#notebook_list', opts);
+    IPython.cluster_list = new IPython.ClusterList('#cluster_list', opts);
+    IPython.login_widget = new IPython.LoginWidget('#login_widget', opts);
 
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,

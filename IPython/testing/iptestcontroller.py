@@ -181,8 +181,8 @@ class JSController(TestController):
         self.ipydir = TemporaryDirectory()
         self.nbdir = TemporaryDirectory()
         print("Running notebook tests in directory: %r" % self.nbdir.name)
-        os.makedirs(os.path.join(self.nbdir.name, os.path.join('subdir1', 'subdir1a')))
-        os.makedirs(os.path.join(self.nbdir.name, os.path.join('subdir2', 'subdir2a')))
+        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
+        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
         self.dirs.append(self.ipydir)
         self.dirs.append(self.nbdir)
 
