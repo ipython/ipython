@@ -193,7 +193,7 @@ if __name__ == '__main__':
     # if ns.save is True, then u_hist stores the history of u as a list
     # If the partion scheme is Nx1, then u can be reconstructed via 'gather':
     if ns.save and partition[-1] == 1:
-        import pylab
+        import matplotlib.pyplot as plt
         view.execute('u_last=u_hist[-1]')
         # map mpi IDs to IPython IDs, which may not match
         ranks = view['my_id']
@@ -201,5 +201,5 @@ if __name__ == '__main__':
         for idx in range(len(ranks)):
             targets[idx] = ranks.index(idx)
         u_last = rc[targets].gather('u_last', block=True)
-        pylab.pcolor(u_last)
-        pylab.show()
+        plt.pcolor(u_last)
+        plt.show()

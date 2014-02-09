@@ -13,9 +13,9 @@ _ipython_get_flags()
         opts=$__ipython_complete_last_res
         return
     fi
-    # pylab and profile don't need the = and the
+    # matplotlib and profile don't need the = and the
     # version without simplifies the special cased completion
-    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--pylab=$//" -e "s/^--profile=$/--profile /")
+    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--matplotlib=$//" -e "s/^--profile=$/--profile /")
     __ipython_complete_last="$url $var"
     __ipython_complete_last_res="$opts"
 }
@@ -86,12 +86,12 @@ _ipython()
     elif [[ $mode == "locate" ]]; then
         opts="profile"
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-    elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
-        if [ -z "$__ipython_complete_pylab" ]; then
-            __ipython_complete_pylab=`cat <<EOF | python -
+    elif [[ ${prev} == "--matplotlib"* ]] || [[ ${prev} == "--gui"* ]]; then
+        if [ -z "$__ipython_complete_matplotlib" ]; then
+            __ipython_complete_matplotlib=`cat <<EOF | python -
 try:
     import IPython.core.shellapp as mod;
-    for k in mod.InteractiveShellApp.pylab.values:
+    for k in mod.InteractiveShellApp.matplotlib.values:
         print "%s " % k
 except:
     pass
@@ -99,7 +99,7 @@ EOF
         `
         fi
         local IFS=$'\t\n'
-        COMPREPLY=( $(compgen -W "${__ipython_complete_pylab}" -- ${cur}) )
+        COMPREPLY=( $(compgen -W "${__ipython_complete_matplotlib}" -- ${cur}) )
     elif [[ ${prev} == "--profile"* ]]; then
         if [ -z  "$__ipython_complete_profiles" ]; then
         __ipython_complete_profiles=`cat <<EOF | python -
