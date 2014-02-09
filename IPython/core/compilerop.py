@@ -43,12 +43,9 @@ import time
 
 # Roughtly equal to PyCF_MASK | PyCF_MASK_OBSOLETE as defined in pythonrun.h,
 # this is used as a bitmask to extract future-related code flags.
-try:
-    PyCF_MASK = functools.reduce(operator.or_,
-                                 (getattr(__future__, fname).compiler_flag
-                                  for fname in __future__.all_feature_names))
-except AttributeError: # IronPython __future__'s are non-standard, 2/8/2014
-    PyCF_MASK = 0
+PyCF_MASK = functools.reduce(operator.or_,
+                             (getattr(__future__, fname).compiler_flag
+                              for fname in __future__.all_feature_names))
 
 #-----------------------------------------------------------------------------
 # Local utilities

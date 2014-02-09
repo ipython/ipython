@@ -1,11 +1,14 @@
-"""
-cli-specific implementation of process utilities.
+"""cli-specific implementation of process utilities.
 
 cli - Common Language Infrastructure for IronPython. Code
       can run on any operating system. Check os.name for os-
       specific settings.
 
 This file is only meant to be imported by process.py, not by end-users.
+
+This file is largely untested. To become a full drop-in process
+interface for IronPython will probably require you to help fill
+in the details. 
 """
 
 # Import cli libraries:
