@@ -12,6 +12,34 @@ IPython.namespace('IPython.utils');
 
 IPython.utils = (function (IPython) {
     "use strict";
+    
+    IPython.load_extensions = function () {
+        // load one or more IPython notebook extensions with requirejs
+        
+        var extensions = [];
+        var extension_names = arguments;
+        for (var i = 0; i < extension_names.length; i++) {
+            extensions.push("nbextensions/" + arguments[i]);
+        }
+        
+        require(extensions,
+            function () {
+                for (var i = 0; i < arguments.length; i++) {
+                    var ext = arguments[i];
+                    var ext_name = extension_names[i];
+                    // success callback
+                    console.log("Loaded extension: " + ext_name);
+                    if (ext && ext.load_ipython_extension !== undefined) {
+                        ext.load_ipython_extension();
+                    }
+                }
+            },
+            function (err) {
+                // failure callback
+                console.log("Failed to load extension(s):", err.requireModules, err);
+            }
+        );
+    };
 
     //============================================================================
     // Cross-browser RegEx Split
