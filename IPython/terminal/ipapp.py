@@ -252,7 +252,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         trust=('IPython.nbformat.sign.TrustNotebookApp',
             "Sign notebooks to trust their potentially unsafe contents at load."
         ),
-    ))
+    )
     subcommands['install-nbextension'] = (
         "IPython.html.nbextensions.NBExtensionApp",
         "Install IPython notebook extension files"
