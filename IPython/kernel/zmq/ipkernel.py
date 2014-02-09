@@ -60,7 +60,7 @@ class Kernel(Configurable):
     def _eventloop_changed(self, name, old, new):
         """schedule call to eventloop from IOLoop"""
         loop = ioloop.IOLoop.instance()
-        loop.add_timeout(time.time()+0.1, self.enter_eventloop)
+        loop.add_callback(self.enter_eventloop)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     shell_class = Type(ZMQInteractiveShell)
@@ -250,7 +250,11 @@ class Kernel(Configurable):
     
     def enter_eventloop(self):
         """enter eventloop"""
-        self.log.info("entering eventloop")
+        self.log.info("entering eventloop %s", self.eventloop)
+        for stream in self.shell_streams:
+            # flush any pending replies,
+            # which may be skipped by entering the eventloop
+            stream.flush(zmq.POLLOUT)
         # restore default_int_handler
         signal(SIGINT, default_int_handler)
         while self.eventloop is not None:
