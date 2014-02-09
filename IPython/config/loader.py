@@ -246,11 +246,13 @@ class Config(dict):
                 c = Config()
                 dict.__setitem__(self, key, c)
                 return c
-            else:
+            elif not key.startswith('_'):
                 # undefined, create lazy value, used for container methods
                 v = LazyConfigValue()
                 dict.__setitem__(self, key, v)
                 return v
+            else:
+                raise KeyError
 
     def __setitem__(self, key, value):
         if _is_section_key(key):

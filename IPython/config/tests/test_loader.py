@@ -369,6 +369,14 @@ class TestConfig(TestCase):
         assert isinstance(foo, LazyConfigValue)
         self.assertIn('foo', cfg)
 
+    def test_getattr_private_missing(self):
+        cfg = Config()
+        self.assertNotIn('_repr_html_', cfg)
+        with self.assertRaises(AttributeError):
+            _ = cfg._repr_html_
+        self.assertNotIn('_repr_html_', cfg)
+        self.assertEqual(len(cfg), 0)
+
     def test_getitem_not_section(self):
         cfg = Config()
         self.assertNotIn('foo', cfg)
