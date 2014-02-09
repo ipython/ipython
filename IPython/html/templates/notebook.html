@@ -341,12 +341,17 @@ class="notebook_app"
 <script src="{{ static_url("notebook/js/notificationarea.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/tooltip.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/config.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("notebook/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
 
 <script src="{{ static_url("notebook/js/contexthint.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("notebook/js/celltoolbarpresets/default.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/celltoolbarpresets/rawcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/celltoolbarpresets/slideshow.js") }}" type="text/javascript" charset="utf-8"></script>
+
+<script type="text/javascript" charset="utf-8">
+    require(["notebook/js/main"], function(app){
+        app.init()
+    });
+</script>
 
 {% endblock %}
