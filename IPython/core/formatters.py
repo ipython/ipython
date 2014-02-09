@@ -25,6 +25,7 @@ Authors:
 
 # Stdlib imports
 import abc
+import inspect
 import sys
 import types
 import warnings
@@ -59,18 +60,24 @@ def _valid_formatter(f):
     
     Cases checked:
     
-    - bound methods         OK
-    - unbound methods       NO
-    - any other callable    OK
+    - bound methods             OK
+    - unbound methods           NO
+    - callable with zero args   OK
     """
-    if isinstance(f, types.MethodType):
-        # bound methods are okay, unbound are not
-        return f.__self__ is not None
-    elif isinstance(f, type(str.find)):
+    if isinstance(f, type(str.find)):
         # unbound methods on compiled classes have type method_descriptor
         return False
-    elif callable(f):
+    elif isinstance(f, types.BuiltinFunctionType):
+        # bound methods on compiled classes have type builtin_function
         return True
+    elif callable(f):
+        # anything that works with zero args should be okay
+        try:
+            inspect.getcallargs(f)
+        except TypeError:
+            return False
+        else:
+            return True
     return False
 
 class DisplayFormatter(Configurable):
