@@ -422,6 +422,14 @@ IPython.utils = (function (IPython) {
     };
     
     var parse_url = function (url) {
+        // an `a` element with an href allows attr-access to the parsed segments of a URL
+        // a = parse_url("http://localhost:8888/path/name#hash")
+        // a.protocol = "http:"
+        // a.host     = "localhost:8888"
+        // a.hostname = "localhost"
+        // a.port     = 8888
+        // a.pathname = "/path/name"
+        // a.hash     = "#hash"
         var a = document.createElement("a");
         a.href = url;
         return a;
