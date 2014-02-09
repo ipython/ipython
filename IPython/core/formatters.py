@@ -53,6 +53,26 @@ else:
 # The main DisplayFormatter class
 #-----------------------------------------------------------------------------
 
+
+def _valid_formatter(f):
+    """Return whether an object is a valid formatter
+    
+    Cases checked:
+    
+    - bound methods         OK
+    - unbound methods       NO
+    - any other callable    OK
+    """
+    if isinstance(f, types.MethodType):
+        # bound methods are okay, unbound are not
+        return f.__self__ is not None
+    elif isinstance(f, type(str.find)):
+        # unbound methods on compiled classes have type method_descriptor
+        return False
+    elif callable(f):
+        return True
+    return False
+
 class DisplayFormatter(Configurable):
 
     # When set to true only the default plain text formatter will be used.
@@ -314,7 +334,7 @@ class BaseFormatter(Configurable):
             # Finally look for special method names
             method = pretty._safe_getattr(obj, self.print_method, None)
             # print_method must be a bound method:
-            if isinstance(method, types.MethodType) and method.__self__ is not None:
+            if _valid_formatter(method):
                 return method()
             return None
         else:
