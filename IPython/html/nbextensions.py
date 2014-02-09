@@ -58,7 +58,7 @@ def _safe_is_tarfile(path):
         return False
 
 
-def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
+def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None, verbose=1):
     """Install a Javascript extension for the notebook
     
     Stages files and/or directories into IPYTHONDIR/nbextensions.
@@ -75,6 +75,9 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
         Archives (zip or tarballs) will be extracted into the nbextensions directory.
     overwrite : bool [default: False]
         If True, always install the files, regardless of what may already be installed.
+    symlink : bool [default: False]
+        If True, create a symlink in nbextensions, rather than copying files.
+        Not allowed with URLs or archives.
     ipython_dir : str [optional]
         The path to an IPython directory, if the default value is not desired.
         get_ipython_dir() is used by default.
@@ -96,6 +99,8 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
     for path in map(cast_unicode_py2, files):
         
         if path.startswith(('https://', 'http://')):
+            if symlink:
+                raise ValueError("Cannot symlink from URLs")
             # Given a URL, download it
             with TemporaryDirectory() as td:
                 filename = urlparse(path).path.split('/')[-1]
@@ -104,7 +109,7 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
                     print("downloading %s to %s" % (path, local_path))
                 urlretrieve(path, local_path)
                 # now install from the local copy
-                install_nbextension(local_path, overwrite, ipython_dir, verbose)
+                install_nbextension(local_path, overwrite, symlink, ipython_dir, verbose)
             continue
         
         # handle archives
@@ -115,6 +120,8 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
             archive = tarfile.open(path)
         
         if archive:
+            if symlink:
+                raise ValueError("Cannot symlink from URLs")
             if verbose >= 1:
                 print("extracting %s to %s" % (path, nbext))
             archive.extractall(nbext)
@@ -129,6 +136,14 @@ def install_nbextension(files, overwrite=False, ipython_dir=None, verbose=1):
                 shutil.rmtree(dest)
             else:
                 os.remove(dest)
+        
+        if symlink:
+            path = os.path.abspath(path)
+            if not os.path.exists(dest):
+                if verbose >= 1:
+                    print("symlink %s -> %s" % (dest, path))
+                os.symlink(path, dest)
+            continue
 
         if os.path.isdir(path):
             strip_prefix_len = len(path) - len(basename(path))
@@ -170,7 +185,14 @@ flags = {
             "verbose" : 0,
         }}, "Minimal output"
     ),
+    "symlink" : ({
+        "NBExtensionApp" : {
+            "symlink" : True,
+        }}, "Create symlinks instead of copying files"
+    ),
 }
+flags['s'] = flags['symlink']
+
 aliases = {
     "ipython-dir" : "NBExtensionApp.ipython_dir"
 }
@@ -198,6 +220,7 @@ class NBExtensionApp(BaseIPythonApplication):
     flags = flags
     
     overwrite = Bool(False, config=True, help="Force overwrite of existing files")
+    symlink = Bool(False, config=True, help="Create symlinks instead of copying files")
     verbose = Enum((0,1,2), default_value=1, config=True,
         help="Verbosity level"
     )
@@ -205,6 +228,7 @@ class NBExtensionApp(BaseIPythonApplication):
     def install_extensions(self):
         install_nbextension(self.extra_args,
             overwrite=self.overwrite,
+            symlink=self.symlink,
             verbose=self.verbose,
             ipython_dir=self.ipython_dir,
         )
