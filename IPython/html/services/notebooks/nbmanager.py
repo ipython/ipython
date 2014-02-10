@@ -129,6 +129,22 @@ class NotebookManager(LoggingConfigurable):
         """
         return basename
 
+    def notebook_exists(self, name, path=''):
+        """Returns a True if the notebook exists. Else, returns False.
+
+        Parameters
+        ----------
+        name : string
+            The name of the notebook you are checking.
+        path : string
+            The relative path to the notebook (with '/' as separator)
+
+        Returns
+        -------
+        bool
+        """
+        raise NotImplementedError('must be implemented in a subclass')
+
     # TODO: Remove this after we create the contents web service and directories are
     # no longer listed by the notebook web service.
     def list_dirs(self, path):
