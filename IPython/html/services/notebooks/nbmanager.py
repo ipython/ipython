@@ -17,6 +17,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import itertools
 import os
 
 from IPython.config.configurable import LoggingConfigurable
@@ -126,8 +127,20 @@ class NotebookManager(LoggingConfigurable):
             The name of a notebook without the ``.ipynb`` file extension.
         path : unicode
             The URL path of the notebooks directory
+
+        Returns
+        -------
+        name : unicode
+            A notebook name (with the .ipynb extension) that starts
+            with basename and does not refer to any existing notebook.
         """
-        return basename
+        path = path.strip('/')
+        for i in itertools.count():
+            name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
+                                                ext=self.filename_ext)
+            if not self.notebook_exists(name, path):
+                break
+        return name
 
     def notebook_exists(self, name, path=''):
         """Returns a True if the notebook exists. Else, returns False.

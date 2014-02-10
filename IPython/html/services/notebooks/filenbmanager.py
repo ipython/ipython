@@ -82,16 +82,6 @@ class FileNotebookManager(NotebookManager):
                  for name in names]
         return names
 
-    def increment_filename(self, basename, path='', ext='.ipynb'):
-        """Return a non-used filename of the form basename<int>."""
-        path = path.strip('/')
-        for i in itertools.count():
-            name = u'{basename}{i}{ext}'.format(basename=basename, i=i, ext=ext)
-            os_path = self.get_os_path(name, path)
-            if not os.path.isfile(os_path):
-                break
-        return name
-
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
         
