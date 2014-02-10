@@ -111,6 +111,10 @@ casper.notebook_test(function () {
         '    a = CInt(0, sync=True)\n' +
         '    b = CInt(0, sync=True)\n' +
         '    c = CInt(0, sync=True)\n' +
+        '    d = CInt(-1, sync=True)\n' + // See if it sends a full state.
+        '    def _handle_receive_state(self, sync_data):\n' +
+        '        widgets.Widget._handle_receive_state(self, sync_data)\n'+
+        '        self.d = len(sync_data)\n' +
         'multiset = MultiSetWidget()\n' +
         'display(multiset)\n' +
         'print(multiset.model_id)');
@@ -125,6 +129,13 @@ casper.notebook_test(function () {
     this.execute_cell_then(index, function(index) {
         this.test.assertEquals(this.get_output_cell(index).text.trim(), '123',
             'Multiple model.set calls and one view.touch update state in back-end.');
+    });
+
+    index = this.append_cell(
+        'print("%d" % (multiset.d))');
+    this.execute_cell_then(index, function(index) {
+        this.test.assertEquals(this.get_output_cell(index).text.trim(), '3',
+            'Multiple model.set calls sent a partial state.');
     });
 
     var textbox = {};
