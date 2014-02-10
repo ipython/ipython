@@ -94,7 +94,7 @@ function(WidgetManager, _, Backbone){
             _.each(state, function(value, key) {
                 that.key_value_lock = [key, value];
                 try {
-                    that.set(key, that._unpack_models(value));
+                    WidgetModel.__super__.set.apply(that, [key, that._unpack_models(value)]);
                 } finally {
                     that.key_value_lock = null;
                 }
