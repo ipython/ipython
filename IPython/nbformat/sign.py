@@ -207,6 +207,8 @@ class NotebookNotary(LoggingConfigurable):
         for cell in nb['worksheets'][0]['cells']:
             if cell['cell_type'] != 'code':
                 continue
+            if not cell['outputs']:
+                continue
             if not cell.pop('trusted', False):
                 trusted = False
         return trusted

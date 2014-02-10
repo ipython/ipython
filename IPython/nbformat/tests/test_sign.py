@@ -109,4 +109,12 @@ class TestNotary(TestsBase):
         self.assertFalse(self.notary.check_cells(nb))
         for cell in nb.worksheets[0].cells:
             self.assertNotIn('trusted', cell)
+    
+    def test_trust_no_output(self):
+        nb = self.nb
+        self.notary.mark_cells(nb, False)
+        for cell in nb.worksheets[0].cells:
+            if cell.cell_type == 'code':
+                cell.outputs = []
+        self.assertTrue(self.notary.check_cells(nb))
 
