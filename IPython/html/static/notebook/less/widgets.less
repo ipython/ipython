@@ -178,6 +178,7 @@
 .widget-numeric-text {
     /* Single Line Textbox - used for IntTextView and FloatTextView */
     width : 150px;
+    margin : 0px !important;
 }
 
 .widget-progress {
@@ -259,6 +260,14 @@
     /* ContainerWidget */
     .border-box-sizing();
     .align-start();
+}
+
+.widget-radio-box {
+    /* Contains RadioButtonsWidget */
+    .vbox();
+    .border-box-sizing();
+    
+    padding-top: 4px;
 }
 
 .docked-widget-modal {
