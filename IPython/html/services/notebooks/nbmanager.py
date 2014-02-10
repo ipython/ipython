@@ -162,23 +162,23 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def get_notebook_model(self, name, path='', content=True):
+    def get_notebook(self, name, path='', content=True):
         """Get the notebook model with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_notebook_model(self, model, name, path=''):
-        """Save the notebook model and return the model with no content."""
+    def save_notebook(self, model, name, path=''):
+        """Save the notebook and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def update_notebook_model(self, model, name, path=''):
-        """Update the notebook model and return the model with no content."""
+    def update_notebook(self, model, name, path=''):
+        """Update the notebook and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook_model(self, name, path=''):
+    def delete_notebook(self, name, path=''):
         """Delete notebook by name and path."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def create_notebook_model(self, model=None, path=''):
+    def create_notebook(self, model=None, path=''):
         """Create a new notebook and return its model with no content."""
         path = path.strip('/')
         if model is None:
@@ -190,7 +190,7 @@ class NotebookManager(LoggingConfigurable):
             model['name'] = self.increment_filename('Untitled', path)
             
         model['path'] = path
-        model = self.save_notebook_model(model, model['name'], model['path'])
+        model = self.save_notebook(model, model['name'], model['path'])
         return model
 
     def copy_notebook(self, from_name, to_name=None, path=''):
@@ -199,12 +199,12 @@ class NotebookManager(LoggingConfigurable):
         If to_name not specified, increment `from_name-Copy#.ipynb`.
         """
         path = path.strip('/')
-        model = self.get_notebook_model(from_name, path)
+        model = self.get_notebook(from_name, path)
         if not to_name:
             base = os.path.splitext(from_name)[0] + '-Copy'
             to_name = self.increment_filename(base, path)
         model['name'] = to_name
-        model = self.save_notebook_model(model, to_name, path)
+        model = self.save_notebook(model, to_name, path)
         return model
     
     # Checkpoint-related

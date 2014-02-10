@@ -84,7 +84,7 @@ class NotebookHandler(IPythonHandler):
             self.finish(json.dumps(notebooks, default=date_default))
             return
         # get and return notebook representation
-        model = nbm.get_notebook_model(name, path)
+        model = nbm.get_notebook(name, path)
         self._finish_model(model, location=False)
 
     @web.authenticated
@@ -97,7 +97,7 @@ class NotebookHandler(IPythonHandler):
         model = self.get_json_body()
         if model is None:
             raise web.HTTPError(400, u'JSON body missing')
-        model = nbm.update_notebook_model(model, name, path)
+        model = nbm.update_notebook(model, name, path)
         self._finish_model(model)
     
     def _copy_notebook(self, copy_from, path, copy_to=None):
@@ -122,7 +122,7 @@ class NotebookHandler(IPythonHandler):
         if name:
             model['name'] = name
         
-        model = self.notebook_manager.create_notebook_model(model, path)
+        model = self.notebook_manager.create_notebook(model, path)
         self.set_status(201)
         self._finish_model(model)
     
@@ -135,14 +135,14 @@ class NotebookHandler(IPythonHandler):
         model = {}
         if name:
             model['name'] = name
-        model = self.notebook_manager.create_notebook_model(model, path=path)
+        model = self.notebook_manager.create_notebook(model, path=path)
         self.set_status(201)
         self._finish_model(model)
     
     def _save_notebook(self, model, path, name):
         """Save an existing notebook."""
         self.log.info(u"Saving notebook at %s/%s", path, name)
-        model = self.notebook_manager.save_notebook_model(model, name, path)
+        model = self.notebook_manager.save_notebook(model, name, path)
         if model['path'] != path.strip('/') or model['name'] != name:
             # a rename happened, set Location header
             location = True
@@ -217,7 +217,7 @@ class NotebookHandler(IPythonHandler):
     def delete(self, path='', name=None):
         """delete the notebook in the given notebook path"""
         nbm = self.notebook_manager
-        nbm.delete_notebook_model(name, path)
+        nbm.delete_notebook(name, path)
         self.set_status(204)
         self.finish()
 
