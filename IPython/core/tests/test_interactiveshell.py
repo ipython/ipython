@@ -375,7 +375,62 @@ class InteractiveShellTestCase(unittest.TestCase):
                     namespace = 'IPython internal', obj= cmagic.__wrapped__,
                     parent = None)
         nt.assert_equal(find, info)
-    
+
+    def test_ofind_property_with_error(self):
+        class A(object):
+            @property
+            def foo(self):
+                raise NotImplementedError()
+        a = A()
+
+        found = ip._ofind('a.foo', [('locals', locals())])
+        info = dict(found=True, isalias=False, ismagic=False,
+                    namespace='locals', obj=A.foo, parent=a)
+        nt.assert_equal(found, info)
+
+    def test_ofind_multiple_attribute_lookups(self):
+        class A(object):
+            @property
+            def foo(self):
+                raise NotImplementedError()
+
+        a = A()
+        a.a = A()
+        a.a.a = A()
+
+        found = ip._ofind('a.a.a.foo', [('locals', locals())])
+        info = dict(found=True, isalias=False, ismagic=False,
+                    namespace='locals', obj=A.foo, parent=a.a.a)
+        nt.assert_equal(found, info)
+
+    def test_ofind_slotted_attributes(self):
+        class A(object):
+            __slots__ = ['foo']
+            def __init__(self):
+                self.foo = 'bar'
+
+        a = A()
+        found = ip._ofind('a.foo', [('locals', locals())])
+        info = dict(found=True, isalias=False, ismagic=False,
+                    namespace='locals', obj=a.foo, parent=a)
+        nt.assert_equal(found, info)
+
+        found = ip._ofind('a.bar', [('locals', locals())])
+        info = dict(found=False, isalias=False, ismagic=False,
+                    namespace=None, obj=None, parent=a)
+        nt.assert_equal(found, info)
+
+    def test_ofind_prefers_property_to_instance_level_attribute(self):
+        class A(object):
+            @property
+            def foo(self):
+                return 'bar'
+        a = A()
+        a.__dict__['foo'] = 'baz'
+        nt.assert_equal(a.foo, 'bar')
+        found = ip._ofind('a.foo', [('locals', locals())])
+        nt.assert_is(found['obj'], A.foo)
+
     def test_custom_exception(self):
         called = []
         def my_handler(shell, etype, value, tb, tb_offset=None):
