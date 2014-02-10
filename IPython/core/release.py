@@ -23,8 +23,8 @@ _version_major = 1
 _version_minor = 2
 _version_patch = 0
 # _version_extra = 'dev'
-_version_extra = 'rc1'
-# _version_extra = ''  # Uncomment this for full releases
+# _version_extra = 'rc1'
+_version_extra = ''  # Uncomment this for full releases
 
 codename = 'An Afternoon Hack'
 
