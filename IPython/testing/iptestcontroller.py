@@ -499,6 +499,14 @@ def default_options():
     return options
 
 def main():
+    # iptest doesn't work correctly if the working directory is the
+    # root of the IPython source tree. Tell the user to avoid
+    # frustration.
+    if os.path.exists(os.path.join(os.getcwd(),
+                                   'IPython', 'testing', '__main__.py')):
+        print("Don't run iptest from the IPython source directory",
+              file=sys.stderr)
+        sys.exit(1)
     # Arguments after -- should be passed through to nose. Argparse treats
     # everything after -- as regular positional arguments, so we separate them
     # first.
