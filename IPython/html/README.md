@@ -13,9 +13,9 @@ Developers of the IPython Notebook will need to install the following tools:
 
 We are moving to a model where our JavaScript dependencies are managed using 
 [bower](http://bower.io/). These packages are installed in `static/components`
-and commited into our git repo. Our dependencies are described in the file
-`static/bower.json`. To update our bower packages, run `fab components` in this
-directory.
+and committed into our git repo. Our dependencies are described in the file
+`static/components/bower.json`. To update our bower packages, run `fab
+components` in this directory.
 
 Because CodeMirror does not use proper semantic versioning for its GitHub tags,
 we maintain our own fork of CodeMirror that is used with bower. This fork should
