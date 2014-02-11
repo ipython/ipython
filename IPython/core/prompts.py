@@ -147,7 +147,10 @@ HOME = os.path.realpath(HOME)
 USER           = py3compat.str_to_unicode(os.environ.get("USER",''))
 HOSTNAME       = py3compat.str_to_unicode(socket.gethostname())
 HOSTNAME_SHORT = HOSTNAME.split(".")[0]
-ROOT_SYMBOL    = "#" if (os.name=='nt' or os.getuid()==0) else "$"
+
+# IronPython doesn't currently have os.getuid() even if 
+# os.name == 'posix'; 2/8/2014
+ROOT_SYMBOL    = "#" if (os.name=='nt' or sys.platform=='cli' or os.getuid()==0) else "$"
 
 prompt_abbreviations = {
     # Prompt/history count

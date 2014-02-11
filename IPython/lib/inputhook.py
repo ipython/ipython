@@ -18,6 +18,8 @@ try:
     import ctypes
 except ImportError:
     ctypes = None
+except SystemError: # IronPython issue, 2/8/2014
+    ctypes = None
 import os
 import sys
 from distutils.version import LooseVersion as V

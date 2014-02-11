@@ -30,6 +30,9 @@
 """
 Decorator module, see http://pypi.python.org/pypi/decorator
 for the documentation.
+
+NOTE: this is an IPython-patched version to work on IronPython. See
+      FIXED comment below.
 """
 from __future__ import print_function
 
@@ -139,7 +142,12 @@ class FunctionMaker(object):
         func.__defaults__ = getattr(self, 'defaults', ())
         func.__kwdefaults__ = getattr(self, 'kwonlydefaults', None)
         func.__annotations__ = getattr(self, 'annotations', None)
-        callermodule = sys._getframe(3).f_globals.get('__name__', '?')
+        # FIXED: The following is try/excepted in IPython to work 
+        # with IronPython.
+        try:
+            callermodule = sys._getframe(3).f_globals.get('__name__', '?')
+        except AttributeError: # IronPython _getframe only exists with FullFrames
+            callermodule = '?'
         func.__module__ = getattr(self, 'module', callermodule)
         func.__dict__.update(kw)
 

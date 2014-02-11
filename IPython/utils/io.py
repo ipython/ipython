@@ -81,7 +81,7 @@ class IOStream:
         pass
 
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-devnull = open(os.devnull, 'a')
+devnull = open(os.devnull, 'w') 
 stdin = IOStream(sys.stdin, fallback=devnull)
 stdout = IOStream(sys.stdout, fallback=devnull)
 stderr = IOStream(sys.stderr, fallback=devnull)
