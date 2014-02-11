@@ -45,8 +45,8 @@ from IPython.utils.py3compat import cast_unicode, string_types, PY3
 _func_call_docstring = types.FunctionType.__call__.__doc__
 _object_init_docstring = object.__init__.__doc__
 _builtin_type_docstrings = {
-    t.__doc__ for t in (types.ModuleType, types.MethodType, types.FunctionType,
-                        property)
+    inspect.getdoc(t) for t in (types.ModuleType, types.MethodType,
+                                types.FunctionType, property)
 }
 
 _builtin_func_type = type(all)
