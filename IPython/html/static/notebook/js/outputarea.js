@@ -124,7 +124,7 @@ var IPython = (function (IPython) {
         if (!this.collapsed) {
             this.element.hide();
             this.prompt_overlay.hide();
-            if (this.element.html()){
+            if (this.element.text()){
                 this.collapse_button.show();
             }
             this.collapsed = true;
@@ -344,7 +344,7 @@ var IPython = (function (IPython) {
                 // We must directly write the html. When using Jquery's append
                 // method, javascript is evaluated in the parent document and
                 // not in the iframe document.
-                this.contentDocument.write(subarea.html());
+                this.contentDocument.write(subarea.html()); // CAUTION! .html(...) CALL MANDITORY!!!
 
                 this.contentDocument.close();
 
@@ -370,12 +370,10 @@ var IPython = (function (IPython) {
         // display a message when a javascript error occurs in display output
         var msg = "Javascript error adding output!"
         if ( element === undefined ) return;
-        element.append(
-            $('<div/>').html(msg + "<br/>" +
-                err.toString() +
-                '<br/>See your browser Javascript console for more details.'
-            ).addClass('js-error')
-        );
+        element
+            .append($('<div/>').text(msg).addClass('js-error'))
+            .append($('<div/>').text(err.toString()).addClass('js-error'))
+            .append($('<div/>').text('See your browser Javascript console for more details.').addClass('js-error'));
     };
     
     OutputArea.prototype._safe_append = function (toinsert) {
@@ -445,9 +443,11 @@ var IPython = (function (IPython) {
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
                 var pre = this.element.find('div.'+subclass).last().find('pre');
+                
+                // TODO: SCRUB
                 var html = utils.fixCarriageReturn(
-                    pre.html() + utils.fixConsole(text));
-                pre.html(html);
+                    pre.html() + utils.fixConsole(text)); // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...)
+                pre.html(html); // CAUTION! html(...) CALL MANDITORY!!!
                 return;
             }
         }
@@ -548,7 +548,9 @@ var IPython = (function (IPython) {
         if (extra_class){
             toinsert.addClass(extra_class);
         }
-        toinsert.append($("<pre/>").html(data));
+
+        // TODO: SCRUB
+        toinsert.append($("<pre/>").html(data)); // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...) CALL
         element.append(toinsert);
         return toinsert;
     };
@@ -735,7 +737,7 @@ var IPython = (function (IPython) {
             }
             
             // clear all, no need for logic
-            this.element.html("");
+            this.element.text("");
             this.outputs = [];
             this.trusted = true;
             this.unscroll_area();

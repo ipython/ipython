@@ -147,9 +147,9 @@ var IPython = (function (IPython) {
         this.widget_subarea = widget_subarea;
         var widget_clear_buton = $('<button />')
             .addClass('close')
-            .html('&times;')
+            .html('&times;')  // Literal = safe
             .click(function() {
-                widget_area.slideUp('', function(){ widget_subarea.html(''); });
+                widget_area.slideUp('', function(){ widget_subarea.text(''); });
                 })
             .appendTo(widget_prompt);
 
@@ -306,7 +306,7 @@ var IPython = (function (IPython) {
         this.output_area.clear_output();
         
         // Clear widget area
-        this.widget_subarea.html('');
+        this.widget_subarea.text('');
         this.widget_subarea.height('');
         this.widget_area.height('');
         this.widget_area.hide();
@@ -417,12 +417,10 @@ var IPython = (function (IPython) {
         this.code_mirror.setSelection(start, end);
     };
 
-
     CodeCell.prototype.collapse_output = function () {
         this.collapsed = true;
         this.output_area.collapse();
     };
-
 
     CodeCell.prototype.expand_output = function () {
         this.collapsed = false;
@@ -444,27 +442,20 @@ var IPython = (function (IPython) {
         this.output_area.toggle_scroll();
     };
 
-
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
-        var ns;
-        if (prompt_value == undefined) {
-            ns = "&nbsp;";
-        } else {
-            ns = encodeURIComponent(prompt_value);
-        }
-        return 'In&nbsp;[' + ns + ']:';
+        var ns = prompt_value || ' ';
+        return 'In [' + ns + ']:';
     };
 
     CodeCell.input_prompt_continuation = function (prompt_value, lines_number) {
-        var html = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
+        var text = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
         for(var i=1; i < lines_number; i++) {
-            html.push(['...:']);
+            text.push(['...:']);
         }
-        return html.join('<br/>');
+        return text.join('\n');
     };
 
     CodeCell.input_prompt_function = CodeCell.input_prompt_classical;
-
 
     CodeCell.prototype.set_input_prompt = function (number) {
         var nline = 1;
@@ -472,25 +463,23 @@ var IPython = (function (IPython) {
            nline = this.code_mirror.lineCount();
         }
         this.input_prompt_number = number;
-        var prompt_html = CodeCell.input_prompt_function(this.input_prompt_number, nline);
-        this.element.find('div.input_prompt').html(prompt_html);
+        var prompt_text = CodeCell.input_prompt_function(this.input_prompt_number, nline);
+        var prompt = this.element.find('div.input_prompt');
+        prompt.text(prompt_text);
+        prompt.html(prompt.html().replace(/\n/g,'<br/>')); // CAUTION! .html(...) CALL IS REQUIRED HERE TO CONVERT NEW LINES TO BR ELEMENTS
     };
-
 
     CodeCell.prototype.clear_input = function () {
         this.code_mirror.setValue('');
     };
 
-
     CodeCell.prototype.get_text = function () {
         return this.code_mirror.getValue();
     };
 
-
     CodeCell.prototype.set_text = function (code) {
         return this.code_mirror.setValue(code);
     };
-
 
     CodeCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
@@ -501,7 +490,6 @@ var IPython = (function (IPython) {
         }
     };
 
-
     CodeCell.prototype.at_bottom = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
@@ -510,7 +498,6 @@ var IPython = (function (IPython) {
             return false;
         }
     };
-
 
     CodeCell.prototype.clear_output = function (wait) {
         this.output_area.clear_output(wait);
@@ -546,7 +533,6 @@ var IPython = (function (IPython) {
             }
         }
     };
-
 
     CodeCell.prototype.toJSON = function () {
         var data = IPython.Cell.prototype.toJSON.apply(this);

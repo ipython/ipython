@@ -76,7 +76,7 @@ var IPython = (function (IPython) {
 
 
     NotificationWidget.prototype.get_message = function () {
-        return this.inner.html();
+        return this.inner.text();
     };
 
 

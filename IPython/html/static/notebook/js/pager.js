@@ -164,7 +164,10 @@ var IPython = (function (IPython) {
     }
 
     Pager.prototype.append_text = function (text) {
-        this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
+        // TODO: SCRUB
+        this.pager_element.find(".container").append($('<pre/>').html( // CAUTION! html(...) CALL MANDITORY BECAUSE OF fixConsole(...) CALL
+            utils.fixCarriageReturn(utils.fixConsole(text)))
+        );
     };
 
 
