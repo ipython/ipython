@@ -32,6 +32,7 @@ function(WidgetManager, _, Backbone){
             //      An ID unique to this model.
             // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
+            this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_throttle = 3;
             this.msg_buffer = null;
@@ -93,7 +94,7 @@ function(WidgetManager, _, Backbone){
             _.each(state, function(value, key) {
                 that.key_value_lock = [key, value];
                 try {
-                    that.set(key, that._unpack_models(value));
+                    WidgetModel.__super__.set.apply(that, [key, that._unpack_models(value)]);
                 } finally {
                     that.key_value_lock = null;
                 }
@@ -135,6 +136,17 @@ function(WidgetManager, _, Backbone){
             return callbacks;
         },
 
+        set: function(key, val, options) {
+            // Set a value.
+            var return_value = WidgetModel.__super__.set.apply(this, arguments);
+
+            // Backbone only remembers the diff of the most recent set()
+            // operation.  Calling set multiple times in a row results in a 
+            // loss of diff information.  Here we keep our own running diff.
+            this._buffered_state_diff = $.extend(this._buffered_state_diff, this.changedAttributes() || {});
+            return return_value;
+        },
+
         sync: function (method, model, options) {
             // Handle sync to the back-end.  Called when a model.save() is called.
 
@@ -158,6 +170,7 @@ function(WidgetManager, _, Backbone){
             }
 
             // Only sync if there are attributes to send to the back-end.
+            attrs = this._pack_models(attrs);
             if (_.size(attrs) > 0) {
 
                 // If this message was sent via backbone itself, it will not
@@ -197,13 +210,14 @@ function(WidgetManager, _, Backbone){
             // Since the comm is a one-way communication, assume the message 
             // arrived.  Don't call success since we don't have a model back from the server
             // this means we miss out on the 'sync' event.
+            this._buffered_state_diff = {};
         },
 
         save_changes: function(callbacks) {
             // Push this model's state to the back-end
             //
             // This invokes a Backbone.Sync.
-            this.save(this.changedAttributes(), {patch: true, callbacks: callbacks});
+            this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
         },
 
         _pack_models: function(value) {
