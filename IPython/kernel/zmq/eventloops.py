@@ -251,5 +251,5 @@ def enable_gui(gui, kernel=None):
             )
     loop = loop_map[gui]
     if loop and kernel.eventloop is not None and kernel.eventloop is not loop:
-            raise RuntimeError("Cannot activate multiple GUI eventloops")
+        raise RuntimeError("Cannot activate multiple GUI eventloops")
     kernel.eventloop = loop
