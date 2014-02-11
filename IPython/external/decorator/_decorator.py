@@ -142,7 +142,7 @@ class FunctionMaker(object):
         func.__defaults__ = getattr(self, 'defaults', ())
         func.__kwdefaults__ = getattr(self, 'kwonlydefaults', None)
         func.__annotations__ = getattr(self, 'annotations', None)
-        # FIXED: The following is try/execpted in IPython to work 
+        # FIXED: The following is try/excepted in IPython to work 
         # with IronPython.
         try:
             callermodule = sys._getframe(3).f_globals.get('__name__', '?')
