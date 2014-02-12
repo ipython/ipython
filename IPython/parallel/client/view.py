@@ -404,7 +404,7 @@ class DirectView(View):
     # push a=5:
     >>> dv['a'] = 5
     # pull 'foo':
-    >>> db['foo']
+    >>> dv['foo']
 
     """
 
