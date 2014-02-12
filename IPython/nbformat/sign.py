@@ -194,6 +194,37 @@ class NotebookNotary(LoggingConfigurable):
             if cell['cell_type'] == 'code':
                 cell['trusted'] = trusted
     
+    def _check_cell(self, cell):
+        """Do we trust an individual cell?
+        
+        Return True if:
+        
+        - cell is explicitly trusted
+        - cell has no potentially unsafe rich output
+        
+        If a cell has no output, or only simple print statements,
+        it will always be trusted.
+        """
+        # explicitly trusted
+        if cell.pop("trusted", False):
+            return True
+        
+        # explicitly safe output
+        safe = {
+            'text/plain', 'image/png', 'image/jpeg',
+            'text', 'png', 'jpg', # v3-style short keys
+        }
+        
+        for output in cell['outputs']:
+            output_type = output['output_type']
+            if output_type in ('pyout', 'display_data'):
+                # if there are any data keys not in the safe whitelist
+                output_keys = set(output).difference({"output_type", "prompt_number", "metadata"})
+                if output_keys.difference(safe):
+                    return False
+        
+        return True
+    
     def check_cells(self, nb):
         """Return whether all code cells are trusted
         
@@ -207,7 +238,8 @@ class NotebookNotary(LoggingConfigurable):
         for cell in nb['worksheets'][0]['cells']:
             if cell['cell_type'] != 'code':
                 continue
-            if not cell.pop('trusted', False):
+            # only distrust a cell if it actually has some output to distrust
+            if not self._check_cell(cell):
                 trusted = False
         return trusted
 
