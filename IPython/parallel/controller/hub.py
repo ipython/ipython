@@ -669,7 +669,7 @@ class Hub(SessionFactory):
         rheader = msg['header']
         md = msg['metadata']
         completed = rheader['date']
-        started = md.get('started', None)
+        started = extract_dates(md.get('started', None))
         result = {
             'result_header' : rheader,
             'result_metadata': md,
@@ -775,7 +775,7 @@ class Hub(SessionFactory):
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
             completed = header['date']
-            started = md.get('started', None)
+            started = extract_dates(md.get('started', None))
             result = {
                 'result_header' : header,
                 'result_metadata': msg['metadata'],
