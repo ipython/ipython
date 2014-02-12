@@ -13,9 +13,9 @@ var step_duration = 5000;
 var tour_steps = [
   { 
     element: $("#ipython_notebook").parent(),
-    title: "Let's take it from the top",
+    title: "Welcome to the Notebook Tour",
     placement: 'bottom',
-    content: "This is the Header.",
+    content: "This tour will take 2 minutes.",
     backdrop: true,
   }, {
     element: "#ipython_notebook",
@@ -73,6 +73,12 @@ var tour_steps = [
     onHide: function(tour) { IPython.notebook.command_mode(); },
     content: "Notice that the border around the currently active cell changed color."
   }, {
+    element: $('.selected'),
+    title: "back to Command Mode",
+    placement: 'bottom',
+    onHide: function(tour) { IPython.notebook.command_mode(); },
+    content: "Pressing Esc or clicking outside of the input text area takes you back to command mode."
+  }, {
     element: "#kernel_indicator",
     title: "Kernel indicator",
     placement: 'bottom',
@@ -86,6 +92,9 @@ var tour_steps = [
     content: "The Kernel indicator looks like this when the Kernel is busy.",
   }
 ];
+
+tour_steps[0].content = "This tour will take " + step_duration * tour_steps.length / 1000 + " seconds";
+
 var tour = new Tour({
     //orphan: true,
     storage: false, // start tour from beginning every time
