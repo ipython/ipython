@@ -122,7 +122,7 @@ class AuthenticatedHandler(RequestHandler):
 
     @property
     def cookie_name(self):
-        default_cookie_name = non_alphanum.sub('-', 'username-{}'.format(
+        default_cookie_name = non_alphanum.sub('-', 'username-{0}'.format(
             self.request.host
         ))
         return self.settings.get('cookie_name', default_cookie_name)
