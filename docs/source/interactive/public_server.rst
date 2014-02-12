@@ -135,21 +135,6 @@ files in the working directory of the notebook server, also known as the
 use a different notebook manager class, which can 
 store the notebooks in a different format. 
 
-Currently, we ship a :class:`AzureNotebookManager` class that stores notebooks 
-in Azure blob storage. This can be used by adding the following lines to your 
-``ipython_notebook_config.py`` file::
-
-    c.NotebookApp.notebook_manager_class = 
-    'IPython.html.services.notebooks.azurenbmanager.AzureNotebookManager'
-    c.AzureNotebookManager.account_name = u'paste_your_account_name_here'
-    c.AzureNotebookManager.account_key = u'paste_your_account_key_here'
-    c.AzureNotebookManager.container = u'notebooks'
-
-In addition to providing your Azure Blob Storage account name and key, you 
-will have to provide a container name; you can use multiple containers to 
-organize your notebooks.
-
-
 Known issues
 ------------
 
