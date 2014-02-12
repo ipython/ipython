@@ -751,7 +751,7 @@ def set_matplotlib_formats(*formats, **kwargs):
     select_figure_formats(shell, formats, **kw)
 
 @skip_doctest
-def set_matplotlib_close(close):
+def set_matplotlib_close(close=True):
     """Set whether the inline backend closes all figures automatically or not.
     
     By default, the inline backend used in the IPython Notebook will close all
@@ -772,7 +772,7 @@ def set_matplotlib_close(close):
         Should all matplotlib figures be automatically closed after each cell is
         run?
     """
-    from IPython.kernel.zmq.pylab.backend_inline import InlineBackend
-    ilbe = InlineBackend.instance()
-    ilbe.close_figures = close
+    from IPython.kernel.zmq.pylab.config import InlineBackend
+    cfg = InlineBackend.instance()
+    cfg.close_figures = close
 
