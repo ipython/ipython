@@ -247,7 +247,7 @@ class TestDictBackend(TaskDBTest, TestCase):
         self.load_records(1)
         self.assertEqual(len(self.db.get_history()), 17)
         
-        for i in range(100):
+        for i in range(25):
             self.load_records(1)
             self.assertTrue(len(self.db.get_history()) >= 17)
             self.assertTrue(len(self.db.get_history()) <= 20)

@@ -669,7 +669,7 @@ class Hub(SessionFactory):
         rheader = msg['header']
         md = msg['metadata']
         completed = rheader['date']
-        started = md.get('started', None)
+        started = extract_dates(md.get('started', None))
         result = {
             'result_header' : rheader,
             'result_metadata': md,
@@ -775,7 +775,7 @@ class Hub(SessionFactory):
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
             completed = header['date']
-            started = md.get('started', None)
+            started = extract_dates(md.get('started', None))
             result = {
                 'result_header' : header,
                 'result_metadata': msg['metadata'],
@@ -1194,6 +1194,7 @@ class Hub(SessionFactory):
                 self.db.drop_matching_records(dict(completed={'$ne':None}))
             except Exception:
                 reply = error.wrap_exception()
+                self.log.exception("Error dropping records")
         else:
             pending = [m for m in msg_ids if (m in self.pending)]
             if pending:
@@ -1201,11 +1202,13 @@ class Hub(SessionFactory):
                     raise IndexError("msg pending: %r" % pending[0])
                 except:
                     reply = error.wrap_exception()
+                    self.log.exception("Error dropping records")
             else:
                 try:
                     self.db.drop_matching_records(dict(msg_id={'$in':msg_ids}))
                 except Exception:
                     reply = error.wrap_exception()
+                    self.log.exception("Error dropping records")
 
             if reply['status'] == 'ok':
                 eids = content.get('engine_ids', [])
@@ -1215,12 +1218,14 @@ class Hub(SessionFactory):
                             raise IndexError("No such engine: %i" % eid)
                         except:
                             reply = error.wrap_exception()
+                            self.log.exception("Error dropping records")
                         break
                     uid = self.engines[eid].uuid
                     try:
                         self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
                     except Exception:
                         reply = error.wrap_exception()
+                        self.log.exception("Error dropping records")
                         break
 
         self.session.send(self.query, 'purge_reply', content=reply, ident=client_id)
@@ -1248,12 +1253,14 @@ class Hub(SessionFactory):
                 raise RuntimeError("DB appears to be in an inconsistent state."
                     "More matching records were found than should exist")
             except Exception:
+                self.log.exception("Failed to resubmit task")
                 return finish(error.wrap_exception())
         elif len(records) < len(msg_ids):
             missing = [ m for m in msg_ids if m not in found_ids ]
             try:
                 raise KeyError("No such msg(s): %r" % missing)
             except KeyError:
+                self.log.exception("Failed to resubmit task")
                 return finish(error.wrap_exception())
         elif pending_ids:
             pass
@@ -1343,6 +1350,7 @@ class Hub(SessionFactory):
                     records[rec['msg_id']] = rec
             except Exception:
                 content = error.wrap_exception()
+                self.log.exception("Failed to get results")
                 self.session.send(self.query, "result_reply", content=content,
                                                     parent=msg, ident=client_id)
                 return
@@ -1381,6 +1389,7 @@ class Hub(SessionFactory):
             msg_ids = self.db.get_history()
         except Exception as e:
             content = error.wrap_exception()
+            self.log.exception("Failed to get history")
         else:
             content = dict(status='ok', history=msg_ids)
 
@@ -1398,6 +1407,7 @@ class Hub(SessionFactory):
             records = self.db.find_records(query, keys)
         except Exception as e:
             content = error.wrap_exception()
+            self.log.exception("DB query failed")
         else:
             # extract buffers from reply content:
             if keys is not None:

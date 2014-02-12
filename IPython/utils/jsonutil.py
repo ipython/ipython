@@ -34,7 +34,7 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
 # timestamp formats
 ISO8601 = "%Y-%m-%dT%H:%M:%S.%f"
-ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6})Z?([\+\-]\d{2}:?\d{2})?$")
+ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d{1,6})?Z?([\+\-]\d{2}:?\d{2})?$")
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -75,7 +75,10 @@ def parse_date(s):
     if m:
         # FIXME: add actual timezone support
         # this just drops the timezone info
-        notz = m.groups()[0]
+        notz, ms, tz = m.groups()
+        if not ms:
+            ms = '.0'
+        notz = notz + ms
         return datetime.strptime(notz, ISO8601)
     return s
 
