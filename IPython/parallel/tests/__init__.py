@@ -109,7 +109,10 @@ def add_engines(n=1, profile='iptest', total=False):
     return eps
 
 def teardown():
-    time.sleep(1)
+    try:
+        time.sleep(1)
+    except KeyboardInterrupt:
+        return
     while launchers:
         p = launchers.pop()
         if p.poll() is None:
@@ -119,7 +122,10 @@ def teardown():
                 print(e)
                 pass
         if p.poll() is None:
-            time.sleep(.25)
+            try:
+                time.sleep(.25)
+            except KeyboardInterrupt:
+                return
         if p.poll() is None:
             try:
                 print('cleaning up test process...')
