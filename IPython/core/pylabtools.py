@@ -95,10 +95,10 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png', **kwargs):
+def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     """Print a figure to an image, and return the resulting bytes
     
-    Any extra keyword args are passed to fig.canvas.print_figure,
+    Any keyword args are passed to fig.canvas.print_figure,
     such as ``quality`` or ``bbox_inches``.
     """
     from matplotlib import rcParams
@@ -118,6 +118,7 @@ def print_figure(fig, fmt='png', **kwargs):
         fc=fig.get_facecolor(),
         ec=fig.get_edgecolor(),
         dpi=dpi,
+        bbox_inches=bbox_inches,
     )
     # **kwargs get higher priority
     kw.update(kwargs)
