@@ -46,7 +46,7 @@ class MainKernelHandler(IPythonHandler):
         km = self.kernel_manager
         kernel_id = km.start_kernel()
         model = km.kernel_model(kernel_id, self.ws_url)
-        location = url_path_join(self.base_kernel_url, 'api', 'kernels', kernel_id)
+        location = url_path_join(self.base_url, 'api', 'kernels', kernel_id)
         self.set_header('Location', url_escape(location))
         self.set_status(201)
         self.finish(jsonapi.dumps(model))
@@ -85,7 +85,7 @@ class KernelActionHandler(IPythonHandler):
         if action == 'restart':
             km.restart_kernel(kernel_id)
             model = km.kernel_model(kernel_id, self.ws_url)
-            self.set_header('Location', '{0}api/kernels/{1}'.format(self.base_kernel_url, kernel_id))
+            self.set_header('Location', '{0}api/kernels/{1}'.format(self.base_url, kernel_id))
             self.write(jsonapi.dumps(model))
         self.finish()
 

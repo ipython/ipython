@@ -160,7 +160,6 @@ class NotebookWebApplication(web.Application):
             # basics
             log_function=log_request,
             base_url=base_url,
-            base_kernel_url=ipython_app.base_kernel_url,
             template_path=template_path,
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
@@ -430,18 +429,6 @@ class NotebookApp(BaseIPythonApplication):
     def _base_project_url_changed(self, name, old, new):
         self.log.warn("base_project_url is deprecated, use base_url")
         self.base_url = new
-
-    base_kernel_url = Unicode('/', config=True,
-                               help='''The base URL for the kernel server
-
-                               Leading and trailing slashes can be omitted,
-                               and will automatically be added.
-                               ''')
-    def _base_kernel_url_changed(self, name, old, new):
-        if not new.startswith('/'):
-            self.base_kernel_url = '/'+new
-        elif not new.endswith('/'):
-            self.base_kernel_url = new+'/'
 
     websocket_url = Unicode("", config=True,
         help="""The base URL for the websocket server,

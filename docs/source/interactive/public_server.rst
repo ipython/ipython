@@ -121,8 +121,7 @@ e.g. ``http://localhost:8888/ipython/``, you can do so with
 configuration options like the following (see above for instructions about
 modifying ``ipython_notebook_config.py``)::
 
-    c.NotebookApp.base_project_url = '/ipython/'
-    c.NotebookApp.base_kernel_url = '/ipython/'
+    c.NotebookApp.base_url = '/ipython/'
     c.NotebookApp.webapp_settings = {'static_url_prefix':'/ipython/static/'}
 
 Using a different notebook store
