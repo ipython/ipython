@@ -133,7 +133,10 @@ nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly
 
 gh-pages: clean html
-	python gh-pages.py
+	# if VERSION is unspecified, it will be dev
+	# For releases, VERSION should be just the major version,
+	# e.g. VERSION=2 make gh-pages
+	python gh-pages.py $(VERSION)
 
 texinfo:
 	mkdir -p $(BUILDDIR)/texinfo
