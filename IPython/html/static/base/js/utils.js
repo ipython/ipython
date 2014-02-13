@@ -460,6 +460,12 @@ IPython.utils = (function (IPython) {
     };
 
 
+    var escape_html = function (text) {
+        // escape text to HTML
+        return $("<div/>").text(text).html();
+    }
+
+
     var get_body_data = function(key) {
         // get a url-encoded item from body.data and decode it
         // we should never have any encoded URLs anywhere else in code
@@ -536,6 +542,7 @@ IPython.utils = (function (IPython) {
         url_join_encode : url_join_encode,
         encode_uri_components : encode_uri_components,
         splitext : splitext,
+        escape_html : escape_html,
         always_new : always_new,
         browser : browser,
         platform: platform,
