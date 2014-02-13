@@ -22,24 +22,13 @@ import os
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current, sign
-from IPython.utils import py3compat
-from IPython.utils.traitlets import Instance, Unicode, TraitError
+from IPython.utils.traitlets import Instance, Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 class NotebookManager(LoggingConfigurable):
-
-    # Todo:
-    # The notebook_dir attribute is used to mean a couple of different things:
-    # 1. Where the notebooks are stored if FileNotebookManager is used.
-    # 2. The cwd of the kernel for a project.
-    # Right now we use this attribute in a number of different places and
-    # we are going to have to disentangle all of this.
-    notebook_dir = Unicode(py3compat.getcwd(), config=True, help="""
-            The directory to use for notebooks.
-            """)
 
     filename_ext = Unicode(u'.ipynb')
     
@@ -251,19 +240,4 @@ class NotebookManager(LoggingConfigurable):
         if not trusted:
             self.log.warn("Notebook %s/%s is not trusted", path, name)
         self.notary.mark_cells(nb, trusted)
-    
-    def _notebook_dir_changed(self, name, old, new):
-        """Do a bit of validation of the notebook dir."""
-        if not os.path.isabs(new):
-            # If we receive a non-absolute path, make it absolute.
-            self.notebook_dir = os.path.abspath(new)
-            return
-        if os.path.exists(new) and not os.path.isdir(new):
-            raise TraitError("notebook dir %r is not a directory" % new)
-        if not os.path.exists(new):
-            self.log.info("Creating notebook dir %s", new)
-            try:
-                os.mkdir(new)
-            except:
-                raise TraitError("Couldn't create notebook dir %r" % new)
 

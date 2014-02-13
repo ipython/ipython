@@ -23,12 +23,6 @@ class TestFileNotebookManager(TestCase):
             fm = FileNotebookManager(notebook_dir=td)
             self.assertEqual(fm.notebook_dir, td)
 
-    def test_create_nb_dir(self):
-        with TemporaryDirectory() as td:
-            nbdir = os.path.join(td, 'notebooks')
-            fm = FileNotebookManager(notebook_dir=nbdir)
-            self.assertEqual(fm.notebook_dir, nbdir)
-
     def test_missing_nb_dir(self):
         with TemporaryDirectory() as td:
             nbdir = os.path.join(td, 'notebook', 'dir', 'is', 'missing')
@@ -42,20 +36,20 @@ class TestFileNotebookManager(TestCase):
         # full filesystem path should be returned with correct operating system
         # separators.
         with TemporaryDirectory() as td:
-            nbdir = os.path.join(td, 'notebooks')
+            nbdir = td
             fm = FileNotebookManager(notebook_dir=nbdir)
-            path = fm.get_os_path('test.ipynb', '/path/to/notebook/')
+            path = fm._get_os_path('test.ipynb', '/path/to/notebook/')
             rel_path_list =  '/path/to/notebook/test.ipynb'.split('/')
             fs_path = os.path.join(fm.notebook_dir, *rel_path_list)
             self.assertEqual(path, fs_path)
 
             fm = FileNotebookManager(notebook_dir=nbdir)
-            path = fm.get_os_path('test.ipynb')
+            path = fm._get_os_path('test.ipynb')
             fs_path = os.path.join(fm.notebook_dir, 'test.ipynb')
             self.assertEqual(path, fs_path)
 
             fm = FileNotebookManager(notebook_dir=nbdir)
-            path = fm.get_os_path('test.ipynb', '////')
+            path = fm._get_os_path('test.ipynb', '////')
             fs_path = os.path.join(fm.notebook_dir, 'test.ipynb')
             self.assertEqual(path, fs_path)
 

@@ -11,10 +11,16 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
+from tempfile import NamedTemporaryFile
+
 import nose.tools as nt
 
+from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.traitlets import TraitError
 import IPython.testing.tools as tt
 from IPython.html import notebookapp
+NotebookApp = notebookapp.NotebookApp
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -25,7 +31,7 @@ def test_help_output():
     tt.help_all_output_test('notebook')
 
 def test_server_info_file():
-    nbapp = notebookapp.NotebookApp(profile='nbserver_file_test')
+    nbapp = NotebookApp(profile='nbserver_file_test')
     def get_servers():
         return list(notebookapp.list_running_servers(profile='nbserver_file_test'))
     nbapp.initialize(argv=[])
@@ -39,3 +45,28 @@ def test_server_info_file():
 
     # The ENOENT error should be silenced.
     nbapp.remove_server_info_file()
+
+def test_nb_dir():
+    with TemporaryDirectory() as td:
+        app = NotebookApp(notebook_dir=td)
+        nt.assert_equal(app.notebook_dir, td)
+
+def test_create_nb_dir():
+    with TemporaryDirectory() as td:
+        nbdir = os.path.join(td, 'notebooks')
+        app = NotebookApp(notebook_dir=nbdir)
+        nt.assert_equal(app.notebook_dir, nbdir)
+
+def test_missing_nb_dir():
+    with TemporaryDirectory() as td:
+        nbdir = os.path.join(td, 'notebook', 'dir', 'is', 'missing')
+        app = NotebookApp()
+        with nt.assert_raises(TraitError):
+            app.notebook_dir = nbdir
+
+def test_invalid_nb_dir():
+    with NamedTemporaryFile() as tf:
+        app = NotebookApp()
+        with nt.assert_raises(TraitError):
+            app.notebook_dir = tf
+

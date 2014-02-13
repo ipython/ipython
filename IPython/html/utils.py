@@ -81,7 +81,7 @@ def url_unescape(path):
     ])
 
 def is_hidden(abs_path, abs_root=''):
-    """Is a file is hidden or contained in a hidden directory.
+    """Is a file hidden or contained in a hidden directory?
     
     This will start with the rightmost path element and work backwards to the
     given root to see if a path is hidden or in a hidden directory. Hidden is
@@ -112,3 +112,14 @@ def is_hidden(abs_path, abs_root=''):
 
     return False
 
+def to_os_path(path, root=''):
+    """Convert an API path to a filesystem path
+    
+    If given, root will be prepended to the path.
+    root must be a filesystem path already.
+    """
+    parts = path.strip('/').split('/')
+    parts = [p for p in parts if p != ''] # remove duplicate splits
+    path = os.path.join(root, *parts)
+    return path
+    
