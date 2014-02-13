@@ -70,11 +70,11 @@ class TestNotebookManager(TestCase):
         except OSError:
             print("Directory already exists: %r" % os_path)
 
-    def test_create_notebook_model(self):
+    def test_create_notebook(self):
         with TemporaryDirectory() as td:
             # Test in root directory
             nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook_model()
+            model = nm.create_notebook()
             assert isinstance(model, dict)
             self.assertIn('name', model)
             self.assertIn('path', model)
@@ -84,24 +84,24 @@ class TestNotebookManager(TestCase):
             # Test in sub-directory
             sub_dir = '/foo/'
             self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook_model(None, sub_dir)
+            model = nm.create_notebook(None, sub_dir)
             assert isinstance(model, dict)
             self.assertIn('name', model)
             self.assertIn('path', model)
             self.assertEqual(model['name'], 'Untitled0.ipynb')
             self.assertEqual(model['path'], sub_dir.strip('/'))
 
-    def test_get_notebook_model(self):
+    def test_get_notebook(self):
         with TemporaryDirectory() as td:
             # Test in root directory
             # Create a notebook
             nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook_model()
+            model = nm.create_notebook()
             name = model['name']
             path = model['path']
 
             # Check that we 'get' on the notebook we just created
-            model2 = nm.get_notebook_model(name, path)
+            model2 = nm.get_notebook(name, path)
             assert isinstance(model2, dict)
             self.assertIn('name', model2)
             self.assertIn('path', model2)
@@ -111,8 +111,8 @@ class TestNotebookManager(TestCase):
             # Test in sub-directory
             sub_dir = '/foo/'
             self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook_model(None, sub_dir)
-            model2 = nm.get_notebook_model(name, sub_dir)
+            model = nm.create_notebook(None, sub_dir)
+            model2 = nm.get_notebook(name, sub_dir)
             assert isinstance(model2, dict)
             self.assertIn('name', model2)
             self.assertIn('path', model2)
@@ -120,37 +120,37 @@ class TestNotebookManager(TestCase):
             self.assertEqual(model2['name'], 'Untitled0.ipynb')
             self.assertEqual(model2['path'], sub_dir.strip('/'))
             
-    def test_update_notebook_model(self):
+    def test_update_notebook(self):
         with TemporaryDirectory() as td:
             # Test in root directory
             # Create a notebook
             nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook_model()
+            model = nm.create_notebook()
             name = model['name']
             path = model['path']
 
             # Change the name in the model for rename
             model['name'] = 'test.ipynb'
-            model = nm.update_notebook_model(model, name, path)
+            model = nm.update_notebook(model, name, path)
             assert isinstance(model, dict)
             self.assertIn('name', model)
             self.assertIn('path', model)
             self.assertEqual(model['name'], 'test.ipynb')
 
             # Make sure the old name is gone
-            self.assertRaises(HTTPError, nm.get_notebook_model, name, path)
+            self.assertRaises(HTTPError, nm.get_notebook, name, path)
 
             # Test in sub-directory
             # Create a directory and notebook in that directory
             sub_dir = '/foo/'
             self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook_model(None, sub_dir)
+            model = nm.create_notebook(None, sub_dir)
             name = model['name']
             path = model['path']
             
             # Change the name in the model for rename
             model['name'] = 'test_in_sub.ipynb'
-            model = nm.update_notebook_model(model, name, path)
+            model = nm.update_notebook(model, name, path)
             assert isinstance(model, dict)
             self.assertIn('name', model)
             self.assertIn('path', model)
@@ -158,22 +158,22 @@ class TestNotebookManager(TestCase):
             self.assertEqual(model['path'], sub_dir.strip('/'))
             
             # Make sure the old name is gone
-            self.assertRaises(HTTPError, nm.get_notebook_model, name, path)
+            self.assertRaises(HTTPError, nm.get_notebook, name, path)
 
-    def test_save_notebook_model(self):
+    def test_save_notebook(self):
         with TemporaryDirectory() as td:
             # Test in the root directory
             # Create a notebook
             nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook_model()
+            model = nm.create_notebook()
             name = model['name']
             path = model['path']
 
             # Get the model with 'content'
-            full_model = nm.get_notebook_model(name, path)
+            full_model = nm.get_notebook(name, path)
 
             # Save the notebook
-            model = nm.save_notebook_model(full_model, name, path)
+            model = nm.save_notebook(full_model, name, path)
             assert isinstance(model, dict)
             self.assertIn('name', model)
             self.assertIn('path', model)
@@ -184,13 +184,13 @@ class TestNotebookManager(TestCase):
             # Create a directory and notebook in that directory
             sub_dir = '/foo/'
             self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook_model(None, sub_dir)
+            model = nm.create_notebook(None, sub_dir)
             name = model['name']
             path = model['path']
-            model = nm.get_notebook_model(name, path)
+            model = nm.get_notebook(name, path)
 
             # Change the name in the model for rename
-            model = nm.save_notebook_model(model, name, path)
+            model = nm.save_notebook(model, name, path)
             assert isinstance(model, dict)
             self.assertIn('name', model)
             self.assertIn('path', model)
@@ -202,34 +202,34 @@ class TestNotebookManager(TestCase):
             # Create a notebook
             nm = FileNotebookManager(notebook_dir=td)
             nm.save_script = True
-            model = nm.create_notebook_model()
+            model = nm.create_notebook()
             name = model['name']
             path = model['path']
 
             # Get the model with 'content'
-            full_model = nm.get_notebook_model(name, path)
+            full_model = nm.get_notebook(name, path)
 
             # Save the notebook
-            model = nm.save_notebook_model(full_model, name, path)
+            model = nm.save_notebook(full_model, name, path)
 
             # Check that the script was created
             py_path = os.path.join(td, os.path.splitext(name)[0]+'.py')
             assert os.path.exists(py_path), py_path
 
-    def test_delete_notebook_model(self):
+    def test_delete_notebook(self):
         with TemporaryDirectory() as td:
             # Test in the root directory
             # Create a notebook
             nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook_model()
+            model = nm.create_notebook()
             name = model['name']
             path = model['path']
             
             # Delete the notebook
-            nm.delete_notebook_model(name, path)
+            nm.delete_notebook(name, path)
             
             # Check that a 'get' on the deleted notebook raises and error
-            self.assertRaises(HTTPError, nm.get_notebook_model, name, path)
+            self.assertRaises(HTTPError, nm.get_notebook, name, path)
     
     def test_copy_notebook(self):
         with TemporaryDirectory() as td:
@@ -239,7 +239,7 @@ class TestNotebookManager(TestCase):
             path = u'å b'
             name = u'nb √.ipynb'
             os.mkdir(os.path.join(td, path))
-            orig = nm.create_notebook_model({'name' : name}, path=path)
+            orig = nm.create_notebook({'name' : name}, path=path)
             
             # copy with unspecified name
             copy = nm.copy_notebook(name, path=path)

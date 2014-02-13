@@ -82,16 +82,6 @@ class FileNotebookManager(NotebookManager):
                  for name in names]
         return names
 
-    def increment_filename(self, basename, path='', ext='.ipynb'):
-        """Return a non-used filename of the form basename<int>."""
-        path = path.strip('/')
-        for i in itertools.count():
-            name = u'{basename}{i}{ext}'.format(basename=basename, i=i, ext=ext)
-            os_path = self.get_os_path(name, path)
-            if not os.path.isfile(os_path):
-                break
-        return name
-
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
         
@@ -231,11 +221,11 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
-        notebooks = [self.get_notebook_model(name, path, content=False) for name in notebook_names]
+        notebooks = [self.get_notebook(name, path, content=False) for name in notebook_names]
         notebooks = sorted(notebooks, key=lambda item: item['name'])
         return notebooks
 
-    def get_notebook_model(self, name, path='', content=True):
+    def get_notebook(self, name, path='', content=True):
         """ Takes a path and name for a notebook and returns its model
         
         Parameters
@@ -276,7 +266,7 @@ class FileNotebookManager(NotebookManager):
             model['content'] = nb
         return model
 
-    def save_notebook_model(self, model, name='', path=''):
+    def save_notebook(self, model, name='', path=''):
         """Save the notebook model and return the model with no content."""
         path = path.strip('/')
 
@@ -318,20 +308,20 @@ class FileNotebookManager(NotebookManager):
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s %s' % (py_path, e))
 
-        model = self.get_notebook_model(new_name, new_path, content=False)
+        model = self.get_notebook(new_name, new_path, content=False)
         return model
 
-    def update_notebook_model(self, model, name, path=''):
+    def update_notebook(self, model, name, path=''):
         """Update the notebook's path and/or name"""
         path = path.strip('/')
         new_name = model.get('name', name)
         new_path = model.get('path', path).strip('/')
         if path != new_path or name != new_name:
             self.rename_notebook(name, path, new_name, new_path)
-        model = self.get_notebook_model(new_name, new_path, content=False)
+        model = self.get_notebook(new_name, new_path, content=False)
         return model
 
-    def delete_notebook_model(self, name, path=''):
+    def delete_notebook(self, name, path=''):
         """Delete notebook by name and path."""
         path = path.strip('/')
         os_path = self.get_os_path(name, path)

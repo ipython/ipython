@@ -17,6 +17,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import itertools
 import os
 
 from IPython.config.configurable import LoggingConfigurable
@@ -46,26 +47,9 @@ class NotebookManager(LoggingConfigurable):
     def _notary_default(self):
         return sign.NotebookNotary(parent=self)
     
-    def check_and_sign(self, nb, path, name):
-        """Check for trusted cells, and sign the notebook.
-        
-        Called as a part of saving notebooks.
-        """
-        if self.notary.check_cells(nb):
-            self.notary.sign(nb)
-        else:
-            self.log.warn("Saving untrusted notebook %s/%s", path, name)
-    
-    def mark_trusted_cells(self, nb, path, name):
-        """Mark cells as trusted if the notebook signature matches.
-        
-        Called as a part of loading notebooks.
-        """
-        trusted = self.notary.check_signature(nb)
-        if not trusted:
-            self.log.warn("Notebook %s/%s is not trusted", path, name)
-        self.notary.mark_cells(nb, trusted)
-    
+    # NotebookManager API part 1: methods that must be
+    # implemented in subclasses.
+
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
         
@@ -100,34 +84,21 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError
 
-    def _notebook_dir_changed(self, name, old, new):
-        """Do a bit of validation of the notebook dir."""
-        if not os.path.isabs(new):
-            # If we receive a non-absolute path, make it absolute.
-            self.notebook_dir = os.path.abspath(new)
-            return
-        if os.path.exists(new) and not os.path.isdir(new):
-            raise TraitError("notebook dir %r is not a directory" % new)
-        if not os.path.exists(new):
-            self.log.info("Creating notebook dir %s", new)
-            try:
-                os.mkdir(new)
-            except:
-                raise TraitError("Couldn't create notebook dir %r" % new)
+    def notebook_exists(self, name, path=''):
+        """Returns a True if the notebook exists. Else, returns False.
 
-    # Main notebook API
-
-    def increment_filename(self, basename, path=''):
-        """Increment a notebook filename without the .ipynb to make it unique.
-        
         Parameters
         ----------
-        basename : unicode
-            The name of a notebook without the ``.ipynb`` file extension.
-        path : unicode
-            The URL path of the notebooks directory
+        name : string
+            The name of the notebook you are checking.
+        path : string
+            The relative path to the notebook (with '/' as separator)
+
+        Returns
+        -------
+        bool
         """
-        return basename
+        raise NotImplementedError('must be implemented in a subclass')
 
     # TODO: Remove this after we create the contents web service and directories are
     # no longer listed by the notebook web service.
@@ -162,53 +133,22 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def get_notebook_model(self, name, path='', content=True):
+    def get_notebook(self, name, path='', content=True):
         """Get the notebook model with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_notebook_model(self, model, name, path=''):
-        """Save the notebook model and return the model with no content."""
+    def save_notebook(self, model, name, path=''):
+        """Save the notebook and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def update_notebook_model(self, model, name, path=''):
-        """Update the notebook model and return the model with no content."""
+    def update_notebook(self, model, name, path=''):
+        """Update the notebook and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook_model(self, name, path=''):
+    def delete_notebook(self, name, path=''):
         """Delete notebook by name and path."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def create_notebook_model(self, model=None, path=''):
-        """Create a new notebook and return its model with no content."""
-        path = path.strip('/')
-        if model is None:
-            model = {}
-        if 'content' not in model:
-            metadata = current.new_metadata(name=u'')
-            model['content'] = current.new_notebook(metadata=metadata)
-        if 'name' not in model:
-            model['name'] = self.increment_filename('Untitled', path)
-            
-        model['path'] = path
-        model = self.save_notebook_model(model, model['name'], model['path'])
-        return model
-
-    def copy_notebook(self, from_name, to_name=None, path=''):
-        """Copy an existing notebook and return its new model.
-        
-        If to_name not specified, increment `from_name-Copy#.ipynb`.
-        """
-        path = path.strip('/')
-        model = self.get_notebook_model(from_name, path)
-        if not to_name:
-            base = os.path.splitext(from_name)[0] + '-Copy'
-            to_name = self.increment_filename(base, path)
-        model['name'] = to_name
-        model = self.save_notebook_model(model, to_name, path)
-        return model
-    
-    # Checkpoint-related
-    
     def create_checkpoint(self, name, path=''):
         """Create a checkpoint of the current state of a notebook
         
@@ -228,8 +168,102 @@ class NotebookManager(LoggingConfigurable):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
     
-    def log_info(self):
-        self.log.info(self.info_string())
-    
     def info_string(self):
         return "Serving notebooks"
+
+    # NotebookManager API part 2: methods that have useable default
+    # implementations, but can be overridden in subclasses.
+
+    def increment_filename(self, basename, path=''):
+        """Increment a notebook filename without the .ipynb to make it unique.
+        
+        Parameters
+        ----------
+        basename : unicode
+            The name of a notebook without the ``.ipynb`` file extension.
+        path : unicode
+            The URL path of the notebooks directory
+
+        Returns
+        -------
+        name : unicode
+            A notebook name (with the .ipynb extension) that starts
+            with basename and does not refer to any existing notebook.
+        """
+        path = path.strip('/')
+        for i in itertools.count():
+            name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
+                                                ext=self.filename_ext)
+            if not self.notebook_exists(name, path):
+                break
+        return name
+
+    def create_notebook(self, model=None, path=''):
+        """Create a new notebook and return its model with no content."""
+        path = path.strip('/')
+        if model is None:
+            model = {}
+        if 'content' not in model:
+            metadata = current.new_metadata(name=u'')
+            model['content'] = current.new_notebook(metadata=metadata)
+        if 'name' not in model:
+            model['name'] = self.increment_filename('Untitled', path)
+            
+        model['path'] = path
+        model = self.save_notebook(model, model['name'], model['path'])
+        return model
+
+    def copy_notebook(self, from_name, to_name=None, path=''):
+        """Copy an existing notebook and return its new model.
+        
+        If to_name not specified, increment `from_name-Copy#.ipynb`.
+        """
+        path = path.strip('/')
+        model = self.get_notebook(from_name, path)
+        if not to_name:
+            base = os.path.splitext(from_name)[0] + '-Copy'
+            to_name = self.increment_filename(base, path)
+        model['name'] = to_name
+        model = self.save_notebook(model, to_name, path)
+        return model
+    
+    def log_info(self):
+        self.log.info(self.info_string())
+
+    # NotebookManager methods provided for use in subclasses.
+
+    def check_and_sign(self, nb, path, name):
+        """Check for trusted cells, and sign the notebook.
+        
+        Called as a part of saving notebooks.
+        """
+        if self.notary.check_cells(nb):
+            self.notary.sign(nb)
+        else:
+            self.log.warn("Saving untrusted notebook %s/%s", path, name)
+    
+    def mark_trusted_cells(self, nb, path, name):
+        """Mark cells as trusted if the notebook signature matches.
+        
+        Called as a part of loading notebooks.
+        """
+        trusted = self.notary.check_signature(nb)
+        if not trusted:
+            self.log.warn("Notebook %s/%s is not trusted", path, name)
+        self.notary.mark_cells(nb, trusted)
+    
+    def _notebook_dir_changed(self, name, old, new):
+        """Do a bit of validation of the notebook dir."""
+        if not os.path.isabs(new):
+            # If we receive a non-absolute path, make it absolute.
+            self.notebook_dir = os.path.abspath(new)
+            return
+        if os.path.exists(new) and not os.path.isdir(new):
+            raise TraitError("notebook dir %r is not a directory" % new)
+        if not os.path.exists(new):
+            self.log.info("Creating notebook dir %s", new)
+            try:
+                os.mkdir(new)
+            except:
+                raise TraitError("Couldn't create notebook dir %r" % new)
+
