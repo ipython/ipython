@@ -752,9 +752,11 @@ var IPython = (function (IPython) {
         });
         // There are times (raw_input) where we remove the element from the DOM before
         // focusout is called. In this case we bind to the remove event of jQueryUI,
-        // which gets triggered upon removal.
+        // which gets triggered upon removal, iff it is focused at the time.
         e.on('remove', function () {
-            that.enable();
+            if (document.activeElement === e[0]) {
+                that.enable();
+            }
         });
     }
 
