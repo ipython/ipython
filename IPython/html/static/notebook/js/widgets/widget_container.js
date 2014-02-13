@@ -236,14 +236,14 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
             var description = this.model.get('description');
-            if (description.length === 0) {
+            if (description.trim().length === 0) {
                 this.$title.html("&nbsp;"); // Preserve title height
             } else {
                 this.$title.text(description);
             }
             
             var button_text = this.model.get('button_text');
-            if (button_text.length === 0) {
+            if (button_text.trim().length === 0) {
                 this.$show_button.html("&nbsp;"); // Preserve button height
             } else {
                 this.$show_button.text(button_text);
