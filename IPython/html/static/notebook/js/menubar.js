@@ -266,6 +266,9 @@ var IPython = (function (IPython) {
             IPython.notebook.restart_kernel();
         });
         // Help
+        this.element.find('#notebook_tour').click(function () {
+            IPython.tour.start();
+        });
         this.element.find('#keyboard_shortcuts').click(function () {
             IPython.quick_help.show_keyboard_shortcuts();
         });

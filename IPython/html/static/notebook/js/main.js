@@ -14,7 +14,8 @@
 // which make both this file fail at setting marked configuration, and textcell.js
 // which search marked into global.
 require(['components/marked/lib/marked',
-         'widgets/js/init'],
+         'widgets/js/init',
+         'components/bootstrap-tour/build/js/bootstrap-tour'],
 
 function (marked) {
     "use strict";
@@ -56,6 +57,7 @@ function (marked) {
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp();
+    IPython.tour = new IPython.NotebookTour();
     IPython.login_widget = new IPython.LoginWidget('span#login_widget', opts);
     IPython.notebook = new IPython.Notebook('div#notebook', opts);
     IPython.keyboard_manager = new IPython.KeyboardManager();

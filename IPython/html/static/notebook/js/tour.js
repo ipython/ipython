@@ -9,7 +9,6 @@
 // Tour of IPython Notebok UI (with Bootstrap Tour)
 //============================================================================
 
-var step_duration = 5000;
 var tour_steps = [
   { 
     element: $("#ipython_notebook").parent(),
@@ -93,22 +92,37 @@ var tour_steps = [
   }
 ];
 
-tour_steps[0].content = "This tour will take " + step_duration * tour_steps.length / 1000 + " seconds";
+IPython = (function (IPython) {
+ "use strict";
 
-var tour = new Tour({
-    //orphan: true,
-    storage: false, // start tour from beginning every time
-    //element: $("#ipython_notebook"),
-    debug: true,
-    reflex: true, // click on element to continue tour
-    //backdrop: true, // show dark behind popover
-    animation: false,
-    duration: step_duration,
-    onStart: function() { console.log('tour started'); },
-    steps: tour_steps,
-});
-// Initialize the tour
-tour.init();
+    
+    var NotebookTour = function () {
+        this.step_duration = 5000;
+        this.tour_steps = tour_steps ;
+        this.tour_steps[0].content = "This tour will take " + step_duration * tour_steps.length / 1000 + " seconds";
+        this.tour = new Tour({
+            //orphan: true,
+            storage: false, // start tour from beginning every time
+            //element: $("#ipython_notebook"),
+            debug: true,
+            reflex: true, // click on element to continue tour
+            //backdrop: true, // show dark behind popover
+            animation: false,
+            duration: this.step_duration,
+            onStart: function() { console.log('tour started'); },
+            steps: this.tour_steps,
+        });
+    };
 
-// Start the tour
-tour.start();
+    NotebookTour.prototype.start = function () {
+        console.log("let's start the tour");
+        this.tour.init();
+        this.tour.start();
+    };
+
+    // Set module variables
+    IPython.NotebookTour = NotebookTour;
+
+    return IPython;
+
+}(IPython));
