@@ -138,7 +138,7 @@ var IPython = (function (IPython) {
                 }
             var cur = cm.getCursor();
             var pre_cursor = cm.getRange({line:cur.line,ch:0},cur);
-            if (pre_cursor.trim() === "") {
+            if (pre_cursor.trim() === "" ) {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 CodeMirror.commands.indentMore(cm);
@@ -148,8 +148,8 @@ var IPython = (function (IPython) {
         }
     }
 
-    CodeMirror.commands.completePassthrough = protect_tab(cmutils.completion_request(true, complete_from_mixed_sources));
-    CodeMirror.commands.completeRequest = cmutils.completion_request(false, complete_from_mixed_sources);
+    CodeMirror.commands.completePassthrough = cmutils.completion_request(true, complete_from_mixed_sources);
+    CodeMirror.commands.completeRequest = protect_tab(cmutils.completion_request(false, complete_from_mixed_sources));
 
     CodeCell.options_default = {
         cm_config : {
