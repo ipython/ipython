@@ -275,6 +275,8 @@ class Widget(LoggingConfigurable):
         elif method == 'custom':
             if 'content' in data:
                 self._handle_custom_msg(data['content'])
+        ip = get_ipython()
+        ip.post_execute()
 
     def _handle_receive_state(self, sync_data):
         """Called when a state is received from the front-end."""

@@ -2720,32 +2720,34 @@ class InteractiveShell(SingletonConfigurable):
 
                 # Execute any registered post-execution functions.
                 # unless we are silent
-                post_exec = [] if silent else iteritems(self._post_execute)
-
-                for func, status in post_exec:
-                    if self.disable_failing_post_execute and not status:
-                        continue
-                    try:
-                        func()
-                    except KeyboardInterrupt:
-                        print("\nKeyboardInterrupt", file=io.stderr)
-                    except Exception:
-                        # register as failing:
-                        self._post_execute[func] = False
-                        self.showtraceback()
-                        print('\n'.join([
-                            "post-execution function %r produced an error." % func,
-                            "If this problem persists, you can disable failing post-exec functions with:",
-                            "",
-                            "    get_ipython().disable_failing_post_execute = True"
-                        ]), file=io.stderr)
-
+                if not silent:
+                    self.post_execute()
         if store_history:
             # Write output to the database. Does nothing unless
             # history output logging is enabled.
             self.history_manager.store_output(self.execution_count)
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
+
+    def post_execute(self):
+        """Execute any registered post-execution functions."""
+        for func, status in iteritems(self._post_execute):
+            if self.disable_failing_post_execute and not status:
+                continue
+            try:
+                func()
+            except KeyboardInterrupt:
+                print("\nKeyboardInterrupt", file=io.stderr)
+            except Exception:
+                # register as failing:
+                self._post_execute[func] = False
+                self.showtraceback()
+                print('\n'.join([
+                    "post-execution function %r produced an error." % func,
+                    "If this problem persists, you can disable failing post-exec functions with:",
+                    "",
+                    "    get_ipython().disable_failing_post_execute = True"
+                ]), file=io.stderr)
     
     def transform_ast(self, node):
         """Apply the AST transformations from self.ast_transformers
