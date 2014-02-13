@@ -25,7 +25,9 @@ Authors:
 
 # Stdlib imports
 import abc
+import inspect
 import sys
+import types
 import warnings
 
 from IPython.external.decorator import decorator
@@ -51,6 +53,32 @@ else:
 #-----------------------------------------------------------------------------
 # The main DisplayFormatter class
 #-----------------------------------------------------------------------------
+
+
+def _valid_formatter(f):
+    """Return whether an object is a valid formatter
+    
+    Cases checked:
+    
+    - bound methods             OK
+    - unbound methods           NO
+    - callable with zero args   OK
+    """
+    if isinstance(f, type(str.find)):
+        # unbound methods on compiled classes have type method_descriptor
+        return False
+    elif isinstance(f, types.BuiltinFunctionType):
+        # bound methods on compiled classes have type builtin_function
+        return True
+    elif callable(f):
+        # anything that works with zero args should be okay
+        try:
+            inspect.getcallargs(f)
+        except TypeError:
+            return False
+        else:
+            return True
+    return False
 
 class DisplayFormatter(Configurable):
 
@@ -312,7 +340,8 @@ class BaseFormatter(Configurable):
                 return printer(obj)
             # Finally look for special method names
             method = pretty._safe_getattr(obj, self.print_method, None)
-            if method is not None:
+            # print_method must be a bound method:
+            if _valid_formatter(method):
                 return method()
             return None
         else:
