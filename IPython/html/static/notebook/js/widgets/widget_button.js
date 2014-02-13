@@ -32,7 +32,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             // changed by another view or by a state update from the back-end.
             var description = this.model.get('description');
             if (description.length === 0) {
-                this.$el.text(' '); // Preserve button height
+                this.$el.html("&nbsp;"); // Preserve button height
             } else {
                 this.$el.text(description);
             }

@@ -137,7 +137,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 });
             this.$title = $('<div />')
                 .addClass('widget-modal-title')
-                .text(' ')
+                .html("&nbsp;")
                 .appendTo(this.$title_bar);
             this.$body = $('<div />')
                 .addClass('modal-body')
@@ -147,7 +147,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
                 .appendTo(this.$window);
             
             this.$show_button = $('<button />')
-                .text(' ')
+                .html("&nbsp;")
                 .addClass('btn btn-info widget-modal-show')
                 .appendTo(this.$el)
                 .click(function(){
@@ -237,14 +237,14 @@ define(["notebook/js/widgets/widget"], function(WidgetManager) {
             // changed by another view or by a state update from the back-end.
             var description = this.model.get('description');
             if (description.length === 0) {
-                this.$title.text(' '); // Preserve title height
+                this.$title.html("&nbsp;"); // Preserve title height
             } else {
                 this.$title.text(description);
             }
             
             var button_text = this.model.get('button_text');
             if (button_text.length === 0) {
-                this.$show_button.text(' '); // Preserve button height
+                this.$show_button.html("&nbsp;"); // Preserve button height
             } else {
                 this.$show_button.text(button_text);
             }

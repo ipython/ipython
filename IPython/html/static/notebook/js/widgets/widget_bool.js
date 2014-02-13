@@ -103,7 +103,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
                 var description = this.model.get('description');
                 if (description.length === 0) {
-                    this.$el.text(' '); // Preserve button height
+                    this.$el.html("&nbsp;"); // Preserve button height
                 } else {
                     this.$el.text(description);
                 }

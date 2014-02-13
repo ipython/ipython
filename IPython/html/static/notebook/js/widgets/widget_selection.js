@@ -33,7 +33,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             this.$droplabel = $('<button />')
                 .addClass('btn')
                 .addClass('widget-combo-btn')
-                .text(' ')
+                .html("&nbsp;")
                 .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
                 .addClass('btn')
@@ -59,7 +59,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             if (options === undefined || options.updated_view != this) {
                 var selected_item_text = this.model.get('value_name');
                 if (selected_item_text.length === 0) {
-                    this.$droplabel.text(' ');
+                    this.$droplabel.html("&nbsp;");
                 } else {
                     this.$droplabel.text(selected_item_text);
                 }
