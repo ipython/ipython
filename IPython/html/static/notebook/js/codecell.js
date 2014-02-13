@@ -159,7 +159,7 @@ var IPython = (function (IPython) {
                 "Cmd-/" : "toggleComment",
                 "Ctrl-/" : "toggleComment",
                 "Tab": "completeRequest",
-                "'.'": "completePassthrough",
+                //"'.'": "completePassthrough",
             },
             mode: 'ipython',
             theme: 'ipython',
