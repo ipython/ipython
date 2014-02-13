@@ -1,1 +1,1 @@
-* The Azure notebook manager is not compatible with the current notebook storage scheme
+* The Azure notebook manager was removed as it was no longer compatible with the notebook storage scheme
