@@ -118,7 +118,7 @@ var IPython = (function (IPython) {
         } else {
             cb(any(cm,opt));
         }
-    }
+    };
     
     var m_complete = new MultiHint();
     m_complete.complete_source.push(complete_from_kernel);
@@ -145,8 +145,8 @@ var IPython = (function (IPython) {
                 return;
             }
             return callback(cm);
-        }
-    }
+        };
+    };
 
     CodeMirror.commands.completePassthrough = cmutils.completion_request(true, complete_from_mixed_sources);
     CodeMirror.commands.completeRequest = protect_tab(cmutils.completion_request(false, complete_from_mixed_sources));
