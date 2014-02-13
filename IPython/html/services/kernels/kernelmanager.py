@@ -42,18 +42,6 @@ class MappingKernelManager(MultiKernelManager):
     kernel_argv = List(Unicode)
     
     root_dir = Unicode(getcwd(), config=True)
-    def _root_dir_default(self):
-        from IPython.html.notebookapp import NotebookApp
-        if NotebookApp.initialized():
-            try:
-                app = NotebookApp.instance()
-            except Exception:
-                # can raise MultipleInstanceError, ignore
-                pass
-            else:
-                return app.notebook_dir
-            return app.notebook_dir
-        return getcwd()
 
     def _root_dir_changed(self, name, old, new):
         """Do a bit of validation of the root dir."""

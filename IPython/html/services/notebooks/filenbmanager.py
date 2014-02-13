@@ -47,17 +47,6 @@ class FileNotebookManager(NotebookManager):
         """
     )
     notebook_dir = Unicode(getcwd(), config=True)
-    def _notebook_dir_default(self):
-        from IPython.html.notebookapp import NotebookApp
-        if NotebookApp.initialized():
-            try:
-                app = NotebookApp.instance()
-            except Exception:
-                # can raise MultipleInstanceError, ignore
-                pass
-            else:
-                return app.notebook_dir
-        return getcwd()
     
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""

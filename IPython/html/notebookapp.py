@@ -530,6 +530,10 @@ class NotebookApp(BaseIPythonApplication):
             except:
                 raise TraitError("Couldn't create notebook dir %r" % new)
         
+        # setting App.notebook_dir implies setting notebook and kernel dirs as well
+        self.config.FileNotebookManager.notebook_dir = new
+        self.config.MappingKernelManager.root_dir = new
+        
 
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
