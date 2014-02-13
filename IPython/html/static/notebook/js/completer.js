@@ -28,7 +28,7 @@ var IPython = (function (IPython) {
         if (B.length == 1) {
             return B[0];
         }
-        var A = new Array();
+        var A = [];
         var common;
         var min_lead_prct = 10;
         for (var i = 0; i < B.length; i++) {
@@ -102,7 +102,7 @@ var IPython = (function (IPython) {
 
     Completer.prototype.reinvoke= function(pre_cursor, block, cursor){
         return Completer.reinvoke_re.test(pre_cursor);
-    }
+    };
 
     /**
      *
@@ -140,15 +140,15 @@ var IPython = (function (IPython) {
         // We want a single cursor position.
         if (this.editor.somethingSelected()) {
             return;
-        };
+        }
 
         // one kernel completion came back, finish_completing will be called with the results
         // we fork here and directly call finish completing if kernel is busy
-        if (this.skip_kernel_completion == true) {
+        if (this.skip_kernel_completion) {
             this.finish_completing({
                 'matches': [],
                 matched_text: ""
-            })
+            });
         } else {
             this.cell.kernel.complete(line, cur.ch, $.proxy(this.finish_completing, this));
         }
@@ -163,19 +163,20 @@ var IPython = (function (IPython) {
 
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);
-        var filterd_results = Array();
+        var filtered_results = [];
         //remove results from context completion
         //that are already in kernel completion
-        for(var elm in results) {
-            if(_existing_completion(results[elm]['str'], matches) == false)
-            { filterd_results.push(results[elm]); }
+        for (var elm in results) {
+            if (!_existing_completion(results[elm].str, matches)) {
+                filtered_results.push(results[elm]);
+            }
         }
 
         // append the introspection result, in order, at at the beginning of
         // the table and compute the replacement range from current cursor
         // positon and matched_text length.
         for (var i = matches.length - 1; i >= 0; --i) {
-            filterd_results.unshift({
+            filtered_results.unshift({
                 str: matches[i],
                 type: "introspection",
                 from: {
@@ -190,13 +191,13 @@ var IPython = (function (IPython) {
         }
 
         // one the 2 sources results have been merge, deal with it
-        this.raw_result = filterd_results;
+        this.raw_result = filtered_results;
 
         // if empty result return
         if (!this.raw_result || !this.raw_result.length) return;
 
         // When there is only one completion, use it directly.
-        if (this.autopick == true && this.raw_result.length == 1) {
+        if (this.autopick && this.raw_result.length == 1) {
             this.insert(this.raw_result[0]);
             return;
         }
@@ -228,7 +229,6 @@ var IPython = (function (IPython) {
 
         // After everything is on the page, compute the postion.
         // We put it above the code if it is too close to the bottom of the page.
-        var cur = this.editor.getCursor();
         cur.ch = cur.ch-matched_text.length;
         var pos = this.editor.cursorCoords(cur);
         var left = pos.left-3;
@@ -253,6 +253,9 @@ var IPython = (function (IPython) {
         this.sel.keydown(function (event) {
             that.keydown(event);
         });
+        this.sel.keypress(function (event) {
+            that.keypress(event);
+        });
 
         this.build_gui_list(this.raw_result);
 
@@ -263,11 +266,11 @@ var IPython = (function (IPython) {
             if (!this.done) this.sel.focus();
         }, 100);
         return true;
-    }
+    };
 
     Completer.prototype.insert = function (completion) {
         this.editor.replaceRange(completion.str, completion.from, completion.to);
-    }
+    };
 
     Completer.prototype.build_gui_list = function (completions) {
         for (var i = 0; i < completions.length; ++i) {
@@ -276,14 +279,14 @@ var IPython = (function (IPython) {
         }
         this.sel.children().first().attr('selected', 'true');
         this.sel.scrollTop(0);
-    }
+    };
 
     Completer.prototype.close = function () {
         if (this.done) return;
         this.done = true;
         $('.completions').remove();
         IPython.keyboard_manager.enable();
-    }
+    };
 
     Completer.prototype.pick = function () {
         this.insert(this.raw_result[this.sel[0].selectedIndex]);
@@ -292,8 +295,7 @@ var IPython = (function (IPython) {
         setTimeout(function () {
             that.editor.focus();
         }, 50);
-    }
-
+    };
 
     Completer.prototype.keydown = function (event) {
         var code = event.keyCode;
@@ -305,7 +307,7 @@ var IPython = (function (IPython) {
             if (code == key[_key] ) {
                 special_key = true;
             }
-        };
+        }
 
         // Enter
         if (code == key.ENTER) {
@@ -317,7 +319,7 @@ var IPython = (function (IPython) {
             CodeMirror.e_stop(event);
             this.close();
             this.editor.focus();
-        } else if (code == key.SPACE || code == key.BACKSPACE) {
+        } else if (code == key.BACKSPACE) {
             this.close();
             this.editor.focus();
         } else if (code == key.TAB) {
@@ -340,16 +342,41 @@ var IPython = (function (IPython) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
             event.stopPropagation();
-        } else if (special_key != true) {
-            this.close();
-            this.editor.focus();
-            //we give focus to the editor immediately and call sell in 50 ms
-            setTimeout(function () {
-                that.carry_on_completion();
-            }, 50);
         }
-    }
-
+    };
+    
+    Completer.prototype.keypress = function (event) {
+        // FIXME: This is a band-aid.
+        // on keypress, trigger insertion of a single character.
+        // This simulates the old behavior of completion as you type,
+        // before events were disconnected and CodeMirror stopped
+        // receiving events while the completer is focused.
+        
+        var that = this;
+        var code = event.keyCode;
+        
+        // don't handle keypress if it's not a character (arrows on FF)
+        // or ENTER/TAB
+        if (event.charCode === 0 ||
+            code == key.ENTER ||
+            code == key.TAB
+        ) return;
+        
+        var cur = this.editor.getCursor();
+        var completion = {
+            str: String.fromCharCode(event.which),
+            type: "introspection",
+            from: cur,
+            to: cur,
+        };
+        this.insert(completion);
+        
+        this.close();
+        this.editor.focus();
+        setTimeout(function () {
+            that.carry_on_completion();
+        }, 50);
+    };
 
     IPython.Completer = Completer;
 
