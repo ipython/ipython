@@ -188,7 +188,12 @@ def find_package_data():
         'IPython.nbformat' : ['tests/*.ipynb']
     }
     
-    # verify that package_data makes sense
+    return package_data
+
+
+def check_package_data(package_data):
+    """verify that package_data globs make sense"""
+    print("checking package data")
     for pkg, data in package_data.items():
         pkg_root = pjoin(*pkg.split('.'))
         for d in data:
@@ -198,7 +203,17 @@ def find_package_data():
             else:
                 assert os.path.exists(path), "Missing package data: %s" % path
 
-    return package_data
+
+def check_package_data_first(command):
+    """decorator for checking package_data before running a given command
+    
+    Probably only needs to wrap build_py
+    """
+    class DecoratedCommand(command):
+        def run(self):
+            check_package_data(self.package_data)
+            command.run(self)
+    return DecoratedCommand
 
 
 #---------------------------------------------------------------------------

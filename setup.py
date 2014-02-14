@@ -58,6 +58,7 @@ from setupbase import (
     setup_args,
     find_packages,
     find_package_data,
+    check_package_data_first,
     find_entry_points,
     build_scripts_entrypt,
     find_data_files,
@@ -191,6 +192,7 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
 
 packages = find_packages()
 package_data = find_package_data()
+
 data_files = find_data_files()
 
 setup_args['packages'] = packages
@@ -224,7 +226,7 @@ class UploadWindowsInstallers(upload):
             self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
-    'build_py': git_prebuild('IPython'),
+    'build_py': check_package_data_first(git_prebuild('IPython')),
     'sdist' : git_prebuild('IPython', sdist),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
