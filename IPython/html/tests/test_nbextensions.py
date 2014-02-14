@@ -24,7 +24,7 @@ import IPython.testing.tools as tt
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.html import nbextensions
-from IPython.html.nbextensions import install_nbextension
+from IPython.html.nbextensions import install_nbextension, check_nbextension
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -232,3 +232,15 @@ class TestInstallNBExtension(TestCase):
             self.assert_installed("bar.js")
         finally:
             nbextensions.urlretrieve = save_urlretrieve
+    
+    def test_check_nbextension(self):
+        with TemporaryDirectory() as d:
+            f = u'ƒ.js'
+            src = pjoin(d, f)
+            touch(src)
+            install_nbextension(src)
+        
+        assert check_nbextension(f, self.ipdir)
+        assert check_nbextension([f], self.ipdir)
+        assert not check_nbextension([f, pjoin('dne', f)], self.ipdir)
+        
