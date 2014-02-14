@@ -27,6 +27,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_magic, register_cell_magic,
                                 register_line_cell_magic)
 from IPython.external.decorator import decorator
+from IPython.testing.decorators import skipif
 from IPython.utils import py3compat
 
 
@@ -45,7 +46,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 48  # Put here the actual number of this line
+THIS_LINE_NUMBER = 49  # Put here the actual number of this line
 def test_find_source_lines():
     nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
                     THIS_LINE_NUMBER+1)
@@ -269,6 +270,14 @@ def test_info():
 def test_info_awkward():
     # Just test that this doesn't throw an error.
     i = inspector.info(Awkward())
+
+if py3compat.PY3:
+    exec("def f_kwarg(pos, *, kwonly): pass")
+
+@skipif(not py3compat.PY3)
+def test_definition_kwonlyargs():
+    i = inspector.info(f_kwarg, oname='f_kwarg')  # analysis:ignore
+    nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)\n")
 
 def test_getdoc():
     class A(object):

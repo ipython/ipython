@@ -39,8 +39,8 @@ from IPython.utils import py3compat
 from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
-from IPython.utils.coloransi import *
-from IPython.utils.py3compat import cast_unicode, string_types
+from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
+from IPython.utils.py3compat import cast_unicode, string_types, PY3
 
 # builtin docstrings to ignore
 _func_call_docstring = types.FunctionType.__call__.__doc__
@@ -181,26 +181,17 @@ def getsource(obj,is_binary=False):
         return cast_unicode(src, encoding=encoding)
 
 def getargspec(obj):
-    """Get the names and default values of a function's arguments.
+    """Wrapper around :func:`inspect.getfullargspec` on Python 3, and
+    :func:inspect.getargspec` on Python 2.
+    
+    In addition to functions and methods, this can also handle objects with a
+    ``__call__`` attribute.
+    """
+    if not (inspect.isfunction(obj) or inspect.ismethod(obj)) \
+            and safe_hasattr(obj, '__call__'):
+        obj = obj.__call__
 
-    A tuple of four things is returned: (args, varargs, varkw, defaults).
-    'args' is a list of the argument names (it may contain nested lists).
-    'varargs' and 'varkw' are the names of the * and ** arguments or None.
-    'defaults' is an n-tuple of the default values of the last n arguments.
-
-    Modified version of inspect.getargspec from the Python Standard
-    Library."""
-
-    if inspect.isfunction(obj):
-        func_obj = obj
-    elif inspect.ismethod(obj):
-        func_obj = obj.__func__
-    elif hasattr(obj, '__call__'):
-        func_obj = obj.__call__
-    else:
-        raise TypeError('arg is not a Python function')
-    args, varargs, varkw = inspect.getargs(func_obj.__code__)
-    return args, varargs, varkw, func_obj.__defaults__
+    return inspect.getfullargspec(obj) if PY3 else inspect.getargspec(obj)
 
 
 def format_argspec(argspec):
@@ -354,7 +345,6 @@ class Inspector:
 
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
-
         try:
             hdef = oname + inspect.formatargspec(*getargspec(obj))
             return cast_unicode(hdef)
@@ -613,7 +603,6 @@ class Inspector:
 
         obj_type = type(obj)
 
-        header = self.__head
         if info is None:
             ismagic = 0
             isalias = 0
@@ -803,13 +792,18 @@ class Inspector:
 
         if callable_obj:
             try:
-                args,  varargs, varkw, defaults = getargspec(callable_obj)
+                argspec = getargspec(callable_obj)
             except (TypeError, AttributeError):
                 # For extensions/builtins we can't retrieve the argspec
                 pass
             else:
-                out['argspec'] = dict(args=args, varargs=varargs,
-                                      varkw=varkw, defaults=defaults)
+                # named tuples' _asdict() method returns an OrderedDict, but we
+                # we want a normal
+                out['argspec'] = argspec_dict = dict(argspec._asdict())
+                # We called this varkw before argspec became a named tuple.
+                # With getfullargspec it's also called varkw.
+                if 'varkw' not in argspec_dict:
+                    argspec_dict['varkw'] = argspec_dict.pop('keywords')
 
         return object_info(**out)
 
