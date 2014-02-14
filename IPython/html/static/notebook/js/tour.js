@@ -99,7 +99,7 @@ IPython = (function (IPython) {
     var NotebookTour = function () {
         this.step_duration = 5000;
         this.tour_steps = tour_steps ;
-        this.tour_steps[0].content = "This tour will take " + step_duration * tour_steps.length / 1000 + " seconds";
+        this.tour_steps[0].content = "This tour will take " + this.step_duration * tour_steps.length / 1000 + " seconds";
         this.tour = new Tour({
             //orphan: true,
             storage: false, // start tour from beginning every time
