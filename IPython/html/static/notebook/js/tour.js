@@ -89,6 +89,13 @@ var tour_steps = [
     onShow: function(tour) { $([IPython.events]).trigger('status_busy.Kernel'); },
     onHide: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
     content: "The Kernel indicator looks like this when the Kernel is busy.",
+  }, {
+    element: "#kernel_indicator",
+    title: "Fin.",
+    placement: 'bottom',
+    onShow: function(tour) { $([IPython.events]).trigger('status_busy.Kernel'); },
+    onHide: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
+    content: "This concludes the IPython Notebook User Interface Tour. Happy hacking!",
   }
 ];
 
@@ -112,12 +119,16 @@ IPython = (function (IPython) {
             onStart: function() { console.log('tour started'); },
             steps: this.tour_steps,
         });
+        this.tour.init();
     };
 
     NotebookTour.prototype.start = function () {
         console.log("let's start the tour");
-        this.tour.init();
         this.tour.start();
+        if (this.tour.ended())
+        {
+            this.tour.restart();
+        }
     };
 
     // Set module variables
