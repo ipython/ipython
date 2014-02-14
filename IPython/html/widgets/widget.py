@@ -14,7 +14,6 @@ in the IPython notebook front-end.
 #-----------------------------------------------------------------------------
 from contextlib import contextmanager
 
-from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple
@@ -154,6 +153,10 @@ class Widget(LoggingConfigurable):
         If a Comm doesn't exist yet, a Comm will be created automagically."""
         return self.comm.comm_id
 
+    @property
+    def _shell(self):
+        return self.comm.shell
+    
     #-------------------------------------------------------------------------
     # Methods
     #-------------------------------------------------------------------------
@@ -275,8 +278,7 @@ class Widget(LoggingConfigurable):
         elif method == 'custom':
             if 'content' in data:
                 self._handle_custom_msg(data['content'])
-        ip = get_ipython()
-        ip.post_execute()
+        self._shell.post_execute()
 
     def _handle_receive_state(self, sync_data):
         """Called when a state is received from the front-end."""
