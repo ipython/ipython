@@ -78,10 +78,7 @@ class InlineBackend(InlineBackendConfig):
         if 'jpg' in new or 'jpeg' in new:
             if not pil_available():
                 raise TraitError("Requires PIL/Pillow for JPG figures")
-        if self.shell is None:
-            return
-        else:
-            self._update_figure_formatters()
+        self._update_figure_formatters()
 
     figure_format = Unicode(config=True, help="""The figure format to enable (deprecated
                                          use `figure_formats` instead)""")
