@@ -5,3 +5,5 @@ import os
 DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
 
 del os
+
+from .nbextensions import install_nbextension

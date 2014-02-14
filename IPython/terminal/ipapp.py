@@ -224,7 +224,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             StoreMagics,
         ]
 
-    subcommands = Dict(dict(
+    subcommands = dict(
         qtconsole=('IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
         ),
@@ -252,7 +252,11 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         trust=('IPython.nbformat.sign.TrustNotebookApp',
             "Sign notebooks to trust their potentially unsafe contents at load."
         ),
-    ))
+    )
+    subcommands['install-nbextension'] = (
+        "IPython.html.nbextensions.NBExtensionApp",
+        "Install IPython notebook extension files"
+    )
 
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
