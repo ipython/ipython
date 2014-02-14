@@ -33,7 +33,7 @@ class CallbackDispatcher(LoggingConfigurable):
             try:
                 local_value = callback(*args, **kwargs)
             except Exception as e:
-                ip = get_ipython()
+                ip = self._shell()
                 if ip is None:
                     self.log.warn("Exception in callback %s: %s", callback, e, exc_info=True)
                 else:
