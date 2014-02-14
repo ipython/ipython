@@ -21,6 +21,7 @@ from os.path import basename, join as pjoin
 from unittest import TestCase
 
 import IPython.testing.tools as tt
+import IPython.testing.decorators as dec
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.html import nbextensions
@@ -243,4 +244,29 @@ class TestInstallNBExtension(TestCase):
         assert check_nbextension(f, self.ipdir)
         assert check_nbextension([f], self.ipdir)
         assert not check_nbextension([f, pjoin('dne', f)], self.ipdir)
+    
+    @dec.skip_win32
+    def test_install_symlink(self):
+        with TemporaryDirectory() as d:
+            f = u'ƒ.js'
+            src = pjoin(d, f)
+            touch(src)
+            install_nbextension(src, symlink=True)
+        dest = pjoin(self.ipdir, u'nbextensions', f)
+        assert os.path.islink(dest)
+        link = os.readlink(dest)
+        self.assertEqual(link, src)
+    
+    def test_install_symlink_bad(self):
+        with self.assertRaises(ValueError):
+            install_nbextension("http://example.com/foo.js", symlink=True)
         
+        with TemporaryDirectory() as d:
+            zf = u'ƒ.zip'
+            zsrc = pjoin(d, zf)
+            with zipfile.ZipFile(zsrc, 'w') as z:
+                z.writestr("a.js", b"b();")
+        
+            with self.assertRaises(ValueError):
+                install_nbextension(zsrc, symlink=True)
+
