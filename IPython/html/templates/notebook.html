@@ -12,6 +12,7 @@ window.mathjax_url = "{{mathjax_url}}";
 </script>
 
 <link rel="stylesheet" href="{{ static_url("components/codemirror/lib/codemirror.css") }}">
+<link rel="stylesheet" href="{{ static_url("components/codemirror/addon/hint/show-hint.css")  }}">
 
 {{super()}}
 
@@ -301,6 +302,8 @@ class="notebook_app"
 <script src="{{ static_url("components/codemirror/addon/mode/overlay.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/edit/matchbrackets.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/comment/comment.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/addon/hint/show-hint.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/addon/hint/anyword-hint.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/javascript/javascript.js") }}" charset="utf-8"></script>
@@ -317,6 +320,7 @@ class="notebook_app"
 
 <script src="{{ static_url("base/js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("base/js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("base/js/cmutils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("base/js/dialog.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("services/kernels/js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("services/kernels/js/comm.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -327,7 +331,6 @@ class="notebook_app"
 <script src="{{ static_url("notebook/js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/celltoolbar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("notebook/js/completer.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/quickhelp.js") }}" type="text/javascript" charset="utf-8"></script>

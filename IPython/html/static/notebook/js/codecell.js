@@ -16,36 +16,23 @@
  */
 
 
-/* local util for codemirror */
-var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
-
-/**
- *
- * function to delete until previous non blanking space character
- * or first multiple of 4 tabstop.
- * @private
- */
-CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
-    var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
-    if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
-    var cur = cm.getCursor(), line = cm.getLine(cur.line);
-    var tabsize = cm.getOption('tabSize');
-    var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-    from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
-    var select = cm.getRange(from,cur);
-    if( select.match(/^\ +$/) !== null){
-        cm.replaceRange("",from,cur);
-    } else {
-        cm.deleteH(-1,"char");
-    }
-};
-
-
 var IPython = (function (IPython) {
     "use strict";
 
-    var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
+    var cmutils   = IPython.cmutils;
+    var recent_cm = cmutils.recent_cm;
+    var MultiHint = IPython.cmutils.MultiHint;
+
+
+    /**
+     * Common prefix on tab-tab , and codemirror anyhint will be disabled.
+     * warn in console
+     **/
+    if(!recent_cm(CodeMirror)){
+        console.log('Codemirror version is '+CodeMirror.version);
+        console.log('you will need a more recent version (>3.21.1)to have access to full functionality.');
+    }
 
     /**
      * A Cell conceived to write code.
@@ -70,7 +57,6 @@ var IPython = (function (IPython) {
         this.celltoolbar = null;
         this.output_area = null;
         this.last_msg_id = null;
-        this.completer = null;
 
 
         var cm_overwrite_options  = {
@@ -88,16 +74,92 @@ var IPython = (function (IPython) {
         this.element.focusout(
             function() { that.auto_highlight(); }
         );
+        
+
     };
+    
+    
+    $([IPython.events]).on('status_busy.Kernel', function () {
+        IPython.skip_kernel_completion = true;
+    });
+    
+    $([IPython.events]).on('status_idle.Kernel', function () {
+        IPython.skip_kernel_completion = false;
+    });
+    
+    /**
+     * complete function that should be passed to CodeMirror
+     * show-hint in order to fetch the completion. and call 
+     * `finish_complete_callback` once done with the formatted result.
+     **/
+    var complete_from_kernel =  function(cm, finish_complete_callback, options){
+        var cur = cm.getCursor();
+        if(IPython.skip_kernel_completion){
+            // call callback with empty result
+            finish_complete_callback({list:[], from:cur, to:cur});
+        }
+        
+        IPython.notebook.kernel.complete(cm.getLine(cur.line), cur.ch, function(msg){
+            finish_complete_callback(
+                {list:msg.content.matches, from:{line:cur.line, ch:cur.ch - msg.content.matched_text.length }, to:cur}
+            );
+        });
+    };
+    
+    /**
+     * wrapper arround CodeMirror.hit.anyword
+     * to make it no-op if buggy.
+     **/
+    var complete_from_anyword = function (cm, cb, opt){
+        var any = CodeMirror.hint.anyword ;
+        // bug in codemirror anyhint, works only on begining of line.
+        if(!any || !recent_cm(CodeMirror)){
+            cb({});
+        } else {
+            cb(any(cm,opt));
+        }
+    };
+    
+    var m_complete = new MultiHint();
+    m_complete.complete_source.push(complete_from_kernel);
+    m_complete.complete_source.push(complete_from_anyword);
+    var complete_from_mixed_sources = $.proxy(MultiHint.prototype.complete, m_complete);
+    
+    
+    /**
+     * Decorator that shoudl protect any function that woudl be iinvoked via tab. 
+     * It keep sure that tab can be used to indent text and that nothing happend on selected text
+     **/
+    var protect_tab = function(callback){
+        return function(cm){
+            IPython.tooltip.remove_and_cancel_tooltip();
+            if (cm.somethingSelected()) {
+                    return;
+                }
+            var cur = cm.getCursor();
+            var pre_cursor = cm.getRange({line:cur.line,ch:0},cur);
+            if (pre_cursor.trim() === "" ) {
+                // Don't autocomplete if the part of the line before the cursor
+                // is empty.  In this case, let CodeMirror handle indentation.
+                CodeMirror.commands.indentMore(cm);
+                return;
+            }
+            return callback(cm);
+        };
+    };
+
+    CodeMirror.commands.completePassthrough = cmutils.completion_request(true, complete_from_mixed_sources);
+    CodeMirror.commands.completeRequest = protect_tab(cmutils.completion_request(false, complete_from_mixed_sources));
 
     CodeCell.options_default = {
         cm_config : {
             extraKeys: {
-                "Tab" :  "indentMore",
                 "Shift-Tab" : "indentLess",
                 "Backspace" : "delSpaceToPrevTabStop",
                 "Cmd-/" : "toggleComment",
-                "Ctrl-/" : "toggleComment"
+                "Ctrl-/" : "toggleComment",
+                "Tab": "completeRequest",
+                //"'.'": "completePassthrough",
             },
             mode: 'ipython',
             theme: 'ipython',
@@ -129,7 +191,7 @@ var IPython = (function (IPython) {
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
-        this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
@@ -157,7 +219,6 @@ var IPython = (function (IPython) {
         cell.append(input).append(widget_area).append(output);
         this.element = cell;
         this.output_area = new IPython.OutputArea(output, true);
-        this.completer = new IPython.Completer(this);
     };
 
     /** @method bind_events */
@@ -198,7 +259,6 @@ var IPython = (function (IPython) {
             tooltip_closed = IPython.tooltip.remove_and_cancel_tooltip();
         }
 
-        var cur = editor.getCursor();
         if (event.keyCode === key.ENTER){
             this.auto_highlight();
         }
@@ -237,10 +297,13 @@ var IPython = (function (IPython) {
                 event.stop();
                 return true;
             }
-            if (that.code_mirror.options.keyMap === "vim-insert") {
+            if (that.code_mirror.options.keyMap === "vim-insert" ||
+                that.code_mirror.state.completionActive) {
                 // vim keyMap is active and in insert mode. In this case we leave vim
                 // insert mode, but remain in notebook edit mode.
                 // Let' CM handle this event and prevent global handling.
+                
+                // same if completer is poped up.
                 event.stop();
                 return false;
             } else {
@@ -251,7 +314,7 @@ var IPython = (function (IPython) {
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
+            if (!that.at_bottom() || that.code_mirror.state.completionActive) {
                 event.stop();
                 return false;
             } else {
@@ -268,22 +331,6 @@ var IPython = (function (IPython) {
                 IPython.tooltip.request(that);
                 event.stop();
                 return true;
-        } else if (event.keyCode === key.TAB && event.type == 'keydown') {
-            // Tab completion.
-            IPython.tooltip.remove_and_cancel_tooltip();
-            if (editor.somethingSelected()) {
-                return false;
-            }
-            var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
-            if (pre_cursor.trim() === "") {
-                // Don't autocomplete if the part of the line before the cursor
-                // is empty.  In this case, let CodeMirror handle indentation.
-                return false;
-            } else {
-                event.stop();
-                this.completer.startCompletion();
-                return true;
-            }
         } else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.
@@ -407,7 +454,7 @@ var IPython = (function (IPython) {
             this.focus_editor();
         }
         return cont;
-    }
+    };
 
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};
@@ -447,7 +494,7 @@ var IPython = (function (IPython) {
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns;
-        if (prompt_value == undefined) {
+        if (prompt_value === undefined) {
             ns = "&nbsp;";
         } else {
             ns = encodeURIComponent(prompt_value);
