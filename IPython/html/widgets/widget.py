@@ -27,6 +27,10 @@ class CallbackDispatcher(LoggingConfigurable):
     """A structure for registering and running callbacks"""
     callbacks = List()
     
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    def _shell_default(self):
+        return get_ipython()
+    
     def __call__(self, *args, **kwargs):
         """Call all of the registered callbacks."""
         value = None
@@ -34,11 +38,10 @@ class CallbackDispatcher(LoggingConfigurable):
             try:
                 local_value = callback(*args, **kwargs)
             except Exception as e:
-                ip = get_ipython()
-                if ip is None:
+                if self.shell is None:
                     self.log.warn("Exception in callback %s: %s", callback, e, exc_info=True)
                 else:
-                    ip.showtraceback()
+                    self.shell.showtraceback()
             else:
                 value = local_value if local_value is not None else value
         return value
@@ -65,11 +68,10 @@ def _show_traceback(method):
         try:
             return(method(self, *args, **kwargs))
         except Exception as e:
-            ip = get_ipython()
-            if ip is None:
+            if self.shell is None:
                 self.log.warn("Exception in widget method %s: %s", method, e, exc_info=True)
             else:
-                ip.showtraceback()
+                self.shell.showtraceback()
     return m
 
 class Widget(LoggingConfigurable):
@@ -153,7 +155,7 @@ class Widget(LoggingConfigurable):
 
         If a Comm doesn't exist yet, a Comm will be created automagically."""
         return self.comm.comm_id
-
+    
     #-------------------------------------------------------------------------
     # Methods
     #-------------------------------------------------------------------------
@@ -275,6 +277,7 @@ class Widget(LoggingConfigurable):
         elif method == 'custom':
             if 'content' in data:
                 self._handle_custom_msg(data['content'])
+        self.comm.shell.post_execute()
 
     def _handle_receive_state(self, sync_data):
         """Called when a state is received from the front-end."""
