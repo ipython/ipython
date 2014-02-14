@@ -145,7 +145,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
         
         if archive:
             if symlink:
-                raise ValueError("Cannot symlink from URLs")
+                raise ValueError("Cannot symlink from archives")
             if verbose >= 1:
                 print("extracting %s to %s" % (path, nbext))
             archive.extractall(nbext)
