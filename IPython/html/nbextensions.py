@@ -75,11 +75,7 @@ def check_nbextension(files, ipython_dir=None):
         # one file given, turn it into a list
         files = [files]
     
-    for file in files:
-        if not os.path.exists(pjoin(nbext, file)):
-            return False
-    
-    return True
+    return all(os.path.exists(pjoin(nbext, f)) for f in files)
 
 
 def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None, verbose=1):
