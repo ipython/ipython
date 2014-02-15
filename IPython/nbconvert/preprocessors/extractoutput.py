@@ -34,7 +34,7 @@ class ExtractOutputPreprocessor(Preprocessor):
     output_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}.{extension}", config=True)
 
-    extract_output_types = Set({'png', 'jpg', 'svg', 'pdf'}, config=True)
+    extract_output_types = Set({'png', 'jpg', 'svg', 'pdf', 'application/pdf'}, config=True)
 
     def preprocess_cell(self, cell, resources, cell_index):
         """
@@ -70,7 +70,7 @@ class ExtractOutputPreprocessor(Preprocessor):
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if out_type in ('png', 'jpg', 'jpeg', 'pdf'):
+                    if out_type in ('png', 'jpg', 'application/pdf', 'pdf'):
 
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
