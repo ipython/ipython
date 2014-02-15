@@ -1,3 +1,4 @@
 [submodule "components"]
 	path = IPython/html/static/components
 	url = https://github.com/ipython/ipython-components.git
+    ignore = dirty
