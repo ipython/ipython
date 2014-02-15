@@ -247,6 +247,7 @@ var IPython = (function (IPython) {
 
     OutputArea.output_types = [
         'application/javascript',
+        'application/coffeescript',
         'text/html',
         'text/latex',
         'image/svg+xml',
@@ -531,6 +532,45 @@ var IPython = (function (IPython) {
         try {
             eval(js);
         } catch(err) {
+            console.log(err);
+            this._append_javascript_error(err, toinsert);
+        }
+        return toinsert;
+    };
+
+    var repr_coffeescript = function (obj) {
+        if (obj === null) {
+            return 'null';
+        } else if (obj === undefined) {
+            return 'undefined'
+        } else {
+            return obj.toString();
+        }
+    }
+
+    OutputArea.prototype.append_coffeescript = function (js, md, element) {
+
+        // We just eval the JS code, element appears in the local scope.
+        var type = 'application/coffeescript';
+        var toinsert = this.create_output_subarea(md, "output_javascript", type);
+        IPython.keyboard_manager.register_events(toinsert);
+        element.append(toinsert);
+
+        try {
+            if (window.context === undefined) {
+                window.context = {};
+            }
+            $.extend(window.context, {element: element, output_subarea: toinsert});
+            var source = CoffeeScript.compile(js);
+            source = source.slice(14, -17);
+            // eval in the global context, we want to reuse variables across cells
+            var result = eval.call(window, source);
+            // TODO: can I get a prompt_number, please?
+            if (!(result === undefined)) {
+                toinsert.append($("<pre/>").text(repr_coffeescript(result)));
+            }
+
+        } catch (err) {
             console.log(err);
             this._append_javascript_error(err, toinsert);
         }
@@ -839,6 +879,7 @@ var IPython = (function (IPython) {
 
     OutputArea.display_order = [
         'application/javascript',
+        'application/coffeescript',
         'text/html',
         'text/latex',
         'image/svg+xml',
@@ -857,6 +898,7 @@ var IPython = (function (IPython) {
         "text/latex" : OutputArea.prototype.append_latex,
         "application/json" : OutputArea.prototype.append_json,
         "application/javascript" : OutputArea.prototype.append_javascript,
+        "application/coffeescript" : OutputArea.prototype.append_coffeescript,
         "application/pdf" : OutputArea.prototype.append_pdf
     };
 
