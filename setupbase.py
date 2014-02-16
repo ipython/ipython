@@ -639,9 +639,9 @@ def get_bdist_wheel():
                     if found:
                         lis.pop(idx)
                 
-                for pkg in ("readline", "pyreadline"):
+                for pkg in ("gnureadline", "pyreadline"):
                     _remove_startswith(requires, pkg)
-                requires.append("readline; sys.platform == 'darwin'")
+                requires.append("gnureadline; sys.platform == 'darwin'")
                 requires.append("pyreadline (>=2.0); sys.platform == 'win32'")
                 for r in requires:
                     pkg_info['Requires-Dist'] = r

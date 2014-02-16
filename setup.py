@@ -279,7 +279,7 @@ for deps in extras_require.values():
 extras_require['all'] = everything
 install_requires = []
 if sys.platform == 'darwin':
-    install_requires.append('readline')
+    install_requires.append('gnureadline')
 elif sys.platform.startswith('win'):
     # Pyreadline has unicode and Python 3 fixes in 2.0
     install_requires.append('pyreadline>=2.0')

@@ -146,9 +146,17 @@ def check_for_tornado():
 
 def check_for_readline():
     from distutils.version import LooseVersion
+    readline = None
     try:
-        import readline
+        import gnureadline as readline
     except ImportError:
+        pass
+    if readline is None:
+        try:
+            import readline
+        except ImportError:
+            pass
+    if readline is None:
         try:
             import pyreadline
             vs = pyreadline.release.version
