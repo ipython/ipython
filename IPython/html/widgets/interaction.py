@@ -57,7 +57,7 @@ def _get_min_max_value(min, max, value=None, step=None):
             min, max = (-value, 3*value) if value > 0 else (3*value, -value)
         else:
             raise TypeError('expected a number, got: %r' % value)
-    else:
+    elif min is None or max is None or value is None:
         raise ValueError('unable to infer range, value from: ({0}, {1}, {2})'.format(min, max, value))
     if step is not None:
         # ensure value is on a step
@@ -105,6 +105,18 @@ def _widget_abbrev(o):
             else:
                 cls = FloatSliderWidget
             return cls(value=value, min=min, max=max, step=step)
+        elif _matches(o, (float_or_int, float_or_int, float_or_int, float_or_int)):
+            step = o[2]
+            value = o[3]
+            if step <= 0:
+                raise ValueError("step must be >= 0, not %r" % step)
+            min, max, value = _get_min_max_value(o[0], o[1], step=step, value=value)
+            print(min,max,value)
+            if all(isinstance(_, int) for _ in o):
+                cls = IntSliderWidget
+            else:
+                cls = FloatSliderWidget
+            return cls(value=value, min=min, max=max, step=step)
     else:
         return _widget_abbrev_single_value(o)
 
@@ -112,7 +124,7 @@ def _widget_from_abbrev(abbrev):
     """Build a Widget intstance given an abbreviation or Widget."""
     if isinstance(abbrev, Widget) or isinstance(abbrev, fixed):
         return abbrev
-    
+
     widget = _widget_abbrev(abbrev)
     if widget is None:
         raise ValueError("%r cannot be transformed to a Widget" % (abbrev,))
@@ -225,7 +237,7 @@ def interactive(__interact_f, **kwargs):
 
 def interact(__interact_f=None, **kwargs):
     """interact(f, **kwargs)
-    
+
     Interact with a function using widgets."""
     # positional arg support in: https://gist.github.com/8851331
     if __interact_f is not None:
