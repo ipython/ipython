@@ -188,7 +188,6 @@ def interactive(__interact_f, **kwargs):
     getcallargs(f, **{n:v for n,v,_ in new_kwargs})
     # Now build the widgets from the abbreviations.
     kwargs_widgets.extend(_widgets_from_abbreviations(new_kwargs))
-    kwargs_widgets.extend(_widgets_from_abbreviations(sorted(kwargs.items(), key = lambda x: x[0])))
 
     # This has to be done as an assignment, not using container.children.append,
     # so that traitlets notices the update. We skip any objects (such as fixed) that
