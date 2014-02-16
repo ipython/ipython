@@ -22,7 +22,6 @@ import IPython.testing.tools as tt
 from IPython.html import widgets
 from IPython.html.widgets import interact, interactive, Widget, interaction
 from IPython.utils.py3compat import annotate
-# from IPython.utils.capture import capture_output
 
 #-----------------------------------------------------------------------------
 # Utility stuff
@@ -248,7 +247,7 @@ def test_list_tuple_invalid():
 
 def test_defaults():
     @annotate(n=10)
-    def f(n, f=4.5):
+    def f(n, f=4.5, g=1):
         pass
     
     c = interactive(f)
@@ -260,6 +259,31 @@ def test_defaults():
         f=dict(
             cls=widgets.FloatSliderWidget,
             value=4.5,
+        ),
+        g=dict(
+            cls=widgets.IntSliderWidget,
+            value=1,
+        ),
+    )
+
+def test_default_values():
+    @annotate(n=10, f=(0, 10.), g=5)
+    def f(n, f=4.5, g=1):
+        pass
+    
+    c = interactive(f)
+    check_widgets(c,
+        n=dict(
+            cls=widgets.IntSliderWidget,
+            value=10,
+        ),
+        f=dict(
+            cls=widgets.FloatSliderWidget,
+            value=4.5,
+        ),
+        g=dict(
+            cls=widgets.IntSliderWidget,
+            value=5,
         ),
     )
 

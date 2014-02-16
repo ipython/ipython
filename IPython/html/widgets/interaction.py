@@ -26,7 +26,9 @@ from IPython.html.widgets import (Widget, TextWidget,
     ContainerWidget, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
-from IPython.utils.traitlets import HasTraits, Any, Unicode
+from IPython.utils.traitlets import HasTraits, TraitError, Any, Unicode
+
+empty = Parameter.empty
 
 #-----------------------------------------------------------------------------
 # Classes and Functions
@@ -108,12 +110,20 @@ def _widget_abbrev(o):
     else:
         return _widget_abbrev_single_value(o)
 
-def _widget_from_abbrev(abbrev):
-    """Build a Widget intstance given an abbreviation or Widget."""
+def _widget_from_abbrev(abbrev, default=empty):
+    """Build a Widget instance given an abbreviation or Widget."""
     if isinstance(abbrev, Widget) or isinstance(abbrev, fixed):
         return abbrev
     
     widget = _widget_abbrev(abbrev)
+    if default is not empty and isinstance(abbrev, (list, tuple)):
+        # if it's not a single-value abbreviation,
+        # set the initial value from the default
+        try:
+            widget.value = default
+        except TraitError:
+            # warn?
+            pass
     if widget is None:
         raise ValueError("%r cannot be transformed to a Widget" % (abbrev,))
     return widget
@@ -124,50 +134,38 @@ def _yield_abbreviations_for_parameter(param, kwargs):
     kind = param.kind
     ann = param.annotation
     default = param.default
-    empty = Parameter.empty
-    not_found = (None, None)
-    if kind == Parameter.POSITIONAL_OR_KEYWORD:
+    not_found = (name, empty, empty)
+    if kind in (Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY):
         if name in kwargs:
-            yield name, kwargs.pop(name)
+            value = kwargs.pop(name)
         elif ann is not empty:
-            if default is empty:
-                yield name, ann
-            else:
-                yield name, ann
+            value = ann
         elif default is not empty:
-            yield name, default
+            value = default
         else:
             yield not_found
-    elif kind == Parameter.KEYWORD_ONLY:
-        if name in kwargs:
-            yield name, kwargs.pop(name)
-        elif ann is not empty:
-            yield name, ann
-        elif default is not empty:
-            yield name, default
-        else:
-            yield not_found
+        yield (name, value, default)
     elif kind == Parameter.VAR_KEYWORD:
         # In this case name=kwargs and we yield the items in kwargs with their keys.
         for k, v in kwargs.copy().items():
             kwargs.pop(k)
-            yield k, v
+            yield k, v, empty
 
 def _find_abbreviations(f, kwargs):
     """Find the abbreviations for a function and kwargs passed to interact."""
     new_kwargs = []
     for param in signature(f).parameters.values():
-        for name, value in _yield_abbreviations_for_parameter(param, kwargs):
-            if value is None:
+        for name, value, default in _yield_abbreviations_for_parameter(param, kwargs):
+            if value is empty:
                 raise ValueError('cannot find widget or abbreviation for argument: {!r}'.format(name))
-            new_kwargs.append((name, value))
+            new_kwargs.append((name, value, default))
     return new_kwargs
 
 def _widgets_from_abbreviations(seq):
     """Given a sequence of (name, abbrev) tuples, return a sequence of Widgets."""
     result = []
-    for name, abbrev in seq:
-        widget = _widget_from_abbrev(abbrev)
+    for name, abbrev, default in seq:
+        widget = _widget_from_abbrev(abbrev, default)
         widget.description = name
         result.append(widget)
     return result
@@ -187,7 +185,7 @@ def interactive(__interact_f, **kwargs):
     # Before we proceed, let's make sure that the user has passed a set of args+kwargs
     # that will lead to a valid call of the function. This protects against unspecified
     # and doubly-specified arguments.
-    getcallargs(f, **{n:v for n,v in new_kwargs})
+    getcallargs(f, **{n:v for n,v,_ in new_kwargs})
     # Now build the widgets from the abbreviations.
     kwargs_widgets.extend(_widgets_from_abbreviations(new_kwargs))
     kwargs_widgets.extend(_widgets_from_abbreviations(sorted(kwargs.items(), key = lambda x: x[0])))
