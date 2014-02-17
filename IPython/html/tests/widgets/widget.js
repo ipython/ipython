@@ -141,7 +141,7 @@ casper.notebook_test(function () {
         this.evaluate(function() {
             var UpdateUpdate = IPython.DOMWidgetView.extend({
                 render: function(){
-                    this.model.on('change:a', this.model_changed, this);
+                    this.model.on('change', this.model_changed, this);
                 },
                 model_changed: function() {
                     this.model.set('a', 2);
