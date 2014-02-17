@@ -137,7 +137,7 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_output_cell(index).text.trim(), '3',
             'Multiple model.set calls sent a partial state.');
 
-        // Test multi-set, single touch code.  First create a custom widget.
+        // Test update invoked update (front-end).
         this.evaluate(function() {
             var UpdateUpdate = IPython.DOMWidgetView.extend({
                 render: function(){
