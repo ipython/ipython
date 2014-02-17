@@ -1,7 +1,6 @@
 """
 Kernel's magic work in progress
 """
-import os
 from IPython.display import display, Javascript, HTML
 
 list = """<div id='kernels_list'>
@@ -35,10 +34,10 @@ var load_sessions = function () {
         type : "GET",
         dataType : "json",
         success : $.proxy(function(d) { 
-            console.log(d);
+            // clear out the preious list
+            $('#kernels_list ul').replaceWith("<ul></ul>")
             for (var i = d.length-1; i >= 0; i--) {
                 var c = d[i];
-                console.log(c.id);
                 // 
                 var x = $('#kernels_list ul').append(nb.replace(/NAME/g, c.notebook.name));
                 add_shutdown_button(x, c.id);
@@ -55,8 +54,6 @@ load_sessions();
 
 // TODO: this was ripped out of notebooklist.js, refactor to use it
 var add_shutdown_button = function (item, session) {
-        var that = this;
-        console.log('adding ', item, session);
         var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini btn-danger").
             click(function (e) {
                 var settings = {
@@ -65,7 +62,7 @@ var add_shutdown_button = function (item, session) {
                     type : "DELETE",
                     dataType : "json",
                     success : function () {
-                        that.load_sessions();
+                        load_sessions();
                     }
                 };
                 var url = utils.url_join_encode(
@@ -80,15 +77,19 @@ var add_shutdown_button = function (item, session) {
         item.find(".input_button").text("").append(shutdown_button);
     
     
-        console.log(shutdown_button);
         item.find('.item_buttons').text("").append(shutdown_button);
     
     };
 """
 def list_kernels(line=''):
+    """
+    List the notebooks with the currently active kernels. You can shutdown
+    these kernels by clicking the red "Shutdown" button.
+
+    TODO: add `%kernels kill kernel_id` option
+    """
     display(HTML(list))
     display(Javascript(js))
 
 def load_ipython_extension(ip):
     ip.magics_manager.register_function(list_kernels, magic_name='kernels')
-    list_kernels()
