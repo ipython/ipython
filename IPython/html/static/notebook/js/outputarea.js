@@ -543,6 +543,8 @@ var IPython = (function (IPython) {
             return 'null';
         } else if (obj === undefined) {
             return 'undefined'
+        } else if (_.isFunction(obj)) {
+            return "";
         } else {
             return obj.toString();
         }
