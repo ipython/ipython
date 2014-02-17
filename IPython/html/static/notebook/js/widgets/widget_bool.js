@@ -56,7 +56,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 this.$checkbox.prop('disabled', disabled);
 
                 var description = this.model.get('description');
-                if (description.length === 0) {
+                if (description.trim().length === 0) {
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
@@ -102,8 +102,8 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 this.$el.prop('disabled', disabled);
 
                 var description = this.model.get('description');
-                if (description.length === 0) {
-                    this.$el.text(' '); // Preserve button height
+                if (description.trim().length === 0) {
+                    this.$el.html("&nbsp;"); // Preserve button height
                 } else {
                     this.$el.text(description);
                 }

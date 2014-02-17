@@ -33,7 +33,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             this.$droplabel = $('<button />')
                 .addClass('btn')
                 .addClass('widget-combo-btn')
-                .text(' ')
+                .html("&nbsp;")
                 .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
                 .addClass('btn')
@@ -58,8 +58,8 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
 
             if (options === undefined || options.updated_view != this) {
                 var selected_item_text = this.model.get('value_name');
-                if (selected_item_text.length === 0) {
-                    this.$droplabel.text(' ');
+                if (selected_item_text.trim().length === 0) {
+                    this.$droplabel.html("&nbsp;");
                 } else {
                     this.$droplabel.text(selected_item_text);
                 }
@@ -233,18 +233,24 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 var items = this.model.get('value_names');
                 var disabled = this.model.get('disabled');
                 var that = this;
+                var item_html;
                 _.each(items, function(item, index) {
-                   var item_query = ' :contains("' + item + '")';
-                    if (that.$buttongroup.find(item_query).length === 0) {
-                        $('<button />')
+                    if (item.trim().length == 0) {
+                        item_html = "&nbsp;";
+                    } else {
+                        item_html = IPython.utils.escape_html(item);
+                    }
+                    var item_query = '[data-value="' + item + '"]';
+                    var $item_element = that.$buttongroup.find(item_query);
+                    if (!$item_element.length) {
+                        $item_element = $('<button/>')
                             .attr('type', 'button')
                             .addClass('btn')
-                            .text(item)
+                            .html(item_html)
                             .appendTo(that.$buttongroup)
+                            .attr('data-value', item)
                             .on('click', $.proxy(that.handle_click, that));
                     }
-                    
-                    var $item_element = that.$buttongroup.find(item_query);
                     if (that.model.get('value_name') == item) {
                         $item_element.addClass('active');
                     } else {
@@ -255,7 +261,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 
                 // Remove items that no longer exist.
                 this.$buttongroup.find('button').each(function(i, obj) {
-                    var value = $(obj).text();
+                    var value = $(obj).data('value');
                     var found = false;
                     _.each(items, function(item, index) {
                         if (item == value) {
@@ -285,7 +291,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            this.model.set('value_name', $(e.target).text(), {updated_view: this});
+            this.model.set('value_name', $(e.target).data('value'), {updated_view: this});
             this.touch();
         },    
     });
