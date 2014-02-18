@@ -40,16 +40,16 @@ var load_sessions = function () {
         dataType : "json",
         success : $.proxy(function(d) { 
             // clear out the previous list
-            $('#kernels_list').replaceWith("<div id='kernels_list'></div>")
+            $('.kernels_list .list_item').remove();
             for (var i = d.length-1; i >= 0; i--) {
                 var path = d[i].notebook.path + '/' + d[i].notebook.name;
-                var x = $('#kernels_list').append(nb.replace(/NAME/g, path));
-                if (path == this_path) {
-                    x.find('.list_item').slice(-1).find('a')
-                        .removeAttr('href').attr('title', 'this notebook');
-                }
+                var x = $('.kernels_list').append(nb.replace(/NAME/g, path));
                 add_shutdown_button(x, d[i].id);
             }
+            // Now let's remove the active link that points to *this* notebook
+            $("span.item_name").filter(function() {
+                    return $(this).html() === this_path;
+                }).parent().removeAttr('href').attr('title', 'this notebook');
         }, this)
     };
     var url = utils.url_join_encode('/api/sessions');
