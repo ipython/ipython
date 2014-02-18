@@ -4,7 +4,9 @@ Kernel's magic work in progress
 from IPython.display import display, Javascript, HTML
 
 list = """<div id='kernels_list'>
-     List of Active Kernels:
+        <div class="item_buttons btn-group">
+            <button id="refresh_kernels" class="btn btn-mini">Active Kernels (click to update)</button>
+        </div>
     <ul>
     
     </ul>
@@ -34,15 +36,11 @@ var load_sessions = function () {
         type : "GET",
         dataType : "json",
         success : $.proxy(function(d) { 
-            // clear out the preious list
+            // clear out the previous list
             $('#kernels_list ul').replaceWith("<ul></ul>")
             for (var i = d.length-1; i >= 0; i--) {
-                var c = d[i];
-                // 
-                var x = $('#kernels_list ul').append(nb.replace(/NAME/g, c.notebook.name));
-                add_shutdown_button(x, c.id);
-                //$('#kernels_list ul').append("<li>" + c.notebook.name + "</li>")
-                //$('#kernels_list ul').append("<button class='btn btn-mini btn-danger'>Shutdown</button>")
+                var x = $('#kernels_list ul').append(nb.replace(/NAME/g, d[i].notebook.name));
+                add_shutdown_button(x, d[i].id);
             }
         }, this)
     };
@@ -51,6 +49,8 @@ var load_sessions = function () {
 };
 
 load_sessions();
+
+$('#refresh_kernels').click(load_sessions);
 
 // TODO: this was ripped out of notebooklist.js, refactor to use it
 var add_shutdown_button = function (item, session) {
@@ -66,17 +66,13 @@ var add_shutdown_button = function (item, session) {
                     }
                 };
                 var url = utils.url_join_encode(
-                    '/',
+                    IPython.notebook.base_url,
                     'api/sessions',
                     session
                 );
                 $.ajax(url, settings);
                 return false;
             });
-        // var new_buttons = item.find('a'); // shutdown_button;
-        item.find(".input_button").text("").append(shutdown_button);
-    
-    
         item.find('.item_buttons').text("").append(shutdown_button);
     
     };
