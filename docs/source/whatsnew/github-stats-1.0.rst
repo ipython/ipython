@@ -7,13 +7,14 @@ Issues closed in the 1.0 development cycle
 Issues closed in 1.2
 --------------------
 
-GitHub stats for 2013/09/09 - 2014/02/04
+GitHub stats for 2013/09/09 - 2014/02/17
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-The following 13 authors contributed 79 commits.
+The following 13 authors contributed 80 commits.
 
 * Benjamin Ragan-Kelley
+* Daryl Herzmann
 * Doug Blank
 * Fernando Perez
 * James Porter
@@ -22,16 +23,18 @@ The following 13 authors contributed 79 commits.
 * Kyle Kelley
 * Lawrence Fu
 * Matthias Bussonnier
+* Paul Ivanov
 * Pascal Schetelat
 * Puneeth Chaganti
 * Takeshi Kanmae
 * Thomas Kluyver
 
-We closed a total of 50 issues, 34 pull requests and 16 regular issues;
+We closed a total of 52 issues, 35 pull requests and 17 regular issues;
 this is the full list (generated with the script :file:`tools/github_stats.py`):
 
-Pull Requests (34):
+Pull Requests (35):
 
+* :ghpull:`5105`: add index to format to support py2.6 (1.2.1)
 * :ghpull:`4972`: Work around problem in doctest discovery in Python 3.4 with PyQt
 * :ghpull:`4934`: `ipython profile create` respects `--ipython-dir`
 * :ghpull:`4845`: Add Origin Checking.
@@ -67,8 +70,9 @@ Pull Requests (34):
 * :ghpull:`4204`: remove some extraneous print statements from IPython.parallel
 * :ghpull:`4201`: HeadingCells cannot be split or merged
 
-Issues (16):
+Issues (17):
 
+* :ghissue:`5101`: IPython 1.2.0: notebook fail with "500 Internal Server Error" (1.2.1)
 * :ghissue:`4892`: IPython.qt test failure with python3.4
 * :ghissue:`4810`: ipcluster bug in clean_logs flag
 * :ghissue:`4765`: missing build script for highlight.js
