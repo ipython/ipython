@@ -4,14 +4,15 @@ Kernel's magic work in progress
 from IPython.display import display, Javascript, HTML
 
 list = """
+        <div class="alert" style="margin-left: 8px">
+        <b>Warning:</b> Opening the same notebook using more than one browser
+        window may cause you unpredictable behaviour
+        </div>
         <div class="item_buttons btn-group">
             <button id="refresh_kernels" class="btn btn-mini">Active Kernels (click to update)</button>
         </div>
-        <div class="alert" style="margin: 10px">
-        Warning: Opening a notebook from here that is still open in another
-        browser window may cause unpredictable state.
-        </div>
-<div id='kernels_list'></div>
+<div class='kernels_list'>
+</div>
 """
 
 nb = """<div class="list_item row-fluid">
