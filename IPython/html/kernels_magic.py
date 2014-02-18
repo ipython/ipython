@@ -3,14 +3,15 @@ Kernel's magic work in progress
 """
 from IPython.display import display, Javascript, HTML
 
-list = """<div id='kernels_list'>
+list = """
         <div class="item_buttons btn-group">
             <button id="refresh_kernels" class="btn btn-mini">Active Kernels (click to update)</button>
         </div>
-    <ul>
-    
-    </ul>
-</div>
+        <div class="alert" style="margin: 10px">
+        Warning: Opening a notebook from here that is still open in another
+        browser window may cause unpredictable state.
+        </div>
+<div id='kernels_list'></div>
 """
 
 nb = """<div class="list_item row-fluid">
@@ -37,7 +38,7 @@ var load_sessions = function () {
         dataType : "json",
         success : $.proxy(function(d) { 
             // clear out the previous list
-            $('#kernels_list ul').replaceWith("<ul></ul>")
+            $('#kernels_list').replaceWith("<div id='kernels_list'></div>")
             for (var i = d.length-1; i >= 0; i--) {
                 var x = $('#kernels_list ul').append(nb.replace(/NAME/g, d[i].notebook.name));
                 add_shutdown_button(x, d[i].id);
