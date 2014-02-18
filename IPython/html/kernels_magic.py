@@ -43,6 +43,10 @@ var load_sessions = function () {
             for (var i = d.length-1; i >= 0; i--) {
                 var path = d[i].notebook.path + '/' + d[i].notebook.name;
                 var x = $('#kernels_list').append(nb.replace(/NAME/g, path));
+                if (path == this_path) {
+                    x.find('.list_item').slice(-1).find('a')
+                        .removeAttr('href').attr('title', 'this notebook');
+                }
                 add_shutdown_button(x, d[i].id);
             }
         }, this)
