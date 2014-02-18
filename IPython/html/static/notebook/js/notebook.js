@@ -116,12 +116,18 @@ var IPython = (function (IPython) {
         });
 
         $([IPython.events]).on('edit_mode.Cell', function (event, data) {
+            console.log('edit mode cell');
             var index = that.find_cell_index(data.cell);
             that.select(index);
             that.edit_mode();
         });
 
         $([IPython.events]).on('command_mode.Cell', function (event, data) {
+            console.log('command mode cell');
+            // In Firefox the focus event is called before the blur event.  In 
+            // other words, two cells elements may be focused at any given time.
+            // Here we verify that no cells are currently in edit mode before 
+            // putting the entire notebook in command mode.     
             that.command_mode();
         });
 
@@ -459,7 +465,6 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index();
             if (sindex !== null && index !== sindex) {
-                this.command_mode();
                 this.get_cell(sindex).unselect();
             }
             var cell = this.get_cell(index);
@@ -515,6 +520,7 @@ var IPython = (function (IPython) {
     };
 
     Notebook.prototype.command_mode = function () {
+        console.log('cell.command_mode');
         if (this.mode !== 'command') {
             $([IPython.events]).trigger('command_mode.Notebook');
             var index = this.get_edit_index();
@@ -528,6 +534,7 @@ var IPython = (function (IPython) {
     };
 
     Notebook.prototype.edit_mode = function () {
+        console.log('cell.edit_mode');
         if (this.mode !== 'edit') {
             $([IPython.events]).trigger('edit_mode.Notebook');
             var cell = this.get_selected_cell();
@@ -1402,6 +1409,7 @@ var IPython = (function (IPython) {
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
         
+        console.log('execute cell command_mode');
         cell.execute();
         this.command_mode();
         cell.focus_cell();
@@ -1923,6 +1931,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
         this.fromJSON(data);
+        console.log('load notebook success');
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
             this.select(0);

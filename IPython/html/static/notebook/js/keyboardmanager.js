@@ -725,29 +725,35 @@ var IPython = (function (IPython) {
     };
 
     KeyboardManager.prototype.edit_mode = function () {
+        console.log('kb edit');
         this.last_mode = this.mode;
         this.mode = 'edit';
     };
 
     KeyboardManager.prototype.command_mode = function () {
+        console.log('kb command');
         this.last_mode = this.mode;
         this.mode = 'command';
     };
 
     KeyboardManager.prototype.enable = function () {
+        console.log('kb enable');
         this.enabled = true;
     };
 
     KeyboardManager.prototype.disable = function () {
+        console.log('kb disable');
         this.enabled = false;
     };
 
     KeyboardManager.prototype.register_events = function (e) {
         var that = this;
         e.on('focusin', function () {
+            console.log('kb focus in');
             that.disable();
         });
         e.on('focusout', function () {
+            console.log('kb focus out');
             that.enable();
         });
         // There are times (raw_input) where we remove the element from the DOM before
@@ -755,6 +761,7 @@ var IPython = (function (IPython) {
         // which gets triggered upon removal, iff it is focused at the time.
         e.on('remove', function () {
             if (document.activeElement === e[0]) {
+                console.log('kb remove');
                 that.enable();
             }
         });

@@ -147,23 +147,31 @@ var IPython = (function (IPython) {
         }
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
-                $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+                console.log('cell focused');
+                if (that._continue_blur) {
+                    that._continue_blur = false;
+                } else {
+                    if (that.mode === 'command') {
+                        $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+                    }
+                }
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                if (that.mode === 'edit') {
-                    setTimeout(function () {
+                console.log('cell blur');
+                that._continue_blur = true;
+                setTimeout($.proxy(function () {
+                    if (that._continue_blur) {
+                        console.log('cell blur> edit true> callback');
                         var isf = IPython.utils.is_focused;
-                        var trigger = true;
-                        if (isf('div#tooltip') || isf('div.completions')) {
-                            trigger = false;
+                        if (! (isf('div#tooltip') || isf('div.completions'))) {
+                            if (that.mode === 'edit') {
+                                $([IPython.events]).trigger('command_mode.Cell', {cell: that});
+                            }
                         }
-                        if (trigger) {
-                            $([IPython.events]).trigger('command_mode.Cell', {cell: that});
-                        }
-                    }, 1);
-                }
+                    }
+                }, that), 1);
             });
         }
     };
