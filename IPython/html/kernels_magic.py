@@ -30,6 +30,7 @@ nb = """<div class="list_item row-fluid">
 js = """
 var nb = '<div class="list_item row-fluid"> <div class="span12"> <i class="item_icon icon-book"></i> <a class="item_link" href="/notebooks/NAME" target="_blank"> <span class="item_name">NAME</span></a> <div class="item_buttons btn-group pull-right"> <button class="btn btn-mini btn-danger">Shutdown</button> </div> </div> </div>'
 
+var this_path = IPython.notebook.notebook_path + "/" + IPython.notebook.notebook_name;
 var load_sessions = function () {
     var settings = {
         processData : false,
@@ -40,7 +41,8 @@ var load_sessions = function () {
             // clear out the previous list
             $('#kernels_list').replaceWith("<div id='kernels_list'></div>")
             for (var i = d.length-1; i >= 0; i--) {
-                var x = $('#kernels_list ul').append(nb.replace(/NAME/g, d[i].notebook.name));
+                var path = d[i].notebook.path + '/' + d[i].notebook.name;
+                var x = $('#kernels_list').append(nb.replace(/NAME/g, path));
                 add_shutdown_button(x, d[i].id);
             }
         }, this)
