@@ -86,9 +86,7 @@ var add_shutdown_button = function (item, session) {
     };
 """
 def list_kernels(line=''):
-    """
-    List the notebooks with the currently active kernels. You can shutdown
-    these kernels by clicking the red "Shutdown" button.
+    """List notebooks with currently active kernels which can be shutdown.
 
     TODO: add `%kernels kill kernel_id` option
     """
