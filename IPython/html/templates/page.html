@@ -19,11 +19,11 @@
     <script src="{{static_url("components/requirejs/require.js") }}" type="text/javascript" charset="utf-8"></script>
     <script>
       require.config({
-          baseUrl: '{{static_url("")}}',
+          baseUrl: '{{static_url("", include_version=False)}}',
           paths: {
             nbextensions : '{{ base_url }}nbextensions',
-            underscore : '{{static_url("components/underscore/underscore-min")}}',
-            backbone : '{{static_url("components/backbone/backbone-min")}}', 
+            underscore : '{{static_url("components/underscore/underscore-min.js")}}',
+            backbone : '{{static_url("components/backbone/backbone-min.js")}}',
           },
           shim: {
             underscore: {

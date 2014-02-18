@@ -294,7 +294,7 @@ class="notebook_app"
 
 <script src="{{ static_url("components/codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script type="text/javascript">
-    CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js") }}";
+    CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
 </script>
 <script src="{{ static_url("components/codemirror/addon/mode/loadmode.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/mode/multiplex.js") }}" charset="utf-8"></script>
