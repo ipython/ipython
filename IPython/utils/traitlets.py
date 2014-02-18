@@ -484,7 +484,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # We need to use setattr for this to trigger validation and
         # notifications.
         for key, value in iteritems(kw):
-            setattr(self, key, value)
+	    if value is not None:
+                setattr(self, key, value)
 
     def _notify_trait(self, name, old_value, new_value):
 
