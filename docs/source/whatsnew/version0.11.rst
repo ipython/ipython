@@ -29,7 +29,7 @@ our major new features, with examples and screenshots.  We encourage you to
 read it as it provides an illustrated, high-level overview complementing the
 detailed feature breakdown in this document.
 
-.. __: http://fonnesbeck.calepin.co/innovations-in-ipython.html
+.. __: http://stronginference.com/post/innovations-in-ipython
 
 A quick summary of the major changes (see below for details):
 
