@@ -18,6 +18,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import io
+import locale
 import os
 import glob
 import shutil
@@ -30,6 +31,10 @@ from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path
+
+def sort_key(item):
+    """Case-insensitive, locale aware sorting."""
+    return locale.strxfrm(item['name'].lower())
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -189,7 +194,7 @@ class FileNotebookManager(NotebookManager):
                 except IOError:
                     pass
                 dirs.append(model)
-        dirs = sorted(dirs, key=lambda item: item['name'])
+        dirs = sorted(dirs, key=sort_key)
         return dirs
 
     # TODO: Remove this after we create the contents web service and directories are
@@ -230,7 +235,7 @@ class FileNotebookManager(NotebookManager):
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
         notebooks = [self.get_notebook(name, path, content=False) for name in notebook_names]
-        notebooks = sorted(notebooks, key=lambda item: item['name'])
+        notebooks = sorted(notebooks, key=sort_key)
         return notebooks
 
     def get_notebook(self, name, path='', content=True):

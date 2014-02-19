@@ -101,7 +101,10 @@ class APITest(NotebookTestBase):
                 ('foo', 'name with spaces'),
                 ('foo', u'unicodé'),
                 ('foo/bar', 'baz'),
-                (u'å b', u'ç d')
+                ('ordering', 'A'),
+                ('ordering', 'b'),
+                ('ordering', 'C'),
+                (u'å b', u'ç d'),
                ]
     hidden_dirs = ['.hidden', '__pycache__']
 
@@ -159,6 +162,11 @@ class APITest(NotebookTestBase):
         nbnames = { normalize('NFC', n['name']) for n in nbs }
         expected = [ u'a.ipynb', u'b.ipynb', u'name with spaces.ipynb', u'unicodé.ipynb']
         expected = { normalize('NFC', name) for name in expected }
+        self.assertEqual(nbnames, expected)
+        
+        nbs = notebooks_only(self.nb_api.list('ordering').json())
+        nbnames = [n['name'] for n in nbs]
+        expected = ['A.ipynb', 'b.ipynb', 'C.ipynb']
         self.assertEqual(nbnames, expected)
 
     def test_list_dirs(self):
