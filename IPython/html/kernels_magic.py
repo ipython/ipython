@@ -47,9 +47,10 @@ var load_sessions = function () {
                 add_shutdown_button(x, d[i].id);
             }
             // Now let's remove the active link that points to *this* notebook
-            $("span.item_name").filter(function() {
+            var p = $("span.item_name").filter(function() {
                     return $(this).html() === this_path;
                 }).parent().removeAttr('href').attr('title', 'this notebook');
+            p.parent().find('button').remove();
         }, this)
     };
     var url = utils.url_join_encode('/api/sessions');
