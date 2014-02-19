@@ -131,21 +131,15 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
     Automatically reverts to previous cwd upon cleanup.
     Usage example:
 
-        with TemporaryWorakingDirectory() as tmpdir:
+        with TemporaryWorkingDirectory() as tmpdir:
             ...
     """
-
-    def __init__(self, **kw):
-        super(TemporaryWorkingDirectory, self).__init__(**kw)
-
-        #Change cwd to new temp dir.  Remember old cwd.
+    def __enter__(self):
         self.old_wd = _os.getcwd()
         _os.chdir(self.name)
+        return super(TemporaryWorkingDirectory, self).__enter__()
 
-
-    def cleanup(self, _warn=False):
-        #Revert to old cwd.
+    def __exit__(self, exc, value, tb):
         _os.chdir(self.old_wd)
+        return super(TemporaryWorkingDirectory, self).__exit__(exc, value, tb)
 
-        #Cleanup
-        super(TemporaryWorkingDirectory, self).cleanup(_warn=_warn)
