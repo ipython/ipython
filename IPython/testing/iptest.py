@@ -146,7 +146,6 @@ have['cython'] = test_for('Cython')
 have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
-have['azure'] = test_for('azure')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['casperjs'] = is_cmd_found('casperjs')
@@ -278,8 +277,6 @@ sec.exclude('static')
 sec.exclude('fabfile')
 if not have['jinja2']:
     sec.exclude('notebookapp')
-if not have['azure']:
-    sec.exclude('services.notebooks.azurenbmanager')
 if not have['pygments'] or not have['jinja2']:
     sec.exclude('nbconvert')
 

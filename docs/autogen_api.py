@@ -35,13 +35,6 @@ if __name__ == '__main__':
                                         r'\.utils\.py3compat',
                                         ]
     
-    # We're rarely working on machines with the Azure SDK installed, so we
-    # skip the module that needs it in that case.
-    try:
-        import azure  # analysis:ignore
-    except ImportError:
-        docwriter.module_skip_patterns.append(r'\.html\.services\.notebooks\.azurenbmanager')
-
     # Now, generate the outputs
     docwriter.write_api_docs(outdir)
     # Write index with .txt extension - we can include it, but Sphinx won't try

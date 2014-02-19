@@ -135,20 +135,17 @@ files in the working directory of the notebook server, also known as the
 use a different notebook manager class, which can 
 store the notebooks in a different format. 
 
-Currently, we ship a :class:`AzureNotebookManager` class that stores notebooks 
-in Azure blob storage. This can be used by adding the following lines to your 
-``ipython_notebook_config.py`` file::
+The bookstore_ package currently allows users to store notebooks on Rackspace
+CloudFiles or OpenStack Swift based object stores.
 
-    c.NotebookApp.notebook_manager_class = 
-    'IPython.html.services.notebooks.azurenbmanager.AzureNotebookManager'
-    c.AzureNotebookManager.account_name = u'paste_your_account_name_here'
-    c.AzureNotebookManager.account_key = u'paste_your_account_key_here'
-    c.AzureNotebookManager.container = u'notebooks'
+Writing a notebook manager is as simple as extending the base class
+:class:`NotebookManager`. The simple_notebook_manager_ provides a great example
+of an in memory notebook manager, created solely for the purpose of
+illustrating the notebook manager API.
 
-In addition to providing your Azure Blob Storage account name and key, you 
-will have to provide a container name; you can use multiple containers to 
-organize your notebooks.
+.. _bookstore: https://github.com/rgbkrk/bookstore
 
+.. _simple_notebook_manager: https://github.com/khinsen/simple_notebook_manager
 
 Known issues
 ------------
