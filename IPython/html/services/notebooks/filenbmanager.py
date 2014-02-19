@@ -18,7 +18,6 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import io
-import locale
 import os
 import glob
 import shutil
@@ -33,8 +32,8 @@ from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path
 
 def sort_key(item):
-    """Case-insensitive, locale aware sorting."""
-    return locale.strxfrm(item['name'].lower())
+    """Case-insensitive sorting."""
+    return item['name'].lower()
 
 #-----------------------------------------------------------------------------
 # Classes
