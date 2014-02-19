@@ -14,11 +14,12 @@
 // which make both this file fail at setting marked configuration, and textcell.js
 // which search marked into global.
 require(['components/marked/lib/marked',
+         'components/coffee-script/extras/coffee-script',
          'notebook/js/widgets/init'],
 
-function (marked) {
+function (marked, CoffeeScript) {
     "use strict";
-
+    window.CoffeeScript = CoffeeScript;
     window.marked = marked;
 
     // monkey patch CM to be able to syntax highlight cell magics
