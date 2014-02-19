@@ -31,13 +31,13 @@ var IPython = (function (IPython) {
     LoginWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find("button#logout").click(function () {
-            window.location = IPythin.utils.url_join_encode(
+            window.location = IPython.utils.url_join_encode(
                 that.base_url,
                 "logout"
             );
         });
         this.element.find("button#login").click(function () {
-            window.location = IPythin.utils.url_join_encode(
+            window.location = IPython.utils.url_join_encode(
                 that.base_url,
                 "login"
             );
