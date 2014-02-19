@@ -855,7 +855,6 @@ var IPython = (function (IPython) {
         "image/png" : OutputArea.prototype.append_png,
         "image/jpeg" : OutputArea.prototype.append_jpeg,
         "text/latex" : OutputArea.prototype.append_latex,
-        "application/json" : OutputArea.prototype.append_json,
         "application/javascript" : OutputArea.prototype.append_javascript,
         "application/pdf" : OutputArea.prototype.append_pdf
     };
