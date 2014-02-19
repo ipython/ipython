@@ -182,7 +182,8 @@ class FileNotebookManager(NotebookManager):
         dirs = []
         for name in dir_names:
             os_path = self._get_os_path(name, path)
-            if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir):
+            if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir)\
+                    and not name.startswith('_'):
                 try:
                     model = self.get_dir_model(name, path)
                 except IOError:
