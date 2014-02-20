@@ -14,8 +14,8 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget", 
-    "notebook/js/widgets/widget_int"], 
+define(["widgets/js/widget", 
+    "widgets/js/widget_int"], 
         function(WidgetManager, int_widgets){
 
     var IntSliderView = int_widgets[0];

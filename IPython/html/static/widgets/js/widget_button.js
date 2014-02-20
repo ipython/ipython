@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(WidgetManager){
+define(["widgets/js/widget"], function(WidgetManager){
 
     var ButtonView = IPython.DOMWidgetView.extend({
         render : function(){
