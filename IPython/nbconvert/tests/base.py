@@ -106,7 +106,7 @@ class TestsBase(ParametricTestCase):
 
         #Copy the files if requested.
         if copy_filenames is not None:
-            self.copy_files_to(copy_filenames)
+            self.copy_files_to(copy_filenames, dest=temp_dir.name)
 
         #Return directory handler
         return temp_dir
