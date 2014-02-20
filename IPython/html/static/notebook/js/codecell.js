@@ -45,7 +45,7 @@ var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
-    var key   = IPython.utils.keycodes;
+    var keycodes = IPython.keyboard.keycodes;
 
     /**
      * A Cell conceived to write code.
@@ -195,16 +195,16 @@ var IPython = (function (IPython) {
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
         var tooltip_closed = null;
-        if (event.type === 'keydown' && event.which != key.TAB ) {
+        if (event.type === 'keydown' && event.which != keycodes.tab ) {
             tooltip_closed = IPython.tooltip.remove_and_cancel_tooltip();
         }
 
         var cur = editor.getCursor();
-        if (event.keyCode === key.ENTER){
+        if (event.keyCode === keycodes.enter){
             this.auto_highlight();
         }
 
-        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey || event.altKey)) {
+        if (event.keyCode === keycodes.enter && (event.shiftKey || event.ctrlKey || event.altKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
         } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
@@ -214,7 +214,7 @@ var IPython = (function (IPython) {
             // The second argument says to hide the tooltip if the docstring
             // is actually empty
             IPython.tooltip.pending(that, true);
-        } else if (event.which === key.UPARROW && event.type === 'keydown') {
+        } else if (event.which === keycodes.up && event.type === 'keydown') {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_top()) {
@@ -223,7 +223,7 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             }
-        } else if (event.which === key.ESC && event.type === 'keydown') {
+        } else if (event.which === keycodes.esc && event.type === 'keydown') {
             // First see if the tooltip is active and if so cancel it.
             if (tooltip_closed) {
                 // The call to remove_and_cancel_tooltip above in L177 doesn't pass
@@ -249,7 +249,7 @@ var IPython = (function (IPython) {
                 // Don't let CM handle the event, defer to global handling.
                 return true;
             }
-        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+        } else if (event.which === keycodes.down && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_bottom()) {
@@ -258,7 +258,7 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             }
-        } else if (event.keyCode === key.TAB && event.type === 'keydown' && event.shiftKey) {
+        } else if (event.keyCode === keycodes.tab && event.type === 'keydown' && event.shiftKey) {
                 if (editor.somethingSelected()){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");
@@ -269,7 +269,7 @@ var IPython = (function (IPython) {
                 IPython.tooltip.request(that);
                 event.stop();
                 return true;
-        } else if (event.keyCode === key.TAB && event.type == 'keydown') {
+        } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
             // Tab completion.
             IPython.tooltip.remove_and_cancel_tooltip();
             if (editor.somethingSelected()) {

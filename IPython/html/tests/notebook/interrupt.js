@@ -32,7 +32,7 @@ casper.notebook_test(function () {
 
     // interrupt using Ctrl-M I keyboard shortcut
     this.thenEvaluate( function() {
-        IPython.utils.press_ghetto(IPython.utils.keycodes.I)
+        IPython.keyboard.trigger_keydown('i');
     });
     
     this.wait_for_output(0);

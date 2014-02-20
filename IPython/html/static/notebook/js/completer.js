@@ -6,7 +6,7 @@ var IPython = (function (IPython) {
     "use strict";
 
     // easier key mapping
-    var key = IPython.utils.keycodes;
+    var keycodes = IPython.keyboard.keycodes;
 
     function prepend_n_prc(str, n) {
         for( var i =0 ; i< n ; i++){
@@ -317,19 +317,20 @@ var IPython = (function (IPython) {
         }
 
         // Enter
-        if (code == key.ENTER) {
+        if (code == keycodes.enter) {
             CodeMirror.e_stop(event);
             this.pick();
         }
         // Escape or backspace
-        else if (code == key.ESC) {
+        else if (code == keycodes.esc) {
             CodeMirror.e_stop(event);
             this.close();
             this.editor.focus();
-        } else if (code == key.BACKSPACE) {
+
+        } else if (code == keycodes.backspace) {
             this.close();
             this.editor.focus();
-        } else if (code == key.TAB) {
+        } else if (code == keycodes.tab) {
             //all the fastforwarding operation,
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
@@ -345,7 +346,7 @@ var IPython = (function (IPython) {
             setTimeout(function () {
                 that.carry_on_completion();
             }, 50);
-        } else if (code == key.UPARROW || code == key.DOWNARROW) {
+        } else if (code == keycodes.up || code == keycodes.down) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
             event.stopPropagation();
