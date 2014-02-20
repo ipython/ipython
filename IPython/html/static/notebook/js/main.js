@@ -13,12 +13,12 @@
 // as injecting require.js make marked not to put itself in the globals,
 // which make both this file fail at setting marked configuration, and textcell.js
 // which search marked into global.
-require(['components/marked/lib/marked',
+define(['components/marked/lib/marked',
          'notebook/js/widgets/init'],
-
-function (marked) {
-    "use strict";
-
+function (marked, widgetinit) {
+"use strict";
+return {
+    init: function(val){
     window.marked = marked;
 
     // monkey patch CM to be able to syntax highlight cell magics
@@ -119,4 +119,5 @@ function (marked) {
             }
         });
     }
-});
+}
+}});
