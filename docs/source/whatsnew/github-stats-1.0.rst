@@ -7,11 +7,11 @@ Issues closed in the 1.0 development cycle
 Issues closed in 1.2
 --------------------
 
-GitHub stats for 2013/09/09 - 2014/02/17
+GitHub stats for 2013/09/09 - 2014/02/20
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-The following 13 authors contributed 80 commits.
+The following 13 authors contributed 82 commits.
 
 * Benjamin Ragan-Kelley
 * Daryl Herzmann
@@ -29,11 +29,13 @@ The following 13 authors contributed 80 commits.
 * Takeshi Kanmae
 * Thomas Kluyver
 
-We closed a total of 52 issues, 35 pull requests and 17 regular issues;
+We closed a total of 54 issues, 37 pull requests and 17 regular issues;
 this is the full list (generated with the script :file:`tools/github_stats.py`):
 
-Pull Requests (35):
+Pull Requests (37):
 
+* :ghpull:`5166`: remove mktemp usage
+* :ghpull:`5163`: Simplify implementation of TemporaryWorkingDirectory.
 * :ghpull:`5105`: add index to format to support py2.6 (1.2.1)
 * :ghpull:`4972`: Work around problem in doctest discovery in Python 3.4 with PyQt
 * :ghpull:`4934`: `ipython profile create` respects `--ipython-dir`
