@@ -5,9 +5,9 @@ casper.notebook_test(function () {
     var result = this.evaluate(function() {
         IPython.notebook.command_mode();
         pos0 = IPython.notebook.get_selected_index();
-        IPython.utils.press(IPython.keycodes.b)
+        IPython.utils.press(IPython.keyboard.keycodes.b)
         pos1 = IPython.notebook.get_selected_index();
-        IPython.utils.press(IPython.keycodes.b)
+        IPython.utils.press(IPython.keyboard.keycodes.b)
         pos2 = IPython.notebook.get_selected_index();
         // Simulate the "up arrow" and "down arrow" keys.
         IPython.utils.press_up();

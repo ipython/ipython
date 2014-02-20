@@ -9,7 +9,7 @@ casper.notebook_test(function() {
             var cell_one = IPython.notebook.get_selected_cell();
             cell_one.set_text('a = 5');
             
-            IPython.utils.press(IPython.keycodes.b)
+            IPython.utils.press(IPython.keyboard.keycodes.b)
             var cell_two = IPython.notebook.get_selected_cell();
             cell_two.set_text('print(a)');
         };
