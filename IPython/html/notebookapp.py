@@ -560,6 +560,7 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
         # Kernel should get *absolute* path to profile directory
         self.kernel_argv.extend(["--profile-dir", self.profile_dir.location])
+        self.kernel_argv.append("-c='%load_ext IPython.html.kernels_magic'")
 
     def init_configurables(self):
         # force Session default to be secure
