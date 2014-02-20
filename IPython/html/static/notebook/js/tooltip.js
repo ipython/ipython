@@ -369,6 +369,7 @@ var IPython = (function (IPython) {
         this._hidden = false;
         this.text.children().remove();
 
+        // Any HTML within the docstring is escaped by the fixConsole() method.
         var pre = $('<pre/>').html(utils.fixConsole(docstring));
         if (defstring) {
             var defstring_html = $('<pre/>').html(utils.fixConsole(defstring));

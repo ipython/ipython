@@ -245,7 +245,7 @@ var IPython = (function (IPython) {
      * @method set_rendered
      */
     TextCell.prototype.set_rendered = function(text) {
-        this.element.find('div.text_cell_render').html(text);
+        this.element.find('div.text_cell_render').text(text);
     };
 
     /**
@@ -350,15 +350,20 @@ var IPython = (function (IPython) {
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             html = $(IPython.mathjaxutils.replace_math(html, math));
-            // links in markdown cells should open in new tabs
+            // Links in markdown cells should open in new tabs.
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             try {
-                this.set_rendered(html);
+                // TODO: This HTML needs to be treated as potentially dangerous
+                // user input.
+                rendered.html(html);
             } catch (e) {
                 console.log("Error running Javascript in Markdown:");
                 console.log(e);
-                this.set_rendered($("<div/>").addClass("js-error").html(
-                    "Error rendering Markdown!<br/>" + e.toString())
+                rendered.empty();
+                rendered.append(
+                    $("<div/>")
+                        .append($("<div/>").text('Error rendering Markdown!').addClass("js-error"))
+                        .append($("<div/>").text(e.toString()).addClass("js-error"))
                 );
             }
             this.element.find('div.text_cell_input').hide();
@@ -504,11 +509,6 @@ var IPython = (function (IPython) {
     };
 
 
-    HeadingCell.prototype.set_rendered = function (html) {
-        this.element.find("div.text_cell_render").html(html);
-    };
-
-
     HeadingCell.prototype.get_rendered = function () {
         var r = this.element.find("div.text_cell_render");
         return r.children().first().html();
@@ -538,11 +538,13 @@ var IPython = (function (IPython) {
                     .attr('href', '#' + hash)
                     .text('¶')
             );
-            
-            this.set_rendered(h);
+            // TODO: This HTML needs to be treated as potentially dangerous
+            // user input.
+            var rendered = this.element.find("div.text_cell_render");
+            rendered.html(h);
             this.typeset();
             this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
+            rendered.show();
 
         };
         return cont;

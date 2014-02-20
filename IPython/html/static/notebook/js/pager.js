@@ -164,6 +164,8 @@ var IPython = (function (IPython) {
     }
 
     Pager.prototype.append_text = function (text) {
+        // The only user content injected with with this HTML call is escaped by
+        // the fixConsole() method.
         this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
     };
 

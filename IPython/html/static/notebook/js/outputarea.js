@@ -343,7 +343,8 @@ var IPython = (function (IPython) {
                 // Insert the subarea into the iframe
                 // We must directly write the html. When using Jquery's append
                 // method, javascript is evaluated in the parent document and
-                // not in the iframe document.
+                // not in the iframe document.  At this point, subarea doesn't
+                // contain any user content.
                 this.contentDocument.write(subarea.html());
 
                 this.contentDocument.close();
@@ -370,12 +371,10 @@ var IPython = (function (IPython) {
         // display a message when a javascript error occurs in display output
         var msg = "Javascript error adding output!"
         if ( element === undefined ) return;
-        element.append(
-            $('<div/>').html(msg + "<br/>" +
-                err.toString() +
-                '<br/>See your browser Javascript console for more details.'
-            ).addClass('js-error')
-        );
+        element
+            .append($('<div/>').text(msg).addClass('js-error'))
+            .append($('<div/>').text(err.toString()).addClass('js-error'))
+            .append($('<div/>').text('See your browser Javascript console for more details.').addClass('js-error'));
     };
     
     OutputArea.prototype._safe_append = function (toinsert) {
@@ -447,6 +446,8 @@ var IPython = (function (IPython) {
                 var pre = this.element.find('div.'+subclass).last().find('pre');
                 var html = utils.fixCarriageReturn(
                     pre.html() + utils.fixConsole(text));
+                // The only user content injected with with this HTML call is
+                // escaped by the fixConsole() method.
                 pre.html(html);
                 return;
             }
@@ -548,6 +549,8 @@ var IPython = (function (IPython) {
         if (extra_class){
             toinsert.addClass(extra_class);
         }
+        // The only user content injected with with this HTML call is
+        // escaped by the fixConsole() method.
         toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
         return toinsert;
