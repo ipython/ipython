@@ -21,7 +21,7 @@ import sys
 import platform
 import time
 from collections import namedtuple
-from tempfile import mktemp
+from tempfile import NamedTemporaryFile
 
 import zmq
 from nose.plugins.attrib import attr
@@ -164,13 +164,12 @@ class TestView(ClusterTestCase):
     
     def test_run_newline(self):
         """test that run appends newline to files"""
-        tmpfile = mktemp()
-        with open(tmpfile, 'w') as f:
+        with NamedTemporaryFile('w', delete=False) as f:
             f.write("""def g():
                 return 5
                 """)
         v = self.client[-1]
-        v.run(tmpfile, block=True)
+        v.run(f.name, block=True)
         self.assertEqual(v.apply_sync(lambda f: f(), pmod.Reference('g')), 5)
 
     def test_apply_tracked(self):

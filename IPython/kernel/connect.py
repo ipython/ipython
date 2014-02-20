@@ -95,7 +95,8 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         ip = localhost()
     # default to temporary connector file
     if not fname:
-        fname = tempfile.mktemp('.json')
+        fd, fname = tempfile.mkstemp('.json')
+        os.close(fd)
     
     # Find open ports as necessary.
     
