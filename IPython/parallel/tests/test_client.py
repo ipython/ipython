@@ -20,7 +20,6 @@ from __future__ import division
 
 import time
 from datetime import datetime
-from tempfile import mktemp
 
 import zmq
 

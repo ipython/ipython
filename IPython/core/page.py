@@ -208,16 +208,19 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 # The default WinXP 'type' command is failing on complex strings.
                 retval = 1
             else:
-                tmpname = tempfile.mktemp('.txt')
-                tmpfile = open(tmpname,'wt')
-                tmpfile.write(strng)
-                tmpfile.close()
-                cmd = "%s < %s" % (pager_cmd,tmpname)
-                if os.system(cmd):
-                  retval = 1
-                else:
-                  retval = None
-                os.remove(tmpname)
+                fd, tmpname = tempfile.mkstemp('.txt')
+                try:
+                    os.close(fd)
+                    with open(tmpname, 'wt') as tmpfile:
+                        tmpfile.write(strng)
+                        cmd = "%s < %s" % (pager_cmd, tmpname)
+                    # tmpfile needs to be closed for windows
+                    if os.system(cmd):
+                        retval = 1
+                    else:
+                        retval = None
+                finally:
+                    os.remove(tmpname)
         else:
             try:
                 retval = None
