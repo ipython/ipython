@@ -14,43 +14,43 @@ IPython.security = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
-
+    
+    var noop = function (x) { return x; };
+    
+    var sanitize = function (html, log) {
+        // sanitize HTML
+        // returns a struct of
+        // {
+        //   src: original_html,
+        //   sanitized: the_sanitized_html,
+        //   safe: bool // false if the sanitizer made any changes
+        // }
+        var result = {
+            src : html,
+            safe : true
+        };
+        var record_messages = function (msg, opts) {
+            console.log("HTML Sanitizer", msg, opts);
+            result.safe = false;
+        };
+        result.sanitized = window.html_sanitize(html, noop, noop, record_messages);
+        return result;
+    };
+    
+    var sanitize_html = function (html) {
+        // shorthand for str-to-str conversion, dropping the struct
+        return sanitize(html).sanitized;
+    };
+    
     var is_safe = function (html) {
-        // Is the html string safe against JavaScript based attacks. This
-        // detects 1) black listed tags, 2) blacklisted attributes, 3) all
-        // event attributes (onhover, onclick, etc.).
-        var black_tags = ['script', 'style', 'meta', 'iframe', 'embed'];
-        var black_attrs = ['style'];
-        var wrapped_html = '<div>'+html+'</div>';
-        // First try to parse the HTML. All invalid HTML is unsafe.
-        try {
-            var bad_elem = $(wrapped_html);
-        } catch (e) {
-            return false;
-        }
-        var safe = true;
-        // Detect black listed tags
-        $.map(black_tags, function (tag, index) {
-            if (bad_elem.find(tag).length > 0) {
-                safe = false;
-            }
-        });
-        // Detect black listed attributes
-        $.map(black_attrs, function (attr, index) {
-            if (bad_elem.find('['+attr+']').length > 0) {
-                safe = false;
-            }
-        });
-        bad_elem.find('*').each(function (index) {
-            $.map(utils.get_attr_names($(this)), function (attr, index) {
-                if (attr.match('^on')) {safe = false;}
-            });
-        })
-        return safe;
-    }
-
+        // just return bool for whether an HTML string is safe
+        return sanitize(html).safe;
+    };
+    
     return {
-        is_safe: is_safe
+        is_safe: is_safe,
+        sanitize: sanitize,
+        sanitize_html: sanitize_html
     };
 
 }(IPython));
