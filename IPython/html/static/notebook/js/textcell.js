@@ -356,20 +356,15 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            var safe = security.is_safe(html);
-            if (safe) {
-                html = $(IPython.mathjaxutils.replace_math(html, math));
-                // links in markdown cells should open in new tabs
-                html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
-                this.set_rendered(html);
-            } else {
-                this.insert_security_warning();
-            }
+            html = IPython.mathjaxutils.replace_math(html, math);
+            html = security.sanitize_html(html);
+            html = $(html);
+            // links in markdown cells should open in new tabs
+            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+            this.set_rendered(html);
             this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
-            if (safe) {
-                this.typeset();
-            }
+            this.typeset();
         }
         return cont;
     };
@@ -534,24 +529,23 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            var safe = security.is_safe(html);
-            if (safe) {
-                var h = $(IPython.mathjaxutils.replace_math(html, math));
-                // add id and linkback anchor
-                var hash = h.text().replace(/ /g, '-');
-                h.attr('id', hash);
-                h.append(
-                    $('<a/>')
-                        .addClass('anchor-link')
-                        .attr('href', '#' + hash)
-                        .text('¶')
-                );
-                this.set_rendered(h);
-            } else {
-                this.insert_security_warning();
-            }
+            html = IPython.mathjaxutils.replace_math(html, math);
+            html = security.sanitize_html(html);
+            var h = $(html);
+            // add id and linkback anchor
+            var hash = h.text().replace(/ /g, '-');
+            h.attr('id', hash);
+            h.append(
+                $('<a/>')
+                    .addClass('anchor-link')
+                    .attr('href', '#' + hash)
+                    .text('¶')
+            );
+            this.set_rendered(h);
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
+            this.typeset();
+        }
         return cont;
     };
 
