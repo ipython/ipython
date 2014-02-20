@@ -51,6 +51,17 @@ non_alphanum = re.compile(r'[^A-Za-z0-9]')
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
 
+    def set_default_headers(self):
+        headers = self.settings.get('headers', {})
+        for header_name,value in headers.items() :
+            try:
+                self.set_header(header_name, value)
+            except Exception:
+                # tornado raise Exception (not a subclass)
+                # if method is unsupported (websocket and Access-Control-Allow-Origin
+                # for example, so just ignore)
+                pass
+    
     def clear_login_cookie(self):
         self.clear_cookie(self.cookie_name)
     
