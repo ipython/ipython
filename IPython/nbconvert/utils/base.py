@@ -25,7 +25,7 @@ class NbConvertBase(LoggingConfigurable):
     Useful for display data priority that might be use by many transformers
     """
 
-    display_data_priority = List(['html', 'application/pdf', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+    display_data_priority = List(['html', 'application/pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
             config=True,
               help= """
                     An ordered list of preferred output type, the first

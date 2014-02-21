@@ -173,7 +173,7 @@ This template does not define a docclass, the inheriting class must define this.
 ((*- block data_png -*))((( draw_figure(output.png_filename) )))((*- endblock -*))
 ((*- block data_jpg -*))((( draw_figure(output.jpeg_filename) )))((*- endblock -*))
 ((*- block data_svg -*))((( draw_figure(output.svg_filename) )))((*- endblock -*))
-((*- block data_pdf -*))((( draw_figure(output.pdf_filename) )))((*- endblock -*))
+((*- block data_pdf -*))((( draw_figure(output['application/pdf_filename']) )))((*- endblock -*))
 
 % Draw a figure using the graphicx package.
 ((* macro draw_figure(filename) -*))
