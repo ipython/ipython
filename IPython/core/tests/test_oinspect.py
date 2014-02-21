@@ -115,6 +115,10 @@ class Call(object):
     def method(self, x, z=2):
         """Some method's docstring"""
 
+class SimpleClass(object):
+    def method(self, x, z=2):
+        """Some method's docstring"""
+
 
 class OldStyle:
     """An old-style class for testing."""
@@ -270,6 +274,13 @@ def test_info():
 def test_info_awkward():
     # Just test that this doesn't throw an error.
     i = inspector.info(Awkward())
+
+def test_calldef_none():
+    # We should ignore __call__ for all of these.
+    for obj in [f, SimpleClass().method, any, str.upper]:
+        print(obj)
+        i = inspector.info(obj)
+        nt.assert_is(i['call_def'], None)
 
 if py3compat.PY3:
     exec("def f_kwarg(pos, *, kwonly): pass")

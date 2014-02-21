@@ -48,6 +48,9 @@ _object_init_docstring = object.__init__.__doc__
 _builtin_type_docstrings = {
     t.__doc__ for t in (types.ModuleType, types.MethodType, types.FunctionType)
 }
+
+_builtin_func_type = type(all)
+_builtin_meth_type = type(str.upper)  # Bound methods have the same type as builtin functions
 #****************************************************************************
 # Builtin color schemes
 
@@ -180,6 +183,13 @@ def getsource(obj,is_binary=False):
         encoding = get_encoding(obj)
         return cast_unicode(src, encoding=encoding)
 
+
+def is_simple_callable(obj):
+    """True if obj is a function ()"""
+    return (inspect.isfunction(obj) or inspect.ismethod(obj) or \
+            isinstance(obj, _builtin_func_type) or isinstance(obj, _builtin_meth_type))
+
+
 def getargspec(obj):
     """Wrapper around :func:`inspect.getfullargspec` on Python 3, and
     :func:inspect.getargspec` on Python 2.
@@ -187,8 +197,7 @@ def getargspec(obj):
     In addition to functions and methods, this can also handle objects with a
     ``__call__`` attribute.
     """
-    if not (inspect.isfunction(obj) or inspect.ismethod(obj)) \
-            and safe_hasattr(obj, '__call__'):
+    if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
         obj = obj.__call__
 
     return inspect.getfullargspec(obj) if PY3 else inspect.getargspec(obj)
@@ -767,7 +776,7 @@ class Inspector:
                 out['init_docstring'] = init_ds
 
             # Call form docstring for callable instances
-            if safe_hasattr(obj, '__call__'):
+            if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
                 call_def = self._getdef(obj.__call__, oname)
                 if call_def is not None:
                     out['call_def'] = self.format(call_def)
