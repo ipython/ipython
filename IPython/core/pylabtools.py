@@ -121,7 +121,6 @@ def print_figure(fig, fmt='png', **kwargs):
     )
     # **kwargs get higher priority
     kw.update(kwargs)
-    print(kw)
     
     bytes_io = BytesIO()
     fig.canvas.print_figure(bytes_io, **kw)
