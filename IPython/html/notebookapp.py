@@ -430,14 +430,6 @@ class NotebookApp(BaseIPythonApplication):
         self.log.warn("base_project_url is deprecated, use base_url")
         self.base_url = new
 
-    websocket_url = Unicode("", config=True,
-        help="""The base URL for the websocket server,
-        if it differs from the HTTP server (hint: it almost certainly doesn't).
-        
-        Should be in the form of an HTTP origin: ws[s]://hostname[:port]
-        """
-    )
-
     extra_static_paths = List(Unicode, config=True,
         help="""Extra paths to search for serving static files.
         
