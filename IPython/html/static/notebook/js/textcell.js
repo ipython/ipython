@@ -361,11 +361,11 @@ var IPython = (function (IPython) {
             } catch (e) {
                 console.log("Error running Javascript in Markdown:");
                 console.log(e);
-                rendered.empty();
-                rendered.append(
+                this.set_rendered(
                     $("<div/>")
                         .append($("<div/>").text('Error rendering Markdown!').addClass("js-error"))
                         .append($("<div/>").text(e.toString()).addClass("js-error"))
+                        .html()
                 );
             }
             this.element.find('div.text_cell_input').hide();
