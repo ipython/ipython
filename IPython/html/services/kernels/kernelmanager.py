@@ -75,19 +75,19 @@ class MappingKernelManager(MultiKernelManager):
         self._check_kernel_id(kernel_id)
         super(MappingKernelManager, self).shutdown_kernel(kernel_id, now=now)
 
-    def kernel_model(self, kernel_id, ws_url):
+    def kernel_model(self, kernel_id):
         """Return a dictionary of kernel information described in the
         JSON standard model."""
         self._check_kernel_id(kernel_id)
-        model = {"id":kernel_id, "ws_url": ws_url}
+        model = {"id":kernel_id}
         return model
 
-    def list_kernels(self, ws_url):
+    def list_kernels(self):
         """Returns a list of kernel_id's of kernels running."""
         kernels = []
         kernel_ids = super(MappingKernelManager, self).list_kernel_ids()
         for kernel_id in kernel_ids:
-            model = self.kernel_model(kernel_id, ws_url)
+            model = self.kernel_model(kernel_id)
             kernels.append(model)
         return kernels
 

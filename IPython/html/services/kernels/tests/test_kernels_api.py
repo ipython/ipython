@@ -93,7 +93,6 @@ class KernelAPITest(NotebookTestBase):
         self.assertEqual(r.headers['Location'], '/api/kernels/'+kern2['id'])
         rekern = r.json()
         self.assertEqual(rekern['id'], kern2['id'])
-        self.assertIn('ws_url', rekern)
 
     def test_kernel_handler(self):
         # GET kernel with given id
@@ -103,7 +102,6 @@ class KernelAPITest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         assert isinstance(kern1, dict)
         self.assertIn('id', kern1)
-        self.assertIn('ws_url', kern1)
         self.assertEqual(kern1['id'], kid)
 
         # Request a bad kernel id and check that a JSON

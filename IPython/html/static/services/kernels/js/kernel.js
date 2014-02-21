@@ -125,16 +125,9 @@ var IPython = (function (IPython) {
         console.log("Kernel started: ", json.id);
         this.running = true;
         this.kernel_id = json.id;
-        var ws_url = json.ws_url;
-        if (ws_url.match(/wss?:\/\//) === null) {
-            // trailing 's' in https will become wss for secure web sockets
-            var prot = location.protocol.replace('http', 'ws') + "//";
-            ws_url = prot + location.host + ws_url;
-        }
-        var parsed = utils.parse_url(ws_url);
-        this.ws_host = parsed.protocol + "//" + parsed.host;
+        // trailing 's' in https will become wss for secure web sockets
+        this.ws_host = location.protocol.replace('http', 'ws') + "//" + location.host;
         this.kernel_url = utils.url_path_join(this.kernel_service_url, this.kernel_id);
-        this.ws_url = utils.url_path_join(parsed.pathname, this.kernel_url);
         this.start_channels();
     };
 
@@ -155,18 +148,18 @@ var IPython = (function (IPython) {
     Kernel.prototype.start_channels = function () {
         var that = this;
         this.stop_channels();
-        console.log("Starting WebSockets:", this.ws_host + this.ws_url);
+        var ws_host_url = this.ws_host + this.kernel_url;
+        console.log("Starting WebSockets:", ws_host_url);
         this.shell_channel = new this.WebSocket(
-            this.ws_host + utils.url_join_encode(this.ws_url, "shell")
+            this.ws_host + utils.url_join_encode(this.kernel_url, "shell")
         );
         this.stdin_channel = new this.WebSocket(
-            this.ws_host + utils.url_join_encode(this.ws_url, "stdin")
+            this.ws_host + utils.url_join_encode(this.kernel_url, "stdin")
         );
         this.iopub_channel = new this.WebSocket(
-            this.ws_host + utils.url_join_encode(this.ws_url, "iopub")
+            this.ws_host + utils.url_join_encode(this.kernel_url, "iopub")
         );
         
-        var ws_host_url = this.ws_host + this.ws_url;
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
             if (already_called_onclose){

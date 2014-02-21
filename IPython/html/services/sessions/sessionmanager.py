@@ -33,7 +33,7 @@ class SessionManager(LoggingConfigurable):
     # Session database initialized below
     _cursor = None
     _connection = None
-    _columns = {'session_id', 'name', 'path', 'kernel_id', 'ws_url'}
+    _columns = {'session_id', 'name', 'path', 'kernel_id'}
     
     @property
     def cursor(self):
@@ -41,7 +41,7 @@ class SessionManager(LoggingConfigurable):
         if self._cursor is None:
             self._cursor = self.connection.cursor()
             self._cursor.execute("""CREATE TABLE session 
-                (session_id, name, path, kernel_id, ws_url)""")
+                (session_id, name, path, kernel_id)""")
         return self._cursor
 
     @property
@@ -69,12 +69,12 @@ class SessionManager(LoggingConfigurable):
         "Create a uuid for a new session"
         return unicode_type(uuid.uuid4())
 
-    def create_session(self, name=None, path=None, kernel_id=None, ws_url=None):
+    def create_session(self, name=None, path=None, kernel_id=None):
         """Creates a session and returns its model"""
         session_id = self.new_session_id()
-        return self.save_session(session_id, name=name, path=path, kernel_id=kernel_id, ws_url=ws_url)
+        return self.save_session(session_id, name=name, path=path, kernel_id=kernel_id)
 
-    def save_session(self, session_id, name=None, path=None, kernel_id=None, ws_url=None):
+    def save_session(self, session_id, name=None, path=None, kernel_id=None):
         """Saves the items for the session with the given session_id
         
         Given a session_id (and any other of the arguments), this method
@@ -91,16 +91,14 @@ class SessionManager(LoggingConfigurable):
             the path to the named notebook
         kernel_id : str
             a uuid for the kernel associated with this session
-        ws_url : str
-            the websocket url
-            
+        
         Returns
         -------
         model : dict
             a dictionary of the session model
         """
-        self.cursor.execute("INSERT INTO session VALUES (?,?,?,?,?)",
-            (session_id, name, path, kernel_id, ws_url)
+        self.cursor.execute("INSERT INTO session VALUES (?,?,?,?)",
+            (session_id, name, path, kernel_id)
         )
         return self.get_session(session_id=session_id)
 
@@ -114,7 +112,7 @@ class SessionManager(LoggingConfigurable):
         ----------
         **kwargs : keyword argument
             must be given one of the keywords and values from the session database
-            (i.e. session_id, name, path, kernel_id, ws_url)
+            (i.e. session_id, name, path, kernel_id)
 
         Returns
         -------
@@ -184,7 +182,6 @@ class SessionManager(LoggingConfigurable):
             },
             'kernel': {
                 'id': row['kernel_id'],
-                'ws_url': row['ws_url']
             }
         }
         return model

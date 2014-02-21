@@ -120,15 +120,6 @@ class IPythonHandler(AuthenticatedHandler):
     #---------------------------------------------------------------
     
     @property
-    def ws_url(self):
-        """websocket url matching the current request
-
-        By default, this is just `''`, indicating that it should match
-        the same host, protocol, port, etc.
-        """
-        return self.settings.get('websocket_url', '')
-    
-    @property
     def mathjax_url(self):
         return self.settings.get('mathjax_url', '')
     
