@@ -38,6 +38,27 @@ IPython.security = (function (IPython) {
         return cmp_tree(ac, bc);
     };
     
+    var caja;
+    if (window && window.html) {
+        caja = window.html;
+        caja.html4 = window.html4;
+    }
+    
+    var sanitizeAttribs = function (tagName, attribs, opt_naiveUriRewriter, opt_nmTokenPolicy, opt_logger) {
+        // wrap sanitizeAttribs into trusting data-attributes
+        var ATTRIBS = caja.html4.ATTRIBS;
+        for (var i = 0; i < attribs.length; i += 2) {
+            var attribName = attribs[i];
+            if (attribName.substr(0,5) == 'data-') {
+                var attribKey = '*::' + attribName;
+                if (!ATTRIBS.hasOwnProperty(attribKey)) {
+                    ATTRIBS[attribKey] = 0;
+                }
+            }
+        }
+        return caja.sanitizeAttribs(tagName, attribs, opt_naiveUriRewriter, opt_nmTokenPolicy, opt_logger);
+    };
+    
     var sanitize = function (html, log) {
         // sanitize HTML
         // returns a struct of
@@ -54,7 +75,23 @@ IPython.security = (function (IPython) {
             console.log("HTML Sanitizer", msg, opts);
             result.safe = false;
         };
-        result.sanitized = window.html_sanitize(html, noop, noop, record_messages);
+        
+        var html4 = caja.html4;
+        var policy = function (tagName, attribs) {
+            if (!(html4.ELEMENTS[tagName] & html4.eflags.UNSAFE)) {
+                return {
+                    'attribs': sanitizeAttribs(tagName, attribs,
+                        noop, noop, record_messages)
+                    };
+            } else {
+                record_messages(tagName + " removed", {
+                  change: "removed",
+                  tagName: tagName
+                });
+            }
+        };
+
+        result.sanitized = caja.sanitizeWithPolicy(html, policy);
         // caja can strip whole elements without logging,
         // so double-check that node structure didn't change
         if (result.safe) {
