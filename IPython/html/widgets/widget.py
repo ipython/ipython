@@ -103,6 +103,7 @@ class Widget(LoggingConfigurable):
     _comm = Instance('IPython.kernel.comm.Comm')
     
     closed = Bool(False)
+    displayed = Bool(False)
     
     keys = List()
     def _keys_default(self):
@@ -162,6 +163,7 @@ class Widget(LoggingConfigurable):
         del Widget.widgets[self.model_id]
         self._comm = None
         self.closed = True
+        self.displayed = False
 
     def close(self):
         """Close method.
@@ -234,6 +236,7 @@ class Widget(LoggingConfigurable):
             kwargs from display are passed through without modification.
         remove: bool
             True if the callback should be unregistered."""
+       
         self._display_callbacks.register_callback(callback, remove=remove)
 
     #-------------------------------------------------------------------------
@@ -297,6 +300,7 @@ class Widget(LoggingConfigurable):
 
     def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance"""
+        self.displayed = True
         self._display_callbacks(self, **kwargs)
 
     def _pack_widgets(self, x):
@@ -342,6 +346,18 @@ class Widget(LoggingConfigurable):
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
     _css = Dict(sync=True) # Internal CSS property dict
+    _class_messages = List()
+    
+    
+    
+    
+    def __init__(self, **kwargs):
+        super(DOMWidget, self).__init__(**kwargs)
+        self.on_displayed(DOMWidget._sync_classes)
+    
+    def _sync_classes(self):
+        for m in self._class_messages:
+            self.send(m)
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.
@@ -409,15 +425,29 @@ class DOMWidget(Widget):
             JQuery selector to select the DOM element(s) that the class(es) will
             be added to.
         """
+                
+        
         class_list = class_names
+        
+        
         if isinstance(class_list, list):
             class_list = ' '.join(class_list)
-
-        self.send({
+        
+        message = {
             "msg_type"   : "add_class",
             "class_list" : class_list,
             "selector"   : selector
-        })
+        }
+        
+        if self.displayed:
+            self.send(message)
+        else:
+            self._class_messages += [message]
+       
+        
+        
+
+        
 
     def remove_class(self, class_names, selector=""):
         """Remove class[es] from a DOM element.
@@ -433,9 +463,13 @@ class DOMWidget(Widget):
         class_list = class_names
         if isinstance(class_list, list):
             class_list = ' '.join(class_list)
-
-        self.send({
+        
+        message = {
             "msg_type"   : "remove_class",
             "class_list" : class_list,
             "selector"   : selector,
-        })
+        }
+        if self.displayed:
+            self.send(message)
+        else:
+            self._class_messages += [message]
