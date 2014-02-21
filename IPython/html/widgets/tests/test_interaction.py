@@ -298,7 +298,7 @@ def test_default_values():
     )
 
 def test_default_out_of_bounds():
-    @annotate(f=(0, 10.), h={'a': 1, 'b': 2}, j=['hi', 'there'])
+    @annotate(f=(0, 10.), h={'a': 1}, j=['hi', 'there'])
     def f(f='hi', h=5, j='other'):
         pass
     
@@ -310,13 +310,13 @@ def test_default_out_of_bounds():
         ),
         h=dict(
             cls=widgets.DropdownWidget,
-            values={'a': 1, 'b': 2},
-            value=1
+            values={'a': 1},
+            value=1,
         ),
         j=dict(
             cls=widgets.DropdownWidget,
             values={'hi':'hi', 'there':'there'},
-            value='hi'
+            value='hi',
         ),
     )
 
