@@ -29,7 +29,7 @@ class TestExtractOutput(PreprocessorTestsBase):
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
         preprocessor = ExtractOutputPreprocessor()
-        preprocessor.extract_output_types = {'text', 'png'}
+        preprocessor.extract_output_types = {'text', 'png', 'application/pdf'}
         preprocessor.enabled = True
         return preprocessor
 
@@ -55,6 +55,11 @@ class TestExtractOutput(PreprocessorTestsBase):
         output = nb.worksheets[0].cells[0].outputs[6]
         assert 'png_filename' in output
         png_filename = output['png_filename']
+        
+        # Check that pdf was extracted
+        output = nb.worksheets[0].cells[0].outputs[7]
+        assert 'application/pdf_filename' in output
+        pdf_filename = output['application/pdf_filename']
 
         # Verify text output
         assert text_filename in res['outputs']
@@ -63,3 +68,7 @@ class TestExtractOutput(PreprocessorTestsBase):
         # Verify png output
         assert png_filename in res['outputs']
         self.assertEqual(res['outputs'][png_filename], b'g')
+
+        # Verify pdf output
+        assert pdf_filename in res['outputs']
+        self.assertEqual(res['outputs'][pdf_filename], b'h')
