@@ -1,6 +1,7 @@
 safe_tests = [
     "<p>Hi there</p>",
     '<h1 class="foo">Hi There!</h1>',
+    '<a data-cite="foo">citation</a>',
     '<div><span>Hi There</span></div>'
 ];
 
