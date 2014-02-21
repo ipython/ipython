@@ -2,7 +2,7 @@ safe_tests = [
     "<p>Hi there</p>",
     '<h1 class="foo">Hi There!</h1>',
     '<a data-cite="foo">citation</a>',
-    '<div><span>Hi There</span></div>'
+    '<div><span>Hi There</span></div>',
 ];
 
 unsafe_tests = [
@@ -25,12 +25,16 @@ casper.notebook_test(function () {
         var is_safe = self.evaluate(function (item) {
             return IPython.security.is_safe(item);
         }, item);
-        this.test.assert(is_safe, item);
+        this.test.assert(is_safe, "Safe: " + item);
     });
     this.each(unsafe_tests, function (self, item) {
         var is_safe = self.evaluate(function (item) {
             return IPython.security.is_safe(item);
         }, item);
-        this.test.assert(!is_safe, item);
+        this.test.assert(!is_safe, "Unsafe: " + item);
+        var sanitized = self.evaluate(function (item) {
+            return IPython.security.sanitize_html(item);
+        }, item);
+        this.test.assertEquals(sanitized.indexOf("alert"), -1, "Sanitized " + item);
     });
 });
