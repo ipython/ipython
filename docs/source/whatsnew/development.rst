@@ -231,8 +231,6 @@ Other changes
   1.12.1.
 
 * The InlineBackend.figure_format flag now supports JPEG output if PIL/Pillow is available.
-* The new ``InlineBackend.quality`` flag is a Integer in the range [10, 100] which controls
-  the quality of figures where higher values give nicer images (currently JPEG only).
 
 * Input transformers (see :doc:`/config/inputtransforms`) may now raise
   :exc:`SyntaxError` if they determine that input is invalid. The input

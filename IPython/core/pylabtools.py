@@ -95,9 +95,11 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png', quality=90):
-    """Convert a figure to svg, png or jpg for inline display.
-    Quality is only relevant for jpg.
+def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
+    """Print a figure to an image, and return the resulting bytes
+    
+    Any keyword args are passed to fig.canvas.print_figure,
+    such as ``quality`` or ``bbox_inches``.
     """
     from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
@@ -105,21 +107,29 @@ def print_figure(fig, fmt='png', quality=90):
     if not fig.axes and not fig.lines:
         return
 
-    fc = fig.get_facecolor()
-    ec = fig.get_edgecolor()
-    bytes_io = BytesIO()
     dpi = rcParams['savefig.dpi']
     if fmt == 'retina':
         dpi = dpi * 2
         fmt = 'png'
-    fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
-                            facecolor=fc, edgecolor=ec, dpi=dpi, quality=quality)
-    data = bytes_io.getvalue()
-    return data
     
-def retina_figure(fig):
+    # build keyword args
+    kw = dict(
+        format=fmt,
+        fc=fig.get_facecolor(),
+        ec=fig.get_edgecolor(),
+        dpi=dpi,
+        bbox_inches=bbox_inches,
+    )
+    # **kwargs get higher priority
+    kw.update(kwargs)
+    
+    bytes_io = BytesIO()
+    fig.canvas.print_figure(bytes_io, **kw)
+    return bytes_io.getvalue()
+    
+def retina_figure(fig, **kwargs):
     """format a figure as a pixel-doubled (retina) PNG"""
-    pngdata = print_figure(fig, fmt='retina')
+    pngdata = print_figure(fig, fmt='retina', **kwargs)
     w, h = _pngxy(pngdata)
     metadata = dict(width=w//2, height=h//2)
     return pngdata, metadata
@@ -166,17 +176,17 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
-def select_figure_formats(shell, formats, quality=90):
+def select_figure_formats(shell, formats, **kwargs):
     """Select figure formats for the inline backend.
 
     Parameters
     ==========
     shell : InteractiveShell
         The main IPython instance.
-    formats : list
+    formats : str or set
         One or a set of figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
-    quality : int
-        A percentage for the quality of JPEG figures.
+    **kwargs : any
+        Extra keyword arguments to be passed to fig.canvas.print_figure.
     """
     from matplotlib.figure import Figure
     from IPython.kernel.zmq.pylab import backend_inline
@@ -188,22 +198,28 @@ def select_figure_formats(shell, formats, quality=90):
 
     if isinstance(formats, py3compat.string_types):
         formats = {formats}
+    # cast in case of list / tuple
+    formats = set(formats)
 
-    [ f.type_printers.pop(Figure, None) for f in {svg_formatter, png_formatter, jpg_formatter} ]
-
-    for fmt in formats:
-        if fmt == 'png':
-            png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
-        elif fmt in ('png2x', 'retina'):
-            png_formatter.for_type(Figure, retina_figure)
-        elif fmt in ('jpg', 'jpeg'):
-            jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', quality))
-        elif fmt == 'svg':
-            svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
-        elif fmt == 'pdf':
-            pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf'))
-        else:
-            raise ValueError("supported formats are: 'png', 'retina', 'svg', 'jpg', 'pdf' not %r" % fmt)
+    [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
+    
+    supported = {'png', 'png2x', 'retina', 'jpg', 'jpeg', 'svg', 'pdf'}
+    bad = formats.difference(supported)
+    if bad:
+        bs = "%s" % ','.join([repr(f) for f in bad])
+        gs = "%s" % ','.join([repr(f) for f in supported])
+        raise ValueError("supported formats are: %s not %s" % (gs, bs))
+    
+    if 'png' in formats:
+        png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png', **kwargs))
+    if 'retina' in formats or 'png2x' in formats:
+        png_formatter.for_type(Figure, lambda fig: retina_figure(fig, **kwargs))
+    if 'jpg' in formats or 'jpeg' in formats:
+        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', **kwargs))
+    if 'svg' in formats:
+        svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg', **kwargs))
+    if 'pdf' in formats:
+        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf', **kwargs))
 
 #-----------------------------------------------------------------------------
 # Code for initializing matplotlib and importing pylab
@@ -354,5 +370,5 @@ def configure_inline_support(shell, backend):
             del shell._saved_rcParams
 
     # Setup the default figure format
-    select_figure_formats(shell, cfg.figure_formats, cfg.quality)
+    select_figure_formats(shell, cfg.figure_formats, **cfg.print_figure_kwargs)
 

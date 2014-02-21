@@ -13,17 +13,19 @@
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Stdlib imports
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.figure import Figure
 
-# Third-party imports
-import matplotlib; matplotlib.use('Agg')
 import nose.tools as nt
 
 from matplotlib import pyplot as plt
 import numpy as np
 
 # Our own imports
+from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.core.display import _PNG, _JPEG
 from .. import pylabtools as pt
 
 from IPython.testing import decorators as dec
@@ -62,12 +64,81 @@ def test_figure_to_jpg():
     ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])
     plt.draw()
-    jpg = pt.print_figure(fig, 'jpg')[:100].lower()
-    assert jpg.startswith(b'\xff\xd8')
+    jpg = pt.print_figure(fig, 'jpg', quality=50)[:100].lower()
+    assert jpg.startswith(_JPEG)
 
+def test_retina_figure():
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot([1,2,3])
+    plt.draw()
+    png, md = pt.retina_figure(fig)
+    assert png.startswith(_PNG)
+    nt.assert_in('width', md)
+    nt.assert_in('height', md)
+
+_fmt_mime_map = {
+    'png': 'image/png',
+    'jpeg': 'image/jpeg',
+    'pdf': 'application/pdf',
+    'retina': 'image/png',
+    'svg': 'image/svg+xml',
+}
+
+def test_select_figure_formats_str():
+    ip = get_ipython()
+    for fmt, active_mime in _fmt_mime_map.items():
+        pt.select_figure_formats(ip, fmt)
+        for mime, f in ip.display_formatter.formatters.items():
+            if mime == active_mime:
+                nt.assert_in(Figure, f)
+            else:
+                nt.assert_not_in(Figure, f)
+
+def test_select_figure_formats_kwargs():
+    ip = get_ipython()
+    kwargs = dict(quality=10, bbox_inches='tight')
+    pt.select_figure_formats(ip, 'png', **kwargs)
+    formatter = ip.display_formatter.formatters['image/png']
+    f = formatter.lookup_by_type(Figure)
+    cell = f.__closure__[0].cell_contents
+    nt.assert_equal(cell, kwargs)
+    
+    # check that the formatter doesn't raise
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot([1,2,3])
+    plt.draw()
+    formatter.enabled = True
+    png = formatter(fig)
+    assert png.startswith(_PNG)
+
+def test_select_figure_formats_set():
+    ip = get_ipython()
+    for fmts in [
+        {'png', 'svg'},
+        ['png'],
+        ('jpeg', 'pdf', 'retina'),
+        {'svg'},
+    ]:
+        active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
+        pt.select_figure_formats(ip, fmts)
+        for mime, f in ip.display_formatter.formatters.items():
+            if mime in active_mimes:
+                nt.assert_in(Figure, f)
+            else:
+                nt.assert_not_in(Figure, f)
+
+def test_select_figure_formats_bad():
+    ip = get_ipython()
+    with nt.assert_raises(ValueError):
+        pt.select_figure_formats(ip, 'foo')
+    with nt.assert_raises(ValueError):
+        pt.select_figure_formats(ip, {'png', 'foo'})
+    with nt.assert_raises(ValueError):
+        pt.select_figure_formats(ip, ['retina', 'pdf', 'bar', 'bad'])
 
 def test_import_pylab():
-    ip = get_ipython()
     ns = {}
     pt.import_pylab(ns, import_all=False)
     nt.assert_true('plt' in ns)

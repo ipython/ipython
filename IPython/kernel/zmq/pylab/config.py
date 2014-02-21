@@ -69,15 +69,16 @@ class InlineBackend(InlineBackendConfig):
                           help="""A set of figure formats to enable: 'png', 
                           'retina', 'jpeg', 'svg', 'pdf'.""")
 
+    def _update_figure_formatters(self):
+        if self.shell is not None:
+            select_figure_formats(self.shell, self.figure_formats, **self.print_figure_kwargs)
+    
     def _figure_formats_changed(self, name, old, new):
         from IPython.core.pylabtools import select_figure_formats
         if 'jpg' in new or 'jpeg' in new:
             if not pil_available():
                 raise TraitError("Requires PIL/Pillow for JPG figures")
-        if self.shell is None:
-            return
-        else:
-            select_figure_formats(self.shell, new)
+        self._update_figure_formatters()
 
     figure_format = Unicode(config=True, help="""The figure format to enable (deprecated
                                          use `figure_formats` instead)""")
@@ -86,12 +87,13 @@ class InlineBackend(InlineBackendConfig):
         if new:
             self.figure_formats = {new}
 
-    quality = Int(default_value=90, config=True,
-                  help="Quality of compression [10-100], currently for lossy JPEG only.")
-
-    def _quality_changed(self, name, old, new):
-        if new < 10 or new > 100:
-            raise TraitError("figure JPEG quality must be in [10-100] range.")
+    print_figure_kwargs = Dict({'bbox_inches' : 'tight'}, config=True,
+        help="""Extra kwargs to be passed to fig.canvas.print_figure.
+        
+        Logical examples include: bbox_inches, quality (for jpeg figures), etc.
+        """
+    )
+    _print_figure_kwargs_changed = _update_figure_formatters
     
     close_figures = Bool(True, config=True,
         help="""Close all figures at the end of each cell.
@@ -109,7 +111,7 @@ class InlineBackend(InlineBackendConfig):
         other matplotlib backends, but figure barriers between cells must
         be explicit.
         """)
-
+    
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
 
