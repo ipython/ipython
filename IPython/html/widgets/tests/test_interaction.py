@@ -267,8 +267,8 @@ def test_defaults():
     )
 
 def test_default_values():
-    @annotate(n=10, f=(0, 10.), g=5)
-    def f(n, f=4.5, g=1):
+    @annotate(n=10, f=(0, 10.), g=5, h={'a': 1, 'b': 2}, j=['hi', 'there'])
+    def f(n, f=4.5, g=1, h=2, j='there'):
         pass
     
     c = interactive(f)
@@ -284,6 +284,39 @@ def test_default_values():
         g=dict(
             cls=widgets.IntSliderWidget,
             value=5,
+        ),
+        h=dict(
+            cls=widgets.DropdownWidget,
+            values={'a': 1, 'b': 2},
+            value=2
+        ),
+        j=dict(
+            cls=widgets.DropdownWidget,
+            values={'hi':'hi', 'there':'there'},
+            value='there'
+        ),
+    )
+
+def test_default_out_of_bounds():
+    @annotate(f=(0, 10.), h={'a': 1, 'b': 2}, j=['hi', 'there'])
+    def f(f='hi', h=5, j='other'):
+        pass
+    
+    c = interactive(f)
+    check_widgets(c,
+        f=dict(
+            cls=widgets.FloatSliderWidget,
+            value=5.,
+        ),
+        h=dict(
+            cls=widgets.DropdownWidget,
+            values={'a': 1, 'b': 2},
+            value=1
+        ),
+        j=dict(
+            cls=widgets.DropdownWidget,
+            values={'hi':'hi', 'there':'there'},
+            value='hi'
         ),
     )
 
