@@ -51,11 +51,12 @@ def test_nb_dir():
         app = NotebookApp(notebook_dir=td)
         nt.assert_equal(app.notebook_dir, td)
 
-def test_create_nb_dir():
+def test_no_create_nb_dir():
     with TemporaryDirectory() as td:
         nbdir = os.path.join(td, 'notebooks')
-        app = NotebookApp(notebook_dir=nbdir)
-        nt.assert_equal(app.notebook_dir, nbdir)
+        app = NotebookApp()
+        with nt.assert_raises(TraitError):
+            app.notebook_dir = nbdir
 
 def test_missing_nb_dir():
     with TemporaryDirectory() as td:

@@ -521,14 +521,8 @@ class NotebookApp(BaseIPythonApplication):
             # If we receive a non-absolute path, make it absolute.
             self.notebook_dir = os.path.abspath(new)
             return
-        if os.path.exists(new) and not os.path.isdir(new):
-            raise TraitError("notebook dir %r is not a directory" % new)
-        if not os.path.exists(new):
-            self.log.info("Creating notebook dir %s", new)
-            try:
-                os.mkdir(new)
-            except:
-                raise TraitError("Couldn't create notebook dir %r" % new)
+        if not os.path.isdir(new):
+            raise TraitError("No such notebook dir: %r" % new)
         
         # setting App.notebook_dir implies setting notebook and kernel dirs as well
         self.config.FileNotebookManager.notebook_dir = new
