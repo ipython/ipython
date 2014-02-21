@@ -17,6 +17,27 @@ IPython.security = (function (IPython) {
     
     var noop = function (x) { return x; };
     
+    var cmp_tree = function (a, b) {
+        // compare two HTML trees
+        // only checks the tag structure is preserved,
+        // not any attributes or contents
+        if (a.length !== b.length) {
+            return false;
+        }
+        
+        for (var i = a.length - 1; i >= 0; i--) {
+            if (a[i].tagName && b[i].tagName && a[i].tagName.toLowerCase() != b[i].tagName.toLowerCase()) {
+                return false;
+            }
+        }
+        var ac = a.children();
+        var bc = b.children();
+        if (ac.length === 0 && bc.length === 0) {
+            return true;
+        }
+        return cmp_tree(ac, bc);
+    };
+    
     var sanitize = function (html, log) {
         // sanitize HTML
         // returns a struct of
@@ -34,6 +55,11 @@ IPython.security = (function (IPython) {
             result.safe = false;
         };
         result.sanitized = window.html_sanitize(html, noop, noop, record_messages);
+        // caja can strip whole elements without logging,
+        // so double-check that node structure didn't change
+        if (result.safe) {
+            result.safe = cmp_tree($(result.sanitized), $(result.src));
+        }
         return result;
     };
     
