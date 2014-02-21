@@ -206,8 +206,9 @@ def select_figure_formats(shell, formats, **kwargs):
     supported = {'png', 'png2x', 'retina', 'jpg', 'jpeg', 'svg', 'pdf'}
     bad = formats.difference(supported)
     if bad:
-        s = "{%s}" % ",".join([repr(f) for f in bad])
-        raise ValueError("supported formats are: 'png', 'retina', 'svg', 'jpg', 'pdf' not %s" % s)
+        bs = "%s" % ','.join([repr(f) for f in bad])
+        gs = "%s" % ','.join([repr(f) for f in supported])
+        raise ValueError("supported formats are: %s not %s" % (gs, bs))
     
     if 'png' in formats:
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png', **kwargs))
