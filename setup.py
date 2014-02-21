@@ -273,10 +273,14 @@ extras_require = dict(
     notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
     nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
 )
+if sys.version_info < (3, 3):
+    extras_require['test'].append('mock')
+
 everything = set()
 for deps in extras_require.values():
     everything.update(deps)
 extras_require['all'] = everything
+
 install_requires = []
 if sys.platform == 'darwin':
     if any(arg.startswith('bdist') for arg in sys.argv) or not setupext.check_for_readline():
