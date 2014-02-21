@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -103,6 +103,8 @@ class Widget(LoggingConfigurable):
     _comm = Instance('IPython.kernel.comm.Comm')
     
     closed = Bool(False)
+    msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
+        front-end can send before receiving an idle msg from the back-end.""")
     
     keys = List()
     def _keys_default(self):

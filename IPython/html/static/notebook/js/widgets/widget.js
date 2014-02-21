@@ -34,7 +34,6 @@ function(WidgetManager, _, Backbone){
             this.widget_manager = widget_manager;
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
-            this.msg_throttle = 3;
             this.msg_buffer = null;
             this.key_value_lock = null;
             this.id = model_id;
@@ -110,7 +109,7 @@ function(WidgetManager, _, Backbone){
                     // Send buffer if this message caused another message to be
                     // throttled.
                     if (this.msg_buffer !== null &&
-                        this.msg_throttle === this.pending_msgs) {
+                        (this.get('msg_throttle') || 3) === this.pending_msgs) {
                         var data = {method: 'backbone', sync_method: 'update', sync_data: this.msg_buffer};
                         this.comm.send(data, callbacks);
                         this.msg_buffer = null;
@@ -179,7 +178,7 @@ function(WidgetManager, _, Backbone){
                 var callbacks = options.callbacks || this.callbacks();
 
                 // Check throttle.
-                if (this.pending_msgs >= this.msg_throttle) {
+                if (this.pending_msgs >= (this.get('msg_throttle') || 3)) {
                     // The throttle has been exceeded, buffer the current msg so
                     // it can be sent once the kernel has finished processing 
                     // some of the existing messages.
