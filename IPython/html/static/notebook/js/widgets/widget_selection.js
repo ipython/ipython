@@ -126,8 +126,7 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
                 .hide();
             this.$container = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-container')
-                .addClass('vbox');
+                .addClass('widget-radio-box');
             this.$el_to_style = this.$container; // Set default element to style
             this.update();
         },
