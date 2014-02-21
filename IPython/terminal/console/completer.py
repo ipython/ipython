@@ -1,7 +1,6 @@
 """Adapt readline completer interface to make ZMQ request.
 """
 # -*- coding: utf-8 -*-
-import readline
 try:
     from queue import Empty  # Py 3
 except ImportError:
@@ -10,6 +9,7 @@ except ImportError:
 from IPython.config import Configurable
 from IPython.core.completer import IPCompleter
 from IPython.utils.traitlets import Float
+import IPython.utils.rlineimpl as readline
 
 class ZMQCompleter(IPCompleter):
     """Client-side completion machinery.
