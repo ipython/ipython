@@ -25,6 +25,7 @@ data-base-kernel-url="{{base_kernel_url}}"
 <div id="tab_content" class="tabbable">
     <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
+        <li><a href="#running" data-toggle="tab">Running</a></li>
         <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
     </ul>
 
@@ -61,6 +62,25 @@ data-base-kernel-url="{{base_kernel_url}}"
         </div>
     </div>
     
+    <div id="running" class="tab-pane">
+
+        <div id="running_toolbar" class="row-fluid">
+            <div class="span8">
+                <span id="running_list_info">Currently running IPython notebooks</span>
+            </div>
+            <div class="span4" class="clearfix">
+                <span id="running_buttons" class="pull-right">
+                    <button id="refresh_running_list" title="Refresh cluster list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                </span>
+            </div>
+        </div>
+
+        <div id="running_list">
+            <div id="running_list_header" class="row-fluid list_header">
+            </div>
+        </div>
+    </div>
+    
     <div id="clusters" class="tab-pane">
 
         <div id="cluster_toolbar" class="row-fluid">
@@ -94,6 +114,7 @@ data-base-kernel-url="{{base_kernel_url}}"
     <script src="{{ static_url("base/js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("base/js/dialog.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("tree/js/kernellist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
