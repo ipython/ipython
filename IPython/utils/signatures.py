@@ -1,7 +1,7 @@
-"""Function signature objects for callables
+"""Function signature objects for callables.
 
 Back port of Python 3.3's function signature tools from the inspect module,
-modified to be compatible with Python 2.6, 2.7 and 3.2+.
+modified to be compatible with Python 2.7 and 3.2+.
 """
 
 #-----------------------------------------------------------------------------
@@ -346,20 +346,20 @@ class Parameter(object):
 
 
 class BoundArguments(object):
-    '''Result of `Signature.bind` call.  Holds the mapping of arguments
+    '''Result of :meth:`Signature.bind` call.  Holds the mapping of arguments
     to the function's parameters.
 
     Has the following public attributes:
 
-    * arguments : OrderedDict
-        An ordered mutable mapping of parameters' names to arguments' values.
-        Does not contain arguments' default values.
-    * signature : Signature
-        The Signature object that created this instance.
-    * args : tuple
-        Tuple of positional arguments values.
-    * kwargs : dict
-        Dict of keyword arguments values.
+    arguments : :class:`collections.OrderedDict`
+      An ordered mutable mapping of parameters' names to arguments' values.
+      Does not contain arguments' default values.
+    signature : :class:`Signature`
+      The Signature object that created this instance.
+    args : tuple
+      Tuple of positional arguments values.
+    kwargs : dict
+      Dict of keyword arguments values.
     '''
 
     def __init__(self, signature, arguments):
@@ -447,22 +447,16 @@ class Signature(object):
     It stores a Parameter object for each parameter accepted by the
     function, as well as information specific to the function itself.
 
-    A Signature object has the following public attributes and methods:
+    A Signature object has the following public attributes:
 
-    * parameters : OrderedDict
-        An ordered mapping of parameters' names to the corresponding
-        Parameter objects (keyword-only arguments are in the same order
-        as listed in `code.co_varnames`).
-    * return_annotation : object
-        The annotation for the return type of the function if specified.
-        If the function has no annotation for its return type, this
-        attribute is not set.
-    * bind(*args, **kwargs) -> BoundArguments
-        Creates a mapping from positional and keyword arguments to
-        parameters.
-    * bind_partial(*args, **kwargs) -> BoundArguments
-        Creates a partial mapping from positional and keyword arguments
-        to parameters (simulating 'functools.partial' behavior.)
+    parameters : :class:`collections.OrderedDict`
+      An ordered mapping of parameters' names to the corresponding
+      Parameter objects (keyword-only arguments are in the same order
+      as listed in `code.co_varnames`).
+    return_annotation
+      The annotation for the return type of the function if specified.
+      If the function has no annotation for its return type, this
+      attribute is not set.
     '''
 
     __slots__ = ('_return_annotation', '_parameters')
@@ -775,16 +769,16 @@ class Signature(object):
         return self._bound_arguments_cls(self, arguments)
 
     def bind(self, *args, **kwargs):
-        '''Get a BoundArguments object, that maps the passed `args`
-        and `kwargs` to the function's signature.  Raises `TypeError`
+        '''Get a :class:`BoundArguments` object, that maps the passed `args`
+        and `kwargs` to the function's signature.  Raises :exc:`TypeError`
         if the passed arguments can not be bound.
         '''
         return self._bind(args, kwargs)
 
     def bind_partial(self, *args, **kwargs):
-        '''Get a BoundArguments object, that partially maps the
+        '''Get a :class:`BoundArguments` object, that partially maps the
         passed `args` and `kwargs` to the function's signature.
-        Raises `TypeError` if the passed arguments can not be bound.
+        Raises :exc:`TypeError` if the passed arguments can not be bound.
         '''
         return self._bind(args, kwargs, partial=True)
 
