@@ -245,8 +245,6 @@ var IPython = (function (IPython) {
      * @method set_rendered
      */
     TextCell.prototype.set_rendered = function(text) {
-        // TODO: This HTML needs to be treated as potentially dangerous
-        // user input.         
         this.element.find('div.text_cell_render').html(text);
     };
 
@@ -297,6 +295,8 @@ var IPython = (function (IPython) {
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 this.code_mirror.clearHistory();
+                // TODO: This HTML needs to be treated as potentially dangerous
+                // user input and should be handled before set_rendered.         
                 this.set_rendered(data.rendered || '');
                 this.rendered = false;
                 this.render();
@@ -355,12 +355,17 @@ var IPython = (function (IPython) {
             // Links in markdown cells should open in new tabs.
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             try {
+                // TODO: This HTML needs to be treated as potentially dangerous
+                // user input and should be handled before set_rendered.         
                 this.set_rendered(html);
             } catch (e) {
                 console.log("Error running Javascript in Markdown:");
                 console.log(e);
-                this.set_rendered($("<div/>").addClass("js-error").html(
-                    "Error rendering Markdown!<br/>" + e.toString())
+                rendered.empty();
+                rendered.append(
+                    $("<div/>")
+                        .append($("<div/>").text('Error rendering Markdown!').addClass("js-error"))
+                        .append($("<div/>").text(e.toString()).addClass("js-error"))
                 );
             }
             this.element.find('div.text_cell_input').hide();
@@ -507,8 +512,6 @@ var IPython = (function (IPython) {
 
 
     HeadingCell.prototype.set_rendered = function (html) {
-        // TODO: This HTML needs to be treated as potentially dangerous
-        // user input.         
         this.element.find("div.text_cell_render").html(html);
     };
 
@@ -542,7 +545,8 @@ var IPython = (function (IPython) {
                     .attr('href', '#' + hash)
                     .text('¶')
             );
-            
+            // TODO: This HTML needs to be treated as potentially dangerous
+            // user input and should be handled before set_rendered.         
             this.set_rendered(h);
             this.typeset();
             this.element.find('div.text_cell_input').hide();
