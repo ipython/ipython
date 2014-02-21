@@ -28,3 +28,4 @@ Extending and integrating with IPython
    extensions/index
    integrating
    inputtransforms
+   callbacks
