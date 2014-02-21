@@ -399,7 +399,7 @@ The following specific combinations are known **NOT** to work:
 
 * Safari, IPython 0.12, tornado ≥ 2.2.0
 * Safari with HTTPS connection to notebook and an untrusted certificate (websockets will fail)
-* The [diigo Chrome extension](http://help.diigo.com/tools/chrome-extension) seems to interfere with scrolling
+* The `diigo Chrome extension <http://help.diigo.com/tools/chrome-extension>`_ seems to interfere with scrolling
 
 There are some early reports that the Notebook works on Internet Explorer 10, but we
 expect there will be some CSS issues related to the flexible box model.
