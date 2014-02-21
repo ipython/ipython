@@ -67,11 +67,11 @@ class ExtractOutputPreprocessor(Preprocessor):
 
             #Get the output in data formats that the template needs extracted
             for out_type in self.extract_output_types:
-                if out.hasattr(out_type): 
+                if out_type in out:
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if out_type in ('png', 'jpg', 'application/pdf'):
+                    if out_type in {'png', 'jpg', 'application/pdf'}:
 
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
