@@ -480,6 +480,7 @@ var IPython = (function (IPython) {
 
     OutputArea.safe_outputs = {
         'text/plain' : true,
+        'text/latex' : true,
         'image/png' : true,
         'image/jpeg' : true
     };
