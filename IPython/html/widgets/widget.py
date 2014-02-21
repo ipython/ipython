@@ -342,6 +342,21 @@ class Widget(LoggingConfigurable):
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
     _css = Dict(sync=True) # Internal CSS property dict
+    
+    _classes = Dict(sync = True)
+    
+    
+    def __init__(self, **kwargs):
+        super(DOMWidget, self).__init__(**kwargs)
+        self.on_displayed(DOMWidget._sync_classes)
+    
+    def _sync_classes(self):
+        for selector, class_list in self._classes.items():
+            self.send({
+                "msg_type"   : "add_class",
+                "class_list" : " ".join(class_list),
+                "selector"   : selector
+            })
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.
@@ -409,9 +424,23 @@ class DOMWidget(Widget):
             JQuery selector to select the DOM element(s) that the class(es) will
             be added to.
         """
+                
+        
         class_list = class_names
+        
+        selclasses = self._classes.get(selector, [])
         if isinstance(class_list, list):
+            
+            selclasses += class_list 
+
             class_list = ' '.join(class_list)
+        elif isinstance(class_list, str):
+            selclasses += class_list.split(' ')
+        
+        self._classes[selector] = selclasses
+       
+        
+        
 
         self.send({
             "msg_type"   : "add_class",
@@ -432,7 +461,19 @@ class DOMWidget(Widget):
         """
         class_list = class_names
         if isinstance(class_list, list):
+            remove_classes = class_list
             class_list = ' '.join(class_list)
+        elif isinstance(class_list, str):
+            remove_classes = class_list.split(' ')
+        
+        for item in remove_classes:
+                try:
+                    self._classes[selector].remove(item)
+                except (ValueError, KeyError):
+                    pass
+        
+       
+            
 
         self.send({
             "msg_type"   : "remove_class",
