@@ -138,3 +138,12 @@ class SyntaxErrorTest(unittest.TestCase):
             # The SyntaxError should point to the correct line
             with tt.AssertPrints(["7/", "SyntaxError"]):
                 ip.magic("run " + fname)
+
+    def test_non_syntaxerror(self):
+        # SyntaxTB may be called with an error other than a SyntaxError
+        # See e.g. gh-4361
+        try:
+            raise ValueError('QWERTY')
+        except ValueError:
+            with tt.AssertPrints('QWERTY'):
+                ip.showsyntaxerror()
