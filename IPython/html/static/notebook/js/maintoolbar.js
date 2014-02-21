@@ -26,7 +26,7 @@ var IPython = (function (IPython) {
         this.add_buttons_group([
                 {
                     id : 'save_b',
-                    label : 'Save and Checkpoint',
+                    label : 'Save and Checkpoint (ctrl-m s)',
                     icon : 'icon-save',
                     callback : function () {
                         IPython.notebook.save_checkpoint();
@@ -37,7 +37,7 @@ var IPython = (function (IPython) {
         this.add_buttons_group([
                 {
                     id : 'insert_below_b',
-                    label : 'Insert Cell Below',
+                    label : 'Insert Cell Below (ctrl-m b)',
                     icon : 'icon-plus-sign',
                     callback : function () {
                         IPython.notebook.insert_cell_below('code');
@@ -50,7 +50,7 @@ var IPython = (function (IPython) {
         this.add_buttons_group([
                 {
                     id : 'cut_b',
-                    label : 'Cut Cell',
+                    label : 'Cut Cell (ctrl-m x)',
                     icon : 'icon-cut',
                     callback : function () {
                         IPython.notebook.cut_cell();
@@ -58,7 +58,7 @@ var IPython = (function (IPython) {
                 },
                 {
                     id : 'copy_b',
-                    label : 'Copy Cell',
+                    label : 'Copy Cell (ctrl-m c)',
                     icon : 'icon-copy',
                     callback : function () {
                         IPython.notebook.copy_cell();
@@ -66,7 +66,7 @@ var IPython = (function (IPython) {
                 },
                 {
                     id : 'paste_b',
-                    label : 'Paste Cell Below',
+                    label : 'Paste Cell Below (ctrl-m v)',
                     icon : 'icon-paste',
                     callback : function () {
                         IPython.notebook.paste_cell_below();
@@ -77,7 +77,7 @@ var IPython = (function (IPython) {
         this.add_buttons_group([
                 {
                     id : 'move_up_b',
-                    label : 'Move Cell Up',
+                    label : 'Move Cell Up (ctrl-m k)',
                     icon : 'icon-arrow-up',
                     callback : function () {
                         IPython.notebook.move_cell_up();
@@ -85,7 +85,7 @@ var IPython = (function (IPython) {
                 },
                 {
                     id : 'move_down_b',
-                    label : 'Move Cell Down',
+                    label : 'Move Cell Down (ctrl-m j)',
                     icon : 'icon-arrow-down',
                     callback : function () {
                         IPython.notebook.move_cell_down();
@@ -97,7 +97,7 @@ var IPython = (function (IPython) {
         this.add_buttons_group([
                 {
                     id : 'run_b',
-                    label : 'Run Cell',
+                    label : 'Run Cell (sift-enter)',
                     icon : 'icon-play',
                     callback : function () {
                         // emulate default shift-enter behavior
@@ -106,7 +106,7 @@ var IPython = (function (IPython) {
                 },
                 {
                     id : 'interrupt_b',
-                    label : 'Interrupt',
+                    label : 'Interrupt (ctrl-m i)',
                     icon : 'icon-stop',
                     callback : function () {
                         IPython.notebook.session.interrupt_kernel();
@@ -114,7 +114,7 @@ var IPython = (function (IPython) {
                 },
                 {
                     id : 'repeat_b',
-                    label : 'Restart Kernel',
+                    label : 'Restart Kernel (ctrl-m .)',
                     icon : 'icon-repeat',
                     callback : function () {
                         IPython.notebook.restart_kernel();
