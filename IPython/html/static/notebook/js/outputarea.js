@@ -446,7 +446,7 @@ var IPython = (function (IPython) {
                 var pre = this.element.find('div.'+subclass).last().find('pre');
                 var html = utils.fixCarriageReturn(
                     pre.html() + utils.fixConsole(text));
-                // The only user content injected with with this HTML call is
+                // The only user content injected with this HTML call is
                 // escaped by the fixConsole() method.
                 pre.html(html);
                 return;
@@ -549,7 +549,7 @@ var IPython = (function (IPython) {
         if (extra_class){
             toinsert.addClass(extra_class);
         }
-        // The only user content injected with with this HTML call is
+        // The only user content injected with this HTML call is
         // escaped by the fixConsole() method.
         toinsert.append($("<pre/>").html(data));
         element.append(toinsert);
