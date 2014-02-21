@@ -115,7 +115,7 @@ class PDFPostProcessor(PostProcessorBase):
         return self.run_command(self.bib_command, filename, 1, log_error)
 
     def clean_temp_files(self, filename):
-        """Remove temporary files created by pdflatex/bibtext."""
+        """Remove temporary files created by pdflatex/bibtex."""
         self.log.info("Removing temporary LaTeX files")
         filename = os.path.splitext(filename)[0]
         for ext in self.temp_file_exts:
