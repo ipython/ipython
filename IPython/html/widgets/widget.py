@@ -434,7 +434,7 @@ class DOMWidget(Widget):
             selclasses += class_list 
 
             class_list = ' '.join(class_list)
-        elif isinstance(class_list, str):
+        elif isinstance(class_list, string_types):
             selclasses += class_list.split(' ')
         
         self._classes[selector] = selclasses
@@ -463,7 +463,7 @@ class DOMWidget(Widget):
         if isinstance(class_list, list):
             remove_classes = class_list
             class_list = ' '.join(class_list)
-        elif isinstance(class_list, str):
+        elif isinstance(class_list, string_types):
             remove_classes = class_list.split(' ')
         
         for item in remove_classes:
