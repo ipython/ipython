@@ -92,11 +92,6 @@ IPython.security = (function (IPython) {
         };
 
         result.sanitized = caja.sanitizeWithPolicy(html, policy);
-        // caja can strip whole elements without logging,
-        // so double-check that node structure didn't change
-        if (result.safe) {
-            result.safe = cmp_tree($(result.sanitized), $(result.src));
-        }
         return result;
     };
     
@@ -107,7 +102,14 @@ IPython.security = (function (IPython) {
     
     var is_safe = function (html) {
         // just return bool for whether an HTML string is safe
-        return sanitize(html).safe;
+        var result = sanitize(html);
+        
+        // caja can strip whole elements without logging,
+        // so double-check that node structure didn't change
+        if (result.safe) {
+            result.safe = cmp_tree($(result.sanitized), $(html));
+        }
+        return result.safe;
     };
     
     return {
