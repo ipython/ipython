@@ -113,3 +113,12 @@ def post_execute():
 def post_execute_explicit():
     """Fires after user-entered code runs."""
     pass
+
+@_collect
+def shell_initialised(ip):
+    """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
+    
+    This is before extensions and startup scripts are loaded, so it can only be
+    set by subclassing.
+    """
+    pass

@@ -512,6 +512,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_payload()
         self.init_comms()
         self.hooks.late_startup_hook()
+        self.callbacks.fire('shell_initialised', self)
         atexit.register(self.atexit_operations)
 
     def get_ipython(self):
@@ -787,9 +788,10 @@ class InteractiveShell(SingletonConfigurable):
         for hook_name in hooks.__all__:
             # default hooks have priority 100, i.e. low; user hooks should have
             # 0-100 priority
-            self.set_hook(hook_name,getattr(hooks,hook_name), 100)
+            self.set_hook(hook_name,getattr(hooks,hook_name), 100, _warn_deprecated=False)
 
-    def set_hook(self,name,hook, priority = 50, str_key = None, re_key = None):
+    def set_hook(self,name,hook, priority=50, str_key=None, re_key=None,
+                 _warn_deprecated=True):
         """set_hook(name,hook) -> sets an internal IPython hook.
 
         IPython exposes some of its internal API as user-modifiable hooks.  By
@@ -818,6 +820,11 @@ class InteractiveShell(SingletonConfigurable):
         if name not in IPython.core.hooks.__all__:
             print("Warning! Hook '%s' is not one of %s" % \
                   (name, IPython.core.hooks.__all__ ))
+
+        if _warn_deprecated and (name in IPython.core.hooks.deprecated):
+            alternative = IPython.core.hooks.deprecated[name]
+            warn("Hook {} is deprecated. Use {} instead.".format(name, alternative))
+
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
 
