@@ -24,6 +24,7 @@ $(document).ready(function () {
     };
     IPython.notebook_list = new IPython.NotebookList('#notebook_list', opts);
     IPython.cluster_list = new IPython.ClusterList('#cluster_list', opts);
+    IPython.kernel_list = new IPython.KernelList('#kernel_list', opts);
     IPython.login_widget = new IPython.LoginWidget('#login_widget', opts);
 
     var interval_id=0;
