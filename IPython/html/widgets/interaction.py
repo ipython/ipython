@@ -26,7 +26,7 @@ from IPython.html.widgets import (Widget, TextWidget,
     ContainerWidget, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
-from IPython.utils.traitlets import HasTraits, TraitError, Any, Unicode
+from IPython.utils.traitlets import HasTraits, Any, Unicode
 
 empty = Parameter.empty
 
@@ -116,13 +116,13 @@ def _widget_from_abbrev(abbrev, default=empty):
         return abbrev
     
     widget = _widget_abbrev(abbrev)
-    if default is not empty and isinstance(abbrev, (list, tuple)):
+    if default is not empty and isinstance(abbrev, (list, tuple, dict)):
         # if it's not a single-value abbreviation,
         # set the initial value from the default
         try:
             widget.value = default
-        except TraitError:
-            # warn?
+        except Exception:
+            # ignore failure to set default
             pass
     if widget is None:
         raise ValueError("%r cannot be transformed to a Widget" % (abbrev,))
