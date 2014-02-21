@@ -48,7 +48,6 @@ function (marked) {
 
     var opts = {
         base_url : IPython.utils.get_body_data("baseUrl"),
-        base_kernel_url : IPython.utils.get_body_data("baseKernelUrl"),
         notebook_path : IPython.utils.get_body_data("notebookPath"),
         notebook_name : IPython.utils.get_body_data('notebookName')
     };
