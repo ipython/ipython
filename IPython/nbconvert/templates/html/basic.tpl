@@ -120,10 +120,10 @@ unknown type  {{ cell.type }}
 
 {% block data_png %}
 <img src="data:image/png;base64,{{ output.png }}"
-{%- if 'width' in output.metadata.get('png', {}) %}
+{%- if 'metadata' in output and 'width' in output.metadata.get('png', {}) %}
 width={{output.metadata['png']['width']}}
 {%- endif %}
-{%- if 'height' in output.metadata.get('png', {}) %}
+{%- if 'metadata' in output and 'height' in output.metadata.get('png', {}) %}
 height={{output.metadata['png']['height']}}
 {%- endif %}
 >
@@ -131,10 +131,10 @@ height={{output.metadata['png']['height']}}
 
 {% block data_jpg %}
 <img src="data:image/jpeg;base64,{{ output.jpeg }}"
-{%- if 'width' in output.metadata.get('jpeg', {}) %}
+{%- if 'metadata' in output and 'width' in output.metadata.get('jpeg', {}) %}
 width={{output.metadata['jpeg']['width']}}
 {%- endif %}
-{%- if 'height' in output.metadata.get('jpeg', {}) %}
+{%- if 'metadata' in output and 'height' in output.metadata.get('jpeg', {}) %}
 height={{output.metadata['jpeg']['height']}}
 {%- endif %}
 >
