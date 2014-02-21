@@ -134,7 +134,9 @@ class Comm(LoggingConfigurable):
         """Handle a comm_msg message"""
         self.log.debug("handle_msg[%s](%s)", self.comm_id, msg)
         if self._msg_callback:
+            self.shell.callbacks.fire('pre_execute')
             self._msg_callback(msg)
+            self.shell.callbacks.fire('post_execute')
 
 
 __all__ = ['Comm']

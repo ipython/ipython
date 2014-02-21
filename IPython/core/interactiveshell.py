@@ -41,6 +41,7 @@ from IPython.core import ultratb
 from IPython.core.alias import AliasManager, AliasError
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
+from IPython.core.callbacks import CallbackManager, available_callbacks
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
@@ -467,6 +468,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.init_syntax_highlighting()
         self.init_hooks()
+        self.init_callbacks()
         self.init_pushd_popd_magic()
         # self.init_traceback_handlers use to be here, but we moved it below
         # because it and init_io have to come after init_readline.
@@ -827,12 +829,21 @@ class InteractiveShell(SingletonConfigurable):
 
         setattr(self.hooks,name, dp)
 
+    #-------------------------------------------------------------------------
+    # Things related to callbacks
+    #-------------------------------------------------------------------------
+
+    def init_callbacks(self):
+        self.callbacks = CallbackManager(self, available_callbacks)
+
     def register_post_execute(self, func):
-        """Register a function for calling after code execution.
+        """DEPRECATED: Use ip.callbacks.register('post_execute_explicit', func)
+        
+        Register a function for calling after code execution.
         """
-        if not callable(func):
-            raise ValueError('argument %s must be callable' % func)
-        self._post_execute[func] = True
+        warn("ip.register_post_execute is deprecated, use "
+             "ip.callbacks.register('post_execute_explicit', func) instead.")
+        self.callbacks.register('post_execute_explicit', func)
     
     #-------------------------------------------------------------------------
     # Things related to the "main" module
@@ -2649,6 +2660,10 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
+        self.callbacks.fire('pre_execute')
+        if not silent:
+            self.callbacks.fire('pre_execute_explicit')
+
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable
         # so that we can display the error after logging the input and storing
@@ -2717,28 +2732,10 @@ class InteractiveShell(SingletonConfigurable):
                 interactivity = "none" if silent else self.ast_node_interactivity
                 self.run_ast_nodes(code_ast.body, cell_name,
                                    interactivity=interactivity, compiler=compiler)
-
-                # Execute any registered post-execution functions.
-                # unless we are silent
-                post_exec = [] if silent else iteritems(self._post_execute)
-
-                for func, status in post_exec:
-                    if self.disable_failing_post_execute and not status:
-                        continue
-                    try:
-                        func()
-                    except KeyboardInterrupt:
-                        print("\nKeyboardInterrupt", file=io.stderr)
-                    except Exception:
-                        # register as failing:
-                        self._post_execute[func] = False
-                        self.showtraceback()
-                        print('\n'.join([
-                            "post-execution function %r produced an error." % func,
-                            "If this problem persists, you can disable failing post-exec functions with:",
-                            "",
-                            "    get_ipython().disable_failing_post_execute = True"
-                        ]), file=io.stderr)
+                
+                self.callbacks.fire('post_execute')
+                if not silent:
+                    self.callbacks.fire('post_execute_explicit')
 
         if store_history:
             # Write output to the database. Does nothing unless

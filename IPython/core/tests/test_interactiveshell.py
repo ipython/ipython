@@ -27,6 +27,10 @@ import shutil
 import sys
 import tempfile
 import unittest
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 from os.path import join
 
 # third-party
@@ -277,21 +281,32 @@ class InteractiveShellTestCase(unittest.TestCase):
         # ZeroDivisionError
         self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
     
-    def test_silent_nopostexec(self):
-        """run_cell(silent=True) doesn't invoke post-exec funcs"""
-        d = dict(called=False)
-        def set_called():
-            d['called'] = True
+    def test_silent_postexec(self):
+        """run_cell(silent=True) doesn't invoke pre/post_execute_explicit callbacks"""
+        pre_explicit = mock.Mock()
+        pre_always = mock.Mock()
+        post_explicit = mock.Mock()
+        post_always = mock.Mock()
         
-        ip.register_post_execute(set_called)
-        ip.run_cell("1", silent=True)
-        self.assertFalse(d['called'])
-        # double-check that non-silent exec did what we expected
-        # silent to avoid
-        ip.run_cell("1")
-        self.assertTrue(d['called'])
-        # remove post-exec
-        ip._post_execute.pop(set_called)
+        ip.callbacks.register('pre_execute_explicit', pre_explicit)
+        ip.callbacks.register('pre_execute', pre_always)
+        ip.callbacks.register('post_execute_explicit', post_explicit)
+        ip.callbacks.register('post_execute', post_always)
+        
+        try:
+            ip.run_cell("1", silent=True)
+            assert pre_always.called
+            assert not pre_explicit.called
+            assert post_always.called
+            assert not post_explicit.called
+            # double-check that non-silent exec did what we expected
+            # silent to avoid
+            ip.run_cell("1")
+            assert pre_explicit.called
+            assert post_explicit.called
+        finally:
+            # remove post-exec
+            ip.callbacks.reset_all()
     
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""
