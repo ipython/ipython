@@ -211,6 +211,15 @@ class NotebookWebApplication(web.Application):
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : nbm.notebook_dir}),
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         ])
+        # Allow for custom handlers via config
+        custom_handlers = settings.get("custom_handlers", {})
+        for mname in custom_handlers:
+            try:
+                handlers.extend(load_handlers(mname))
+            except:
+                # TODO what to on error?
+                raise
+
         # prepend base_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
