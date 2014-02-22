@@ -76,15 +76,12 @@ class NbconvertFileHandler(IPythonHandler):
         exporter = get_exporter(format, config=self.config)
         
         path = path.strip('/')
-        os_path = self.notebook_manager.get_os_path(name, path)
-        if not os.path.isfile(os_path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
+        model = self.notebook_manager.get_notebook(name=name, path=path)
 
-        info = os.stat(os_path)
-        self.set_header('Last-Modified', tz.utcfromtimestamp(info.st_mtime))
+        self.set_header('Last-Modified', model['last_modified'])
         
         try:
-            output, resources = exporter.from_filename(os_path)
+            output, resources = exporter.from_notebook_node(model['content'])
         except Exception as e:
             raise web.HTTPError(500, "nbconvert failed: %s" % e)
 

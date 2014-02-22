@@ -62,7 +62,7 @@ class SessionRootHandler(IPythonHandler):
         if sm.session_exists(name=name, path=path):
             model = sm.get_session(name=name, path=path)
         else:
-            kernel_id = km.start_kernel(cwd=nbm.get_os_path(path))
+            kernel_id = km.start_kernel(path=path)
             model = sm.create_session(name=name, path=path, kernel_id=kernel_id)
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))

@@ -88,7 +88,7 @@ from IPython.utils.localinterfaces import localhost
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
-    DottedObjectName
+    DottedObjectName, TraitError,
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
@@ -201,8 +201,11 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
-        handlers.extend([
-            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
+        # FIXME: /files/ should be handled by the Contents service when it exists
+        nbm = settings['notebook_manager']
+        if hasattr(nbm, 'notebook_dir'):
+            handlers.extend([
+            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : nbm.notebook_dir}),
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         ])
         # prepend base_url onto the patterns that we match
@@ -278,7 +281,7 @@ aliases.update({
     'transport': 'KernelManager.transport',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
-    'notebook-dir': 'NotebookManager.notebook_dir',
+    'notebook-dir': 'NotebookApp.notebook_dir',
     'browser': 'NotebookApp.browser',
 })
 
@@ -507,6 +510,24 @@ class NotebookApp(BaseIPythonApplication):
     def _info_file_default(self):
         info_file = "nbserver-%s.json"%os.getpid()
         return os.path.join(self.profile_dir.security_dir, info_file)
+    
+    notebook_dir = Unicode(py3compat.getcwd(), config=True,
+        help="The directory to use for notebooks and kernels."
+    )
+
+    def _notebook_dir_changed(self, name, old, new):
+        """Do a bit of validation of the notebook dir."""
+        if not os.path.isabs(new):
+            # If we receive a non-absolute path, make it absolute.
+            self.notebook_dir = os.path.abspath(new)
+            return
+        if not os.path.isdir(new):
+            raise TraitError("No such notebook dir: %r" % new)
+        
+        # setting App.notebook_dir implies setting notebook and kernel dirs as well
+        self.config.FileNotebookManager.notebook_dir = new
+        self.config.MappingKernelManager.root_dir = new
+        
 
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
@@ -519,7 +540,7 @@ class NotebookApp(BaseIPythonApplication):
                 self.log.critical("No such file or directory: %s", f)
                 self.exit(1)
             if os.path.isdir(f):
-                self.config.FileNotebookManager.notebook_dir = f
+                self.notebook_dir = f
             elif os.path.isfile(f):
                 self.file_to_run = f
 
@@ -730,7 +751,7 @@ class NotebookApp(BaseIPythonApplication):
                 'port': self.port,
                 'secure': bool(self.certfile),
                 'base_url': self.base_url,
-                'notebook_dir': os.path.abspath(self.notebook_manager.notebook_dir),
+                'notebook_dir': os.path.abspath(self.notebook_dir),
                }
 
     def write_server_info_file(self):
