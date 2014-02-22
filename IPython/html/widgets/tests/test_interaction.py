@@ -22,7 +22,6 @@ import IPython.testing.tools as tt
 from IPython.html import widgets
 from IPython.html.widgets import interact, interactive, Widget, interaction
 from IPython.utils.py3compat import annotate
-# from IPython.utils.capture import capture_output
 
 #-----------------------------------------------------------------------------
 # Utility stuff
@@ -248,7 +247,7 @@ def test_list_tuple_invalid():
 
 def test_defaults():
     @annotate(n=10)
-    def f(n, f=4.5):
+    def f(n, f=4.5, g=1):
         pass
     
     c = interactive(f)
@@ -260,6 +259,64 @@ def test_defaults():
         f=dict(
             cls=widgets.FloatSliderWidget,
             value=4.5,
+        ),
+        g=dict(
+            cls=widgets.IntSliderWidget,
+            value=1,
+        ),
+    )
+
+def test_default_values():
+    @annotate(n=10, f=(0, 10.), g=5, h={'a': 1, 'b': 2}, j=['hi', 'there'])
+    def f(n, f=4.5, g=1, h=2, j='there'):
+        pass
+    
+    c = interactive(f)
+    check_widgets(c,
+        n=dict(
+            cls=widgets.IntSliderWidget,
+            value=10,
+        ),
+        f=dict(
+            cls=widgets.FloatSliderWidget,
+            value=4.5,
+        ),
+        g=dict(
+            cls=widgets.IntSliderWidget,
+            value=5,
+        ),
+        h=dict(
+            cls=widgets.DropdownWidget,
+            values={'a': 1, 'b': 2},
+            value=2
+        ),
+        j=dict(
+            cls=widgets.DropdownWidget,
+            values={'hi':'hi', 'there':'there'},
+            value='there'
+        ),
+    )
+
+def test_default_out_of_bounds():
+    @annotate(f=(0, 10.), h={'a': 1}, j=['hi', 'there'])
+    def f(f='hi', h=5, j='other'):
+        pass
+    
+    c = interactive(f)
+    check_widgets(c,
+        f=dict(
+            cls=widgets.FloatSliderWidget,
+            value=5.,
+        ),
+        h=dict(
+            cls=widgets.DropdownWidget,
+            values={'a': 1},
+            value=1,
+        ),
+        j=dict(
+            cls=widgets.DropdownWidget,
+            values={'hi':'hi', 'there':'there'},
+            value='hi',
         ),
     )
 

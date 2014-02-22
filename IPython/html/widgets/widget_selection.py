@@ -90,6 +90,8 @@ class _SelectionWidget(DOMWidget):
                         # set the selected value name
                         self.value_name = k
                         return
+                # undo the change, and raise KeyError
+                self.value = old
                 raise KeyError(new)
             finally:
                 self.value_lock.release()
