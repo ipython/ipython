@@ -134,18 +134,18 @@ class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, notebook_manager,
                  cluster_manager, session_manager, log, base_url,
-                 settings_overrides):
+                 settings_overrides, jinja_env_options):
 
         settings = self.init_settings(
             ipython_app, kernel_manager, notebook_manager, cluster_manager,
-            session_manager, log, base_url, settings_overrides)
+            session_manager, log, base_url, settings_overrides, jinja_env_options)
         handlers = self.init_handlers(settings)
 
         super(NotebookWebApplication, self).__init__(handlers, **settings)
 
     def init_settings(self, ipython_app, kernel_manager, notebook_manager,
                       cluster_manager, session_manager, log, base_url,
-                      settings_overrides):
+                      settings_overrides, jinja_env_options=None):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_url will always be unicode, which will in turn
         # make the patterns unicode, and ultimately result in unicode
@@ -156,6 +156,8 @@ class NotebookWebApplication(web.Application):
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_url = py3compat.unicode_to_str(base_url, 'ascii')
         template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
+        jenv_opt = jinja_env_options if jinja_env_options else {}
+        env = Environment(loader=FileSystemLoader(template_path),**jenv_opt )
         settings = dict(
             # basics
             log_function=log_request,
@@ -180,7 +182,7 @@ class NotebookWebApplication(web.Application):
             nbextensions_path = ipython_app.nbextensions_path,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
-            jinja2_env=Environment(loader=FileSystemLoader(template_path)),
+            jinja2_env=env,
         )
 
         # allow custom overrides for the tornado web app.
@@ -397,6 +399,10 @@ class NotebookApp(BaseIPythonApplication):
     webapp_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
                  "IPython notebook uses.")
+
+    jinja_environment_options = Dict(config=True, 
+            help="Supply extra arguments that will be passed to Jinja environment.")
+
     
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
@@ -578,7 +584,8 @@ class NotebookApp(BaseIPythonApplication):
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, 
             self.cluster_manager, self.session_manager,
-            self.log, self.base_url, self.webapp_settings
+            self.log, self.base_url, self.webapp_settings,
+            self.jinja_environment_options
         )
         if self.certfile:
             ssl_options = dict(certfile=self.certfile)
