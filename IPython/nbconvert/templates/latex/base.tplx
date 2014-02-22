@@ -89,7 +89,7 @@ This template does not define a docclass, the inheriting class must define this.
     \def\gt{>}
     \def\lt{<}
     % Document parameters
-    ((* block title *))\title{((( resources.metadata.name | escape_latex )))}((* endblock title *))
+    ((* block title *))\title{((( resources.metadata.name | ascii_only | escape_latex )))}((* endblock title *))
     ((* block date *))((* endblock date *))
     ((* block author *))((* endblock author *))
     ((* endblock definitions *))
