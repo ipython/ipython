@@ -347,10 +347,7 @@ class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
     _css = Dict(sync=True) # Internal CSS property dict
     _class_messages = List()
-    
-    
-    
-    
+      
     def __init__(self, **kwargs):
         super(DOMWidget, self).__init__(**kwargs)
         self.on_displayed(DOMWidget._sync_classes)
@@ -426,28 +423,19 @@ class DOMWidget(Widget):
             be added to.
         """
                 
-        
         class_list = class_names
-        
-        
+
         if isinstance(class_list, list):
-            class_list = ' '.join(class_list)
-        
+            class_list = ' '.join(class_list) 
         message = {
             "msg_type"   : "add_class",
             "class_list" : class_list,
             "selector"   : selector
         }
-        
         if self.displayed:
             self.send(message)
         else:
             self._class_messages += [message]
-       
-        
-        
-
-        
 
     def remove_class(self, class_names, selector=""):
         """Remove class[es] from a DOM element.
