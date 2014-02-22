@@ -371,7 +371,12 @@ class TraitType(object):
         new_value = self._validate(obj, value)
         old_value = self.__get__(obj)
         obj._trait_values[self.name] = new_value
-        if old_value != new_value:
+        try:
+            notify = (old_value != new_value)
+        except:
+            # if there is an error in comparing, default to notify
+            notify = True
+        if notify:
             obj._notify_trait(self.name, old_value, new_value)
 
     def _validate(self, obj, value):
