@@ -37,7 +37,6 @@ function(WidgetManager, _, Backbone){
             this.msg_buffer = null;
             this.key_value_lock = null;
             this.id = model_id;
-            this.views = [];
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -66,9 +65,6 @@ function(WidgetManager, _, Backbone){
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.model_id; // Delete id from model so widget manager cleans up.
-            _.each(this.views, function(view, i) {
-                view.remove();
-            });
         },
 
         _handle_comm_msg: function (msg) {
@@ -283,7 +279,6 @@ function(WidgetManager, _, Backbone){
             this.model.on('change',this.update,this);
             this.options = parameters.options;
             this.child_views = [];
-            this.model.views.push(this);
         },
 
         update: function(){
