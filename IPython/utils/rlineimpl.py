@@ -12,51 +12,24 @@ boolean and _outputfile variable used in IPython.utils.
 import sys
 import warnings
 
-if sys.platform == 'darwin':
-    # dirty trick, to skip the system readline, because pip-installed readline
-    # will never be found on OSX, since lib-dynload always comes ahead of site-packages
-    from distutils import sysconfig
-    lib_dynload = sysconfig.get_config_var('DESTSHARED')
-    del sysconfig
+_rlmod_names = ['gnureadline', 'readline']
+if sys.platform == 'win32' or sys.platform == 'cli':
+    _rlmod_names.append('pyreadline')
+
+have_readline = False
+for _rlmod_name in _rlmod_names:
     try:
-        dynload_idx = sys.path.index(lib_dynload)
-    except ValueError:
-        dynload_idx = None
-    else:
-        sys.path.pop(dynload_idx)
-try:
-    from readline import *
-    import readline as _rl
-    have_readline = True
-except ImportError:
-    try:
-        from pyreadline import *
-        import pyreadline as _rl
-        have_readline = True
+        # import readline as _rl
+        _rl = __import__(_rlmod_name)
+        # from readline import *
+        globals().update({k:v for k,v in _rl.__dict__.items() if not k.startswith('_')})
     except ImportError:
-        have_readline = False
+        pass
+    else:
+        have_readline = True
+        break
 
-if sys.platform == 'darwin':
-    # dirty trick, part II:
-    if dynload_idx is not None:
-        # restore path
-        sys.path.insert(dynload_idx, lib_dynload)
-        if not have_readline:
-            # *only* have system readline, try import again
-            try:
-                from readline import *
-                import readline as _rl
-                have_readline = True
-            except ImportError:
-                have_readline = False
-            else:
-                # if we want to warn about EPD / Fink having bad readline
-                # we would do it here
-                pass
-    # cleanup dirty trick vars
-    del dynload_idx, lib_dynload
-
-if (sys.platform == 'win32' or sys.platform == 'cli') and have_readline:
+if _rlmod_name == 'pyreadline':
     try:
         _outputfile=_rl.GetOutputFile()
     except AttributeError:
@@ -84,12 +57,8 @@ if uses_libedit and sys.platform == 'darwin':
         "   * incorrect history navigation",
         "   * corrupting long-lines",
         "   * failure to wrap or indent lines properly",
-        "It is highly recommended that you install readline, which is easy_installable:",
-        "     easy_install -a readline",
-        "Note that `pip install readline` generally DOES NOT WORK, because",
-        "it installs to site-packages, which come *after* lib-dynload in sys.path,",
-        "where readline is located.  It must be `easy_install -a readline`, or to a custom",
-        "location on your PYTHONPATH (even --user comes after lib-dyload).",
+        "It is highly recommended that you install gnureadline, which is installable with:",
+        "     pip install gnureadline",
         "*"*78]),
         RuntimeWarning)
 
