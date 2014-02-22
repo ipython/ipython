@@ -62,6 +62,7 @@ default_filters = {
         'citation2latex': filters.citation2latex,
         'path2url': filters.path2url,
         'add_prompts': filters.add_prompts,
+        'ascii_only': filters.ascii_only,
 }
 
 #-----------------------------------------------------------------------------
