@@ -39,9 +39,11 @@ class SVG2PDFPreprocessor(ConvertFiguresPreprocessor):
     """
     Converts all of the outputs in a notebook from SVG to PDF.
     """
-
-    from_format = Unicode('svg', config=True, help='Format the converter accepts')
-    to_format = Unicode('pdf', config=False, help='Format the converter writes')
+    
+    def _from_format_default(self):
+        return 'svg'
+    def _to_format_default(self):
+        return 'application/pdf'
     
     command = Unicode(config=True,
         help="""The command to use for converting SVG to PDF

@@ -16,6 +16,7 @@ notebook file.  The extracted outputs are returned in the 'resources' dictionary
 import base64
 import sys
 import os
+from mimetypes import guess_extension
 
 from IPython.utils.traitlets import Unicode, Set
 from .base import Preprocessor
@@ -32,9 +33,9 @@ class ExtractOutputPreprocessor(Preprocessor):
     """
 
     output_filename_template = Unicode(
-        "{unique_key}_{cell_index}_{index}.{extension}", config=True)
+        "{unique_key}_{cell_index}_{index}{extension}", config=True)
 
-    extract_output_types = Set({'png', 'jpg', 'svg', 'pdf'}, config=True)
+    extract_output_types = Set({'png', 'jpg', 'svg', 'application/pdf'}, config=True)
 
     def preprocess_cell(self, cell, resources, cell_index):
         """
@@ -66,11 +67,11 @@ class ExtractOutputPreprocessor(Preprocessor):
 
             #Get the output in data formats that the template needs extracted
             for out_type in self.extract_output_types:
-                if out.hasattr(out_type): 
+                if out_type in out:
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if out_type in ('png', 'jpg', 'jpeg', 'pdf'):
+                    if out_type in {'png', 'jpg', 'application/pdf'}:
 
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
@@ -81,12 +82,20 @@ class ExtractOutputPreprocessor(Preprocessor):
                     else:
                         data = data.encode("UTF-8")
                     
-                    #Build an output name
-                    filename = self.output_filename_template.format( 
+                    # Build an output name
+                    # filthy hack while we have some mimetype output, and some not
+                    if '/' in out_type:
+                        ext = guess_extension(out_type)
+                        if ext is None:
+                            ext = '.' + out_type.rsplit('/')[-1]
+                    else:
+                        ext = '.' + out_type
+                    
+                    filename = self.output_filename_template.format(
                                     unique_key=unique_key,
                                     cell_index=cell_index,
                                     index=index,
-                                    extension=out_type)
+                                    extension=ext)
 
                     #On the cell, make the figure available via 
                     #   cell.outputs[i].svg_filename  ... etc (svg in example)

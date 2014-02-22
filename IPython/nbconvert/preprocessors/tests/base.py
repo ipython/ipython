@@ -36,11 +36,14 @@ class PreprocessorTestsBase(TestsBase):
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="d"),
                    nbformat.new_output(output_type="stream", stream="stderr", output_text="e"),
                    nbformat.new_output(output_type="stream", stream="stderr", output_text="f"),
-                   nbformat.new_output(output_type="png", output_png='Zw==')] #g
+                   nbformat.new_output(output_type="png", output_png='Zw==')] # g
+        out = nbformat.new_output(output_type="application/pdf")
+        out['application/pdf'] = 'aA==' # h
+        outputs.append(out)
         
         cells=[nbformat.new_code_cell(input="$ e $", prompt_number=1,outputs=outputs),
                nbformat.new_text_cell('markdown', source="$ e $")]
-        worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
+        worksheets = [nbformat.new_worksheet(cells=cells)]
 
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
 
