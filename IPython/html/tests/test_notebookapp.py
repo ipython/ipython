@@ -11,6 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
 import os
 from tempfile import NamedTemporaryFile
 
@@ -31,7 +32,7 @@ def test_help_output():
     tt.help_all_output_test('notebook')
 
 def test_server_info_file():
-    nbapp = NotebookApp(profile='nbserver_file_test')
+    nbapp = NotebookApp(profile='nbserver_file_test', log=logging.getLogger())
     def get_servers():
         return list(notebookapp.list_running_servers(profile='nbserver_file_test'))
     nbapp.initialize(argv=[])

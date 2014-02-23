@@ -14,6 +14,7 @@ Module with tests for the PDF post-processor
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
 import os
 
 from IPython.testing import decorators as dec
@@ -56,7 +57,7 @@ class TestPDF(TestsBase):
                 f.write(HELLO_WORLD)
 
             # Construct post-processor
-            processor = PDFPostProcessor()
+            processor = PDFPostProcessor(log=logging.getLogger())
             processor.verbose = False
             processor('a.tex')
 
