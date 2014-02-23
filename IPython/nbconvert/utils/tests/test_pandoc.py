@@ -42,7 +42,7 @@ class TestPandoc(TestsBase):
 
         # original_env["PATH"] should contain pandoc
         os.environ["PATH"] = self.original_env["PATH"]
-        with warnings.catch_warnings(True) as w:
+        with warnings.catch_warnings(record=True) as w:
             pandoc.get_pandoc_version()
             pandoc.check_pandoc_version()
             pandoc.pandoc("", "markdown", "html")
@@ -53,7 +53,7 @@ class TestPandoc(TestsBase):
         original_minversion = pandoc._minimal_version
         
         pandoc._minimal_version = "120.0"
-        with warnings.catch_warnings(True) as w:
+        with warnings.catch_warnings(record=True) as w:
             assert not pandoc.check_pandoc_version()
         self.assertEqual(len(w), 1)
 
