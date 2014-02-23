@@ -14,7 +14,7 @@
 
 import os
 
-from IPython.testing.decorators import onlyif_cmds_exist
+from IPython.testing.decorators import onlyif_any_cmd_exists
 
 from ...tests.base import TestsBase
 
@@ -39,7 +39,7 @@ class ExportersTestsBase(TestsBase):
     def _get_notebook(self, nb_name='notebook2.ipynb'):
         return os.path.join(self._get_files_path(), nb_name)
     
-    @onlyif_cmds_exist('pandoc')
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_raw_cell_inclusion(self):
         """test raw cell inclusion based on raw_mimetype metadata"""
         if self.should_include_raw is None:
