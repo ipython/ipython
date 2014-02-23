@@ -13,8 +13,6 @@ import sys
 import warnings
 
 _rlmod_names = ['gnureadline', 'readline']
-if sys.platform == 'win32' or sys.platform == 'cli':
-    _rlmod_names.append('pyreadline')
 
 have_readline = False
 for _rlmod_name in _rlmod_names:
@@ -29,7 +27,7 @@ for _rlmod_name in _rlmod_names:
         have_readline = True
         break
 
-if _rlmod_name == 'pyreadline':
+if sys.platform == 'win32' or sys.platform == 'cli':
     try:
         _outputfile=_rl.GetOutputFile()
     except AttributeError:
