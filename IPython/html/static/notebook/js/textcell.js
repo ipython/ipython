@@ -80,7 +80,7 @@ var IPython = (function (IPython) {
         var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
-        var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
+        var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
@@ -193,7 +193,7 @@ var IPython = (function (IPython) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
             output.hide();
-            text_cell.find('div.text_cell_input').show();
+            text_cell.find('div.input_area').show();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
             }
@@ -361,7 +361,7 @@ var IPython = (function (IPython) {
                         .html()
                 );
             }
-            this.element.find('div.text_cell_input').hide();
+            this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
             this.typeset();
         }
@@ -542,7 +542,7 @@ var IPython = (function (IPython) {
             // user input and should be handled before set_rendered.         
             this.set_rendered(h);
             this.typeset();
-            this.element.find('div.text_cell_input').hide();
+            this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
 
         }
