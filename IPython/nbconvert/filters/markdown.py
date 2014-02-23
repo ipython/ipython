@@ -67,7 +67,7 @@ def markdown2html_pandoc(source):
 
 def markdown2html_marked(source, encoding='utf-8'):
     """Convert a markdown string to HTML via marked"""
-    command = ['node', marked]
+    command = [node_cmd, marked]
     try:
         p = subprocess.Popen(command,
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE
@@ -99,9 +99,18 @@ def markdown2rst(source):
     """
     return pandoc(source, 'markdown', 'rst')
 
+# prefer md2html via marked if node.js is available
+# node is called nodejs on debian, so try that first
+node_cmd = 'nodejs'
 try:
-    find_cmd('node')
+    find_cmd(node_cmd)
 except FindCmdError:
-    markdown2html = markdown2html_pandoc
+    node_cmd = 'node'
+    try:
+        find_cmd(node_cmd)
+    except FindCmdError:
+        markdown2html = markdown2html_pandoc
+    else:
+        markdown2html = markdown2html_marked
 else:
     markdown2html = markdown2html_marked
