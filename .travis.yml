@@ -11,7 +11,7 @@ before_install:
     # Pierre Carrier's PPA for PhantomJS and CasperJS
     - sudo add-apt-repository -y ppa:pcarrier/ppa
     - sudo apt-get update
-    - sudo apt-get install pandoc casperjs
+    - sudo apt-get install pandoc casperjs nodejs
 install:
     - python setup.py install -q 
 script:
