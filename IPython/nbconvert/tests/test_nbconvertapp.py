@@ -21,12 +21,6 @@ from .base import TestsBase
 import IPython.testing.tools as tt
 from IPython.testing import decorators as dec
 
-
-#-----------------------------------------------------------------------------
-# Constants
-#-----------------------------------------------------------------------------
-
-
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -85,7 +79,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook2.ipynb']):
             os.rename('notebook2.ipynb', 'notebook with spaces.ipynb')
-            o,e = self.call('nbconvert --log-level 0 --to latex '
+            self.call('nbconvert --log-level 0 --to latex '
                             '"notebook with spaces" --post PDF '
                             '--PDFPostProcessor.verbose=True')
             assert os.path.isfile('notebook with spaces.tex')
@@ -194,15 +188,14 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert --log-level 0 --to python nb1_*')
             assert os.path.isfile(u'nb1_análisis.py')
     
-    @dec.onlyif_cmds_exist('pdflatex')
-    @dec.onlyif_cmds_exist('pandoc')
-    def test_filename_accent(self):
+    @dec.onlyif_cmds_exist('pdflatex', 'pandoc')
+    def test_filename_accent_pdf(self):
         """
         Generate PDFs if notebooks have an accent in their name?
         """
         with self.create_temp_cwd():
             self.create_empty_notebook(u'nb1_análisis.ipynb')
-            o,e = self.call('nbconvert --log-level 0 --to latex '
+            self.call('nbconvert --log-level 0 --to latex '
                             '"nb1_*" --post PDF '
                             '--PDFPostProcessor.verbose=True')
             assert os.path.isfile(u'nb1_análisis.tex')
