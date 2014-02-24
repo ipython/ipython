@@ -74,7 +74,7 @@ $(document).ready(function () {
     
     // bound the upload method to the on change of the file select list
     $("#alternate_upload").change(function (event){
-        IPython.notebook_list.handelFilesUpload(event,'form');
+        IPython.notebook_list.handleFilesUpload(event,'form');
     });
     
     // set hash on tab click

@@ -47,12 +47,12 @@ var IPython = (function (IPython) {
             return false;
         });
         this.element.bind('drop', function(event){
-            that.handelFilesUpload(event,'drop');
+            that.handleFilesUpload(event,'drop');
             return false;
         });
     };
 
-    NotebookList.prototype.handelFilesUpload =  function(event, dropOrForm) {
+    NotebookList.prototype.handleFilesUpload =  function(event, dropOrForm) {
         var that = this;
         var files;
         if(dropOrForm =='drop'){
