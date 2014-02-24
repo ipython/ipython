@@ -332,12 +332,12 @@ class NotebookApp(BaseIPythonApplication):
     auto_create = Bool(True)
 
     # file to be opened in the notebook server
-    file_to_run = Unicode('')
+    file_to_run = Unicode('', config=True)
     def _file_to_run_changed(self, name, old, new):
         path, base = os.path.split(new)
         if path:
             self.file_to_run = base
-        self.notebook_dir = path
+            self.notebook_dir = path
 
     # Network related information.
 
@@ -550,15 +550,13 @@ class NotebookApp(BaseIPythonApplication):
             if not os.path.exists(f):
                 self.log.critical("No such file or directory: %s", f)
                 self.exit(1)
+            
+            # Use config here, to ensure that it takes higher priority than
+            # anything that comes from the profile.
             if os.path.isdir(f):
-                old = self.notebook_dir
-                self.notebook_dir = f
-                if old == self.notebook_dir:
-                    # force trigger on-change event if it didn't fire,
-                    # so that descendent config fires
-                    self._notebook_dir_changed('notebook_dir', old, self.notebook_dir)
+                self.config.NotebookApp.notebook_dir = f
             elif os.path.isfile(f):
-                self.file_to_run = f
+                self.config.NotebookApp.file_to_run = f
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
