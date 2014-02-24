@@ -26,10 +26,9 @@ var IPython = (function (IPython) {
         var len  = d.length;
         var item;
         for (var i=0; i < d.length; i++) {
-            var path = utils.url_path_join(d[i].notebook.path, d[i].notebook.name);
-            var name = d[i].name;
+            var path= utils.url_path_join(d[i].notebook.path, d[i].notebook.name);
             item = this.new_notebook_item(i);
-            this.add_link(path, path, item);
+            this.add_link('', path, item);
             this.sessions[path] = d[i].id;
             this.add_shutdown_button(item,this.sessions[path]);
         }
