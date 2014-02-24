@@ -77,7 +77,7 @@ casper.notebook_test(function () {
             test_pack(input);
             test_unpack(input);
         };
-        
+
         test_packing({0: 'hi', 1: 'bye'});
         test_packing(['hi', 'bye']);
         test_packing(['hi', 5]);
@@ -136,6 +136,47 @@ casper.notebook_test(function () {
     this.execute_cell_then(index, function(index) {
         this.test.assertEquals(this.get_output_cell(index).text.trim(), '3',
             'Multiple model.set calls sent a partial state.');
+
+        // Test update invoked update (front-end).
+        this.evaluate(function() {
+            var UpdateUpdate = IPython.DOMWidgetView.extend({
+                render: function(){
+                    this.model.on('change', this.model_changed, this);
+                },
+                model_changed: function() {
+                    if (this.model.get('a') !== 2) {
+                        this.model.set('a', 2);
+                        this.model.set('b', 3);
+                        this.touch();    
+                    }
+                },
+            });
+            IPython.WidgetManager.register_widget_view('UpdateUpdate', UpdateUpdate);
+        }, {});
+    });
+
+    // Try creating the updateupdate widget, verify that sets the values correctly.
+    var updateupdate = {};
+    updateupdate.index = this.append_cell(
+        'class UpdateUpdateWidget(widgets.Widget):\n' +
+        '    _view_name = Unicode("UpdateUpdate", sync=True)\n' +
+        '    a = CInt(0, sync=True)\n' +
+        '    b = CInt(0, sync=True)\n' +
+        'updateupdate = UpdateUpdateWidget()\n' +
+        'display(updateupdate)\n' +
+        'updateupdate.a = 1\n' +
+        'print(updateupdate.model_id)');
+    this.execute_cell_then(updateupdate.index, function(index) {
+        updateupdate.model_id = this.get_output_cell(index).text.trim();
+    });
+
+    this.wait_for_widget(updateupdate);
+
+    index = this.append_cell(
+        'print("%d%d" % (updateupdate.a, updateupdate.b))');
+    this.execute_cell_then(index, function(index) {
+        this.test.assertEquals(this.get_output_cell(index).text.trim(), '23',
+            'Update invoked update in the front-end synced to the back-end.');
     });
 
     var textbox = {};

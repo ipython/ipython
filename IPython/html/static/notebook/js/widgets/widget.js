@@ -36,6 +36,8 @@ function(WidgetManager, _, Backbone){
             this.pending_msgs = 0;
             this.msg_buffer = null;
             this.key_value_lock = null;
+            this.setting_lock = 0;
+            this.save_called = null;
             this.id = model_id;
             this.views = [];
 
@@ -136,14 +138,24 @@ function(WidgetManager, _, Backbone){
         },
 
         set: function(key, val, options) {
-            // Set a value.
-            var return_value = WidgetModel.__super__.set.apply(this, arguments);
+            this.setting_lock++;
+            try {
+                // Set a value.
+                var return_value = WidgetModel.__super__.set.apply(this, arguments);
 
-            // Backbone only remembers the diff of the most recent set()
-            // operation.  Calling set multiple times in a row results in a 
-            // loss of diff information.  Here we keep our own running diff.
-            this._buffered_state_diff = $.extend(this._buffered_state_diff, this.changedAttributes() || {});
-            return return_value;
+                // Backbone only remembers the diff of the most recent set()
+                // operation.  Calling set multiple times in a row results in a 
+                // loss of diff information.  Here we keep our own running diff.
+                this._buffered_state_diff = $.extend(this._buffered_state_diff, this.changedAttributes() || {});
+                return return_value;
+            } finally {
+                this.setting_lock--;
+
+                if (this.setting_lock === 0 && this.save_called) {
+                    this.save_changes(this.save_called);
+                    this.save_called = null;
+                }
+            }
         },
 
         sync: function (method, model, options) {
@@ -216,7 +228,11 @@ function(WidgetManager, _, Backbone){
             // Push this model's state to the back-end
             //
             // This invokes a Backbone.Sync.
-            this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
+            if (this.setting_lock > 0) {
+                this.save_called = {patch: true, callbacks: callbacks};
+            } else if (! _.isEmpty(this._buffered_state_diff)) {
+                this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});    
+            }
         },
 
         _pack_models: function(value) {
