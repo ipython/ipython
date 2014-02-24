@@ -115,20 +115,12 @@ var IPython = (function (IPython) {
             that.select(index);
         });
 
-        $([IPython.events]).on('edit_mode.Cell', function (event, data) {
-            console.log('edit mode cell');
-            var index = that.find_cell_index(data.cell);
-            that.select(index);
-            that.edit_mode();
+        $([IPython.events]).on('focus_text.Cell', function (event, data) {
+            that.handle_cell_text_focus(that.find_cell_index(data.cell));
         });
 
-        $([IPython.events]).on('command_mode.Cell', function (event, data) {
-            console.log('command mode cell');
-            // In Firefox the focus event is called before the blur event.  In 
-            // other words, two cells elements may be focused at any given time.
-            // Here we verify that no cells are currently in edit mode before 
-            // putting the entire notebook in command mode.     
-            that.command_mode();
+        $([IPython.events]).on('blur_text.Cell', function (event, data) {
+            that.handle_cell_text_blur(that.find_cell_index(data.cell));
         });
 
         $([IPython.events]).on('status_autorestarting.Kernel', function () {
@@ -465,6 +457,8 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index();
             if (sindex !== null && index !== sindex) {
+                // Put the cell in command mode and unselect it.
+                this.get_cell(sindex).command_mode(); 
                 this.get_cell(sindex).unselect();
             }
             var cell = this.get_cell(index);
@@ -509,41 +503,67 @@ var IPython = (function (IPython) {
 
     // Edit/Command mode
 
-    Notebook.prototype.get_edit_index = function () {
+    Notebook.prototype.get_edit_index = function (ignore_index) {
         var result = null;
         this.get_cell_elements().filter(function (index) {
             if ($(this).data("cell").mode === 'edit') {
-                result = index;
+                if (ignore_index===undefined || ignore_index!==index) {
+                    result = index;    
+                }
             }
         });
         return result;
     };
 
     Notebook.prototype.command_mode = function () {
-        console.log('cell.command_mode');
+        console.log('notebook command_mode()');
+
+        // Make sure there isn't an edit mode cell lingering around.
+        var cell = this.get_cell(this.get_edit_index());
+        if (cell) {
+            cell.command_mode();
+        }
+
+        // Notify the keyboard manager if this is a change of mode for the 
+        // notebook as a whole.
         if (this.mode !== 'command') {
-            $([IPython.events]).trigger('command_mode.Notebook');
-            var index = this.get_edit_index();
-            var cell = this.get_cell(index);
-            if (cell) {
-                cell.command_mode();
-            }
             this.mode = 'command';
+            $([IPython.events]).trigger('command_mode.Notebook');
             IPython.keyboard_manager.command_mode();
         }
     };
 
-    Notebook.prototype.edit_mode = function () {
-        console.log('cell.edit_mode');
+    Notebook.prototype.edit_mode = function (index) {
+        console.log('notebook edit_mode()');
+
+        // Either use specified index or selected cell's index.
+        // Must explictly check for undefined CBool(0) = false.
+        if (index===undefined) {
+            index = this.get_selected_index();
+        }
+        var cell = this.get_cell(index);
+        // Make sure the cell exists.
+        if (cell === null) { return; }
+
+        // If another cell is currently in edit mode set it to command mode.
+        var edit_index = this.get_edit_index(index);
+        if (edit_index !== null) { // Must explictly check for null CBool(0) = false.
+            var edit_cell = this.get_cell(edit_index);
+            if (edit_cell) {
+                edit_cell.command_mode();
+            }
+        }
+
+        // Set the cell to edit mode and notify the keyboard manager if this
+        // is a change of mode for the notebook as a whole.
+        if (this.get_selected_index()!==index) {
+            this.select(index);
+        }
+        cell.edit_mode();
         if (this.mode !== 'edit') {
-            $([IPython.events]).trigger('edit_mode.Notebook');
-            var cell = this.get_selected_cell();
-            if (cell === null) {return;}  // No cell is selected
-            // We need to set the mode to edit to prevent reentering this method
-            // when cell.edit_mode() is called below.
             this.mode = 'edit';
+            $([IPython.events]).trigger('edit_mode.Notebook');
             IPython.keyboard_manager.edit_mode();
-            cell.edit_mode();
         }
     };
 
@@ -551,6 +571,36 @@ var IPython = (function (IPython) {
         var cell = this.get_selected_cell();
         if (cell === null) {return;}  // No cell is selected
         cell.focus_cell();
+    };
+
+    Notebook.prototype.handle_cell_text_focus = function (index) {
+        this.edit_mode(index);
+    };
+
+    Notebook.prototype.handle_cell_text_blur = function (index) {
+        var cell = this.get_cell(index);
+        if (!cell) {return;}
+
+        // Only respect the blur event if the tooltip and autocompleter are
+        // not visible.
+        var tooltip_visible = IPython.tooltip && IPython.tooltip.is_visible();
+        var completer_visible = cell.completer && cell.completer.is_visible();
+        if (!tooltip_visible && !completer_visible) {
+            // In Firefox the focus event is called before the blur event.  In 
+            // other words, two cells elements may be focused at any given time.
+            // This has been witnessed on Win7 x64 w/ FF 25.  Here we only put the
+            // entire notebook in command mode iff the cell textbox being blured is
+            // the one that is currently in edit mode.  Otherwise, we assume the
+            // event order has been reversed and we just put this particular cell
+            // in command mode.
+            if (index===this.get_edit_index(index)) {
+                console.log('full command_mode');
+                this.command_mode();
+            } else {
+                console.log('cell command_mode');
+                cell.command_mode();
+            }    
+        }
     };
 
     // Cell movement
@@ -1411,8 +1461,8 @@ var IPython = (function (IPython) {
         
         console.log('execute cell command_mode');
         cell.execute();
-        this.command_mode();
         cell.focus_cell();
+        this.command_mode();
         this.set_dirty(true);
     };
 
@@ -1467,6 +1517,7 @@ var IPython = (function (IPython) {
 
         this.select(cell_index+1);
         this.get_cell(cell_index+1).focus_cell();
+        this.command_mode();
         this.set_dirty(true);
     };
 

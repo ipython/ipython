@@ -118,7 +118,7 @@ var IPython = (function (IPython) {
         } else {
             this.element.addClass('command_mode');
         }
-    }
+    };
 
 
     /**
@@ -133,12 +133,12 @@ var IPython = (function (IPython) {
         that.element.click(function (event) {
             if (!that.selected) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            };
+            }
         });
         that.element.focusin(function (event) {
             if (!that.selected) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            };
+            }
         });
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
@@ -147,31 +147,12 @@ var IPython = (function (IPython) {
         }
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
-                console.log('cell focused');
-                if (that._continue_blur) {
-                    that._continue_blur = false;
-                } else {
-                    if (that.mode === 'command') {
-                        $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
-                    }
-                }
+                $([IPython.events]).trigger('focus_text.Cell', {cell: that});
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                console.log('cell blur');
-                that._continue_blur = true;
-                setTimeout($.proxy(function () {
-                    if (that._continue_blur) {
-                        console.log('cell blur> edit true> callback');
-                        var isf = IPython.utils.is_focused;
-                        if (! (isf('div#tooltip') || isf('div.completions'))) {
-                            if (that.mode === 'edit') {
-                                $([IPython.events]).trigger('command_mode.Cell', {cell: that});
-                            }
-                        }
-                    }
-                }, that), 1);
+                $([IPython.events]).trigger('blur_text.Cell', {cell: that});
             });
         }
     };
@@ -281,7 +262,7 @@ var IPython = (function (IPython) {
         } else {
             return false;
         }
-    }
+    };
 
     /**
      * Focus the cell in the DOM sense
@@ -289,24 +270,7 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.focus_cell = function () {
         this.element.focus();
-    }
-
-    /**
-     * Focus the editor area so a user can type
-     * @method focus_editor
-     */
-    Cell.prototype.focus_editor = function () {
-        var that = this;
-        this.refresh();
-        // Only focus the CM editor if it is not focused already. This prevents jumps
-        // related to the previous prompt position.
-        setTimeout(function () {
-            var isf = IPython.utils.is_focused;
-            if (!isf(that.element.find('div.CodeMirror'))) {
-                that.code_mirror.focus();
-            }
-        }, 1);
-    }
+    };
 
     /**
      * Refresh codemirror instance

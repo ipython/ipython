@@ -391,6 +391,14 @@ var IPython = (function (IPython) {
         return cont;
     };
 
+    CodeCell.prototype.unselect = function () {
+        var cont = IPython.Cell.prototype.unselect.apply(this);
+        if (cont) {
+            this.code_mirror.getInputField().blur();
+        }
+        return cont;
+    };
+
     CodeCell.prototype.render = function () {
         var cont = IPython.Cell.prototype.render.apply(this);
         // Always execute, even if we are already in the rendered state
@@ -404,11 +412,27 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.edit_mode = function () {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
-        if (cont) {
+        if (this.mode === 'edit') {
             this.focus_editor();
         }
         return cont;
-    }
+    };
+
+    /**
+     * Focus the editor area so a user can type
+     * @method focus_editor
+     */
+    CodeCell.prototype.focus_editor = function () {
+        // Only focus the CM editor if it is not focused already. This prevents 
+        // jumps related to the previous prompt position.  Here we can't use
+        // IPython.utils.is_focused since it uses document.activeElement which
+        // may not be set by the time this is called.  Instead look at the input
+        // element of codemirror directly to see if it is focused.  Use the
+        // jQuery :focus pseudo selector (http://api.jquery.com/focus-selector/)
+        if (!$(this.code_mirror.win).is(':focus')) {
+            this.code_mirror.focus();
+        }
+    };
 
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};

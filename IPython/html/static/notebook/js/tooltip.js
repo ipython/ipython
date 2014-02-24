@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
             // expand the tooltip to see more
             var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
             .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press tab 2 times)').click(function () {
-                that.expand()
+                that.expand();
             }).append(
             $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
 
@@ -121,8 +121,12 @@ var IPython = (function (IPython) {
                 this._old_cell = (cell) ? cell : null;
                 this._old_request = (text) ? text : null;
                 this._consecutive_counter = 0;
-            }
+            };
         };
+
+    Tooltip.prototype.is_visible = function () {
+        return !this._hidden;
+    };
 
     Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
@@ -139,27 +143,27 @@ var IPython = (function (IPython) {
             'store_history': true
         });
         this.remove_and_cancel_tooltip();
-    }
+    };
 
     // grow the tooltip verticaly
     Tooltip.prototype.expand = function () {
         this.text.removeClass('smalltooltip');
         this.text.addClass('bigtooltip');
         $('#expanbutton').hide('slow');
-    }
+    };
 
     // deal with all the logic of hiding the tooltip
     // and reset it's status
     Tooltip.prototype._hide = function () {
+        this._hidden = true;
         this.tooltip.fadeOut('fast');
         $('#expanbutton').show('slow');
         this.text.removeClass('bigtooltip');
         this.text.addClass('smalltooltip');
         // keep scroll top to be sure to always see the first line
         this.text.scrollTop(0);
-        this._hidden = true;
         this.code_mirror = null;
-    }
+    };
 
     // return true on successfully removing a visible tooltip; otherwise return
     // false.
@@ -178,23 +182,23 @@ var IPython = (function (IPython) {
         } else {
           return false;
         }
-    }
+    };
 
     // cancel autocall done after '(' for example.
     Tooltip.prototype.cancel_pending = function () {
-        if (this._tooltip_timeout != null) {
+        if (this._tooltip_timeout !== null) {
             clearTimeout(this._tooltip_timeout);
             this._tooltip_timeout = null;
         }
-    }
+    };
 
     // will trigger tooltip after timeout
     Tooltip.prototype.pending = function (cell, hide_if_no_docstring) {
         var that = this;
         this._tooltip_timeout = setTimeout(function () {
-            that.request(cell, hide_if_no_docstring)
+            that.request(cell, hide_if_no_docstring);
         }, that.time_before_tooltip);
-    }
+    };
 
     // easy access for julia monkey patching.
     Tooltip.last_token_re = /[a-z_][0-9a-z._]*$/gi;
@@ -219,7 +223,7 @@ var IPython = (function (IPython) {
         line = line.replace(endBracket, "");
         // reset the regex object
         Tooltip.last_token_re.lastIndex = 0;
-        return Tooltip.last_token_re.exec(line)
+        return Tooltip.last_token_re.exec(line);
     };
 
     Tooltip.prototype._request_tooltip = function (cell, line) {
@@ -252,7 +256,7 @@ var IPython = (function (IPython) {
 
         // now we treat the different number of keypress
         // first if same cell, same text, increment counter by 1
-        if (this._old_cell == cell && this._old_request == text && this._hidden == false) {
+        if (this._old_cell == cell && this._old_request == text && this._hidden === false) {
             this._consecutive_counter++;
         } else {
             // else reset
@@ -273,7 +277,7 @@ var IPython = (function (IPython) {
 	}
 
         return;
-    }
+    };
 
     // cancel the option of having the tooltip to stick
     Tooltip.prototype.cancel_stick = function () {
@@ -281,14 +285,14 @@ var IPython = (function (IPython) {
         this._stick_timeout = null;
         this._clocklink.hide('slow');
         this._sticky = false;
-    }
+    };
 
     // put the tooltip in a sicky state for 10 seconds
     // it won't be removed by remove_and_cancell() unless you called with
     // the first parameter set to true.
     // remove_and_cancell_tooltip(true)
     Tooltip.prototype.stick = function (time) {
-        time = (time != undefined) ? time : 10;
+        time = (time !== undefined) ? time : 10;
         var that = this;
         this._sticky = true;
         this._clocklink.show('slow');
@@ -296,7 +300,7 @@ var IPython = (function (IPython) {
             that._sticky = false;
             that._clocklink.hide('slow');
         }, time * 1000);
-    }
+    };
 
     // should be called with the kernel reply to actually show the tooltip
     Tooltip.prototype._show = function (reply) {
@@ -322,7 +326,7 @@ var IPython = (function (IPython) {
         var xinter = o.left + (xinit - o.left) / w * (w - 450);
         var posarrowleft = xinit - xinter;
 
-        if (this._hidden == false) {
+        if (this._hidden === false) {
             this.tooltip.animate({
                 'left': xinter - 30 + 'px',
                 'top': (head.bottom + 10) + 'px'
@@ -365,8 +369,8 @@ var IPython = (function (IPython) {
             }
         }
 
-        this.tooltip.fadeIn('fast');
         this._hidden = false;
+        this.tooltip.fadeIn('fast');
         this.text.children().remove();
 
         var pre = $('<pre/>').html(utils.fixConsole(docstring));
@@ -377,8 +381,7 @@ var IPython = (function (IPython) {
         this.text.append(pre);
         // keep scroll top to be sure to always see the first line
         this.text.scrollTop(0);
-    }
-
+    };
 
     IPython.Tooltip = Tooltip;
 
