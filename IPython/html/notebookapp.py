@@ -333,6 +333,11 @@ class NotebookApp(BaseIPythonApplication):
 
     # file to be opened in the notebook server
     file_to_run = Unicode('')
+    def _file_to_run_changed(self, name, old, new):
+        path, base = os.path.split(new)
+        if path:
+            self.file_to_run = base
+        self.notebook_dir = path
 
     # Network related information.
 
@@ -546,7 +551,12 @@ class NotebookApp(BaseIPythonApplication):
                 self.log.critical("No such file or directory: %s", f)
                 self.exit(1)
             if os.path.isdir(f):
+                old = self.notebook_dir
                 self.notebook_dir = f
+                if old == self.notebook_dir:
+                    # force trigger on-change event if it didn't fire,
+                    # so that descendent config fires
+                    self._notebook_dir_changed('notebook_dir', old, self.notebook_dir)
             elif os.path.isfile(f):
                 self.file_to_run = f
 
@@ -799,24 +809,17 @@ class NotebookApp(BaseIPythonApplication):
                 self.log.warn('No web browser found: %s.' % e)
                 browser = None
             
-            f = self.file_to_run
-            if f:
-                nbdir = os.path.abspath(self.notebook_manager.notebook_dir)
-                if f.startswith(nbdir):
-                    f = f[len(nbdir):]
-                else:
-                    self.log.warn(
-                        "Probably won't be able to open notebook %s "
-                        "because it is not in notebook_dir %s",
-                        f, nbdir,
-                    )
-
-            if os.path.isfile(self.file_to_run):
-                url = url_path_join('notebooks', f)
+            if self.file_to_run:
+                fullpath = os.path.join(self.notebook_dir, self.file_to_run)
+                if not os.path.exists(fullpath):
+                    self.log.critical("%s does not exist" % fullpath)
+                    self.exit(1)
+                
+                uri = url_path_join('notebooks', self.file_to_run)
             else:
-                url = url_path_join('tree', f)
+                uri = 'tree'
             if browser:
-                b = lambda : browser.open("%s%s" % (self.connection_url, url),
+                b = lambda : browser.open(url_path_join(self.connection_url, uri),
                                           new=2)
                 threading.Thread(target=b).start()
         try:
