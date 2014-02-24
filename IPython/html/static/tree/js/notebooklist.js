@@ -14,7 +14,9 @@ var IPython = (function (IPython) {
     
     var utils = IPython.utils;
 
-    var NotebookList = function (selector, options) {
+    var NotebookList = function (selector, options, element_name) {
+        // allow code re-use by just changing element_name in kernellist.js
+        this.element_name = element_name || 'notebook';
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -28,10 +30,10 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.style = function () {
-        $('#notebook_toolbar').addClass('list_toolbar');
+        $('#' + this.element_name + '_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
-        $('#notebook_buttons').addClass('toolbar_buttons');
-        $('#notebook_list_header').addClass('list_header');
+        $('#' + this.element_name + '_buttons').addClass('toolbar_buttons');
+        $('#' + this.element_name + '_list_header').addClass('list_header');
         this.element.addClass("list_container");
     };
 

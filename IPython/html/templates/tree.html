@@ -70,14 +70,16 @@ data-base-kernel-url="{{base_kernel_url}}"
             </div>
             <div class="span4" class="clearfix">
                 <span id="running_buttons" class="pull-right">
-                    <button id="refresh_running_list" title="Refresh cluster list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-small"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="running_list">
-            <div id="running_list_header" class="row-fluid list_header">
-            </div>
+            <div id="running_list_header" class="row-fluid list_header" style='display:none'> 
+                <div> There are no actively running kernels </div>
+            <!-- damn it, I seem to need this stupid placeholder, otherwise items don't get added to the list -->
+            </div> 
         </div>
     </div>
     
