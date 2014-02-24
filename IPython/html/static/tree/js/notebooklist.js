@@ -40,8 +40,8 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.bind_events = function () {
         var that = this;
-        $('#refresh_notebook_list').click(function () {
-            that.load_list();
+        $('#refresh_' + this.element_name + '_list').click(function () {
+            that.load_sessions();
         });
         this.element.bind('dragover', function () {
             return false;
