@@ -760,7 +760,7 @@ var IPython = (function (IPython) {
         // focusout is called. In this case we bind to the remove event of jQueryUI,
         // which gets triggered upon removal, iff it is focused at the time.
         e.on('remove', function () {
-            if (document.activeElement === e[0]) {
+            if (IPython.utils.is_focused(e[0])) {
                 console.log('kb remove');
                 that.enable();
             }
