@@ -104,6 +104,10 @@
         };
 
         WidgetManager.prototype.create_view = function(model, options, view) {
+            if (model.view !== undefined) {
+                return model.view;
+            }
+
             // Creates a view for a particular model.
             var view_name = model.get('_view_name');
             var ViewType = WidgetManager._view_types[view_name];
@@ -120,7 +124,7 @@
                 var parameters = {model: model, options: options};
                 view = new ViewType(parameters);
                 view.render();
-                model.views.push(view);
+                model.view = view;
                 model.on('destroy', view.remove, view);
                 return view;
             }
