@@ -41,7 +41,7 @@ from IPython.core import ultratb
 from IPython.core.alias import AliasManager, AliasError
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
-from IPython.core.callbacks import CallbackManager, available_callbacks
+from IPython.core.events import EventManager, available_events
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
@@ -468,7 +468,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.init_syntax_highlighting()
         self.init_hooks()
-        self.init_callbacks()
+        self.init_events()
         self.init_pushd_popd_magic()
         # self.init_traceback_handlers use to be here, but we moved it below
         # because it and init_io have to come after init_readline.
@@ -512,7 +512,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_payload()
         self.init_comms()
         self.hooks.late_startup_hook()
-        self.callbacks.fire('shell_initialised', self)
+        self.events.trigger('shell_initialised', self)
         atexit.register(self.atexit_operations)
 
     def get_ipython(self):
@@ -840,8 +840,8 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to callbacks
     #-------------------------------------------------------------------------
 
-    def init_callbacks(self):
-        self.callbacks = CallbackManager(self, available_callbacks)
+    def init_events(self):
+        self.events = EventManager(self, available_events)
 
     def register_post_execute(self, func):
         """DEPRECATED: Use ip.callbacks.register('post_execute_explicit', func)
@@ -850,7 +850,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         warn("ip.register_post_execute is deprecated, use "
              "ip.callbacks.register('post_execute_explicit', func) instead.")
-        self.callbacks.register('post_execute_explicit', func)
+        self.events.register('post_execute_explicit', func)
     
     #-------------------------------------------------------------------------
     # Things related to the "main" module
@@ -2667,9 +2667,9 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
-        self.callbacks.fire('pre_execute')
+        self.events.trigger('pre_execute')
         if not silent:
-            self.callbacks.fire('pre_execute_explicit')
+            self.events.trigger('pre_execute_explicit')
 
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable
@@ -2740,9 +2740,9 @@ class InteractiveShell(SingletonConfigurable):
                 self.run_ast_nodes(code_ast.body, cell_name,
                                    interactivity=interactivity, compiler=compiler)
                 
-                self.callbacks.fire('post_execute')
+                self.events.trigger('post_execute')
                 if not silent:
-                    self.callbacks.fire('post_execute_explicit')
+                    self.events.trigger('post_execute_explicit')
 
         if store_history:
             # Write output to the database. Does nothing unless

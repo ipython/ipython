@@ -288,10 +288,10 @@ class InteractiveShellTestCase(unittest.TestCase):
         post_explicit = mock.Mock()
         post_always = mock.Mock()
         
-        ip.callbacks.register('pre_execute_explicit', pre_explicit)
-        ip.callbacks.register('pre_execute', pre_always)
-        ip.callbacks.register('post_execute_explicit', post_explicit)
-        ip.callbacks.register('post_execute', post_always)
+        ip.events.register('pre_execute_explicit', pre_explicit)
+        ip.events.register('pre_execute', pre_always)
+        ip.events.register('post_execute_explicit', post_explicit)
+        ip.events.register('post_execute', post_always)
         
         try:
             ip.run_cell("1", silent=True)
@@ -306,7 +306,7 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert post_explicit.called
         finally:
             # remove post-exec
-            ip.callbacks.reset_all()
+            ip.events.reset_all()
     
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""

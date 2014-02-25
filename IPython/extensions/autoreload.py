@@ -502,4 +502,4 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     auto_reload = AutoreloadMagics(ip)
     ip.register_magics(auto_reload)
-    ip.callbacks.register('pre_execute_explicit', auto_reload.pre_execute_explicit)
+    ip.events.register('pre_execute_explicit', auto_reload.pre_execute_explicit)

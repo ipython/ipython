@@ -1,4 +1,4 @@
-"""Infrastructure for registering and firing callbacks.
+"""Infrastructure for registering and firing callbacks on application events.
 
 Unlike :mod:`IPython.core.hooks`, which lets end users set single functions to
 be called at specific times, or a collection of alternative methods to try,
@@ -10,13 +10,13 @@ events and the arguments which will be passed to them.
 """
 from __future__ import print_function
 
-class CallbackManager(object):
+class EventManager(object):
     """Manage a collection of events and a sequence of callbacks for each.
     
     This is attached to :class:`~IPython.core.interactiveshell.InteractiveShell`
     instances as a ``callbacks`` attribute.
     """
-    def __init__(self, shell, available_callbacks):
+    def __init__(self, shell, available_events):
         """Initialise the :class:`CallbackManager`.
         
         Parameters
@@ -27,14 +27,14 @@ class CallbackManager(object):
           An iterable of names for callback events.
         """
         self.shell = shell
-        self.callbacks = {n:[] for n in available_callbacks}
+        self.callbacks = {n:[] for n in available_events}
     
-    def register(self, name, function):
+    def register(self, event, function):
         """Register a new callback
         
         Parameters
         ----------
-        name : str
+        event : str
           The event for which to register this callback.
         function : callable
           A function to be called on the given event. It should take the same
@@ -45,42 +45,42 @@ class CallbackManager(object):
         TypeError
           If ``function`` is not callable.
         KeyError
-          If ``name`` is not one of the known callback events.
+          If ``event`` is not one of the known events.
         """
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
-        self.callbacks[name].append(function)
+        self.callbacks[event].append(function)
     
-    def unregister(self, name, function):
+    def unregister(self, event, function):
         """Remove a callback from the given event."""
-        self.callbacks[name].remove(function)
+        self.callbacks[event].remove(function)
     
-    def reset(self, name):
+    def reset(self, event):
         """Clear all callbacks for the given event."""
-        self.callbacks[name] = []
+        self.callbacks[event] = []
     
     def reset_all(self):
         """Clear all callbacks for all events."""
         self.callbacks = {n:[] for n in self.callbacks}
     
-    def fire(self, name, *args, **kwargs):
-        """Call callbacks for the event ``name``.
+    def trigger(self, event, *args, **kwargs):
+        """Call callbacks for ``event``.
         
         Any additional arguments are passed to all callbacks registered for this
         event. Exceptions raised by callbacks are caught, and a message printed.
         """
-        for func in self.callbacks[name]:
+        for func in self.callbacks[event]:
             try:
                 func(*args, **kwargs)
             except Exception:
-                print("Error in callback {} (for {}):".format(func, name))
+                print("Error in callback {} (for {}):".format(func, event))
                 self.shell.showtraceback()
 
 # event_name -> prototype mapping
-available_callbacks = {}
+available_events = {}
 
 def _collect(callback_proto):
-    available_callbacks[callback_proto.__name__] = callback_proto
+    available_events[callback_proto.__name__] = callback_proto
     return callback_proto
 
 # ------------------------------------------------------------------------------

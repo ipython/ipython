@@ -23,7 +23,7 @@ import nose.tools as nt
 import IPython.testing.tools as tt
 
 from IPython.extensions.autoreload import AutoreloadMagics
-from IPython.core.callbacks import CallbackManager, pre_execute_explicit
+from IPython.core.events import EventManager, pre_execute_explicit
 from IPython.utils.py3compat import PY3
 
 if PY3:
@@ -41,14 +41,14 @@ class FakeShell(object):
 
     def __init__(self):
         self.ns = {}
-        self.callbacks = CallbackManager(self, {'pre_execute_explicit', pre_execute_explicit})
+        self.events = EventManager(self, {'pre_execute_explicit', pre_execute_explicit})
         self.auto_magics = AutoreloadMagics(shell=self)
-        self.callbacks.register('pre_execute_explicit', self.auto_magics.pre_execute_explicit)
+        self.events.register('pre_execute_explicit', self.auto_magics.pre_execute_explicit)
 
     register_magics = set_hook = noop
 
     def run_code(self, code):
-        self.callbacks.fire('pre_execute_explicit')
+        self.events.trigger('pre_execute_explicit')
         exec(code, self.ns)
 
     def push(self, items):
