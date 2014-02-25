@@ -14,7 +14,7 @@ Represents a container that can be used to group other widgets.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CTuple, Instance
+from IPython.utils.traitlets import Unicode, Tuple, Instance
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -24,8 +24,8 @@ class ContainerWidget(DOMWidget):
 
     # Keys, all private and managed by helper methods.  Flexible box model
     # classes...
-    children = CTuple(Instance(DOMWidget))
-    _children = CTuple(Instance(DOMWidget), sync=True)
+    children = Tuple(Instance(DOMWidget))
+    _children = Tuple(Instance(DOMWidget), sync=True)
 
     def _children_changed(self, name, old, new):
         """Validate children list.
