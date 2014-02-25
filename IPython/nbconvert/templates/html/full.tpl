@@ -32,6 +32,21 @@ pre {
   margin: 0px;
   font-size: 13px;
 }
+
+@media print {
+  div.cell {
+    display: block;
+    page-break-inside: avoid;
+  } 
+  div.output_wrapper { 
+    display: block;
+    page-break-inside: avoid; 
+  }
+  div.output { 
+    display: block;
+    page-break-inside: avoid; 
+  }
+}
 </style>
 
 <!-- Custom stylesheet, it must be in the same directory as the html file -->
