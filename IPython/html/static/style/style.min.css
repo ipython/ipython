@@ -1483,6 +1483,8 @@ pre,code,kbd,samp{white-space:pre-wrap}
 #fonttest{font-family:monospace}
 p{margin-bottom:0}
 .end_space{height:200px}
+.cm-itsuppercasei{border-bottom:thin dashed #f00}
+.cm-itsuppercasei:hover:after{visibility:visible}
 .celltoolbar{border:thin solid #cfcfcf;border-bottom:none;background:#eee;border-radius:3px 3px 0 0;width:100%;-webkit-box-pack:end;height:22px;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch;-webkit-box-direction:reverse;-moz-box-direction:reverse;box-direction:reverse;flex-direction:row-reverse}
 .ctb_hideshow{display:none;vertical-align:bottom;padding-right:2px}
 .celltoolbar>div{padding-top:0}
