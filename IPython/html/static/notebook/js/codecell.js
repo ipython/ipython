@@ -101,7 +101,8 @@ var IPython = (function (IPython) {
             },
             mode: 'ipython',
             theme: 'ipython',
-            matchBrackets: true
+            matchBrackets: true,
+            autoCloseBrackets: true
         }
     };
 
