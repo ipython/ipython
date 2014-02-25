@@ -308,7 +308,7 @@ class Widget(LoggingConfigurable):
         their model ids.  Return value must be JSON-able."""
         if isinstance(x, dict):
             return {k: self._pack_widgets(v) for k, v in x.items()}
-        elif isinstance(x, list):
+        elif isinstance(x, (list, tuple)):
             return [self._pack_widgets(v) for v in x]
         elif isinstance(x, Widget):
             return x.model_id
@@ -322,7 +322,7 @@ class Widget(LoggingConfigurable):
         their model ids."""
         if isinstance(x, dict):
             return {k: self._unpack_widgets(v) for k, v in x.items()}
-        elif isinstance(x, list):
+        elif isinstance(x, (list, tuple)):
             return [self._unpack_widgets(v) for v in x]
         elif isinstance(x, string_types):
             return x if x not in Widget.widgets else Widget.widgets[x]
@@ -412,7 +412,7 @@ class DOMWidget(Widget):
             be added to.
         """
         class_list = class_names
-        if isinstance(class_list, list):
+        if isinstance(class_list, (list, tuple)):
             class_list = ' '.join(class_list)
 
         self.send({
@@ -433,7 +433,7 @@ class DOMWidget(Widget):
             be removed from.
         """
         class_list = class_names
-        if isinstance(class_list, list):
+        if isinstance(class_list, (list, tuple)):
             class_list = ' '.join(class_list)
 
         self.send({

@@ -14,7 +14,7 @@ Represents an unbounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CInt, Bool, List, Enum
+from IPython.utils.traitlets import Unicode, CInt, Bool, Enum
 
 #-----------------------------------------------------------------------------
 # Classes

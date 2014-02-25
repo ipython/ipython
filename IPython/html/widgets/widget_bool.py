@@ -14,7 +14,7 @@ Represents a boolean using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Bool, List
+from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------
 # Classes
