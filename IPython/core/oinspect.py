@@ -120,8 +120,8 @@ def get_encoding(obj):
         # Print only text files, not extension binaries.  Note that
         # getsourcelines returns lineno with 1-offset and page() uses
         # 0-offset, so we must adjust.
-        buffer = stdlib_io.open(ofile, 'rb')   # Tweaked to use io.open for Python 2
-        encoding, lines = openpy.detect_encoding(buffer.readline)
+        with stdlib_io.open(ofile, 'rb') as buffer:   # Tweaked to use io.open for Python 2
+            encoding, lines = openpy.detect_encoding(buffer.readline)
         return encoding
 
 def getdoc(obj):
