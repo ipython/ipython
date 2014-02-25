@@ -26,7 +26,7 @@ IPython.security = (function (IPython) {
         }
         
         for (var i = a.length - 1; i >= 0; i--) {
-            if (a[i].tagName && b[i].tagName && a[i].tagName.toLowerCase() != b[i].tagName.toLowerCase()) {
+            if ((a[i].tagName || '').toLowerCase() != (b[i].tagName || '').toLowerCase()) {
                 return false;
             }
         }
