@@ -886,8 +886,13 @@ class TestList(TraitTestBase):
     obj = ListTrait()
 
     _default_value = []
-    _good_values = [[], [1], list(range(10))]
-    _bad_values = [10, [1,'a'], 'a', (1,2)]
+    _good_values = [[], [1], list(range(10)), (1,2)]
+    _bad_values = [10, [1,'a'], 'a']
+    
+    def coerce(self, value):
+        if value is not None:
+            value = list(value)
+        return value
 
 class LenListTrait(HasTraits):
 
@@ -898,8 +903,13 @@ class TestLenList(TraitTestBase):
     obj = LenListTrait()
 
     _default_value = [0]
-    _good_values = [[1], list(range(2))]
-    _bad_values = [10, [1,'a'], 'a', (1,2), [], list(range(3))]
+    _good_values = [[1], [1,2], (1,2)]
+    _bad_values = [10, [1,'a'], 'a', [], list(range(3))]
+
+    def coerce(self, value):
+        if value is not None:
+            value = list(value)
+        return value
 
 class TupleTrait(HasTraits):
 
@@ -910,8 +920,13 @@ class TestTupleTrait(TraitTestBase):
     obj = TupleTrait()
 
     _default_value = None
-    _good_values = [(1,), None,(0,)]
-    _bad_values = [10, (1,2), [1],('a'), ()]
+    _good_values = [(1,), None, (0,), [1]]
+    _bad_values = [10, (1,2), ('a'), ()]
+
+    def coerce(self, value):
+        if value is not None:
+            value = tuple(value)
+        return value
 
     def test_invalid_args(self):
         self.assertRaises(TypeError, Tuple, 5)
@@ -927,8 +942,13 @@ class TestLooseTupleTrait(TraitTestBase):
     obj = LooseTupleTrait()
 
     _default_value = (1,2,3)
-    _good_values = [(1,), None, (0,), tuple(range(5)), tuple('hello'), ('a',5), ()]
-    _bad_values = [10, 'hello', [1], []]
+    _good_values = [(1,), None, [1], (0,), tuple(range(5)), tuple('hello'), ('a',5), ()]
+    _bad_values = [10, 'hello', {}]
+
+    def coerce(self, value):
+        if value is not None:
+            value = tuple(value)
+        return value
 
     def test_invalid_args(self):
         self.assertRaises(TypeError, Tuple, 5)
