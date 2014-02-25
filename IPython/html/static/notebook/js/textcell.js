@@ -242,17 +242,6 @@ var IPython = (function (IPython) {
         this.element.find('div.text_cell_render').html(text);
     };
 
-    TextCell.prototype.insert_security_warning = function() {
-        // Inject a security warning into the TextCell's rendered div.
-        var e = this.element.find('div.text_cell_render');
-        e.empty();
-        var warning = "This cell contains content that is unsafe from a security " +
-                      "standpoint. This unsafe content includes all JavaScript code " +
-                      "and CSS styling. To fix the problem, please edit the cell " +
-                      "and remove the unsafe content."
-        e.append($('<div/>').addClass('alert alert-error').text(warning));
-    }
-
     /**
      * @method at_top
      * @return {Boolean}
