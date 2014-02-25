@@ -45,7 +45,7 @@ class ContainerWidget(DOMWidget):
             http://www.peterbe.com/plog/uniqifiers-benchmark
         which provides the inspiration for using this implementation.  Below
         I've implemented the `f5` algorithm using Python comprehensions."""
-        if new is not None and isinstance(new, list):
+        if new is not None:
             seen = {}
             def add_item(i):
                 seen[i.model_id] = True
