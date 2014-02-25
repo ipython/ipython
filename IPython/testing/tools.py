@@ -214,7 +214,7 @@ def ipexec(fname, options=None):
     full_fname = os.path.join(test_dir, fname)
     full_cmd = ipython_cmd + cmdargs + [full_fname]
     env = os.environ.copy()
-    env.pop('PYTHONWARNINGS')  # Avoid extraneous warnings appearing on stderr
+    env.pop('PYTHONWARNINGS', None)  # Avoid extraneous warnings appearing on stderr
     p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, env=env)
     out, err = p.communicate()
     out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
