@@ -55,6 +55,12 @@ var IPython = (function (IPython) {
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
+
+        // This is a list of callbacks that are called when a cell's textual 
+        // region is unfocused.  If one of the callbacks returns True, the cell 
+        // unfocus event will be ignored.  Callbacks will be passed one argument,
+        // the cell instance.
+        this.cancel_unfocus_callbacks = [];
         this.style();
         this.create_elements();
         this.bind_events();
@@ -581,11 +587,8 @@ var IPython = (function (IPython) {
         var cell = this.get_cell(index);
         if (!cell) {return;}
 
-        // Only respect the blur event if the tooltip and autocompleter are
-        // not visible.
-        var tooltip_visible = IPython.tooltip && IPython.tooltip.is_visible();
-        var completer_visible = cell.completer && cell.completer.is_visible();
-        if (!tooltip_visible && !completer_visible) {
+        // Check if this unfocus event is legit.
+        if (!this.should_cancel_unfocus(cell)) {
             // In Firefox the focus event is called before the blur event.  In 
             // other words, two cells elements may be focused at any given time.
             // This has been witnessed on Win7 x64 w/ FF 25.  Here we only put the
@@ -600,6 +603,26 @@ var IPython = (function (IPython) {
                 console.log('cell command_mode');
                 cell.command_mode();
             }    
+        }
+    };
+
+    Notebook.prototype.should_cancel_unfocus = function (cell) {
+        // Determine whether or not the unfocus event should be aknowledged.
+
+        // If the tooltip is visible, ignore the unfocus.
+        var tooltip_visible = IPython.tooltip && IPython.tooltip.is_visible();
+        if (tooltip_visible) { return true; }
+        
+        // Try user registered callbacks.
+        for (var i=0; i<this.cancel_unfocus_callbacks.length; i++) {
+            if (this.cancel_unfocus_callbacks[i](cell)) { return true; }
+        }
+
+        // Check the cell's should_cancel_unfocus method.
+        if (cell.should_cancel_unfocus !== undefined && cell.should_cancel_unfocus()) {
+            return true;
+        } else {
+            return false;
         }
     };
 

@@ -48,7 +48,7 @@ var IPython = (function (IPython) {
         this.cell_id = utils.uuid();
         this._options = options;
 
-        // For JS VM engines optimisation, attributes should be all set (even
+        // For JS VM engines optimization, attributes should be all set (even
         // to null) in the constructor, and if possible, if different subclass
         // have new attributes with same name, they should be created in the
         // same order. Easiest is to create and set to null in parent class.
@@ -57,6 +57,10 @@ var IPython = (function (IPython) {
         this.cell_type = this.cell_type || null;
         this.code_mirror = null;
 
+        // This is a list of callbacks that are called when a cell's textual 
+        // region is unfocused.  If one of the callbacks returns True, the cell 
+        // unfocus event will be ignored.  Callbacks will be passed no arguments.
+        this.cancel_unfocus_callbacks = [];
 
         this.create_element();
         if (this.element !== null) {
@@ -262,6 +266,17 @@ var IPython = (function (IPython) {
         } else {
             return false;
         }
+    };
+
+    /**
+     * Check if this cell's unfocus event was legit.
+     */
+    Cell.prototype.should_cancel_unfocus = function () {
+        // Try user registered callbacks.
+        for (var i=0; i<this.cancel_unfocus_callbacks.length; i++) {
+            if (this.cancel_unfocus_callbacks[i]()) { return true; }
+        }
+        return false;
     };
 
     /**

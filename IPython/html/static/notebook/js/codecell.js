@@ -419,6 +419,17 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Check if this cell's unfocus event was legit.
+     */
+    CodeCell.prototype.should_cancel_unfocus = function () {
+        // Call base
+        if (IPython.Cell.prototype.should_cancel_unfocus.apply(this)) { return true; }
+
+        // Cancel this unfocus event if the cell completer is open.
+        return (this.completer && this.completer.is_visible());
+    };
+
+    /**
      * Focus the editor area so a user can type
      * @method focus_editor
      */
