@@ -65,15 +65,17 @@ IPython.security = (function (IPython) {
         // {
         //   src: original_html,
         //   sanitized: the_sanitized_html,
-        //   safe: bool // false if the sanitizer made any changes
+        //   _maybe_safe: bool // false if the sanitizer definitely made changes.
+        //                        This is an incomplete indication,
+        //                        only used to indicate whether further verification is necessary.
         // }
         var result = {
             src : html,
-            safe : true
+            _maybe_safe : true
         };
         var record_messages = function (msg, opts) {
             console.log("HTML Sanitizer", msg, opts);
-            result.safe = false;
+            result._maybe_safe = false;
         };
         
         var html4 = caja.html4;
@@ -106,8 +108,10 @@ IPython.security = (function (IPython) {
         
         // caja can strip whole elements without logging,
         // so double-check that node structure didn't change
-        if (result.safe) {
+        if (result._maybe_safe) {
             result.safe = cmp_tree($(result.sanitized), $(html));
+        } else {
+            result.safe = false;
         }
         return result.safe;
     };
