@@ -213,7 +213,9 @@ def ipexec(fname, options=None):
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = ipython_cmd + cmdargs + [full_fname]
-    p = Popen(full_cmd, stdout=PIPE, stderr=PIPE)
+    env = os.environ.copy()
+    env.pop('PYTHONWARNINGS')  # Avoid extraneous warnings appearing on stderr
+    p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, env=env)
     out, err = p.communicate()
     out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
     # `import readline` causes 'ESC[?1034h' to be output sometimes,
