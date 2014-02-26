@@ -260,8 +260,12 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Check if this cell's unfocus event was legit.
-     */
+     * Determine whether or not the unfocus event should be aknowledged.
+     *
+     * @method should_cancel_blur
+     *
+     * @return results {bool} Whether or not to ignore the cell's blur event.
+     **/
     Cell.prototype.should_cancel_blur = function () {
         return false;
     };

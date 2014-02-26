@@ -419,8 +419,12 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Check if this cell's unfocus event was legit.
-     */
+     * Determine whether or not the unfocus event should be aknowledged.
+     *
+     * @method should_cancel_blur
+     *
+     * @return results {bool} Whether or not to ignore the cell's blur event.
+     **/
     CodeCell.prototype.should_cancel_blur = function () {
         // Cancel this unfocus event if the base wants to cancel or the cell 
         // completer is open.

@@ -502,20 +502,29 @@ var IPython = (function (IPython) {
 
     // Edit/Command mode
 
-    Notebook.prototype.get_edit_index = function (ignore_index) {
+    /**
+     * Gets the index of the cell that is in edit mode.
+     *
+     * @method get_edit_index
+     *
+     * @return index {int}
+     **/
+    Notebook.prototype.get_edit_index = function () {
         var result = null;
         this.get_cell_elements().filter(function (index) {
             if ($(this).data("cell").mode === 'edit') {
-                if (ignore_index===undefined || ignore_index!==index) {
-                    result = index;    
-                }
+                result = index;
             }
         });
         return result;
     };
 
+    /**
+     * Make the notebook enter command mode.
+     *
+     * @method command_mode
+     **/
     Notebook.prototype.command_mode = function () {
-
         // Make sure there isn't an edit mode cell lingering around.
         var cell = this.get_cell(this.get_edit_index());
         if (cell) {
@@ -531,14 +540,21 @@ var IPython = (function (IPython) {
         }
     };
 
-    Notebook.prototype.edit_mode = function (index) {
-
-        // Either use specified index or selected cell's index.
+    /**
+     * Make the notebook enter edit mode.
+     *
+     * @method edit_mode
+     * @param [focust_editor] {bool} Should this method focus the cell's editor?  Defaults to true.
+     * @param [index] {int} Cell index to select.  If no index is provided, 
+     *  the current selected cell is used.
+     **/
+    Notebook.prototype.edit_mode = function (focus_editor, index) {
+        if (focus_editor===undefined) {
+            focus_editor = true;
+        }
         // Must explictly check for undefined CBool(0) = false.
-        var focus_editor = false;
         if (index===undefined) {
             index = this.get_selected_index();
-            focus_editor = true;
         } else {
             this.select(index);
         }
@@ -556,32 +572,49 @@ var IPython = (function (IPython) {
         }
     };
 
+    /**
+     * Focus the currently selected cell.
+     *
+     * @method focus_cell
+     **/
     Notebook.prototype.focus_cell = function () {
         var cell = this.get_selected_cell();
         if (cell === null) {return;}  // No cell is selected
         cell.focus_cell();
     };
 
+    /**
+     * Handles when the text area of a cell (codemirror) has been focused.
+     *
+     * @method handle_cell_text_focus
+     * @param cell {Cell} 
+     **/
     Notebook.prototype.handle_cell_text_focus = function (cell) {
-        console.log('notebook.handle_cell_text_focus', cell);
-        this.edit_mode(this.find_cell_index(cell));
+        this.edit_mode(false, this.find_cell_index(cell));
     };
 
+    /**
+     * Handles when the text area of a cell (codemirror) has been blurred.
+     *
+     * @method handle_cell_text_blur
+     * @param cell {Cell} 
+     **/
     Notebook.prototype.handle_cell_text_blur = function (cell) {
-        // In Firefox the focus event is called before the blur event.  In 
-        // other words, two cells elements may be focused at any given time.
-        // This has been witnessed on Win7 x64 w/ FF 25&26.
-        console.log('notebook.handle_cell_text_blur', cell);
-
         // Check if this unfocus event is legit.
         if (!this.should_cancel_blur(cell)) {
             this.command_mode();
         }
     };
 
+    /**
+     * Determine whether or not the unfocus event should be aknowledged.
+     *
+     * @method should_cancel_blur
+     * @param cell {Cell} 
+     *
+     * @return results {bool} Whether or not to ignore the cell's blur event.
+     **/
     Notebook.prototype.should_cancel_blur = function (cell) {
-        // Determine whether or not the unfocus event should be aknowledged.
-
         // If the tooltip is visible, ignore the unfocus.
         var tooltip_visible = IPython.tooltip && IPython.tooltip.is_visible();
         if (tooltip_visible) { return true; }
@@ -1466,14 +1499,14 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.edit_mode(cell_index+1);
+            this.edit_mode(true, cell_index+1);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
         }
   
         this.insert_cell_below('code');
-        this.edit_mode(cell_index+1);
+        this.edit_mode(true, cell_index+1);
         this.set_dirty(true);
     };
 
@@ -1492,7 +1525,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.edit_mode(cell_index+1);
+            this.edit_mode(true, cell_index+1);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
@@ -1968,7 +2001,7 @@ var IPython = (function (IPython) {
         console.log('load notebook success');
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
-            this.edit_mode(0);
+            this.edit_mode(true, 0);
         } else {
             this.select(0);
             this.command_mode();
