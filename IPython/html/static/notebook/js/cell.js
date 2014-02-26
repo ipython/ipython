@@ -262,7 +262,7 @@ var IPython = (function (IPython) {
     /**
      * Check if this cell's unfocus event was legit.
      */
-    Cell.prototype.should_cancel_unfocus = function () {
+    Cell.prototype.should_cancel_blur = function () {
         return false;
     };
 

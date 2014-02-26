@@ -575,20 +575,20 @@ var IPython = (function (IPython) {
         console.log('notebook.handle_cell_text_blur', cell);
 
         // Check if this unfocus event is legit.
-        if (!this.should_cancel_unfocus(cell)) {
+        if (!this.should_cancel_blur(cell)) {
             this.command_mode();
         }
     };
 
-    Notebook.prototype.should_cancel_unfocus = function (cell) {
+    Notebook.prototype.should_cancel_blur = function (cell) {
         // Determine whether or not the unfocus event should be aknowledged.
 
         // If the tooltip is visible, ignore the unfocus.
         var tooltip_visible = IPython.tooltip && IPython.tooltip.is_visible();
         if (tooltip_visible) { return true; }
 
-        // Check the cell's should_cancel_unfocus method.
-        return (cell.should_cancel_unfocus !== undefined && cell.should_cancel_unfocus());
+        // Check the cell's should_cancel_blur method.
+        return (cell.should_cancel_blur !== undefined && cell.should_cancel_blur());
     };
 
     // Cell movement
