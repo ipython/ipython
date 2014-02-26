@@ -457,8 +457,7 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index();
             if (sindex !== null && index !== sindex) {
-                // Put the cell in command mode and unselect it.
-                this.get_cell(sindex).command_mode(); 
+                this.command_mode(); 
                 this.get_cell(sindex).unselect();
             }
             var cell = this.get_cell(index);
