@@ -64,7 +64,9 @@ def _valid_formatter(f):
     - unbound methods           NO
     - callable with zero args   OK
     """
-    if isinstance(f, type(str.find)):
+    if f is None:
+        return False
+    elif isinstance(f, type(str.find)):
         # unbound methods on compiled classes have type method_descriptor
         return False
     elif isinstance(f, types.BuiltinFunctionType):
@@ -79,6 +81,14 @@ def _valid_formatter(f):
         else:
             return True
     return False
+
+def _safe_get_formatter_method(obj, name):
+    """Safely get a formatter method"""
+    method = pretty._safe_getattr(obj, name, None)
+    # formatter methods must be bound
+    if _valid_formatter(method):
+        return method
+
 
 class DisplayFormatter(Configurable):
 
@@ -339,9 +349,8 @@ class BaseFormatter(Configurable):
             else:
                 return printer(obj)
             # Finally look for special method names
-            method = pretty._safe_getattr(obj, self.print_method, None)
-            # print_method must be a bound method:
-            if _valid_formatter(method):
+            method = _safe_get_formatter_method(obj, self.print_method)
+            if method is not None:
                 return method()
             return None
         else:
