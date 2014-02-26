@@ -748,14 +748,22 @@ var IPython = (function (IPython) {
 
     KeyboardManager.prototype.register_events = function (e) {
         var that = this;
-        e.on('focusin', function () {
+        var handle_focus = function () {
             console.log('kb focus in');
             that.disable();
-        });
-        e.on('focusout', function () {
+        };
+        var handle_blur = function () {
             console.log('kb focus out');
             that.enable();
-        });
+        };
+        e.on('focusin', handle_focus);
+        e.on('focusout', handle_blur);
+        // TODO: Very strange. The focusout event does not seem fire for the 
+        // bootstrap text boxes on FF25&26...
+        e.find('*').blur(handle_blur);
+        e.on('DOMNodeInserted', function () {
+            e.find('*').blur(handle_blur);
+          });
         // There are times (raw_input) where we remove the element from the DOM before
         // focusout is called. In this case we bind to the remove event of jQueryUI,
         // which gets triggered upon removal, iff it is focused at the time.
