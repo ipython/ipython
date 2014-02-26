@@ -410,9 +410,9 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.edit_mode = function () {
+    CodeCell.prototype.edit_mode = function (focus_editor) {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
-        if (this.mode === 'edit') {
+        if (cont && focus_editor) {
             this.focus_editor();
         }
         return cont;
@@ -422,27 +422,10 @@ var IPython = (function (IPython) {
      * Check if this cell's unfocus event was legit.
      */
     CodeCell.prototype.should_cancel_unfocus = function () {
-        // Call base
-        if (IPython.Cell.prototype.should_cancel_unfocus.apply(this)) { return true; }
-
-        // Cancel this unfocus event if the cell completer is open.
-        return (this.completer && this.completer.is_visible());
-    };
-
-    /**
-     * Focus the editor area so a user can type
-     * @method focus_editor
-     */
-    CodeCell.prototype.focus_editor = function () {
-        // Only focus the CM editor if it is not focused already. This prevents 
-        // jumps related to the previous prompt position.  Here we can't use
-        // IPython.utils.is_focused since it uses document.activeElement which
-        // may not be set by the time this is called.  Instead look at the input
-        // element of codemirror directly to see if it is focused.  Use the
-        // jQuery :focus pseudo selector (http://api.jquery.com/focus-selector/)
-        if (!$(this.code_mirror.win).is(':focus')) {
-            this.code_mirror.focus();
-        }
+        // Cancel this unfocus event if the base wants to cancel or the cell 
+        // completer is open.
+        return IPython.Cell.prototype.should_cancel_unfocus.apply(this) ||
+            (this.completer && this.completer.is_visible());
     };
 
     CodeCell.prototype.select_all = function () {

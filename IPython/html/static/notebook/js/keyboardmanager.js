@@ -676,9 +676,8 @@ var IPython = (function (IPython) {
     };
 
 
-
     // Main keyboard manager for the notebook
-
+    
     var KeyboardManager = function () {
         this.mode = 'command';
         this.enabled = true;
@@ -725,51 +724,49 @@ var IPython = (function (IPython) {
     };
 
     KeyboardManager.prototype.edit_mode = function () {
-        console.log('kb edit');
         this.last_mode = this.mode;
         this.mode = 'edit';
     };
 
     KeyboardManager.prototype.command_mode = function () {
-        console.log('kb command');
         this.last_mode = this.mode;
         this.mode = 'command';
     };
 
     KeyboardManager.prototype.enable = function () {
-        console.log('kb enable');
         this.enabled = true;
     };
 
     KeyboardManager.prototype.disable = function () {
-        console.log('kb disable');
         this.enabled = false;
     };
 
     KeyboardManager.prototype.register_events = function (e) {
         var that = this;
         var handle_focus = function () {
-            console.log('kb focus in');
             that.disable();
         };
         var handle_blur = function () {
-            console.log('kb focus out');
             that.enable();
         };
         e.on('focusin', handle_focus);
         e.on('focusout', handle_blur);
         // TODO: Very strange. The focusout event does not seem fire for the 
-        // bootstrap text boxes on FF25&26...
-        e.find('*').blur(handle_blur);
-        e.on('DOMNodeInserted', function () {
-            e.find('*').blur(handle_blur);
+        // bootstrap textboxes on FF25&26...
+        e.find('input').blur(handle_blur);
+        e.on('DOMNodeInserted', function (event) {
+            var target = $(event.target);
+            if (target.is('input')) {
+                target.blur(handle_blur);
+            } else {
+                target.find('input').blur(handle_blur);    
+            }
           });
         // There are times (raw_input) where we remove the element from the DOM before
         // focusout is called. In this case we bind to the remove event of jQueryUI,
         // which gets triggered upon removal, iff it is focused at the time.
         e.on('remove', function () {
             if (IPython.utils.is_focused(e[0])) {
-                console.log('kb remove');
                 that.enable();
             }
         });

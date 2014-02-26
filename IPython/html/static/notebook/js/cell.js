@@ -57,11 +57,6 @@ var IPython = (function (IPython) {
         this.cell_type = this.cell_type || null;
         this.code_mirror = null;
 
-        // This is a list of callbacks that are called when a cell's textual 
-        // region is unfocused.  If one of the callbacks returns True, the cell 
-        // unfocus event will be ignored.  Callbacks will be passed no arguments.
-        this.cancel_unfocus_callbacks = [];
-
         this.create_element();
         if (this.element !== null) {
             this.element.data("cell", this);
@@ -80,8 +75,7 @@ var IPython = (function (IPython) {
     
     // FIXME: Workaround CM Bug #332 (Safari segfault on drag)
     // by disabling drag/drop altogether on Safari
-    // https://github.com/marijnh/CodeMirror/issues/332
-    
+    // https://github.com/marijnh/CodeMirror/issues/332    
     if (utils.browser[0] == "Safari") {
         Cell.options_default.cm_config.dragDrop = false;
     }
@@ -89,11 +83,8 @@ var IPython = (function (IPython) {
     Cell.prototype.mergeopt = function(_class, options, overwrite){
         options = options || {};
         overwrite = overwrite || {};
-        return $.extend(true, {}, _class.options_default, options, overwrite)
-
-    }
-
-
+        return $.extend(true, {}, _class.options_default, options, overwrite);
+    };
 
     /**
      * Empty. Subclasses must implement create_element.
@@ -272,10 +263,6 @@ var IPython = (function (IPython) {
      * Check if this cell's unfocus event was legit.
      */
     Cell.prototype.should_cancel_unfocus = function () {
-        // Try user registered callbacks.
-        for (var i=0; i<this.cancel_unfocus_callbacks.length; i++) {
-            if (this.cancel_unfocus_callbacks[i]()) { return true; }
-        }
         return false;
     };
 
@@ -285,6 +272,17 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.focus_cell = function () {
         this.element.focus();
+    };
+
+    /**
+     * Focus the editor area so a user can type
+     *
+     * NOTE: If codemirror is focused via a mouse click event, you don't want to
+     * call this because it will cause a page jump.
+     * @method focus_editor
+     */
+    Cell.prototype.focus_editor = function () {
+        this.code_mirror.focus();
     };
 
     /**
@@ -362,7 +360,7 @@ var IPython = (function (IPython) {
         var text = this.code_mirror.getRange({line:0, ch:0}, cursor);
         text = text.replace(/^\n+/, '').replace(/\n+$/, '');
         return text;
-    }
+    };
 
 
     /**
@@ -373,7 +371,7 @@ var IPython = (function (IPython) {
         var cursor = this.code_mirror.getCursor();
         var last_line_num = this.code_mirror.lineCount()-1;
         var last_line_len = this.code_mirror.getLine(last_line_num).length;
-        var end = {line:last_line_num, ch:last_line_len}
+        var end = {line:last_line_num, ch:last_line_len};
         var text = this.code_mirror.getRange(cursor, end);
         text = text.replace(/^\n+/, '').replace(/\n+$/, '');
         return text;
@@ -417,9 +415,10 @@ var IPython = (function (IPython) {
      **/
     Cell.prototype._auto_highlight = function (modes) {
         //Here we handle manually selected modes
-        if( this.user_highlight != undefined &&  this.user_highlight != 'auto' )
+        var mode;
+        if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
         {
-            var mode = this.user_highlight;
+            mode = this.user_highlight;
             CodeMirror.autoLoadMode(this.code_mirror, mode);
             this.code_mirror.setOption('mode', mode);
             return;
@@ -427,22 +426,22 @@ var IPython = (function (IPython) {
         var current_mode = this.code_mirror.getOption('mode', mode);
         var first_line = this.code_mirror.getLine(0);
         // loop on every pairs
-        for( var mode in modes) {
-            var regs = modes[mode]['reg'];
+        for(mode in modes) {
+            var regs = modes[mode].reg;
             // only one key every time but regexp can't be keys...
             for(var i=0; i<regs.length; i++) {
                 // here we handle non magic_modes
-                if(first_line.match(regs[i]) != null) {
+                if(first_line.match(regs[i]) !== null) {
                     if(current_mode == mode){
                         return;
                     }
-                    if (mode.search('magic_') != 0) {
+                    if (mode.search('magic_') !== 0) {
                         this.code_mirror.setOption('mode', mode);
                         CodeMirror.autoLoadMode(this.code_mirror, mode);
                         return;
                     }
-                    var open = modes[mode]['open']|| "%%";
-                    var close = modes[mode]['close']|| "%%end";
+                    var open = modes[mode].open || "%%";
+                    var close = modes[mode].close || "%%end";
                     var mmode = mode;
                     mode = mmode.substr(6);
                     if(current_mode == mode){
@@ -469,14 +468,14 @@ var IPython = (function (IPython) {
             }
         }
         // fallback on default
-        var default_mode
+        var default_mode;
         try {
             default_mode = this._options.cm_config.mode;
         } catch(e) {
             default_mode = 'text/plain';
         }
         if( current_mode === default_mode){
-            return
+            return;
         }
         this.code_mirror.setOption('mode', default_mode);
     };
