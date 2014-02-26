@@ -22,6 +22,7 @@ $(document).ready(function () {
         base_url : IPython.utils.get_body_data("baseUrl"),
         notebook_path : IPython.utils.get_body_data("notebookPath"),
     };
+    IPython.session_list = new IPython.SesssionList(opts);
     IPython.notebook_list = new IPython.NotebookList('#notebook_list', opts);
     IPython.cluster_list = new IPython.ClusterList('#cluster_list', opts);
     IPython.kernel_list = new IPython.KernelList('#running_list', opts);
@@ -36,16 +37,14 @@ $(document).ready(function () {
         //refresh immediately , then start interval
         if($('.upload_button').length == 0)
         {
-            IPython.notebook_list.load_sessions();
-            IPython.kernel_list.load_sessions();
+            IPython.session_list.load_sessions();
             IPython.cluster_list.load_list();
         }
         if (!interval_id){
             interval_id = setInterval(function(){
                     if($('.upload_button').length == 0)
                     {
-                        IPython.notebook_list.load_sessions();
-                        IPython.kernel_list.load_sessions();
+                        IPython.session_list.load_sessions();
                         IPython.cluster_list.load_list();
                     }
                 }, time_refresh*1000);

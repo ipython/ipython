@@ -15,6 +15,7 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
     var NotebookList = function (selector, options, element_name) {
+        var that = this
         // allow code re-use by just changing element_name in kernellist.js
         this.element_name = element_name || 'notebook';
         this.selector = selector;
@@ -27,6 +28,8 @@ var IPython = (function (IPython) {
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        $([IPython.events]).on('sessions_loaded.Dashboard', 
+            function(e, d) { that.sessions_loaded(d); });
     };
 
     NotebookList.prototype.style = function () {
@@ -100,37 +103,12 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.load_sessions = function(){
-        var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(that.sessions_loaded, this)
-        };
-        var url = utils.url_join_encode(this.base_url, 'api/sessions');
-        $.ajax(url,settings);
+        IPython.session_list.load_sessions();
     };
 
 
     NotebookList.prototype.sessions_loaded = function(data){
-        this.sessions = {};
-        var len = data.length;
-        if (len > 0) {
-            for (var i=0; i<len; i++) {
-                var nb_path;
-                if (!data[i].notebook.path) {
-                    nb_path = data[i].notebook.name;
-                }
-                else {
-                    nb_path = utils.url_path_join(
-                        data[i].notebook.path,
-                        data[i].notebook.name
-                    );
-                }
-                this.sessions[nb_path] = data[i].id;
-            }
-        }
+        this.sessions = data;
         this.load_list();
     };
 
