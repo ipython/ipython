@@ -6,7 +6,7 @@
 //----------------------------------------------------------------------------
 
 //============================================================================
-// ImageWidget
+// ButtonWidget
 //============================================================================
 
 /**
@@ -14,12 +14,14 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgets/widget"], function(WidgetManager){
+define(["widgets/js/widget"], function(WidgetManager){
 
-    var ImageView = IPython.DOMWidgetView.extend({  
+    var ButtonView = IPython.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
-            this.setElement($("<img />"));
+            this.setElement($("<button />")
+                .addClass('btn'));
+
             this.update(); // Set defaults.
         },
         
@@ -28,24 +30,31 @@ define(["notebook/js/widgets/widget"], function(WidgetManager){
             //
             // Called when the model is changed.  The model may have been 
             // changed by another view or by a state update from the back-end.
-            var image_src = 'data:image/' + this.model.get('format') + ';base64,' + this.model.get('_b64value');
-            this.$el.attr('src', image_src);
-            
-            var width = this.model.get('width');
-            if (width !== undefined && width.length > 0) {
-                this.$el.attr('width', width);
+            var description = this.model.get('description');
+            if (description.length === 0) {
+                this.$el.html("&nbsp;"); // Preserve button height
             } else {
-                this.$el.removeAttr('width');
+                this.$el.text(description);
             }
             
-            var height = this.model.get('height');
-            if (height !== undefined && height.length > 0) {
-                this.$el.attr('height', height);
+            if (this.model.get('disabled')) {
+                this.$el.attr('disabled','disabled');
             } else {
-                this.$el.removeAttr('height');
+                this.$el.removeAttr('disabled');
             }
-            return ImageView.__super__.update.apply(this);
+
+            return ButtonView.__super__.update.apply(this);
+        },
+
+        events: {
+            // Dictionary of events and their handlers.
+            'click': '_handle_click',
+        },
+        
+        _handle_click: function(){
+            // Handles when the button is clicked.
+            this.send({event: 'click'});
         },
     });
-    WidgetManager.register_widget_view('ImageView', ImageView);
+    WidgetManager.register_widget_view('ButtonView', ButtonView);
 });

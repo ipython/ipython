@@ -14,7 +14,7 @@
  * @namespace IPython
  **/
 
-define(["notebook/js/widgetmanager",
+define(["widgets/js/manager",
         "underscore",
         "backbone"], 
 function(WidgetManager, _, Backbone){

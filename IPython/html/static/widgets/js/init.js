@@ -10,13 +10,13 @@
 //============================================================================
 
 define([
-    "notebook/js/widgets/widget_bool",
-    "notebook/js/widgets/widget_button",
-    "notebook/js/widgets/widget_container",
-    "notebook/js/widgets/widget_float",
-    "notebook/js/widgets/widget_image",
-    "notebook/js/widgets/widget_int",
-    "notebook/js/widgets/widget_selection",
-    "notebook/js/widgets/widget_selectioncontainer",
-    "notebook/js/widgets/widget_string",
+    "widgets/js/widget_bool",
+    "widgets/js/widget_button",
+    "widgets/js/widget_container",
+    "widgets/js/widget_float",
+    "widgets/js/widget_image",
+    "widgets/js/widget_int",
+    "widgets/js/widget_selection",
+    "widgets/js/widget_selectioncontainer",
+    "widgets/js/widget_string",
 ], function(){ return true; });
