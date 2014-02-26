@@ -14,27 +14,20 @@ Represents a container that can be used to group other widgets.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Tuple, Instance, TraitError
+from IPython.utils.traitlets import Unicode, Tuple, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class TupleOfDOMWidgets(Tuple):
-    """Like Tuple(Instance(DOMWidget)), but without checking length."""
-    def validate_elements(self, obj, value):
-        for v in value:
-            if not isinstance(v, DOMWidget):
-                raise TraitError("Container.children must be DOMWidgets, not %r" % v)
-        return value
-
 class ContainerWidget(DOMWidget):
     _view_name = Unicode('ContainerView', sync=True)
 
-    # Keys, all private and managed by helper methods.  Flexible box model
-    # classes...
-    children = TupleOfDOMWidgets()
-    _children = TupleOfDOMWidgets(sync=True)
+    # Child widgets in the container.
+    # Using a tuple here to force reassignment to update the list.
+    # When a proper notifying-list trait exists, that is what should be used here.
+    children = Tuple()
+    _children = Tuple(sync=True)
 
     def _children_changed(self, name, old, new):
         """Validate children list.
