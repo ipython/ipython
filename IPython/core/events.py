@@ -7,6 +7,10 @@ can be registered for the same event without needing to be aware of one another.
 
 The functions defined in this module are no-ops indicating the names of available
 events and the arguments which will be passed to them.
+
+.. note::
+
+   This API is experimental in IPython 2.0, and may be revised in future versions.
 """
 from __future__ import print_function
 
@@ -15,6 +19,10 @@ class EventManager(object):
     
     This is attached to :class:`~IPython.core.interactiveshell.InteractiveShell`
     instances as a ``callbacks`` attribute.
+    
+    .. note::
+
+       This API is experimental in IPython 2.0, and may be revised in future versions.
     """
     def __init__(self, shell, available_events):
         """Initialise the :class:`CallbackManager`.

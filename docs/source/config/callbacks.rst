@@ -27,6 +27,10 @@ For example::
         ip.callbacks.register('pre_execute', vw.pre_execute)
         ip.callbacks.register('post_execute', vw.post_execute)
 
+.. note::
+
+   This API is experimental in IPython 2.0, and may be revised in future versions.
+
 .. seealso::
 
    Module :mod:`IPython.core.hooks`
