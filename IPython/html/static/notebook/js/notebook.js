@@ -116,7 +116,7 @@ var IPython = (function (IPython) {
         });
 
         $([IPython.events]).on('edit_mode.Cell', function (event, data) {
-            that.edit_mode(false, that.find_cell_index(data.cell));
+            that.edit_mode(that.find_cell_index(data.cell), false);
         });
 
         $([IPython.events]).on('command_mode.Cell', function (event, data) {
@@ -543,11 +543,11 @@ var IPython = (function (IPython) {
      * Make the notebook enter edit mode.
      *
      * @method edit_mode
-     * @param [focust_editor] {bool} Should this method focus the cell's editor?  Defaults to true.
      * @param [index] {int} Cell index to select.  If no index is provided, 
      *  the current selected cell is used.
+     * @param [focust_editor] {bool} Should this method focus the cell's editor?  Defaults to true.
      **/
-    Notebook.prototype.edit_mode = function (focus_editor, index) {
+    Notebook.prototype.edit_mode = function (index, focus_editor) {
         if (focus_editor===undefined) {
             focus_editor = true;
         }
@@ -1458,14 +1458,14 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.edit_mode(true, cell_index+1);
+            this.edit_mode(cell_index+1, true);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
         }
   
         this.insert_cell_below('code');
-        this.edit_mode(true, cell_index+1);
+        this.edit_mode(cell_index+1, true);
         this.set_dirty(true);
     };
 
@@ -1484,7 +1484,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.edit_mode(true, cell_index+1);
+            this.edit_mode(cell_index+1, true);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
@@ -1960,7 +1960,7 @@ var IPython = (function (IPython) {
         console.log('load notebook success');
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
-            this.edit_mode(true, 0);
+            this.edit_mode(0, true);
         } else {
             this.select(0);
             this.command_mode();
