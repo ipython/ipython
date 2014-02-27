@@ -457,7 +457,6 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index();
             if (sindex !== null && index !== sindex) {
-                this.command_mode(); 
                 this.get_cell(sindex).unselect();
             }
             var cell = this.get_cell(index);

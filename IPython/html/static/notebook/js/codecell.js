@@ -391,14 +391,6 @@ var IPython = (function (IPython) {
         return cont;
     };
 
-    CodeCell.prototype.unselect = function () {
-        var cont = IPython.Cell.prototype.unselect.apply(this);
-        if (cont) {
-            this.code_mirror.getInputField().blur();
-        }
-        return cont;
-    };
-
     CodeCell.prototype.render = function () {
         var cont = IPython.Cell.prototype.render.apply(this);
         // Always execute, even if we are already in the rendered state
