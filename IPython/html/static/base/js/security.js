@@ -101,7 +101,7 @@ IPython.security = (function (IPython) {
         // }
         var html4 = caja.html4;
 
-        if (allow_css === undefined) allow_css = true;
+        if (allow_css === undefined) allow_css = false;
         if (allow_css) {
             // allow sanitization of style tags,
             // not just scrubbing
