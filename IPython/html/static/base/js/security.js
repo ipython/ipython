@@ -66,21 +66,12 @@ IPython.security = (function (IPython) {
         return h.html();
     };
     
-    var sanitize = function (html, allow_css) {
+    var sanitize_html = function (html, allow_css) {
         // sanitize HTML
-        // if allow_css is true (default), CSS is sanitized as well.
+        // if allow_css is true (default: false), CSS is sanitized as well.
         // otherwise, CSS elements and attributes are simply removed.
-        // returns a struct of
-        // {
-        //   src: original_html,
-        //   sanitized: the_sanitized_html,
-        //   _maybe_safe: bool // false if the sanitizer definitely made changes.
-        //                        This is an incomplete indication,
-        //                        only used to indicate whether further verification is necessary.
-        // }
         var html4 = caja.html4;
 
-        if (allow_css === undefined) allow_css = false;
         if (allow_css) {
             // allow sanitization of style tags,
             // not just scrubbing
@@ -92,13 +83,8 @@ IPython.security = (function (IPython) {
             html4.ATTRIBS.style = html4.atype.SCRIPT;
         }
         
-        var result = {
-            src : html,
-            _maybe_safe : true
-        };
         var record_messages = function (msg, opts) {
             console.log("HTML Sanitizer", msg, opts);
-            result._maybe_safe = false;
         };
         
         var policy = function (tagName, attribs) {
@@ -115,24 +101,18 @@ IPython.security = (function (IPython) {
             }
         };
         
-        result.sanitized = caja.sanitizeWithPolicy(html, policy);
+        var sanitized = caja.sanitizeWithPolicy(html, policy);
         
         if (allow_css) {
             // sanitize style tags as stylesheets
-            result.sanitized = sanitize_stylesheets(result.sanitized, policy);
+            sanitized = sanitize_stylesheets(result.sanitized, policy);
         }
         
-        return result;
-    };
-    
-    var sanitize_html = function (html) {
-        // shorthand for str-to-str conversion, dropping the struct
-        return sanitize(html).sanitized;
+        return sanitized;
     };
     
     return {
         caja: caja,
-        sanitize: sanitize,
         sanitize_html: sanitize_html
     };
 
