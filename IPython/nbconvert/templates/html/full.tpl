@@ -60,7 +60,17 @@ pre {
 
 {% block body %}
 <body>
+<div style="display: block;" id="site" class="border-box-sizing">
+  <div id="ipython-main-app" class="border-box-sizing">
+    <div id="notebook_panel" class="border-box-sizing" style="-webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none;">
+      <div tabindex="-1" id="notebook" class="border-box-sizing" style="overflow: visible; border-top: none;">
+        <div class="container" id="notebook-container">
 {{ super() }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 {%- endblock body %}
 

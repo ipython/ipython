@@ -2,7 +2,7 @@
 
 
 {% block codecell %}
-<div class="cell border-box-sizing code_cell">
+<div class="cell border-box-sizing code_cell rendered unselected">
 {{ super() }}
 </div>
 {%- endblock codecell %}
@@ -40,8 +40,10 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock output_prompt %}
 
 {% block input %}
-<div class="input_area box-flex1">
+<div class="inner_cell">
+    <div class="input_area">
 {{ cell.input | highlight2html(language=resources.get('language'), metadata=cell.metadata) }}
+</div>
 </div>
 {%- endblock input %}
 
@@ -59,7 +61,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock output %}
 
 {% block markdowncell scoped %}
-<div class="cell border-box-sizing text_cell">
+<div class="cell border-box-sizing text_cell rendered unselected">
 <div class="input">
 {{ self.empty_in_prompt() }}
 <div class="inner_cell">
@@ -72,7 +74,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
-<div class="cell border-box-sizing text_cell">
+<div class="cell border-box-sizing text_cell rendered unselected">
 <div class="input">
 {{ self.empty_in_prompt() }}
 <div class="inner_cell">
@@ -89,7 +91,7 @@ unknown type  {{ cell.type }}
 {% endblock unknowncell %}
 
 {% block pyout -%}
-<div class="box-flex1 output_subarea output_pyout">
+<div class="output_subarea output_text">
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
