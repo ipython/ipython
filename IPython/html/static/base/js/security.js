@@ -17,27 +17,6 @@ IPython.security = (function (IPython) {
     
     var noop = function (x) { return x; };
     
-    var cmp_tree = function (a, b) {
-        // compare two HTML trees
-        // only checks the tag structure is preserved,
-        // not any attributes or contents
-        if (a.length !== b.length) {
-            return false;
-        }
-        
-        for (var i = a.length - 1; i >= 0; i--) {
-            if ((a[i].tagName || '').toLowerCase() != (b[i].tagName || '').toLowerCase()) {
-                return false;
-            }
-        }
-        var ac = a.children();
-        var bc = b.children();
-        if (ac.length === 0 && bc.length === 0) {
-            return true;
-        }
-        return cmp_tree(ac, bc);
-    };
-    
     var caja;
     if (window && window.html) {
         caja = window.html;
@@ -151,24 +130,8 @@ IPython.security = (function (IPython) {
         return sanitize(html).sanitized;
     };
     
-    var is_safe = function (html) {
-        // just return bool for whether an HTML string is safe
-        // this is not currently used for anything other than tests.
-        var result = sanitize(html);
-        
-        // caja can strip whole elements without logging,
-        // so double-check that node structure didn't change
-        if (result._maybe_safe) {
-            result.safe = cmp_tree($(result.sanitized), $(html));
-        } else {
-            result.safe = false;
-        }
-        return result.safe;
-    };
-    
     return {
         caja: caja,
-        is_safe: is_safe,
         sanitize: sanitize,
         sanitize_html: sanitize_html
     };
