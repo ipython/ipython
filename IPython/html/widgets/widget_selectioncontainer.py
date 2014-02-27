@@ -15,7 +15,7 @@ pages.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget_container import ContainerWidget
-from IPython.utils.traitlets import Unicode, Dict, CInt, List, Instance
+from IPython.utils.traitlets import Unicode, Dict, CInt
 
 #-----------------------------------------------------------------------------
 # Classes

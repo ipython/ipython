@@ -1210,6 +1210,7 @@ class Container(Instance):
     To be subclassed by overriding klass.
     """
     klass = None
+    _cast_types = ()
     _valid_defaults = SequenceTypes
     _trait = None
 
@@ -1273,6 +1274,8 @@ class Container(Instance):
         raise TraitError(e)
 
     def validate(self, obj, value):
+        if isinstance(value, self._cast_types):
+            value = self.klass(value)
         value = super(Container, self).validate(obj, value)
         if value is None:
             return value
@@ -1298,6 +1301,7 @@ class Container(Instance):
 class List(Container):
     """An instance of a Python list."""
     klass = list
+    _cast_types = (tuple,)
 
     def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxsize,
                 allow_none=True, **metadata):
@@ -1354,15 +1358,27 @@ class List(Container):
             self.length_error(obj, value)
 
         return super(List, self).validate_elements(obj, value)
+    
+    def validate(self, obj, value):
+        value = super(List, self).validate(obj, value)
+        if value is None:
+            return value
+
+        value = self.validate_elements(obj, value)
+
+        return value
+        
 
 
-class Set(Container):
+class Set(List):
     """An instance of a Python set."""
     klass = set
+    _cast_types = (tuple, list)
 
 class Tuple(Container):
     """An instance of a Python tuple."""
     klass = tuple
+    _cast_types = (list,)
 
     def __init__(self, *traits, **metadata):
         """Tuple(*traits, default_value=None, allow_none=True, **medatata)

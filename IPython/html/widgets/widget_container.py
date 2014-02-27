@@ -14,18 +14,20 @@ Represents a container that can be used to group other widgets.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Bool, List, Instance
+from IPython.utils.traitlets import Unicode, Tuple, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
 class ContainerWidget(DOMWidget):
     _view_name = Unicode('ContainerView', sync=True)
 
-    # Keys, all private and managed by helper methods.  Flexible box model
-    # classes...
-    children = List(Instance(DOMWidget))
-    _children = List(Instance(DOMWidget), sync=True)
+    # Child widgets in the container.
+    # Using a tuple here to force reassignment to update the list.
+    # When a proper notifying-list trait exists, that is what should be used here.
+    children = Tuple()
+    _children = Tuple(sync=True)
 
     def _children_changed(self, name, old, new):
         """Validate children list.
@@ -36,7 +38,7 @@ class ContainerWidget(DOMWidget):
             http://www.peterbe.com/plog/uniqifiers-benchmark
         which provides the inspiration for using this implementation.  Below
         I've implemented the `f5` algorithm using Python comprehensions."""
-        if new is not None and isinstance(new, list):
+        if new is not None:
             seen = {}
             def add_item(i):
                 seen[i.model_id] = True

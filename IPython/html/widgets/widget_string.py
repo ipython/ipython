@@ -14,7 +14,7 @@ Represents a unicode string using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, CallbackDispatcher
-from IPython.utils.traitlets import Unicode, Bool, List
+from IPython.utils.traitlets import Unicode, Bool
 
 #-----------------------------------------------------------------------------
 # Classes

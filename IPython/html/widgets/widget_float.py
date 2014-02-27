@@ -14,7 +14,7 @@ Represents an unbounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CFloat, Bool, List, Enum
+from IPython.utils.traitlets import Unicode, CFloat, Bool, Enum
 
 #-----------------------------------------------------------------------------
 # Classes
