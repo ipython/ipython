@@ -142,12 +142,15 @@ var IPython = (function (IPython) {
         }
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
-                $([IPython.events]).trigger('focus_text.Cell', {cell: that});
+                $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                $([IPython.events]).trigger('blur_text.Cell', {cell: that});
+                // Check if this unfocus event is legit.
+                if (!that.should_cancel_blur()) {
+                    $([IPython.events]).trigger('command_mode.Cell', {cell: that});
+                }
             });
         }
     };
@@ -267,7 +270,7 @@ var IPython = (function (IPython) {
      * @return results {bool} Whether or not to ignore the cell's blur event.
      **/
     Cell.prototype.should_cancel_blur = function () {
-        return false;
+        return IPython.tooltip && IPython.tooltip.is_visible();
     };
 
     /**

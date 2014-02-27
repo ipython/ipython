@@ -115,12 +115,12 @@ var IPython = (function (IPython) {
             that.select(index);
         });
 
-        $([IPython.events]).on('focus_text.Cell', function (event, data) {
-            that.handle_cell_text_focus(data.cell);
+        $([IPython.events]).on('edit_mode.Cell', function (event, data) {
+            that.edit_mode(false, that.find_cell_index(data.cell));
         });
 
-        $([IPython.events]).on('blur_text.Cell', function (event, data) {
-            that.handle_cell_text_blur(data.cell);
+        $([IPython.events]).on('command_mode.Cell', function (event, data) {
+            that.command_mode();
         });
 
         $([IPython.events]).on('status_autorestarting.Kernel', function () {
@@ -581,46 +581,6 @@ var IPython = (function (IPython) {
         var cell = this.get_selected_cell();
         if (cell === null) {return;}  // No cell is selected
         cell.focus_cell();
-    };
-
-    /**
-     * Handles when the text area of a cell (codemirror) has been focused.
-     *
-     * @method handle_cell_text_focus
-     * @param cell {Cell} 
-     **/
-    Notebook.prototype.handle_cell_text_focus = function (cell) {
-        this.edit_mode(false, this.find_cell_index(cell));
-    };
-
-    /**
-     * Handles when the text area of a cell (codemirror) has been blurred.
-     *
-     * @method handle_cell_text_blur
-     * @param cell {Cell} 
-     **/
-    Notebook.prototype.handle_cell_text_blur = function (cell) {
-        // Check if this unfocus event is legit.
-        if (!this.should_cancel_blur(cell)) {
-            this.command_mode();
-        }
-    };
-
-    /**
-     * Determine whether or not the unfocus event should be aknowledged.
-     *
-     * @method should_cancel_blur
-     * @param cell {Cell} 
-     *
-     * @return results {bool} Whether or not to ignore the cell's blur event.
-     **/
-    Notebook.prototype.should_cancel_blur = function (cell) {
-        // If the tooltip is visible, ignore the unfocus.
-        var tooltip_visible = IPython.tooltip && IPython.tooltip.is_visible();
-        if (tooltip_visible) { return true; }
-
-        // Check the cell's should_cancel_blur method.
-        return (cell.should_cancel_blur !== undefined && cell.should_cancel_blur());
     };
 
     // Cell movement
