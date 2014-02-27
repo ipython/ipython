@@ -25,7 +25,7 @@ from __future__ import print_function
 
 import sys
 
-
+from IPython.core.formatters import _safe_get_formatter_method
 from IPython.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod
@@ -242,7 +242,7 @@ class DisplayHook(Configurable):
         self.check_for_underscore()
         if result is not None and not self.quiet():
             # If _ipython_display_ is defined, use that to display this object.
-            display_method = getattr(result, '_ipython_display_', None)
+            display_method = _safe_get_formatter_method(result, '_ipython_display_')
             if display_method is not None:
                 try:
                     return display_method()

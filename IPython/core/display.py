@@ -22,6 +22,7 @@ from __future__ import print_function
 import os
 import struct
 
+from IPython.core.formatters import _safe_get_formatter_method
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
                                      unicode_type)
 from IPython.testing.skipdoctest import skip_doctest
@@ -116,7 +117,7 @@ def display(*objs, **kwargs):
     for obj in objs:
 
         # If _ipython_display_ is defined, use that to display this object.
-        display_method = getattr(obj, '_ipython_display_', None)
+        display_method = _safe_get_formatter_method(obj, '_ipython_display_')
         if display_method is not None:
             try:
                 display_method(**kwargs)
