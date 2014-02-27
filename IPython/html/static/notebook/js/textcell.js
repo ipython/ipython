@@ -193,9 +193,8 @@ var IPython = (function (IPython) {
             text_cell.find('div.text_cell_input').show();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
-                this.refresh();
             }
-
+            this.refresh();
         }
         return cont;
     };
