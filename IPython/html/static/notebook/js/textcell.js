@@ -105,7 +105,10 @@ var IPython = (function (IPython) {
             if (that.selected === false) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
             }
-            $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+            var cont = that.unrender();
+            if (cont) {
+                that.focus_editor();
+            }
         });
     };
 

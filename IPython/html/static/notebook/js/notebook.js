@@ -116,7 +116,7 @@ var IPython = (function (IPython) {
         });
 
         $([IPython.events]).on('edit_mode.Cell', function (event, data) {
-            that.edit_mode(that.find_cell_index(data.cell), false);
+            that.handle_edit_mode(that.find_cell_index(data.cell));
         });
 
         $([IPython.events]).on('command_mode.Cell', function (event, data) {
@@ -540,34 +540,44 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Make the notebook enter edit mode.
+     * Handle when a cell fires it's edit_mode event.
      *
-     * @method edit_mode
+     * @method handle_edit_mode
      * @param [index] {int} Cell index to select.  If no index is provided, 
      *  the current selected cell is used.
-     * @param [focust_editor] {bool} Should this method focus the cell's editor?  Defaults to true.
      **/
-    Notebook.prototype.edit_mode = function (index, focus_editor) {
-        if (focus_editor===undefined) {
-            focus_editor = true;
-        }
-        // Must explictly check for undefined CBool(0) = false.
-        if (index===undefined) {
-            index = this.get_selected_index();
-        } else {
-            this.select(index);
-        }
+    Notebook.prototype.handle_edit_mode = function (index) {
         // Make sure the cell exists.
         var cell = this.get_cell(index);
         if (cell === null) { return; }
 
         // Set the cell to edit mode and notify the keyboard manager if this
         // is a change of mode for the notebook as a whole.
-        cell.edit_mode(focus_editor);
         if (this.mode !== 'edit') {
+            cell.edit_mode(focus_editor);
             this.mode = 'edit';
             $([IPython.events]).trigger('edit_mode.Notebook');
             IPython.keyboard_manager.edit_mode();
+        }
+    };
+
+    /**
+     * Make a cell enter edit mode.
+     *
+     * @method trigger_edit_mode
+     * @param [index] {int} Cell index to select.  If no index is provided, 
+     *  the current selected cell is used.
+     **/
+    Notebook.prototype.trigger_edit_mode = function (index) {
+        if (index===undefined) {
+            index = this.get_selected_index();
+        }
+        // Make sure the cell exists.
+        var cell = this.get_cell(index);
+        if (cell === null) { return; }
+        if (cell.mode != 'edit') {
+            cell.unrender();
+            cell.focus_editor();
         }
     };
 
@@ -1458,14 +1468,14 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.edit_mode(cell_index+1, true);
+            this.trigger_edit_mode(cell_index+1);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
         }
   
         this.insert_cell_below('code');
-        this.edit_mode(cell_index+1, true);
+        this.trigger_edit_mode(cell_index+1);
         this.set_dirty(true);
     };
 
@@ -1484,7 +1494,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.edit_mode(cell_index+1, true);
+            this.trigger_edit_mode(cell_index+1);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
@@ -1960,7 +1970,7 @@ var IPython = (function (IPython) {
         console.log('load notebook success');
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
-            this.edit_mode(0, true);
+            this.trigger_edit_mode(0);
         } else {
             this.select(0);
             this.command_mode();
