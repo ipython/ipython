@@ -106,7 +106,7 @@ def pre_execute():
     pass
 
 @_collect
-def pre_execute_explicit():
+def pre_run_cell():
     """Fires before user-entered code runs."""
     pass
 
@@ -118,7 +118,7 @@ def post_execute():
     pass
 
 @_collect
-def post_execute_explicit():
+def post_run_cell():
     """Fires after user-entered code runs."""
     pass
 

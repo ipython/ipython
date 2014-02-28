@@ -844,13 +844,13 @@ class InteractiveShell(SingletonConfigurable):
         self.events = EventManager(self, available_events)
 
     def register_post_execute(self, func):
-        """DEPRECATED: Use ip.callbacks.register('post_execute_explicit', func)
+        """DEPRECATED: Use ip.callbacks.register('post_run_cell', func)
         
         Register a function for calling after code execution.
         """
         warn("ip.register_post_execute is deprecated, use "
-             "ip.callbacks.register('post_execute_explicit', func) instead.")
-        self.events.register('post_execute_explicit', func)
+             "ip.callbacks.register('post_run_cell', func) instead.")
+        self.events.register('post_run_cell', func)
     
     #-------------------------------------------------------------------------
     # Things related to the "main" module
@@ -2669,7 +2669,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.events.trigger('pre_execute')
         if not silent:
-            self.events.trigger('pre_execute_explicit')
+            self.events.trigger('pre_run_cell')
 
         # If any of our input transformation (input_transformer_manager or
         # prefilter_manager) raises an exception, we store it in this variable
@@ -2742,7 +2742,7 @@ class InteractiveShell(SingletonConfigurable):
                 
                 self.events.trigger('post_execute')
                 if not silent:
-                    self.events.trigger('post_execute_explicit')
+                    self.events.trigger('post_run_cell')
 
         if store_history:
             # Write output to the database. Does nothing unless

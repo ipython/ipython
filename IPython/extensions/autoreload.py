@@ -490,7 +490,7 @@ class AutoreloadMagics(Magics):
             # Inject module to user namespace
             self.shell.push({top_name: top_module})
 
-    def pre_execute_explicit(self):
+    def pre_run_cell(self):
         if self._reloader.enabled:
             try:
                 self._reloader.check()
@@ -502,4 +502,4 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     auto_reload = AutoreloadMagics(ip)
     ip.register_magics(auto_reload)
-    ip.events.register('pre_execute_explicit', auto_reload.pre_execute_explicit)
+    ip.events.register('pre_run_cell', auto_reload.pre_run_cell)

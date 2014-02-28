@@ -282,15 +282,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
     
     def test_silent_postexec(self):
-        """run_cell(silent=True) doesn't invoke pre/post_execute_explicit callbacks"""
+        """run_cell(silent=True) doesn't invoke pre/post_run_cell callbacks"""
         pre_explicit = mock.Mock()
         pre_always = mock.Mock()
         post_explicit = mock.Mock()
         post_always = mock.Mock()
         
-        ip.events.register('pre_execute_explicit', pre_explicit)
+        ip.events.register('pre_run_cell', pre_explicit)
         ip.events.register('pre_execute', pre_always)
-        ip.events.register('post_execute_explicit', post_explicit)
+        ip.events.register('post_run_cell', post_explicit)
         ip.events.register('post_execute', post_always)
         
         try:
