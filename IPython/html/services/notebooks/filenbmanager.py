@@ -26,7 +26,7 @@ from tornado import web
 
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
-from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
+from IPython.utils.traitlets import Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path
@@ -461,7 +461,7 @@ class FileNotebookManager(NotebookManager):
             )
         # ensure notebook is readable (never restore from an unreadable notebook)
         with io.open(cp_path, 'r', encoding='utf-8') as f:
-            nb = current.read(f, u'json')
+            current.read(f, u'json')
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
     
