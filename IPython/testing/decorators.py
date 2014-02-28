@@ -393,8 +393,8 @@ def onlyif_any_cmd_exists(*commands):
         except ImportError as e:
             # is_cmd_found uses pywin32 on windows, which might not be available
             if sys.platform == 'win32' and 'pywin32' in str(e):
-                return skip("This test runs only if pywin32 and command '{0}' "
-                            "is installed".format(cmd))
+                return skip("This test runs only if pywin32 and commands '{0}' "
+                            "are installed".format(commands))
             raise e
     return skip("This test runs only if one of the commands {0} "
                 "is installed".format(commands))
