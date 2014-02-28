@@ -29,6 +29,15 @@ class ContainerWidget(DOMWidget):
     children = Tuple()
     _children = Tuple(sync=True)
 
+
+    def __init__(self, **kwargs):
+        super(ContainerWidget, self).__init__(**kwargs)
+        self.on_displayed(ContainerWidget._fire_children_displayed)
+
+    def _fire_children_displayed(self):
+        for child in self._children:
+            child._handle_displayed()
+
     def _children_changed(self, name, old, new):
         """Validate children list.
 
