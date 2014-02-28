@@ -33,10 +33,11 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.style = function () {
-        $('#' + this.element_name + '_toolbar').addClass('list_toolbar');
-        $('#drag_info').addClass('toolbar_info');
-        $('#' + this.element_name + '_buttons').addClass('toolbar_buttons');
-        $('#' + this.element_name + '_list_header').addClass('list_header');
+        var prefix = '#' + this.element_name
+        $(prefix + '_toolbar').addClass('list_toolbar');
+        $(prefix + '_list_info').addClass('toolbar_info');
+        $(prefix + '_buttons').addClass('toolbar_buttons');
+        $(prefix + '_list_header').addClass('list_header');
         this.element.addClass("list_container");
     };
 

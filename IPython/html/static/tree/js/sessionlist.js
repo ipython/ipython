@@ -29,7 +29,7 @@ var IPython = (function (IPython) {
             success : $.proxy(that.sessions_loaded, this)
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions');
-        $.ajax(url,settings);
+        $.ajax(url, settings);
     };
 
     SesssionList.prototype.sessions_loaded = function(data){

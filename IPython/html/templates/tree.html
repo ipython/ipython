@@ -34,9 +34,9 @@ data-base-kernel-url="{{base_kernel_url}}"
         <div id="notebook_toolbar" class="row-fluid">
             <div class="span8">
                 <form id='alternate_upload'  class='alternate_upload' >
-                    <span id="drag_info" style="position:absolute" >
+                    <span id="notebook_list_info" style="position:absolute" >
                         To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
-                        </span>
+                    </span>
                     <input type="file" name="datafile" class="fileinput" multiple='multiple'>
                 </form>
             </div>
@@ -76,9 +76,8 @@ data-base-kernel-url="{{base_kernel_url}}"
         </div>
 
         <div id="running_list">
-            <div id="running_list_header" class="row-fluid list_header" style='display:none'> 
+            <div id="running_list_header" class="row-fluid list_header"> 
                 <div> There are no notebooks running. </div>
-            <!-- damn it, I seem to need this stupid placeholder, otherwise items don't get added to the list -->
             </div> 
         </div>
     </div>
