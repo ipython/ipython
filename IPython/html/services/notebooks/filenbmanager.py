@@ -187,7 +187,7 @@ class FileNotebookManager(NotebookManager):
         for name in dir_names:
             os_path = self._get_os_path(name, path)
             if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir)\
-                    and not name.startswith('_'):
+                    and self.should_list(name):
                 try:
                     model = self.get_dir_model(name, path)
                 except IOError:
@@ -233,7 +233,8 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
-        notebooks = [self.get_notebook(name, path, content=False) for name in notebook_names]
+        notebooks = [self.get_notebook(name, path, content=False)
+                        for name in notebook_names if self.should_list(name)]
         notebooks = sorted(notebooks, key=sort_key)
         return notebooks
 
