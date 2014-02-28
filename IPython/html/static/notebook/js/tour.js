@@ -11,16 +11,11 @@
 
 var tour_steps = [
   { 
-    element: $("#ipython_notebook").parent(),
+    element: $("#ipython_notebook"),
     title: "Welcome to the Notebook Tour",
     placement: 'bottom',
     content: "This tour will take 2 minutes.",
     backdrop: true,
-  }, {
-    element: "#ipython_notebook",
-    title: "Header",
-    placement: 'bottom',
-    content: "Clicking here takes you back to the Dashboard."
   }, {
     element: "#notebook_name",
     title: "Filename",
@@ -34,14 +29,10 @@ var tour_steps = [
     content: "Information about the last time this notebook was saved."
   }, {
     element: "#menus",
-    placement: 'left',
-    title: "Notebook Menubar",
-    content: "The actions that you can perform with this notebook, its cells, and its kernel"
-  }, {
-    element: "#menus",
     placement: 'bottom',
+    backdrop: true,
     title: "Notebook Menubar",
-    content: "The actions that you can perform with this notebook, its cells, and its kernel"
+    content: "Actions on this notebook, its cells, and the kernel it communicates with."
   }, {
     element: "#notification_kernel",
     placement: 'bottom',
@@ -64,19 +55,35 @@ var tour_steps = [
     title: "Edit Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.edit_mode(); },
-    content: "And now we've switched to Edit Mode, regular typing will go into the currently active cell."
+    content: "By pressing Enter or clicking in the input area of cell, a we switched to Edit Mode."
+  }, {    
+    element: "#modal_indicator",
+    title: "Edit Mode",
+    placement: 'bottom',
+    content: "Regular typing will go into the currently active cell."
   }, {
-    element: $('.selected'),
+    element: '.selected',
+    title: "Edit Mode",
+    placement: 'bottom',
+    content: "Notice that the border around the currently active cell changed color."
+  }, {
+    element: '.selected',
     title: "Edit Mode",
     placement: 'bottom',
     onHide: function(tour) { IPython.notebook.command_mode(); },
-    content: "Notice that the border around the currently active cell changed color."
+    content: "Typing in edit mode"
   }, {
-    element: $('.selected'),
+    element: '.selected',
     title: "back to Command Mode",
     placement: 'bottom',
-    onHide: function(tour) { IPython.notebook.command_mode(); },
+    onShow: function(tour) { IPython.notebook.command_mode(); },
     content: "Pressing Esc or clicking outside of the input text area takes you back to command mode."
+  }, {
+    element: '.selected',
+    title: "Command Mode",
+    placement: 'bottom',
+    onHide: function(tour) { IPython.notebook.command_mode(); },
+    content: "This mode exposes many keyboard shortcuts."
   }, {
     element: "#kernel_indicator",
     title: "Kernel indicator",
