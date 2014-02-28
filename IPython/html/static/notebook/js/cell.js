@@ -288,6 +288,7 @@ var IPython = (function (IPython) {
      * @method focus_editor
      */
     Cell.prototype.focus_editor = function () {
+        this.refresh();
         this.code_mirror.focus();
     };
 
