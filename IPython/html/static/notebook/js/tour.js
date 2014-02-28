@@ -34,7 +34,7 @@ var tour_steps = [
     content: "Information about the last time this notebook was saved."
   }, {
     element: "#menus",
-    placement: 'bottom',
+    placement: 'left',
     title: "Notebook Menubar",
     content: "The actions that you can perform with this notebook, its cells, and its kernel"
   }, {
@@ -48,7 +48,7 @@ var tour_steps = [
     onShow: function(tour) {  IPython.notification_area.widget_dict.kernel.set_message("sample notification"); },
     onHide: function(tour) {  IPython.notification_area.widget_dict.kernel.set_message("sample notification", 100); },
     title: "Notification area",
-    content: "Message in response to user action (Kernel busy, Interrupt, etc)"
+    content: "Messages in response to user action (Kernel busy, Interrupt, etc)"
   }, {
     element: "#modal_indicator",
     title: "Mode indicator",
@@ -99,6 +99,21 @@ var tour_steps = [
   }
 ];
 
+var tour_style = "<div class='popover tour'>\
+  <div class='arrow'></div>\
+  <h3 class='popover-title'>
+      <button class='btn btn-default' data-role='end'>End tour</button>\</h3>\
+  <div class='popover-content'></div>\
+  <div class='popover-navigation'>\
+    <button class='btn btn-default icon-step-backward' data-role='prev'></button>\
+    <button class='btn btn-default icon-step-forward' data-role='next'></button>\
+    <button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
+
+  </div>\
+</div>"
+
+var toggle_pause_play = function () { $('#tour-pause').toggleClass('icon-pause icon-play'); }
+
 IPython = (function (IPython) {
  "use strict";
 
@@ -117,7 +132,13 @@ IPython = (function (IPython) {
             animation: false,
             duration: this.step_duration,
             onStart: function() { console.log('tour started'); },
+            // TODO: remove the onPause/onResume logic once pi's patch has been
+            // merged upstream to make this work via data-resume-class and 
+            // data-resume-text attributes.
+            onPause: toggle_pause_play,
+            onResume: toggle_pause_play,
             steps: this.tour_steps,
+            template: tour_style
         });
         this.tour.init();
     };
