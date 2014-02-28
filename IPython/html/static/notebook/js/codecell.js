@@ -411,9 +411,10 @@ var IPython = (function (IPython) {
      **/
     CodeCell.prototype.should_cancel_blur = function () {
         // Cancel this unfocus event if the base wants to cancel or the cell 
-        // completer is open.
+        // completer is open or the tooltip is open.
         return IPython.Cell.prototype.should_cancel_blur.apply(this) ||
-            (this.completer && this.completer.is_visible());
+            (this.completer && this.completer.is_visible()) ||
+            (IPython.tooltip && IPython.tooltip.is_visible());
     };
 
     CodeCell.prototype.select_all = function () {

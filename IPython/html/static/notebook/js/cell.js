@@ -269,7 +269,7 @@ var IPython = (function (IPython) {
      * @return results {bool} Whether or not to ignore the cell's blur event.
      **/
     Cell.prototype.should_cancel_blur = function () {
-        return IPython.tooltip && IPython.tooltip.is_visible();
+        return false;
     };
 
     /**
