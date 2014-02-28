@@ -275,7 +275,7 @@ class FileNotebookManager(NotebookManager):
                     nb = current.read(f, u'json')
                 except Exception as e:
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
-            self.mark_trusted_cells(nb, path, name)
+            self.mark_trusted_cells(nb, name, path)
             model['content'] = nb
         return model
 
@@ -300,7 +300,7 @@ class FileNotebookManager(NotebookManager):
         os_path = self._get_os_path(new_name, new_path)
         nb = current.to_notebook_json(model['content'])
         
-        self.check_and_sign(nb, new_path, new_name)
+        self.check_and_sign(nb, new_name, new_path)
         
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''

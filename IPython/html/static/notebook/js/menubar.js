@@ -133,6 +133,9 @@ var IPython = (function (IPython) {
         });
         this.element.find('#restore_checkpoint').click(function () {
         });
+        this.element.find('#trust_notebook').click(function () {
+            IPython.notebook.trust_notebook();
+        });
         this.element.find('#kill_and_exit').click(function () {
             IPython.notebook.session.delete();
             setTimeout(function(){

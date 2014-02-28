@@ -2,11 +2,14 @@
 """Tests for the notebook manager."""
 from __future__ import print_function
 
+import logging
 import os
 
 from tornado.web import HTTPError
 from unittest import TestCase
 from tempfile import NamedTemporaryFile
+
+from IPython.nbformat import current
 
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
@@ -55,6 +58,14 @@ class TestFileNotebookManager(TestCase):
 
 class TestNotebookManager(TestCase):
     
+    def setUp(self):
+        self._temp_dir = TemporaryDirectory()
+        self.td = self._temp_dir.name
+        self.nbm = FileNotebookManager(notebook_dir=self.td, log=logging.getLogger())
+    
+    def tearDown(self):
+        self._temp_dir.cleanup()
+    
     def make_dir(self, abs_path, rel_path):
         """make subdirectory, rel_path is the relative path
         to that directory from the location where the server started"""
@@ -63,11 +74,33 @@ class TestNotebookManager(TestCase):
             os.makedirs(os_path)
         except OSError:
             print("Directory already exists: %r" % os_path)
-
+    
+    def add_code_cell(self, nb):
+        output = current.new_output("display_data", output_javascript="alert('hi');")
+        cell = current.new_code_cell("print('hi')", outputs=[output])
+        if not nb.worksheets:
+            nb.worksheets.append(current.new_worksheet())
+        nb.worksheets[0].cells.append(cell)
+    
+    def new_notebook(self):
+        nbm = self.nbm
+        model = nbm.create_notebook()
+        name = model['name']
+        path = model['path']
+        
+        full_model = nbm.get_notebook(name, path)
+        nb = full_model['content']
+        self.add_code_cell(nb)
+        
+        nbm.save_notebook(full_model, name, path)
+        return nb, name, path
+    
     def test_create_notebook(self):
         with TemporaryDirectory() as td:
             # Test in root directory
+            # Create a notebook
             nm = FileNotebookManager(notebook_dir=td)
+            # Test in root directory
             model = nm.create_notebook()
             assert isinstance(model, dict)
             self.assertIn('name', model)
@@ -243,3 +276,43 @@ class TestNotebookManager(TestCase):
             copy2 = nm.copy_notebook(name, u'copy 2.ipynb', path=path)
             self.assertEqual(copy2['name'], u'copy 2.ipynb')
     
+    def test_trust_notebook(self):
+        nbm = self.nbm
+        nb, name, path = self.new_notebook()
+        
+        untrusted = nbm.get_notebook(name, path)['content']
+        assert not nbm.notary.check_signature(untrusted)
+        
+        nbm.trust_notebook(name, path)
+        trusted = nbm.get_notebook(name, path)['content']
+        assert nbm.notary.check_signature(trusted)
+    
+    def test_mark_trusted_cells(self):
+        nbm = self.nbm
+        nb, name, path = self.new_notebook()
+        
+        nbm.mark_trusted_cells(nb, name, path)
+        for cell in nb.worksheets[0].cells:
+            if cell.cell_type == 'code':
+                assert not cell.trusted
+        
+        nbm.trust_notebook(name, path)
+        nb = nbm.get_notebook(name, path)['content']
+        nbm.mark_trusted_cells(nb, name, path)
+        for cell in nb.worksheets[0].cells:
+            if cell.cell_type == 'code':
+                assert cell.trusted
+
+    def test_check_and_sign(self):
+        nbm = self.nbm
+        nb, name, path = self.new_notebook()
+        
+        nbm.mark_trusted_cells(nb, name, path)
+        nbm.check_and_sign(nb, name, path)
+        assert not nbm.notary.check_signature(nb)
+        
+        nbm.trust_notebook(name, path)
+        nb = nbm.get_notebook(name, path)['content']
+        nbm.mark_trusted_cells(nb, name, path)
+        nbm.check_and_sign(nb, name, path)
+        assert nbm.notary.check_signature(nb)

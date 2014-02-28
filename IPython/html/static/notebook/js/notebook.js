@@ -1786,6 +1786,75 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('notebook_save_failed.Notebook', [xhr, status, error]);
     };
 
+    /**
+     * Explicitly trust the output of this notebook.
+     *
+     * @method trust_notebook
+     */
+    Notebook.prototype.trust_notebook = function (extra_settings) {
+        // We do the call with settings so we can set cache to false.
+
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            success : $.proxy(this._trust_notebook_success, this),
+            error : $.proxy(this._trust_notebook_error, this)
+        };
+        if (extra_settings) {
+            for (var key in extra_settings) {
+                settings[key] = extra_settings[key];
+            }
+        }
+
+        var body = $("<div>").append($("<p>")
+                .text("A trusted IPython notebook may execute hidden malicious code ")
+                .append($("<strong>")
+                    .append(
+                        $("<em>").text("when you open it")
+                    )
+                ).append(".")
+            ).append($("<p>")
+                .text("For more information, see the ")
+                .append($("<a>").attr("href", "http://ipython.org/security.html")
+                    .text("IPython security documentation")
+                ).append(".")
+            );
+
+        var nb = this;
+        IPython.dialog.modal({
+            title: "Trust this notebook?",
+            body: body,
+
+            buttons: {
+                Cancel : {},
+                Trust : {
+                    class : "btn-danger",
+                    click : function () {
+                        $([IPython.events]).trigger('notebook_trusting.Notebook');
+                        var url = utils.url_join_encode(
+                            nb.base_url,
+                            'api/notebooks',
+                            nb.notebook_path,
+                            nb.notebook_name,
+                            'trust'
+                        );
+                        $.ajax(url, settings);
+                    }
+                }
+            }
+        });
+    };
+
+    Notebook.prototype._trust_notebook_success = function (data, status, xhr) {
+        $([IPython.events]).trigger('notebook_trusted.Notebook');
+        window.location.reload();
+    };
+
+    Notebook.prototype._trust_notebook_error = function (xhr, status, error) {
+        $([IPython.events]).trigger('notebook_trust_failed.Notebook', [xhr, status, error]);
+    };
+
     Notebook.prototype.new_notebook = function(){
         var path = this.notebook_path;
         var base_url = this.base_url;
