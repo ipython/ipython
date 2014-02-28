@@ -55,39 +55,36 @@ var tour_steps = [
     title: "Edit Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.edit_mode(); },
-    content: "By pressing Enter or clicking in the input area of cell, a we switched to Edit Mode."
-  }, {    
-    element: "#modal_indicator",
-    title: "Edit Mode",
-    placement: 'bottom',
-    content: "Regular typing will go into the currently active cell."
+    content: "Pressing Enter or clicking in the input text area of the cell switches to Edit Mode."
   }, {
     element: '.selected',
     title: "Edit Mode",
     placement: 'bottom',
     content: "Notice that the border around the currently active cell changed color."
-  }, {
-    element: '.selected',
+  }, {    
+    element: ".selected",
     title: "Edit Mode",
     placement: 'bottom',
-    onHide: function(tour) { IPython.notebook.command_mode(); },
-    content: "Typing in edit mode"
+    content: "Regular typing will insert text into the currently active cell."
   }, {
     element: '.selected',
     title: "back to Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
-    content: "Pressing Esc or clicking outside of the input text area takes you back to command mode."
+    onHide: function(tour) { $('#help_menu').parent().find('a').first().click(); },
+    content: "Pressing Esc or clicking outside of the input text area takes you back to Command Mode."
   }, {
-    element: '.selected',
-    title: "Command Mode",
+    element: '#keyboard_shortcuts',
+    title: "Keyboard Shortcuts",
     placement: 'bottom',
-    onHide: function(tour) { IPython.notebook.command_mode(); },
-    content: "This mode exposes many keyboard shortcuts."
+    onHide: function(tour) { $('#help_menu').parent().find('a').first().click(); },
+    content: "You can click here to get a list of all of the keyboard shortcuts."
   }, {
     element: "#kernel_indicator",
     title: "Kernel indicator",
     placement: 'bottom',
+    onShow: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
+
     content: "This is the Kernel indicator. It looks like this when the Kernel is idle.",
   }, {
     element: "#kernel_indicator",
