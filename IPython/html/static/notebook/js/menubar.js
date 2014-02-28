@@ -136,6 +136,17 @@ var IPython = (function (IPython) {
         this.element.find('#trust_notebook').click(function () {
             IPython.notebook.trust_notebook();
         });
+        $([IPython.events]).on('trust_changed.Notebook', function (event, trusted) {
+            if (trusted) {
+                that.element.find('#trust_notebook')
+                    .addClass("disabled")
+                    .find("a").text("Trusted Notebook");
+            } else {
+                that.element.find('#trust_notebook')
+                    .removeClass("disabled")
+                    .find("a").text("Trust Notebook");
+            }
+        });
         this.element.find('#kill_and_exit').click(function () {
             IPython.notebook.session.delete();
             setTimeout(function(){

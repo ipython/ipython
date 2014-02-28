@@ -110,6 +110,10 @@ var IPython = (function (IPython) {
             that.dirty = data.value;
         });
 
+        $([IPython.events]).on('trust_changed.Notebook', function (event, data) {
+            that.trusted = data.value;
+        });
+
         $([IPython.events]).on('select.Cell', function (event, data) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
@@ -1607,6 +1611,7 @@ var IPython = (function (IPython) {
         // Save the metadata and name.
         this.metadata = content.metadata;
         this.notebook_name = data.name;
+        var trusted = true;
         // Only handle 1 worksheet for now.
         var worksheet = content.worksheets[0];
         if (worksheet !== undefined) {
@@ -1627,7 +1632,15 @@ var IPython = (function (IPython) {
 
                 new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
                 new_cell.fromJSON(cell_data);
+                if (new_cell.cell_type == 'code' && !new_cell.output_area.trusted) {
+                    trusted = false;
+                }
             }
+        }
+        console.log('t', trusted, this.trusted);
+        if (trusted != this.trusted) {
+            this.trusted = trusted;
+            $([IPython.events]).trigger("trust_changed.Notebook", trusted);
         }
         if (content.worksheets.length > 1) {
             IPython.dialog.modal({
@@ -1654,8 +1667,13 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         var ncells = cells.length;
         var cell_array = new Array(ncells);
+        var trusted = true;
         for (var i=0; i<ncells; i++) {
-            cell_array[i] = cells[i].toJSON();
+            var cell = cells[i];
+            if (cell.cell_type == 'code' && !cell.output_area.trusted) {
+                trusted = false;
+            }
+            cell_array[i] = cell.toJSON();
         }
         var data = {
             // Only handle 1 worksheet for now.
@@ -1665,6 +1683,10 @@ var IPython = (function (IPython) {
             }],
             metadata : this.metadata
         };
+        if (trusted != this.trusted) {
+            this.trusted = trusted;
+            $([IPython.events]).trigger("trust_changed.Notebook", trusted);
+        }
         return data;
     };
 
