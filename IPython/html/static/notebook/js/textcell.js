@@ -206,20 +206,6 @@ var IPython = (function (IPython) {
         this.render();
     };
 
-    TextCell.prototype.edit_mode = function (focus_editor) {
-        var cont = IPython.Cell.prototype.edit_mode.apply(this);
-        if (cont) {
-            cont = this.unrender();
-            // Focus the editor if codemirror was just added to the page or the
-            // caller explicitly wants to focus the editor (usally when the 
-            // edit_mode was triggered by something other than a mouse click).
-            if (cont || focus_editor) {
-                this.focus_editor();
-            }
-        }
-        return cont;
-    };
-
     /**
      * setter: {{#crossLink "TextCell/set_text"}}{{/crossLink}}
      * @method get_text

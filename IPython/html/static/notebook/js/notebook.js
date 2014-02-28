@@ -554,7 +554,7 @@ var IPython = (function (IPython) {
         // Set the cell to edit mode and notify the keyboard manager if this
         // is a change of mode for the notebook as a whole.
         if (this.mode !== 'edit') {
-            cell.edit_mode(focus_editor);
+            cell.edit_mode();
             this.mode = 'edit';
             $([IPython.events]).trigger('edit_mode.Notebook');
             IPython.keyboard_manager.edit_mode();

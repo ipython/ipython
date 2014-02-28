@@ -402,14 +402,6 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.edit_mode = function (focus_editor) {
-        var cont = IPython.Cell.prototype.edit_mode.apply(this);
-        if (cont && focus_editor) {
-            this.focus_editor();
-        }
-        return cont;
-    };
-
     /**
      * Determine whether or not the unfocus event should be aknowledged.
      *
