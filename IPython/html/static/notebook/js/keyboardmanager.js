@@ -264,8 +264,7 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
                     IPython.notebook.select_prev();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
+                    IPython.notebook.focus_cell();
                 }
                 return false;
             }
@@ -277,8 +276,7 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
                     IPython.notebook.select_next();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
+                    IPython.notebook.focus_cell();
                 }
                 return false;
             }
@@ -290,8 +288,7 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
                     IPython.notebook.select_prev();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
+                    IPython.notebook.focus_cell();
                 }
                 return false;
             }
@@ -303,8 +300,7 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
                     IPython.notebook.select_next();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
+                    IPython.notebook.focus_cell();
                 }
                 return false;
             }
@@ -752,7 +748,9 @@ var IPython = (function (IPython) {
         e.on('focusin', handle_focus);
         e.on('focusout', handle_blur);
         // TODO: Very strange. The focusout event does not seem fire for the 
-        // bootstrap textboxes on FF25&26...
+        // bootstrap textboxes on FF25&26...  This works around that by 
+        // registering focus and blur events recursively on all inputs within
+        // registered element.
         e.find('input').blur(handle_blur);
         e.on('DOMNodeInserted', function (event) {
             var target = $(event.target);
@@ -765,6 +763,8 @@ var IPython = (function (IPython) {
         // There are times (raw_input) where we remove the element from the DOM before
         // focusout is called. In this case we bind to the remove event of jQueryUI,
         // which gets triggered upon removal, iff it is focused at the time.
+        // is_focused must be used to check for the case where an element within
+        // the element being removed is focused.
         e.on('remove', function () {
             if (IPython.utils.is_focused(e[0])) {
                 that.enable();
