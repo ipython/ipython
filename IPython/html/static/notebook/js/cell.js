@@ -115,7 +115,6 @@ var IPython = (function (IPython) {
         }
     };
 
-
     /**
      * Subclasses can implement override bind_events.
      * Be carefull to call the parent method when overwriting as it fires event.
