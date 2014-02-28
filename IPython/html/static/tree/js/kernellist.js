@@ -31,11 +31,7 @@ var IPython = (function (IPython) {
             this.add_shutdown_button(item,this.sessions[path]);
         }
        
-        if ($.isEmptyObject(d)) {
-           $('#' + this.element_name + '_list_header').show();
-       } else {
-           $('#' + this.element_name + '_list_header').hide();
-       }
+        $('#running_list_header').toggle($.isEmptyObject(d));
     }
     
     IPython.KernelList = KernelList;
