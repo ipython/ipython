@@ -61,7 +61,10 @@ class TestNotebookManager(TestCase):
     def setUp(self):
         self._temp_dir = TemporaryDirectory()
         self.td = self._temp_dir.name
-        self.nbm = FileNotebookManager(notebook_dir=self.td, log=logging.getLogger())
+        self.notebook_manager = FileNotebookManager(
+            notebook_dir=self.td,
+            log=logging.getLogger()
+        )
     
     def tearDown(self):
         self._temp_dir.cleanup()
@@ -83,7 +86,7 @@ class TestNotebookManager(TestCase):
         nb.worksheets[0].cells.append(cell)
     
     def new_notebook(self):
-        nbm = self.nbm
+        nbm = self.notebook_manager
         model = nbm.create_notebook()
         name = model['name']
         path = model['path']
@@ -96,199 +99,185 @@ class TestNotebookManager(TestCase):
         return nb, name, path
     
     def test_create_notebook(self):
-        with TemporaryDirectory() as td:
-            # Test in root directory
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            # Test in root directory
-            model = nm.create_notebook()
-            assert isinstance(model, dict)
-            self.assertIn('name', model)
-            self.assertIn('path', model)
-            self.assertEqual(model['name'], 'Untitled0.ipynb')
-            self.assertEqual(model['path'], '')
+        nm = self.notebook_manager
+        # Test in root directory
+        model = nm.create_notebook()
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertEqual(model['name'], 'Untitled0.ipynb')
+        self.assertEqual(model['path'], '')
 
-            # Test in sub-directory
-            sub_dir = '/foo/'
-            self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook(None, sub_dir)
-            assert isinstance(model, dict)
-            self.assertIn('name', model)
-            self.assertIn('path', model)
-            self.assertEqual(model['name'], 'Untitled0.ipynb')
-            self.assertEqual(model['path'], sub_dir.strip('/'))
+        # Test in sub-directory
+        sub_dir = '/foo/'
+        self.make_dir(nm.notebook_dir, 'foo')
+        model = nm.create_notebook(None, sub_dir)
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertEqual(model['name'], 'Untitled0.ipynb')
+        self.assertEqual(model['path'], sub_dir.strip('/'))
 
     def test_get_notebook(self):
-        with TemporaryDirectory() as td:
-            # Test in root directory
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook()
-            name = model['name']
-            path = model['path']
+        nm = self.notebook_manager
+        # Create a notebook
+        model = nm.create_notebook()
+        name = model['name']
+        path = model['path']
 
-            # Check that we 'get' on the notebook we just created
-            model2 = nm.get_notebook(name, path)
-            assert isinstance(model2, dict)
-            self.assertIn('name', model2)
-            self.assertIn('path', model2)
-            self.assertEqual(model['name'], name)
-            self.assertEqual(model['path'], path)
+        # Check that we 'get' on the notebook we just created
+        model2 = nm.get_notebook(name, path)
+        assert isinstance(model2, dict)
+        self.assertIn('name', model2)
+        self.assertIn('path', model2)
+        self.assertEqual(model['name'], name)
+        self.assertEqual(model['path'], path)
 
-            # Test in sub-directory
-            sub_dir = '/foo/'
-            self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook(None, sub_dir)
-            model2 = nm.get_notebook(name, sub_dir)
-            assert isinstance(model2, dict)
-            self.assertIn('name', model2)
-            self.assertIn('path', model2)
-            self.assertIn('content', model2)
-            self.assertEqual(model2['name'], 'Untitled0.ipynb')
-            self.assertEqual(model2['path'], sub_dir.strip('/'))
+        # Test in sub-directory
+        sub_dir = '/foo/'
+        self.make_dir(nm.notebook_dir, 'foo')
+        model = nm.create_notebook(None, sub_dir)
+        model2 = nm.get_notebook(name, sub_dir)
+        assert isinstance(model2, dict)
+        self.assertIn('name', model2)
+        self.assertIn('path', model2)
+        self.assertIn('content', model2)
+        self.assertEqual(model2['name'], 'Untitled0.ipynb')
+        self.assertEqual(model2['path'], sub_dir.strip('/'))
             
     def test_update_notebook(self):
-        with TemporaryDirectory() as td:
-            # Test in root directory
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook()
-            name = model['name']
-            path = model['path']
+        nm = self.notebook_manager
+        # Create a notebook
+        model = nm.create_notebook()
+        name = model['name']
+        path = model['path']
 
-            # Change the name in the model for rename
-            model['name'] = 'test.ipynb'
-            model = nm.update_notebook(model, name, path)
-            assert isinstance(model, dict)
-            self.assertIn('name', model)
-            self.assertIn('path', model)
-            self.assertEqual(model['name'], 'test.ipynb')
+        # Change the name in the model for rename
+        model['name'] = 'test.ipynb'
+        model = nm.update_notebook(model, name, path)
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertEqual(model['name'], 'test.ipynb')
 
-            # Make sure the old name is gone
-            self.assertRaises(HTTPError, nm.get_notebook, name, path)
+        # Make sure the old name is gone
+        self.assertRaises(HTTPError, nm.get_notebook, name, path)
 
-            # Test in sub-directory
-            # Create a directory and notebook in that directory
-            sub_dir = '/foo/'
-            self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook(None, sub_dir)
-            name = model['name']
-            path = model['path']
-            
-            # Change the name in the model for rename
-            model['name'] = 'test_in_sub.ipynb'
-            model = nm.update_notebook(model, name, path)
-            assert isinstance(model, dict)
-            self.assertIn('name', model)
-            self.assertIn('path', model)
-            self.assertEqual(model['name'], 'test_in_sub.ipynb')
-            self.assertEqual(model['path'], sub_dir.strip('/'))
-            
-            # Make sure the old name is gone
-            self.assertRaises(HTTPError, nm.get_notebook, name, path)
+        # Test in sub-directory
+        # Create a directory and notebook in that directory
+        sub_dir = '/foo/'
+        self.make_dir(nm.notebook_dir, 'foo')
+        model = nm.create_notebook(None, sub_dir)
+        name = model['name']
+        path = model['path']
+        
+        # Change the name in the model for rename
+        model['name'] = 'test_in_sub.ipynb'
+        model = nm.update_notebook(model, name, path)
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertEqual(model['name'], 'test_in_sub.ipynb')
+        self.assertEqual(model['path'], sub_dir.strip('/'))
+        
+        # Make sure the old name is gone
+        self.assertRaises(HTTPError, nm.get_notebook, name, path)
 
     def test_save_notebook(self):
-        with TemporaryDirectory() as td:
-            # Test in the root directory
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook()
-            name = model['name']
-            path = model['path']
+        nm = self.notebook_manager
+        # Create a notebook
+        model = nm.create_notebook()
+        name = model['name']
+        path = model['path']
 
-            # Get the model with 'content'
-            full_model = nm.get_notebook(name, path)
+        # Get the model with 'content'
+        full_model = nm.get_notebook(name, path)
 
-            # Save the notebook
-            model = nm.save_notebook(full_model, name, path)
-            assert isinstance(model, dict)
-            self.assertIn('name', model)
-            self.assertIn('path', model)
-            self.assertEqual(model['name'], name)
-            self.assertEqual(model['path'], path)
+        # Save the notebook
+        model = nm.save_notebook(full_model, name, path)
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertEqual(model['name'], name)
+        self.assertEqual(model['path'], path)
 
-            # Test in sub-directory
-            # Create a directory and notebook in that directory
-            sub_dir = '/foo/'
-            self.make_dir(nm.notebook_dir, 'foo')
-            model = nm.create_notebook(None, sub_dir)
-            name = model['name']
-            path = model['path']
-            model = nm.get_notebook(name, path)
+        # Test in sub-directory
+        # Create a directory and notebook in that directory
+        sub_dir = '/foo/'
+        self.make_dir(nm.notebook_dir, 'foo')
+        model = nm.create_notebook(None, sub_dir)
+        name = model['name']
+        path = model['path']
+        model = nm.get_notebook(name, path)
 
-            # Change the name in the model for rename
-            model = nm.save_notebook(model, name, path)
-            assert isinstance(model, dict)
-            self.assertIn('name', model)
-            self.assertIn('path', model)
-            self.assertEqual(model['name'], 'Untitled0.ipynb')
-            self.assertEqual(model['path'], sub_dir.strip('/'))
+        # Change the name in the model for rename
+        model = nm.save_notebook(model, name, path)
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertEqual(model['name'], 'Untitled0.ipynb')
+        self.assertEqual(model['path'], sub_dir.strip('/'))
 
     def test_save_notebook_with_script(self):
-        with TemporaryDirectory() as td:
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            nm.save_script = True
-            model = nm.create_notebook()
-            name = model['name']
-            path = model['path']
+        nm = self.notebook_manager
+        # Create a notebook
+        model = nm.create_notebook()
+        nm.save_script = True
+        model = nm.create_notebook()
+        name = model['name']
+        path = model['path']
 
-            # Get the model with 'content'
-            full_model = nm.get_notebook(name, path)
+        # Get the model with 'content'
+        full_model = nm.get_notebook(name, path)
 
-            # Save the notebook
-            model = nm.save_notebook(full_model, name, path)
+        # Save the notebook
+        model = nm.save_notebook(full_model, name, path)
 
-            # Check that the script was created
-            py_path = os.path.join(td, os.path.splitext(name)[0]+'.py')
-            assert os.path.exists(py_path), py_path
+        # Check that the script was created
+        py_path = os.path.join(nm.notebook_dir, os.path.splitext(name)[0]+'.py')
+        assert os.path.exists(py_path), py_path
 
     def test_delete_notebook(self):
-        with TemporaryDirectory() as td:
-            # Test in the root directory
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            model = nm.create_notebook()
-            name = model['name']
-            path = model['path']
-            
-            # Delete the notebook
-            nm.delete_notebook(name, path)
-            
-            # Check that a 'get' on the deleted notebook raises and error
-            self.assertRaises(HTTPError, nm.get_notebook, name, path)
+        nm = self.notebook_manager
+        # Create a notebook
+        nb, name, path = self.new_notebook()
+        
+        # Delete the notebook
+        nm.delete_notebook(name, path)
+        
+        # Check that a 'get' on the deleted notebook raises and error
+        self.assertRaises(HTTPError, nm.get_notebook, name, path)
     
     def test_copy_notebook(self):
-        with TemporaryDirectory() as td:
-            # Test in the root directory
-            # Create a notebook
-            nm = FileNotebookManager(notebook_dir=td)
-            path = u'å b'
-            name = u'nb √.ipynb'
-            os.mkdir(os.path.join(td, path))
-            orig = nm.create_notebook({'name' : name}, path=path)
-            
-            # copy with unspecified name
-            copy = nm.copy_notebook(name, path=path)
-            self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy0.ipynb'))
-            
-            # copy with specified name
-            copy2 = nm.copy_notebook(name, u'copy 2.ipynb', path=path)
-            self.assertEqual(copy2['name'], u'copy 2.ipynb')
+        nm = self.notebook_manager
+        path = u'å b'
+        name = u'nb √.ipynb'
+        os.mkdir(os.path.join(nm.notebook_dir, path))
+        orig = nm.create_notebook({'name' : name}, path=path)
+        
+        # copy with unspecified name
+        copy = nm.copy_notebook(name, path=path)
+        self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy0.ipynb'))
+        
+        # copy with specified name
+        copy2 = nm.copy_notebook(name, u'copy 2.ipynb', path=path)
+        self.assertEqual(copy2['name'], u'copy 2.ipynb')
     
     def test_trust_notebook(self):
-        nbm = self.nbm
+        nbm = self.notebook_manager
         nb, name, path = self.new_notebook()
         
         untrusted = nbm.get_notebook(name, path)['content']
-        assert not nbm.notary.check_signature(untrusted)
+        assert not nbm.notary.check_cells(untrusted)
         
+        # print(untrusted)
         nbm.trust_notebook(name, path)
         trusted = nbm.get_notebook(name, path)['content']
-        assert nbm.notary.check_signature(trusted)
+        # print(trusted)
+        assert nbm.notary.check_cells(trusted)
     
     def test_mark_trusted_cells(self):
-        nbm = self.nbm
+        nbm = self.notebook_manager
         nb, name, path = self.new_notebook()
         
         nbm.mark_trusted_cells(nb, name, path)
@@ -298,13 +287,12 @@ class TestNotebookManager(TestCase):
         
         nbm.trust_notebook(name, path)
         nb = nbm.get_notebook(name, path)['content']
-        nbm.mark_trusted_cells(nb, name, path)
         for cell in nb.worksheets[0].cells:
             if cell.cell_type == 'code':
                 assert cell.trusted
 
     def test_check_and_sign(self):
-        nbm = self.nbm
+        nbm = self.notebook_manager
         nb, name, path = self.new_notebook()
         
         nbm.mark_trusted_cells(nb, name, path)
