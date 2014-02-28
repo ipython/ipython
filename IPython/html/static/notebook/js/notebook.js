@@ -1967,7 +1967,6 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
         this.fromJSON(data);
-        console.log('load notebook success');
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
             this.trigger_edit_mode(0);
