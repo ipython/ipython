@@ -99,16 +99,16 @@ var tour_steps = [
   }
 ];
 
-var tour_style = "<div class='popover tour'>\
+var tour_style = "<div class='popover tour' style='position:relative'>\
   <div class='arrow'></div>\
-  <h3 class='popover-title'>
-      <button class='btn btn-default' data-role='end'>End tour</button>\</h3>\
+    <div style='position:absolute; top:7px; right:7px'>\
+        <button class='btn btn-sm icon-remove' data-role='end'></button></div>\
+  <h3 class='popover-title'></h3>\
   <div class='popover-content'></div>\
   <div class='popover-navigation'>\
     <button class='btn btn-default icon-step-backward' data-role='prev'></button>\
     <button class='btn btn-default icon-step-forward' data-role='next'></button>\
     <button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
-
   </div>\
 </div>"
 
