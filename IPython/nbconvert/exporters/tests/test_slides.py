@@ -14,7 +14,7 @@
 
 from .base import ExportersTestsBase
 from ..slides import SlidesExporter
-from IPython.testing.decorators import onlyif_cmds_exist
+from IPython.testing.decorators import onlyif_any_cmd_exists
 
 #-----------------------------------------------------------------------------
 # Class
@@ -33,7 +33,7 @@ class TestSlidesExporter(ExportersTestsBase):
         SlidesExporter()
 
 
-    @onlyif_cmds_exist('pandoc')
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export(self):
         """
         Can a SlidesExporter export something?
@@ -42,7 +42,7 @@ class TestSlidesExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    @onlyif_cmds_exist('pandoc')
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export_reveal(self):
         """
         Can a SlidesExporter export using the 'reveal' template?

@@ -10,6 +10,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 import os
+import warnings
 
 from IPython.testing import decorators as dec
 
@@ -32,22 +33,29 @@ class TestPandoc(TestsBase):
         pandoc.clean_cache()
 
         os.environ["PATH"] = ""
-        assert pandoc_function_raised_missing(pandoc.get_pandoc_version) == True
-        assert pandoc_function_raised_missing(pandoc.check_pandoc_version) == True
-        assert pandoc_function_raised_missing(pandoc.pandoc, "", "markdown", "html") == True
+        with self.assertRaises(pandoc.PandocMissing):
+            pandoc.get_pandoc_version()
+        with self.assertRaises(pandoc.PandocMissing):
+            pandoc.check_pandoc_version()
+        with self.assertRaises(pandoc.PandocMissing):
+            pandoc.pandoc("", "markdown", "html")
 
         # original_env["PATH"] should contain pandoc
         os.environ["PATH"] = self.original_env["PATH"]
-        assert pandoc_function_raised_missing(pandoc.get_pandoc_version) == False
-        assert pandoc_function_raised_missing(pandoc.check_pandoc_version) == False
-        assert pandoc_function_raised_missing(pandoc.pandoc, "", "markdown", "html") == False
+        with warnings.catch_warnings(record=True) as w:
+            pandoc.get_pandoc_version()
+            pandoc.check_pandoc_version()
+            pandoc.pandoc("", "markdown", "html")
+        self.assertEqual(w, [])
         
     @dec.onlyif_cmds_exist('pandoc')
     def test_minimal_version(self):
         original_minversion = pandoc._minimal_version
-
+        
         pandoc._minimal_version = "120.0"
-        assert not pandoc.check_pandoc_version()
+        with warnings.catch_warnings(record=True) as w:
+            assert not pandoc.check_pandoc_version()
+        self.assertEqual(len(w), 1)
 
         pandoc._minimal_version = pandoc.get_pandoc_version()
         assert pandoc.check_pandoc_version()

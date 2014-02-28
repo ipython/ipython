@@ -381,3 +381,20 @@ def onlyif_cmds_exist(*commands):
                             "is installed".format(cmd))
             raise e
     return null_deco
+
+def onlyif_any_cmd_exists(*commands):
+    """
+    Decorator to skip test unless at least one of `commands` is found.
+    """
+    for cmd in commands:
+        try:
+            if is_cmd_found(cmd):
+                return null_deco
+        except ImportError as e:
+            # is_cmd_found uses pywin32 on windows, which might not be available
+            if sys.platform == 'win32' and 'pywin32' in str(e):
+                return skip("This test runs only if pywin32 and commands '{0}' "
+                            "are installed".format(commands))
+            raise e
+    return skip("This test runs only if one of the commands {0} "
+                "is installed".format(commands))

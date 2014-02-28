@@ -14,7 +14,7 @@
 
 from .base import ExportersTestsBase
 from ..html import HTMLExporter
-from IPython.testing.decorators import onlyif_cmds_exist
+from IPython.testing.decorators import onlyif_any_cmd_exists
 
 #-----------------------------------------------------------------------------
 # Class
@@ -33,7 +33,7 @@ class TestHTMLExporter(ExportersTestsBase):
         HTMLExporter()
 
 
-    @onlyif_cmds_exist('pandoc')
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export(self):
         """
         Can a HTMLExporter export something?
@@ -42,7 +42,7 @@ class TestHTMLExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    @onlyif_cmds_exist('pandoc')
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export_basic(self):
         """
         Can a HTMLExporter export using the 'basic' template?
@@ -51,7 +51,7 @@ class TestHTMLExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    @onlyif_cmds_exist('pandoc')
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export_full(self):
         """
         Can a HTMLExporter export using the 'full' template?
