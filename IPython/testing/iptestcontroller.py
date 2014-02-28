@@ -458,7 +458,7 @@ def run_iptestall(options):
 
             # Reimplement the html_report method with our custom reporter
             cov._harvest_data()
-            cov.config.from_args(omit='*%stests' % os.sep, html_dir=html_dir,
+            cov.config.from_args(omit='*{0}tests{0}*'.format(os.sep), html_dir=html_dir,
                                  html_title='IPython test coverage',
                                 )
             reporter = CustomHtmlReporter(cov, cov.config)
