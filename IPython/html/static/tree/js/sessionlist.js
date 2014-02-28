@@ -35,20 +35,13 @@ var IPython = (function (IPython) {
     SesssionList.prototype.sessions_loaded = function(data){
         this.sessions = {};
         var len = data.length;
-        if (len > 0) {
-            for (var i=0; i<len; i++) {
-                var nb_path;
-                if (!data[i].notebook.path) {
-                    nb_path = data[i].notebook.name;
-                }
-                else {
-                    nb_path = utils.url_path_join(
-                        data[i].notebook.path,
-                        data[i].notebook.name
-                    );
-                }
-                this.sessions[nb_path] = data[i].id;
-            }
+        var nb_path;
+        for (var i=0; i<len; i++) {
+            nb_path = utils.url_path_join(
+                data[i].notebook.path,
+                data[i].notebook.name
+            );
+            this.sessions[nb_path] = data[i].id;
         }
         $([IPython.events]).trigger('sessions_loaded.Dashboard', this.sessions);
     };
