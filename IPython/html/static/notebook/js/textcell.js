@@ -81,7 +81,7 @@ var IPython = (function (IPython) {
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
-        this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
@@ -104,8 +104,11 @@ var IPython = (function (IPython) {
         this.element.dblclick(function () {
             if (that.selected === false) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            };
-            $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+            }
+            var cont = that.unrender();
+            if (cont) {
+                that.focus_editor();
+            }
         });
     };
 
@@ -145,7 +148,7 @@ var IPython = (function (IPython) {
                 return false;
             } else {
                 return true;
-            };
+            }
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
@@ -154,7 +157,7 @@ var IPython = (function (IPython) {
                 return false;
             } else {
                 return true;
-            };
+            }
         } else if (event.which === key.ESC && event.type === 'keydown') {
             if (that.code_mirror.options.keyMap === "vim-insert") {
                 // vim keyMap is active and in insert mode. In this case we leave vim
@@ -179,7 +182,7 @@ var IPython = (function (IPython) {
             if (this.mode === 'edit') {
                 this.code_mirror.refresh();
             }
-        };
+        }
         return cont;
     };
 
@@ -193,25 +196,15 @@ var IPython = (function (IPython) {
             text_cell.find('div.text_cell_input').show();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
-                this.refresh();
             }
-
-        };
+            this.refresh();
+        }
         return cont;
     };
 
     TextCell.prototype.execute = function () {
         this.render();
     };
-
-    TextCell.prototype.edit_mode = function () {
-        var cont = IPython.Cell.prototype.edit_mode.apply(this);
-        if (cont) {
-            this.unrender();
-            this.focus_editor();
-        };
-        return cont;
-    }
 
     /**
      * setter: {{#crossLink "TextCell/set_text"}}{{/crossLink}}
@@ -261,8 +254,8 @@ var IPython = (function (IPython) {
                 return true;
             } else {
                 return false;
-            };
-        };
+            }
+        }
     };
 
     /**
@@ -278,8 +271,8 @@ var IPython = (function (IPython) {
                 return true;
             } else {
                 return false;
-            };
-        };
+            }
+        }
     };
 
     /**
@@ -332,7 +325,7 @@ var IPython = (function (IPython) {
             mode: 'gfm'
         },
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
-    }
+    };
 
     MarkdownCell.prototype = new TextCell();
 
@@ -363,8 +356,8 @@ var IPython = (function (IPython) {
             }
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-            this.typeset()
-        };
+            this.typeset();
+        }
         return cont;
     };
 
@@ -378,7 +371,7 @@ var IPython = (function (IPython) {
      */
     var RawCell = function (options) {
 
-        options = this.mergeopt(RawCell,options)
+        options = this.mergeopt(RawCell,options);
         TextCell.apply(this, [options]);
         this.cell_type = 'raw';
         // RawCell should always hide its rendered div
@@ -396,7 +389,7 @@ var IPython = (function (IPython) {
     /** @method bind_events **/
     RawCell.prototype.bind_events = function () {
         TextCell.prototype.bind_events.apply(this);
-        var that = this
+        var that = this;
         this.element.focusout(function() {
             that.auto_highlight();
         });
@@ -452,7 +445,7 @@ var IPython = (function (IPython) {
 
     /** @method fromJSON */
     HeadingCell.prototype.fromJSON = function (data) {
-        if (data.level != undefined){
+        if (data.level !== undefined){
             this.level = data.level;
         }
         TextCell.prototype.fromJSON.apply(this, arguments);
@@ -492,7 +485,7 @@ var IPython = (function (IPython) {
         if (this.rendered) {
             this.rendered = false;
             this.render();
-        };
+        }
     };
 
     /** The depth of header cell, based on html (h1 to h6)
@@ -544,7 +537,7 @@ var IPython = (function (IPython) {
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
 
-        };
+        }
         return cont;
     };
 

@@ -48,7 +48,7 @@ var IPython = (function (IPython) {
         this.cell_id = utils.uuid();
         this._options = options;
 
-        // For JS VM engines optimisation, attributes should be all set (even
+        // For JS VM engines optimization, attributes should be all set (even
         // to null) in the constructor, and if possible, if different subclass
         // have new attributes with same name, they should be created in the
         // same order. Easiest is to create and set to null in parent class.
@@ -56,7 +56,6 @@ var IPython = (function (IPython) {
         this.element = null;
         this.cell_type = this.cell_type || null;
         this.code_mirror = null;
-
 
         this.create_element();
         if (this.element !== null) {
@@ -76,8 +75,7 @@ var IPython = (function (IPython) {
     
     // FIXME: Workaround CM Bug #332 (Safari segfault on drag)
     // by disabling drag/drop altogether on Safari
-    // https://github.com/marijnh/CodeMirror/issues/332
-    
+    // https://github.com/marijnh/CodeMirror/issues/332    
     if (utils.browser[0] == "Safari") {
         Cell.options_default.cm_config.dragDrop = false;
     }
@@ -85,11 +83,8 @@ var IPython = (function (IPython) {
     Cell.prototype.mergeopt = function(_class, options, overwrite){
         options = options || {};
         overwrite = overwrite || {};
-        return $.extend(true, {}, _class.options_default, options, overwrite)
-
-    }
-
-
+        return $.extend(true, {}, _class.options_default, options, overwrite);
+    };
 
     /**
      * Empty. Subclasses must implement create_element.
@@ -118,8 +113,7 @@ var IPython = (function (IPython) {
         } else {
             this.element.addClass('command_mode');
         }
-    }
-
+    };
 
     /**
      * Subclasses can implement override bind_events.
@@ -133,12 +127,12 @@ var IPython = (function (IPython) {
         that.element.click(function (event) {
             if (!that.selected) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            };
+            }
         });
         that.element.focusin(function (event) {
             if (!that.selected) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            };
+            }
         });
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
@@ -152,17 +146,9 @@ var IPython = (function (IPython) {
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                if (that.mode === 'edit') {
-                    setTimeout(function () {
-                        var isf = IPython.utils.is_focused;
-                        var trigger = true;
-                        if (isf('div#tooltip') || isf('div.completions')) {
-                            trigger = false;
-                        }
-                        if (trigger) {
-                            $([IPython.events]).trigger('command_mode.Cell', {cell: that});
-                        }
-                    }, 1);
+                // Check if this unfocus event is legit.
+                if (!that.should_cancel_blur()) {
+                    $([IPython.events]).trigger('command_mode.Cell', {cell: that});
                 }
             });
         }
@@ -273,7 +259,18 @@ var IPython = (function (IPython) {
         } else {
             return false;
         }
-    }
+    };
+
+    /**
+     * Determine whether or not the unfocus event should be aknowledged.
+     *
+     * @method should_cancel_blur
+     *
+     * @return results {bool} Whether or not to ignore the cell's blur event.
+     **/
+    Cell.prototype.should_cancel_blur = function () {
+        return false;
+    };
 
     /**
      * Focus the cell in the DOM sense
@@ -281,24 +278,19 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.focus_cell = function () {
         this.element.focus();
-    }
+    };
 
     /**
      * Focus the editor area so a user can type
+     *
+     * NOTE: If codemirror is focused via a mouse click event, you don't want to
+     * call this because it will cause a page jump.
      * @method focus_editor
      */
     Cell.prototype.focus_editor = function () {
-        var that = this;
         this.refresh();
-        // Only focus the CM editor if it is not focused already. This prevents jumps
-        // related to the previous prompt position.
-        setTimeout(function () {
-            var isf = IPython.utils.is_focused;
-            if (!isf(that.element.find('div.CodeMirror'))) {
-                that.code_mirror.focus();
-            }
-        }, 1);
-    }
+        this.code_mirror.focus();
+    };
 
     /**
      * Refresh codemirror instance
@@ -375,7 +367,7 @@ var IPython = (function (IPython) {
         var text = this.code_mirror.getRange({line:0, ch:0}, cursor);
         text = text.replace(/^\n+/, '').replace(/\n+$/, '');
         return text;
-    }
+    };
 
 
     /**
@@ -386,7 +378,7 @@ var IPython = (function (IPython) {
         var cursor = this.code_mirror.getCursor();
         var last_line_num = this.code_mirror.lineCount()-1;
         var last_line_len = this.code_mirror.getLine(last_line_num).length;
-        var end = {line:last_line_num, ch:last_line_len}
+        var end = {line:last_line_num, ch:last_line_len};
         var text = this.code_mirror.getRange(cursor, end);
         text = text.replace(/^\n+/, '').replace(/\n+$/, '');
         return text;
@@ -430,9 +422,10 @@ var IPython = (function (IPython) {
      **/
     Cell.prototype._auto_highlight = function (modes) {
         //Here we handle manually selected modes
-        if( this.user_highlight != undefined &&  this.user_highlight != 'auto' )
+        var mode;
+        if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
         {
-            var mode = this.user_highlight;
+            mode = this.user_highlight;
             CodeMirror.autoLoadMode(this.code_mirror, mode);
             this.code_mirror.setOption('mode', mode);
             return;
@@ -440,22 +433,22 @@ var IPython = (function (IPython) {
         var current_mode = this.code_mirror.getOption('mode', mode);
         var first_line = this.code_mirror.getLine(0);
         // loop on every pairs
-        for( var mode in modes) {
-            var regs = modes[mode]['reg'];
+        for(mode in modes) {
+            var regs = modes[mode].reg;
             // only one key every time but regexp can't be keys...
             for(var i=0; i<regs.length; i++) {
                 // here we handle non magic_modes
-                if(first_line.match(regs[i]) != null) {
+                if(first_line.match(regs[i]) !== null) {
                     if(current_mode == mode){
                         return;
                     }
-                    if (mode.search('magic_') != 0) {
+                    if (mode.search('magic_') !== 0) {
                         this.code_mirror.setOption('mode', mode);
                         CodeMirror.autoLoadMode(this.code_mirror, mode);
                         return;
                     }
-                    var open = modes[mode]['open']|| "%%";
-                    var close = modes[mode]['close']|| "%%end";
+                    var open = modes[mode].open || "%%";
+                    var close = modes[mode].close || "%%end";
                     var mmode = mode;
                     mode = mmode.substr(6);
                     if(current_mode == mode){
@@ -482,14 +475,14 @@ var IPython = (function (IPython) {
             }
         }
         // fallback on default
-        var default_mode
+        var default_mode;
         try {
             default_mode = this._options.cm_config.mode;
         } catch(e) {
             default_mode = 'text/plain';
         }
         if( current_mode === default_mode){
-            return
+            return;
         }
         this.code_mirror.setOption('mode', default_mode);
     };

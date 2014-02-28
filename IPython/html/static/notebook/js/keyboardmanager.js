@@ -42,12 +42,12 @@ var IPython = (function (IPython) {
     // These apply to Firefox and Opera
     var _mozilla_keycodes = {
         '; :': 59, '= +': 61, '- _': 173, 'meta': 224
-    }
+    };
     
     // This apply to Webkit and IE
     var _ie_keycodes = {
         '; :': 186, '= +': 187, '- _': 189, 
-    }
+    };
     
     var browser = IPython.utils.browser[0];
     var platform = IPython.utils.platform;
@@ -63,15 +63,15 @@ var IPython = (function (IPython) {
     for (var name in _keycodes) {
         var names = name.split(' ');
         if (names.length === 1) {
-            var n = names[0]
-            keycodes[n] = _keycodes[n]
-            inv_keycodes[_keycodes[n]] = n
+            var n = names[0];
+            keycodes[n] = _keycodes[n];
+            inv_keycodes[_keycodes[n]] = n;
         } else {
             var primary = names[0];
             var secondary = names[1];
-            keycodes[primary] = _keycodes[name]
-            keycodes[secondary] = _keycodes[name]
-            inv_keycodes[_keycodes[name]] = primary
+            keycodes[primary] = _keycodes[name];
+            keycodes[secondary] = _keycodes[name];
+            inv_keycodes[_keycodes[name]] = primary;
         }
     }
 
@@ -111,7 +111,7 @@ var IPython = (function (IPython) {
                 return false;
             }
         }
-    }
+    };
 
     if (platform === 'MacOS') {
         default_common_shortcuts['cmd+s'] =
@@ -165,11 +165,11 @@ var IPython = (function (IPython) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell && cell.at_top()) {
                     event.preventDefault();
-                    IPython.notebook.command_mode()
+                    IPython.notebook.command_mode();
                     IPython.notebook.select_prev();
                     IPython.notebook.edit_mode();
                     return false;
-                };
+                }
             }
         },
         'down' : {
@@ -179,11 +179,11 @@ var IPython = (function (IPython) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell && cell.at_bottom()) {
                     event.preventDefault();
-                    IPython.notebook.command_mode()
+                    IPython.notebook.command_mode();
                     IPython.notebook.select_next();
                     IPython.notebook.edit_mode();
                     return false;
-                };
+                }
             }
         },
         'alt+-' : {
@@ -210,7 +210,7 @@ var IPython = (function (IPython) {
             help    : 'tooltip',
             help_index : 'ed',
         },
-    }
+    };
 
     if (platform === 'MacOS') {
         default_edit_shortcuts['cmd+/'] =
@@ -264,9 +264,8 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
                     IPython.notebook.select_prev();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
-                };
+                    IPython.notebook.focus_cell();
+                }
                 return false;
             }
         },
@@ -277,9 +276,8 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
                     IPython.notebook.select_next();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
-                };
+                    IPython.notebook.focus_cell();
+                }
                 return false;
             }
         },
@@ -290,9 +288,8 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
                     IPython.notebook.select_prev();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
-                };
+                    IPython.notebook.focus_cell();
+                }
                 return false;
             }
         },
@@ -303,9 +300,8 @@ var IPython = (function (IPython) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
                     IPython.notebook.select_next();
-                    var cell = IPython.notebook.get_selected_cell();
-                    cell.focus_cell();
-                };
+                    IPython.notebook.focus_cell();
+                }
                 return false;
             }
         },
@@ -540,23 +536,23 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-    }
+    };
 
 
     // Shortcut manager class
 
     var ShortcutManager = function (delay) {
-        this._shortcuts = {}
-        this._counts = {}
-        this._timers = {}
+        this._shortcuts = {};
+        this._counts = {};
+        this._timers = {};
         this.delay = delay || 800; // delay in milliseconds
-    }
+    };
 
     ShortcutManager.prototype.help = function () {
         var help = [];
         for (var shortcut in this._shortcuts) {
-            var help_string = this._shortcuts[shortcut]['help'];
-            var help_index = this._shortcuts[shortcut]['help_index'];
+            var help_string = this._shortcuts[shortcut].help;
+            var help_index = this._shortcuts[shortcut].help_index;
             if (help_string) {
                 if (platform === 'MacOS') {
                     shortcut = shortcut.replace('meta', 'cmd');
@@ -576,45 +572,45 @@ var IPython = (function (IPython) {
             return 0;
         });
         return help;
-    }
+    };
 
     ShortcutManager.prototype.normalize_key = function (key) {
         return inv_keycodes[keycodes[key]];
-    }
+    };
 
     ShortcutManager.prototype.normalize_shortcut = function (shortcut) {
         // Sort a sequence of + separated modifiers into the order alt+ctrl+meta+shift
         shortcut = shortcut.replace('cmd', 'meta').toLowerCase();
         var values = shortcut.split("+");
         if (values.length === 1) {
-            return this.normalize_key(values[0])
+            return this.normalize_key(values[0]);
         } else {
             var modifiers = values.slice(0,-1);
             var key = this.normalize_key(values[values.length-1]);
             modifiers.sort();
             return modifiers.join('+') + '+' + key;
         }
-    }
+    };
 
     ShortcutManager.prototype.event_to_shortcut = function (event) {
         // Convert a jQuery keyboard event to a strong based keyboard shortcut
         var shortcut = '';
-        var key = inv_keycodes[event.which]
+        var key = inv_keycodes[event.which];
         if (event.altKey && key !== 'alt') {shortcut += 'alt+';}
         if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl+';}
         if (event.metaKey && key !== 'meta') {shortcut += 'meta+';}
         if (event.shiftKey && key !== 'shift') {shortcut += 'shift+';}
         shortcut += key;
-        return shortcut
-    }
+        return shortcut;
+    };
 
     ShortcutManager.prototype.clear_shortcuts = function () {
         this._shortcuts = {};
-    }
+    };
 
     ShortcutManager.prototype.add_shortcut = function (shortcut, data) {
         if (typeof(data) === 'function') {
-            data = {help: '', help_index: '', handler: data}
+            data = {help: '', help_index: '', handler: data};
         }
         data.help_index = data.help_index || '';
         data.help = data.help || '';
@@ -625,19 +621,19 @@ var IPython = (function (IPython) {
         shortcut = this.normalize_shortcut(shortcut);
         this._counts[shortcut] = 0;
         this._shortcuts[shortcut] = data;
-    }
+    };
 
     ShortcutManager.prototype.add_shortcuts = function (data) {
         for (var shortcut in data) {
             this.add_shortcut(shortcut, data[shortcut]);
         }
-    }
+    };
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut) {
         shortcut = this.normalize_shortcut(shortcut);
         delete this._counts[shortcut];
         delete this._shortcuts[shortcut];
-    }
+    };
 
     ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
         var that = this;
@@ -646,7 +642,7 @@ var IPython = (function (IPython) {
         var timer = null;
         if (c[shortcut] === data.count-1) {
             c[shortcut] = 0;
-            var timer = t[shortcut];
+            timer = t[shortcut];
             if (timer) {clearTimeout(timer); delete t[shortcut];}
             return data.handler(event);
         } else {
@@ -657,13 +653,13 @@ var IPython = (function (IPython) {
             t[shortcut] = timer;
         }
         return false;
-    }
+    };
 
     ShortcutManager.prototype.call_handler = function (event) {
         var shortcut = this.event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
         if (data) {
-            var handler = data['handler'];
+            var handler = data.handler;
             if (handler) {
                 if (data.count === 1) {
                     return handler(event);
@@ -673,12 +669,11 @@ var IPython = (function (IPython) {
             }
         }
         return true;
-    }
-
+    };
 
 
     // Main keyboard manager for the notebook
-
+    
     var KeyboardManager = function () {
         this.mode = 'command';
         this.enabled = true;
@@ -701,14 +696,14 @@ var IPython = (function (IPython) {
     KeyboardManager.prototype.handle_keydown = function (event) {
         var notebook = IPython.notebook;
 
-        if (event.which === keycodes['esc']) {
+        if (event.which === keycodes.esc) {
             // Intercept escape at highest level to avoid closing
             // websocket connection with firefox
             event.preventDefault();
         }
         
         if (!this.enabled) {
-            if (event.which === keycodes['esc']) {
+            if (event.which === keycodes.esc) {
                 // ESC
                 notebook.command_mode();
                 return false;
@@ -722,43 +717,60 @@ var IPython = (function (IPython) {
             return this.command_shortcuts.call_handler(event);
         }
         return true;
-    }
+    };
 
     KeyboardManager.prototype.edit_mode = function () {
         this.last_mode = this.mode;
         this.mode = 'edit';
-    }
+    };
 
     KeyboardManager.prototype.command_mode = function () {
         this.last_mode = this.mode;
         this.mode = 'command';
-    }
+    };
 
     KeyboardManager.prototype.enable = function () {
         this.enabled = true;
-    }
+    };
 
     KeyboardManager.prototype.disable = function () {
         this.enabled = false;
-    }
+    };
 
     KeyboardManager.prototype.register_events = function (e) {
         var that = this;
-        e.on('focusin', function () {
+        var handle_focus = function () {
             that.disable();
-        });
-        e.on('focusout', function () {
+        };
+        var handle_blur = function () {
             that.enable();
-        });
+        };
+        e.on('focusin', handle_focus);
+        e.on('focusout', handle_blur);
+        // TODO: Very strange. The focusout event does not seem fire for the 
+        // bootstrap textboxes on FF25&26...  This works around that by 
+        // registering focus and blur events recursively on all inputs within
+        // registered element.
+        e.find('input').blur(handle_blur);
+        e.on('DOMNodeInserted', function (event) {
+            var target = $(event.target);
+            if (target.is('input')) {
+                target.blur(handle_blur);
+            } else {
+                target.find('input').blur(handle_blur);    
+            }
+          });
         // There are times (raw_input) where we remove the element from the DOM before
         // focusout is called. In this case we bind to the remove event of jQueryUI,
         // which gets triggered upon removal, iff it is focused at the time.
+        // is_focused must be used to check for the case where an element within
+        // the element being removed is focused.
         e.on('remove', function () {
-            if (document.activeElement === e[0]) {
+            if (IPython.utils.is_focused(e[0])) {
                 that.enable();
             }
         });
-    }
+    };
 
 
     IPython.keycodes = keycodes;
