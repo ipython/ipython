@@ -14,7 +14,10 @@ var IPython = (function (IPython) {
     
     var utils = IPython.utils;
 
-    var NotebookList = function (selector, options) {
+    var NotebookList = function (selector, options, element_name) {
+        var that = this
+        // allow code re-use by just changing element_name in kernellist.js
+        this.element_name = element_name || 'notebook';
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -25,32 +28,35 @@ var IPython = (function (IPython) {
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        $([IPython.events]).on('sessions_loaded.Dashboard', 
+            function(e, d) { that.sessions_loaded(d); });
     };
 
     NotebookList.prototype.style = function () {
-        $('#notebook_toolbar').addClass('list_toolbar');
-        $('#drag_info').addClass('toolbar_info');
-        $('#notebook_buttons').addClass('toolbar_buttons');
-        $('#notebook_list_header').addClass('list_header');
+        var prefix = '#' + this.element_name
+        $(prefix + '_toolbar').addClass('list_toolbar');
+        $(prefix + '_list_info').addClass('toolbar_info');
+        $(prefix + '_buttons').addClass('toolbar_buttons');
+        $(prefix + '_list_header').addClass('list_header');
         this.element.addClass("list_container");
     };
 
 
     NotebookList.prototype.bind_events = function () {
         var that = this;
-        $('#refresh_notebook_list').click(function () {
-            that.load_list();
+        $('#refresh_' + this.element_name + '_list').click(function () {
+            that.load_sessions();
         });
         this.element.bind('dragover', function () {
             return false;
         });
         this.element.bind('drop', function(event){
-            that.handelFilesUpload(event,'drop');
+            that.handleFilesUpload(event,'drop');
             return false;
         });
     };
 
-    NotebookList.prototype.handelFilesUpload =  function(event, dropOrForm) {
+    NotebookList.prototype.handleFilesUpload =  function(event, dropOrForm) {
         var that = this;
         var files;
         if(dropOrForm =='drop'){
@@ -98,37 +104,12 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.load_sessions = function(){
-        var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(that.sessions_loaded, this)
-        };
-        var url = utils.url_join_encode(this.base_url, 'api/sessions');
-        $.ajax(url,settings);
+        IPython.session_list.load_sessions();
     };
 
 
     NotebookList.prototype.sessions_loaded = function(data){
-        this.sessions = {};
-        var len = data.length;
-        if (len > 0) {
-            for (var i=0; i<len; i++) {
-                var nb_path;
-                if (!data[i].notebook.path) {
-                    nb_path = data[i].notebook.name;
-                }
-                else {
-                    nb_path = utils.url_path_join(
-                        data[i].notebook.path,
-                        data[i].notebook.name
-                    );
-                }
-                this.sessions[nb_path] = data[i].id;
-            }
-        }
+        this.sessions = data;
         this.load_list();
     };
 
