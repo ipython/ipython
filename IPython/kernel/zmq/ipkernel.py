@@ -383,8 +383,9 @@ class Kernel(Configurable):
             self._publish_pyin(code, parent, shell.execution_count)
 
         reply_content = {}
+        # FIXME: the shell calls the exception handler itself.
+        shell._reply_content = None
         try:
-            # FIXME: the shell calls the exception handler itself.
             shell.run_cell(code, store_history=store_history, silent=silent)
         except:
             status = u'error'
