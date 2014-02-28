@@ -496,12 +496,7 @@ var IPython = (function (IPython) {
                     if (type==='text/html' || type==='text/svg') {
                         value = IPython.security.sanitize_html(value);
                     } else {
-                        // warn and don't display if we don't know how to sanitize it
-                        var content = {
-                            text : "Untrusted " + type + " output ignored.",
-                            stream : "stderr"
-                        }
-                        this.append_stream(content);
+                        // don't display if we don't know how to sanitize it
                         continue;
                     }
                 }
