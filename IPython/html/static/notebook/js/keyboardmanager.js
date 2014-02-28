@@ -167,7 +167,7 @@ var IPython = (function (IPython) {
                     event.preventDefault();
                     IPython.notebook.command_mode();
                     IPython.notebook.select_prev();
-                    IPython.notebook.trigger_edit_mode();
+                    IPython.notebook.edit_mode();
                     return false;
                 }
             }
@@ -181,7 +181,7 @@ var IPython = (function (IPython) {
                     event.preventDefault();
                     IPython.notebook.command_mode();
                     IPython.notebook.select_next();
-                    IPython.notebook.trigger_edit_mode();
+                    IPython.notebook.edit_mode();
                     return false;
                 }
             }
@@ -253,7 +253,7 @@ var IPython = (function (IPython) {
             help    : 'edit mode',
             help_index : 'aa',
             handler : function (event) {
-                IPython.notebook.trigger_edit_mode();
+                IPython.notebook.edit_mode();
                 return false;
             }
         },

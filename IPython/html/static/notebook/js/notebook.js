@@ -564,11 +564,11 @@ var IPython = (function (IPython) {
     /**
      * Make a cell enter edit mode.
      *
-     * @method trigger_edit_mode
+     * @method edit_mode
      * @param [index] {int} Cell index to select.  If no index is provided, 
      *  the current selected cell is used.
      **/
-    Notebook.prototype.trigger_edit_mode = function (index) {
+    Notebook.prototype.edit_mode = function (index) {
         if (index===undefined) {
             index = this.get_selected_index();
         }
@@ -1468,14 +1468,14 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.trigger_edit_mode(cell_index+1);
+            this.edit_mode(cell_index+1);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
         }
   
         this.insert_cell_below('code');
-        this.trigger_edit_mode(cell_index+1);
+        this.edit_mode(cell_index+1);
         this.set_dirty(true);
     };
 
@@ -1494,7 +1494,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.insert_cell_below('code');
-            this.trigger_edit_mode(cell_index+1);
+            this.edit_mode(cell_index+1);
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
@@ -1969,7 +1969,7 @@ var IPython = (function (IPython) {
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
-            this.trigger_edit_mode(0);
+            this.edit_mode(0);
         } else {
             this.select(0);
             this.command_mode();
