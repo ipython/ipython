@@ -20,7 +20,7 @@ var tour_steps = [
     element: "#notebook_name",
     title: "Filename",
     placement: 'bottom',
-    content: "You can click here to change the filename for this notebook."
+    content: "Click here to change the filename for this notebook."
   }, 
           {
     element: "#checkpoint_status",
@@ -130,9 +130,9 @@ IPython = (function (IPython) {
 
     
     var NotebookTour = function () {
-        this.step_duration = 5000;
+        this.step_duration = 0;
         this.tour_steps = tour_steps ;
-        this.tour_steps[0].content = "This tour will take " + this.step_duration * tour_steps.length / 1000 + " seconds";
+        this.tour_steps[0].content = "You can use the left and right arrow keys to go backwards and forwards.";
         this.tour = new Tour({
             //orphan: true,
             storage: false, // start tour from beginning every time
