@@ -34,12 +34,11 @@ var tour_steps = [
     title: "Notebook Menubar",
     content: "Actions on this notebook, its cells, and the kernel it communicates with."
   }, {
-    element: "#notification_kernel",
+    element: "#maintoolbar",
     placement: 'bottom',
-    onShow: function(tour) {  IPython.notification_area.widget_dict.kernel.set_message("sample notification"); },
-    onHide: function(tour) {  IPython.notification_area.widget_dict.kernel.set_message("sample notification", 100); },
-    title: "Notification area",
-    content: "Messages in response to user action (Kernel busy, Interrupt, etc)"
+    backdrop: true,
+    title: "Notebook Toolbar",
+    content: "Most common actions are here. Hover your mouse over each button for more information."
   }, {
     element: "#modal_indicator",
     title: "Mode indicator",
@@ -84,21 +83,29 @@ var tour_steps = [
     title: "Kernel indicator",
     placement: 'bottom',
     onShow: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
-
     content: "This is the Kernel indicator. It looks like this when the Kernel is idle.",
   }, {
     element: "#kernel_indicator",
     title: "Kernel Indicator",
     placement: 'bottom',
     onShow: function(tour) { $([IPython.events]).trigger('status_busy.Kernel'); },
-    onHide: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
     content: "The Kernel indicator looks like this when the Kernel is busy.",
   }, {
-    element: "#kernel_indicator",
+    element: ".icon-stop",
+    placement: 'bottom',
+    title: "Interrupting the Kernel",
+    onHide: function(tour) { $('.icon-stop').click();},
+    content: "To cancel a computation in progress, you can click here."
+  }, {
+    element: "#notification_kernel",
+    placement: 'bottom',
+    title: "Notification area",
+    content: "Messages in response to user action (Save, Interrupt, etc)"
+  }, {
+    element: "#ipython_notebook",
     title: "Fin.",
     placement: 'bottom',
-    onShow: function(tour) { $([IPython.events]).trigger('status_busy.Kernel'); },
-    onHide: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
+    backdrop: true,
     content: "This concludes the IPython Notebook User Interface Tour. Happy hacking!",
   }
 ];
