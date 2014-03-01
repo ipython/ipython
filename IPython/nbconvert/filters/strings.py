@@ -43,7 +43,8 @@ __all__ = [
     'ipython2python',
     'posix_path',
     'path2url',
-    'add_prompts'
+    'add_prompts',
+    'ascii_only',
 ]
 
 
@@ -213,3 +214,8 @@ def path2url(path):
     """Turn a file path into a URL"""
     parts = path.split(os.path.sep)
     return '/'.join(quote(part) for part in parts)
+
+def ascii_only(s):
+    """ensure a string is ascii"""
+    s = py3compat.cast_unicode(s)
+    return s.encode('ascii', 'replace').decode('ascii')
