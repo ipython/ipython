@@ -138,7 +138,7 @@ class PylabMagics(Magics):
         print ("Populating the interactive namespace from numpy and matplotlib")
         if clobbered:
             warn("pylab import has clobbered these variables: %s"  % clobbered +
-            "\n`%pylab --no-import-all` prevents importing * from pylab and numpy"
+            "\n`%matplotlib` prevents importing * from pylab and numpy"
             )
     
     def _show_matplotlib_backend(self, gui, backend):
