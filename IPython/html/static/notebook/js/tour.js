@@ -43,12 +43,12 @@ var tour_steps = [
     element: "#modal_indicator",
     title: "Mode indicator",
     placement: 'bottom',
-    content: "IPython has two modes: Edit Mode and Command Mode. This indicator tells you which mode you are in."
+    content: "IPython has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in."
   }, {
     element: "#modal_indicator",
-    title: "Mode indicator",
+    title: "Command Mode",
     placement: 'bottom',
-    content: "Right now you are in Command mode, and many keyboard shortcuts are available."
+    content: "Right now you are in Command Mode, and many keyboard shortcuts are available. In this mode, no icon is displayed in the indicator area."
   }, {
     element: "#modal_indicator",
     title: "Edit Mode",
@@ -59,6 +59,7 @@ var tour_steps = [
     element: '.selected',
     title: "Edit Mode",
     placement: 'bottom',
+    onShow: function(tour) { IPython.notebook.edit_mode(); },
     content: "Notice that the border around the currently active cell changed color."
   }, {    
     element: ".selected",
