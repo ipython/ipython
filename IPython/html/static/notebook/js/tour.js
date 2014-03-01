@@ -48,6 +48,7 @@ var tour_steps = [
     element: "#modal_indicator",
     title: "Command Mode",
     placement: 'bottom',
+    onShow: function(tour) { IPython.notebook.command_mode(); },
     content: "Right now you are in Command Mode, and many keyboard shortcuts are available. In this mode, no icon is displayed in the indicator area."
   }, {
     element: "#modal_indicator",
@@ -65,19 +66,20 @@ var tour_steps = [
     element: ".selected",
     title: "Edit Mode",
     placement: 'bottom',
+    onShow: function(tour) { IPython.notebook.edit_mode(); },
     content: "Regular typing will insert text into the currently active cell."
   }, {
     element: '.selected',
     title: "back to Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
-    onHide: function(tour) { $('#help_menu').parent().find('a').first().click(); },
     content: "Pressing Esc or clicking outside of the input text area takes you back to Command Mode."
   }, {
     element: '#keyboard_shortcuts',
     title: "Keyboard Shortcuts",
     placement: 'bottom',
-    onHide: function(tour) { $('#help_menu').parent().find('a').first().click(); },
+    onShow: function(tour) { $('#help_menu').parent().addClass('open'); },
+    onHide: function(tour) { $('#help_menu').parent().removeClass('open'); },
     content: "You can click here to get a list of all of the keyboard shortcuts."
   }, {
     element: "#kernel_indicator",
@@ -95,13 +97,14 @@ var tour_steps = [
     element: ".icon-stop",
     placement: 'bottom',
     title: "Interrupting the Kernel",
-    onHide: function(tour) { $('.icon-stop').click();},
+    onHide: function(tour) { $([IPython.events]).trigger('status_idle.Kernel'); },
     content: "To cancel a computation in progress, you can click here."
   }, {
     element: "#notification_kernel",
     placement: 'bottom',
+    onShow: function(tour) { $('.icon-stop').click(); },
     title: "Notification area",
-    content: "Messages in response to user action (Save, Interrupt, etc)"
+    content: "Messages in response to user actions (Save, Interrupt, etc) appear here."
   }, {
     element: "#ipython_notebook",
     title: "Fin.",
