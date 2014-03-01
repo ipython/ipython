@@ -123,7 +123,7 @@ def post_run_cell():
     pass
 
 @_collect
-def shell_initialised(ip):
+def shell_inited(ip):
     """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
     
     This is before extensions and startup scripts are loaded, so it can only be
