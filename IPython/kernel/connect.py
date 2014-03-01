@@ -109,6 +109,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     if transport == 'tcp':
         for i in range(ports_needed):
             sock = socket.socket()
+            # struct.pack('ii', (0,0)) is 8 null bytes
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, b'\0' * 8)
             sock.bind(('', 0))
             ports.append(sock)
