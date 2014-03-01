@@ -221,9 +221,14 @@ def run_webapp(q, ipydir, nbdir, loglevel=0):
     sys.stderr = open(os.devnull, 'w')
     server = nbapp.NotebookApp()
     args = ['--no-browser']
-    args.extend(['--ipython-dir', ipydir])
-    args.extend(['--notebook-dir', nbdir])
-    args.extend(['--log-level', str(loglevel)])
+    args.extend(['--ipython-dir', ipydir,
+                 '--notebook-dir', nbdir,
+                 '--log-level', str(loglevel),
+    ])
+    # ipc doesn't work on Windows, and darwin has crazy-long temp paths,
+    # which run afoul of ipc's maximum path length.
+    if sys.platform.startswith('linux'):
+        args.append('--KernelManager.transport=ipc')
     server.initialize(args)
     # communicate the port number to the parent process
     q.put(server.port)
