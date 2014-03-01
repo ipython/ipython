@@ -49,24 +49,25 @@ var tour_steps = [
     title: "Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
+    onNext: function(tour) { edit_mode(); },
     content: "Right now you are in Command Mode, and many keyboard shortcuts are available. In this mode, no icon is displayed in the indicator area."
   }, {
     element: "#modal_indicator",
     title: "Edit Mode",
     placement: 'bottom',
-    onShow: function(tour) { IPython.notebook.edit_mode(); },
+    onShow: function(tour) { edit_mode(); },
     content: "Pressing Enter or clicking in the input text area of the cell switches to Edit Mode."
   }, {
     element: '.selected',
     title: "Edit Mode",
     placement: 'bottom',
-    onShow: function(tour) { IPython.notebook.edit_mode(); },
+    onShow: function(tour) { edit_mode(); },
     content: "Notice that the border around the currently active cell changed color."
   }, {    
     element: ".selected",
     title: "Edit Mode",
     placement: 'bottom',
-    onShow: function(tour) { IPython.notebook.edit_mode(); },
+    onShow: function(tour) { edit_mode(); },
     content: "Regular typing will insert text into the currently active cell."
   }, {
     element: '.selected',
@@ -125,9 +126,13 @@ var tour_style = "<div class='popover tour' style='position:relative'>\
     <button class='btn btn-default icon-step-forward' data-role='next'></button>\
     <button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
   </div>\
-</div>"
+</div>";
 
-var toggle_pause_play = function () { $('#tour-pause').toggleClass('icon-pause icon-play'); }
+var toggle_pause_play = function () { $('#tour-pause').toggleClass('icon-pause icon-play'); };
+var edit_mode = function() { 
+    IPython.notebook.focus_cell(); 
+    IPython.notebook.edit_mode();
+;}
 
 IPython = (function (IPython) {
  "use strict";
