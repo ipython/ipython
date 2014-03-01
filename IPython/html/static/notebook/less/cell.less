@@ -38,6 +38,13 @@ div.inner_cell {
     .box-flex1();
 }
 
+/* input_area and input_prompt must match in top border and margin for alignment */
+div.input_area {
+    border: 1px solid @light_border_color;
+    .corner-all;
+    background: @cell_background;
+}
+
 /* This is needed so that empty prompt areas can collapse to zero height when there
    is no content in the output_subarea and the prompt. The main purpose of this is
    to make sure that empty JavaScript output_subareas have no height. */
