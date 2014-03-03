@@ -844,12 +844,12 @@ class InteractiveShell(SingletonConfigurable):
         self.events = EventManager(self, available_events)
 
     def register_post_execute(self, func):
-        """DEPRECATED: Use ip.callbacks.register('post_run_cell', func)
+        """DEPRECATED: Use ip.events.register('post_run_cell', func)
         
         Register a function for calling after code execution.
         """
         warn("ip.register_post_execute is deprecated, use "
-             "ip.callbacks.register('post_run_cell', func) instead.")
+             "ip.events.register('post_run_cell', func) instead.")
         self.events.register('post_run_cell', func)
     
     #-------------------------------------------------------------------------
