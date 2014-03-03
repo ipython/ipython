@@ -26,10 +26,14 @@ from tornado import web
 
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
-from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
+from IPython.utils.traitlets import Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path
+
+def sort_key(item):
+    """Case-insensitive sorting."""
+    return item['name'].lower()
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -182,13 +186,14 @@ class FileNotebookManager(NotebookManager):
         dirs = []
         for name in dir_names:
             os_path = self._get_os_path(name, path)
-            if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir):
+            if os.path.isdir(os_path) and not is_hidden(os_path, self.notebook_dir)\
+                    and self.should_list(name):
                 try:
                     model = self.get_dir_model(name, path)
                 except IOError:
                     pass
                 dirs.append(model)
-        dirs = sorted(dirs, key=lambda item: item['name'])
+        dirs = sorted(dirs, key=sort_key)
         return dirs
 
     # TODO: Remove this after we create the contents web service and directories are
@@ -228,8 +233,9 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
-        notebooks = [self.get_notebook(name, path, content=False) for name in notebook_names]
-        notebooks = sorted(notebooks, key=lambda item: item['name'])
+        notebooks = [self.get_notebook(name, path, content=False)
+                        for name in notebook_names if self.should_list(name)]
+        notebooks = sorted(notebooks, key=sort_key)
         return notebooks
 
     def get_notebook(self, name, path='', content=True):
@@ -455,7 +461,7 @@ class FileNotebookManager(NotebookManager):
             )
         # ensure notebook is readable (never restore from an unreadable notebook)
         with io.open(cp_path, 'r', encoding='utf-8') as f:
-            nb = current.read(f, u'json')
+            current.read(f, u'json')
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
     

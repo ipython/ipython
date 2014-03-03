@@ -26,6 +26,9 @@ from IPython.utils.data import uniq_stable
 def notebooks_only(nb_list):
     return [nb for nb in nb_list if nb['type']=='notebook']
 
+def dirs_only(nb_list):
+    return [x for x in nb_list if x['type']=='directory']
+
 
 class NBAPI(object):
     """Wrapper for notebook API calls."""
@@ -98,16 +101,21 @@ class APITest(NotebookTestBase):
                 ('foo', 'name with spaces'),
                 ('foo', u'unicodé'),
                 ('foo/bar', 'baz'),
-                (u'å b', u'ç d')
+                ('ordering', 'A'),
+                ('ordering', 'b'),
+                ('ordering', 'C'),
+                (u'å b', u'ç d'),
                ]
+    hidden_dirs = ['.hidden', '__pycache__']
 
     dirs = uniq_stable([d for (d,n) in dirs_nbs])
     del dirs[0]  # remove ''
+    top_level_dirs = {d.split('/')[0] for d in dirs}
 
     def setUp(self):
         nbdir = self.notebook_dir.name
 
-        for d in self.dirs:
+        for d in (self.dirs + self.hidden_dirs):
             d.replace('/', os.sep)
             if not os.path.isdir(pjoin(nbdir, d)):
                 os.mkdir(pjoin(nbdir, d))
@@ -124,7 +132,7 @@ class APITest(NotebookTestBase):
     def tearDown(self):
         nbdir = self.notebook_dir.name
 
-        for dname in ['foo', 'Directory with spaces in', u'unicodé', u'å b']:
+        for dname in (list(self.top_level_dirs) + self.hidden_dirs):
             shutil.rmtree(pjoin(nbdir, dname), ignore_errors=True)
 
         if os.path.isfile(pjoin(nbdir, 'inroot.ipynb')):
@@ -155,6 +163,16 @@ class APITest(NotebookTestBase):
         expected = [ u'a.ipynb', u'b.ipynb', u'name with spaces.ipynb', u'unicodé.ipynb']
         expected = { normalize('NFC', name) for name in expected }
         self.assertEqual(nbnames, expected)
+        
+        nbs = notebooks_only(self.nb_api.list('ordering').json())
+        nbnames = [n['name'] for n in nbs]
+        expected = ['A.ipynb', 'b.ipynb', 'C.ipynb']
+        self.assertEqual(nbnames, expected)
+
+    def test_list_dirs(self):
+        dirs = dirs_only(self.nb_api.list().json())
+        dir_names = {d['name'] for d in dirs}
+        self.assertEqual(dir_names, self.top_level_dirs)  # Excluding hidden dirs
 
     def test_list_nonexistant_dir(self):
         with assert_http_error(404):

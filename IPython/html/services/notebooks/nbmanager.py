@@ -17,12 +17,13 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from fnmatch import fnmatch
 import itertools
 import os
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current, sign
-from IPython.utils.traitlets import Instance, Unicode
+from IPython.utils.traitlets import Instance, Unicode, List
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -36,6 +37,10 @@ class NotebookManager(LoggingConfigurable):
     def _notary_default(self):
         return sign.NotebookNotary(parent=self)
     
+    hide_globs = List(Unicode, [u'__pycache__'], config=True, help="""
+        Glob patterns to hide in file and directory listings.
+    """)
+
     # NotebookManager API part 1: methods that must be
     # implemented in subclasses.
 
@@ -241,3 +246,6 @@ class NotebookManager(LoggingConfigurable):
             self.log.warn("Notebook %s/%s is not trusted", path, name)
         self.notary.mark_cells(nb, trusted)
 
+    def should_list(self, name):
+        """Should this file/directory name be displayed in a listing?"""
+        return not any(fnmatch(name, glob) for glob in self.hide_globs)
