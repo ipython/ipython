@@ -175,3 +175,16 @@ def test_strip_email2():
     src = '> > > list()'
     cln = 'list()'
     nt.assert_equal(text.strip_email_quotes(src), cln)
+
+def test_LSString():
+    lss = text.LSString("abc\ndef")
+    nt.assert_equal(lss.l, ['abc', 'def'])
+    nt.assert_equal(lss.s, 'abc def')
+
+def test_SList():
+    sl = text.SList(['a 11', 'b 1', 'a 2'])
+    nt.assert_equal(sl.n, 'a 11\nb 1\na 2')
+    nt.assert_equal(sl.s, 'a 11 b 1 a 2')
+    nt.assert_equal(sl.grep(lambda x: x.startswith('a')), text.SList(['a 11', 'a 2']))
+    nt.assert_equal(sl.fields(0), text.SList(['a', 'b', 'a']))
+    nt.assert_equal(sl.sort(field=1, nums=True), text.SList(['b 1', 'a 2', 'a 11']))
