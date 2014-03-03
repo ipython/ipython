@@ -84,7 +84,6 @@ var IPython = (function (IPython) {
             help_index : 'aa',
             handler : function (event) {
                 IPython.notebook.command_mode();
-                IPython.notebook.focus_cell();
                 return false;
             }
         },
@@ -93,7 +92,6 @@ var IPython = (function (IPython) {
             help_index : 'ab',
             handler : function (event) {
                 IPython.notebook.command_mode();
-                IPython.notebook.focus_cell();
                 return false;
             }
         },
