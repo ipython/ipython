@@ -16,6 +16,8 @@ from IPython.utils.tempdir import TemporaryDirectory
 MAX_WAITTIME = 30   # seconds to wait for notebook server to start
 POLL_INTERVAL = 0.1 # time between attempts
 
+# TimeoutError is a builtin on Python 3. This can be removed when we stop
+# supporting Python 2.
 class TimeoutError(Exception):
     pass
 
