@@ -62,6 +62,8 @@ class TreeHandler(IPythonHandler):
             self.log.debug("Redirecting %s to %s", self.request.path, url)
             self.redirect(url)
         else:
+            if nbm.is_hidden(path):
+                self.log.info("Refusing to serve hidden directory, via 404 Error")
             if not nbm.path_exists(path=path) or nbm.is_hidden(path):
                 # Directory is hidden or does not exist.
                 raise web.HTTPError(404)

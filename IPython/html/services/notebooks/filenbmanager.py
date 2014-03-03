@@ -180,6 +180,8 @@ class FileNotebookManager(NotebookManager):
         """List the directories for a given API style path."""
         path = path.strip('/')
         os_path = self._get_os_path('', path)
+        if is_hidden(os_path, self.notebook_dir):
+            self.log.info("Refusing to serve hidden directory, via 404 Error")
         if not os.path.isdir(os_path) or is_hidden(os_path, self.notebook_dir):
             raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
         dir_names = os.listdir(os_path)
