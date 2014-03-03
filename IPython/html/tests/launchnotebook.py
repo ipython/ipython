@@ -16,6 +16,9 @@ from IPython.utils.tempdir import TemporaryDirectory
 MAX_WAITTIME = 30   # seconds to wait for notebook server to start
 POLL_INTERVAL = 0.1 # time between attempts
 
+class TimeoutError(Exception):
+    pass
+
 class NotebookTestBase(TestCase):
     """A base class for tests that need a running notebook.
     
