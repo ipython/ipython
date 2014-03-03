@@ -13,8 +13,8 @@ casper.notebook_test(function () {
         
         // Simulate the "up arrow" and "down arrow" keys.
         //
-        IPython.utils.press_up();
-        IPython.utils.press_down();
+        IPython.keyboard.trigger_keydown('up');
+        IPython.keyboard.trigger_keydown('down');
         return true;
     });
     this.test.assertTrue(result, 'Up/down arrow okay in empty notebook.');

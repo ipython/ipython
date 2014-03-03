@@ -669,7 +669,7 @@ var IPython = (function (IPython) {
                 .keydown(function (event, ui) {
                     // make sure we submit on enter,
                     // and don't re-execute the *cell* on shift-enter
-                    if (event.which === utils.keycodes.ENTER) {
+                    if (event.which === IPython.keyboard.keycodes.enter) {
                         that._submit_raw_input();
                         return false;
                     }

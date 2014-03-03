@@ -350,66 +350,6 @@ IPython.utils = (function (IPython) {
             "$1<a target=\"_blank\" href=\"$2$3\">$2$3</a>");
     }
 
-    // some keycodes that seem to be platform/browser independent
-    var keycodes = {
-                BACKSPACE:  8,
-                TAB      :  9,
-                ENTER    : 13,
-                SHIFT    : 16,
-                CTRL     : 17,
-                CONTROL  : 17,
-                ALT      : 18,
-                CAPS_LOCK: 20,
-                ESC      : 27,
-                SPACE    : 32,
-                PGUP     : 33,
-                PGDOWN   : 34,
-                END      : 35,
-                HOME     : 36,
-                LEFT_ARROW: 37,
-                LEFTARROW: 37,
-                LEFT     : 37,
-                UP_ARROW : 38,
-                UPARROW  : 38,
-                UP       : 38,
-                RIGHT_ARROW:39,
-                RIGHTARROW:39,
-                RIGHT    : 39,
-                DOWN_ARROW: 40,
-                DOWNARROW: 40,
-                DOWN     : 40,
-                I        : 73,
-                M        : 77,
-                // all three of these keys may be COMMAND on OS X:
-                LEFT_SUPER : 91,
-                RIGHT_SUPER : 92,
-                COMMAND  : 93,
-    };
-    
-    // trigger a key press event
-    var press = function (key) {
-        var key_press =  $.Event('keydown', {which: key});
-        $(document).trigger(key_press);
-    }
-
-    var press_up = function() { press(keycodes.UP); };
-    var press_down = function() { press(keycodes.DOWN); };
-
-    var press_ctrl_enter = function() {
-        $(document).trigger($.Event('keydown', {which: keycodes.ENTER, ctrlKey: true}));
-    };
-
-    var press_shift_enter = function() {
-        $(document).trigger($.Event('keydown', {which: keycodes.ENTER, shiftKey: true}));
-    };
-
-    // trigger the ctrl-m shortcut followed by one of our keys
-    var press_ghetto = function(key) {
-        $(document).trigger($.Event('keydown', {which: keycodes.M, ctrlKey: true}));
-        press(key);
-    };
-
-
     var points_to_pixels = function (points) {
         // A reasonably good way of converting between points and pixels.
         var test = $('<div style="display: none; width: 10000pt; padding:0; border:0;"></div>');
@@ -430,7 +370,6 @@ IPython.utils = (function (IPython) {
             return obj;
         };
     };
-
 
     var url_path_join = function () {
         // join a sequence of url components with '/'
@@ -554,13 +493,6 @@ IPython.utils = (function (IPython) {
         regex_split : regex_split,
         uuid : uuid,
         fixConsole : fixConsole,
-        keycodes : keycodes,
-        press : press,
-        press_up : press_up,
-        press_down : press_down,
-        press_ctrl_enter : press_ctrl_enter,
-        press_shift_enter : press_shift_enter,
-        press_ghetto : press_ghetto,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,

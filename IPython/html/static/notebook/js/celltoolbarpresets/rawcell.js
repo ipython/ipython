@@ -14,7 +14,6 @@
 
   var CellToolbar = IPython.CellToolbar;
   var raw_cell_preset = [];
-  var utils = IPython.utils;
 
   var select_type = CellToolbar.utils.select_ui_generator([
     ["None", "-"],
@@ -58,7 +57,7 @@
                     var that = $(this);
                     // Upon ENTER, click the OK button.
                     that.find('input[type="text"]').keydown(function (event, ui) {
-                        if (event.which === utils.keycodes.ENTER) {
+                        if (event.which === IPython.keyboard.keycodes.enter) {
                             that.find('.btn-primary').first().click();
                             return false;
                         }

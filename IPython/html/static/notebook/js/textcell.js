@@ -20,7 +20,7 @@ var IPython = (function (IPython) {
     "use strict";
 
     // TextCell base class
-    var key = IPython.utils.keycodes;
+    var keycodes = IPython.keyboard.keycodes;
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
@@ -140,7 +140,7 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey || event.altKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        } else if (event.which === key.UPARROW && event.type === 'keydown') {
+        } else if (event.which === keycodes.up && event.type === 'keydown') {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_top()) {
@@ -148,8 +148,8 @@ var IPython = (function (IPython) {
                 return false;
             } else {
                 return true;
-            }
-        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+            };
+        } else if (event.which === keycodes.down && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_bottom()) {
@@ -157,8 +157,8 @@ var IPython = (function (IPython) {
                 return false;
             } else {
                 return true;
-            }
-        } else if (event.which === key.ESC && event.type === 'keydown') {
+            };
+        } else if (event.which === keycodes.esc && event.type === 'keydown') {
             if (that.code_mirror.options.keyMap === "vim-insert") {
                 // vim keyMap is active and in insert mode. In this case we leave vim
                 // insert mode, but remain in notebook edit mode.
