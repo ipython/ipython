@@ -222,17 +222,6 @@ class NotebookHandler(IPythonHandler):
         self.finish()
 
 
-class NotebookTrustHandler(IPythonHandler):
-    
-    SUPPORTED_METHODS = ('POST')
-    
-    @web.authenticated
-    def post(self, path='', name=None):
-        """trust the specified notebook"""
-        self.notebook_manager.trust_notebook(name, path)
-        self.set_status(200)
-
-
 class NotebookCheckpointsHandler(IPythonHandler):
     
     SUPPORTED_METHODS = ('GET', 'POST')
@@ -290,7 +279,6 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
 _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 
 default_handlers = [
-    (r"/api/notebooks%s/trust" % notebook_path_regex, NotebookTrustHandler),
     (r"/api/notebooks%s/checkpoints" % notebook_path_regex, NotebookCheckpointsHandler),
     (r"/api/notebooks%s/checkpoints/%s" % (notebook_path_regex, _checkpoint_id_regex),
         ModifyNotebookCheckpointsHandler),
