@@ -512,7 +512,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_payload()
         self.init_comms()
         self.hooks.late_startup_hook()
-        self.events.trigger('shell_inited', self)
+        self.events.trigger('shell_initialized', self)
         atexit.register(self.atexit_operations)
 
     def get_ipython(self):
