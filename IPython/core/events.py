@@ -18,7 +18,7 @@ class EventManager(object):
     """Manage a collection of events and a sequence of callbacks for each.
     
     This is attached to :class:`~IPython.core.interactiveshell.InteractiveShell`
-    instances as a ``callbacks`` attribute.
+    instances as an ``events`` attribute.
     
     .. note::
 
@@ -38,7 +38,7 @@ class EventManager(object):
         self.callbacks = {n:[] for n in available_events}
     
     def register(self, event, function):
-        """Register a new callback
+        """Register a new event callback
         
         Parameters
         ----------
@@ -87,7 +87,7 @@ class EventManager(object):
 # event_name -> prototype mapping
 available_events = {}
 
-def _collect(callback_proto):
+def _define_event(callback_proto):
     available_events[callback_proto.__name__] = callback_proto
     return callback_proto
 
@@ -98,31 +98,31 @@ def _collect(callback_proto):
 # signatures of callbacks for those events.
 # ------------------------------------------------------------------------------
 
-@_collect
+@_define_event
 def pre_execute():
     """Fires before code is executed in response to user/frontend action.
     
     This includes comm and widget messages as well as user code cells."""
     pass
 
-@_collect
+@_define_event
 def pre_run_cell():
     """Fires before user-entered code runs."""
     pass
 
-@_collect
+@_define_event
 def post_execute():
     """Fires after code is executed in response to user/frontend action.
     
     This includes comm and widget messages as well as user code cells."""
     pass
 
-@_collect
+@_define_event
 def post_run_cell():
     """Fires after user-entered code runs."""
     pass
 
-@_collect
+@_define_event
 def shell_inited(ip):
     """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
     
