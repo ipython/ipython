@@ -162,13 +162,16 @@ var IPython = (function (IPython) {
             help    : '',
             help_index : '',
             handler : function (event) {
-                var cell = IPython.notebook.get_selected_cell();
-                if (cell && cell.at_top()) {
-                    event.preventDefault();
-                    IPython.notebook.command_mode();
-                    IPython.notebook.select_prev();
-                    IPython.notebook.edit_mode();
-                    return false;
+                var index = IPython.notebook.get_selected_index();
+                if (index !== null && index !== 0) {
+                    var cell = IPython.notebook.get_cell(index);
+                    if (cell && cell.at_top()) {
+                        event.preventDefault();
+                        IPython.notebook.command_mode();
+                        IPython.notebook.select_prev();
+                        IPython.notebook.edit_mode();
+                        return false;
+                    }
                 }
             }
         },
@@ -176,13 +179,16 @@ var IPython = (function (IPython) {
             help    : '',
             help_index : '',
             handler : function (event) {
-                var cell = IPython.notebook.get_selected_cell();
-                if (cell && cell.at_bottom()) {
-                    event.preventDefault();
-                    IPython.notebook.command_mode();
-                    IPython.notebook.select_next();
-                    IPython.notebook.edit_mode();
-                    return false;
+                var index = IPython.notebook.get_selected_index();
+                if (index !== null && index !== (IPython.notebook.ncells()-1)) {
+                    var cell = IPython.notebook.get_cell(index);
+                    if (cell && cell.at_bottom()) {
+                        event.preventDefault();
+                        IPython.notebook.command_mode();
+                        IPython.notebook.select_next();
+                        IPython.notebook.edit_mode();
+                        return false;
+                    }
                 }
             }
         },
