@@ -36,6 +36,10 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 ISO8601 = "%Y-%m-%dT%H:%M:%S.%f"
 ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d{1,6})?Z?([\+\-]\d{2}:?\d{2})?$")
 
+# holy crap, strptime is not threadsafe.
+# Calling it once at import seems to help.
+datetime.strptime("1", "%d")
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
