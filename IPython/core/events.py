@@ -102,7 +102,8 @@ def _define_event(callback_proto):
 def pre_execute():
     """Fires before code is executed in response to user/frontend action.
     
-    This includes comm and widget messages as well as user code cells."""
+    This includes comm and widget messages and silent execution, as well as user
+    code cells."""
     pass
 
 @_define_event
@@ -114,7 +115,8 @@ def pre_run_cell():
 def post_execute():
     """Fires after code is executed in response to user/frontend action.
     
-    This includes comm and widget messages as well as user code cells."""
+    This includes comm and widget messages and silent execution, as well as user
+    code cells."""
     pass
 
 @_define_event
