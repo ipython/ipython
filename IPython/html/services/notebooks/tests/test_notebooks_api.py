@@ -108,9 +108,9 @@ class APITest(NotebookTestBase):
                ]
     hidden_dirs = ['.hidden', '__pycache__']
 
-    dirs = uniq_stable([d for (d,n) in dirs_nbs])
+    dirs = uniq_stable([py3compat.cast_unicode(d) for (d,n) in dirs_nbs])
     del dirs[0]  # remove ''
-    top_level_dirs = {d.split('/')[0] for d in dirs}
+    top_level_dirs = {normalize('NFC', d.split('/')[0]) for d in dirs}
 
     def setUp(self):
         nbdir = self.notebook_dir.name
@@ -171,7 +171,7 @@ class APITest(NotebookTestBase):
 
     def test_list_dirs(self):
         dirs = dirs_only(self.nb_api.list().json())
-        dir_names = {d['name'] for d in dirs}
+        dir_names = {normalize('NFC', d['name']) for d in dirs}
         self.assertEqual(dir_names, self.top_level_dirs)  # Excluding hidden dirs
 
     def test_list_nonexistant_dir(self):
