@@ -123,7 +123,7 @@ var tour_style = "<div class='popover tour' style='position:relative'>\
   <div class='popover-content'></div>\
   <div class='popover-navigation'>\
     <button class='btn btn-default icon-step-backward' data-role='prev'></button>\
-    <button class='btn btn-default icon-step-forward' data-role='next'></button>\
+    <button class='btn btn-default icon-step-forward pull-right' data-role='next'></button>\
     <button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
   </div>\
 </div>";
