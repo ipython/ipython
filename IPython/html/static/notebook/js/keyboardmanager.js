@@ -162,8 +162,9 @@ var IPython = (function (IPython) {
             help    : '',
             help_index : '',
             handler : function (event) {
+                var index = IPython.notebook.get_selected_index();
                 var cell = IPython.notebook.get_selected_cell();
-                if (cell && cell.at_top()) {
+                if (index !== 0 && cell && cell.at_top()) {
                     event.preventDefault();
                     IPython.notebook.command_mode();
                     IPython.notebook.select_prev();
