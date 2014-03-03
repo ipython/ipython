@@ -497,6 +497,7 @@ var IPython = (function (IPython) {
                         value = IPython.security.sanitize_html(value);
                     } else {
                         // don't display if we don't know how to sanitize it
+                        console.log("Ignoring untrusted " + type + " output.");
                         continue;
                     }
                 }
