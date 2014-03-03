@@ -232,7 +232,7 @@ class link(object):
             for obj,attr in self.objects.keys():
                 if obj is not sending_obj or attr != sending_attr:
                     setattr(obj, attr, new)
-    
+
     def unlink(self):
         for key, callback in self.objects.items():
             (obj,attr) = key
@@ -491,7 +491,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # We need to use setattr for this to trigger validation and
         # notifications.
         for key, value in iteritems(kw):
-            setattr(self, key, value)
+            if value is not None:
+                setattr(self, key, value)
 
     def _notify_trait(self, name, old_value, new_value):
 
