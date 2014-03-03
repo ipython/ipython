@@ -159,6 +159,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
           should be set to False.
         """
         if (not cell) or cell.isspace():
+            # pressing enter flushes any pending display
+            self.handle_iopub()
             return
 
         if cell.strip() == 'exit':
@@ -180,7 +182,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             except Empty:
                 # display intermediate print statements, etc.
                 self.handle_iopub(msg_id)
-                pass
         
         # after all of that is done, wait for the execute reply
         while self.client.is_alive():
@@ -222,26 +223,22 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             self.execution_count = int(content["execution_count"] + 1)
 
 
-    def handle_iopub(self, msg_id):
-        """ Method to process subscribe channel's messages
+    def handle_iopub(self, msg_id=''):
+        """Process messages on the IOPub channel
 
            This method consumes and processes messages on the IOPub channel,
            such as stdout, stderr, pyout and status.
            
-           It only displays output that is caused by the given msg_id
+           It only displays output that is caused by this session.
         """
         while self.client.iopub_channel.msg_ready():
             sub_msg = self.client.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
             parent = sub_msg["parent_header"]
-            if (not parent) or msg_id == parent['msg_id']:
+            
+            if parent.get("session", self.session_id) == self.session_id:
                 if msg_type == 'status':
-                    state = self._execution_state = sub_msg["content"]["execution_state"]
-                    # idle messages mean an individual sequence is complete,
-                    # so break out of consumption to allow other things to take over.
-                    if state == 'idle':
-                        break
-
+                    self._execution_state = sub_msg["content"]["execution_state"]
                 elif msg_type == 'stream':
                     if sub_msg["content"]["name"] == "stdout":
                         print(sub_msg["content"]["data"], file=io.stdout, end="")
