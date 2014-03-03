@@ -307,14 +307,6 @@ var IPython = (function (IPython) {
     Completer.prototype.keydown = function (event) {
         var code = event.keyCode;
         var that = this;
-        var special_key = false;
-
-        // detect special keys like SHIFT,PGUP,...
-        for( var _key in key ) {
-            if (code == key[_key] ) {
-                special_key = true;
-            }
-        }
 
         // Enter
         if (code == keycodes.enter) {
@@ -366,8 +358,8 @@ var IPython = (function (IPython) {
         // don't handle keypress if it's not a character (arrows on FF)
         // or ENTER/TAB
         if (event.charCode === 0 ||
-            code == key.ENTER ||
-            code == key.TAB
+            code == keycodes.enter ||
+            code == keycodes.tab
         ) return;
         
         var cur = this.editor.getCursor();
