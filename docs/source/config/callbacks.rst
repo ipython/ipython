@@ -7,7 +7,7 @@ events within the IPython code. You can see the current list of available
 callbacks, and the parameters that will be passed with each, in the callback
 prototype functions defined in :mod:`IPython.core.callbacks`.
 
-To register callbacks, use :meth:`IPython.core.callbacks.CallbackManager.register`.
+To register callbacks, use :meth:`IPython.core.events.EventManager.register`.
 For example::
 
     class VarWatcher(object):
@@ -24,8 +24,8 @@ For example::
 
     def load_ipython_extension(ip):
         vw = VarWatcher(ip)
-        ip.callbacks.register('pre_execute', vw.pre_execute)
-        ip.callbacks.register('post_execute', vw.post_execute)
+        ip.events.register('pre_execute', vw.pre_execute)
+        ip.events.register('post_execute', vw.post_execute)
 
 .. note::
 
