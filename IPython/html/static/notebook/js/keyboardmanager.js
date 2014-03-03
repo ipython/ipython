@@ -163,8 +163,8 @@ var IPython = (function (IPython) {
             help_index : '',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
-                var cell = IPython.notebook.get_cell(index);
                 if (index !== null && index !== 0) {
+                    var cell = IPython.notebook.get_cell(index);
                     if (cell && cell.at_top()) {
                         event.preventDefault();
                         IPython.notebook.command_mode();
@@ -180,8 +180,8 @@ var IPython = (function (IPython) {
             help_index : '',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
-                var cell = IPython.notebook.get_cell(index);
                 if (index !== null && index !== (IPython.notebook.ncells()-1)) {
+                    var cell = IPython.notebook.get_cell(index);
                     if (cell && cell.at_bottom()) {
                         event.preventDefault();
                         IPython.notebook.command_mode();
