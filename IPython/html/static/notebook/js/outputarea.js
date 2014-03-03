@@ -567,15 +567,13 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype._dblclick_to_reset_size = function (img) {
-        // schedule wrapping image in resizable after a delay,
-        // so we don't end up calling resize on a zero-size object
-        var that = this;
-        setTimeout(function () {
+        // wrap image after it's loaded on the page,
+        // otherwise the measured initial size will be incorrect
+        img.on("load", function (){
             var h0 = img.height();
             var w0 = img.width();
             if (!(h0 && w0)) {
-                // zero size, schedule another timeout
-                that._dblclick_to_reset_size(img);
+                // zero size, don't make it resizable
                 return;
             }
             img.resizable({
@@ -589,7 +587,7 @@ var IPython = (function (IPython) {
                 img.parent().width(w0);
                 img.width(w0);
             });
-        }, 250);
+        });
     };
     
     var set_width_height = function (img, md, mime) {
