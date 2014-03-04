@@ -837,7 +837,7 @@ class InteractiveShell(SingletonConfigurable):
         setattr(self.hooks,name, dp)
 
     #-------------------------------------------------------------------------
-    # Things related to callbacks
+    # Things related to events
     #-------------------------------------------------------------------------
 
     def init_events(self):
