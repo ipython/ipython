@@ -52,7 +52,7 @@ class NotebookManager(LoggingConfigurable):
         Parameters
         ----------
         path : string
-            The 
+            The path to check
         
         Returns
         -------
@@ -225,9 +225,14 @@ class NotebookManager(LoggingConfigurable):
         self.log.info(self.info_string())
 
     def trust_notebook(self, name, path=''):
-        """Check for trusted cells, and sign the notebook.
+        """Explicitly trust a notebook
         
-        Called as a part of saving notebooks.
+        Parameters
+        ----------
+        name : string
+            The filename of the notebook
+        path : string
+            The notebook's directory
         """
         model = self.get_notebook(name, path)
         nb = model['content']
@@ -239,6 +244,15 @@ class NotebookManager(LoggingConfigurable):
         """Check for trusted cells, and sign the notebook.
         
         Called as a part of saving notebooks.
+        
+        Parameters
+        ----------
+        nb : dict
+            The notebook structure
+        name : string
+            The filename of the notebook
+        path : string
+            The notebook's directory
         """
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
@@ -249,6 +263,15 @@ class NotebookManager(LoggingConfigurable):
         """Mark cells as trusted if the notebook signature matches.
         
         Called as a part of loading notebooks.
+        
+        Parameters
+        ----------
+        nb : dict
+            The notebook structure
+        name : string
+            The filename of the notebook
+        path : string
+            The notebook's directory
         """
         trusted = self.notary.check_signature(nb)
         if not trusted:
