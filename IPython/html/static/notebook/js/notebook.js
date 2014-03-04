@@ -525,7 +525,6 @@ var IPython = (function (IPython) {
      * @param [cell] {Cell} Cell to enter command mode on.
      **/
     Notebook.prototype.handle_command_mode = function (cell) {
-        if (cell === null) { return; } // TODO: do I really need this?
         if (this.mode !== 'command') {
             cell.command_mode(); // TODO: is this OK here?
             this.mode = 'command';
@@ -556,7 +555,6 @@ var IPython = (function (IPython) {
      * @param [cell] {Cell} Cell to enter edit mode on.
      **/
     Notebook.prototype.handle_edit_mode = function (cell) {
-        if (cell === null) { return; } // TODO: do I really need this?
         if (this.mode !== 'edit') {
             cell.edit_mode();
             this.mode = 'edit';
