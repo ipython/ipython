@@ -111,11 +111,13 @@ unknown type  {{ cell.type }}
 {%- endblock stream_stderr %}
 
 {% block data_svg -%}
+<div class="output_svg output_subarea">
 {%- if output.svg_filename %}
 <img src="{{output.svg_filename | posix_path}}"
 {%- else %}
 {{ output.svg }}
 {%- endif %}
+</div>
 {%- endblock data_svg %}
 
 {% block data_html -%}
@@ -125,6 +127,7 @@ unknown type  {{ cell.type }}
 {%- endblock data_html %}
 
 {% block data_png %}
+<div class="output_png output_subarea">
 {%- if output.png_filename %}
 <img src="{{output.png_filename | posix_path}}"
 {%- else %}
@@ -137,9 +140,11 @@ width={{output.metadata['png']['width']}}
 height={{output.metadata['png']['height']}}
 {%- endif %}
 >
+</div>
 {%- endblock data_png %}
 
 {% block data_jpg %}
+<div class="output_jpeg output_subarea">
 {%- if output.jpeg_filename %}
 <img src="{{output.jpeg_filename | posix_path}}"
 {%- else %}
@@ -152,6 +157,7 @@ width={{output.metadata['jpeg']['width']}}
 height={{output.metadata['jpeg']['height']}}
 {%- endif %}
 >
+</div>
 {%- endblock data_jpg %}
 
 {% block data_latex %}
