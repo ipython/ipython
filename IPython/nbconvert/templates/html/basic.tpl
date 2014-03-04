@@ -119,7 +119,7 @@ unknown type  {{ cell.type }}
 {%- endblock data_svg %}
 
 {% block data_html -%}
-<div class="output_html rendered_html">
+<div class="output_html rendered_html output_subarea">
 {{ output.html }}
 </div>
 {%- endblock data_html %}
@@ -181,7 +181,3 @@ height={{output.metadata['jpeg']['height']}}
 </script>
 </div>
 {%- endblock -%}
-
-{%- block display_data scoped -%}
-{{ super() }}
-{%- endblock display_data -%}
