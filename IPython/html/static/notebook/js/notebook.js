@@ -1821,6 +1821,8 @@ var IPython = (function (IPython) {
                     )
                 ).append(".")
             ).append($("<p>")
+                .text("Selecting trust will immediately reload this notebook in a trusted state.")
+            ).append($("<p>")
                 .text("For more information, see the ")
                 .append($("<a>").attr("href", "http://ipython.org/security.html")
                     .text("IPython security documentation")
