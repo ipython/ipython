@@ -422,7 +422,7 @@ var IPython = (function (IPython) {
             }
             s = s + '\n';
             var toinsert = this.create_output_area();
-            this.append_text(s, {}, toinsert);
+            this.append_text(s, {}, toinsert, 'output_pyerr');
             this._safe_append(toinsert);
         }
     };
