@@ -175,13 +175,13 @@ height={{output.metadata['jpeg']['height']}}
 {%- endblock -%}
 
 {%- block data_javascript %}
+<div class="output_subarea output_javascript">
 <script type="text/javascript">
 {{ output.javascript }}
 </script>
+</div>
 {%- endblock -%}
 
 {%- block display_data scoped -%}
-<div class="box-flex1 output_subarea output_display_data">
 {{ super() }}
-</div>
 {%- endblock display_data -%}
