@@ -95,7 +95,7 @@ unknown type  {{ cell.type }}
 {%- endblock pyout %}
 
 {% block stream_stdout -%}
-<div class="box-flex1 output_subarea output_stream output_stdout">
+<div class="output_subarea output_stream output_stdout output_text">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
@@ -159,7 +159,7 @@ height={{output.metadata['jpeg']['height']}}
 {%- endblock data_latex %}
 
 {% block pyerr -%}
-<div class="box-flex1 output_subarea output_pyerr">
+<div class="output_subarea output_text output_pyerr">
 <pre>{{ super() }}</pre>
 </div>
 {%- endblock pyerr %}
