@@ -643,7 +643,7 @@ def get_bdist_wheel():
                     _remove_startswith(requires, pkg)
                 requires.append("gnureadline; sys.platform == 'darwin' and platform.python_implementation == 'CPython'")
                 requires.append("pyreadline (>=2.0); sys.platform == 'win32' and platform.python_implementation == 'CPython'")
-                requires.append("mock; extra == 'test'; python_version < '3.3'")
+                requires.append("mock; extra == 'test' and python_version < '3.3'")
                 for r in requires:
                     pkg_info['Requires-Dist'] = r
                 write_pkg_info(metadata_path, pkg_info)
