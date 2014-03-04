@@ -161,7 +161,9 @@ height={{output.metadata['jpeg']['height']}}
 {%- endblock data_jpg %}
 
 {% block data_latex %}
+<div class="output_latex output_subarea">
 {{ output.latex }}
+</div>
 {%- endblock data_latex %}
 
 {% block pyerr -%}
@@ -175,9 +177,11 @@ height={{output.metadata['jpeg']['height']}}
 {%- endblock traceback_line %}
 
 {%- block data_text %}
+<div class="output_text output_subarea">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
+</div>
 {%- endblock -%}
 
 {%- block data_javascript %}
