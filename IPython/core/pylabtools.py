@@ -353,7 +353,7 @@ def configure_inline_support(shell, backend):
 
     if backend == backends['inline']:
         from IPython.kernel.zmq.pylab.backend_inline import flush_figures
-        shell.register_post_execute(flush_figures)
+        shell.events.register('post_execute', flush_figures)
 
         # Save rcParams that will be overwrittern
         shell._saved_rcParams = dict()
@@ -363,8 +363,10 @@ def configure_inline_support(shell, backend):
         pyplot.rcParams.update(cfg.rc)
     else:
         from IPython.kernel.zmq.pylab.backend_inline import flush_figures
-        if flush_figures in shell._post_execute:
-            shell._post_execute.pop(flush_figures)
+        try:
+            shell.events.unregister('post_execute', flush_figures)
+        except ValueError:
+            pass
         if hasattr(shell, '_saved_rcParams'):
             pyplot.rcParams.update(shell._saved_rcParams)
             del shell._saved_rcParams

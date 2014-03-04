@@ -49,6 +49,11 @@ __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
            'show_in_pager','pre_prompt_hook',
            'pre_run_code_hook', 'clipboard_get']
 
+deprecated = {'pre_run_code_hook': "a callback for the 'pre_execute' or 'pre_run_cell' event",
+              'late_startup_hook': "a callback for the 'shell_initialized' event",
+              'shutdown_hook': "the atexit module",
+             }
+
 def editor(self, filename, linenum=None, wait=True):
     """Open the default editor at the given filename and linenumber.
 

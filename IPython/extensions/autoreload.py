@@ -392,7 +392,6 @@ def superreload(module, reload=reload, old_objects={}):
 # IPython connectivity
 #------------------------------------------------------------------------------
 
-from IPython.core.hooks import TryNext
 from IPython.core.magic import Magics, magics_class, line_magic
 
 @magics_class
@@ -491,17 +490,16 @@ class AutoreloadMagics(Magics):
             # Inject module to user namespace
             self.shell.push({top_name: top_module})
 
-    def pre_run_code_hook(self, ip):
-        if not self._reloader.enabled:
-            raise TryNext
-        try:
-            self._reloader.check()
-        except:
-            pass
+    def pre_run_cell(self):
+        if self._reloader.enabled:
+            try:
+                self._reloader.check()
+            except:
+                pass
 
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     auto_reload = AutoreloadMagics(ip)
     ip.register_magics(auto_reload)
-    ip.set_hook('pre_run_code_hook', auto_reload.pre_run_code_hook)
+    ip.events.register('pre_run_cell', auto_reload.pre_run_cell)
