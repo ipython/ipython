@@ -18,6 +18,7 @@ from __future__ import print_function
 # Stdlib imports
 import os
 import subprocess
+import warnings
 from io import TextIOWrapper, BytesIO
 
 # IPython imports
@@ -31,6 +32,7 @@ from IPython.utils.version import check_version
 # Functions
 #-----------------------------------------------------------------------------
 marked = os.path.join(os.path.dirname(__file__), "marked.js")
+_node = None
 
 __all__ = [
     'markdown2html',
@@ -62,13 +64,31 @@ def markdown2latex(source):
     """
     return pandoc(source, 'markdown', 'latex')
 
+def markdown2html(source):
+    """Convert a markdown string to HTML"""
+    global _node
+    if _node is None:
+        # prefer md2html via marked if node.js >= 0.9.12 is available
+        # node is called nodejs on debian, so try that first
+        _node = 'nodejs'
+        if not _verify_node(_node):
+            _node = 'node'
+            if not _verify_node(_node):
+                warnings.warn(  "Node.js 0.9.12 or later wasn't found.\n" +
+                                "Nbconvert will try to use Pandoc instead.")
+                _node = False
+    if not _node:
+        return markdown2html_pandoc(source)
+    else:
+        return markdown2html_marked(source)
+
 def markdown2html_pandoc(source):
     """Convert a markdown string to HTML via pandoc"""
     return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
 
 def markdown2html_marked(source, encoding='utf-8'):
     """Convert a markdown string to HTML via marked"""
-    command = [node_cmd, marked]
+    command = [_node, marked]
     try:
         p = subprocess.Popen(command,
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE
@@ -117,15 +137,3 @@ def _verify_node(cmd):
         # Command error
         return False
     return check_version(out.lstrip('v'), '0.9.12')
-
-# prefer md2html via marked if node.js >= 0.9.12 is available
-# node is called nodejs on debian, so try that first
-node_cmd = 'nodejs'
-if _verify_node(node_cmd):
-    markdown2html = markdown2html_marked
-else:
-    node_cmd = 'node'
-    if _verify_node(node_cmd):
-        markdown2html = markdown2html_marked
-    else:
-        markdown2html = markdown2html_pandoc
