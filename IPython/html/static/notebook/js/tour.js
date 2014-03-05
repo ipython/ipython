@@ -21,8 +21,7 @@ var tour_steps = [
     title: "Filename",
     placement: 'bottom',
     content: "Click here to change the filename for this notebook."
-  }, 
-          {
+  }, {
     element: "#checkpoint_status",
     title: "Checkpoint status",
     placement: 'bottom',
@@ -43,12 +42,13 @@ var tour_steps = [
     element: "#modal_indicator",
     title: "Mode indicator",
     placement: 'bottom',
-    content: "IPython has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in."
+    content: "IPython has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in.",
+    onShow: function(tour) { command_icon_hack(); }
   }, {
     element: "#modal_indicator",
     title: "Command Mode",
     placement: 'bottom',
-    onShow: function(tour) { IPython.notebook.command_mode(); },
+    onShow: function(tour) { IPython.notebook.command_mode(); command_icon_hack(); },
     onNext: function(tour) { edit_mode(); },
     content: "Right now you are in Command Mode, and many keyboard shortcuts are available. In this mode, no icon is displayed in the indicator area."
   }, {
@@ -128,6 +128,7 @@ var tour_style = "<div class='popover tour' style='position:relative'>\
   </div>\
 </div>";
 
+var command_icon_hack =  function() {$('#modal_indicator').css('min-height', 20);}
 var toggle_pause_play = function () { $('#tour-pause').toggleClass('icon-pause icon-play'); };
 var edit_mode = function() { 
     IPython.notebook.focus_cell(); 
