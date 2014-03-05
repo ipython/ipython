@@ -533,4 +533,4 @@ def load_ipython_extension(ip):
     auto_reload = AutoreloadMagics(ip)
     ip.register_magics(auto_reload)
     ip.events.register('pre_run_cell', auto_reload.pre_run_cell)
-    ip.register_post_execute(auto_reload.post_execute_hook)
+    ip.events.register('post_execute', auto_reload.post_execute_hook)
