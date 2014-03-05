@@ -111,9 +111,12 @@ def _verify_node(cmd):
     try:
         out, err, return_code = get_output_error_code([cmd, '--version'])
     except OSError:
-         # Command not found
+        # Command not found
         return False
-    return return_code == 0 and check_version(out.lstrip('v'), '0.9.12')
+    if return_code:
+        # Command error
+        return False
+    return check_version(out.lstrip('v'), '0.9.12')
 
 # prefer md2html via marked if node.js >= 0.9.12 is available
 # node is called nodejs on debian, so try that first
