@@ -185,6 +185,12 @@ we have added a signature to the notebook, stored in metadata.
 
 For more information, see :ref:`signing_notebooks`.
 
+Dashboard "Running" Tab
+-----------------------
+
+The dashboard now has a "Running" tab which shows all of the running
+notebooks.
+
 Other changes
 -------------
 
@@ -237,6 +243,16 @@ Other changes
   transformation machinery in IPython will handle displaying the exception to
   the user and resetting state.
 
+* Calling ``container.show()`` on javascript display is deprecated and will
+  trigger errors on future IPython notebook versions. ``container`` now show
+  itself as soon as non-empty
+
+* Added ``InlineBackend.print_figure_kwargs`` to allow passing keyword arguments
+  to matplotlib's ``Canvas.print_figure``. This can be used to change the value of
+  ``bbox_inches``, which is 'tight' by default, or set the quality of JPEG figures.
+
+* A new callback system has been introduced. For details, see :doc:`/config/callbacks`.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 Backwards incompatible changes
@@ -280,4 +296,13 @@ Backwards incompatible changes
       raw = isp.source_raw
       transformed = isp.source_reset()
 
+* The Azure notebook manager was removed as it was no longer compatible with the notebook storage scheme
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
+
+Simplifying configurable URLs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- base_kernel_url configurable is removed
+- websocket_url configurable is removed
+- base_project_url is renamed to base_url (base_project_url is kept as a deprecated alias, for now)
