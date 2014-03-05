@@ -62,6 +62,8 @@ def test_figure_to_svg():
 
 def _check_pil_jpeg_bytes():
     """Skip if PIL can't write JPEGs to BytesIO objects"""
+    # PIL's JPEG plugin can't write to BytesIO objects
+    # Pillow fixes this
     from PIL import Image
     buf = BytesIO()
     img = Image.new("RGB", (4,4))
