@@ -27,7 +27,7 @@ var tour_steps = [
     placement: 'bottom',
     content: "Information about the last time this notebook was saved."
   }, {
-    element: "#menus",
+    element: $("#menus").parent(),
     placement: 'bottom',
     backdrop: true,
     title: "Notebook Menubar",
