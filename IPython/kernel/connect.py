@@ -473,7 +473,7 @@ class ConnectionFileMixin(Configurable):
 
     def write_connection_file(self):
         """Write connection info to JSON dict in self.connection_file."""
-        if self._connection_file_written:
+        if self._connection_file_written and os.path.exists(self.connection_file):
             return
 
         self.connection_file, cfg = write_connection_file(self.connection_file,
