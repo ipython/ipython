@@ -33,6 +33,17 @@ pre {
   font-size: 13px;
 }
 
+div#notebook_panel {
+  -webkit-box-shadow: none; 
+  -moz-box-shadow: none; 
+  box-shadow: none;
+}
+
+div#notebook {
+  overflow: visible;
+  border-top: none;
+}
+
 @media print {
   div.cell {
     display: block;
@@ -62,8 +73,8 @@ pre {
 <body>
 <div style="display: block;" id="site" class="border-box-sizing">
   <div id="ipython-main-app" class="border-box-sizing">
-    <div id="notebook_panel" class="border-box-sizing" style="-webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none;">
-      <div tabindex="-1" id="notebook" class="border-box-sizing" style="overflow: visible; border-top: none;">
+    <div id="notebook_panel" class="border-box-sizing">
+      <div tabindex="-1" id="notebook" class="border-box-sizing">
         <div class="container" id="notebook-container">
 {{ super() }}
         </div>
