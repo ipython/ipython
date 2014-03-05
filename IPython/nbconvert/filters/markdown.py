@@ -23,8 +23,9 @@ from io import TextIOWrapper, BytesIO
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
 from IPython.nbconvert.utils.exceptions import ConversionException
-from IPython.utils.process import find_cmd, FindCmdError, getoutput
+from IPython.utils.process import get_output_error_code
 from IPython.utils.py3compat import cast_bytes
+from IPython.utils.version import check_version
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -100,7 +101,7 @@ def markdown2rst(source):
     return pandoc(source, 'markdown', 'rst')
 
 def _verify_node(cmd):
-    """Verify that the node command exists and is atleast the minimum supported
+    """Verify that the node command exists and is at least the minimum supported
     version of node.
 
     Parameters
@@ -108,23 +109,13 @@ def _verify_node(cmd):
     cmd : string
         Node command to verify (i.e 'node')."""
     try:
-        find_cmd(node_cmd)
-    except FindCmdError:
+        out, err, return_code = get_output_error_code([cmd, '--version'])
+    except OSError:
+         # Command not found
         return False
-    else:
-        # Remove the version 'v' prefix from the output and strip whitespace.
-        version_str = getoutput(cmd + ' --version').replace('v', '').strip()
-        try:
-            # Make sure the node version is atleast 0.9.12
-            version_numbers = [int(x) for x in version_str.split('.')]
-            if version_numbers[0] > 0 or version_numbers[1] > 9 or (version_numbers[1] == 9 and version_numbers[2] >= 12):
-                return True
-            else:
-                return False
-        except:
-            return False
+    return return_code == 0 and check_version(out.lstrip('v'), '0.9.12')
 
-# prefer md2html via marked if node.js is available
+# prefer md2html via marked if node.js >= 0.9.12 is available
 # node is called nodejs on debian, so try that first
 node_cmd = 'nodejs'
 if _verify_node(node_cmd):
