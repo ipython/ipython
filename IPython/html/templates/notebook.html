@@ -86,7 +86,10 @@ class="notebook_app"
                     </ul>
                 </li>
                 <li class="divider"></li>
-                
+                <li id="trust_notebook"
+                    title="Trust the output of this notebook">
+                    <a href="#" >Trust Notebook</a></li>
+                <li class="divider"></li>
                 <li id="kill_and_exit"
                     title="Shutdown this notebook's kernel, and close this window">
                     <a href="#" >Close and halt</a></li>
@@ -291,6 +294,7 @@ class="notebook_app"
 
 {{super()}}
 
+<script src="{{ static_url("components/google-caja/html-css-sanitizer-minified.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script type="text/javascript">
     CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
@@ -318,6 +322,7 @@ class="notebook_app"
 <script src="{{ static_url("base/js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("base/js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("base/js/keyboard.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("base/js/security.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("base/js/dialog.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("services/kernels/js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("services/kernels/js/comm.js") }}" type="text/javascript" charset="utf-8"></script>

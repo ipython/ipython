@@ -286,5 +286,3 @@ default_handlers = [
     (r"/api/notebooks%s" % path_regex, NotebookHandler),
 ]
 
-
-

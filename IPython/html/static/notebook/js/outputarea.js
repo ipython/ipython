@@ -480,6 +480,7 @@ var IPython = (function (IPython) {
 
     OutputArea.safe_outputs = {
         'text/plain' : true,
+        'text/latex' : true,
         'image/png' : true,
         'image/jpeg' : true
     };
@@ -489,18 +490,20 @@ var IPython = (function (IPython) {
             var type = OutputArea.display_order[type_i];
             var append = OutputArea.append_map[type];
             if ((json[type] !== undefined) && append) {
+                var value = json[type];
                 if (!this.trusted && !OutputArea.safe_outputs[type]) {
-                    // not trusted show warning and do not display
-                    var content = {
-                        text : "Untrusted " + type + " output ignored.",
-                        stream : "stderr"
+                    // not trusted, sanitize HTML
+                    if (type==='text/html' || type==='text/svg') {
+                        value = IPython.security.sanitize_html(value);
+                    } else {
+                        // don't display if we don't know how to sanitize it
+                        console.log("Ignoring untrusted " + type + " output.");
+                        continue;
                     }
-                    this.append_stream(content);
-                    continue;
                 }
                 var md = json.metadata || {};
-                var toinsert = append.apply(this, [json[type], md, element]);
-                $([IPython.events]).trigger('output_appended.OutputArea', [type, json[type], md, toinsert]);
+                var toinsert = append.apply(this, [value, md, element]);
+                $([IPython.events]).trigger('output_appended.OutputArea', [type, value, md, toinsert]);
                 return true;
             }
         }

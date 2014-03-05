@@ -21,6 +21,7 @@ var IPython = (function (IPython) {
 
     // TextCell base class
     var keycodes = IPython.keyboard.keycodes;
+    var security = IPython.security;
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
@@ -344,23 +345,12 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            html = $(IPython.mathjaxutils.replace_math(html, math));
-            // Links in markdown cells should open in new tabs.
+            html = IPython.mathjaxutils.replace_math(html, math);
+            html = security.sanitize_html(html);
+            html = $(html);
+            // links in markdown cells should open in new tabs
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
-            try {
-                // TODO: This HTML needs to be treated as potentially dangerous
-                // user input and should be handled before set_rendered.         
-                this.set_rendered(html);
-            } catch (e) {
-                console.log("Error running Javascript in Markdown:");
-                console.log(e);
-                this.set_rendered(
-                    $("<div/>")
-                        .append($("<div/>").text('Error rendering Markdown!').addClass("js-error"))
-                        .append($("<div/>").text(e.toString()).addClass("js-error"))
-                        .html()
-                );
-            }
+            this.set_rendered(html);
             this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
             this.typeset();
@@ -528,7 +518,9 @@ var IPython = (function (IPython) {
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            var h = $(IPython.mathjaxutils.replace_math(html, math));
+            html = IPython.mathjaxutils.replace_math(html, math);
+            html = security.sanitize_html(html);
+            var h = $(html);
             // add id and linkback anchor
             var hash = h.text().replace(/ /g, '-');
             h.attr('id', hash);
@@ -538,13 +530,10 @@ var IPython = (function (IPython) {
                     .attr('href', '#' + hash)
                     .text('¶')
             );
-            // TODO: This HTML needs to be treated as potentially dangerous
-            // user input and should be handled before set_rendered.         
             this.set_rendered(h);
-            this.typeset();
-            this.element.find('div.input_area').hide();
+            this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-
+            this.typeset();
         }
         return cont;
     };

@@ -488,7 +488,6 @@ IPython.utils = (function (IPython) {
         }
     }
 
-
     return {
         regex_split : regex_split,
         uuid : uuid,

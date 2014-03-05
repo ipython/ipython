@@ -52,7 +52,7 @@ class NotebookManager(LoggingConfigurable):
         Parameters
         ----------
         path : string
-            The 
+            The path to check
         
         Returns
         -------
@@ -224,22 +224,54 @@ class NotebookManager(LoggingConfigurable):
     def log_info(self):
         self.log.info(self.info_string())
 
-    # NotebookManager methods provided for use in subclasses.
-
-    def check_and_sign(self, nb, path, name):
+    def trust_notebook(self, name, path=''):
+        """Explicitly trust a notebook
+        
+        Parameters
+        ----------
+        name : string
+            The filename of the notebook
+        path : string
+            The notebook's directory
+        """
+        model = self.get_notebook(name, path)
+        nb = model['content']
+        self.log.warn("Trusting notebook %s/%s", path, name)
+        self.notary.mark_cells(nb, True)
+        self.save_notebook(model, name, path)
+    
+    def check_and_sign(self, nb, name, path=''):
         """Check for trusted cells, and sign the notebook.
         
         Called as a part of saving notebooks.
+        
+        Parameters
+        ----------
+        nb : dict
+            The notebook structure
+        name : string
+            The filename of the notebook
+        path : string
+            The notebook's directory
         """
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
         else:
             self.log.warn("Saving untrusted notebook %s/%s", path, name)
     
-    def mark_trusted_cells(self, nb, path, name):
+    def mark_trusted_cells(self, nb, name, path=''):
         """Mark cells as trusted if the notebook signature matches.
         
         Called as a part of loading notebooks.
+        
+        Parameters
+        ----------
+        nb : dict
+            The notebook structure
+        name : string
+            The filename of the notebook
+        path : string
+            The notebook's directory
         """
         trusted = self.notary.check_signature(nb)
         if not trusted:
