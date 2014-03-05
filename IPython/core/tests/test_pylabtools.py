@@ -13,10 +13,13 @@
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
+from io import UnsupportedOperation, BytesIO
+
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib.figure import Figure
 
+from nose import SkipTest
 import nose.tools as nt
 
 from matplotlib import pyplot as plt
@@ -57,15 +60,27 @@ def test_figure_to_svg():
     svg = pt.print_figure(fig, 'svg')[:100].lower()
     nt.assert_in(b'doctype svg', svg)
 
+def _check_pil_jpeg_bytes():
+    """Skip if PIL can't write JPEGs to BytesIO objects"""
+    from PIL import Image
+    buf = BytesIO()
+    img = Image.new("RGB", (4,4))
+    try:
+        img.save(buf, 'jpeg')
+    except Exception as e:
+        ename = e.__class__.__name__
+        raise SkipTest("PIL can't write JPEG to BytesIO: %s: %s" % (ename, e))
+
 @dec.skip_without("PIL.Image")
-def test_figure_to_jpg():
-    # simple check for at least jpg-looking output
+def test_figure_to_jpeg():
+    _check_pil_jpeg_bytes()
+    # simple check for at least jpeg-looking output
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])
     plt.draw()
-    jpg = pt.print_figure(fig, 'jpg', quality=50)[:100].lower()
-    assert jpg.startswith(_JPEG)
+    jpeg = pt.print_figure(fig, 'jpeg', quality=50)[:100].lower()
+    assert jpeg.startswith(_JPEG)
 
 def test_retina_figure():
     fig = plt.figure()
