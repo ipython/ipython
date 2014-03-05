@@ -2,7 +2,7 @@
 
 
 {% block codecell %}
-<div class="cell border-box-sizing code_cell rendered unselected">
+<div class="cell border-box-sizing code_cell rendered">
 {{ super() }}
 </div>
 {%- endblock codecell %}
@@ -61,7 +61,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock output %}
 
 {% block markdowncell scoped %}
-<div class="cell border-box-sizing text_cell rendered unselected">
+<div class="cell border-box-sizing text_cell rendered">
 {{ self.empty_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -72,7 +72,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
-<div class="cell border-box-sizing text_cell rendered unselected">
+<div class="cell border-box-sizing text_cell rendered">
 {{ self.empty_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
