@@ -31,16 +31,16 @@ var tour_steps = [
     placement: 'bottom',
     backdrop: true,
     title: "Notebook Menubar",
-    content: "Actions on this notebook, its cells, and the kernel it communicates with."
+    content: "The menubar has menus for actions on the notebook, its cells, and the kernel it communicates with."
   }, {
     element: "#maintoolbar",
     placement: 'bottom',
     backdrop: true,
     title: "Notebook Toolbar",
-    content: "Most common actions are here. Hover your mouse over each button for more information."
+    content: "The toolbar has buttons for the most common actions. Hover your mouse over each button for more information."
   }, {
     element: "#modal_indicator",
-    title: "Mode indicator",
+    title: "Mode Indicator",
     placement: 'bottom',
     content: "IPython has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in.",
     onShow: function(tour) { command_icon_hack(); }
@@ -62,13 +62,7 @@ var tour_steps = [
     title: "Edit Mode",
     placement: 'bottom',
     onShow: function(tour) { edit_mode(); },
-    content: "Notice that the border around the currently active cell changed color."
-  }, {    
-    element: ".selected",
-    title: "Edit Mode",
-    placement: 'bottom',
-    onShow: function(tour) { edit_mode(); },
-    content: "Regular typing will insert text into the currently active cell."
+    content: "Notice that the border around the currently active cell changed color. Typing will insert text into the currently active cell."
   }, {
     element: '.selected',
     title: "back to Command Mode",
