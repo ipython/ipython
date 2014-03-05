@@ -1356,7 +1356,7 @@ div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizon
 div.input_prompt{color:#000080;border-top:1px solid transparent}
 .CodeMirror{line-height:1.231em;height:auto;background:none;}
 .CodeMirror-scroll{overflow-y:hidden;overflow-x:auto}
-@-moz-document {.CodeMirror-scroll{overflow-x:hidden}}.CodeMirror-lines{padding:.4em}
+@-moz-document url-prefix(){.CodeMirror-scroll{overflow-x:hidden}}.CodeMirror-lines{padding:.4em}
 .CodeMirror-linenumber{padding:0 8px 0 4px}
 .CodeMirror-gutters{border-bottom-left-radius:4px;border-top-left-radius:4px}
 .CodeMirror pre{padding:0;border:0;border-radius:0;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}
