@@ -23,7 +23,7 @@ from io import TextIOWrapper, BytesIO
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
 from IPython.nbconvert.utils.exceptions import ConversionException
-from IPython.utils.process import find_cmd, FindCmdError
+from IPython.utils.process import find_cmd, FindCmdError, getoutput
 from IPython.utils.py3compat import cast_bytes
 
 #-----------------------------------------------------------------------------
@@ -99,18 +99,39 @@ def markdown2rst(source):
     """
     return pandoc(source, 'markdown', 'rst')
 
-# prefer md2html via marked if node.js is available
-# node is called nodejs on debian, so try that first
-node_cmd = 'nodejs'
-try:
-    find_cmd(node_cmd)
-except FindCmdError:
-    node_cmd = 'node'
+def _verify_node(cmd):
+    """Verify that the node command exists and is atleast the minimum supported
+    version of node.
+
+    Parameters
+    ----------
+    cmd : string
+        Node command to verify (i.e 'node')."""
     try:
         find_cmd(node_cmd)
     except FindCmdError:
-        markdown2html = markdown2html_pandoc
+        return False
     else:
-        markdown2html = markdown2html_marked
-else:
+        # Remove the version 'v' prefix from the output and strip whitespace.
+        version_str = getoutput(cmd + ' --version').replace('v', '').strip()
+        try:
+            # Make sure the node version is atleast 0.9.12
+            version_numbers = [int(x) for x in version_str.split('.')]
+            if version_numbers[0] > 0 or version_numbers[1] > 9 or (version_numbers[1] == 9 and version_numbers[2] >= 12):
+                return True
+            else:
+                return False
+        except:
+            return False
+
+# prefer md2html via marked if node.js is available
+# node is called nodejs on debian, so try that first
+node_cmd = 'nodejs'
+if _verify_node(node_cmd):
     markdown2html = markdown2html_marked
+else:
+    node_cmd = 'node'
+    if _verify_node(node_cmd):
+        markdown2html = markdown2html_marked
+    else:
+        markdown2html = markdown2html_pandoc
