@@ -531,7 +531,7 @@ var IPython = (function (IPython) {
                     .text('¶')
             );
             this.set_rendered(h);
-            this.element.find('div.text_cell_input').hide();
+            this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
             this.typeset();
         }
