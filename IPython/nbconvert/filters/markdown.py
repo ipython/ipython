@@ -77,10 +77,10 @@ def markdown2html(source):
                 warnings.warn(  "Node.js 0.9.12 or later wasn't found.\n" +
                                 "Nbconvert will try to use Pandoc instead.")
                 _node = False
-    if not _node:
-        return markdown2html_pandoc(source)
-    else:
+    if _node:
         return markdown2html_marked(source)
+    else:
+        return markdown2html_pandoc(source)
 
 def markdown2html_pandoc(source):
     """Convert a markdown string to HTML via pandoc"""
