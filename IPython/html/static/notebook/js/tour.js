@@ -23,7 +23,7 @@ var tour_steps = [
     content: "Click here to change the filename for this notebook."
   }, {
     element: "#checkpoint_status",
-    title: "Checkpoint status",
+    title: "Checkpoint Status",
     placement: 'bottom',
     content: "Information about the last time this notebook was saved."
   }, {
@@ -65,7 +65,7 @@ var tour_steps = [
     content: "Notice that the border around the currently active cell changed color. Typing will insert text into the currently active cell."
   }, {
     element: '.selected',
-    title: "back to Command Mode",
+    title: "Back to Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
     content: "Pressing Esc or clicking outside of the input text area takes you back to Command Mode."
@@ -78,7 +78,7 @@ var tour_steps = [
     content: "You can click here to get a list of all of the keyboard shortcuts."
   }, {
     element: "#kernel_indicator",
-    title: "Kernel indicator",
+    title: "Kernel Indicator",
     placement: 'bottom',
     onShow: function(tour) { $([IPython.events]).trigger('status_idle.Kernel');},
     content: "This is the Kernel indicator. It looks like this when the Kernel is idle.",
@@ -98,7 +98,7 @@ var tour_steps = [
     element: "#notification_kernel",
     placement: 'bottom',
     onShow: function(tour) { $('.icon-stop').click(); },
-    title: "Notification area",
+    title: "Notification Area",
     content: "Messages in response to user actions (Save, Interrupt, etc) appear here."
   }, {
     element: "#ipython_notebook",
