@@ -1814,20 +1814,19 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.trust_notebook = function (extra_settings) {
         var body = $("<div>").append($("<p>")
-                .text("A trusted IPython notebook may execute hidden malicious code ")
-                .append($("<strong>")
-                    .append(
-                        $("<em>").text("when you open it")
-                    )
-                ).append(".")
-            ).append($("<p>")
-                .text("Selecting trust will immediately reload this notebook in a trusted state.")
-            ).append($("<p>")
-                .text("For more information, see the ")
-                .append($("<a>").attr("href", "http://ipython.org/security.html")
-                    .text("IPython security documentation")
-                ).append(".")
-            );
+            .text("A trusted IPython notebook may execute hidden malicious code ")
+            .append($("<strong>")
+                .append(
+                    $("<em>").text("when you open it")
+                )
+            ).append(".").append(
+                " Selecting trust will immediately reload this notebook in a trusted state."
+            ).append(
+                " For more information, see the "
+            ).append($("<a>").attr("href", "http://ipython.org/security.html")
+                .text("IPython security documentation")
+            ).append(".")
+        );
 
         var nb = this;
         IPython.dialog.modal({
