@@ -115,6 +115,9 @@ class Exporter(LoggingConfigurable):
         """
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)
+        
+        if 'language' in nb['metadata']:
+            resources['language'] = nb['metadata']['language'].lower()
 
         # Preprocess
         nb_copy, resources = self._preprocess(nb_copy, resources)

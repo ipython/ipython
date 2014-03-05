@@ -16,6 +16,6 @@
 
 ((* block input scoped *))
     \begin{Verbatim}[commandchars=\\\{\}]
-((( cell.input | highlight2latex(strip_verbatim=True) | add_prompts )))
+((( cell.input | highlight2latex(language=resources.get('language'), strip_verbatim=True) | add_prompts )))
     \end{Verbatim}
 ((* endblock input *))
