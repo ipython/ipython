@@ -230,7 +230,7 @@ var IPython = (function (IPython) {
                     path,
                     nbname
                 )
-            ).attr('target','_blank');
+            );
     };
 
 
@@ -387,14 +387,12 @@ var IPython = (function (IPython) {
             async : false,
             success : function (data, status, xhr) {
                 var notebook_name = data.name;
-                window.open(
+                window.location.href =
                     utils.url_join_encode(
                         base_url,
                         'notebooks',
                         path,
-                        notebook_name),
-                    '_blank'
-                );
+                        notebook_name);
             }
         };
         var url = utils.url_join_encode(
