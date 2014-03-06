@@ -485,7 +485,7 @@ var IPython = (function (IPython) {
         'image/jpeg' : true
     };
     
-    OutputArea.prototype.append_mime_type = function (json, element) {
+    OutputArea.prototype.append_mime_type = function (json, element, extra_class) {
         for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
             var append = OutputArea.append_map[type];
@@ -498,7 +498,7 @@ var IPython = (function (IPython) {
                     } else {
                         // don't display if we don't know how to sanitize it
                         console.log("Ignoring untrusted " + type + " output.");
-                    continue;
+                        continue;
                     }
                 }
                 var md = json.metadata || {};
