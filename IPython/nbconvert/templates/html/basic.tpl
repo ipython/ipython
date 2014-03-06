@@ -87,11 +87,11 @@ unknown type  {{ cell.type }}
 {% endblock unknowncell %}
 
 {% block pyout -%}
-<div class="output_subarea output_text output_pyout">
+{%- set extra_classes=" output_pyout" -%}
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
-</div>
+{%- set extra_classes="" -%}
 {%- endblock pyout %}
 
 {% block stream_stdout -%}
@@ -110,8 +110,8 @@ unknown type  {{ cell.type }}
 </div>
 {%- endblock stream_stderr %}
 
-{% block data_svg -%}
-<div class="output_svg output_subarea">
+{% block data_svg scoped -%}
+<div class="output_svg output_subarea{{extra_classes}}">
 {%- if output.svg_filename %}
 <img src="{{output.svg_filename | posix_path}}"
 {%- else %}
@@ -120,14 +120,14 @@ unknown type  {{ cell.type }}
 </div>
 {%- endblock data_svg %}
 
-{% block data_html -%}
-<div class="output_html rendered_html output_subarea">
+{% block data_html scoped -%}
+<div class="output_html rendered_html output_subarea{{extra_classes}}">
 {{ output.html }}
 </div>
 {%- endblock data_html %}
 
-{% block data_png %}
-<div class="output_png output_subarea">
+{% block data_png scoped %}
+<div class="output_png output_subarea{{extra_classes}}">
 {%- if output.png_filename %}
 <img src="{{output.png_filename | posix_path}}"
 {%- else %}
@@ -143,8 +143,8 @@ height={{output.metadata['png']['height']}}
 </div>
 {%- endblock data_png %}
 
-{% block data_jpg %}
-<div class="output_jpeg output_subarea">
+{% block data_jpg scoped %}
+<div class="output_jpeg output_subarea{{extra_classes}}">
 {%- if output.jpeg_filename %}
 <img src="{{output.jpeg_filename | posix_path}}"
 {%- else %}
@@ -160,8 +160,8 @@ height={{output.metadata['jpeg']['height']}}
 </div>
 {%- endblock data_jpg %}
 
-{% block data_latex %}
-<div class="output_latex output_subarea">
+{% block data_latex scoped %}
+<div class="output_latex output_subarea{{extra_classes}}">
 {{ output.latex }}
 </div>
 {%- endblock data_latex %}
@@ -176,16 +176,16 @@ height={{output.metadata['jpeg']['height']}}
 {{ line | ansi2html }}
 {%- endblock traceback_line %}
 
-{%- block data_text %}
-<div class="output_text output_subarea">
+{%- block data_text scoped %}
+<div class="output_text output_subarea{{extra_classes}}">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
 </div>
 {%- endblock -%}
 
-{%- block data_javascript %}
-<div class="output_subarea output_javascript">
+{%- block data_javascript scoped %}
+<div class="output_subarea output_javascript{{extra_classes}}">
 <script type="text/javascript">
 {{ output.javascript }}
 </script>
