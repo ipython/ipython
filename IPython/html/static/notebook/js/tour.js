@@ -56,7 +56,7 @@ var tour_steps = [
     title: "Edit Mode",
     placement: 'bottom',
     onShow: function(tour) { edit_mode(); },
-    content: "Pressing Enter or clicking in the input text area of the cell switches to Edit Mode."
+    content: "Pressing <tt>enter</tt> or clicking in the input text area of the cell switches to Edit Mode."
   }, {
     element: '.selected',
     title: "Edit Mode",
@@ -68,7 +68,7 @@ var tour_steps = [
     title: "Back to Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
-    content: "Pressing Esc or clicking outside of the input text area takes you back to Command Mode."
+    content: "Pressing <tt>esc</tt> or clicking outside of the input text area takes you back to Command Mode."
   }, {
     element: '#keyboard_shortcuts',
     title: "Keyboard Shortcuts",
