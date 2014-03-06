@@ -358,7 +358,7 @@ class InteractiveShellApp(Configurable):
         """Run files from profile startup directory"""
         startup_dir = self.profile_dir.startup_dir
         startup_files = []
-        if self.exec_PYTHONSTARTUP:
+        if self.exec_PYTHONSTARTUP and not (self.file_to_run or self.code_to_run or self.module_to_run):
             if os.environ.get('PYTHONSTARTUP', False):
                 startup_files.append(os.environ['PYTHONSTARTUP'])
         startup_files += glob.glob(os.path.join(startup_dir, '*.py'))
