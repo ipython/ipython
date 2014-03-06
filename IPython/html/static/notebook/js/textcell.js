@@ -251,7 +251,8 @@ var IPython = (function (IPython) {
             return true;
         } else {
             var cursor = this.code_mirror.getCursor();
-            if (cursor.line === 0 && cursor.ch === 0) {
+            if (cursor.line === 0 && cm.findPosV(cm.getCursor(), -1, 'line',  cm.charCoords(cm.getCursor(),'div').left).hitSide) {
+                console.log('at top');
                 return true;
             } else {
                 return false;
