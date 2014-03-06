@@ -42,7 +42,7 @@ var tour_steps = [
     element: "#modal_indicator",
     title: "Mode Indicator",
     placement: 'bottom',
-    content: "IPython has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in.",
+    content: "The Notebook has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in.",
     onShow: function(tour) { command_icon_hack(); }
   }, {
     element: "#modal_indicator",
