@@ -120,11 +120,11 @@ var IPython = (function (IPython) {
         });
 
         $([IPython.events]).on('edit_mode.Cell', function (event, data) {
-            that.handle_edit_mode(that.find_cell_index(data.cell));
+            that.handle_edit_mode(data.cell);
         });
 
         $([IPython.events]).on('command_mode.Cell', function (event, data) {
-            that.command_mode();
+            that.handle_command_mode(data.cell);
         });
 
         $([IPython.events]).on('status_autorestarting.Kernel', function () {
@@ -461,6 +461,11 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index();
             if (sindex !== null && index !== sindex) {
+                // If we are about to select a different cell, make sure we are
+                // first in command mode.
+                if (this.mode !== 'command') {
+                    this.command_mode();
+                }
                 this.get_cell(sindex).unselect();
             }
             var cell = this.get_cell(index);
@@ -523,20 +528,14 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Make the notebook enter command mode.
+     * Handle when a a cell blurs and the notebook should enter command mode.
      *
-     * @method command_mode
+     * @method handle_command_mode
+     * @param [cell] {Cell} Cell to enter command mode on.
      **/
-    Notebook.prototype.command_mode = function () {
-        // Make sure there isn't an edit mode cell lingering around.
-        var cell = this.get_cell(this.get_edit_index());
-        if (cell) {
-            cell.command_mode();
-        }
-
-        // Notify the keyboard manager if this is a change of mode for the 
-        // notebook as a whole.
+    Notebook.prototype.handle_command_mode = function (cell) {
         if (this.mode !== 'command') {
+            cell.command_mode();
             this.mode = 'command';
             $([IPython.events]).trigger('command_mode.Notebook');
             IPython.keyboard_manager.command_mode();
@@ -544,20 +543,28 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Make the notebook enter command mode.
+     *
+     * @method command_mode
+     **/
+    Notebook.prototype.command_mode = function () {
+        var cell = this.get_cell(this.get_edit_index());
+        if (cell && this.mode !== 'command') {
+            // We don't call cell.command_mode, but rather call cell.focus_cell()
+            // which will blur and CM editor and trigger the call to
+            // handle_command_mode.
+            cell.focus_cell();
+        }
+    };
+
+    /**
      * Handle when a cell fires it's edit_mode event.
      *
      * @method handle_edit_mode
-     * @param [index] {int} Cell index to select.  If no index is provided, 
-     *  the current selected cell is used.
+     * @param [cell] {Cell} Cell to enter edit mode on.
      **/
-    Notebook.prototype.handle_edit_mode = function (index) {
-        // Make sure the cell exists.
-        var cell = this.get_cell(index);
-        if (cell === null) { return; }
-
-        // Set the cell to edit mode and notify the keyboard manager if this
-        // is a change of mode for the notebook as a whole.
-        if (this.mode !== 'edit') {
+    Notebook.prototype.handle_edit_mode = function (cell) {
+        if (cell && this.mode !== 'edit') {
             cell.edit_mode();
             this.mode = 'edit';
             $([IPython.events]).trigger('edit_mode.Notebook');
@@ -569,17 +576,10 @@ var IPython = (function (IPython) {
      * Make a cell enter edit mode.
      *
      * @method edit_mode
-     * @param [index] {int} Cell index to select.  If no index is provided, 
-     *  the current selected cell is used.
      **/
-    Notebook.prototype.edit_mode = function (index) {
-        if (index===undefined) {
-            index = this.get_selected_index();
-        }
-        // Make sure the cell exists.
-        var cell = this.get_cell(index);
-        if (cell === null) { return; }
-        if (cell.mode != 'edit') {
+    Notebook.prototype.edit_mode = function () {
+        var cell = this.get_selected_cell();
+        if (cell && this.mode !== 'edit') {
             cell.unrender();
             cell.focus_editor();
         }
@@ -1453,7 +1453,6 @@ var IPython = (function (IPython) {
         var cell_index = this.find_cell_index(cell);
         
         cell.execute();
-        cell.focus_cell();
         this.command_mode();
         this.set_dirty(true);
     };
@@ -1471,15 +1470,19 @@ var IPython = (function (IPython) {
 
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
+            this.command_mode();
             this.insert_cell_below('code');
-            this.edit_mode(cell_index+1);
+            this.select(cell_index+1);
+            this.edit_mode();
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
         }
-  
+
+        this.command_mode();
         this.insert_cell_below('code');
-        this.edit_mode(cell_index+1);
+        this.select(cell_index+1);
+        this.edit_mode();
         this.set_dirty(true);
     };
 
@@ -1497,16 +1500,17 @@ var IPython = (function (IPython) {
 
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
+            this.command_mode();
             this.insert_cell_below('code');
-            this.edit_mode(cell_index+1);
+            this.select(cell_index+1);
+            this.edit_mode();
             this.scroll_to_bottom();
             this.set_dirty(true);
             return;
         }
 
-        this.select(cell_index+1);
-        this.get_cell(cell_index+1).focus_cell();
         this.command_mode();
+        this.select(cell_index+1);
         this.set_dirty(true);
     };
 
@@ -1547,6 +1551,7 @@ var IPython = (function (IPython) {
      * @param {Number} end Index of the last cell to execute (exclusive)
      */
     Notebook.prototype.execute_cell_range = function (start, end) {
+        this.command_mode();
         for (var i=start; i<end; i++) {
             this.select(i);
             this.execute_cell();
@@ -2041,7 +2046,7 @@ var IPython = (function (IPython) {
             this.edit_mode(0);
         } else {
             this.select(0);
-            this.command_mode();
+            this.handle_command_mode(this.get_cell(0));
         }
         this.set_dirty(false);
         this.scroll_to_top();
