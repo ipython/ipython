@@ -442,17 +442,17 @@ class Inspector:
         if formatter:
             ds = formatter(ds)
         if ds:
-            lines.append(head("Class Docstring:"))
+            lines.append(head("Class docstring:"))
             lines.append(indent(ds))
         if inspect.isclass(obj) and hasattr(obj, '__init__'):
             init_ds = getdoc(obj.__init__)
             if init_ds is not None:
-                lines.append(head("Init Docstring:"))
+                lines.append(head("Init docstring:"))
                 lines.append(indent(init_ds))
         elif hasattr(obj,'__call__'):
             call_ds = getdoc(obj.__call__)
             if call_ds:
-                lines.append(head("Call Docstring:"))
+                lines.append(head("Call docstring:"))
                 lines.append(indent(call_ds))
 
         if not lines:
@@ -521,7 +521,7 @@ class Inspector:
     pinfo_fields1 = [("Type", "type_name"),
                     ]
                     
-    pinfo_fields2 = [("String Form", "string_form"),
+    pinfo_fields2 = [("String form", "string_form"),
                     ]
 
     pinfo_fields3 = [("Length", "length"),
@@ -529,8 +529,8 @@ class Inspector:
                     ("Definition", "definition"),
                     ]
 
-    pinfo_fields_obj = [("Class Docstring", "class_docstring"),
-                        ("Init Docstring", "init_docstring"),
+    pinfo_fields_obj = [("Class docstring", "class_docstring"),
+                        ("Init docstring", "init_docstring"),
                         ("Call def", "call_def"),
                         ("Call docstring", "call_docstring")]
 
@@ -571,7 +571,7 @@ class Inspector:
 
         add_fields(self.pinfo_fields3)
         if info['isclass'] and info['init_definition']:
-            displayfields.append(("Init Definition",
+            displayfields.append(("Init definition",
                             info['init_definition'].rstrip()))
         
         # Source or docstring, depending on detail level and whether
@@ -585,7 +585,7 @@ class Inspector:
         # Constructor info for classes
         if info['isclass']:
             if info['init_docstring'] is not None:
-                displayfields.append(("Init Docstring",
+                displayfields.append(("Init docstring",
                                     info['init_docstring']))
 
         # Info for objects:
