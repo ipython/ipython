@@ -403,7 +403,10 @@ var IPython = (function (IPython) {
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').text('Out[' + n + ']:');
         }
-        this.append_mime_type(json, toinsert, 'output_pyout');
+        var inserted = this.append_mime_type(json, toinsert);
+        if (inserted) {
+            inserted.addClass('output_pyout');
+        }
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
@@ -422,7 +425,7 @@ var IPython = (function (IPython) {
             }
             s = s + '\n';
             var toinsert = this.create_output_area();
-            this.append_text(s, {}, toinsert, 'output_pyerr');
+            this.append_text(s, {}, toinsert).addClass('output_pyerr');
             this._safe_append(toinsert);
         }
     };
@@ -461,7 +464,7 @@ var IPython = (function (IPython) {
 
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(text, {}, toinsert, "output_stream "+subclass);
+        this.append_text(text, {}, toinsert).addClass("output_stream "+subclass);
         this._safe_append(toinsert);
     };
 
@@ -485,7 +488,7 @@ var IPython = (function (IPython) {
         'image/jpeg' : true
     };
     
-    OutputArea.prototype.append_mime_type = function (json, element, extra_class) {
+    OutputArea.prototype.append_mime_type = function (json, element) {
         for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
             var append = OutputArea.append_map[type];
@@ -502,21 +505,18 @@ var IPython = (function (IPython) {
                     }
                 }
                 var md = json.metadata || {};
-                var toinsert = append.apply(this, [value, md, element, extra_class]);
+                var toinsert = append.apply(this, [value, md, element]);
                 $([IPython.events]).trigger('output_appended.OutputArea', [type, value, md, toinsert]);
-                return true;
+                return toinsert;
             }
         }
-        return false;
+        return null;
     };
 
 
-    OutputArea.prototype.append_html = function (html, md, element, extra_class) {
+    OutputArea.prototype.append_html = function (html, md, element) {
         var type = 'text/html';
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         IPython.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
@@ -524,13 +524,10 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_javascript = function (js, md, element, extra_class) {
+    OutputArea.prototype.append_javascript = function (js, md, element) {
         // We just eval the JS code, element appears in the local scope.
         var type = 'application/javascript';
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         IPython.keyboard_manager.register_events(toinsert);
         element.append(toinsert);
         // FIXME TODO : remove `container element for 3.0` 
@@ -548,16 +545,13 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_text = function (data, md, element, extra_class) {
+    OutputArea.prototype.append_text = function (data, md, element) {
         var type = 'text/plain';
         var toinsert = this.create_output_subarea(md, "output_text", type);
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
         data = utils.autoLinkUrls(data);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         // The only user content injected with this HTML call is
         // escaped by the fixConsole() method.
         toinsert.append($("<pre/>").html(data));
@@ -566,12 +560,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_svg = function (svg, md, element, extra_class) {
+    OutputArea.prototype.append_svg = function (svg, md, element) {
         var type = 'image/svg+xml';
         var toinsert = this.create_output_subarea(md, "output_svg", type);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         toinsert.append(svg);
         element.append(toinsert);
         return toinsert;
@@ -622,12 +613,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_jpeg = function (jpeg, md, element, extra_class) {
+    OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
         var type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
@@ -637,12 +625,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pdf = function (pdf, md, element, extra_class) {
+    OutputArea.prototype.append_pdf = function (pdf, md, element) {
         var type = 'application/pdf';
         var toinsert = this.create_output_subarea(md, "output_pdf", type);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         var a = $('<a/>').attr('href', 'data:application/pdf;base64,'+pdf);
         a.attr('target', '_blank');
         a.text('View PDF')
@@ -651,14 +636,11 @@ var IPython = (function (IPython) {
         return toinsert;
      }
 
-    OutputArea.prototype.append_latex = function (latex, md, element, extra_class) {
+    OutputArea.prototype.append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
         var type = 'text/latex';
         var toinsert = this.create_output_subarea(md, "output_latex", type);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         toinsert.append(latex);
         element.append(toinsert);
         return toinsert;
