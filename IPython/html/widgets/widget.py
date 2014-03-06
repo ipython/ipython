@@ -102,7 +102,6 @@ class Widget(LoggingConfigurable):
         to use to represent the widget.""", sync=True)
     _comm = Instance('IPython.kernel.comm.Comm')
     
-    closed = Bool(False)
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
     
@@ -163,7 +162,6 @@ class Widget(LoggingConfigurable):
         """Private close - cleanup objects, registry entries"""
         del Widget.widgets[self.model_id]
         self._comm = None
-        self.closed = True
 
     def close(self):
         """Close method.
@@ -171,7 +169,7 @@ class Widget(LoggingConfigurable):
         Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
-        if not self.closed:
+        if self._comm is not None:
             self._comm.close()
             self._close()
 
