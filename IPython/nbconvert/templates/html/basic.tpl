@@ -87,7 +87,7 @@ unknown type  {{ cell.type }}
 {% endblock unknowncell %}
 
 {% block pyout -%}
-<div class="output_subarea output_text">
+<div class="output_subarea output_text output_pyout">
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
@@ -103,7 +103,7 @@ unknown type  {{ cell.type }}
 {%- endblock stream_stdout %}
 
 {% block stream_stderr -%}
-<div class="box-flex1 output_subarea output_stream output_stderr">
+<div class="output_subarea output_stream output_stderr output_text">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
