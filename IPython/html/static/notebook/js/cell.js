@@ -238,7 +238,7 @@ var IPython = (function (IPython) {
      * @param {event} event -
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
-    CodeCell.prototype.handle_keyevent = function (editor, event) {
+    Cell.prototype.handle_keyevent = function (editor, event) {
 
         // console.log('CM', this.mode, event.which, event.type)
 

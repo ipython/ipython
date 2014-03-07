@@ -197,7 +197,7 @@ var IPython = (function (IPython) {
         if (event.keyCode === keycodes.enter && (event.shiftKey || event.ctrlKey || event.altKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
+        } else if (event.which === keycodes.down && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
             // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
