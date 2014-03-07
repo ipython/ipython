@@ -56,7 +56,7 @@ class Highlight2Html(NbConvertBase):
         if not language:
             language=self.default_language
 
-        return _pygments_highlight(source, HtmlFormatter(), language, metadata)
+        return _pygments_highlight(source if len(source) > 0 else ' ', HtmlFormatter(), language, metadata)
 
 
 class Highlight2Latex(NbConvertBase):

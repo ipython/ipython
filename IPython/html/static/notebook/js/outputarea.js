@@ -403,7 +403,10 @@ var IPython = (function (IPython) {
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').text('Out[' + n + ']:');
         }
-        this.append_mime_type(json, toinsert);
+        var inserted = this.append_mime_type(json, toinsert);
+        if (inserted) {
+            inserted.addClass('output_pyout');
+        }
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
         if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
@@ -422,7 +425,7 @@ var IPython = (function (IPython) {
             }
             s = s + '\n';
             var toinsert = this.create_output_area();
-            this.append_text(s, {}, toinsert);
+            this.append_text(s, {}, toinsert).addClass('output_pyerr');
             this._safe_append(toinsert);
         }
     };
@@ -461,7 +464,7 @@ var IPython = (function (IPython) {
 
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(text, {}, toinsert, "output_stream "+subclass);
+        this.append_text(text, {}, toinsert).addClass("output_stream "+subclass);
         this._safe_append(toinsert);
     };
 
@@ -504,10 +507,10 @@ var IPython = (function (IPython) {
                 var md = json.metadata || {};
                 var toinsert = append.apply(this, [value, md, element]);
                 $([IPython.events]).trigger('output_appended.OutputArea', [type, value, md, toinsert]);
-                return true;
+                return toinsert;
             }
         }
-        return false;
+        return null;
     };
 
 
@@ -542,16 +545,13 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_text = function (data, md, element, extra_class) {
+    OutputArea.prototype.append_text = function (data, md, element) {
         var type = 'text/plain';
         var toinsert = this.create_output_subarea(md, "output_text", type);
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
         data = utils.autoLinkUrls(data);
-        if (extra_class){
-            toinsert.addClass(extra_class);
-        }
         // The only user content injected with this HTML call is
         // escaped by the fixConsole() method.
         toinsert.append($("<pre/>").html(data));

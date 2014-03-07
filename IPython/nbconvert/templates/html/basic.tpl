@@ -2,7 +2,7 @@
 
 
 {% block codecell %}
-<div class="cell border-box-sizing code_cell">
+<div class="cell border-box-sizing code_cell rendered">
 {{ super() }}
 </div>
 {%- endblock codecell %}
@@ -40,8 +40,10 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock output_prompt %}
 
 {% block input %}
-<div class="input_area box-flex1">
+<div class="inner_cell">
+    <div class="input_area">
 {{ cell.input | highlight2html(language=resources.get('language'), metadata=cell.metadata) }}
+</div>
 </div>
 {%- endblock input %}
 
@@ -59,8 +61,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 {% endblock output %}
 
 {% block markdowncell scoped %}
-<div class="cell border-box-sizing text_cell">
-<div class="input">
+<div class="cell border-box-sizing text_cell rendered">
 {{ self.empty_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -68,17 +69,14 @@ In&nbsp;[{{ cell.prompt_number }}]:
 </div>
 </div>
 </div>
-</div>
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
-<div class="cell border-box-sizing text_cell">
-<div class="input">
+<div class="cell border-box-sizing text_cell rendered">
 {{ self.empty_in_prompt() }}
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ ("#" * cell.level + cell.source) | replace('\n', ' ')  | markdown2html | strip_files_prefix | add_anchor }}
-</div>
 </div>
 </div>
 </div>
@@ -89,15 +87,15 @@ unknown type  {{ cell.type }}
 {% endblock unknowncell %}
 
 {% block pyout -%}
-<div class="box-flex1 output_subarea output_pyout">
+{%- set extra_class="output_pyout" -%}
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
-</div>
+{%- set extra_class="" -%}
 {%- endblock pyout %}
 
 {% block stream_stdout -%}
-<div class="box-flex1 output_subarea output_stream output_stdout">
+<div class="output_subarea output_stream output_stdout output_text">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
@@ -105,28 +103,31 @@ unknown type  {{ cell.type }}
 {%- endblock stream_stdout %}
 
 {% block stream_stderr -%}
-<div class="box-flex1 output_subarea output_stream output_stderr">
+<div class="output_subarea output_stream output_stderr output_text">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
 </div>
 {%- endblock stream_stderr %}
 
-{% block data_svg -%}
+{% block data_svg scoped -%}
+<div class="output_svg output_subarea {{extra_class}}">
 {%- if output.svg_filename %}
 <img src="{{output.svg_filename | posix_path}}"
 {%- else %}
 {{ output.svg }}
 {%- endif %}
+</div>
 {%- endblock data_svg %}
 
-{% block data_html -%}
-<div class="output_html rendered_html">
+{% block data_html scoped -%}
+<div class="output_html rendered_html output_subarea {{extra_class}}">
 {{ output.html }}
 </div>
 {%- endblock data_html %}
 
-{% block data_png %}
+{% block data_png scoped %}
+<div class="output_png output_subarea {{extra_class}}">
 {%- if output.png_filename %}
 <img src="{{output.png_filename | posix_path}}"
 {%- else %}
@@ -139,9 +140,11 @@ width={{output.metadata['png']['width']}}
 height={{output.metadata['png']['height']}}
 {%- endif %}
 >
+</div>
 {%- endblock data_png %}
 
-{% block data_jpg %}
+{% block data_jpg scoped %}
+<div class="output_jpeg output_subarea {{extra_class}}">
 {%- if output.jpeg_filename %}
 <img src="{{output.jpeg_filename | posix_path}}"
 {%- else %}
@@ -154,14 +157,17 @@ width={{output.metadata['jpeg']['width']}}
 height={{output.metadata['jpeg']['height']}}
 {%- endif %}
 >
+</div>
 {%- endblock data_jpg %}
 
-{% block data_latex %}
+{% block data_latex scoped %}
+<div class="output_latex output_subarea {{extra_class}}">
 {{ output.latex }}
+</div>
 {%- endblock data_latex %}
 
 {% block pyerr -%}
-<div class="box-flex1 output_subarea output_pyerr">
+<div class="output_subarea output_text output_pyerr">
 <pre>{{ super() }}</pre>
 </div>
 {%- endblock pyerr %}
@@ -170,20 +176,18 @@ height={{output.metadata['jpeg']['height']}}
 {{ line | ansi2html }}
 {%- endblock traceback_line %}
 
-{%- block data_text %}
+{%- block data_text scoped %}
+<div class="output_text output_subarea {{extra_class}}">
 <pre>
 {{ output.text | ansi2html }}
 </pre>
+</div>
 {%- endblock -%}
 
-{%- block data_javascript %}
+{%- block data_javascript scoped %}
+<div class="output_subarea output_javascript {{extra_class}}">
 <script type="text/javascript">
 {{ output.javascript }}
 </script>
-{%- endblock -%}
-
-{%- block display_data scoped -%}
-<div class="box-flex1 output_subarea output_display_data">
-{{ super() }}
 </div>
-{%- endblock display_data -%}
+{%- endblock -%}

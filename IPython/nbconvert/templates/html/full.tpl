@@ -10,6 +10,9 @@
 <meta charset="utf-8" />
 <title>{{resources['metadata']['name']}}</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
 {% for css in resources.inlining.css -%}
     <style type="text/css">
     {{ css }}
@@ -22,15 +25,10 @@ body {
   overflow: visible;
   padding: 8px;
 }
-.input_area {
-  padding: 0.2em;
-}
 
-pre {
-  padding: 0.2em;
-  border: none;
-  margin: 0px;
-  font-size: 13px;
+div#notebook {
+  overflow: visible;
+  border-top: none;
 }
 
 @media print {
@@ -60,7 +58,11 @@ pre {
 
 {% block body %}
 <body>
+  <div tabindex="-1" id="notebook" class="border-box-sizing">
+    <div class="container" id="notebook-container">
 {{ super() }}
+    </div>
+  </div>
 </body>
 {%- endblock body %}
 
