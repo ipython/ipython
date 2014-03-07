@@ -230,6 +230,26 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Either delegates keyboard shortcut handling to either IPython keyboard
+     * manager when in command mode, or CodeMirror when in edit mode
+     *
+     * @method handle_keyevent
+     * @param {CodeMirror} editor - The codemirror instance bound to the cell
+     * @param {event} event -
+     * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
+     */
+    CodeCell.prototype.handle_keyevent = function (editor, event) {
+
+        // console.log('CM', this.mode, event.which, event.type)
+
+        if (this.mode === 'command') {
+            return true;
+        } else if (this.mode === 'edit') {
+            return this.handle_codemirror_keyevent(editor, event);
+        }
+    };
+
+    /**
      * @method at_top
      * @return {Boolean}
      */

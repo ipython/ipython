@@ -113,22 +113,11 @@ var IPython = (function (IPython) {
         });
     };
 
-    TextCell.prototype.handle_keyevent = function (editor, event) {
-
-        // console.log('CM', this.mode, event.which, event.type)
-
-        if (this.mode === 'command') {
-            return true;
-        } else if (this.mode === 'edit') {
-            return this.handle_codemirror_keyevent(editor, event);
-        }
-    };
-
     /**
      * This method gets called in CodeMirror's onKeyDown/onKeyPress
      * handlers and is used to provide custom key handling.
      *
-     * Subclass should override this method to have custom handeling
+     * Subclass should override this method to have custom handling
      *
      * @method handle_codemirror_keyevent
      * @param {CodeMirror} editor - The codemirror instance bound to the cell
