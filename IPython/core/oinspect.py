@@ -507,8 +507,7 @@ class Inspector:
         out = []
         header = self.__head
         if title_width == 0:
-            for title, _ in fields:
-                title_width = max(len(title) + 2, title_width)
+            title_width = max(len(title) + 2 for title, _ in fields)
         for title, content in fields:
             if len(content.splitlines()) > 1:
                 title = header(title + ":") + "\n"
