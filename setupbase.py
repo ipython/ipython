@@ -149,6 +149,7 @@ def find_package_data():
     static_data.extend([
         pjoin(components, "backbone", "backbone-min.js"),
         pjoin(components, "bootstrap", "bootstrap", "js", "bootstrap.min.js"),
+        pjoin(components, "bootstrap-tour", "build", "js", "bootstrap-tour.min.js"),
         pjoin(components, "font-awesome", "font", "*.*"),
         pjoin(components, "google-caja", "html-css-sanitizer-minified.js"),
         pjoin(components, "highlight.js", "build", "highlight.pack.js"),

@@ -11,6 +11,7 @@
 window.mathjax_url = "{{mathjax_url}}";
 </script>
 
+<link rel="stylesheet" href="{{ static_url("components/bootstrap-tour/build/css/bootstrap-tour.min.css") }}" type="text/css" />
 <link rel="stylesheet" href="{{ static_url("components/codemirror/lib/codemirror.css") }}">
 
 {{super()}}
@@ -218,6 +219,7 @@ class="notebook_app"
         </li>
         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
             <ul  id="help_menu" class="dropdown-menu">
+                <li id="notebook_tour" title="A quick tour of the notebook user interface"><a href="#">User Interface Tour</a></li>
                 <li id="keyboard_shortcuts" title="Opens a tooltip with all keyboard shortcuts"><a href="#">Keyboard Shortcuts</a></li>
                 <li class="divider"></li>
                 {% set
@@ -346,6 +348,8 @@ class="notebook_app"
 <script src="{{ static_url("notebook/js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/notificationarea.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/tooltip.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("notebook/js/tour.js") }}" type="text/javascript" charset="utf-8"></script>
+
 <script src="{{ static_url("notebook/js/config.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
 
