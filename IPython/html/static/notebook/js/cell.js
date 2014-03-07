@@ -230,6 +230,34 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * @method at_top
+     * @return {Boolean}
+     */
+    Cell.prototype.at_top = function () {
+        var cm = this.code_mirror
+        var cursor = cm.getCursor();
+        if (cursor.line === 0 && cm.findPosV(cursor, -1, 'line').hitSide) {
+            console.log('at top');
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    /**
+     * @method at_bottom
+     * @return {Boolean}
+     * */
+    Cell.prototype.at_bottom = function () {
+        var cm = this.code_mirror
+        var cursor = cm.getCursor();
+        if (cursor.line === (cm.lineCount()-1) && cm.findPosV(cursor, 1, 'line').hitSide) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    /**
      * enter the command mode for the cell
      * @method command_mode
      * @return is the action being taken

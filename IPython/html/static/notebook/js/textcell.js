@@ -242,40 +242,6 @@ var IPython = (function (IPython) {
         this.element.find('div.text_cell_render').html(text);
     };
 
-    /**
-     * @method at_top
-     * @return {Boolean}
-     */
-    TextCell.prototype.at_top = function () {
-        if (this.rendered) {
-            return true;
-        } else {
-            var cursor = this.code_mirror.getCursor();
-            if (cursor.line === 0 && cm.findPosV(cm.getCursor(), -1, 'line',  cm.charCoords(cm.getCursor(),'div').left).hitSide) {
-                console.log('at top');
-                return true;
-            } else {
-                return false;
-            }
-        }
-    };
-
-    /**
-     * @method at_bottom
-     * @return {Boolean}
-     * */
-    TextCell.prototype.at_bottom = function () {
-        if (this.rendered) {
-            return true;
-        } else {
-            var cursor = this.code_mirror.getCursor();
-            if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    };
 
     /**
      * Create Text cell from JSON
