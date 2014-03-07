@@ -1511,6 +1511,7 @@ var IPython = (function (IPython) {
 
         this.command_mode();
         this.select(cell_index+1);
+        this.focus_cell();
         this.set_dirty(true);
     };
 
