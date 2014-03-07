@@ -242,7 +242,7 @@ def test_info():
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
     nt.assert_equal(i['file'].lower(), fname.lower())
-    nt.assert_equal(i['definition'], 'Call(self, *a, **kw)\n')
+    nt.assert_equal(i['definition'], None)
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
     nt.assert_true(i['isclass'])
@@ -260,7 +260,7 @@ def test_info():
     nt.assert_equal(i['docstring'], "Modified instance docstring")
     nt.assert_equal(i['class_docstring'], Call.__doc__)
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
-    nt.assert_equal(i['call_docstring'], c.__call__.__doc__)
+    nt.assert_equal(i['call_docstring'], Call.__call__.__doc__)
 
     # Test old-style classes, which for example may not have an __init__ method.
     if not py3compat.PY3:

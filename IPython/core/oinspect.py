@@ -442,17 +442,17 @@ class Inspector:
         if formatter:
             ds = formatter(ds)
         if ds:
-            lines.append(head("Class Docstring:"))
+            lines.append(head("Class docstring:"))
             lines.append(indent(ds))
         if inspect.isclass(obj) and hasattr(obj, '__init__'):
             init_ds = getdoc(obj.__init__)
             if init_ds is not None:
-                lines.append(head("Constructor Docstring:"))
+                lines.append(head("Init docstring:"))
                 lines.append(indent(init_ds))
         elif hasattr(obj,'__call__'):
             call_ds = getdoc(obj.__call__)
             if call_ds:
-                lines.append(head("Calling Docstring:"))
+                lines.append(head("Call docstring:"))
                 lines.append(indent(call_ds))
 
         if not lines:
@@ -494,7 +494,7 @@ class Inspector:
             # 0-offset, so we must adjust.
             page.page(self.format(openpy.read_py_file(ofile, skip_encoding_cookie=False)), lineno - 1)
 
-    def _format_fields(self, fields, title_width=12):
+    def _format_fields(self, fields, title_width=0):
         """Formats a list of fields for display.
 
         Parameters
@@ -502,10 +502,12 @@ class Inspector:
         fields : list
           A list of 2-tuples: (field_title, field_content)
         title_width : int
-          How many characters to pad titles to. Default 12.
+          How many characters to pad titles to. Default to longest title.
         """
         out = []
         header = self.__head
+        if title_width == 0:
+            title_width = max(len(title) + 2 for title, _ in fields)
         for title, content in fields:
             if len(content.splitlines()) > 1:
                 title = header(title + ":") + "\n"
@@ -518,7 +520,7 @@ class Inspector:
     pinfo_fields1 = [("Type", "type_name"),
                     ]
                     
-    pinfo_fields2 = [("String Form", "string_form"),
+    pinfo_fields2 = [("String form", "string_form"),
                     ]
 
     pinfo_fields3 = [("Length", "length"),
@@ -526,8 +528,8 @@ class Inspector:
                     ("Definition", "definition"),
                     ]
 
-    pinfo_fields_obj = [("Class Docstring", "class_docstring"),
-                        ("Constructor Docstring","init_docstring"),
+    pinfo_fields_obj = [("Class docstring", "class_docstring"),
+                        ("Init docstring", "init_docstring"),
                         ("Call def", "call_def"),
                         ("Call docstring", "call_docstring")]
 
@@ -567,6 +569,9 @@ class Inspector:
             displayfields.append(("Namespace", info['namespace'].rstrip()))
 
         add_fields(self.pinfo_fields3)
+        if info['isclass'] and info['init_definition']:
+            displayfields.append(("Init definition",
+                            info['init_definition'].rstrip()))
         
         # Source or docstring, depending on detail level and whether
         # source found.
@@ -578,14 +583,9 @@ class Inspector:
 
         # Constructor info for classes
         if info['isclass']:
-            if info['init_definition'] or info['init_docstring']:
-                displayfields.append(("Constructor information", ""))
-                if info['init_definition'] is not None:
-                    displayfields.append((" Definition",
-                                    info['init_definition'].rstrip()))
-                if info['init_docstring'] is not None:
-                    displayfields.append((" Docstring",
-                                        indent(info['init_docstring'])))
+            if info['init_docstring'] is not None:
+                displayfields.append(("Init docstring",
+                                    info['init_docstring']))
 
         # Info for objects:
         else:
@@ -693,11 +693,6 @@ class Inspector:
                 fname = 'Dynamically generated function. No source code available.'
             out['file'] = fname
         
-        # reconstruct the function definition and print it:
-        defln = self._getdef(obj, oname)
-        if defln:
-            out['definition'] = self.format(defln)
-
         # Docstrings only in detail 0 mode, since source contains them (we
         # avoid repetitions).  If source fails, we add them back, see below.
         if ds and detail_level == 0:
@@ -747,6 +742,11 @@ class Inspector:
 
         # and class docstring for instances:
         else:
+            # reconstruct the function definition and print it:
+            defln = self._getdef(obj, oname)
+            if defln:
+                out['definition'] = self.format(defln)
+
             # First, check whether the instance docstring is identical to the
             # class one, and print it separately if they don't coincide.  In
             # most cases they will, but it's nice to print all the info for
@@ -778,8 +778,12 @@ class Inspector:
             # Call form docstring for callable instances
             if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
                 call_def = self._getdef(obj.__call__, oname)
-                if call_def is not None:
-                    out['call_def'] = self.format(call_def)
+                if call_def:
+                    call_def = self.format(call_def)
+                    # it may never be the case that call def and definition differ,
+                    # but don't include the same signature twice
+                    if call_def != out.get('definition'):
+                        out['call_def'] = call_def
                 call_ds = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
                 if call_ds == _func_call_docstring:

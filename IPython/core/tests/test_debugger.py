@@ -114,16 +114,16 @@ def test_ipdb_magics():
     ipdb> pdef example_function
      example_function(x, y, z='hello')
      ipdb> pdoc ExampleClass
-    Class Docstring:
+    Class docstring:
         Docstring for ExampleClass.
-    Constructor Docstring:
+    Init docstring:
         Docstring for ExampleClass.__init__
     ipdb> pinfo a
-    Type:       ExampleClass
-    String Form:ExampleClass()
-    Namespace:  Local...
-    Docstring:  Docstring for ExampleClass.
-    Constructor Docstring:Docstring for ExampleClass.__init__
+    Type:           ExampleClass
+    String form:    ExampleClass()
+    Namespace:      Local...
+    Docstring:      Docstring for ExampleClass.
+    Init docstring: Docstring for ExampleClass.__init__
     ipdb> continue
     
     Restore previous trace function, e.g. for coverage.py    
