@@ -25,16 +25,6 @@ body {
   overflow: visible;
   padding: 8px;
 }
-.input_area {
-  padding: 0.2em;
-}
-
-pre {
-  padding: 0.2em;
-  border: none;
-  margin: 0px;
-  font-size: 13px;
-}
 
 div#notebook {
   overflow: visible;
