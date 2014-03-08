@@ -174,28 +174,7 @@ var IPython = (function (IPython) {
         // if this is an edit_shortcuts shortcut, we've already handled it.
         if (shortcuts.use_shortcut(event)) { return true; }
         
-        if (event.keyCode === keycodes.enter && (event.shiftKey || event.ctrlKey || event.altKey)) {
-            // Always ignore shift-enter in CodeMirror as we handle it.
-            return true;
-        } else if (event.which === keycodes.up && event.type === 'keydown') {
-            // If we are not at the top, let CM handle the up arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_top()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
-        } else if (event.which === keycodes.down && event.type === 'keydown') {
-            // If we are not at the bottom, let CM handle the down arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
-        } else if (event.which === keycodes.esc && event.type === 'keydown') {
+        if (event.which === keycodes.esc && event.type === 'keydown') {
             if (that.code_mirror.options.keyMap === "vim-insert") {
                 // vim keyMap is active and in insert mode. In this case we leave vim
                 // insert mode, but remain in notebook edit mode.
