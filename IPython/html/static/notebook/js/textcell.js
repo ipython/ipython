@@ -113,57 +113,6 @@ var IPython = (function (IPython) {
         });
     };
 
-    /**
-     * This method gets called in CodeMirror's onKeyDown/onKeyPress
-     * handlers and is used to provide custom key handling.
-     *
-     * Subclass should override this method to have custom handling
-     *
-     * @method handle_codemirror_keyevent
-     * @param {CodeMirror} editor - The codemirror instance bound to the cell
-     * @param {event} event -
-     * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
-     */
-    TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        var that = this;
-
-        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey || event.altKey)) {
-            // Always ignore shift-enter in CodeMirror as we handle it.
-            return true;
-        } else if (event.which === keycodes.up && event.type === 'keydown') {
-            // If we are not at the top, let CM handle the up arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_top()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
-        } else if (event.which === keycodes.down && event.type === 'keydown') {
-            // If we are not at the bottom, let CM handle the down arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
-        } else if (event.which === keycodes.esc && event.type === 'keydown') {
-            if (that.code_mirror.options.keyMap === "vim-insert") {
-                // vim keyMap is active and in insert mode. In this case we leave vim
-                // insert mode, but remain in notebook edit mode.
-                // Let' CM handle this event and prevent global handling.
-                event.stop();
-                return false;
-            } else {
-                // vim keyMap is not active. Leave notebook edit mode.
-                // Don't let CM handle the event, defer to global handling.
-                return true;
-            }
-        }
-        return false;
-    };
-
     // Cell level actions
     
     TextCell.prototype.select = function () {
