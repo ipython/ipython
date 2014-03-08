@@ -245,7 +245,7 @@ var IPython = (function (IPython) {
         
         // keyboard event wasn't one of those unique to code cells, let's see
         // if it's one of the generic ones (i.e. check edit mode shortcuts)
-        return IPython.Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event])
+        return IPython.Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
     };
 
     // Kernel related calls.
