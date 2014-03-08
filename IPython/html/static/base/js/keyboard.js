@@ -237,6 +237,12 @@ IPython.keyboard = (function (IPython) {
         return true;
     }
 
+    ShortcutManager.prototype.use_shortcut = function (event) {
+        var shortcut = event_to_shortcut(event);
+        var data = this._shortcuts[shortcut];
+        return !( data === undefined )
+    }
+
     return {
         keycodes : keycodes,
         inv_keycodes : inv_keycodes,

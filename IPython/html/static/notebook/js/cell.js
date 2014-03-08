@@ -169,7 +169,11 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var that = this;
+        var shortcuts = IPython.keyboard_manager.edit_shortcuts;
 
+        // if this is an edit_shortcuts shortcut, we've already handled it.
+        if (shortcuts.use_shortcut(event)) { return true; }
+        
         if (event.keyCode === keycodes.enter && (event.shiftKey || event.ctrlKey || event.altKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
