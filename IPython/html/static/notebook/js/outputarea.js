@@ -514,7 +514,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_html = function (html, md, element) {
+    var append_html = function (html, md, element) {
         var type = 'text/html';
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         IPython.keyboard_manager.register_events(toinsert);
@@ -524,7 +524,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_javascript = function (js, md, element) {
+    var append_javascript = function (js, md, element) {
         // We just eval the JS code, element appears in the local scope.
         var type = 'application/javascript';
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
@@ -545,7 +545,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_text = function (data, md, element) {
+    var append_text = function (data, md, element) {
         var type = 'text/plain';
         var toinsert = this.create_output_subarea(md, "output_text", type);
         // escape ANSI & HTML specials in plaintext:
@@ -560,7 +560,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_svg = function (svg, md, element) {
+    var append_svg = function (svg, md, element) {
         var type = 'image/svg+xml';
         var toinsert = this.create_output_subarea(md, "output_svg", type);
         toinsert.append(svg);
@@ -601,7 +601,7 @@ var IPython = (function (IPython) {
         if (width !== undefined) img.attr('width', width);
     };
     
-    OutputArea.prototype.append_png = function (png, md, element) {
+    var append_png = function (png, md, element) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
@@ -613,7 +613,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
+    var append_jpeg = function (jpeg, md, element) {
         var type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
@@ -625,7 +625,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pdf = function (pdf, md, element) {
+    var append_pdf = function (pdf, md, element) {
         var type = 'application/pdf';
         var toinsert = this.create_output_subarea(md, "output_pdf", type);
         var a = $('<a/>').attr('href', 'data:application/pdf;base64,'+pdf);
@@ -636,7 +636,7 @@ var IPython = (function (IPython) {
         return toinsert;
      }
 
-    OutputArea.prototype.append_latex = function (latex, md, element) {
+    var append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
         var type = 'text/latex';
@@ -851,14 +851,14 @@ var IPython = (function (IPython) {
     ];
 
     OutputArea.append_map = {
-        "text/plain" : OutputArea.prototype.append_text,
-        "text/html" : OutputArea.prototype.append_html,
-        "image/svg+xml" : OutputArea.prototype.append_svg,
-        "image/png" : OutputArea.prototype.append_png,
-        "image/jpeg" : OutputArea.prototype.append_jpeg,
-        "text/latex" : OutputArea.prototype.append_latex,
-        "application/javascript" : OutputArea.prototype.append_javascript,
-        "application/pdf" : OutputArea.prototype.append_pdf
+        "text/plain" : append_text,
+        "text/html" : append_html,
+        "image/svg+xml" : append_svg,
+        "image/png" : append_png,
+        "image/jpeg" : append_jpeg,
+        "text/latex" : append_latex,
+        "application/javascript" : append_javascript,
+        "application/pdf" : append_pdf
     };
 
     IPython.OutputArea = OutputArea;
