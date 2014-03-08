@@ -174,19 +174,6 @@ var IPython = (function (IPython) {
         // if this is an edit_shortcuts shortcut, we've already handled it.
         if (shortcuts.use_shortcut(event)) { return true; }
         
-        if (event.which === keycodes.esc && event.type === 'keydown') {
-            if (that.code_mirror.options.keyMap === "vim-insert") {
-                // vim keyMap is active and in insert mode. In this case we leave vim
-                // insert mode, but remain in notebook edit mode.
-                // Let' CM handle this event and prevent global handling.
-                event.stop();
-                return false;
-            } else {
-                // vim keyMap is not active. Leave notebook edit mode.
-                // Don't let CM handle the event, defer to global handling.
-                return true;
-            }
-        }
         return false;
     };
 
