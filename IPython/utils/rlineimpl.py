@@ -27,7 +27,7 @@ for _rlmod_name in _rlmod_names:
         have_readline = True
         break
 
-if sys.platform == 'win32' or sys.platform == 'cli':
+if have_readline and (sys.platform == 'win32' or sys.platform == 'cli'):
     try:
         _outputfile=_rl.GetOutputFile()
     except AttributeError:
