@@ -198,15 +198,13 @@ IPython.keyboard = (function (IPython) {
             this.add_shortcut(shortcut, data[shortcut], true);
         }
         // update the keyboard shortcuts notebook help
-        IPython.quick_help = new IPython.QuickHelp();
+        $([IPython.events]).trigger('rebuild.QuickHelp');
     }
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut, suppress_help_update) {
         shortcut = normalize_shortcut(shortcut);
         delete this._counts[shortcut];
         delete this._shortcuts[shortcut];
-        // update the keyboard shortcuts notebook help
-        IPython.quick_help = new IPython.QuickHelp();
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             $([IPython.events]).trigger('rebuild.QuickHelp');
