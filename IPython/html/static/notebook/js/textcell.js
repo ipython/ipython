@@ -390,6 +390,8 @@ var IPython = (function (IPython) {
         this.element.focusout(function() {
             that.auto_highlight();
         });
+
+        this.code_mirror.on('focus', function() { that.unrender(); });
     };
 
     /**
@@ -402,13 +404,13 @@ var IPython = (function (IPython) {
 
     /** @method render **/
     RawCell.prototype.render = function () {
-        // Make sure that this cell type can never be rendered
-        if (this.rendered) {
-            this.unrender();
+        var cont = IPython.TextCell.prototype.render.apply(this);
+        if (cont){
+            var text = this.get_text();
+            if (text === "") { text = this.placeholder; }
+            this.set_text(text);
         }
-        var text = this.get_text();
-        if (text === "") { text = this.placeholder; }
-        this.set_text(text);
+        return cont;
     };
 
 
