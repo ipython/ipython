@@ -189,7 +189,7 @@ IPython.keyboard = (function (IPython) {
         this._shortcuts[shortcut] = data;
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
-            IPython.quick_help = new IPython.QuickHelp();
+            $([IPython.events]).trigger('rebuild.QuickHelp')
         }
     }
 
@@ -209,7 +209,7 @@ IPython.keyboard = (function (IPython) {
         IPython.quick_help = new IPython.QuickHelp();
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
-            IPython.quick_help = new IPython.QuickHelp();
+            $([IPython.events]).trigger('rebuild.QuickHelp');
         }
     }
 

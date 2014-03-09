@@ -18,6 +18,10 @@ var IPython = (function (IPython) {
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
         // toggles display of keyboard shortcut dialog
         var that = this;
+        if ( this.force_rebuild ) {
+            delete(this.shortcut_dialog);
+            this.force_rebuild = false;
+        }
         if ( this.shortcut_dialog ){
             // if dialog is already shown, close it
             $(this.shortcut_dialog).modal("toggle");
@@ -57,6 +61,8 @@ var IPython = (function (IPython) {
                 Close : {}
             }
         });
+        
+        $([IPython.events]).on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
     };
 
     QuickHelp.prototype.build_command_help = function () {
