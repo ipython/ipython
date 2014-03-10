@@ -129,13 +129,10 @@ casper.notebook_test(function () {
         return true;
     };
 
-    this.is_only_cell_selected = function(index) {
-        return this.is_only_cell_on(index, 'selected', 'unselected');
-    };
 
-    this.is_only_cell_edit = function(index) {
-        return this.is_only_cell_on(index, 'edit_mode', 'command_mode');
-    };
+    /* TODO: MOVE EVERYTHING BELOW THIS LINE INTO THE BASE (utils.js) */
+
+
 
     this.click_cell = function(index) {
         // Code Mirror does not play nicely with emulated brower events.  
@@ -159,32 +156,6 @@ casper.notebook_test(function () {
         this.evaluate(function (k) {
             IPython.keyboard.trigger_keydown(k);
         }, {k: key});
-    };
-
-    this.is_cell_editor_focused = function(index) {
-        return this.evaluate(function(i) {
-            var cell = IPython.notebook.get_cell(i);
-            if (cell) {
-                return $(cell.code_mirror.getInputField()).is('.CodeMirror-focused *');
-            }
-            return false;
-        }, {i : index});
-    };
-
-    this.is_only_cell_on = function(i, on_class, off_class) {
-        var cells = this.get_cells();
-        for (var j = 0; j < cells.length; j++) {
-            if (j === i) {
-                if (this._has_cell_class(j, off_class) || !this._has_cell_class(j, on_class)) {
-                    return false;
-                }
-            } else {
-                if (!this._has_cell_class(j, off_class) || this._has_cell_class(j, on_class)) {
-                    return false;
-                }
-            }
-        }
-        return true;
     };
 
     this.get_keyboard_mode = function() {
@@ -213,6 +184,40 @@ casper.notebook_test(function () {
             }
             return null;
         }, {i : index});
+    };
+
+    this.is_cell_editor_focused = function(index) {
+        return this.evaluate(function(i) {
+            var cell = IPython.notebook.get_cell(i);
+            if (cell) {
+                return $(cell.code_mirror.getInputField()).is('.CodeMirror-focused *');
+            }
+            return false;
+        }, {i : index});
+    };
+
+    this.is_only_cell_selected = function(index) {
+        return this.is_only_cell_on(index, 'selected', 'unselected');
+    };
+
+    this.is_only_cell_edit = function(index) {
+        return this.is_only_cell_on(index, 'edit_mode', 'command_mode');
+    };
+
+    this.is_only_cell_on = function(i, on_class, off_class) {
+        var cells = this.get_cells();
+        for (var j = 0; j < cells.length; j++) {
+            if (j === i) {
+                if (this._has_cell_class(j, off_class) || !this._has_cell_class(j, on_class)) {
+                    return false;
+                }
+            } else {
+                if (!this._has_cell_class(j, off_class) || this._has_cell_class(j, on_class)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     };
 
     this._has_cell_class = function(index, classes) {
