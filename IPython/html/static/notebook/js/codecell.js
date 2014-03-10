@@ -557,6 +557,18 @@ var IPython = (function (IPython) {
         return data;
     };
 
+    /**
+     * handle cell level logic when a cell is unselected
+     * @method unselect
+     * @return is the action being taken
+     */
+    CodeCell.prototype.unselect = function () {
+        var cont = Cell.prototype.unselect.apply(this);
+        if (cont) {
+            IPython.tooltip.close();
+        }
+        return cont;
+    };
 
     IPython.CodeCell = CodeCell;
 
