@@ -563,9 +563,9 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     CodeCell.prototype.unselect = function () {
-        var cont = Cell.prototype.unselect.apply(this);
+        var cont = IPython.Cell.prototype.unselect.apply(this);
         if (cont) {
-            IPython.tooltip.close();
+            IPython.tooltip.remove_and_cancel_tooltip(true);
         }
         return cont;
     };
