@@ -79,7 +79,7 @@ var IPython = (function (IPython) {
         half = ~~(n/2);  // Truncate :)
         for (i=0; i<half; i++) {
             help = command_shortcuts[i]['help'];
-            shortcut = shortcut_name(command_shortcuts[i]['shortcut']);
+            shortcut = prettify(command_shortcuts[i]['shortcut']);
             cmd_col1.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
@@ -87,7 +87,7 @@ var IPython = (function (IPython) {
         };
         for (i=half; i<n; i++) {
             help = command_shortcuts[i]['help'];
-            shortcut = shortcut_name(command_shortcuts[i]['shortcut']);
+            shortcut = prettify(command_shortcuts[i]['shortcut']);
             cmd_col2.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
@@ -99,8 +99,15 @@ var IPython = (function (IPython) {
     }
 
     var special_case = { pageup: "PageUp", pagedown: "Page Down" };
-    var shortcut_name = function (s) {
-        return ( special_case[s] ? special_case[s] : s.charAt(0).toUpperCase() + s.slice(1) );
+    var prettify = function (s) {
+        var keys = s.split('+');
+        var k, i;
+        for (i in keys) {
+            k = keys[i];
+            if ( k.length == 1 ) continue; // leave individual keys lower-cased
+            keys[i] = ( special_case[k] ? special_case[k] : k.charAt(0).toUpperCase() + k.slice(1) );
+        }
+        return keys.join('-');
 
 
     };
@@ -119,7 +126,7 @@ var IPython = (function (IPython) {
         half = ~~(n/2);  // Truncate :)
         for (i=0; i<half; i++) {
             help = edit_shortcuts[i]['help'];
-            shortcut = shortcut_name(edit_shortcuts[i]['shortcut']);
+            shortcut = prettify(edit_shortcuts[i]['shortcut']);
             edit_col1.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
@@ -127,7 +134,7 @@ var IPython = (function (IPython) {
         };
         for (i=half; i<n; i++) {
             help = edit_shortcuts[i]['help'];
-            shortcut = shortcut_name(edit_shortcuts[i]['shortcut']);
+            shortcut = prettify(edit_shortcuts[i]['shortcut']);
             edit_col2.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
