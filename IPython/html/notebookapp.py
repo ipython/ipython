@@ -83,6 +83,7 @@ from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
     kernel_aliases,
 )
+from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import localhost
 from IPython.utils import submodule
@@ -311,7 +312,7 @@ class NotebookApp(BaseIPythonApplication):
     examples = _examples
     
     classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager,
-        FileNotebookManager]
+        FileNotebookManager, NotebookNotary]
     flags = Dict(flags)
     aliases = Dict(aliases)
     
