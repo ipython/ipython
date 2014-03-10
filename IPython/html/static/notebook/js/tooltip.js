@@ -30,7 +30,6 @@ var IPython = (function (IPython) {
             // handle to html
             this.tooltip = $('#tooltip');
             this._hidden = true;
-            this._shown = false;
 
             // variable for consecutive call
             this._old_cell = null;
@@ -129,10 +128,6 @@ var IPython = (function (IPython) {
         return !this._hidden;
     };
 
-    Tooltip.prototype.was_shown = function () {
-        return this._shown;
-    };
-
     Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
@@ -161,7 +156,6 @@ var IPython = (function (IPython) {
     // and reset it's status
     Tooltip.prototype._hide = function () {
         this._hidden = true;
-        this._shown = false;
         this.tooltip.fadeOut('fast');
         $('#expanbutton').show('slow');
         this.text.removeClass('bigtooltip');
@@ -376,7 +370,6 @@ var IPython = (function (IPython) {
         }
 
         this._hidden = false;
-        this._show = true;
         this.tooltip.fadeIn('fast');
         this.text.children().remove();
 

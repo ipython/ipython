@@ -402,21 +402,6 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    /**
-     * Determine whether or not the unfocus event should be aknowledged.
-     *
-     * @method should_cancel_blur
-     *
-     * @return results {bool} Whether or not to ignore the cell's blur event.
-     **/
-    CodeCell.prototype.should_cancel_blur = function () {
-        // Cancel this unfocus event if the base wants to cancel or the cell 
-        // completer is open or the tooltip is open.
-        return IPython.Cell.prototype.should_cancel_blur.apply(this) ||
-            (this.completer && this.completer.was_shown()) ||
-            (IPython.tooltip && IPython.tooltip.was_shown());
-    };
-
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};
         var nlines = this.code_mirror.lineCount();
