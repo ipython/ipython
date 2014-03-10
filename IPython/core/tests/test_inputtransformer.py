@@ -43,6 +43,10 @@ syntax = \
         (u'b = !ls', "b = get_ipython().getoutput({u}'ls')"),
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ','    '),  # blank lines are kept intact
+        # Tuple unpacking
+        (u"a, b = !echo 'a\\nb'", u"a, b = get_ipython().getoutput({u}\"echo 'a\\\\nb'\")"),
+        (u"a,= !echo 'a'", u"a, = get_ipython().getoutput({u}\"echo 'a'\")"),
+        (u"a, *bc = !echo 'a\\nb\\nc'", u"a, *bc = get_ipython().getoutput({u}\"echo 'a\\\\nb\\\\nc'\")"),
         ]],
 
        assign_magic =
