@@ -79,7 +79,7 @@ casper.notebook_test(function () {
         this.test.assert(this.is_editor_focus_valid(), message + '; cell editor focused appropriately');
         // Is the selected cell the only cell that is selected?
         if (cell_index!==undefined) {
-            this.test.assert(this.is_cell_selected(cell_index),
+            this.test.assert(this.is_only_cell_selected(cell_index),
                 message + '; cell ' + cell_index + ' is the only cell selected');
         }
 
@@ -89,7 +89,7 @@ casper.notebook_test(function () {
             this.test.assertEquals(this.get_keyboard_mode(), 'command',
                 message + '; in command mode');
             // Make sure there isn't a single cell in edit mode.
-            this.test.assert(this.is_cell_edit(null),
+            this.test.assert(this.is_only_cell_edit(null),
                 message + '; all cells in command mode');
 
         } else if (mode==='edit') {
@@ -98,7 +98,7 @@ casper.notebook_test(function () {
                 message + '; in edit mode');
             // Is the specified cell the only cell in edit mode?
             if (cell_index!==undefined) {
-                this.test.assert(this.is_cell_edit(cell_index),
+                this.test.assert(this.is_only_cell_edit(cell_index),
                     message + '; cell ' + cell_index + ' is the only cell in edit mode');
             }
 
@@ -129,12 +129,12 @@ casper.notebook_test(function () {
         return true;
     };
 
-    this.is_cell_selected = function(index) {
-        return this.is_cell_on(index, 'selected', 'unselected');
+    this.is_only_cell_selected = function(index) {
+        return this.is_only_cell_on(index, 'selected', 'unselected');
     };
 
-    this.is_cell_edit = function(index) {
-        return this.is_cell_on(index, 'edit_mode', 'command_mode');
+    this.is_only_cell_edit = function(index) {
+        return this.is_only_cell_on(index, 'edit_mode', 'command_mode');
     };
 
     this.click_cell = function(index) {
@@ -171,7 +171,7 @@ casper.notebook_test(function () {
         }, {i : index});
     };
 
-    this.is_cell_on = function(i, on_class, off_class) {
+    this.is_only_cell_on = function(i, on_class, off_class) {
         var cells = this.get_cells();
         for (var j = 0; j < cells.length; j++) {
             if (j === i) {
