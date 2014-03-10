@@ -72,6 +72,15 @@ class TestController(object):
         self.stdout, _ = self.process.communicate()
         return self.process.returncode
 
+    def dump_failure(self):
+        """Print buffered results of a test failure.
+        
+        Called after tests fail while running in parallel. The base
+        implementation just prints the output from the test subprocess, but
+        subclasses can override it to add extra information.
+        """
+        print(self.stdout)
+
     def cleanup_process(self):
         """Cleanup on exit by killing any leftover processes."""
         subp = self.process
@@ -182,7 +191,6 @@ class JSController(TestController):
     def launch(self):
         self.ipydir = TemporaryDirectory()
         self.nbdir = TemporaryDirectory()
-        print("Running %s tests in directory: %r" % (self.section, self.nbdir.name))
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
         self.dirs.append(self.ipydir)
@@ -207,6 +215,10 @@ class JSController(TestController):
         self.server = Process(target=run_webapp, args=(q, self.ipydir.name, self.nbdir.name))
         self.server.start()
         self.server_port = q.get()
+
+    def dump_failure(self):
+        print("Ran tests with notebook directory %r" % self.nbdir)
+        super(JSController, self).dump_failure()
 
     def cleanup(self):
         self.server.terminate()
@@ -400,9 +412,9 @@ def run_iptestall(options):
             pool = multiprocessing.pool.ThreadPool(options.fast)
             for (controller, res) in pool.imap_unordered(do_run, to_run):
                 res_string = 'OK' if res == 0 else 'FAILED'
-                print(justify('IPython test group: ' + controller.section, res_string))
+                print(justify('Test group: ' + controller.section, res_string))
                 if res:
-                    print(bytes_to_str(controller.stdout))
+                    controller.dump_failure()
                     failed.append(controller)
                     if res == -signal.SIGINT:
                         print("Interrupted")
