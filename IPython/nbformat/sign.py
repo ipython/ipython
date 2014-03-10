@@ -97,7 +97,9 @@ class NotebookNotary(LoggingConfigurable):
     def _digestmod_default(self):
         return getattr(hashlib, self.algorithm)
     
-    secret_file = Unicode()
+    secret_file = Unicode(config=True,
+        help="""The file where the secret key is stored."""
+    )
     def _secret_file_default(self):
         if self.profile_dir is None:
             return ''
