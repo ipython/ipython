@@ -7,7 +7,7 @@
 
 var IPython = IPython || {};
 
-IPython.version = "2.0.0-b1";
+IPython.version = "2.0.0-dev";
 
 IPython.namespace = function (ns_string) {
     "use strict";
