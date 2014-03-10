@@ -74,6 +74,7 @@ var IPython = (function (IPython) {
 
     var Completer = function (cell) {
         this._visible = false;
+        this._shown = false;
         this.cell = cell;
         this.editor = cell.code_mirror;
         var that = this;
@@ -88,6 +89,13 @@ var IPython = (function (IPython) {
     Completer.prototype.is_visible = function () {
         // Return whether or not the completer is visible.
         return this._visible;
+    };
+
+    Completer.prototype.was_shown = function () {
+        // Return whether or not the completer was shown.
+        var ret = this._shown;
+        this._shown = false;
+        return ret;
     };
 
     Completer.prototype.startCompletion = function () {
@@ -231,6 +239,7 @@ var IPython = (function (IPython) {
             .attr('size', Math.min(10, this.raw_result.length));
         this.complete.append(this.sel);
         this._visible = true;
+        this._shown = true;
         $('body').append(this.complete);
 
         // After everything is on the page, compute the postion.
@@ -289,6 +298,7 @@ var IPython = (function (IPython) {
 
     Completer.prototype.close = function () {
         this._visible = false;
+        this._shown = false;
         if (this.done) return;
         this.done = true;
         $('.completions').remove();
