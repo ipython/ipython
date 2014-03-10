@@ -153,7 +153,6 @@ class TemplateExporter(Exporter):
         #Init
         self._init_template()
         self._init_environment(extra_loaders=extra_loaders)
-        self._init_preprocessors()
         self._init_filters()
 
 

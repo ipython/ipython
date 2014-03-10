@@ -62,7 +62,7 @@ class Exporter(LoggingConfigurable):
     preprocessors = List(config=True,
         help="""List of preprocessors, by name or namespace, to enable.""")
 
-    _preprocessors = None
+    _preprocessors = List()
 
     default_preprocessors = List(['IPython.nbconvert.preprocessors.coalesce_streams',
                                   'IPython.nbconvert.preprocessors.SVG2PDFPreprocessor',
@@ -215,18 +215,15 @@ class Exporter(LoggingConfigurable):
         Register all of the preprocessors needed for this exporter, disabled
         unless specified explicitly.
         """
-        if self._preprocessors is None:
-            self._preprocessors = []
+        self._preprocessors = []
 
-        #Load default preprocessors (not necessarly enabled by default).
-        if self.default_preprocessors:
-            for preprocessor in self.default_preprocessors:
-                self.register_preprocessor(preprocessor)
+        # Load default preprocessors (not necessarly enabled by default).
+        for preprocessor in self.default_preprocessors:
+            self.register_preprocessor(preprocessor)
 
-        #Load user preprocessors.  Enable by default.
-        if self.preprocessors:
-            for preprocessor in self.preprocessors:
-                self.register_preprocessor(preprocessor, enabled=True)
+        # Load user-specified preprocessors.  Enable by default.
+        for preprocessor in self.preprocessors:
+            self.register_preprocessor(preprocessor, enabled=True)
 
 
     def _init_resources(self, resources):
