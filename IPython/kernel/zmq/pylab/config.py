@@ -71,10 +71,10 @@ class InlineBackend(InlineBackendConfig):
 
     def _update_figure_formatters(self):
         if self.shell is not None:
+            from IPython.core.pylabtools import select_figure_formats
             select_figure_formats(self.shell, self.figure_formats, **self.print_figure_kwargs)
     
     def _figure_formats_changed(self, name, old, new):
-        from IPython.core.pylabtools import select_figure_formats
         if 'jpg' in new or 'jpeg' in new:
             if not pil_available():
                 raise TraitError("Requires PIL/Pillow for JPG figures")
