@@ -425,7 +425,10 @@ var IPython = (function (IPython) {
             }
             s = s + '\n';
             var toinsert = this.create_output_area();
-            this.append_text(s, {}, toinsert).addClass('output_pyerr');
+            var append_text = OutputArea.append_map['text/plain'];
+            if (append_text) {
+                append_text.apply(this, [s, {}, toinsert]).addClass('output_pyerr');
+            }
             this._safe_append(toinsert);
         }
     };
@@ -434,7 +437,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_stream = function (json) {
         // temporary fix: if stream undefined (json file written prior to this patch),
         // default to most likely stdout:
-        if (json.stream == undefined){
+        if (json.stream === undefined){
             json.stream = 'stdout';
         }
         var text = json.text;
@@ -464,7 +467,10 @@ var IPython = (function (IPython) {
 
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(text, {}, toinsert).addClass("output_stream "+subclass);
+        var append_text = OutputArea.append_map['text/plain'];
+        if (append_text) {
+            append_text.apply(this, [text, {}, toinsert]).addClass("output_stream " + subclass);
+        }
         this._safe_append(toinsert);
     };
 
