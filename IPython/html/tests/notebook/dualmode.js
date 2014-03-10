@@ -121,9 +121,9 @@ casper.notebook_test(function () {
         var cell = this._get_cell(i);
         if (cell) {
             if (cell.mode == 'edit') {
-                return this._is_cell_editor_focused(i);
+                return this.is_cell_editor_focused(i);
             } else {
-                return !this._is_cell_editor_focused(i);
+                return !this.is_cell_editor_focused(i);
             }
         }
         return true;
@@ -161,7 +161,7 @@ casper.notebook_test(function () {
         }, {k: key});
     };
 
-    this._is_cell_editor_focused = function(i) {
+    this.is_cell_editor_focused = function(i) {
         return this._is_cell_inputfield(i, '.CodeMirror-focused *');
     };
 
