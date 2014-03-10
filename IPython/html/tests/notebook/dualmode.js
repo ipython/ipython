@@ -130,11 +130,11 @@ casper.notebook_test(function () {
     };
 
     this.is_cell_selected = function(i) {
-        return this._is_cell_on(i, 'selected', 'unselected');
+        return this.is_cell_on(i, 'selected', 'unselected');
     };
 
     this.is_cell_edit = function(i) {
-        return this._is_cell_on(i, 'edit_mode', 'command_mode');
+        return this.is_cell_on(i, 'edit_mode', 'command_mode');
     };
 
     this.click_cell = function(index) {
@@ -165,7 +165,7 @@ casper.notebook_test(function () {
         return this._is_cell_inputfield(i, '.CodeMirror-focused *');
     };
 
-    this._is_cell_on = function(i, on_class, off_class) {
+    this.is_cell_on = function(i, on_class, off_class) {
         var cells = this._get_cells();
         for (var j = 0; j < cells.length; j++) {
             if (j === i) {
