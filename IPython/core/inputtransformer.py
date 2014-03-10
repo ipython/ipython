@@ -516,9 +516,17 @@ def strip_encoding_cookie():
         while line is not None:
             line = (yield line)
 
+_assign_pat = \
+r'''(?P<lhs>(\s*)
+    ([\w\.]+)                # Initial identifier
+    (\s*,\s*
+        \*?[\w\.]+)*         # Further identifiers for unpacking
+    \s*?,?                   # Trailing comma
+    )
+    \s*=\s*
+'''
 
-assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                              r'\s*=\s*!\s*(?P<cmd>.*)')
+assign_system_re = re.compile(r'{}!\s*(?P<cmd>.*)'.format(_assign_pat), re.VERBOSE)
 assign_system_template = '%s = get_ipython().getoutput(%r)'
 @StatelessInputTransformer.wrap
 def assign_from_system(line):
@@ -529,8 +537,7 @@ def assign_from_system(line):
     
     return assign_system_template % m.group('lhs', 'cmd')
 
-assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                             r'\s*=\s*%\s*(?P<cmd>.*)')
+assign_magic_re = re.compile(r'{}%\s*(?P<cmd>.*)'.format(_assign_pat), re.VERBOSE)
 assign_magic_template = '%s = get_ipython().magic(%r)'
 @StatelessInputTransformer.wrap
 def assign_from_magic(line):
