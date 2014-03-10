@@ -11,23 +11,23 @@ casper.notebook_test(function () {
 
     this.then(function () {
         this.validate_state('initial state', 'edit', 0);
-        this.key_press('esc');
+        this.trigger_keydown('esc');
         this.validate_state('esc', 'command', 0);
-        this.key_press('down');
+        this.trigger_keydown('down');
         this.validate_state('down', 'command', 1);
-        this.key_press('enter');
+        this.trigger_keydown('enter');
         this.validate_state('enter', 'edit', 1);
-        this.key_press('j');
+        this.trigger_keydown('j');
         this.validate_state('j in edit mode', 'edit', 1);
-        this.key_press('esc');
+        this.trigger_keydown('esc');
         this.validate_state('esc', 'command', 1);
-        this.key_press('j');
+        this.trigger_keydown('j');
         this.validate_state('j in command mode', 'command', 2);
         this.click_cell(0);
         this.validate_state('click cell 0', 'edit', 0);
         this.click_cell(3);
         this.validate_state('click cell 3', 'edit', 3);
-        this.key_press('esc');
+        this.trigger_keydown('esc');
         this.validate_state('esc', 'command', 3);
 
         // Open keyboard help
@@ -35,7 +35,7 @@ casper.notebook_test(function () {
             $('#keyboard_shortcuts a').click();
         }, {});
 
-        this.key_press('k');
+        this.trigger_keydown('k');
         this.validate_state('k in command mode while keyboard help is up', 'command', 3);
 
         // Close keyboard help
@@ -43,7 +43,7 @@ casper.notebook_test(function () {
             $('div.modal button.close').click();
         }, {});
 
-        this.key_press('k');
+        this.trigger_keydown('k');
         this.validate_state('k in command mode', 'command', 2);
         this.click_cell(0);
         this.validate_state('click cell 0', 'edit', 0);
@@ -55,17 +55,17 @@ casper.notebook_test(function () {
         this.validate_state('focus #notebook', 'command', 0);
         this.click_cell(3);
         this.validate_state('click cell 3', 'edit', 3);
-        this.key_press('shift+enter');
+        this.trigger_keydown('shift+enter');
         this.validate_state('shift+enter (no cell below)', 'edit', 4);
         this.click_cell(3);
         this.validate_state('click cell 3', 'edit', 3);
-        this.key_press('shift+enter');
+        this.trigger_keydown('shift+enter');
         this.validate_state('shift+enter (cell exists below)', 'command', 4);
         this.click_cell(3);
         this.validate_state('click cell 3', 'edit', 3);
-        this.key_press('alt+enter');
+        this.trigger_keydown('alt+enter');
         this.validate_state('alt+enter', 'edit', 4);
-        this.key_press('ctrl+enter');
+        this.trigger_keydown('ctrl+enter');
         this.validate_state('ctrl+enter', 'command', 4);
     });
 
@@ -155,7 +155,7 @@ casper.notebook_test(function () {
         }, {});
     };
 
-    this.key_press = function(key) {
+    this.trigger_keydown = function(key) {
         this.evaluate(function (k) {
             IPython.keyboard.trigger_keydown(k);
         }, {k: key});
