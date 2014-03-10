@@ -217,7 +217,7 @@ class JSController(TestController):
         self.server_port = q.get()
 
     def dump_failure(self):
-        print("Ran tests with notebook directory %r" % self.nbdir)
+        print("Ran tests with notebook directory %r" % self.nbdir.name)
         super(JSController, self).dump_failure()
 
     def cleanup(self):
