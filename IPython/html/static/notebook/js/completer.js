@@ -73,7 +73,6 @@ var IPython = (function (IPython) {
 
 
     var Completer = function (cell) {
-        this._visible = false;
         this.cell = cell;
         this.editor = cell.code_mirror;
         var that = this;
@@ -83,11 +82,6 @@ var IPython = (function (IPython) {
         $([IPython.events]).on('status_idle.Kernel', function () {
             that.skip_kernel_completion = false;
         });
-    };
-
-    Completer.prototype.is_visible = function () {
-        // Return whether or not the completer is visible.
-        return this._visible;
     };
 
     Completer.prototype.startCompletion = function () {
@@ -230,7 +224,6 @@ var IPython = (function (IPython) {
             .attr('multiple', 'true')
             .attr('size', Math.min(10, this.raw_result.length));
         this.complete.append(this.sel);
-        this._visible = true;
         $('body').append(this.complete);
 
         // After everything is on the page, compute the postion.
@@ -255,7 +248,7 @@ var IPython = (function (IPython) {
         this.sel.dblclick(function () {
             that.pick();
         });
-        this.sel.blur(this.close);
+        this.sel.blur($.proxy(this.close, this));
         this.sel.keydown(function (event) {
             that.keydown(event);
         });
@@ -266,6 +259,7 @@ var IPython = (function (IPython) {
         this.build_gui_list(this.raw_result);
 
         this.sel.focus();
+        this.cell.edit_mode();
         IPython.keyboard_manager.disable();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function () {
@@ -288,10 +282,9 @@ var IPython = (function (IPython) {
     };
 
     Completer.prototype.close = function () {
-        this._visible = false;
-        if (this.done) return;
         this.done = true;
-        $('.completions').remove();
+        $('#complete').remove();
+        this.cell.command_mode();
         IPython.keyboard_manager.enable();
     };
 
