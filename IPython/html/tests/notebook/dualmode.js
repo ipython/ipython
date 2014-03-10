@@ -73,7 +73,7 @@ casper.notebook_test(function () {
     // Utility functions.
     this.validate_state = function(message, mode, cell_index) {
         // General tests.
-        this.test.assertEquals(this._get_keyboard_mode(), this._get_notebook_mode(),
+        this.test.assertEquals(this.get_keyboard_mode(), this.get_notebook_mode(),
             message + '; keyboard and notebook modes match');
         // Is codemirror focused appropriately?
         this.test.assert(this.is_editor_focus_valid(), message + '; cell editor focused appropriately');
@@ -86,7 +86,7 @@ casper.notebook_test(function () {
         // Mode specific tests.
         if (mode==='command') {
             // Are the notebook and keyboard manager in command mode?
-            this.test.assertEquals(this._get_keyboard_mode(), 'command',
+            this.test.assertEquals(this.get_keyboard_mode(), 'command',
                 message + '; in command mode');
             // Make sure there isn't a single cell in edit mode.
             this.test.assert(this.is_cell_edit(null),
@@ -94,7 +94,7 @@ casper.notebook_test(function () {
 
         } else if (mode==='edit') {
             // Are the notebook and keyboard manager in edit mode?
-            this.test.assertEquals(this._get_keyboard_mode(), 'edit',
+            this.test.assertEquals(this.get_keyboard_mode(), 'edit',
                 message + '; in edit mode');
             // Is the specified cell the only cell in edit mode?
             if (cell_index!==undefined) {
@@ -108,7 +108,7 @@ casper.notebook_test(function () {
     };
 
     this.is_editor_focus_valid = function() {
-        var cells = this._get_cells();
+        var cells = this.get_cells();
         for (var i = 0; i < cells.length; i++) {
             if (!this.is_cell_editor_focus_valid(i)) {
                 return false;
@@ -117,24 +117,24 @@ casper.notebook_test(function () {
         return true;
     };
 
-    this.is_cell_editor_focus_valid = function(i) {
-        var cell = this._get_cell(i);
+    this.is_cell_editor_focus_valid = function(index) {
+        var cell = this.get_cell(index);
         if (cell) {
             if (cell.mode == 'edit') {
-                return this.is_cell_editor_focused(i);
+                return this.is_cell_editor_focused(index);
             } else {
-                return !this.is_cell_editor_focused(i);
+                return !this.is_cell_editor_focused(index);
             }
         }
         return true;
     };
 
-    this.is_cell_selected = function(i) {
-        return this.is_cell_on(i, 'selected', 'unselected');
+    this.is_cell_selected = function(index) {
+        return this.is_cell_on(index, 'selected', 'unselected');
     };
 
-    this.is_cell_edit = function(i) {
-        return this.is_cell_on(i, 'edit_mode', 'command_mode');
+    this.is_cell_edit = function(index) {
+        return this.is_cell_on(index, 'edit_mode', 'command_mode');
     };
 
     this.click_cell = function(index) {
@@ -161,12 +161,12 @@ casper.notebook_test(function () {
         }, {k: key});
     };
 
-    this.is_cell_editor_focused = function(i) {
-        return this._is_cell_inputfield(i, '.CodeMirror-focused *');
+    this.is_cell_editor_focused = function(index) {
+        return this._is_cell_inputfield(index, '.CodeMirror-focused *');
     };
 
     this.is_cell_on = function(i, on_class, off_class) {
-        var cells = this._get_cells();
+        var cells = this.get_cells();
         for (var j = 0; j < cells.length; j++) {
             if (j === i) {
                 if (this._has_cell_class(j, off_class) || !this._has_cell_class(j, on_class)) {
@@ -181,25 +181,25 @@ casper.notebook_test(function () {
         return true;
     };
 
-    this._get_keyboard_mode = function() {
+    this.get_keyboard_mode = function() {
         return this.evaluate(function() {
             return IPython.keyboard_manager.mode;
         }, {});
     };
 
-    this._get_notebook_mode = function() {
+    this.get_notebook_mode = function() {
         return this.evaluate(function() {
             return IPython.notebook.mode;
         }, {});
     };
 
-    this._get_cells = function() {
+    this.get_cells = function() {
         return this.evaluate(function() {
             return IPython.notebook.get_cells();
         }, {});
     };
 
-    this._get_cell = function(index) {
+    this.get_cell = function(index) {
         return this.evaluate(function(i) {
             var cell = IPython.notebook.get_cell(i);
             if (cell) {
