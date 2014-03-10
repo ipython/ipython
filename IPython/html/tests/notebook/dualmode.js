@@ -162,7 +162,13 @@ casper.notebook_test(function () {
     };
 
     this.is_cell_editor_focused = function(index) {
-        return this._is_cell_inputfield(index, '.CodeMirror-focused *');
+        return this.evaluate(function(i) {
+            var cell = IPython.notebook.get_cell(i);
+            if (cell) {
+                return $(cell.code_mirror.getInputField()).is('.CodeMirror-focused *');
+            }
+            return false;
+        }, {i : index});
     };
 
     this.is_cell_on = function(i, on_class, off_class) {
@@ -207,16 +213,6 @@ casper.notebook_test(function () {
             }
             return null;
         }, {i : index});
-    };
-
-    this._is_cell_inputfield = function(index, selector) {
-        return this.evaluate(function(i, s) {
-            var cell = IPython.notebook.get_cell(i);
-            if (cell) {
-                return $(cell.code_mirror.getInputField()).is(s);
-            }
-            return false;
-        }, {i : index, s: selector});
     };
 
     this._has_cell_class = function(index, classes) {
