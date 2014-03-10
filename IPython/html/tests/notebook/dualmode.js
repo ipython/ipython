@@ -55,18 +55,58 @@ casper.notebook_test(function () {
         this.validate_state('focus #notebook', 'command', 0);
         this.click_cell(3);
         this.validate_state('click cell 3', 'edit', 3);
+
+        // shift+enter tests.
+        // last cell in notebook
+        var base_index = 3;
+        this.trigger_keydown('shift+enter'); // Creates one cell
+        this.validate_state('shift+enter (no cell below)', 'edit', base_index + 1);
+        // not last cell in notebook & starts in edit mode
+        this.click_cell(base_index);
+        this.validate_state('click cell %d' % base_index, 'edit', base_index);
         this.trigger_keydown('shift+enter');
-        this.validate_state('shift+enter (no cell below)', 'edit', 4);
-        this.click_cell(3);
-        this.validate_state('click cell 3', 'edit', 3);
+        this.validate_state('shift+enter (cell exists below)', 'command', base_index + 1);
+        // starts in command mode
+        this.trigger_keydown('k');
+        this.validate_state('k in comand mode', 'command', base_index);
         this.trigger_keydown('shift+enter');
-        this.validate_state('shift+enter (cell exists below)', 'command', 4);
-        this.click_cell(3);
-        this.validate_state('click cell 3', 'edit', 3);
-        this.trigger_keydown('alt+enter');
-        this.validate_state('alt+enter', 'edit', 4);
+        this.validate_state('shift+enter (start in command mode)', 'command', base_index + 1);
+
+        // ctrl+enter tests.
+        // last cell in notebook
+        base_index++;
         this.trigger_keydown('ctrl+enter');
-        this.validate_state('ctrl+enter', 'command', 4);
+        this.validate_state('ctrl+enter (no cell below)', 'command', base_index);
+        // not last cell in notebook & starts in edit mode
+        this.click_cell(base_index-1);
+        this.validate_state('click cell %d' % (base_index-1), 'edit', base_index-1);
+        this.trigger_keydown('ctrl+enter');
+        this.validate_state('ctrl+enter (cell exists below)', 'command', base_index-1);
+        // starts in command mode
+        this.trigger_keydown('j');
+        this.validate_state('j in comand mode', 'command', base_index);
+        this.trigger_keydown('ctrl+enter');
+        this.validate_state('ctrl+enter (start in command mode)', 'command', base_index);
+
+        // alt+enter tests.
+        // last cell in notebook
+        base_index++;
+        this.trigger_keydown('alt+enter'); // Creates one cell
+        this.validate_state('alt+enter (no cell below)', 'edit', base_index + 1);
+        // not last cell in notebook & starts in edit mode
+        this.click_cell(base_index);
+        this.validate_state('click cell %d' % base_index, 'edit', base_index);
+        this.trigger_keydown('alt+enter'); // Creates one cell
+        this.validate_state('alt+enter (cell exists below)', 'edit', base_index + 1);
+        // starts in command mode
+        this.trigger_keydown('esc');
+        this.trigger_keydown('k');
+        this.validate_state('k in comand mode', 'command', base_index);
+        this.trigger_keydown('alt+enter'); // Creates one cell
+        this.validate_state('alt+enter (start in command mode)', 'edit', base_index + 1);
+
+        // Notebook will now have 8 cells, the index of the last cell will be 7.
+        
     });
 
 
