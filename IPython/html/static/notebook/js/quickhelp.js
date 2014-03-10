@@ -79,7 +79,7 @@ var IPython = (function (IPython) {
         half = ~~(n/2);  // Truncate :)
         for (i=0; i<half; i++) {
             help = command_shortcuts[i]['help'];
-            shortcut = command_shortcuts[i]['shortcut'];
+            shortcut = shortcut_name(command_shortcuts[i]['shortcut']);
             cmd_col1.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
@@ -87,7 +87,7 @@ var IPython = (function (IPython) {
         };
         for (i=half; i<n; i++) {
             help = command_shortcuts[i]['help'];
-            shortcut = command_shortcuts[i]['shortcut'];
+            shortcut = shortcut_name(command_shortcuts[i]['shortcut']);
             cmd_col2.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
@@ -97,6 +97,13 @@ var IPython = (function (IPython) {
         cmd_div.append(cmd_sub_div);
         return cmd_div;
     }
+
+    var special_case = { pageup: "PageUp", pagedown: "Page Down" };
+    var shortcut_name = function (s) {
+        return ( special_case[s] ? special_case[s] : s.charAt(0).toUpperCase() + s.slice(1) );
+
+
+    };
 
     QuickHelp.prototype.build_edit_help = function () {
         var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
@@ -112,7 +119,7 @@ var IPython = (function (IPython) {
         half = ~~(n/2);  // Truncate :)
         for (i=0; i<half; i++) {
             help = edit_shortcuts[i]['help'];
-            shortcut = edit_shortcuts[i]['shortcut'];
+            shortcut = shortcut_name(edit_shortcuts[i]['shortcut']);
             edit_col1.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
@@ -120,7 +127,7 @@ var IPython = (function (IPython) {
         };
         for (i=half; i<n; i++) {
             help = edit_shortcuts[i]['help'];
-            shortcut = edit_shortcuts[i]['shortcut'];
+            shortcut = shortcut_name(edit_shortcuts[i]['shortcut']);
             edit_col2.append($('<div>').addClass('quickhelp').
                 append($('<span/>').addClass('shortcut_key').text(shortcut)).
                 append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
