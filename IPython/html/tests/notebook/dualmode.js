@@ -105,7 +105,7 @@ casper.notebook_test(function () {
         this.validate_state('alt+enter (start in command mode)', 'edit', base_index + 1);
 
         // Notebook will now have 8 cells, the index of the last cell will be 7.
-        this.test.assertEquals(this.get_cells.length, 8, '*-enter commands added cells where needed.');
+        this.test.assertEquals(this.get_cells().length, 8, '*-enter commands added cells where needed.');
         this.click_cell(7);
         this.trigger_keydown('esc');
         this.validate_state('click cell ' + 7 + ' and esc', 'command', 7);
@@ -129,8 +129,23 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_cell(7).cell_type, 'markdown', 'm; cell is markdown');
         this.trigger_keydown('y');
         this.test.assertEquals(this.get_cell(7).cell_type, 'code', 'y; cell is code');
-    });
 
+        this.trigger_keydown('d');
+        this.trigger_keydown('d');
+        this.test.assertEquals(this.get_cells().length, 7, 'dd actually deletes a cell');
+        this.validate_state('dd', 'command', 6);
+
+        // Make sure that if the time between d presses is too long 
+        this.trigger_keydown('d');
+    });
+    this.wait(1000);
+    this.then(function () {
+        this.trigger_keydown('d');
+
+        this.test.assertEquals(this.get_cells().length, 6, "d, 1 second wait, d doesn't delete a cell");
+        this.validate_state('d, 1 second wait, d', 'command', 6);
+
+    });
 
     // Utility functions.
     this.validate_state = function(message, mode, cell_index) {
