@@ -32,12 +32,12 @@ MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 #-----------------------------------------------------------------------------
 
 __all__ = [
-    'Highlight2Html',
+    'Highlight2HTML',
     'Highlight2Latex'
 ]
 
 
-class Highlight2Html(NbConvertBase):
+class Highlight2HTML(NbConvertBase):
 
     def __call__(self, source, language=None, metadata=None):
         """

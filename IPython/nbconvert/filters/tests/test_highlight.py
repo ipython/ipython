@@ -15,7 +15,7 @@ Module with tests for Highlight
 #-----------------------------------------------------------------------------
 
 from ...tests.base import TestsBase
-from ..highlight import Highlight2Html, Highlight2Latex
+from ..highlight import Highlight2HTML, Highlight2Latex
 from IPython.config import Config
 import xml
 
@@ -23,11 +23,11 @@ import xml
 # Class
 #-----------------------------------------------------------------------------
 
-highlight2html = Highlight2Html()
+highlight2html = Highlight2HTML()
 highlight2latex = Highlight2Latex()
 c = Config()
-c.Highlight2Html.default_language='ruby'
-highlight2html_ruby = Highlight2Html(config=c)
+c.Highlight2HTML.default_language='ruby'
+highlight2html_ruby = Highlight2HTML(config=c)
 
 class TestHighlight(TestsBase):
     """Contains test functions for highlight.py"""
