@@ -142,7 +142,7 @@ casper.notebook_test(function () {
     this.then(function () {
         this.trigger_keydown('d');
 
-        this.test.assertEquals(this.get_cells().length, 6, "d, 1 second wait, d doesn't delete a cell");
+        this.test.assertEquals(this.get_cells().length, 7, "d, 1 second wait, d doesn't delete a cell");
         this.validate_state('d, 1 second wait, d', 'command', 6);
 
     });
