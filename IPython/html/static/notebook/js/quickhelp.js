@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
         var i, half, n;
 
         // Command mode
-        var cmd_div = $('<div/>').append($('<h4>Command Mode (press <code>esc</code> to enable)</h4>'));
+        var cmd_div = $('<div/>').append($('<h4>Command Mode (press <code>Esc</code> to enable)</h4>'));
         var cmd_sub_div = $('<div/>').addClass('hbox');
         var cmd_col1 = $('<div/>').addClass('box-flex0');
         var cmd_col2 = $('<div/>').addClass('box-flex0');
@@ -118,7 +118,7 @@ var IPython = (function (IPython) {
         var i, half, n;
 
         // Edit mode
-        var edit_div = $('<div/>').append($('<h4>Edit Mode (press <code>enter</code> to enable)</h4>'));
+        var edit_div = $('<div/>').append($('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>'));
         var edit_sub_div = $('<div/>').addClass('hbox');
         var edit_col1 = $('<div/>').addClass('box-flex0');
         var edit_col2 = $('<div/>').addClass('box-flex0');
