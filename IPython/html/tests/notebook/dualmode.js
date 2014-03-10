@@ -63,7 +63,7 @@ casper.notebook_test(function () {
         this.validate_state('shift+enter (no cell below)', 'edit', base_index + 1);
         // not last cell in notebook & starts in edit mode
         this.click_cell(base_index);
-        this.validate_state('click cell %d' % base_index, 'edit', base_index);
+        this.validate_state('click cell ' + base_index, 'edit', base_index);
         this.trigger_keydown('shift+enter');
         this.validate_state('shift+enter (cell exists below)', 'command', base_index + 1);
         // starts in command mode
@@ -79,7 +79,7 @@ casper.notebook_test(function () {
         this.validate_state('ctrl+enter (no cell below)', 'command', base_index);
         // not last cell in notebook & starts in edit mode
         this.click_cell(base_index-1);
-        this.validate_state('click cell %d' % (base_index-1), 'edit', base_index-1);
+        this.validate_state('click cell ' + (base_index-1), 'edit', base_index-1);
         this.trigger_keydown('ctrl+enter');
         this.validate_state('ctrl+enter (cell exists below)', 'command', base_index-1);
         // starts in command mode
@@ -90,12 +90,11 @@ casper.notebook_test(function () {
 
         // alt+enter tests.
         // last cell in notebook
-        base_index++;
         this.trigger_keydown('alt+enter'); // Creates one cell
         this.validate_state('alt+enter (no cell below)', 'edit', base_index + 1);
         // not last cell in notebook & starts in edit mode
         this.click_cell(base_index);
-        this.validate_state('click cell %d' % base_index, 'edit', base_index);
+        this.validate_state('click cell ' + base_index, 'edit', base_index);
         this.trigger_keydown('alt+enter'); // Creates one cell
         this.validate_state('alt+enter (cell exists below)', 'edit', base_index + 1);
         // starts in command mode
@@ -106,7 +105,30 @@ casper.notebook_test(function () {
         this.validate_state('alt+enter (start in command mode)', 'edit', base_index + 1);
 
         // Notebook will now have 8 cells, the index of the last cell will be 7.
-        
+        this.test.assertEquals(this.get_cells.length, 8, '*-enter commands added cells where needed.');
+        this.click_cell(7);
+        this.trigger_keydown('esc');
+        this.validate_state('click cell ' + 7 + ' and esc', 'command', 7);
+
+        this.trigger_keydown('r');
+        this.test.assertEquals(this.get_cell(7).cell_type, 'raw', 'r; cell is raw');
+        this.trigger_keydown('1');
+        this.test.assertEquals(this.get_cell(7).cell_type, 'heading', '1; cell is heading');
+        this.test.assertEquals(this.get_cell(7).level, 1, '1; cell is level 1 heading');
+        this.trigger_keydown('2');
+        this.test.assertEquals(this.get_cell(7).level, 2, '2; cell is level 2 heading');
+        this.trigger_keydown('3');
+        this.test.assertEquals(this.get_cell(7).level, 3, '3; cell is level 3 heading');
+        this.trigger_keydown('4');
+        this.test.assertEquals(this.get_cell(7).level, 4, '4; cell is level 4 heading');
+        this.trigger_keydown('5');
+        this.test.assertEquals(this.get_cell(7).level, 5, '5; cell is level 5 heading');
+        this.trigger_keydown('6');
+        this.test.assertEquals(this.get_cell(7).level, 6, '6; cell is level 6 heading');
+        this.trigger_keydown('m');
+        this.test.assertEquals(this.get_cell(7).cell_type, 'markdown', 'm; cell is markdown');
+        this.trigger_keydown('y');
+        this.test.assertEquals(this.get_cell(7).cell_type, 'code', 'y; cell is code');
     });
 
 
