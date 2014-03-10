@@ -1,7 +1,6 @@
 //
 // Utility functions for the HTML notebook's CasperJS tests.
 //
-
 casper.get_notebook_server = function () {
     // Get the URL of a notebook server on which to run tests.
     port = casper.cli.get("port");
@@ -30,6 +29,15 @@ casper.open_new_notebook = function () {
         });
         $([IPython.events]).on('status_busy.Kernel',function () {
             IPython._status = 'busy';
+        });
+    });
+
+    // Because of the asynchronous nature of SlimerJS (Gecko), we need to make
+    // sure the notebook has actually been loaded into the IPython namespace
+    // before running any tests.
+    this.waitFor(function() {
+        return this.evaluate(function () {
+            return IPython.notebook;
         });
     });
 };
@@ -411,9 +419,30 @@ casper.cell_has_class = function(index, classes) {
 
 casper.notebook_test = function(test) {
     // Wrap a notebook test to reduce boilerplate.
+    //
+    // If you want to read parameters from the commandline, use the following
+    // (i.e. value=):
+    // if (casper.cli.options.value) {
+    //     casper.exit(1);
+    // }
     this.open_new_notebook();
-    this.then(test);
 
+    // Echo whether or not we are running this test using SlimerJS
+    if (this.evaluate(function(){
+        return typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+    })) { console.log('This test is running in SlimerJS.'); }
+    
+    // Make sure to remove the onbeforeunload callback.  This callback is 
+    // responsable for the "Are you sure you want to quit?" type messages.
+    // PhantomJS ignores these prompts, SlimerJS does not which causes hangs.
+    this.then(function(){
+        this.evaluate(function(){
+            window.onbeforeunload = function(){};
+        });    
+    });
+
+    this.then(test);
+    
     // Kill the kernel and delete the notebook.
     this.shutdown_current_kernel();
     // This is still broken but shouldn't be a problem for now.
