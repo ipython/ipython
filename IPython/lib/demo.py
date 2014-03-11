@@ -304,7 +304,7 @@ class Demo(object):
         self.src_blocks = src_blocks
 
         # also build syntax-highlighted source
-        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+        self.src_blocks_colored = list(map(self.ip_colorize,self.src_blocks))
 
         # ensure clean namespace and seek offset
         self.reset()
