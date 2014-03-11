@@ -173,12 +173,12 @@ casper.notebook_test(function () {
         this.validate_state('select 6', 'command', 6);
         this.trigger_keydown('m');
         this.test.assertEquals(this.get_cell(6).cell_type, 'markdown', 'm; cell is markdown');
-        this.test.assertEquals(this.get_cell(6).rendered, true, 'm; cell is rendered');
+        this.test.assertEquals(this.get_cell(6).rendered, false, 'm; cell is rendered');
         this.trigger_keydown('enter');
         this.test.assertEquals(this.get_cell(6).rendered, false, 'enter; cell is unrendered');
         this.validate_state('enter', 'edit', 6);
         this.trigger_keydown('ctrl+enter');
-        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'ctrl+enter; cell is rendered');
         this.validate_state('enter', 'command', 6);
         this.trigger_keydown('enter');
         this.test.assertEquals(this.get_cell(6).rendered, false, 'enter; cell is unrendered');
@@ -188,15 +188,15 @@ casper.notebook_test(function () {
         this.select_cell(6);
         this.validate_state('select 6', 'command', 5);
         this.trigger_keydown('ctrl+enter');
-        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'ctrl+enter; cell is rendered');
         this.select_cell(5);
         this.validate_state('select 5', 'command', 5);
         this.trigger_keydown('shift+enter');
         this.validate_state('shift+enter', 'command', 6);
-        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'shift+enter; cell is rendered');
         this.trigger_keydown('shift+enter'); // Creates one cell
         this.validate_state('shift+enter', 'edit', 7);
-        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'shift+enter; cell is rendered');
 
 
     });
