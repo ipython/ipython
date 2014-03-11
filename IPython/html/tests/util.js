@@ -233,6 +233,105 @@ casper.cell_element_function = function(index, selector, function_name, function
     }, index, selector, function_name, function_args);
 };
 
+
+casper.select_cell = function(index) {
+    this.evaluate(function (i) {
+        IPython.notebook.select(i);
+    }, {i: index});
+};
+
+casper.click_cell_editor = function(index) {
+    // Code Mirror does not play nicely with emulated brower events.  
+    // Instead of trying to emulate a click, here we run code similar to
+    // the code used in Code Mirror that handles the mousedown event on a
+    // region of codemirror that the user can focus.
+    this.evaluate(function (i) {
+        cm = IPython.notebook.get_cell(i).code_mirror;
+        if (cm.options.readOnly != "nocursor" && (document.activeElement != cm.display.input))
+            cm.display.input.focus();
+    }, {i: index});
+};
+
+casper.focus_notebook = function() {
+    this.evaluate(function (){
+        $('#notebook').focus();
+    }, {});
+};
+
+casper.trigger_keydown = function() {
+    for (var i = 0; i < arguments.length; i++) {
+        this.evaluate(function (k) {
+            IPython.keyboard.trigger_keydown(k);
+        }, {k: arguments[i]});    
+    }
+};
+
+casper.get_keyboard_mode = function() {
+    return this.evaluate(function() {
+        return IPython.keyboard_manager.mode;
+    }, {});
+};
+
+casper.get_notebook_mode = function() {
+    return this.evaluate(function() {
+        return IPython.notebook.mode;
+    }, {});
+};
+
+casper.get_cell = function(index) {
+    return this.evaluate(function(i) {
+        var cell = IPython.notebook.get_cell(i);
+        if (cell) {
+            return cell;
+        }
+        return null;
+    }, {i : index});
+};
+
+casper.is_cell_editor_focused = function(index) {
+    return this.evaluate(function(i) {
+        var cell = IPython.notebook.get_cell(i);
+        if (cell) {
+            return $(cell.code_mirror.getInputField()).is('.CodeMirror-focused *');
+        }
+        return false;
+    }, {i : index});
+};
+
+casper.is_only_cell_selected = function(index) {
+    return this.is_only_cell_on(index, 'selected', 'unselected');
+};
+
+casper.is_only_cell_edit = function(index) {
+    return this.is_only_cell_on(index, 'edit_mode', 'command_mode');
+};
+
+casper.is_only_cell_on = function(i, on_class, off_class) {
+    var cells_length = this.get_cells_length();
+    for (var j = 0; j < cells_length; j++) {
+        if (j === i) {
+            if (this.cell_has_class(j, off_class) || !this.cell_has_class(j, on_class)) {
+                return false;
+            }
+        } else {
+            if (!this.cell_has_class(j, off_class) || this.cell_has_class(j, on_class)) {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
+casper.cell_has_class = function(index, classes) {
+    return this.evaluate(function(i, c) {
+        var cell = IPython.notebook.get_cell(i);
+        if (cell) {
+            return cell.element.hasClass(c);
+        }
+        return false;
+    }, {i : index, c: classes});
+};
+
 // Wrap a notebook test to reduce boilerplate.
 casper.notebook_test = function(test) {
     this.open_new_notebook();
