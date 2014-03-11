@@ -1,5 +1,4 @@
-# This shows how to use the new top-level embed function.  It is a simpler
-# API that manages the creation of the embedded shell.
+"""Embed IPython using the simple embed function rather than the class API."""
 
 from IPython import embed
 

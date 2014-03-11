@@ -3,7 +3,7 @@
 
 Please see the documentation in the IPython.Shell module for more details.
 
-The accompanying file example-embed-short.py has quick code fragments for
+The accompanying file embed_class_short.py has quick code fragments for
 embedding which you can cut and paste in your code once you understand how
 things work.
 
@@ -133,5 +133,3 @@ print('\nMain program calling bar("spam")\n')
 bar('spam')
 
 print('Main program finished. Bye!')
-
-#********************** End of file <example-embed.py> ***********************

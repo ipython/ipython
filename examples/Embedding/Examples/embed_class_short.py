@@ -1,6 +1,6 @@
 """Quick code snippets for embedding IPython into other programs.
 
-See example-embed.py for full details, this file has the bare minimum code for
+See embed_class_long.py for full details, this file has the bare minimum code for
 cut and paste use once you understand how to use the system."""
 
 #---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ from IPython.terminal.embed import InteractiveShellEmbed
 # Now create the IPython shell instance. Put ipshell() anywhere in your code
 # where you want it to open.
 ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)
-                            
+
 #---------------------------------------------------------------------------
 # This code will load an embeddable IPython shell always with no changes for
 # nested embededings.
@@ -43,5 +43,3 @@ else:
     # Define a dummy ipshell() so the same code doesn't crash inside an
     # interactive IPython
     def ipshell(): pass
-
-#******************* End of file <example-embed-short.py> ********************
