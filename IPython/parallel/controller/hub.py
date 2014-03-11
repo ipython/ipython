@@ -213,8 +213,15 @@ class HubFactory(RegistrationFactory):
         """)
 
     registration_timeout = Integer(0, config=True,
-        help="Engine registration timeout in seconds [default: max(10,"
-             "5*heartmonitor.period)]" )
+        help="Engine registration timeout in seconds [default: max(30,"
+             "10*heartmonitor.period)]" )
+    
+    def _registration_timeout_default(self):
+        if self.heartmonitor is None:
+            # early initialization, this value will be ignored
+            return 0
+            # heartmonitor period is in milliseconds, so 10x in seconds is .01
+        return max(30, int(.01 * self.heartmonitor.period))
 
     # not configurable
     db = Instance('IPython.parallel.controller.dictdb.BaseDB')
@@ -417,8 +424,6 @@ class Hub(SessionFactory):
         """
 
         super(Hub, self).__init__(**kwargs)
-        if self.registration_timeout <= 0:
-           self.registration_timeout = max(10000, 5*self.heartmonitor.period)
 
         # register our callbacks
         self.query.on_recv(self.dispatch_query)
