@@ -2,11 +2,16 @@
 
 // Test
 casper.notebook_test(function () {
-    var index = this.append_cell('print("a")');
+    var a = 'print("a")';
+    var index = this.append_cell(a);
     this.execute_cell_then(index);
-    index = this.append_cell('print("b")');
+
+    var b = 'print("b")';
+    index = this.append_cell(b);
     this.execute_cell_then(index);
-    index = this.append_cell('print("c")');
+
+    var c = 'print("c")';
+    index = this.append_cell(c);
     this.execute_cell_then(index);
 
     this.then(function () {
@@ -56,7 +61,7 @@ casper.notebook_test(function () {
         this.click_cell_editor(3);
         this.validate_state('click cell 3', 'edit', 3);
 
-        // shift+enter tests.
+        // shift+enter
         // last cell in notebook
         var base_index = 3;
         this.trigger_keydown('shift+enter'); // Creates one cell
@@ -72,7 +77,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('shift+enter');
         this.validate_state('shift+enter (start in command mode)', 'command', base_index + 1);
 
-        // ctrl+enter tests.
+        // ctrl+enter
         // last cell in notebook
         base_index++;
         this.trigger_keydown('ctrl+enter');
@@ -88,7 +93,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('ctrl+enter');
         this.validate_state('ctrl+enter (start in command mode)', 'command', base_index);
 
-        // alt+enter tests.
+        // alt+enter
         // last cell in notebook
         this.trigger_keydown('alt+enter'); // Creates one cell
         this.validate_state('alt+enter (no cell below)', 'edit', base_index + 1);
@@ -104,10 +109,11 @@ casper.notebook_test(function () {
         this.validate_state('alt+enter (start in command mode)', 'edit', base_index + 1);
 
         // Notebook will now have 8 cells, the index of the last cell will be 7.
-        this.test.assertEquals(this.get_cells().length, 8, '*-enter commands added cells where needed.');
+        this.test.assertEquals(this.get_cells_length(), 8, '*-enter commands added cells where needed.');
         this.select_cell(7);
         this.validate_state('click cell ' + 7 + ' and esc', 'command', 7);
 
+        // Cell mode change
         this.trigger_keydown('r');
         this.test.assertEquals(this.get_cell(7).cell_type, 'raw', 'r; cell is raw');
         this.trigger_keydown('1');
@@ -128,19 +134,21 @@ casper.notebook_test(function () {
         this.trigger_keydown('y');
         this.test.assertEquals(this.get_cell(7).cell_type, 'code', 'y; cell is code');
 
+        // Cell deletion
         this.trigger_keydown('d', 'd');
-        this.test.assertEquals(this.get_cells().length, 7, 'dd actually deletes a cell');
+        this.test.assertEquals(this.get_cells_length(), 7, 'dd actually deletes a cell');
         this.validate_state('dd', 'command', 6);
 
-        // Make sure that if the time between d presses is too long 
+        // Make sure that if the time between d presses is too long, nothing gets removed.
         this.trigger_keydown('d');
     });
     this.wait(1000);
     this.then(function () {
         this.trigger_keydown('d');
-
-        this.test.assertEquals(this.get_cells().length, 7, "d, 1 second wait, d doesn't delete a cell");
+        this.test.assertEquals(this.get_cells_length(), 7, "d, 1 second wait, d doesn't delete a cell");
         this.validate_state('d, 1 second wait, d', 'command', 6);
+
+        // Up and down in command mode
         this.trigger_keydown('j');
         this.validate_state('j at end of notebook', 'command', 6);
         this.trigger_keydown('down');
@@ -156,6 +164,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('down');
         this.validate_state('down', 'command', 1);
 
+        // Up and down in edit mode
         this.click_cell_editor(6);
         this.validate_state('click cell 6', 'edit', 6);
         this.trigger_keydown('down');
@@ -169,6 +178,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('down');
         this.validate_state('down', 'edit', 1);
 
+        // Markdown rendering / unredering
         this.select_cell(6);
         this.validate_state('select 6', 'command', 6);
         this.trigger_keydown('m');
@@ -186,7 +196,7 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_cell(6).rendered, false, 'select 5; cell 6 is still unrendered');
         this.validate_state('select 5', 'command', 5);
         this.select_cell(6);
-        this.validate_state('select 6', 'command', 5);
+        this.validate_state('select 6', 'command', 6);
         this.trigger_keydown('ctrl+enter');
         this.test.assertEquals(this.get_cell(6).rendered, true, 'ctrl+enter; cell is rendered');
         this.select_cell(5);
@@ -198,6 +208,38 @@ casper.notebook_test(function () {
         this.validate_state('shift+enter', 'edit', 7);
         this.test.assertEquals(this.get_cell(6).rendered, true, 'shift+enter; cell is rendered');
 
+        // Cell movement ( ctrl+(k or j) )
+        this.select_cell(2);
+        this.test.assertEquals(this.get_cell_text(2), b, 'select 2; Cell 2 text is correct');
+        this.trigger_keydown('ctrl+k'); // Move cell 2 up one
+        this.test.assertEquals(this.get_cell_text(1), b, 'ctrl+k; Cell 1 text is correct');
+        this.test.assertEquals(this.get_cell_text(2), a, 'ctrl+k; Cell 2 text is correct');
+        this.validate_state('ctrl+k', 'command', 1);
+        this.trigger_keydown('ctrl+j'); // Move cell 1 down one
+        this.test.assertEquals(this.get_cell_text(1), a, 'ctrl+j; Cell 1 text is correct');
+        this.test.assertEquals(this.get_cell_text(2), b, 'ctrl+j; Cell 2 text is correct');
+        this.validate_state('ctrl+j', 'command', 2);
+
+        // Cell insertion
+        this.trigger_keydown('a'); // Creates one cell
+        this.test.assertEquals(this.get_cell_text(2), '', 'a; New cell 2 text is empty');
+        this.validate_state('a', 'command', 2);
+        this.trigger_keydown('b'); // Creates one cell
+        this.test.assertEquals(this.get_cell_text(2), '', 'b; Cell 2 text is still empty');
+        this.test.assertEquals(this.get_cell_text(3), '', 'b; New cell 3 text is empty');
+        this.validate_state('b', 'command', 3);
+
+        // Copy/past/cut
+        var num_cells = this.get_cells_length();
+        this.test.assertEquals(this.get_cell_text(1), a, 'Verify that cell 1 is a');
+        this.select_cell(1);
+        this.trigger_keydown('x'); // Cut
+        this.validate_state('x', 'command', 1);
+        this.test.assertEquals(this.get_cells_length(), num_cells-1,  'Verify that the cell was removed.');
+        this.test.assertEquals(this.get_cell_text(1), '', 'Verify that cell 2 is now where cell 1 was.');
+        this.select_cell(2);
+        this.trigger_keydown('v'); // Paste
+        this.validate_state('v', 'command', 3);
 
     });
 
@@ -239,8 +281,8 @@ casper.notebook_test(function () {
     };
 
     this.is_editor_focus_valid = function() {
-        var cells = this.get_cells();
-        for (var i = 0; i < cells.length; i++) {
+        var cells_length = this.get_cells_length();
+        for (var i = 0; i < cells_length; i++) {
             if (!this.is_cell_editor_focus_valid(i)) {
                 return false;
             }
@@ -308,12 +350,6 @@ casper.notebook_test(function () {
         }, {});
     };
 
-    this.get_cells = function() {
-        return this.evaluate(function() {
-            return IPython.notebook.get_cells();
-        }, {});
-    };
-
     this.get_cell = function(index) {
         return this.evaluate(function(i) {
             var cell = IPython.notebook.get_cell(i);
@@ -343,14 +379,14 @@ casper.notebook_test(function () {
     };
 
     this.is_only_cell_on = function(i, on_class, off_class) {
-        var cells = this.get_cells();
-        for (var j = 0; j < cells.length; j++) {
+        var cells_length = this.get_cells_length();
+        for (var j = 0; j < cells_length; j++) {
             if (j === i) {
-                if (this._has_cell_class(j, off_class) || !this._has_cell_class(j, on_class)) {
+                if (this.cell_has_class(j, off_class) || !this.cell_has_class(j, on_class)) {
                     return false;
                 }
             } else {
-                if (!this._has_cell_class(j, off_class) || this._has_cell_class(j, on_class)) {
+                if (!this.cell_has_class(j, off_class) || this.cell_has_class(j, on_class)) {
                     return false;
                 }
             }
@@ -358,7 +394,7 @@ casper.notebook_test(function () {
         return true;
     };
 
-    this._has_cell_class = function(index, classes) {
+    this.cell_has_class = function(index, classes) {
         return this.evaluate(function(i, c) {
             var cell = IPython.notebook.get_cell(i);
             if (cell) {
