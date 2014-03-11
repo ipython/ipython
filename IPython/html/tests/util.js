@@ -296,10 +296,17 @@ casper.get_cell = function(index) {
 };
 
 casper.is_cell_editor_focused = function(index) {
+    // Make sure a cell's editor is the only editor focused on the page.
     return this.evaluate(function(i) {
-        var cell = IPython.notebook.get_cell(i);
-        if (cell) {
-            return $(cell.code_mirror.getInputField()).is('.CodeMirror-focused *');
+        var focused_textarea = $('#notebook .CodeMirror-focused textarea');
+        if (focused_textarea.length > 1) { throw 'More than one Code Mirror editor is focused at once!'; }
+        if (i === null) {
+            return focused_textarea.length === 0;
+        } else {
+            var cell = IPython.notebook.get_cell(i);
+            if (cell) {
+                return cell.code_mirror.getInputField() == focused_textarea[0];
+            }    
         }
         return false;
     }, {i : index});
@@ -399,7 +406,7 @@ casper.on('waitFor.timeout', function onWaitForTimeout(timeout) {
 });
 
 // Pass `console.log` calls from page JS to casper.
-casper.printLog = function () {
+casper.print_log = function () {
     this.on('remote.message', function(msg) {
         this.echo('Remote message caught: ' + msg);
     });
