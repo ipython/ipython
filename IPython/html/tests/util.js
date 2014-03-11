@@ -153,6 +153,14 @@ casper.set_cell_text = function(index, text){
     }, index, text);
 };
 
+// Get the text content of a cell.
+casper.get_cell_text = function(index){
+    return this.evaluate(function (index) {
+        var cell = IPython.notebook.get_cell(index);
+        return cell.get_text();
+    }, index);
+};
+
 // Inserts a cell at the bottom of the notebook
 // Returns the new cell's index.
 casper.insert_cell_at_bottom = function(cell_type){
