@@ -23,9 +23,9 @@ casper.notebook_test(function () {
         this.validate_state('esc', 'command', 1);
         this.trigger_keydown('j');
         this.validate_state('j in command mode', 'command', 2);
-        this.click_cell(0);
+        this.click_cell_editor(0);
         this.validate_state('click cell 0', 'edit', 0);
-        this.click_cell(3);
+        this.click_cell_editor(3);
         this.validate_state('click cell 3', 'edit', 3);
         this.trigger_keydown('esc');
         this.validate_state('esc', 'command', 3);
@@ -45,15 +45,15 @@ casper.notebook_test(function () {
 
         this.trigger_keydown('k');
         this.validate_state('k in command mode', 'command', 2);
-        this.click_cell(0);
+        this.click_cell_editor(0);
         this.validate_state('click cell 0', 'edit', 0);
         this.focus_notebook();
         this.validate_state('focus #notebook', 'command', 0);
-        this.click_cell(0);
+        this.click_cell_editor(0);
         this.validate_state('click cell 0', 'edit', 0);
         this.focus_notebook();
         this.validate_state('focus #notebook', 'command', 0);
-        this.click_cell(3);
+        this.click_cell_editor(3);
         this.validate_state('click cell 3', 'edit', 3);
 
         // shift+enter tests.
@@ -62,7 +62,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('shift+enter'); // Creates one cell
         this.validate_state('shift+enter (no cell below)', 'edit', base_index + 1);
         // not last cell in notebook & starts in edit mode
-        this.click_cell(base_index);
+        this.click_cell_editor(base_index);
         this.validate_state('click cell ' + base_index, 'edit', base_index);
         this.trigger_keydown('shift+enter');
         this.validate_state('shift+enter (cell exists below)', 'command', base_index + 1);
@@ -78,7 +78,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('ctrl+enter');
         this.validate_state('ctrl+enter (no cell below)', 'command', base_index);
         // not last cell in notebook & starts in edit mode
-        this.click_cell(base_index-1);
+        this.click_cell_editor(base_index-1);
         this.validate_state('click cell ' + (base_index-1), 'edit', base_index-1);
         this.trigger_keydown('ctrl+enter');
         this.validate_state('ctrl+enter (cell exists below)', 'command', base_index-1);
@@ -93,21 +93,19 @@ casper.notebook_test(function () {
         this.trigger_keydown('alt+enter'); // Creates one cell
         this.validate_state('alt+enter (no cell below)', 'edit', base_index + 1);
         // not last cell in notebook & starts in edit mode
-        this.click_cell(base_index);
+        this.click_cell_editor(base_index);
         this.validate_state('click cell ' + base_index, 'edit', base_index);
         this.trigger_keydown('alt+enter'); // Creates one cell
         this.validate_state('alt+enter (cell exists below)', 'edit', base_index + 1);
         // starts in command mode
-        this.trigger_keydown('esc');
-        this.trigger_keydown('k');
+        this.trigger_keydown('esc', 'k');
         this.validate_state('k in comand mode', 'command', base_index);
         this.trigger_keydown('alt+enter'); // Creates one cell
         this.validate_state('alt+enter (start in command mode)', 'edit', base_index + 1);
 
         // Notebook will now have 8 cells, the index of the last cell will be 7.
         this.test.assertEquals(this.get_cells().length, 8, '*-enter commands added cells where needed.');
-        this.click_cell(7);
-        this.trigger_keydown('esc');
+        this.select_cell(7);
         this.validate_state('click cell ' + 7 + ' and esc', 'command', 7);
 
         this.trigger_keydown('r');
@@ -130,8 +128,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('y');
         this.test.assertEquals(this.get_cell(7).cell_type, 'code', 'y; cell is code');
 
-        this.trigger_keydown('d');
-        this.trigger_keydown('d');
+        this.trigger_keydown('d', 'd');
         this.test.assertEquals(this.get_cells().length, 7, 'dd actually deletes a cell');
         this.validate_state('dd', 'command', 6);
 
@@ -144,6 +141,63 @@ casper.notebook_test(function () {
 
         this.test.assertEquals(this.get_cells().length, 7, "d, 1 second wait, d doesn't delete a cell");
         this.validate_state('d, 1 second wait, d', 'command', 6);
+        this.trigger_keydown('j');
+        this.validate_state('j at end of notebook', 'command', 6);
+        this.trigger_keydown('down');
+        this.validate_state('down at end of notebook', 'command', 6);
+        this.trigger_keydown('up');
+        this.validate_state('up', 'command', 5);
+        this.select_cell(0);
+        this.validate_state('select 0', 'command', 0);
+        this.trigger_keydown('k');
+        this.validate_state('k at top of notebook', 'command', 0);
+        this.trigger_keydown('up');
+        this.validate_state('up at top of notebook', 'command', 0);
+        this.trigger_keydown('down');
+        this.validate_state('down', 'command', 1);
+
+        this.click_cell_editor(6);
+        this.validate_state('click cell 6', 'edit', 6);
+        this.trigger_keydown('down');
+        this.validate_state('down at end of notebook', 'edit', 6);
+        this.trigger_keydown('up');
+        this.validate_state('up', 'edit', 5);
+        this.click_cell_editor(0);
+        this.validate_state('click 0', 'edit', 0);
+        this.trigger_keydown('up');
+        this.validate_state('up at top of notebook', 'edit', 0);
+        this.trigger_keydown('down');
+        this.validate_state('down', 'edit', 1);
+
+        this.select_cell(6);
+        this.validate_state('select 6', 'command', 6);
+        this.trigger_keydown('m');
+        this.test.assertEquals(this.get_cell(6).cell_type, 'markdown', 'm; cell is markdown');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'm; cell is rendered');
+        this.trigger_keydown('enter');
+        this.test.assertEquals(this.get_cell(6).rendered, false, 'enter; cell is unrendered');
+        this.validate_state('enter', 'edit', 6);
+        this.trigger_keydown('ctrl+enter');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.validate_state('enter', 'command', 6);
+        this.trigger_keydown('enter');
+        this.test.assertEquals(this.get_cell(6).rendered, false, 'enter; cell is unrendered');
+        this.select_cell(5);
+        this.test.assertEquals(this.get_cell(6).rendered, false, 'select 5; cell 6 is still unrendered');
+        this.validate_state('select 5', 'command', 5);
+        this.select_cell(6);
+        this.validate_state('select 6', 'command', 5);
+        this.trigger_keydown('ctrl+enter');
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.select_cell(5);
+        this.validate_state('select 5', 'command', 5);
+        this.trigger_keydown('shift+enter');
+        this.validate_state('shift+enter', 'command', 6);
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+        this.trigger_keydown('shift+enter'); // Creates one cell
+        this.validate_state('shift+enter', 'edit', 7);
+        this.test.assertEquals(this.get_cell(6).rendered, true, 'enter; cell is rendered');
+
 
     });
 
@@ -210,8 +264,13 @@ casper.notebook_test(function () {
     /* TODO: MOVE EVERYTHING BELOW THIS LINE INTO THE BASE (utils.js) */
 
 
+    this.select_cell = function (index) {
+        this.evaluate(function (i) {
+            IPython.notebook.select(i);
+        }, {i: index});
+    };
 
-    this.click_cell = function(index) {
+    this.click_cell_editor = function(index) {
         // Code Mirror does not play nicely with emulated brower events.  
         // Instead of trying to emulate a click, here we run code similar to
         // the code used in Code Mirror that handles the mousedown event on a
@@ -229,10 +288,12 @@ casper.notebook_test(function () {
         }, {});
     };
 
-    this.trigger_keydown = function(key) {
-        this.evaluate(function (k) {
-            IPython.keyboard.trigger_keydown(k);
-        }, {k: key});
+    this.trigger_keydown = function() {
+        for (var i = 0; i < arguments.length; i++) {
+            this.evaluate(function (k) {
+                IPython.keyboard.trigger_keydown(k);
+            }, {k: arguments[i]});    
+        }
     };
 
     this.get_keyboard_mode = function() {
