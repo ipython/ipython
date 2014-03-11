@@ -233,6 +233,44 @@ casper.cell_element_function = function(index, selector, function_name, function
     }, index, selector, function_name, function_args);
 };
 
+casper.validate_notebook_state = function(message, mode, cell_index) {
+    // General tests.
+    this.test.assertEquals(this.get_keyboard_mode(), this.get_notebook_mode(),
+        message + '; keyboard and notebook modes match');
+    // Is the selected cell the only cell that is selected?
+    if (cell_index!==undefined) {
+        this.test.assert(this.is_only_cell_selected(cell_index),
+            message + '; cell ' + cell_index + ' is the only cell selected');
+    }
+
+    // Mode specific tests.
+    if (mode==='command') {
+        // Are the notebook and keyboard manager in command mode?
+        this.test.assertEquals(this.get_keyboard_mode(), 'command',
+            message + '; in command mode');
+        // Make sure there isn't a single cell in edit mode.
+        this.test.assert(this.is_only_cell_edit(null),
+            message + '; all cells in command mode');
+        this.test.assert(this.is_cell_editor_focused(null),
+            message + '; no cell editors are focused while in command mode');
+
+    } else if (mode==='edit') {
+        // Are the notebook and keyboard manager in edit mode?
+        this.test.assertEquals(this.get_keyboard_mode(), 'edit',
+            message + '; in edit mode');
+        if (cell_index!==undefined) {
+            // Is the specified cell the only cell in edit mode?
+            this.test.assert(this.is_only_cell_edit(cell_index),
+                message + '; cell ' + cell_index + ' is the only cell in edit mode');
+            // Is the specified cell the only cell with a focused code mirror?
+            this.test.assert(this.is_cell_editor_focused(cell_index),
+                message + '; cell ' + cell_index + '\'s editor is appropriately focused');
+        }
+
+    } else {
+        this.test.assert(false, message + '; ' + mode + ' is an unknown mode');
+    }
+};
 
 casper.select_cell = function(index) {
     this.evaluate(function (i) {
