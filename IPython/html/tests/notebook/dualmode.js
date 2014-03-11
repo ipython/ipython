@@ -269,8 +269,8 @@ casper.notebook_test(function () {
         this.select_cell(0);
         this.trigger_keydown('a', 'enter'); // Create cell above and enter edit mode.
         this.validate_state('a, enter', 'edit', 0);
-        this.trigger_keydown('a', 'b', 'c', 'd', 'left', 'left'); // Type 'abcd' and place the cursor in the middle.
-        this.validate_state('a, enter', 'edit', 0);
+        this.set_cell_text(0, 'abcd');
+        this.set_cell_editor_cursor(0, 0, 2);
         this.test.assertEquals(this.get_cell_text(0), 'abcd', 'Verify that cell 0 has the new contents.');
         this.trigger_keydown('alt+-'); // Split
         this.test.assertEquals(this.get_cell_text(0), 'ab', 'split; Verify that cell 0 has the first half.');

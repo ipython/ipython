@@ -246,10 +246,17 @@ casper.click_cell_editor = function(index) {
     // the code used in Code Mirror that handles the mousedown event on a
     // region of codemirror that the user can focus.
     this.evaluate(function (i) {
-        cm = IPython.notebook.get_cell(i).code_mirror;
+        var cm = IPython.notebook.get_cell(i).code_mirror;
         if (cm.options.readOnly != "nocursor" && (document.activeElement != cm.display.input))
             cm.display.input.focus();
     }, {i: index});
+};
+
+casper.set_cell_editor_cursor = function(index, line_index, char_index) {
+    // Set the Code Mirror instance cursor's location.
+    this.evaluate(function (i, l, c) {
+        IPython.notebook.get_cell(i).code_mirror.setCursor(l, c);
+    }, {i: index, l: line_index, c: char_index});
 };
 
 casper.focus_notebook = function() {
