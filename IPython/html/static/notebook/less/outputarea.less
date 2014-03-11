@@ -140,11 +140,11 @@ div.output_javascript:empty {
 /* raw_input styles */
 
 div.raw_input {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    height: 1em;
     line-height: 1em;
     font-family: @monoFontFamily;
+    // for some reason, em padding doesn't compute the same for raw_input
+    // that is not the first input, but px does
+    padding-top: 5px;
 }
 
 span.input_prompt {
@@ -156,10 +156,14 @@ input.raw_input {
     font-size: inherit;
     color: inherit;
     width: auto;
-    margin: -2px 0px 0px 1px;
+    margin: 0px 0px 0px 1px;
     padding-left: 1px;
-    padding-top: 2px;
+    padding-top: 0px;
     height: 1em;
+}
+
+input.raw_input:focus {
+    box-shadow: none;
 }
 
 p.p-space {
