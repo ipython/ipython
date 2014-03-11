@@ -197,6 +197,10 @@ class JSController(TestController):
         """Create new test runner."""
         TestController.__init__(self)
         self.section = section
+        js_test_dir = get_js_test_dir()
+        includes = '--includes=' + os.path.join(js_test_dir,'util.js')
+        test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
+        self.cmd = ['casperjs', 'test', includes, test_cases]
 
     def setup(self):
         self.ipydir = TemporaryDirectory()
@@ -208,11 +212,7 @@ class JSController(TestController):
         
         # start the ipython notebook, so we get the port number
         self._init_server()
-        js_test_dir = get_js_test_dir()
-        includes = '--includes=' + os.path.join(js_test_dir,'util.js')
-        test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
-        port = '--port=' + str(self.server_port)
-        self.cmd = ['casperjs', 'test', port, includes, test_cases]
+        self.cmd.append('--port=%s' % self.server_port)
 
     def print_extra_info(self):
         print("Running tests with notebook directory %r" % self.nbdir.name)
