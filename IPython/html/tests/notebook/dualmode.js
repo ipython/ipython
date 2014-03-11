@@ -265,6 +265,22 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_cell_text(0), c, 'Verify that cell 0 has the copied contents.');
         this.test.assertEquals(this.get_cells_length(), num_cells+3,  'Verify a the cell was added.');
         
+        // Split and merge cells
+        this.select_cell(0);
+        this.trigger_keydown('a', 'enter'); // Create cell above and enter edit mode.
+        this.validate_state('a, enter', 'edit', 0);
+        this.trigger_keydown('a', 'b', 'c', 'd', 'left', 'left'); // Type 'abcd' and place the cursor in the middle.
+        this.validate_state('a, enter', 'edit', 0);
+        this.test.assertEquals(this.get_cell_text(0), 'abcd', 'Verify that cell 0 has the new contents.');
+        this.trigger_keydown('alt+-'); // Split
+        this.test.assertEquals(this.get_cell_text(0), 'ab', 'split; Verify that cell 0 has the first half.');
+        this.test.assertEquals(this.get_cell_text(1), 'cd', 'split; Verify that cell 1 has the second half.');
+        this.validate_state('split', 'edit', 1);
+        this.select_cell(0); // Move up to cell 0
+        this.trigger_keydown('shift+m'); // Merge
+        this.validate_state('merge', 'command', 0);
+        this.test.assertEquals(this.get_cell_text(0), 'ab\ncd', 'merge; Verify that cell 0 has the merged contents.');
+        
 
     });
 
