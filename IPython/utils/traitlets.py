@@ -220,7 +220,7 @@ class link(object):
             for obj,attr in self.objects.keys():
                 if obj is not sending_obj or attr != sending_attr:
                     setattr(obj, attr, new)
-    
+
     def unlink(self):
         for key, callback in self.objects.items():
             (obj,attr) = key
@@ -677,16 +677,29 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         else:
             return trait.get_metadata(key)
 
+class AllowNone(TraitType):
+    """A trait that can be set to allow None values. It does not provide
+    validation."""
+    def __init__(self, default_value=NoDefaultSpecified, allow_none = False, **metadata):
+        self._allow_none = allow_none
+        super(AllowNone, self).__init__(default_value, **metadata)
+
+    def _none_ok(self, value):
+        """The validate method can return the None value."""
+        return value is None and self._allow_none
+
+
 #-----------------------------------------------------------------------------
 # Actual TraitTypes implementations/subclasses
 #-----------------------------------------------------------------------------
+
 
 #-----------------------------------------------------------------------------
 # TraitTypes subclasses for handling classes and instances of classes
 #-----------------------------------------------------------------------------
 
 
-class ClassBasedTraitType(TraitType):
+class ClassBasedTraitType(AllowNone):
     """A trait with error reporting for Type, Instance and This."""
 
     def error(self, obj, value):
@@ -745,9 +758,8 @@ class Type(ClassBasedTraitType):
             raise TraitError("A Type trait must specify a class.")
 
         self.klass       = klass
-        self._allow_none = allow_none
 
-        super(Type, self).__init__(default_value, **metadata)
+        super(Type, self).__init__(default_value, allow_none, **metadata)
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
@@ -755,7 +767,7 @@ class Type(ClassBasedTraitType):
             if issubclass(value, self.klass):
                 return value
         except:
-            if (value is None) and (self._allow_none):
+            if self._none_ok(value):
                 return value
 
         self.error(obj, value)
@@ -831,8 +843,6 @@ class Instance(ClassBasedTraitType):
         not (but not both), None is replace by ``()`` or ``{}``.
         """
 
-        self._allow_none = allow_none
-
         if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, py3compat.string_types))):
             raise TraitError('The klass argument must be a class'
                                 ' you gave: %r' % klass)
@@ -856,7 +866,7 @@ class Instance(ClassBasedTraitType):
 
             default_value = DefaultValueGenerator(*args, **kw)
 
-        super(Instance, self).__init__(default_value, **metadata)
+        super(Instance, self).__init__(default_value, allow_none, **metadata)
 
     def validate(self, obj, value):
         if value is None:
@@ -935,14 +945,14 @@ class Any(TraitType):
     info_text = 'any value'
 
 
-class Int(TraitType):
+class Int(AllowNone):
     """An int trait."""
 
     default_value = 0
     info_text = 'an int'
 
     def validate(self, obj, value):
-        if isinstance(value, int):
+        if isinstance(value, int)  or self._none_ok(value):
             return value
         self.error(obj, value)
 
@@ -953,20 +963,22 @@ class CInt(Int):
         try:
             return int(value)
         except:
+            if self._none_ok(value):
+                return value
             self.error(obj, value)
 
 if py3compat.PY3:
     Long, CLong = Int, CInt
     Integer = Int
 else:
-    class Long(TraitType):
+    class Long(AllowNone):
         """A long integer trait."""
 
         default_value = 0
         info_text = 'a long'
 
         def validate(self, obj, value):
-            if isinstance(value, long):
+            if isinstance(value, long)  or self._none_ok(value):
                 return value
             if isinstance(value, int):
                 return long(value)
@@ -980,9 +992,11 @@ else:
             try:
                 return long(value)
             except:
+                if self._none_ok(value):
+                    return value
                 self.error(obj, value)
 
-    class Integer(TraitType):
+    class Integer(AllowNone):
         """An integer trait.
 
         Longs that are unnecessary (<= sys.maxint) are cast to ints."""
@@ -991,7 +1005,7 @@ else:
         info_text = 'an integer'
 
         def validate(self, obj, value):
-            if isinstance(value, int):
+            if isinstance(value, int) or self._none_ok(value):
                 return value
             if isinstance(value, long):
                 # downcast longs that fit in int:
@@ -1005,14 +1019,14 @@ else:
             self.error(obj, value)
 
 
-class Float(TraitType):
+class Float(AllowNone):
     """A float trait."""
 
     default_value = 0.0
     info_text = 'a float'
 
     def validate(self, obj, value):
-        if isinstance(value, float):
+        if isinstance(value, float ) or self._none_ok(value):
             return value
         if isinstance(value, int):
             return float(value)
@@ -1026,16 +1040,18 @@ class CFloat(Float):
         try:
             return float(value)
         except:
+            if self._none_ok(value):
+                return value
             self.error(obj, value)
 
-class Complex(TraitType):
+class Complex(AllowNone):
     """A trait for complex numbers."""
 
     default_value = 0.0 + 0.0j
     info_text = 'a complex number'
 
     def validate(self, obj, value):
-        if isinstance(value, complex):
+        if isinstance(value, complex) or self._none_ok(value):
             return value
         if isinstance(value, (float, int)):
             return complex(value)
@@ -1049,19 +1065,21 @@ class CComplex(Complex):
         try:
             return complex(value)
         except:
+            if self._noe_ok(value):
+                return value
             self.error(obj, value)
 
 # We should always be explicit about whether we're using bytes or unicode, both
 # for Python 3 conversion and for reliable unicode behaviour on Python 2. So
 # we don't have a Str type.
-class Bytes(TraitType):
+class Bytes(AllowNone):
     """A trait for byte strings."""
 
     default_value = b''
     info_text = 'a bytes object'
 
     def validate(self, obj, value):
-        if isinstance(value, bytes):
+        if isinstance(value, bytes) or self._none_ok(value):
             return value
         self.error(obj, value)
 
@@ -1073,17 +1091,19 @@ class CBytes(Bytes):
         try:
             return bytes(value)
         except:
+            if self._none_ok(value):
+                return value
             self.error(obj, value)
 
 
-class Unicode(TraitType):
+class Unicode(AllowNone):
     """A trait for unicode strings."""
 
     default_value = u''
     info_text = 'a unicode string'
 
     def validate(self, obj, value):
-        if isinstance(value, py3compat.unicode_type):
+        if isinstance(value, py3compat.unicode_type) or self._none_ok(value):
             return value
         if isinstance(value, bytes):
             try:
@@ -1101,10 +1121,12 @@ class CUnicode(Unicode):
         try:
             return py3compat.unicode_type(value)
         except:
+            if self._allow_none(value):
+                return value
             self.error(obj, value)
 
 
-class ObjectName(TraitType):
+class ObjectName(AllowNone):
     """A string holding a valid object name in this version of Python.
 
     This does not check that the name exists in any scope."""
@@ -1126,6 +1148,8 @@ class ObjectName(TraitType):
             return value
 
     def validate(self, obj, value):
+        if self._none_ok(value):
+            return value
         value = self.coerce_str(obj, value)
 
         if isinstance(value, str) and py3compat.isidentifier(value):
@@ -1135,6 +1159,8 @@ class ObjectName(TraitType):
 class DottedObjectName(ObjectName):
     """A string holding a valid dotted object name in Python, such as A.b3._c"""
     def validate(self, obj, value):
+        if self._none_ok(value):
+            return value
         value = self.coerce_str(obj, value)
 
         if isinstance(value, str) and py3compat.isidentifier(value, dotted=True):
@@ -1142,14 +1168,14 @@ class DottedObjectName(ObjectName):
         self.error(obj, value)
 
 
-class Bool(TraitType):
+class Bool(AllowNone):
     """A boolean (True, False) trait."""
 
     default_value = False
     info_text = 'a boolean'
 
     def validate(self, obj, value):
-        if isinstance(value, bool):
+        if isinstance(value, bool) or self._none_ok(value):
             return value
         self.error(obj, value)
 
@@ -1358,7 +1384,7 @@ class List(Container):
             self.length_error(obj, value)
 
         return super(List, self).validate_elements(obj, value)
-    
+
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
         if value is None:
@@ -1367,7 +1393,7 @@ class List(Container):
         value = self.validate_elements(obj, value)
 
         return value
-        
+
 
 
 class Set(List):
@@ -1487,7 +1513,7 @@ class Dict(Instance):
         super(Dict,self).__init__(klass=dict, args=args,
                                   allow_none=allow_none, **metadata)
 
-class TCPAddress(TraitType):
+class TCPAddress(AllowNone):
     """A trait for an (ip, port) tuple.
 
     This allows for both IPv4 IP addresses as well as hostnames.
@@ -1503,9 +1529,11 @@ class TCPAddress(TraitType):
                     port = value[1]
                     if port >= 0 and port <= 65535:
                         return value
+        if self._none_ok(value):
+            return value
         self.error(obj, value)
 
-class CRegExp(TraitType):
+class CRegExp(AllowNone):
     """A casting compiled regular expression trait.
 
     Accepts both strings and compiled regular expressions. The resulting
@@ -1517,4 +1545,6 @@ class CRegExp(TraitType):
         try:
             return re.compile(value)
         except:
+            if self._none_ok(value):
+                return value
             self.error(obj, value)
