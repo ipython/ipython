@@ -83,6 +83,9 @@ var IPython = (function (IPython) {
             $modal_ind_icon.attr('class','ipython-command-mode').attr('title','Command Mode');
         });
 
+        // Implicitly start off in Command mode, switching to Edit mode will trigger event
+        $modal_ind_icon.attr('class','ipython-command-mode').attr('title','Command Mode');
+
         // Kernel events
         $([IPython.events]).on('status_idle.Kernel',function () {
             IPython.save_widget.update_document_title();
@@ -105,7 +108,7 @@ var IPython = (function (IPython) {
         
         // Start the kernel indicator in the busy state, and send a kernel_info request.
         // When the kernel_info reply arrives, the kernel is idle.
-        $kernel_ind_icon.attr('class','icon-circle').attr('title','Kernel Busy');
+        $kernel_ind_icon.attr('class','ipython-kernel-busy').attr('title','Kernel Busy');
 
         $([IPython.events]).on('status_started.Kernel', function (evt, data) {
             data.kernel.kernel_info(function () {
