@@ -306,7 +306,9 @@ casper.focus_notebook = function() {
 casper.trigger_keydown = function() {
     for (var i = 0; i < arguments.length; i++) {
         this.evaluate(function (k) {
-            IPython.keyboard.trigger_keydown(k);
+            var element = $(document);
+            var event = IPython.keyboard.shortcut_to_event(k, 'keydown');
+            element.trigger(event);
         }, {k: arguments[i]});    
     }
 };

@@ -134,7 +134,7 @@ IPython.keyboard = (function (IPython) {
         element = $(element);
         var event = shortcut_to_event(shortcut, 'keydown');
         element.trigger(event);
-    };
+    }
 
 
     // Shortcut manager class
@@ -192,7 +192,7 @@ IPython.keyboard = (function (IPython) {
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             $([IPython.events]).trigger('rebuild.QuickHelp');
-        }
+    }
     };
 
     ShortcutManager.prototype.add_shortcuts = function (data) {
@@ -210,7 +210,7 @@ IPython.keyboard = (function (IPython) {
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             $([IPython.events]).trigger('rebuild.QuickHelp');
-        }
+    }
     };
 
     ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
