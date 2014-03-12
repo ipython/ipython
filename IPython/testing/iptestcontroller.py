@@ -221,7 +221,7 @@ class JSController(TestController):
 
     @property
     def will_run(self):
-        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs'])
+        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3'])
 
     def _init_server(self):
         "Start the notebook server in a separate process"
