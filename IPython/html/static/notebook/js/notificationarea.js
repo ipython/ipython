@@ -75,12 +75,12 @@ var IPython = (function (IPython) {
         // Command/Edit mode
         $([IPython.events]).on('edit_mode.Notebook',function () {
             IPython.save_widget.update_document_title();
-            $modal_ind_icon.attr('class','icon-pencil').attr('title','Edit Mode');
+            $modal_ind_icon.attr('class','ipython-edit-mode').attr('title','Edit Mode');
         });
 
         $([IPython.events]).on('command_mode.Notebook',function () {
             IPython.save_widget.update_document_title();
-            $modal_ind_icon.attr('class','').attr('title','Command Mode');
+            $modal_ind_icon.attr('class','ipython-command-mode').attr('title','Command Mode');
         });
 
         // Kernel events
