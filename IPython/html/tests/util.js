@@ -233,6 +233,8 @@ casper.cell_element_function = function(index, selector, function_name, function
     }, index, selector, function_name, function_args);
 };
 
+// Validate the entire dual mode state of the notebook.  Make sure no more than
+// one cell is selected, focused, in edit mode, etc...
 casper.validate_notebook_state = function(message, mode, cell_index) {
     // General tests.
     this.test.assertEquals(this.get_keyboard_mode(), this.get_notebook_mode(),
@@ -272,12 +274,14 @@ casper.validate_notebook_state = function(message, mode, cell_index) {
     }
 };
 
+// Select a cell in the notebook.
 casper.select_cell = function(index) {
     this.evaluate(function (i) {
         IPython.notebook.select(i);
     }, {i: index});
 };
 
+// Emulate a click on a cell's editor.
 casper.click_cell_editor = function(index) {
     // Code Mirror does not play nicely with emulated brower events.  
     // Instead of trying to emulate a click, here we run code similar to
@@ -290,19 +294,21 @@ casper.click_cell_editor = function(index) {
     }, {i: index});
 };
 
+// Set the Code Mirror instance cursor's location.
 casper.set_cell_editor_cursor = function(index, line_index, char_index) {
-    // Set the Code Mirror instance cursor's location.
     this.evaluate(function (i, l, c) {
         IPython.notebook.get_cell(i).code_mirror.setCursor(l, c);
     }, {i: index, l: line_index, c: char_index});
 };
 
+// Focus the notebook div.
 casper.focus_notebook = function() {
     this.evaluate(function (){
         $('#notebook').focus();
     }, {});
 };
 
+// Emulate a keydown in the notebook.
 casper.trigger_keydown = function() {
     for (var i = 0; i < arguments.length; i++) {
         this.evaluate(function (k) {
@@ -313,18 +319,24 @@ casper.trigger_keydown = function() {
     }
 };
 
+// Get the mode of the keyboard manager.
 casper.get_keyboard_mode = function() {
     return this.evaluate(function() {
         return IPython.keyboard_manager.mode;
     }, {});
 };
 
+// Get the mode of the notebook.
 casper.get_notebook_mode = function() {
     return this.evaluate(function() {
         return IPython.notebook.mode;
     }, {});
 };
 
+// Get a single cell.
+//
+// Note: Handles to DOM elements stored in the cell will be useless once in
+//       CasperJS context.
 casper.get_cell = function(index) {
     return this.evaluate(function(i) {
         var cell = IPython.notebook.get_cell(i);
@@ -335,8 +347,8 @@ casper.get_cell = function(index) {
     }, {i : index});
 };
 
+// Make sure a cell's editor is the only editor focused on the page.
 casper.is_cell_editor_focused = function(index) {
-    // Make sure a cell's editor is the only editor focused on the page.
     return this.evaluate(function(i) {
         var focused_textarea = $('#notebook .CodeMirror-focused textarea');
         if (focused_textarea.length > 1) { throw 'More than one Code Mirror editor is focused at once!'; }
@@ -352,14 +364,21 @@ casper.is_cell_editor_focused = function(index) {
     }, {i : index});
 };
 
+// Check if a cell is the only cell selected.
+// Pass null as the index to check if no cells are selected.
 casper.is_only_cell_selected = function(index) {
     return this.is_only_cell_on(index, 'selected', 'unselected');
 };
 
+// Check if a cell is the only cell in edit mode.
+// Pass null as the index to check if all of the cells are in command mode.
 casper.is_only_cell_edit = function(index) {
     return this.is_only_cell_on(index, 'edit_mode', 'command_mode');
 };
 
+// Check if a cell is the only cell with the `on_class` DOM class applied to it.
+// All of the other cells are checked for the `off_class` DOM class.
+// Pass null as the index to check if all of the cells have the `off_class`.
 casper.is_only_cell_on = function(i, on_class, off_class) {
     var cells_length = this.get_cells_length();
     for (var j = 0; j < cells_length; j++) {
@@ -376,6 +395,7 @@ casper.is_only_cell_on = function(i, on_class, off_class) {
     return true;
 };
 
+// Check if a cell has a class.
 casper.cell_has_class = function(index, classes) {
     return this.evaluate(function(i, c) {
         var cell = IPython.notebook.get_cell(i);
