@@ -101,11 +101,21 @@ def is_hidden(abs_path, abs_root=''):
     inside_root = abs_path[len(abs_root):]
     if any(part.startswith('.') for part in inside_root.split(os.sep)):
         return True
+
+    # check that path can be listed
+    try:
+        os.listdir(abs_path)
+    except Exception:
+        return True
     
     # check UF_HIDDEN on any location up to root
     path = abs_path
     while path and path.startswith(abs_root) and path != abs_root:
-        st = os.stat(path)
+        try:
+            # may fail on Windows junctions
+            st = os.stat(path)
+        except Exception:
+            return True
         if getattr(st, 'st_flags', 0) & UF_HIDDEN:
             return True
         path = os.path.dirname(path)
