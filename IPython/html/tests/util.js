@@ -4,9 +4,9 @@
 
 // Get the URL of a notebook server on which to run tests.
 casper.get_notebook_server = function () {
-    port = casper.cli.get("port")
+    port = casper.cli.get("port");
     port = (typeof port === 'undefined') ? '8888' : port;
-    return 'http://127.0.0.1:' + port
+    return 'http://127.0.0.1:' + port;
 };
 
 // Create and open a new notebook.
@@ -107,13 +107,13 @@ casper.wait_for_widget = function (widget_info) {
             return IPython.notebook.kernel.widget_manager.get_model(m).pending_msgs;
         }, {m: widget_info.model_id});
 
-        if (pending == 0) {
+        if (pending === 0) {
             return true;
         } else {
             return false;
         }
     });
-}
+};
 
 // return an output of a given cell
 casper.get_output_cell = function (cell_num, out_num) {
@@ -141,7 +141,7 @@ casper.get_output_cell = function (cell_num, out_num) {
 casper.get_cells_length = function () {
     var result = casper.evaluate(function () {
         return IPython.notebook.get_cells().length;
-    })
+    });
     return result;
 };
 
@@ -434,14 +434,14 @@ casper.notebook_test = function(test) {
 casper.wait_for_dashboard = function () {
     // Wait for the dashboard list to load.
     casper.waitForSelector('.list_item');
-}
+};
 
 casper.open_dashboard = function () {
     // Start casper by opening the dashboard page.
     var baseUrl = this.get_notebook_server();
     this.start(baseUrl);
     this.wait_for_dashboard();
-}
+};
 
 casper.dashboard_test = function (test) {
     // Open the dashboard page and run a test.
@@ -457,9 +457,9 @@ casper.dashboard_test = function (test) {
     this.run(function() {
         this.test.done();
     });
-}
+};
 
-casper.options.waitTimeout=10000
+casper.options.waitTimeout=10000;
 casper.on('waitFor.timeout', function onWaitForTimeout(timeout) {
     this.echo("Timeout for " + casper.get_notebook_server());
     this.echo("Is the notebook server running?");
