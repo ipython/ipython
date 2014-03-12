@@ -2048,6 +2048,7 @@ var IPython = (function (IPython) {
         } else {
             this.select(0);
             this.handle_command_mode(this.get_cell(0));
+            $([IPython.events]).trigger('command_mode.Notebook');
         }
         this.set_dirty(false);
         this.scroll_to_top();
