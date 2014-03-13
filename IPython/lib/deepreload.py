@@ -1,18 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-A module to change reload() so that it acts recursively.
-To enable it type::
+Provides a reload() function that acts recursively.
 
-    import __builtin__, deepreload
+Python's normal :func:`python:reload` function only reloads the module that it's
+passed. The :func:`reload` function in this module also reloads everything
+imported from that module, which is useful when you're changing files deep
+inside a package.
+
+To use this as your default reload function, type this for Python 2::
+
+    import __builtin__
+    from IPython.lib import deepreload
     __builtin__.reload = deepreload.reload
 
-You can then disable it with::
+Or this for Python 3::
 
-    __builtin__.reload = deepreload.original_reload
+    import builtins
+    from IPython.lib import deepreload
+    builtins.reload = deepreload.reload
 
-Alternatively, you can add a dreload builtin alongside normal reload with::
-
-    __builtin__.dreload = deepreload.reload
+A reference to the original :func:`python:reload` is stored in this module as
+:data:`original_reload`, so you can restore it later.
 
 This code is almost entirely based on knee.py, which is a Python
 re-implementation of hierarchical module import.
