@@ -171,7 +171,8 @@ var IPython = (function (IPython) {
         var that = this;
         var shortcuts = IPython.keyboard_manager.edit_shortcuts;
 
-        // if this is an edit_shortcuts shortcut, we've already handled it.
+        // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
+        // manager will handle it
         if (shortcuts.use_shortcut(event)) { return true; }
         
         return false;
@@ -254,7 +255,7 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Either delegates keyboard shortcut handling to either IPython keyboard
+     * Delegates keyboard shortcut handling to either IPython keyboard
      * manager when in command mode, or CodeMirror when in edit mode
      *
      * @method handle_keyevent
