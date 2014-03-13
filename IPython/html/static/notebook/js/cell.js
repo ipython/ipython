@@ -164,7 +164,7 @@ var IPython = (function (IPython) {
      *
      * @method handle_codemirror_keyevent
      * @param {CodeMirror} editor - The codemirror instance bound to the cell
-     * @param {event} event -
+     * @param {event} event - key press event which either should or should not be handled by CodeMirror
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {

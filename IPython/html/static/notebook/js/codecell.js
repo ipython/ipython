@@ -202,9 +202,9 @@ var IPython = (function (IPython) {
             // is actually empty
             IPython.tooltip.pending(that, true);
         } else if ( tooltip_closed && event.which === keycodes.esc && event.type === 'keydown') {
-            // If tooltip is active, cancel it.
-            // The call to remove_and_cancel_tooltip above in L177 doesn't pass
-            // force=true. Because of this it won't actually close the tooltip
+            // If tooltip is active, cancel it.  The call to
+            // remove_and_cancel_tooltip above doesn't pass, force=true.
+            // Because of this it won't actually close the tooltip
             // if it is in sticky mode. Thus, we have to check again if it is open
             // and close it with force=true.
             if (!IPython.tooltip._hidden) {
@@ -410,7 +410,7 @@ var IPython = (function (IPython) {
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns;
-        if (prompt_value == undefined) {
+        if (prompt_value === undefined) {
             ns = "&nbsp;";
         } else {
             ns = encodeURIComponent(prompt_value);
