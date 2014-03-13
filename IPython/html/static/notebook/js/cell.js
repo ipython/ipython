@@ -278,7 +278,7 @@ var IPython = (function (IPython) {
      * @return {Boolean}
      */
     Cell.prototype.at_top = function () {
-        var cm = this.code_mirror
+        var cm = this.code_mirror;
         var cursor = cm.getCursor();
         if (cursor.line === 0 && cm.findPosV(cursor, -1, 'line').hitSide) {
             return true;
@@ -292,7 +292,7 @@ var IPython = (function (IPython) {
      * @return {Boolean}
      * */
     Cell.prototype.at_bottom = function () {
-        var cm = this.code_mirror
+        var cm = this.code_mirror;
         var cursor = cm.getCursor();
         if (cursor.line === (cm.lineCount()-1) && cm.findPosV(cursor, 1, 'line').hitSide) {
             return true;
