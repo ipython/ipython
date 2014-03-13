@@ -2,6 +2,7 @@
 // Test merging two notebook cells.
 //
 casper.notebook_test(function() {
+    var that = this;
     var output = this.evaluate(function () {
         // Fill in test data.
         IPython.notebook.command_mode();
@@ -9,7 +10,10 @@ casper.notebook_test(function() {
             var cell_one = IPython.notebook.get_selected_cell();
             cell_one.set_text('a = 5');
             
-            IPython.keyboard.trigger_keydown('b');
+            var element = $(document);
+            var event = IPython.keyboard.shortcut_to_event('b', 'keydown');
+            element.trigger(event);
+
             var cell_two = IPython.notebook.get_selected_cell();
             cell_two.set_text('print(a)');
         };

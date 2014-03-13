@@ -31,8 +31,8 @@ casper.notebook_test(function () {
     });
 
     // interrupt using Ctrl-M I keyboard shortcut
-    this.thenEvaluate( function() {
-        IPython.keyboard.trigger_keydown('i');
+    this.then(function(){
+        this.trigger_keydown('i');
     });
     
     this.wait_for_output(0);
