@@ -366,7 +366,7 @@ reduce the need for repetitive typing:
    1. Start typing, and then use the up and down arrow keys (or :kbd:`Ctrl-p`
       and :kbd:`Ctrl-n`) to search through only the history items that match
       what you've typed so far.
-   2. Hit :kbd:`Ctrl-r`: opens a search prompt. Begin typing and the system
+   2. Hit :kbd:`Ctrl-r`: to open a search prompt. Begin typing and the system
       searches your history for lines that contain what you've typed so
       far, completing as much as it can.
 
