@@ -155,11 +155,12 @@ IPython = (function (IPython) {
             steps: this.tour_steps,
             template: tour_style
         });
-        this.tour.init();
+        
     };
 
     NotebookTour.prototype.start = function () {
         console.log("let's start the tour");
+        this.tour.init();
         this.tour.start();
         if (this.tour.ended())
         {
