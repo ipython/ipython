@@ -262,8 +262,7 @@ IPython.keyboard = (function (IPython) {
         normalize_key : normalize_key,
         normalize_shortcut : normalize_shortcut,
         shortcut_to_event : shortcut_to_event,
-        event_to_shortcut : event_to_shortcut,
-        trigger_keydown : trigger_keydown
+        event_to_shortcut : event_to_shortcut
     };
 
 }(IPython));

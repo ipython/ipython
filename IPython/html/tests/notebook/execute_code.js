@@ -25,6 +25,10 @@ casper.notebook_test(function () {
         IPython.keyboard.trigger_keydown('shift-enter');
     });
 
+    this.then(function(){
+        
+    });
+
     this.wait_for_output(0);
 
     this.then(function () {
