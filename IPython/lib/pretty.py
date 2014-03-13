@@ -122,6 +122,7 @@ else:
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name']
 
+SEQ_LENGTH_LIMIT = 1000
 
 _re_pattern_type = type(re.compile(''))
 
@@ -599,6 +600,12 @@ def _seq_pprinter_factory(start, end, basetype):
         step = len(start)
         p.begin_group(step, start)
         for idx, x in enumerate(obj):
+            if idx >= SEQ_LENGTH_LIMIT:
+                p.text(',')
+                p.breakable()
+                p.text('...')
+                p.end_group(step, end)
+                return
             if idx:
                 p.text(',')
                 p.breakable()
@@ -636,6 +643,12 @@ def _set_pprinter_factory(start, end, basetype):
                 # Sometimes the items don't sort.
                 pass
             for idx, x in enumerate(items):
+                if idx >= SEQ_LENGTH_LIMIT:
+                    p.text(',')
+                    p.breakable()
+                    p.text('...')
+                    p.end_group(step, end)
+                    return
                 if idx:
                     p.text(',')
                     p.breakable()
@@ -665,6 +678,12 @@ def _dict_pprinter_factory(start, end, basetype=None):
             # Sometimes the keys don't sort.
             pass
         for idx, key in enumerate(keys):
+            if idx >= SEQ_LENGTH_LIMIT:
+                p.text(',')
+                p.breakable()
+                p.text('...')
+                p.end_group(1, end)
+                return
             if idx:
                 p.text(',')
                 p.breakable()

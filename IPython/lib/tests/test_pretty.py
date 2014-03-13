@@ -196,4 +196,29 @@ def test_super_repr():
     sb = SB()
     output = pretty.pretty(super(SA, sb))
     nt.assert_in("SA", output)
-    
+
+
+def test_long_list():
+    lis = list(range(10000))
+    p = pretty.pretty(lis)
+    last2 = p.rsplit('\n', 2)[-2:]
+    nt.assert_equal(last2, [' 999,', ' ...]'])
+
+def test_long_set():
+    s = set(range(10000))
+    p = pretty.pretty(s)
+    last2 = p.rsplit('\n', 2)[-2:]
+    nt.assert_equal(last2, [' 999,', ' ...}'])
+
+def test_long_tuple():
+    tup = tuple(range(10000))
+    p = pretty.pretty(tup)
+    last2 = p.rsplit('\n', 2)[-2:]
+    nt.assert_equal(last2, [' 999,', ' ...)'])
+
+def test_long_dict():
+    d = { n:n for n in range(10000) }
+    p = pretty.pretty(d)
+    last2 = p.rsplit('\n', 2)[-2:]
+    nt.assert_equal(last2, [' 999: 999,', ' ...}'])
+
