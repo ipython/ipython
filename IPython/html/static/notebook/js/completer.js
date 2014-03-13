@@ -259,6 +259,13 @@ var IPython = (function (IPython) {
         this.build_gui_list(this.raw_result);
 
         this.sel.focus();
+        // Since the completer can and will gain focus and it isn't a component
+        // of the codemirror instance, we need to manually "fake" codemirror as
+        // still being focused.  This is accomplished by calling edit_mode on 
+        // the cell when the completer gains focus, and command mode when the
+        // completer loses focus.  If the completer was an actual, true extension
+        // of codemirror, we wouldn't have to play this game since codemirror 
+        // wouldn't blur when the completer was shown.
         this.cell.edit_mode();
         IPython.keyboard_manager.disable();
         // Opera sometimes ignores focusing a freshly created node
@@ -284,6 +291,13 @@ var IPython = (function (IPython) {
     Completer.prototype.close = function () {
         this.done = true;
         $('#complete').remove();
+        // Since the completer can and will gain focus and it isn't a component
+        // of the codemirror instance, we need to manually "fake" codemirror as
+        // still being focused.  This is accomplished by calling edit_mode on 
+        // the cell when the completer gains focus, and command mode when the
+        // completer loses focus.  If the completer was an actual, true extension
+        // of codemirror, we wouldn't have to play this game since codemirror 
+        // wouldn't blur when the completer was shown.
         this.cell.command_mode();
         IPython.keyboard_manager.enable();
     };

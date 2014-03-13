@@ -565,6 +565,8 @@ var IPython = (function (IPython) {
     CodeCell.prototype.unselect = function () {
         var cont = IPython.Cell.prototype.unselect.apply(this);
         if (cont) {
+            // When a code cell is usnelected, make sure that the corresponding
+            // tooltip to that cell is closed.
             IPython.tooltip.remove_and_cancel_tooltip(true);
         }
         return cont;
