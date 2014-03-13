@@ -173,7 +173,7 @@ var IPython = (function (IPython) {
 
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
-        if (shortcuts.use_shortcut(event)) { return true; }
+        if (shortcuts.handles(event)) { return true; }
         
         return false;
     };
