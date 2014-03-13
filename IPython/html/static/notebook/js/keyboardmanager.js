@@ -109,9 +109,9 @@ var IPython = (function (IPython) {
                         IPython.notebook.edit_mode();
                         return false;
                     } else if (cell) {
-                        var cm = cell.code_mirror
-                        var cursor = cm.getCursor()
-                        cursor.line -= 1
+                        var cm = cell.code_mirror;
+                        var cursor = cm.getCursor();
+                        cursor.line -= 1;
                         cm.setCursor(cursor);
                     }
                 }
@@ -131,9 +131,9 @@ var IPython = (function (IPython) {
                         IPython.notebook.edit_mode();
                         return false;
                     } else if (cell) {
-                        var cm = cell.code_mirror
-                        var cursor = cm.getCursor()
-                        cursor.line += 1
+                        var cm = cell.code_mirror;
+                        var cursor = cm.getCursor();
+                        cursor.line += 1;
                         cm.setCursor(cursor);
                     }
                 }
