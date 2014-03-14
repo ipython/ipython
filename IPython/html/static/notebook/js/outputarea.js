@@ -660,14 +660,14 @@ var IPython = (function (IPython) {
         var area = this.create_output_area();
         
         // disable any other raw_inputs, if they are left around
-        $("div.output_subarea.raw_input").remove();
+        $("div.output_subarea.raw_input_container").remove();
         
         area.append(
             $("<div/>")
-            .addClass("box-flex1 output_subarea raw_input")
+            .addClass("box-flex1 output_subarea raw_input_container")
             .append(
                 $("<span/>")
-                .addClass("input_prompt")
+                .addClass("raw_input_prompt")
                 .text(content.prompt)
             )
             .append(
@@ -698,8 +698,8 @@ var IPython = (function (IPython) {
     }
 
     OutputArea.prototype._submit_raw_input = function (evt) {
-        var container = this.element.find("div.raw_input");
-        var theprompt = container.find("span.input_prompt");
+        var container = this.element.find("div.raw_input_container");
+        var theprompt = container.find("span.raw_input_prompt");
         var theinput = container.find("input.raw_input");
         var value = theinput.val();
         var content = {
