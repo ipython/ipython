@@ -139,16 +139,15 @@ div.output_javascript:empty {
 
 /* raw_input styles */
 
-div.raw_input {
-    line-height: 1em;
+div.raw_input_container {
     font-family: @monoFontFamily;
     // for some reason, em padding doesn't compute the same for raw_input
     // that is not the first input, but px does
     padding-top: 5px;
 }
 
-span.input_prompt {
-    font-family: inherit;
+span.raw_input_prompt {
+    /* nothing needed here */
 }
 
 input.raw_input {
@@ -156,10 +155,11 @@ input.raw_input {
     font-size: inherit;
     color: inherit;
     width: auto;
-    margin: 0px 0px 0px 1px;
-    padding-left: 1px;
-    padding-top: 0px;
-    height: 1em;
+    /* make sure input baseline aligns with prompt */
+    vertical-align: baseline;
+    /* padding + margin = 0.5em between prompt and cursor */
+    padding: 0em 0.25em;
+    margin: 0em 0.25em;
 }
 
 input.raw_input:focus {

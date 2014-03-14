@@ -123,9 +123,9 @@ div.output_stderr{background:#fdd;}
 div.output_latex{text-align:left}
 div.output_javascript:empty{padding:0}
 .js-error{color:#8b0000}
-div.raw_input{line-height:1em;font-family:monospace;padding-top:5px}
-span.input_prompt{font-family:inherit}
-input.raw_input{font-family:inherit;font-size:inherit;color:inherit;width:auto;margin:0 0 0 1px;padding-left:1px;padding-top:0;height:1em}
+div.raw_input_container{font-family:monospace;padding-top:5px}
+span.raw_input_prompt{}
+input.raw_input{font-family:inherit;font-size:inherit;color:inherit;width:auto;vertical-align:baseline;padding:0 .25em;margin:0 .25em}
 input.raw_input:focus{box-shadow:none}
 p.p-space{margin-bottom:10px}
 .rendered_html{color:#000;}.rendered_html em{font-style:italic}
