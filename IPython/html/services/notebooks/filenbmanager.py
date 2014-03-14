@@ -85,7 +85,25 @@ class FileNotebookManager(NotebookManager):
                 os.mkdir(new)
             except:
                 raise TraitError("Couldn't create checkpoint dir %r" % new)
-
+    
+    def _copy(self, src, dest):
+        """copy src to dest
+        
+        try copy2, fallback to copy, then finally copyfile
+        """
+        exc = None
+        for name in ('copy2', 'copy', 'copyfile'):
+            cp = getattr(shutil, name)
+            try:
+                cp(src, dest)
+            except OSError as e:
+                exc = e # assignment required for Python 3
+                self.log.debug("%s(%r,%r) failed: %s", name, src, dest, e)
+            else:
+                return
+        # will only get here if all copies fail:
+        raise exc
+    
     def get_notebook_names(self, path=''):
         """List all notebook names in the notebook dir and path."""
         path = path.strip('/')
@@ -432,7 +450,7 @@ class FileNotebookManager(NotebookManager):
         self.log.debug("creating checkpoint for notebook %s", name)
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
-        shutil.copy2(nb_path, cp_path)
+        self._copy(nb_path, cp_path)
         
         # return the checkpoint info
         return self.get_checkpoint_model(checkpoint_id, name, path)
@@ -465,7 +483,7 @@ class FileNotebookManager(NotebookManager):
         # ensure notebook is readable (never restore from an unreadable notebook)
         with io.open(cp_path, 'r', encoding='utf-8') as f:
             current.read(f, u'json')
-        shutil.copy2(cp_path, nb_path)
+        self._copy(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
     
     def delete_checkpoint(self, checkpoint_id, name, path=''):
