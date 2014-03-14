@@ -267,6 +267,7 @@ var IPython = (function (IPython) {
         // of codemirror, we wouldn't have to play this game since codemirror 
         // wouldn't blur when the completer was shown.
         this.cell.edit_mode();
+        $([IPython.events]).trigger('edit_mode.Notebook');
         IPython.keyboard_manager.disable();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function () {
@@ -299,6 +300,7 @@ var IPython = (function (IPython) {
         // of codemirror, we wouldn't have to play this game since codemirror 
         // wouldn't blur when the completer was shown.
         this.cell.command_mode();
+        $([IPython.events]).trigger('command_mode.Notebook');
         IPython.keyboard_manager.enable();
     };
 
