@@ -102,7 +102,8 @@ var IPython = (function (IPython) {
             mode: 'ipython',
             theme: 'ipython',
             matchBrackets: true,
-            autoCloseBrackets: true
+             // don't auto-close strings because of CodeMirror #2385
+            autoCloseBrackets: "()[]{}"
         }
     };
 
