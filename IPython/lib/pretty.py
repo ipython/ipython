@@ -330,7 +330,7 @@ class PrettyPrinter(_PrettyPrinterBase):
     def _enumerate(self, seq):
         """like enumerate, but with an upper limit on the number of items"""
         for idx, x in enumerate(seq):
-            if idx >= self.max_seq_length:
+            if self.max_seq_length and idx >= self.max_seq_length:
                 self.text(',')
                 self.breakable()
                 self.text('...')
