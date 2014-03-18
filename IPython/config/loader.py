@@ -25,6 +25,7 @@ Authors
 
 import argparse
 import copy
+import logging
 import os
 import re
 import sys
@@ -308,7 +309,10 @@ class ConfigLoader(object):
 
     def _log_default(self):
         from IPython.config.application import Application
-        return Application.instance().log
+        if Application.initialized():
+            return Application.instance().log
+        else:
+            return logging.getLogger()
 
     def __init__(self, log=None):
         """A base class for config loaders.

@@ -26,6 +26,7 @@ from __future__ import print_function
 # Imports
 #-----------------------------------------------------------------------------
 
+import logging
 from copy import deepcopy
 
 from .loader import Config, LazyConfigValue
@@ -381,6 +382,9 @@ class LoggingConfigurable(Configurable):
     log = Instance('logging.Logger')
     def _log_default(self):
         from IPython.config.application import Application
-        return Application.instance().log
+        if Application.initialized():
+            return Application.instance().log
+        else:
+            return logging.getLogger()
 
 
