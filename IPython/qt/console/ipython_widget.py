@@ -250,9 +250,9 @@ class IPythonWidget(FrontendWidget):
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.
         if not self._hidden and self._is_from_this_session(msg):
-            source = msg['content']['source']
+            #source = msg['content']['source']
             data = msg['content']['data']
-            metadata = msg['content']['metadata']
+            #metadata = msg['content']['metadata']
             # In the regular IPythonWidget, we simply print the plain text
             # representation.
             if 'text/html' in data:

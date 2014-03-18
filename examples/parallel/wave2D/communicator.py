@@ -42,7 +42,7 @@ class EngineCommunicator(object):
     @property
     def info(self):
         """return the connection info for this object's sockets."""
-        return (self.location, self.north_url, self.east_url)
+        return self.location, self.north_url, self.east_url
     
     def connect(self, south_peer=None, west_peer=None):
         """connect to peers.  `peers` will be a 3-tuples, of the form:

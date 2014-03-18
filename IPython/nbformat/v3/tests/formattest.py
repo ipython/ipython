@@ -46,16 +46,16 @@ class NBFormatTest:
 
     def test_roundtrip(self):
         s = self.mod.writes(nb0)
-        self.assertNBEquals(self.mod.reads(s),nb0)
+        self.assertNBEquals(self.mod.reads(s), nb0)
 
     def test_write_file(self):
         with open_utf8(pjoin(self.wd, "nb0.%s" % self.ext), 'w') as f:
             self.mod.write(nb0, f)
-    
+
     def test_read_file(self):
         with open_utf8(pjoin(self.wd, "nb0.%s" % self.ext), 'w') as f:
             self.mod.write(nb0, f)
-        
+
         with open_utf8(pjoin(self.wd, "nb0.%s" % self.ext), 'r') as f:
             nb = self.mod.read(f)
         

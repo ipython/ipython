@@ -38,8 +38,8 @@ ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
 ESC_QUOTE2 = ';'     # Quote all args as a single string, call
 ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 
-ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
-                 ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,\
+ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,
+                 ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
                  ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
 
 
@@ -324,7 +324,7 @@ def has_comment(src):
     comment : bool
         True if source has a comment.
     """
-    return (tokenize2.COMMENT in _line_tokens(src))
+    return tokenize2.COMMENT in _line_tokens(src)
 
 def ends_in_comment_or_string(src):
     """Indicates whether or not an input line ends in a comment or within

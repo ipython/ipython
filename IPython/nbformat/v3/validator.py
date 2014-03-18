@@ -14,7 +14,7 @@ def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
     if key :
         v3schema = jsonpointer.resolve_pointer(v3schema,key)
     errors = 0
-    v = Draft3Validator(v3schema);
+    v = Draft3Validator(v3schema)
     for error in v.iter_errors(nbjson):
         errors = errors + 1
         if verbose:
@@ -29,19 +29,18 @@ def resolve_ref(json, base=None):
     if not base :
         base = json
 
-    temp = None
     if type(json) is list:
-        temp = [];
+        temp = []
         for item in json:
             temp.append(resolve_ref(item, base=base))
     elif type(json) is dict:
-        temp = {};
-        for key,value in iteritems(json):
+        temp = {}
+        for key, value in iteritems(json):
             if key == '$ref':
-                return resolve_ref(jsonpointer.resolve_pointer(base,value), base=base)
-            else :
-                temp[key]=resolve_ref(value, base=base)
-    else :
+                return resolve_ref(jsonpointer.resolve_pointer(base, value), base=base)
+            else:
+                temp[key] = resolve_ref(value, base=base)
+    else:
         return json
     return temp
 

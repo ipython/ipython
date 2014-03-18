@@ -167,7 +167,6 @@ class HistoryMagics(Magics):
         pyprompts = args.pyprompts
         raw = args.raw
 
-        pattern = None
         limit = None if args.limit is _unspecified else args.limit
 
         if args.pattern is not None:

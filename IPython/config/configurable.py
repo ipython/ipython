@@ -142,9 +142,7 @@ class Configurable(HasTraits):
         
         if traits is None:
             traits = self.traits(config=True)
-        if section_names is None:
-            section_names = self.section_names()
-        
+
         my_config = self._find_my_config(cfg)
         for name, config_value in iteritems(my_config):
             if name in traits:

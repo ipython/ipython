@@ -513,12 +513,10 @@ class UpdateSubmodules(Command):
         pass
     
     def run(self):
-        failure = False
         try:
             self.spawn('git submodule init'.split())
             self.spawn('git submodule update --recursive'.split())
         except Exception as e:
-            failure = e
             print(e)
         
         if not check_submodule_status(repo_root) == 'clean':
@@ -622,7 +620,7 @@ def get_bdist_wheel():
         class bdist_wheel_tag(bdist_wheel):
 
             def get_tag(self):
-                return ('py%i' % sys.version_info[0], 'none', 'any')
+                return 'py%i' % sys.version_info[0], 'none', 'any'
 
             def add_requirements(self, metadata_path):
                 """transform platform-dependent requirements"""

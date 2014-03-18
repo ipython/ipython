@@ -46,7 +46,7 @@ def arguments(scriptsdir, script, scriptargs=''):
 def suffix(s):
     """Add '3' suffix to programs for Python 3."""
     if sys.version_info[0] == 3:
-        s = s + '3'
+        s += '3'
     return s
 
 

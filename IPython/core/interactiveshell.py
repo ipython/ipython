@@ -754,11 +754,10 @@ class InteractiveShell(SingletonConfigurable):
 
         This has to be called after self.user_module is created.
         """
-        self._orig_sys_module_state = {}
-        self._orig_sys_module_state['stdin'] = sys.stdin
-        self._orig_sys_module_state['stdout'] = sys.stdout
-        self._orig_sys_module_state['stderr'] = sys.stderr
-        self._orig_sys_module_state['excepthook'] = sys.excepthook
+        self._orig_sys_module_state = {'stdin': sys.stdin,
+                                       'stdout': sys.stdout,
+                                       'stderr': sys.stderr,
+                                       'excepthook': sys.excepthook}
         self._orig_sys_modules_main_name = self.user_module.__name__
         self._orig_sys_modules_main_mod = sys.modules.get(self.user_module.__name__)
 
@@ -1390,13 +1389,13 @@ class InteractiveShell(SingletonConfigurable):
                            ]
 
         # initialize results to 'null'
-        found = False; obj = None;  ospace = None;  ds = None;
+        found = False; obj = None;  ospace = None;  ds = None
         ismagic = False; isalias = False; parent = None
 
         # We need to special-case 'print', which as of python2.6 registers as a
         # function but should only be treated as one if print_function was
         # loaded with a future import.  In this case, just bail.
-        if (oname == 'print' and not py3compat.PY3 and not \
+        if (oname == 'print' and not py3compat.PY3 and not
             (self.compile.compiler_flags & __future__.CO_FUTURE_PRINT_FUNCTION)):
             return {'found':found, 'obj':obj, 'namespace':ospace,
                     'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
@@ -1430,7 +1429,6 @@ class InteractiveShell(SingletonConfigurable):
 
         # Try to see if it's magic
         if not found:
-            obj = None
             if oname.startswith(ESC_MAGIC2):
                 oname = oname.lstrip(ESC_MAGIC2)
                 obj = self.find_cell_magic(oname)
@@ -3136,7 +3134,7 @@ class InteractiveShell(SingletonConfigurable):
                     from urllib import urlopen
                 response = urlopen(target)
                 return response.read().decode('latin1')
-            raise ValueError(("'%s' seem to be unreadable.") % utarget)
+            raise ValueError("'%s' seem to be unreadable." % utarget)
 
         potential_target = [target]
         try :
@@ -3152,7 +3150,7 @@ class InteractiveShell(SingletonConfigurable):
                     if not py_only :
                         with io_open(tgt,'r', encoding='latin1') as f :
                             return f.read()
-                    raise ValueError(("'%s' seem to be unreadable.") % target)
+                    raise ValueError("'%s' seem to be unreadable." % target)
             elif os.path.isdir(os.path.expanduser(tgt)):
                 raise ValueError("'%s' is a directory, not a regular file." % target)
 

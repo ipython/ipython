@@ -133,24 +133,24 @@ class ConfigMagics(Magics):
             return
         elif reg.match(line):
             cls, attr = line.split('.')
-            return getattr(configurables[classnames.index(cls)],attr)
+            return getattr(configurables[classnames.index(cls)], attr)
         elif '=' not in line:
-            msg = "Invalid config statement: %r, "\
+            msg = "Invalid config statement: %r, " \
                   "should be `Class.trait = value`."
-            
+
             ll = line.lower()
             for classname in classnames:
                 if ll == classname.lower():
-                    msg = msg + '\nDid you mean %s (note the case)?' % classname
+                    msg += '\nDid you mean %s (note the case)?' % classname
                     break
 
-            raise UsageError( msg % line)
+            raise UsageError(msg % line)
 
         # otherwise, assume we are setting configurables.
         # leave quotes on args when splitting, because we want
         # unquoted args to eval in user_ns
         cfg = Config()
-        exec("cfg."+line, locals(), self.shell.user_ns)
+        exec ("cfg." + line, locals(), self.shell.user_ns)
 
         for configurable in configurables:
             try:

@@ -56,7 +56,7 @@ class BracketMatcher(QtCore.QObject):
         # Search for the character.
         char = start_char
         depth = 0
-        while position >= 0 and position < document.characterCount():
+        while 0 <= position < document.characterCount():
             if char == start_char:
                 depth += 1
             elif char == search_char:

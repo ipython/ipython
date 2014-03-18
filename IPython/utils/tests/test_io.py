@@ -40,7 +40,7 @@ def test_tee_simple():
     "Very simple check with stdout only"
     chan = StringIO()
     text = 'Hello'
-    tee = Tee(chan, channel='stdout')
+    Tee(chan, channel='stdout')
     print(text, file=chan)
     nt.assert_equal(chan.getvalue(), text+"\n")
 
@@ -58,7 +58,7 @@ class TeeTestCase(unittest.TestCase):
         tee = Tee(chan, channel=channel)
         print(text, end='', file=chan)
         setattr(sys, channel, std_ori)
-        trap_val = trap.getvalue()
+        trap.getvalue()
         nt.assert_equal(chan.getvalue(), text)
         if check=='close':
             tee.close()

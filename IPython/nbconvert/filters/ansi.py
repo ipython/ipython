@@ -77,9 +77,6 @@ def ansi2html(text):
     ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
     m = ansi_re.search(text)
     opened = False
-    cmds = []
-    opener = ''
-    closer = ''
     while m:
         cmds = m.groups()[0].split(';')
         closer = '</span>' if opened else ''

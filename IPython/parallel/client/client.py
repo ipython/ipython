@@ -42,7 +42,7 @@ from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
-                                    Dict, List, Bool, Set, Any)
+                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
 from IPython.external.ssh import tunnel
 
@@ -74,36 +74,38 @@ def spin_first(f, self, *args, **kwargs):
 
 class ExecuteReply(RichOutput):
     """wrapper for finished Execute results"""
+
     def __init__(self, msg_id, content, metadata):
         self.msg_id = msg_id
         self._content = content
         self.execution_count = content['execution_count']
         self.metadata = metadata
-    
+
     # RichOutput overrides
-    
+
     @property
     def source(self):
         pyout = self.metadata['pyout']
         if pyout:
             return pyout.get('source', '')
-    
+
     @property
     def data(self):
         pyout = self.metadata['pyout']
         if pyout:
             return pyout.get('data', {})
-    
+
     @property
     def _metadata(self):
         pyout = self.metadata['pyout']
         if pyout:
             return pyout.get('metadata', {})
-    
+
     def display(self):
         from IPython.display import publish_display_data
+
         publish_display_data(self.source, self.data, self.metadata)
-    
+
     def _repr_mime_(self, mime):
         if mime not in self.data:
             return
@@ -112,47 +114,47 @@ class ExecuteReply(RichOutput):
             return data, self._metadata[mime]
         else:
             return data
-    
+
     def __getitem__(self, key):
         return self.metadata[key]
-    
+
     def __getattr__(self, key):
         if key not in self.metadata:
             raise AttributeError(key)
         return self.metadata[key]
-    
+
     def __repr__(self):
-        pyout = self.metadata['pyout'] or {'data':{}}
+        pyout = self.metadata['pyout'] or {'data': {}}
         text_out = pyout['data'].get('text/plain', '')
         if len(text_out) > 32:
             text_out = text_out[:29] + '...'
-        
+
         return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
-    
+
     def _repr_pretty_(self, p, cycle):
-        pyout = self.metadata['pyout'] or {'data':{}}
+        pyout = self.metadata['pyout'] or {'data': {}}
         text_out = pyout['data'].get('text/plain', '')
-        
+
         if not text_out:
             return
-        
+
         try:
             ip = get_ipython()
         except NameError:
             colors = "NoColor"
         else:
             colors = ip.colors
-        
+
         if colors == "NoColor":
             out = normal = ""
         else:
             out = TermColors.Red
             normal = TermColors.Normal
-        
+
         if '\n' in text_out and not text_out.startswith('\n'):
             # add newline for multiline reprs
             text_out = '\n' + text_out
-        
+
         p.text(
             out + u'Out[%i:%i]: ' % (
                 self.metadata['engine_id'], self.execution_count
@@ -168,28 +170,29 @@ class Metadata(dict):
     These objects have a strict set of keys - errors will raise if you try
     to add new keys.
     """
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
-        md = {'msg_id' : None,
-              'submitted' : None,
-              'started' : None,
-              'completed' : None,
-              'received' : None,
-              'engine_uuid' : None,
-              'engine_id' : None,
-              'follow' : None,
-              'after' : None,
-              'status' : None,
+        md = {'msg_id': None,
+              'submitted': None,
+              'started': None,
+              'completed': None,
+              'received': None,
+              'engine_uuid': None,
+              'engine_id': None,
+              'follow': None,
+              'after': None,
+              'status': None,
 
-              'pyin' : None,
-              'pyout' : None,
-              'pyerr' : None,
-              'stdout' : '',
-              'stderr' : '',
-              'outputs' : [],
+              'pyin': None,
+              'pyout': None,
+              'pyerr': None,
+              'stdout': '',
+              'stderr': '',
+              'outputs': [],
               'data': {},
-              'outputs_ready' : False,
-            }
+              'outputs_ready': False,
+        }
         self.update(md)
         self.update(dict(*args, **kwargs))
 
@@ -325,7 +328,6 @@ class Client(HasTraits):
 
     """
 
-
     block = Bool(False)
     outstanding = Set()
     results = Instance('collections.defaultdict', (dict,))
@@ -335,7 +337,8 @@ class Client(HasTraits):
     _spin_thread = Any()
     _stop_spinning = Any()
 
-    profile=Unicode()
+    profile = Unicode()
+
     def _profile_default(self):
         if BaseIPythonApplication.initialized():
             # an IPython app *might* be running, try to get its profile
@@ -351,32 +354,32 @@ class Client(HasTraits):
 
     _outstanding_dict = Instance('collections.defaultdict', (set,))
     _ids = List()
-    _connected=Bool(False)
-    _ssh=Bool(False)
+    _connected = Bool(False)
+    _ssh = Bool(False)
     _context = Instance('zmq.Context')
     _config = Dict()
-    _engines=Instance(util.ReverseDict, (), {})
+    _engines = Instance(util.ReverseDict, (), {})
     # _hub_socket=Instance('zmq.Socket')
-    _query_socket=Instance('zmq.Socket')
-    _control_socket=Instance('zmq.Socket')
-    _iopub_socket=Instance('zmq.Socket')
-    _notification_socket=Instance('zmq.Socket')
-    _mux_socket=Instance('zmq.Socket')
-    _task_socket=Instance('zmq.Socket')
-    _task_scheme=Unicode()
+    _query_socket = Instance('zmq.Socket')
+    _control_socket = Instance('zmq.Socket')
+    _iopub_socket = Instance('zmq.Socket')
+    _notification_socket = Instance('zmq.Socket')
+    _mux_socket = Instance('zmq.Socket')
+    _task_socket = Instance('zmq.Socket')
+    _task_scheme = Unicode()
     _closed = False
-    _ignored_control_replies=Integer(0)
-    _ignored_hub_replies=Integer(0)
+    _ignored_control_replies = Integer(0)
+    _ignored_hub_replies = Integer(0)
 
     def __new__(self, *args, **kw):
         # don't raise on positional args
         return HasTraits.__new__(self, **kw)
 
     def __init__(self, url_file=None, profile=None, profile_dir=None, ipython_dir=None,
-            context=None, debug=False,
-            sshserver=None, sshkey=None, password=None, paramiko=None,
-            timeout=10, cluster_id=None, **extra_args
-            ):
+                 context=None, debug=False,
+                 sshserver=None, sshkey=None, password=None, paramiko=None,
+                 timeout=10, cluster_id=None, **extra_args
+    ):
         if profile:
             super(Client, self).__init__(debug=debug, profile=profile)
         else:
@@ -385,16 +388,16 @@ class Client(HasTraits):
             context = zmq.Context.instance()
         self._context = context
         self._stop_spinning = Event()
-        
+
         if 'url_or_file' in extra_args:
             url_file = extra_args['url_or_file']
             warnings.warn("url_or_file arg no longer supported, use url_file", DeprecationWarning)
-        
+
         if url_file and util.is_url(url_file):
             raise ValueError("single urls cannot be specified, url-files must be used.")
 
         self._setup_profile_dir(self.profile, profile_dir, ipython_dir)
-        
+
         if self._cd is not None:
             if url_file is None:
                 if not cluster_id:
@@ -407,10 +410,10 @@ class Client(HasTraits):
                 "I can't find enough information to connect to a hub!"
                 " Please specify at least one of url_file or profile."
             )
-        
+
         with open(url_file) as f:
             cfg = json.load(f)
-        
+
         self._task_scheme = cfg['task_scheme']
 
         # sync defaults from args, json:
@@ -418,23 +421,23 @@ class Client(HasTraits):
             cfg['ssh'] = sshserver
 
         location = cfg.setdefault('location', None)
-        
-        proto,addr = cfg['interface'].split('://')
+
+        proto, addr = cfg['interface'].split('://')
         addr = util.disambiguate_ip_address(addr, location)
         cfg['interface'] = "%s://%s" % (proto, addr)
-        
+
         # turn interface,port into full urls:
         for key in ('control', 'task', 'mux', 'iopub', 'notification', 'registration'):
             cfg[key] = cfg['interface'] + ':%i' % cfg[key]
-        
+
         url = cfg['registration']
-        
+
         if location is not None and addr == localhost():
             # location specified, and connection is expected to be local
             if not is_local_ip(location) and not sshserver:
                 # load ssh from JSON *only* if the controller is not on
                 # this machine
-                sshserver=cfg['ssh']
+                sshserver = cfg['ssh']
             if not is_local_ip(location) and not sshserver:
                 # warn if no ssh specified, but SSH is probably needed
                 # This is only a warning, because the most likely cause
@@ -442,8 +445,8 @@ class Client(HasTraits):
                 warnings.warn("""
             Controller appears to be listening on localhost, but not on this machine.
             If this is true, you should specify Client(...,sshserver='you@%s')
-            or instruct your controller to listen on an external IP."""%location,
-                RuntimeWarning)
+            or instruct your controller to listen on an external IP.""" % location,
+                              RuntimeWarning)
         elif not sshserver:
             # otherwise sync with cfg
             sshserver = cfg['ssh']
@@ -456,9 +459,9 @@ class Client(HasTraits):
             sshserver = addr
         if self._ssh and password is None:
             if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
-                password=False
+                password = False
             else:
-                password = getpass("SSH Password for %s: "%sshserver)
+                password = getpass("SSH Password for %s: " % sshserver)
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
 
         # configure and construct the session
@@ -473,7 +476,7 @@ class Client(HasTraits):
                 "If you are reusing connection files, remove them and start ipcontroller again."
             ])
             raise ValueError(msg.format(exc.message))
-        
+
         self.session = Session(**extra_args)
 
         self._query_socket = self._context.socket(zmq.DEALER)
@@ -485,21 +488,21 @@ class Client(HasTraits):
 
         self.session.debug = self.debug
 
-        self._notification_handlers = {'registration_notification' : self._register_engine,
-                                    'unregistration_notification' : self._unregister_engine,
-                                    'shutdown_notification' : lambda msg: self.close(),
-                                    }
-        self._queue_handlers = {'execute_reply' : self._handle_execute_reply,
-                                'apply_reply' : self._handle_apply_reply}
-        
+        self._notification_handlers = {'registration_notification': self._register_engine,
+                                       'unregistration_notification': self._unregister_engine,
+                                       'shutdown_notification': lambda msg: self.close(),
+        }
+        self._queue_handlers = {'execute_reply': self._handle_execute_reply,
+                                'apply_reply': self._handle_apply_reply}
+
         try:
             self._connect(sshserver, ssh_kwargs, timeout)
         except:
             self.close(linger=0)
             raise
-        
+
         # last step: setup magics, if we are in IPython:
-        
+
         try:
             ip = get_ipython()
         except NameError:
@@ -534,7 +537,7 @@ class Client(HasTraits):
 
     def _update_engines(self, engines):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
-        for k,v in iteritems(engines):
+        for k, v in iteritems(engines):
             eid = int(k)
             if eid not in self._engines:
                 self._ids.append(eid)
@@ -550,10 +553,10 @@ class Client(HasTraits):
         """
         self._task_socket.close()
         self._task_socket = None
-        msg = "An engine has been unregistered, and we are using pure " +\
+        msg = "An engine has been unregistered, and we are using pure " + \
               "ZMQ task scheduling.  Task farming will be disabled."
         if self.outstanding:
-            msg += " If you were running tasks when this happened, " +\
+            msg += " If you were running tasks when this happened, " + \
                    "some `outstanding` msg_ids may never resolve."
         warnings.warn(msg, RuntimeWarning)
 
@@ -572,21 +575,21 @@ class Client(HasTraits):
             if targets.lower() == 'all':
                 targets = self._ids
             else:
-                raise TypeError("%r not valid str target, must be 'all'"%(targets))
+                raise TypeError("%r not valid str target, must be 'all'" % targets)
         elif isinstance(targets, int):
             if targets < 0:
                 targets = self.ids[targets]
             if targets not in self._ids:
-                raise IndexError("No such engine: %i"%targets)
+                raise IndexError("No such engine: %i" % targets)
             targets = [targets]
 
         if isinstance(targets, slice):
             indices = list(range(len(self._ids))[targets])
             ids = self.ids
-            targets = [ ids[i] for i in indices ]
+            targets = [ids[i] for i in indices]
 
         if not isinstance(targets, (tuple, list, xrange)):
-            raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
+            raise TypeError("targets by int/slice/collection of ints only, not %s" % (type(targets)))
 
         return [cast_bytes(self._engines[t]) for t in targets], list(targets)
 
@@ -597,7 +600,7 @@ class Client(HasTraits):
         # Maybe allow reconnecting?
         if self._connected:
             return
-        self._connected=True
+        self._connected = True
 
         def connect_socket(s, url):
             if self._ssh:
@@ -610,10 +613,10 @@ class Client(HasTraits):
         poller = zmq.Poller()
         poller.register(self._query_socket, zmq.POLLIN)
         # poll expects milliseconds, timeout is seconds
-        evts = poller.poll(timeout*1000)
+        evts = poller.poll(timeout * 1000)
         if not evts:
             raise error.TimeoutError("Hub connection request timed out")
-        idents,msg = self.session.recv(self._query_socket,mode=0)
+        idents, msg = self.session.recv(self._query_socket, mode=0)
         if self.debug:
             pprint(msg)
         content = msg['content']
@@ -661,13 +664,13 @@ class Client(HasTraits):
         parent = msg['parent_header']
         msg_meta = msg['metadata']
         content = msg['content']
-        md = {'msg_id' : parent['msg_id'],
-              'received' : datetime.now(),
-              'engine_uuid' : msg_meta.get('engine', None),
-              'follow' : msg_meta.get('follow', []),
-              'after' : msg_meta.get('after', []),
-              'status' : content['status'],
-            }
+        md = {'msg_id': parent['msg_id'],
+              'received': datetime.now(),
+              'engine_uuid': msg_meta.get('engine', None),
+              'follow': msg_meta.get('follow', []),
+              'after': msg_meta.get('after', []),
+              'status': content['status'],
+        }
 
         if md['engine_uuid'] is not None:
             md['engine_id'] = self._engines.get(md['engine_uuid'], None)
@@ -684,7 +687,7 @@ class Client(HasTraits):
         """Register a new engine, and update our connection info."""
         content = msg['content']
         eid = content['id']
-        d = {eid : content['uuid']}
+        d = {eid: content['uuid']}
         self._update_engines(d)
 
     def _unregister_engine(self, msg):
@@ -715,7 +718,7 @@ class Client(HasTraits):
                 # we already
                 continue
             try:
-                raise error.EngineError("Engine %r died while running task %r"%(eid, msg_id))
+                raise error.EngineError("Engine %r died while running task %r" % (eid, msg_id))
             except:
                 content = error.wrap_exception()
             # build a fake message:
@@ -734,9 +737,9 @@ class Client(HasTraits):
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
-                print("got stale result: %s"%msg_id)
+                print("got stale result: %s" % msg_id)
             else:
-                print("got unknown result: %s"%msg_id)
+                print("got unknown result: %s" % msg_id)
         else:
             self.outstanding.remove(msg_id)
 
@@ -748,7 +751,7 @@ class Client(HasTraits):
         md.update(self._extract_metadata(msg))
         # is this redundant?
         self.metadata[msg_id] = md
-        
+
         e_outstanding = self._outstanding_dict[md['engine_uuid']]
         if msg_id in e_outstanding:
             e_outstanding.remove(msg_id)
@@ -770,11 +773,11 @@ class Client(HasTraits):
         msg_id = parent['msg_id']
         if msg_id not in self.outstanding:
             if msg_id in self.history:
-                print("got stale result: %s"%msg_id)
+                print("got stale result: %s" % msg_id)
                 print(self.results[msg_id])
                 print(msg)
             else:
-                print("got unknown result: %s"%msg_id)
+                print("got unknown result: %s" % msg_id)
         else:
             self.outstanding.remove(msg_id)
         content = msg['content']
@@ -804,7 +807,7 @@ class Client(HasTraits):
     def _flush_notifications(self):
         """Flush notifications of engine registrations waiting
         in ZMQ queue."""
-        idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
+        idents, msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
@@ -814,11 +817,11 @@ class Client(HasTraits):
                 raise Exception("Unhandled message type: %s" % msg_type)
             else:
                 handler(msg)
-            idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
+            idents, msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
 
     def _flush_results(self, sock):
         """Flush task or queue results waiting in ZMQ queue."""
-        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
@@ -828,7 +831,7 @@ class Client(HasTraits):
                 raise Exception("Unhandled message type: %s" % msg_type)
             else:
                 handler(msg)
-            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
 
     def _flush_control(self, sock):
         """Flush replies from the control channel waiting
@@ -837,12 +840,12 @@ class Client(HasTraits):
         Currently: ignore them."""
         if self._ignored_control_replies <= 0:
             return
-        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             self._ignored_control_replies -= 1
             if self.debug:
                 pprint(msg)
-            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
 
     def _flush_ignored_control(self):
         """flush ignored control replies"""
@@ -851,15 +854,15 @@ class Client(HasTraits):
             self._ignored_control_replies -= 1
 
     def _flush_ignored_hub_replies(self):
-        ident,msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+        ident, msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
         while msg is not None:
-            ident,msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
+            ident, msg = self.session.recv(self._query_socket, mode=zmq.NOBLOCK)
 
     def _flush_iopub(self, sock):
         """Flush replies from the iopub channel waiting
         in the ZMQ queue.
         """
-        idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+        idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
         while msg is not None:
             if self.debug:
                 pprint(msg)
@@ -867,7 +870,7 @@ class Client(HasTraits):
             # ignore IOPub messages with no parent.
             # Caused by print statements or warnings from before the first execution.
             if not parent:
-                idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+                idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
                 continue
             msg_id = parent['msg_id']
             content = msg['content']
@@ -882,9 +885,9 @@ class Client(HasTraits):
                 s = md[name] or ''
                 md[name] = s + content['data']
             elif msg_type == 'pyerr':
-                md.update({'pyerr' : self._unwrap_exception(content)})
+                md.update({'pyerr': self._unwrap_exception(content)})
             elif msg_type == 'pyin':
-                md.update({'pyin' : content['code']})
+                md.update({'pyin': content['code']})
             elif msg_type == 'display_data':
                 md['outputs'].append(content)
             elif msg_type == 'pyout':
@@ -903,7 +906,7 @@ class Client(HasTraits):
             # reduntant?
             self.metadata[msg_id] = md
 
-            idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+            idents, msg = self.session.recv(sock, mode=zmq.NOBLOCK)
 
     #--------------------------------------------------------------------------
     # len, getitem
@@ -918,7 +921,7 @@ class Client(HasTraits):
 
         Must be int, slice, or list/tuple/xrange of ints"""
         if not isinstance(key, (int, slice, tuple, list, xrange)):
-            raise TypeError("key by int/slice/iterable of ints only, not %s"%(type(key)))
+            raise TypeError("key by int/slice/iterable of ints only, not %s" % (type(key)))
         else:
             return self.direct_view(key)
 
@@ -965,7 +968,7 @@ class Client(HasTraits):
         if self._closed:
             return
         self.stop_spin_thread()
-        snames = [ trait for trait in self.trait_names() if trait.endswith("socket") ]
+        snames = [trait for trait in self.trait_names() if trait.endswith("socket")]
         for name in snames:
             socket = getattr(self, name)
             if socket is not None and not socket.closed:
@@ -1013,7 +1016,7 @@ class Client(HasTraits):
         self._spin_thread = Thread(target=self._spin_every, args=(interval,))
         self._spin_thread.daemon = True
         self._spin_thread.start()
-    
+
     def stop_spin_thread(self):
         """stop background spin_thread, if any"""
         if self._spin_thread is not None:
@@ -1077,7 +1080,7 @@ class Client(HasTraits):
             return True
         self.spin()
         while theids.intersection(self.outstanding):
-            if timeout >= 0 and ( time.time()-tic ) > timeout:
+            if 0 <= timeout < ( time.time() - tic ):
                 break
             time.sleep(1e-3)
             self.spin()
@@ -1098,7 +1101,7 @@ class Client(HasTraits):
         if block:
             self._flush_ignored_control()
             for i in range(len(targets)):
-                idents,msg = self.session.recv(self._control_socket,0)
+                idents, msg = self.session.recv(self._control_socket, 0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
@@ -1128,13 +1131,13 @@ class Client(HasTraits):
         block = self.block if block is None else block
         jobs = jobs if jobs is not None else list(self.outstanding)
         targets = self._build_targets(targets)[0]
-        
+
         msg_ids = []
         if isinstance(jobs, string_types + (AsyncResult,)):
             jobs = [jobs]
         bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
-            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
+            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult" % bad_ids[0])
         for j in jobs:
             if isinstance(j, AsyncResult):
                 msg_ids.extend(j.msg_ids)
@@ -1143,12 +1146,12 @@ class Client(HasTraits):
         content = dict(msg_ids=msg_ids)
         for t in targets:
             self.session.send(self._control_socket, 'abort_request',
-                    content=content, ident=t)
+                              content=content, ident=t)
         error = False
         if block:
             self._flush_ignored_control()
             for i in range(len(targets)):
-                idents,msg = self.session.recv(self._control_socket,0)
+                idents, msg = self.session.recv(self._control_socket, 0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
@@ -1176,9 +1179,10 @@ class Client(HasTraits):
             whether to restart engines after shutting them down.
         """
         from IPython.parallel.error import NoEnginesRegistered
+
         if restart:
             raise NotImplementedError("Engine restart is not yet implemented")
-        
+
         block = self.block if block is None else block
         if hub:
             targets = 'all'
@@ -1188,12 +1192,12 @@ class Client(HasTraits):
             targets = []
         for t in targets:
             self.session.send(self._control_socket, 'shutdown_request',
-                        content={'restart':restart},ident=t)
+                              content={'restart': restart}, ident=t)
         error = False
         if block or hub:
             self._flush_ignored_control()
             for i in range(len(targets)):
-                idents,msg = self.session.recv(self._control_socket, 0)
+                idents, msg = self.session.recv(self._control_socket, 0)
                 if self.debug:
                     pprint(msg)
                 if msg['content']['status'] != 'ok':
@@ -1204,7 +1208,7 @@ class Client(HasTraits):
         if hub:
             time.sleep(0.25)
             self.session.send(self._query_socket, 'shutdown_request')
-            idents,msg = self.session.recv(self._query_socket, 0)
+            idents, msg = self.session.recv(self._query_socket, 0)
             if self.debug:
                 pprint(msg)
             if msg['content']['status'] != 'ok':
@@ -1225,7 +1229,7 @@ class Client(HasTraits):
         return result
 
     def send_apply_request(self, socket, f, args=None, kwargs=None, metadata=None, track=False,
-                            ident=None):
+                           ident=None):
         """construct and send an apply message via a socket.
 
         This is the principal method with which all engine execution is performed by views.
@@ -1233,7 +1237,7 @@ class Client(HasTraits):
 
         if self._closed:
             raise RuntimeError("Client cannot be used after its sockets have been closed")
-        
+
         # defaults:
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
@@ -1241,21 +1245,21 @@ class Client(HasTraits):
 
         # validate arguments
         if not callable(f) and not isinstance(f, Reference):
-            raise TypeError("f must be callable, not %s"%type(f))
+            raise TypeError("f must be callable, not %s" % type(f))
         if not isinstance(args, (tuple, list)):
-            raise TypeError("args must be tuple or list, not %s"%type(args))
+            raise TypeError("args must be tuple or list, not %s" % type(args))
         if not isinstance(kwargs, dict):
-            raise TypeError("kwargs must be dict, not %s"%type(kwargs))
+            raise TypeError("kwargs must be dict, not %s" % type(kwargs))
         if not isinstance(metadata, dict):
-            raise TypeError("metadata must be dict, not %s"%type(metadata))
+            raise TypeError("metadata must be dict, not %s" % type(metadata))
 
         bufs = serialize.pack_apply_message(f, args, kwargs,
-            buffer_threshold=self.session.buffer_threshold,
-            item_threshold=self.session.item_threshold,
+                                            buffer_threshold=self.session.buffer_threshold,
+                                            item_threshold=self.session.item_threshold,
         )
 
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
-                            metadata=metadata, track=track)
+                                metadata=metadata, track=track)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1278,7 +1282,7 @@ class Client(HasTraits):
 
         if self._closed:
             raise RuntimeError("Client cannot be used after its sockets have been closed")
-        
+
         # defaults:
         metadata = metadata if metadata is not None else {}
 
@@ -1287,12 +1291,11 @@ class Client(HasTraits):
             raise TypeError("code must be text, not %s" % type(code))
         if not isinstance(metadata, dict):
             raise TypeError("metadata must be dict, not %s" % type(metadata))
-        
+
         content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
 
-
         msg = self.session.send(socket, "execute_request", content=content, ident=ident,
-                            metadata=metadata)
+                                metadata=metadata)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1401,9 +1404,9 @@ class Client(HasTraits):
         block = self.block if block is None else block
         if indices_or_msg_ids is None:
             indices_or_msg_ids = -1
-        
+
         single_result = False
-        if not isinstance(indices_or_msg_ids, (list,tuple)):
+        if not isinstance(indices_or_msg_ids, (list, tuple)):
             indices_or_msg_ids = [indices_or_msg_ids]
             single_result = True
 
@@ -1412,12 +1415,12 @@ class Client(HasTraits):
             if isinstance(id, int):
                 id = self.history[id]
             if not isinstance(id, string_types):
-                raise TypeError("indices must be str or int, not %r"%id)
+                raise TypeError("indices must be str or int, not %r" % id)
             theids.append(id)
 
         local_ids = [msg_id for msg_id in theids if (msg_id in self.outstanding or msg_id in self.results)]
         remote_ids = [msg_id for msg_id in theids if msg_id not in local_ids]
-        
+
         # given single msg_id initially, get_result shot get the result itself,
         # not a length-one list
         if single_result:
@@ -1459,7 +1462,7 @@ class Client(HasTraits):
         if indices_or_msg_ids is None:
             indices_or_msg_ids = -1
 
-        if not isinstance(indices_or_msg_ids, (list,tuple)):
+        if not isinstance(indices_or_msg_ids, (list, tuple)):
             indices_or_msg_ids = [indices_or_msg_ids]
 
         theids = []
@@ -1467,22 +1470,22 @@ class Client(HasTraits):
             if isinstance(id, int):
                 id = self.history[id]
             if not isinstance(id, string_types):
-                raise TypeError("indices must be str or int, not %r"%id)
+                raise TypeError("indices must be str or int, not %r" % id)
             theids.append(id)
 
-        content = dict(msg_ids = theids)
+        content = dict(msg_ids=theids)
 
         self.session.send(self._query_socket, 'resubmit_request', content)
 
         zmq.select([self._query_socket], [], [])
-        idents,msg = self.session.recv(self._query_socket, zmq.NOBLOCK)
+        idents, msg = self.session.recv(self._query_socket, zmq.NOBLOCK)
         if self.debug:
             pprint(msg)
         content = msg['content']
         if content['status'] != 'ok':
             raise self._unwrap_exception(content)
         mapping = content['resubmitted']
-        new_ids = [ mapping[msg_id] for msg_id in theids ]
+        new_ids = [mapping[msg_id] for msg_id in theids]
 
         ar = AsyncHubResult(self, msg_ids=new_ids)
 
@@ -1516,7 +1519,7 @@ class Client(HasTraits):
             be lists of msg_ids that are incomplete or complete. If `status_only`
             is False, then completed results will be keyed by their `msg_id`.
         """
-        if not isinstance(msg_ids, (list,tuple)):
+        if not isinstance(msg_ids, (list, tuple)):
             msg_ids = [msg_ids]
 
         theids = []
@@ -1524,7 +1527,7 @@ class Client(HasTraits):
             if isinstance(msg_id, int):
                 msg_id = self.history[msg_id]
             if not isinstance(msg_id, string_types):
-                raise TypeError("msg_ids must be str, not %r"%msg_id)
+                raise TypeError("msg_ids must be str, not %r" % msg_id)
             theids.append(msg_id)
 
         completed = []
@@ -1537,11 +1540,11 @@ class Client(HasTraits):
                 local_results[msg_id] = self.results[msg_id]
                 theids.remove(msg_id)
 
-        if theids: # some not locally cached
+        if theids:  # some not locally cached
             content = dict(msg_ids=theids, status_only=status_only)
             msg = self.session.send(self._query_socket, "result_request", content=content)
             zmq.select([self._query_socket], [], [])
-            idents,msg = self.session.recv(self._query_socket, zmq.NOBLOCK)
+            idents, msg = self.session.recv(self._query_socket, zmq.NOBLOCK)
             if self.debug:
                 pprint(msg)
             content = msg['content']
@@ -1549,7 +1552,7 @@ class Client(HasTraits):
                 raise self._unwrap_exception(content)
             buffers = msg['buffers']
         else:
-            content = dict(completed=[],pending=[])
+            content = dict(completed=[], pending=[])
 
         content['completed'].extend(completed)
 
@@ -1582,10 +1585,10 @@ class Client(HasTraits):
                 if rec.get('received'):
                     md['received'] = parse_date(rec['received'])
                 md.update(iodict)
-                
+
                 if rcontent['status'] == 'ok':
                     if header['msg_type'] == 'apply_reply':
-                        res,buffers = serialize.unserialize_object(buffers)
+                        res, buffers = serialize.unserialize_object(buffers)
                     elif header['msg_type'] == 'execute_reply':
                         res = ExecuteReply(msg_id, rcontent, md)
                     else:
@@ -1623,7 +1626,7 @@ class Client(HasTraits):
             engine_ids = self._build_targets(targets)[1]
         content = dict(targets=engine_ids, verbose=verbose)
         self.session.send(self._query_socket, "queue_request", content=content)
-        idents,msg = self.session.recv(self._query_socket, 0)
+        idents, msg = self.session.recv(self._query_socket, 0)
         if self.debug:
             pprint(msg)
         content = msg['content']
@@ -1638,11 +1641,11 @@ class Client(HasTraits):
 
     def _build_msgids_from_target(self, targets=None):
         """Build a list of msg_ids from the list of engine targets"""
-        if not targets: # needed as _build_targets otherwise uses all engines
+        if not targets:  # needed as _build_targets otherwise uses all engines
             return []
-        target_ids = self._build_targets(targets)[0] 
+        target_ids = self._build_targets(targets)[0]
         return [md_id for md_id in self.metadata if self.metadata[md_id]["engine_uuid"] in target_ids]
-    
+
     def _build_msgids_from_jobs(self, jobs=None):
         """Build a list of msg_ids from "jobs" """
         if not jobs:
@@ -1652,14 +1655,14 @@ class Client(HasTraits):
             jobs = [jobs]
         bad_ids = [obj for obj in jobs if not isinstance(obj, string_types + (AsyncResult,))]
         if bad_ids:
-            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult"%bad_ids[0])
+            raise TypeError("Invalid msg_id type %r, expected str or AsyncResult" % bad_ids[0])
         for j in jobs:
             if isinstance(j, AsyncResult):
                 msg_ids.extend(j.msg_ids)
             else:
                 msg_ids.append(j)
-        return msg_ids        
-        
+        return msg_ids
+
     def purge_local_results(self, jobs=[], targets=[]):
         """Clears the client caches of results and their metadata.
 
@@ -1692,7 +1695,7 @@ class Client(HasTraits):
         """
         if not targets and not jobs:
             raise ValueError("Must specify at least one of `targets` and `jobs`")
-        
+
         if jobs == 'all':
             if self.outstanding:
                 raise RuntimeError("Can't purge outstanding tasks: %s" % self.outstanding)
@@ -1749,7 +1752,7 @@ class Client(HasTraits):
         if content['status'] != 'ok':
             raise self._unwrap_exception(content)
 
-    def purge_results(self,  jobs=[], targets=[]):
+    def purge_results(self, jobs=[], targets=[]):
         """Clears the cached results from both the hub and the local client
                 
         Individual results can be purged by msg_id, or the entire
@@ -1845,7 +1848,7 @@ class Client(HasTraits):
         buffers = msg['buffers']
         has_bufs = buffer_lens is not None
         has_rbufs = result_buffer_lens is not None
-        for i,rec in enumerate(records):
+        for i, rec in enumerate(records):
             # unpack datetime objects
             for hkey in ('header', 'result_header'):
                 if hkey in rec:
@@ -1856,11 +1859,12 @@ class Client(HasTraits):
             # relink buffers
             if has_bufs:
                 blen = buffer_lens[i]
-                rec['buffers'], buffers = buffers[:blen],buffers[blen:]
+                rec['buffers'], buffers = buffers[:blen], buffers[blen:]
             if has_rbufs:
                 blen = result_buffer_lens[i]
-                rec['result_buffers'], buffers = buffers[:blen],buffers[blen:]
+                rec['result_buffers'], buffers = buffers[:blen], buffers[blen:]
 
         return records
 
-__all__ = [ 'Client' ]
+
+__all__ = ['Client']

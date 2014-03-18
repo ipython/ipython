@@ -180,7 +180,7 @@ class HeartMonitor(LoggingConfigurable):
         current = str_to_bytes(str(self.lifetime))
         last = str_to_bytes(str(self.last_ping))
         if msg[1] == current:
-            delta = time.time()-self.tic
+            #delta = time.time()-self.tic
             # self.log.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])
         elif msg[1] == last:

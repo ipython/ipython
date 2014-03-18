@@ -131,24 +131,22 @@ def test_for(item, min_version=None, callback=extract_version):
 
 # Global dict where we can store information on what we have and what we don't
 # have available at test run time
-have = {}
-
-have['curses'] = test_for('_curses')
-have['matplotlib'] = test_for('matplotlib')
-have['numpy'] = test_for('numpy')
-have['pexpect'] = test_for('IPython.external.pexpect')
-have['pymongo'] = test_for('pymongo')
-have['pygments'] = test_for('pygments')
-have['qt'] = test_for('IPython.external.qt')
-have['rpy2'] = test_for('rpy2')
-have['sqlite3'] = test_for('sqlite3')
-have['cython'] = test_for('Cython')
-have['oct2py'] = test_for('oct2py')
-have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
-have['jinja2'] = test_for('jinja2')
-have['requests'] = test_for('requests')
-have['sphinx'] = test_for('sphinx')
-have['casperjs'] = is_cmd_found('casperjs')
+have = {'curses': test_for('_curses'),
+        'matplotlib': test_for('matplotlib'),
+        'numpy': test_for('numpy'),
+        'pexpect': test_for('IPython.external.pexpect'),
+        'pymongo': test_for('pymongo'),
+        'pygments': test_for('pygments'),
+        'qt': test_for('IPython.external.qt'),
+        'rpy2': test_for('rpy2'),
+        'sqlite3': test_for('sqlite3'),
+        'cython': test_for('Cython'),
+        'oct2py': test_for('oct2py'),
+        'tornado': test_for('tornado.version_info', (3, 1, 0), callback=None),
+        'jinja2': test_for('jinja2'),
+        'requests': test_for('requests'),
+        'sphinx': test_for('sphinx'),
+        'casperjs': is_cmd_found('casperjs')}
 
 min_zmq = (2,1,11)
 

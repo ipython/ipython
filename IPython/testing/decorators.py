@@ -281,7 +281,7 @@ def module_not_available(module):
     available, but delay the 'import numpy' to test execution time.
     """
     try:
-        mod = __import__(module)
+        __import__(module)
         mod_not_avail = False
     except ImportError:
         mod_not_avail = True

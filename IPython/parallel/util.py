@@ -240,7 +240,7 @@ def _push(**ns):
     user_ns = globals()
     tmp = '_IP_PUSH_TMP_'
     while tmp in user_ns:
-        tmp = tmp + '_'
+        tmp += '_'
     try:
         for name, value in ns.items():
             user_ns[tmp] = value

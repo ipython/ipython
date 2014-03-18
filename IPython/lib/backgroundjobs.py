@@ -434,7 +434,7 @@ class BackgroundJobBase(threading.Thread):
             self.status    = BackgroundJobBase.stat_dead
             self.stat_code = BackgroundJobBase.stat_dead_c
             self.finished  = None
-            self.result    = ('<BackgroundJob died, call jobs.traceback() for details>')
+            self.result    = '<BackgroundJob died, call jobs.traceback() for details>'
             self._tb       = self._make_tb()
         else:
             self.status    = BackgroundJobBase.stat_completed

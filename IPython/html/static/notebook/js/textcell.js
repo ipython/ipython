@@ -251,11 +251,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             var cursor = this.code_mirror.getCursor();
-            if (cursor.line === 0 && cursor.ch === 0) {
-                return true;
-            } else {
-                return false;
-            }
+            return cursor.line === 0 && cursor.ch === 0;
         }
     };
 
@@ -268,11 +264,7 @@ var IPython = (function (IPython) {
             return true;
         } else {
             var cursor = this.code_mirror.getCursor();
-            if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
-                return true;
-            } else {
-                return false;
-            }
+            return cursor.line === (this.code_mirror.lineCount() - 1) && cursor.ch === this.code_mirror.getLine(cursor.line).length;
         }
     };
 

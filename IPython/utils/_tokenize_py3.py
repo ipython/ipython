@@ -340,7 +340,7 @@ def detect_encoding(readline):
             return None
         encoding = _get_normal_name(matches[0])
         try:
-            codec = lookup(encoding)
+            lookup(encoding)
         except LookupError:
             # This behaviour mimics the Python interpreter
             raise SyntaxError("unknown encoding: " + encoding)

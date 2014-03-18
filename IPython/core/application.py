@@ -180,7 +180,7 @@ class BaseIPythonApplication(Application):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
         try:
-            directory = py3compat.getcwd()
+            py3compat.getcwd()
         except:
             # raise exception
             self.log.error("Current working directory doesn't exist.")
@@ -371,7 +371,7 @@ class BaseIPythonApplication(Application):
         s = self.generate_config_file()
         fname = os.path.join(self.profile_dir.location, self.config_file_name)
         if self.overwrite or not os.path.exists(fname):
-            self.log.warn("Generating default config file: %r"%(fname))
+            self.log.warn("Generating default config file: %r"% fname)
             with open(fname, 'w') as f:
                 f.write(s)
 

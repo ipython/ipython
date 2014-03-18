@@ -63,7 +63,7 @@ def _show_traceback(method):
     """decorator for showing tracebacks in IPython"""
     def m(self, *args, **kwargs):
         try:
-            return(method(self, *args, **kwargs))
+            return method(self, *args, **kwargs)
         except Exception as e:
             ip = get_ipython()
             if ip is None:

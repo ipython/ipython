@@ -473,7 +473,7 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('rc_active_types',disp_formatter.active_types)
         save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
 
-        if mode == False:
+        if not mode:
             # turn on
             pm.in_template = '>>> '
             pm.in2_template = '... '
@@ -636,7 +636,7 @@ Defaulting color scheme to 'NoColor'"""
             worksheet = current.new_worksheet(cells=cells)
             nb = current.new_notebook(name=name,worksheets=[worksheet])
             with io.open(fname, 'w', encoding='utf-8') as f:
-                current.write(nb, f, format);
+                current.write(nb, f, format)
         elif args.format is not None:
             old_fname, old_name, old_format = current.parse_filename(args.filename)
             new_format = args.format

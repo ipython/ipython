@@ -79,10 +79,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         if metadata is None:
             metadata = {}
         self._validate_data(source, data, metadata)
-        content = {}
-        content['source'] = source
-        content['data'] = encode_images(data)
-        content['metadata'] = metadata
+        content = {'source': source, 'data': encode_images(data), 'metadata': metadata}
         self.session.send(
             self.pub_socket, u'display_data', json_clean(content),
             parent=self.parent_header, ident=self.topic,
@@ -153,7 +150,7 @@ class KernelMagics(Magics):
         save_dstore('rc_active_types',disp_formatter.active_types)
         save_dstore('xmode', shell.InteractiveTB.mode)
 
-        if mode == False:
+        if not mode:
             # turn on
             ptformatter.pprint = False
             disp_formatter.active_types = ['text/plain']
@@ -302,7 +299,6 @@ class KernelMagics(Magics):
         if not arg_s:
             raise UsageError('Missing filename.')
 
-        cont = open(arg_s).read()
         if arg_s.endswith('.py'):
             cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
         else:

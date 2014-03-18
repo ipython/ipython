@@ -211,13 +211,11 @@ class FileNotebookManager(NotebookManager):
         last_modified = tz.utcfromtimestamp(info.st_mtime)
         created = tz.utcfromtimestamp(info.st_ctime)
         # Create the notebook model.
-        model ={}
-        model['name'] = name
-        model['path'] = path
-        model['last_modified'] = last_modified
-        model['created'] = created
-        model['type'] = 'directory'
-        return model
+        return {'name': name,
+                'path': path,
+                'last_modified': last_modified,
+                'created': created,
+                'type': 'directory'}
 
     def list_notebooks(self, path):
         """Returns a list of dictionaries that are the standard model

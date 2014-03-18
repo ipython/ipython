@@ -487,7 +487,7 @@ class Pdb(OldPdb):
                     last = int(last)
                     if last < first:
                         # Assume it's a count
-                        last = first + last
+                        last += first
                 else:
                     first = max(1, int(x) - 5)
             except:

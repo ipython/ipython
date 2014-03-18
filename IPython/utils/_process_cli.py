@@ -42,7 +42,7 @@ def system(cmd):
     psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal
     psi.UseShellExecute = False
     # Start up process:
-    reg = System.Diagnostics.Process.Start(psi)
+    System.Diagnostics.Process.Start(psi)
 
 def getoutput(cmd):
     """
@@ -59,5 +59,5 @@ def getoutput(cmd):
     myOutput = reg.StandardOutput
     output = myOutput.ReadToEnd()
     myError = reg.StandardError
-    error = myError.ReadToEnd()
+    myError.ReadToEnd()
     return output

@@ -69,4 +69,4 @@ def convert(nb, to_version):
         return convert(converted, to_version)
     else:
         raise Exception("Cannot convert notebook to v%d because that " \
-                        "version doesn't exist" % (to_version))
+                        "version doesn't exist" % to_version)

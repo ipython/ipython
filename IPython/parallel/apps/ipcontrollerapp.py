@@ -220,7 +220,7 @@ class IPControllerApp(BaseParallelApplication):
     def save_connection_dict(self, fname, cdict):
         """save a connection dict to json file."""
         c = self.config
-        url = cdict['registration']
+        #url = cdict['registration']
         location = cdict['location']
         
         if not location:

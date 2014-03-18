@@ -40,7 +40,7 @@ def log_request(handler):
     if status >= 400:
         # log bad referers
         ns['referer'] = request.headers.get('Referer', 'None')
-        msg = msg + ' referer={referer}'
+        msg += ' referer={referer}'
     if status >= 500 and status != 502:
         # log all headers if it caused an error
         log_method(json.dumps(request.headers, indent=2))

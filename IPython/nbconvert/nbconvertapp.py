@@ -291,9 +291,8 @@ class NbConvertApp(BaseIPythonApplication):
             notebook_name = basename[:basename.rfind('.')]
             if self.output_base:
                 notebook_name = self.output_base
-            resources = {}
-            resources['unique_key'] = notebook_name
-            resources['output_files_dir'] = '%s_files' % notebook_name
+            resources = {'unique_key': notebook_name,
+                         'output_files_dir': '%s_files' % notebook_name}
             self.log.info("Support files will be in %s", os.path.join(resources['output_files_dir'], ''))
 
             # Try to export

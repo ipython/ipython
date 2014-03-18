@@ -228,7 +228,7 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
                 print (tunnel.exitstatus)
                 print (tunnel.before)
                 print (tunnel.after)
-                raise RuntimeError("tunnel '%s' failed to start"%(cmd))
+                raise RuntimeError("tunnel '%s' failed to start" % cmd)
             else:
                 return tunnel.pid
         else:
@@ -236,7 +236,7 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
                 print("Password rejected, try again")
                 password=None
             if password is None:
-                password = getpass("%s's password: "%(server))
+                password = getpass("%s's password: " % server)
             tunnel.sendline(password)
             failed = True
 
@@ -297,7 +297,7 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
 
     if password is None:
         if not _try_passwordless_paramiko(server, keyfile):
-            password = getpass("%s's password: "%(server))
+            password = getpass("%s's password: " % server)
 
     p = Process(target=_paramiko_tunnel,
             args=(lport, rport, server, remoteip),

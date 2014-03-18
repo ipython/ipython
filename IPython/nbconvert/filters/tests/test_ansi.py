@@ -49,7 +49,7 @@ class TestAnsi(TestsBase):
     def test_ansi2html(self):
         """ansi2html test"""
         correct_outputs = {
-            '%s' % (TermColors.Red)  : '<span class="ansired"></span>',
+            '%s' % TermColors.Red: '<span class="ansired"></span>',
             'hello%s' % TermColors.Blue: 'hello<span class="ansiblue"></span>',
             'he%s%sllo' % (TermColors.Green, TermColors.Cyan) : 'he<span class="ansigreen"></span><span class="ansicyan">llo</span>',
             '%shello' % TermColors.Yellow : '<span class="ansiyellow">hello</span>',

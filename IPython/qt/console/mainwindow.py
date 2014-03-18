@@ -153,7 +153,7 @@ class MainWindow(QtGui.QMainWindow):
         # of this is when 'exit' is sent in a slave tab. 'exit' will be
         # re-sent by this function on the master widget, which ask all slave
         # widgets to exit
-        if closing_widget==None:
+        if closing_widget is None:
             return
 
         #get a list of all slave widgets on the same kernel.

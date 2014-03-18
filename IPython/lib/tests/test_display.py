@@ -33,7 +33,7 @@ from IPython.testing.decorators import skipif_not_numpy
 
 def test_instantiation_FileLink():
     """FileLink: Test class can be instantiated"""
-    fl = display.FileLink('example.txt')
+    display.FileLink('example.txt')
 
 def test_warning_on_non_existant_path_FileLink():
     """FileLink: Calling _repr_html_ on non-existant files returns a warning

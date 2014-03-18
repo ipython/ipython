@@ -68,7 +68,7 @@ class ServePostProcessor(PostProcessorBase):
             (r"/", web.RedirectHandler, {"url": "/%s" % filename})
         ]
         
-        if ('://' in self.reveal_prefix or self.reveal_prefix.startswith("//")):
+        if '://' in self.reveal_prefix or self.reveal_prefix.startswith("//"):
             # reveal specifically from CDN, nothing to do
             pass
         elif os.path.isdir(os.path.join(dirname, self.reveal_prefix)):

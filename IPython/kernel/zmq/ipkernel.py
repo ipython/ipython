@@ -571,7 +571,7 @@ class Kernel(Configurable):
 
     def apply_request(self, stream, ident, parent):
         try:
-            content = parent[u'content']
+            parent[u'content']
             bufs = parent[u'buffers']
             msg_id = parent['header']['msg_id']
         except:
@@ -647,9 +647,9 @@ class Kernel(Configurable):
         # flush i/o
         sys.stdout.flush()
         sys.stderr.flush()
-        
+
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
-                    parent=parent, ident=ident,buffers=result_buf, metadata=md)
+                                      parent=parent, ident=ident, buffers=result_buf, metadata=md)
 
         self._publish_status(u'idle', parent)
 

@@ -276,7 +276,7 @@ var IPython = (function (IPython) {
             this.reset_tabs_function (cell, text);
 	}
 
-        return;
+
     };
 
     // cancel the option of having the tooltip to stick

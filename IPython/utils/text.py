@@ -243,7 +243,7 @@ class SList(list):
                 try:
                     n = int(numstr)
                 except ValueError:
-                    n = 0;
+                    n = 0
                 dsu[i][0] = n
 
 
@@ -638,7 +638,7 @@ def _find_optimal(rlist , separator_size=2 , displaywidth=80):
         sumlength = sum(chk)
         ncols = len(chk)
         if sumlength+separator_size*(ncols-1) <= displaywidth :
-            break;
+            break
     return {'columns_numbers' : ncols,
             'optimal_separator_width':(displaywidth - sumlength)/(ncols-1) if (ncols -1) else 0,
             'rows_numbers' : nrow,
@@ -711,7 +711,7 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     """
     info = _find_optimal(list(map(len, items)), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
-    return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
+    return [[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info
 
 
 def columnize(items, separator='  ', displaywidth=80):

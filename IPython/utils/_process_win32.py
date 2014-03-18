@@ -181,7 +181,7 @@ try:
         result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
         result_array_type = LPCWSTR * argvn.value
         result = [arg for arg in result_array_type.from_address(ctypes.addressof(result_pointer.contents))]
-        retval = LocalFree(result_pointer)
+        LocalFree(result_pointer)
         return result
 except AttributeError:
     arg_split = py_arg_split

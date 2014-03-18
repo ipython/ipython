@@ -336,7 +336,7 @@ class CodeMagics(Magics):
         # so in average, more than 5000 lines
         if l > 200000 and 'y' not in opts:
             try:
-                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
+                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"
                 " (%d characters). Continue (y/[N]) ?" % l), default='n' )
             except StdinNotImplementedError:
                 #asume yes if raw input not implemented
@@ -410,7 +410,7 @@ class CodeMagics(Magics):
                     if filename is None:
                         warn("Argument given (%s) can't be found as a variable "
                              "or as a filename." % args)
-                        return (None, None, None)
+                        return None, None, None
                     use_temp = False
 
                 except DataIsObject:
@@ -460,7 +460,7 @@ class CodeMagics(Magics):
                             if filename is None:
                                 warn('The file where `%s` was defined '
                                      'cannot be read or found.' % data)
-                                return (None, None, None)
+                                return None, None, None
                     use_temp = False
 
         if use_temp:

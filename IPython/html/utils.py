@@ -43,9 +43,10 @@ def url_path_join(*pieces):
     stripped = [s.strip('/') for s in pieces]
     result = '/'.join(s for s in stripped if s)
     if initial: result = '/' + result
-    if final: result = result + '/'
+    if final: result += '/'
     if result == '//': result = '/'
     return result
+
 
 def path2url(path):
     """Convert a local file path to a URL"""

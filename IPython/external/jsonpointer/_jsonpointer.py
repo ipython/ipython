@@ -78,7 +78,7 @@ def resolve_pointer(doc, pointer, default=_nothing):
     >>> resolve_pointer(obj, '/foo/anArray/0') == obj['foo']['anArray'][0]
     True
 
-    >>> resolve_pointer(obj, '/some/path', None) == None
+    >>> resolve_pointer(obj, '/some/path', None) is None
     True
 
     """

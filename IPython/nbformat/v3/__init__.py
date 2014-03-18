@@ -67,7 +67,7 @@ def parse_filename(fname):
     elif fname.endswith(u'.py'):
         format = u'py'
     else:
-        fname = fname + u'.ipynb'
+        fname += u'.ipynb'
         format = u'json'
     name = fname.split('.')[0]
     return fname, name, format

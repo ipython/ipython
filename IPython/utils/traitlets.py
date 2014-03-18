@@ -766,7 +766,7 @@ class Type(ClassBasedTraitType):
             if issubclass(value, self.klass):
                 return value
         except:
-            if (value is None) and (self._allow_none):
+            if (value is None) and self._allow_none:
                 return value
 
         self.error(obj, value)
@@ -1512,7 +1512,7 @@ class TCPAddress(TraitType):
             if len(value) == 2:
                 if isinstance(value[0], py3compat.string_types) and isinstance(value[1], int):
                     port = value[1]
-                    if port >= 0 and port <= 65535:
+                    if 0 <= port <= 65535:
                         return value
         self.error(obj, value)
 

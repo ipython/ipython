@@ -136,10 +136,9 @@ if __name__ == '__main__':
     view['u_hist'] = []
 
     # set vector/scalar implementation details
-    impl = {}
-    impl['ic'] = 'vectorized'
-    impl['inner'] = 'scalar'
-    impl['bc'] = 'vectorized'
+    impl = {'ic': 'vectorized',
+            'inner': 'scalar',
+            'bc': 'vectorized'}
 
     # execute some files so that the classes we need will be defined on the engines:
     view.run('RectPartitioner.py')

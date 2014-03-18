@@ -503,11 +503,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
-        if (cursor.line === 0 && cursor.ch === 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return cursor.line === 0 && cursor.ch === 0;
     };
 
 

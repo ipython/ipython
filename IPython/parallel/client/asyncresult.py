@@ -42,6 +42,7 @@ def _raw_text(s):
 # global empty tracker that's always done:
 finished_tracker = MessageTracker()
 
+
 @decorator
 def check_ready(f, self, *args, **kwargs):
     """Call spin() to sync state prior to calling the method."""
@@ -49,6 +50,7 @@ def check_ready(f, self, *args, **kwargs):
     if not self._ready:
         raise error.TimeoutError("result not ready")
     return f(self, *args, **kwargs)
+
 
 class AsyncResult(object):
     """Class for representing results of non-blocking calls.
@@ -73,10 +75,10 @@ class AsyncResult(object):
             tracker = finished_tracker
         self._client = client
         self.msg_ids = msg_ids
-        self._fname=fname
+        self._fname = fname
         self._targets = targets
         self._tracker = tracker
-        
+
         self._ready = False
         self._outputs_ready = False
         self._success = None
@@ -84,9 +86,9 @@ class AsyncResult(object):
 
     def __repr__(self):
         if self._ready:
-            return "<%s: finished>"%(self.__class__.__name__)
+            return "<%s: finished>" % self.__class__.__name__
         else:
-            return "<%s: %s>"%(self.__class__.__name__,self._fname)
+            return "<%s: %s>" % (self.__class__.__name__, self._fname)
 
 
     def _reconstruct_result(self, res):
@@ -122,14 +124,14 @@ class AsyncResult(object):
     def _check_ready(self):
         if not self.ready():
             raise error.TimeoutError("Result not ready.")
-    
+
     def ready(self):
         """Return whether the call has completed."""
         if not self._ready:
             self.wait(0)
         elif not self._outputs_ready:
             self._wait_for_outputs(0)
-        
+
         return self._ready
 
     def wait(self, timeout=-1):
@@ -185,9 +187,8 @@ class AsyncResult(object):
         results = self.get(timeout)
         if self._single_result:
             results = [results]
-        engine_ids = [ md['engine_id'] for md in self._metadata ]
-        
-        
+        engine_ids = [md['engine_id'] for md in self._metadata]
+
         rdict = {}
         for engine_id, result in zip(engine_ids, results):
             if engine_id in rdict:
@@ -258,21 +259,21 @@ class AsyncResult(object):
         elif isinstance(key, string_types):
             # metadata proxy *does not* require that results are done
             self.wait(0)
-            values = [ md[key] for md in self._metadata ]
+            values = [md[key] for md in self._metadata]
             if self._single_result:
                 return values[0]
             else:
                 return values
         else:
-            raise TypeError("Invalid key type %r, must be 'int','slice', or 'str'"%type(key))
+            raise TypeError("Invalid key type %r, must be 'int','slice', or 'str'" % type(key))
 
     def __getattr__(self, key):
         """getattr maps to getitem for convenient attr access to metadata."""
         try:
             return self.__getitem__(key)
         except (error.TimeoutError, KeyError):
-            raise AttributeError("%r object has no attribute %r"%(
-                    self.__class__.__name__, key))
+            raise AttributeError("%r object has no attribute %r" % (
+                self.__class__.__name__, key))
 
     # asynchronous iterator:
     def __iter__(self):
@@ -289,14 +290,14 @@ class AsyncResult(object):
             # already done
             for r in rlist:
                 yield r
-    
+
     def __len__(self):
         return len(self.msg_ids)
-    
+
     #-------------------------------------
     # Sugar methods and attributes
     #-------------------------------------
-    
+
     def timedelta(self, start, end, start_key=min, end_key=max):
         """compute the difference between two sets of timestamps
         
@@ -331,7 +332,7 @@ class AsyncResult(object):
             # not a list
             end = end_key(end)
         return (end - start).total_seconds()
-        
+
     @property
     def progress(self):
         """the number of tasks which have been completed at this point.
@@ -340,21 +341,21 @@ class AsyncResult(object):
         """
         self.wait(0)
         return len(self) - len(set(self.msg_ids).intersection(self._client.outstanding))
-    
+
     @property
     def elapsed(self):
         """elapsed time since initial submission"""
         if self.ready():
             return self.wall_time
-        
+
         now = submitted = datetime.now()
         for msg_id in self.msg_ids:
             if msg_id in self._client.metadata:
                 stamp = self._client.metadata[msg_id]['submitted']
                 if stamp and stamp < submitted:
                     submitted = stamp
-        return (now-submitted).total_seconds()
-    
+        return (now - submitted).total_seconds()
+
     @property
     @check_ready
     def serial_time(self):
@@ -366,7 +367,7 @@ class AsyncResult(object):
         for md in self._metadata:
             t += (md['completed'] - md['started']).total_seconds()
         return t
-    
+
     @property
     @check_ready
     def wall_time(self):
@@ -383,7 +384,7 @@ class AsyncResult(object):
         
         """
         return self.timedelta(self.submitted, self.received)
-    
+
     def wait_interactive(self, interval=1., timeout=-1):
         """interactive wait, printing progress at regular intervals"""
         if timeout is None:
@@ -397,7 +398,7 @@ class AsyncResult(object):
             sys.stdout.flush()
         print()
         print("done")
-    
+
     def _republish_displaypub(self, content, eid):
         """republish individual displaypub content dicts"""
         try:
@@ -408,7 +409,7 @@ class AsyncResult(object):
         md = content['metadata'] or {}
         md['engine'] = eid
         ip.display_pub.publish(content['source'], content['data'], md)
-    
+
     def _display_stream(self, text, prefix='', file=None):
         if not text:
             # nothing to display
@@ -416,50 +417,50 @@ class AsyncResult(object):
         if file is None:
             file = sys.stdout
         end = '' if text.endswith('\n') else '\n'
-        
+
         multiline = text.count('\n') > int(text.endswith('\n'))
         if prefix and multiline and not text.startswith('\n'):
-            prefix = prefix + '\n'
+            prefix += '\n'
         print("%s%s" % (prefix, text), file=file, end=end)
-        
-    
+
+
     def _display_single_result(self):
         self._display_stream(self.stdout)
         self._display_stream(self.stderr, file=sys.stderr)
-        
+
         try:
             get_ipython()
         except NameError:
             # displaypub is meaningless outside IPython
             return
-        
+
         for output in self.outputs:
             self._republish_displaypub(output, self.engine_id)
-        
+
         if self.pyout is not None:
             display(self.get())
-    
+
     def _wait_for_outputs(self, timeout=-1):
         """wait for the 'status=idle' message that indicates we have all outputs
         """
         if self._outputs_ready or not self._success:
             # don't wait on errors
             return
-        
+
         # cast None to -1 for infinite timeout
         if timeout is None:
             timeout = -1
-        
+
         tic = time.time()
         while True:
             self._client._flush_iopub(self._client._iopub_socket)
             self._outputs_ready = all(md['outputs_ready']
                                       for md in self._metadata)
             if self._outputs_ready or \
-               (timeout >= 0 and time.time() > tic + timeout):
+                    (timeout >= 0 and time.time() > tic + timeout):
                 break
             time.sleep(0.01)
-    
+
     @check_ready
     def display_outputs(self, groupby="type"):
         """republish the outputs of the computation
@@ -492,54 +493,54 @@ class AsyncResult(object):
         if self._single_result:
             self._display_single_result()
             return
-        
+
         stdouts = self.stdout
         stderrs = self.stderr
-        pyouts  = self.pyout
+        pyouts = self.pyout
         output_lists = self.outputs
         results = self.get()
-        
+
         targets = self.engine_id
-        
+
         if groupby == "engine":
-            for eid,stdout,stderr,outputs,r,pyout in zip(
+            for eid, stdout, stderr, outputs, r, pyout in zip(
                     targets, stdouts, stderrs, output_lists, results, pyouts
-                ):
+            ):
                 self._display_stream(stdout, '[stdout:%i] ' % eid)
                 self._display_stream(stderr, '[stderr:%i] ' % eid, file=sys.stderr)
-                
+
                 try:
                     get_ipython()
                 except NameError:
                     # displaypub is meaningless outside IPython
-                    return 
-                
+                    return
+
                 if outputs or pyout is not None:
                     _raw_text('[output:%i]' % eid)
-                
+
                 for output in outputs:
                     self._republish_displaypub(output, eid)
-                
+
                 if pyout is not None:
                     display(r)
-        
+
         elif groupby in ('type', 'order'):
             # republish stdout:
-            for eid,stdout in zip(targets, stdouts):
+            for eid, stdout in zip(targets, stdouts):
                 self._display_stream(stdout, '[stdout:%i] ' % eid)
-        
+
             # republish stderr:
-            for eid,stderr in zip(targets, stderrs):
+            for eid, stderr in zip(targets, stderrs):
                 self._display_stream(stderr, '[stderr:%i] ' % eid, file=sys.stderr)
-        
+
             try:
                 get_ipython()
             except NameError:
                 # displaypub is meaningless outside IPython
                 return
-            
+
             if groupby == 'order':
-                output_dict = dict((eid, outputs) for eid,outputs in zip(targets, output_lists))
+                output_dict = dict((eid, outputs) for eid, outputs in zip(targets, output_lists))
                 N = max(len(outputs) for outputs in output_lists)
                 for i in range(N):
                     for eid in targets:
@@ -549,21 +550,19 @@ class AsyncResult(object):
                             self._republish_displaypub(outputs[i], eid)
             else:
                 # republish displaypub output
-                for eid,outputs in zip(targets, output_lists):
+                for eid, outputs in zip(targets, output_lists):
                     if outputs:
                         _raw_text('[output:%i]' % eid)
                     for output in outputs:
                         self._republish_displaypub(output, eid)
-        
+
             # finally, add pyout:
-            for eid,r,pyout in zip(targets, results, pyouts):
+            for eid, r, pyout in zip(targets, results, pyouts):
                 if pyout is not None:
                     display(r)
-        
+
         else:
             raise ValueError("groupby must be one of 'type', 'engine', 'collate', not %r" % groupby)
-        
-        
 
 
 class AsyncMapResult(AsyncResult):
@@ -663,7 +662,7 @@ class AsyncHubResult(AsyncResult):
     def _wait_for_outputs(self, timeout=-1):
         """no-op, because HubResults are never incomplete"""
         self._outputs_ready = True
-    
+
     def wait(self, timeout=-1):
         """wait for result to complete."""
         start = time.time()
@@ -678,7 +677,7 @@ class AsyncHubResult(AsyncResult):
             else:
                 rdict = self._client.result_status(remote_ids, status_only=False)
                 pending = rdict['pending']
-                while pending and (timeout < 0 or time.time() < start+timeout):
+                while pending and (timeout < 0 or time.time() < start + timeout):
                     rdict = self._client.result_status(remote_ids, status_only=False)
                     pending = rdict['pending']
                     if pending:
@@ -703,5 +702,6 @@ class AsyncHubResult(AsyncResult):
                 self._success = True
             finally:
                 self._metadata = [self._client.metadata[mid] for mid in self.msg_ids]
+
 
 __all__ = ['AsyncResult', 'AsyncMapResult', 'AsyncHubResult']

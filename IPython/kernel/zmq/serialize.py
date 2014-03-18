@@ -162,8 +162,8 @@ def pack_apply_message(f, args, kwargs, buffer_threshold=MAX_BYTES, item_thresho
     
     info = dict(nargs=len(args), narg_bufs=len(arg_bufs), kw_keys=kw_keys)
     
-    msg = [pickle.dumps(can(f),-1)]
-    msg.append(pickle.dumps(info, -1))
+    msg = [pickle.dumps(can(f), -1),
+           pickle.dumps(info, -1)]
     msg.extend(arg_bufs)
     msg.extend(kwarg_bufs)
     

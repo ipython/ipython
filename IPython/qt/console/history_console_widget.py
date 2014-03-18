@@ -82,7 +82,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             n = min(col, len(self._history_prefix))
             
             # prefix changed, restart search from the beginning
-            if (self._history_prefix[:n] != input_buffer[:n]):
+            if self._history_prefix[:n] != input_buffer[:n]:
                 self._history_index = len(self._history)
             
             # the only time we shouldn't set the history prefix

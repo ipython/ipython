@@ -93,7 +93,7 @@ def get_parent(globals, level):
         else:
             # Normal module, so work out the package name if any
             lastdot = modname.rfind('.')
-            if lastdot < 0 and level > 0:
+            if lastdot < 0 < level:
                 raise ValueError("Attempted relative import in non-package")
             if lastdot < 0:
                 globals['__package__'] = None
