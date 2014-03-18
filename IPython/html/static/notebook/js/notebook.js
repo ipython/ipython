@@ -424,11 +424,7 @@ var IPython = (function (IPython) {
      * @return True if the index is valid, false otherwise
      */
     Notebook.prototype.is_valid_cell_index = function (index) {
-        if (index !== null && index >= 0 && index < this.ncells()) {
-            return true;
-        } else {
-            return false;
-        }
+        return index !== null && index >= 0 && index < this.ncells();
     };
 
     /**
@@ -1591,11 +1587,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.test_notebook_name = function (nbname) {
         nbname = nbname || '';
-        if (nbname.length>0 && !this.notebook_name_blacklist_re.test(nbname)) {
-            return true;
-        } else {
-            return false;
-        }
+        return nbname.length > 0 && !this.notebook_name_blacklist_re.test(nbname);
     };
 
     /**

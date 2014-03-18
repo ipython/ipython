@@ -60,7 +60,7 @@ def get_version(nb):
     """
     major = nb.get('nbformat', 1)
     minor = nb.get('nbformat_minor', 0)
-    return (major, minor)
+    return major, minor
 
 
 def reads(s, **kwargs):

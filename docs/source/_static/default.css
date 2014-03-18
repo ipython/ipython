@@ -157,10 +157,8 @@ pre a {
 }
 
 div.document {
-    background-color: white;
     text-align: left;
-    background-image: url(contents.png);
-    background-repeat: repeat-x;
+    background: white url(contents.png) repeat-x;
 }
 
 /*
@@ -243,7 +241,6 @@ div.sphinxsidebar h4, div.sphinxsidebar h3 {
 }
 
 div.sphinxsidebar ul {
-    padding-left: 1.5em;
     margin-top: 7px;
     list-style: none;
     padding: 0;

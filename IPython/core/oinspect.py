@@ -150,7 +150,6 @@ def getdoc(obj):
         # Harden against an inspect failure, which can occur with
         # SWIG-wrapped extensions.
         raise
-        return None
 
 
 def getsource(obj,is_binary=False):
@@ -186,7 +185,7 @@ def getsource(obj,is_binary=False):
 
 def is_simple_callable(obj):
     """True if obj is a function ()"""
-    return (inspect.isfunction(obj) or inspect.ismethod(obj) or \
+    return (inspect.isfunction(obj) or inspect.ismethod(obj) or
             isinstance(obj, _builtin_func_type) or isinstance(obj, _builtin_meth_type))
 
 
@@ -846,7 +845,6 @@ class Inspector:
 
         # defaults
         type_pattern = 'all'
-        filter = ''
 
         cmds = pattern.split()
         len_cmds  =  len(cmds)

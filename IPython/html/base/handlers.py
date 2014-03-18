@@ -95,7 +95,7 @@ class AuthenticatedHandler(web.RequestHandler):
 
         """
         user = self.get_current_user()
-        return (user and not user == 'anonymous')
+        return user and not user == 'anonymous'
 
     @property
     def login_available(self):
@@ -285,7 +285,6 @@ def json_errors(method):
         try:
             result = method(self, *args, **kwargs)
         except web.HTTPError as e:
-            status = e.status_code
             message = e.log_message
             self.set_status(e.status_code)
             self.finish(json.dumps(dict(message=message)))

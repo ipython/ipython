@@ -167,8 +167,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._input_splitter = self._input_splitter_class()
         self._kernel_manager = None
         self._kernel_client = None
-        self._request_info = {}
-        self._request_info['execute'] = {};
+        self._request_info = {'execute': {}}
         self._callback_dict = {}
 
         # Configure the ConsoleWidget.

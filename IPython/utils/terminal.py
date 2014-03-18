@@ -69,7 +69,7 @@ def toggle_set_term_title(val):
         appropriate platform-specific module).  If False, it is a no-op.
     """
     global ignore_termtitle
-    ignore_termtitle = not(val)
+    ignore_termtitle = not val
 
 
 def _set_term_title(*args,**kw):
@@ -158,7 +158,7 @@ if sys.platform == 'win32':
                 "hhhhHhhhhhh", csbi.raw)
             sizex = right - left + 1
             sizey = bottom - top + 1
-            return (sizex, sizey)
+            return sizex, sizey
         else:
-            return (defaultx, defaulty)
+            return defaultx, defaulty
 

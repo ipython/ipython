@@ -307,7 +307,7 @@ class Application(SingletonConfigurable):
         if not self.flags and not self.aliases:
             return
         lines = ['Options']
-        lines.append('-'*len(lines[0]))
+        lines.append('-' * len(lines[0]))
         lines.append('')
         for p in wrap_paragraphs(self.option_description):
             lines.append(p)
@@ -540,10 +540,10 @@ class Application(SingletonConfigurable):
 
     def generate_config_file(self):
         """generate default config file from Configurables"""
-        lines = ["# Configuration file for %s."%self.name]
-        lines.append('')
-        lines.append('c = get_config()')
-        lines.append('')
+        lines = ["# Configuration file for %s." % self.name,
+                 '',
+                 'c = get_config()',
+                 '']
         for cls in self.classes:
             lines.append(cls.class_config_section())
         return '\n'.join(lines)

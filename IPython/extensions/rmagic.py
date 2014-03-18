@@ -126,9 +126,9 @@ def Rconverter(Robj, dataframe=False):
             names = tuple(np.array(cols))
         elif _names != ri.NULL:
             names = tuple(np.array(_names))
-        else: # failed to find names
+        else:  # failed to find names
             return np.asarray(Robj)
-        Robj = np.rec.fromarrays(Robj, names = names)
+        Robj = np.rec.fromarrays(Robj, names=names)
     return np.asarray(Robj)
 
 @generic

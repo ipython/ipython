@@ -157,7 +157,7 @@ class BinaryTreeCommunicator(object):
     @property
     def info(self):
         """return the connection info for this object's sockets."""
-        return (self.tree_url, self.location)
+        return self.tree_url, self.location
     
     def connect(self, peers, btree, pub_url, root_id=0):
         """connect to peers.  `peers` will be a dict of 4-tuples, keyed by name.

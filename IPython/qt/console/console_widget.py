@@ -767,9 +767,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     def print_(self, printer = None):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
         """
-        if (not printer):
+        if not printer:
             printer = QtGui.QPrinter()
-            if(QtGui.QPrintDialog(printer).exec_() != QtGui.QDialog.Accepted):
+            if QtGui.QPrintDialog(printer).exec_() != QtGui.QDialog.Accepted:
                 return
         self._control.print_(printer)
 
@@ -959,7 +959,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         # Select and remove all text below the input buffer.
         cursor = self._get_prompt_cursor()
         prompt = self._continuation_prompt.lstrip()
-        if(self._temp_buffer_filled):
+        if self._temp_buffer_filled:
             self._temp_buffer_filled = False
             while cursor.movePosition(QtGui.QTextCursor.NextBlock):
                 temp_cursor = QtGui.QTextCursor(cursor)
@@ -1455,16 +1455,16 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         if ctrl_down:
             if key == QtCore.Qt.Key_O:
                 self._control.setFocus()
-                intercept = True
+                #intercept = True
 
         elif alt_down:
             if key == QtCore.Qt.Key_Greater:
                 self._page_control.moveCursor(QtGui.QTextCursor.End)
-                intercepted = True
+                #intercepted = True
 
             elif key == QtCore.Qt.Key_Less:
                 self._page_control.moveCursor(QtGui.QTextCursor.Start)
-                intercepted = True
+                #intercepted = True
 
         elif key in (QtCore.Qt.Key_Q, QtCore.Qt.Key_Escape):
             if self._splitter:

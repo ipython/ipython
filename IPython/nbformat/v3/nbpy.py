@@ -84,8 +84,7 @@ class PyReader(NotebookReader):
                 m = re.match(r'# <headingcell level=(?P<level>\d)>',line)
                 if m is not None:
                     state = u'headingcell'
-                    kwargs = {}
-                    kwargs['level'] = int(m.group('level'))
+                    kwargs = {'level': int(m.group('level'))}
                 else:
                     state = u'codecell'
                     kwargs = {}

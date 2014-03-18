@@ -510,7 +510,7 @@ class Magics(Configurable):
     shell = None
 
     def __init__(self, shell=None, **kwargs):
-        if not(self.__class__.registered):
+        if not self.__class__.registered:
             raise ValueError('Magics subclass without registration - '
                              'did you forget to apply @magics_class?')
         if shell is not None:

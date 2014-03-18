@@ -138,9 +138,9 @@ def create_inputhook_qt4(mgr, app=None):
             #
             # Unfortunately this doesn't work on Windows (SIGINT kills
             # Python and CTRL_C_EVENT doesn't work).
-            if(os.name == 'posix'):
+            if os.name == 'posix':
                 pid = os.getpid()
-                if(not sigint_timer):
+                if not sigint_timer:
                     sigint_timer = threading.Timer(.01, os.kill,
                                          args=[pid, signal.SIGINT] )
                     sigint_timer.start()
@@ -166,7 +166,7 @@ def create_inputhook_qt4(mgr, app=None):
         """
         global got_kbdint, sigint_timer
 
-        if(sigint_timer):
+        if sigint_timer:
             sigint_timer.cancel()
             sigint_timer = None
 

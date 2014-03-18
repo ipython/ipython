@@ -207,13 +207,12 @@ class Parser:
         if string_output:
             output = self.out.getvalue()
             self.out = out_old
-            return (output, error)
-        return (None, error)
+            return output, error
+        return None, error
 
     def __call__(self, toktype, toktext, start_pos, end_pos, line):
         """ Token handler, with syntax highlighting."""
         (srow,scol) = start_pos
-        (erow,ecol) = end_pos
         colors = self.colors
         owrite = self.out.write
 
@@ -235,7 +234,7 @@ class Parser:
             return
 
         # map token type to a color group
-        if token.LPAR <= toktype and toktype <= token.OP:
+        if toktype >= token.LPAR <= token.OP:
             toktype = token.OP
         elif toktype == token.NAME and keyword.iskeyword(toktext):
             toktype = _KEYWORD
@@ -247,10 +246,10 @@ class Parser:
         # in pagers works correctly. We need color terminators on _each_ line.
         if linesep in toktext:
             toktext = toktext.replace(linesep, '%s%s%s' %
-                                      (colors.normal,linesep,color))
+                                               (colors.normal, linesep, color))
 
         # send text
-        owrite('%s%s%s' % (color,toktext,colors.normal))
+        owrite('%s%s%s' % (color, toktext, colors.normal))
 
 def main(argv=None):
     """Run as a command-line script: colorize a python file or stdin using ANSI

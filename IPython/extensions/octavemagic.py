@@ -324,7 +324,7 @@ class OctaveMagics(Magics):
         code = ' '.join((pre_call, code, post_call))
         try:
             text_output = self._oct.run(code, verbose=False)
-        except (oct2py.Oct2PyError) as exception:
+        except oct2py.Oct2PyError as exception:
             msg = exception.message
             msg = msg.split('# ___<end_pre_call>___ #')[1]
             msg = msg.split('# ___<start_post_call>___ #')[0]

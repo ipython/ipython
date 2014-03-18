@@ -128,7 +128,7 @@ def test_parse_ms_precision():
     for i in range(len(digits)):
         ts = base + '.' + digits[:i]
         parsed = jsonutil.parse_date(ts)
-        if i >= 1 and i <= 6:
+        if 1 <= i <= 6:
             nt.assert_is_instance(parsed, datetime.datetime)
         else:
             nt.assert_is_instance(parsed, str)

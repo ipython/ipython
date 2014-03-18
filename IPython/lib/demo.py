@@ -339,7 +339,7 @@ class Demo(object):
         You can use negative indices to seek from the end, with identical
         semantics to those of Python lists."""
         if index<0:
-            index = self.nblocks + index
+            index += self.nblocks
         self._validate_index(index)
         self.block_index = index
         self.finished = False
@@ -404,18 +404,17 @@ class Demo(object):
     def show_all(self):
         """Show entire demo on screen, block by block"""
 
-        fname = self.title
         title = self.title
         nblocks = self.nblocks
         silent = self._silent
         marquee = self.marquee
-        for index,block in enumerate(self.src_blocks_colored):
+        for index, block in enumerate(self.src_blocks_colored):
             if silent[index]:
                 print(marquee('<%s> SILENT block # %s (%s remaining)' %
-                              (title,index,nblocks-index-1)), file=io.stdout)
+                              (title, index, nblocks - index - 1)), file=io.stdout)
             else:
                 print(marquee('<%s> block # %s (%s remaining)' %
-                              (title,index,nblocks-index-1)), file=io.stdout)
+                              (title, index, nblocks - index - 1)), file=io.stdout)
             print(block, end=' ', file=io.stdout)
         sys.stdout.flush()
 

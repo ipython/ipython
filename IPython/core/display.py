@@ -639,7 +639,7 @@ class Image(DisplayObject):
         self.embed = embed if embed is not None else (url is None)
 
         if self.embed and self.format not in self._ACCEPTABLE_EMBEDDINGS:
-            raise ValueError("Cannot embed the '%s' image format" % (self.format))
+            raise ValueError("Cannot embed the '%s' image format" % self.format)
         self.width = width
         self.height = height
         self.retina = retina

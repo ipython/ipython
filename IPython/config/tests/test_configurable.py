@@ -268,7 +268,7 @@ class TestParentConfigurable(TestCase):
                     'b' : 4.0,
                 }
             },
-            'MyParent2' : {
+            'MyParent2' : {  # TODO duplicate dict key!
                 'MyParent' : {
                     'MyConfigurable' : {
                         'b' : 5.0,

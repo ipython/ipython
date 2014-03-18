@@ -45,7 +45,7 @@ BackSpaceAction = namedtuple('BackSpaceAction', ['action'])
 CSI_COMMANDS = 'ABCDEFGHJKSTfmnsu'
 CSI_SUBPATTERN = '\[(.*?)([%s])' % CSI_COMMANDS
 OSC_SUBPATTERN = '\](.*?)[\x07\x1b]'
-ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' % \
+ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' %
                 (CSI_SUBPATTERN, OSC_SUBPATTERN))
 ANSI_OR_SPECIAL_PATTERN = re.compile('(\a|\b|\r(?!\n)|\r?\n)|(?:%s)' % ANSI_PATTERN)
 SPECIAL_PATTERN = re.compile('([\f])')
@@ -242,7 +242,7 @@ class AnsiCodeProcessor(object):
             self.italic = False
         elif code == 24:
             self.underline = False
-        elif code >= 30 and code <= 37:
+        elif 30 <= code <= 37:
             self.foreground_color = code - 30
         elif code == 38 and params and params.pop(0) == 5:
             # xterm-specific: 256 color support.
@@ -250,7 +250,7 @@ class AnsiCodeProcessor(object):
                 self.foreground_color = params.pop(0)
         elif code == 39:
             self.foreground_color = None
-        elif code >= 40 and code <= 47:
+        elif 40 <= code <= 47:
             self.background_color = code - 40
         elif code == 48 and params and params.pop(0) == 5:
             # xterm-specific: 256 color support.

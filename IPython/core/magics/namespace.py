@@ -227,14 +227,14 @@ class NamespaceMagics(Magics):
             ignore_case = not shell.wildcards_case_sensitive
 
         # Build list of namespaces to search from user options
-        def_search.extend(opt('s',[]))
-        ns_exclude = ns_exclude=opt('e',[])
+        def_search.extend(opt('s', []))
+        ns_exclude = opt('e', [])
         ns_search = [nm for nm in def_search if nm not in ns_exclude]
 
         # Call the actual search
         try:
-            psearch(args,shell.ns_table,ns_search,
-                    show_all=opt('a'),ignore_case=ignore_case)
+            psearch(args, shell.ns_table, ns_search,
+                    show_all=opt('a'), ignore_case=ignore_case)
         except:
             shell.showtraceback()
 

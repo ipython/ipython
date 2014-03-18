@@ -312,14 +312,14 @@ python-profiler package from non-free.""")
         if dump_file:
             dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
-            print('\n*** Profile stats marshalled to file',\
+            print('\n*** Profile stats marshalled to file',
                   repr(dump_file)+'.',sys_exit)
         if text_file:
             text_file = unquote_filename(text_file)
             pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()
-            print('\n*** Profile printout saved to text file',\
+            print('\n*** Profile printout saved to text file',
                   repr(text_file)+'.',sys_exit)
 
         if 'r' in opts:
@@ -709,7 +709,7 @@ python-profiler package from non-free.""")
                                 if nruns < 1:
                                     error('Number of runs must be >=1')
                                     return
-                            except (KeyError):
+                            except KeyError:
                                 nruns = 1
                             self._run_with_timing(run, nruns)
                         else:
@@ -1286,7 +1286,7 @@ def _format_time(timespan, precision=3):
         for suffix, length in parts:
             value = int(leftover / length)
             if value > 0:
-                leftover = leftover % length
+                leftover %= length
                 time.append(u'%s%s' % (str(value), suffix))
             if leftover < 1:
                 break

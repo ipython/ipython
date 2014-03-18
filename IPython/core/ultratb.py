@@ -323,7 +323,7 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
         res.append(line)
         if lvals and i == lnum:
             res.append(lvals + '\n')
-        i = i + 1
+        i += 1
     return res
 
 
@@ -788,9 +788,8 @@ class VerboseTB(TBTools):
         tpl_global_var = '%sglobal%s %s%%s%s' % (Colors.em, ColorsNormal,
                                                  Colors.vName, ColorsNormal)
         tpl_name_val   = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
-        tpl_line       = '%s%%s%s %%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em    = '%s%%s%s %%s%s' % (Colors.linenoEm,Colors.line,
-                                            ColorsNormal)
+        #tpl_line       = '%s%%s%s %%s' % (Colors.lineno, ColorsNormal)
+        #tpl_line_em    = '%s%%s%s %%s%s' % (Colors.linenoEm,Colors.line, ColorsNormal)
 
         # now, loop over all records printing context and info
         abspath = os.path.abspath

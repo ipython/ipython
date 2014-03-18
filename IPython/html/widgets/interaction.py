@@ -64,7 +64,7 @@ def _get_min_max_value(min, max, value=None, step=None):
     if step is not None:
         # ensure value is on a step
         r = (value - min) % step
-        value = value - r
+        value -= r
     return min, max, value
 
 def _widget_abbrev_single_value(o):

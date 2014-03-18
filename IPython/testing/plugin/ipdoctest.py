@@ -595,7 +595,7 @@ class DocFileCase(doctest.DocFileCase):
     """Overrides to provide filename
     """
     def address(self):
-        return (self._dt_test.filename, None, None)
+        return self._dt_test.filename, None, None
 
 
 class ExtensionDoctest(doctests.Doctest):

@@ -132,10 +132,7 @@ if __name__ == '__main__':
     view['u_hist'] = []
 
     # set vector/scalar implementation details
-    impl = {}
-    impl['ic'] = 'vectorized'
-    impl['inner'] = 'scalar'
-    impl['bc'] = 'vectorized'
+    impl = {'ic': 'vectorized', 'inner': 'scalar', 'bc': 'vectorized'}
 
     # execute some files so that the classes we need will be defined on the engines:
     view.execute('import numpy')
@@ -150,7 +147,7 @@ if __name__ == '__main__':
     view.execute('com = EngineCommunicator()')
 
     # gather the connection information into a single dict
-    ar = view.apply_async(lambda : com.info)
+    ar = view.apply_async(lambda: com.info)
     peers = ar.get_dict()
     # print peers
     # this is a dict, keyed by engine ID, of the connection info for the EngineCommunicators

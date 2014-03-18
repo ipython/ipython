@@ -1013,9 +1013,8 @@ class LoadBalancedView(View):
 
         if self._task_scheme == 'pure':
             # pure zmq scheme doesn't support extra features
-            msg = "Pure ZMQ scheduler doesn't support the following flags:"
-            "follow, after, retries, targets, timeout"
-            if (follow or after or retries or targets or timeout):
+            msg = "Pure ZMQ scheduler doesn't support the following flags: follow, after, retries, targets, timeout"
+            if follow or after or retries or targets or timeout:
                 # hard fail on Scheduler flags
                 raise RuntimeError(msg)
             if isinstance(f, dependent):

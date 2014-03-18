@@ -75,7 +75,6 @@ casper.notebook_test(function () {
             $("a.item_link").map(function (i,a) {
                 if (a.href.indexOf(escaped_name) >= 0) {
                     return_this_thing = a.href;
-                    return;
                 }
             });
             return return_this_thing;

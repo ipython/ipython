@@ -148,7 +148,7 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         #start cell
         hlen_b4_cell = ip.readline.get_current_history_length()
-		# nothing added to rl history, should do nothing
+        # nothing added to rl history, should do nothing
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
                                                     hlen_b4_cell)
 

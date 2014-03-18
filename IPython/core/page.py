@@ -223,7 +223,6 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                     os.remove(tmpname)
         else:
             try:
-                retval = None
                 # if I use popen4, things hang. No idea why.
                 #pager,shell_out = os.popen4(pager_cmd)
                 pager = os.popen(pager_cmd, 'w')

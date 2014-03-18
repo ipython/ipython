@@ -478,11 +478,7 @@ IPython.utils = (function (IPython) {
         e = $(e);
         var target = $(document.activeElement);
         if (target.length > 0) {
-            if (is_or_has(e, target)) {
-                return true;
-            } else {
-                return false;
-            }
+            return is_or_has(e, target);
         } else {
             return false;
         }

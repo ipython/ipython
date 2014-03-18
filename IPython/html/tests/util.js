@@ -107,11 +107,7 @@ casper.wait_for_widget = function (widget_info) {
             return IPython.notebook.kernel.widget_manager.get_model(m).pending_msgs;
         }, {m: widget_info.model_id});
 
-        if (pending == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return pending == 0;
     });
 }
 

@@ -270,10 +270,10 @@ class Draft3Validator(object):
                     yield error
             else:
                 dependencies = _list(dependency)
-                for dependency in dependencies:
-                    if dependency not in instance:
+                for _dependency in dependencies:
+                    if _dependency not in instance:
                         yield ValidationError(
-                            "%r is a dependency of %r" % (dependency, property)
+                            "%r is a dependency of %r" % (_dependency, property)
                         )
 
     def validate_items(self, items, instance, schema):

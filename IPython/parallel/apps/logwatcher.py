@@ -40,26 +40,29 @@ class LogWatcher(LoggingConfigurable):
     
     This can subscribe to multiple topics, but defaults to all topics.
     """
-    
+
     # configurables
     topics = List([''], config=True,
-        help="The ZMQ topics to subscribe to. Default is to subscribe to all messages")
+                  help="The ZMQ topics to subscribe to. Default is to subscribe to all messages")
     url = Unicode(config=True,
-        help="ZMQ url on which to listen for log messages")
+                  help="ZMQ url on which to listen for log messages")
+
     def _url_default(self):
         return 'tcp://%s:20202' % localhost()
-    
+
     # internals
     stream = Instance('zmq.eventloop.zmqstream.ZMQStream')
-    
+
     context = Instance(zmq.Context)
+
     def _context_default(self):
         return zmq.Context.instance()
-    
+
     loop = Instance(zmq.eventloop.ioloop.IOLoop)
+
     def _loop_default(self):
         return ioloop.IOLoop.instance()
-    
+
     def __init__(self, **kwargs):
         super(LogWatcher, self).__init__(**kwargs)
         s = self.context.socket(zmq.SUB)
@@ -67,13 +70,13 @@ class LogWatcher(LoggingConfigurable):
         self.stream = zmqstream.ZMQStream(s, self.loop)
         self.subscribe()
         self.on_trait_change(self.subscribe, 'topics')
-    
+
     def start(self):
         self.stream.on_recv(self.log_message)
-    
+
     def stop(self):
         self.stream.stop_on_recv()
-    
+
     def subscribe(self):
         """Update our SUB socket's subscriptions."""
         self.stream.setsockopt(zmq.UNSUBSCRIBE, '')
@@ -82,35 +85,35 @@ class LogWatcher(LoggingConfigurable):
             self.stream.setsockopt(zmq.SUBSCRIBE, '')
         else:
             for topic in self.topics:
-                self.log.debug("Subscribing to: %r"%(topic))
+                self.log.debug("Subscribing to: %r" % topic)
                 self.stream.setsockopt(zmq.SUBSCRIBE, topic)
-    
+
     def _extract_level(self, topic_str):
         """Turn 'engine.0.INFO.extra' into (logging.INFO, 'engine.0.extra')"""
         topics = topic_str.split('.')
-        for idx,t in enumerate(topics):
+        for idx, t in enumerate(topics):
             level = getattr(logging, t, None)
             if level is not None:
                 break
-        
+
         if level is None:
             level = logging.INFO
         else:
             topics.pop(idx)
-        
+
         return level, '.'.join(topics)
-            
-            
+
+
     def log_message(self, raw):
         """receive and parse a message, then log it."""
         if len(raw) != 2 or '.' not in raw[0]:
-            self.log.error("Invalid log message: %s"%raw)
+            self.log.error("Invalid log message: %s" % raw)
             return
         else:
             topic, msg = raw
             # don't newline, since log messages always newline:
-            topic,level_name = topic.rsplit('.',1)
-            level,topic = self._extract_level(topic)
+            topic, level_name = topic.rsplit('.', 1)
+            level, topic = self._extract_level(topic)
             if msg[-1] == '\n':
                 msg = msg[:-1]
             self.log.log(level, "[%s] %s" % (topic, msg))

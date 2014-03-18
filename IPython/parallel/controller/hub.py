@@ -274,7 +274,7 @@ class HubFactory(RegistrationFactory):
             scheme = TaskScheduler.scheme_name.get_default_value()
         
         # build connection dicts
-        engine = self.engine_info = {
+        self.engine_info = {
             'interface'     : "%s://%s" % (self.engine_transport, self.engine_ip),
             'registration'  : self.regport,
             'control'       : self.control[1],
@@ -285,7 +285,7 @@ class HubFactory(RegistrationFactory):
             'iopub'         : self.iopub[1],
             }
 
-        client = self.client_info = {
+        self.client_info = {
             'interface'     : "%s://%s" % (self.client_transport, self.client_ip),
             'registration'  : self.regport,
             'control'       : self.control[0],
@@ -683,16 +683,13 @@ class Hub(SessionFactory):
         md = msg['metadata']
         completed = rheader['date']
         started = extract_dates(md.get('started', None))
-        result = {
-            'result_header' : rheader,
-            'result_metadata': md,
-            'result_content': msg['content'],
-            'received': datetime.now(),
-            'started' : started,
-            'completed' : completed
-        }
-
-        result['result_buffers'] = msg['buffers']
+        result = {'result_header': rheader,
+                  'result_metadata': md,
+                  'result_content': msg['content'],
+                  'received': datetime.now(),
+                  'started': started,
+                  'completed': completed,
+                  'result_buffers': msg['buffers']}
         try:
             self.db.update_record(msg_id, result)
         except Exception:
@@ -789,17 +786,14 @@ class Hub(SessionFactory):
                     self.tasks[eid].remove(msg_id)
             completed = header['date']
             started = extract_dates(md.get('started', None))
-            result = {
-                'result_header' : header,
-                'result_metadata': msg['metadata'],
-                'result_content': msg['content'],
-                'started' : started,
-                'completed' : completed,
-                'received' : datetime.now(),
-                'engine_uuid': engine_uuid,
-            }
-
-            result['result_buffers'] = msg['buffers']
+            result = {'result_header': header,
+                      'result_metadata': msg['metadata'],
+                      'result_content': msg['content'],
+                      'started': started,
+                      'completed': completed,
+                      'received': datetime.now(),
+                      'engine_uuid': engine_uuid,
+                      'result_buffers': msg['buffers']}
             try:
                 self.db.update_record(msg_id, result)
             except Exception:
@@ -1018,9 +1012,8 @@ class Hub(SessionFactory):
             except:
                 content = error.wrap_exception()
             # build a fake header:
-            header = {}
-            header['engine'] = uuid
-            header['date'] = datetime.now()
+            header = {'engine': uuid,
+                      'date': datetime.now()}
             rec = dict(result_content=content, result_header=header, result_buffers=[])
             rec['completed'] = header['date']
             rec['engine_uuid'] = uuid
@@ -1250,7 +1243,6 @@ class Hub(SessionFactory):
 
         content = msg['content']
         msg_ids = content['msg_ids']
-        reply = dict(status='ok')
         try:
             records = self.db.find_records({'msg_id' : {'$in' : msg_ids}}, keys=[
                 'header', 'content', 'buffers'])
@@ -1259,17 +1251,17 @@ class Hub(SessionFactory):
             return finish(error.wrap_exception())
 
         # validate msg_ids
-        found_ids = [ rec['msg_id'] for rec in records ]
-        pending_ids = [ msg_id for msg_id in found_ids if msg_id in self.pending ]
+        found_ids = [rec['msg_id'] for rec in records]
+        pending_ids = [msg_id for msg_id in found_ids if msg_id in self.pending]
         if len(records) > len(msg_ids):
             try:
                 raise RuntimeError("DB appears to be in an inconsistent state."
-                    "More matching records were found than should exist")
+                                   "More matching records were found than should exist")
             except Exception:
                 self.log.exception("Failed to resubmit task")
                 return finish(error.wrap_exception())
         elif len(records) < len(msg_ids):
-            missing = [ m for m in msg_ids if m not in found_ids ]
+            missing = [m for m in msg_ids if m not in found_ids]
             try:
                 raise KeyError("No such msg(s): %r" % missing)
             except KeyError:
@@ -1294,7 +1286,7 @@ class Hub(SessionFactory):
             msg = self.session.msg(header['msg_type'], parent=header)
             msg_id = msg['msg_id']
             msg['content'] = rec['content']
-            
+
             # use the old header, but update msg_id and timestamp
             fresh = msg['header']
             header['msg_id'] = fresh['msg_id']
@@ -1313,7 +1305,7 @@ class Hub(SessionFactory):
                 return finish(error.wrap_exception())
 
         finish(dict(status='ok', resubmitted=resubmitted))
-        
+
         # store the new IDs in the Task DB
         for msg_id, resubmit_id in iteritems(resubmitted):
             try:

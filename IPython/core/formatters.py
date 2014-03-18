@@ -283,7 +283,7 @@ def _mod_name_key(typ):
     """
     module = getattr(typ, '__module__', None)
     name = getattr(typ, '__name__', None)
-    return (module, name)
+    return module, name
 
 
 def _get_type(obj):

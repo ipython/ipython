@@ -220,7 +220,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 port = 1
                 path = "%s-%i" % (self.ip, port)
                 while os.path.exists(path):
-                    port = port + 1
+                    port += 1
                     path = "%s-%i" % (self.ip, port)
             else:
                 path = "%s-%i" % (self.ip, port)

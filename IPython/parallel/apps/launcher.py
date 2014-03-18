@@ -675,7 +675,7 @@ class SSHClusterLauncher(SSHLauncher, ClusterAppMixin):
         """turns /home/you/.ipython/profile_foo into .ipython/profile_foo"""
         home = get_home_dir()
         if not home.endswith('/'):
-            home = home+'/'
+            home += '/'
         
         if path.startswith(home):
             return path[len(home):]

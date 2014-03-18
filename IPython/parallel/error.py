@@ -160,7 +160,7 @@ class CompositeError(RemoteError):
             engine_str = self._get_engine_str(ei)
             s = s + '\n' + engine_str + en + ': ' + str(ev)
         if len(self.elist) > self.tb_limit:
-            s = s + '\n.... %i more exceptions ...' % (len(self.elist) - self.tb_limit)
+            s += '\n.... %i more exceptions ...' % (len(self.elist) - self.tb_limit)
         return s
 
     def __repr__(self):
@@ -224,7 +224,7 @@ def collect_exceptions(rdict_or_list, method='unspecified'):
     if len(elist)==0:
         return rdict_or_list
     else:
-        msg = "one or more exceptions from call to method: %s" % (method)
+        msg = "one or more exceptions from call to method: %s" % method
         # This silliness is needed so the debugger has access to the exception
         # instance (e in this case)
         try:

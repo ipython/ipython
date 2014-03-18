@@ -183,7 +183,7 @@ def test_get_home_dir_4():
 
     if 'HOME' in env: del env['HOME']
     # this should still succeed, but we don't care what the answer is
-    home = path.get_home_dir(False)
+    path.get_home_dir(False)
 
 @with_environment
 def test_get_home_dir_5():
@@ -415,7 +415,7 @@ def test_filefind():
     f = tempfile.NamedTemporaryFile()
     # print 'fname:',f.name
     alt_dirs = path.get_ipython_dir()
-    t = path.filefind(f.name, alt_dirs)
+    path.filefind(f.name, alt_dirs)
     # print 'found:',t
 
 @with_environment

@@ -214,7 +214,7 @@ def encode_multipart_formdata(fields, boundary=None):
         boundary = choose_boundary()
 
     for fieldname, value in iter_fields(fields):
-        body.write(b('--%s\r\n' % (boundary)))
+        body.write(b('--%s\r\n' % boundary))
 
         if isinstance(value, tuple):
             filename, data = value
@@ -225,7 +225,7 @@ def encode_multipart_formdata(fields, boundary=None):
         else:
             data = value
             writer(body).write('Content-Disposition: form-data; name="%s"\r\n'
-                               % (fieldname))
+                               % fieldname)
             body.write(b'Content-Type: text/plain\r\n\r\n')
 
         if isinstance(data, int):
@@ -237,7 +237,7 @@ def encode_multipart_formdata(fields, boundary=None):
 
         body.write(b'\r\n')
 
-    body.write(b('--%s--\r\n' % (boundary)))
+    body.write(b('--%s--\r\n' % boundary))
 
     content_type = b('multipart/form-data; boundary=%s' % boundary)
 

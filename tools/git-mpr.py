@@ -92,7 +92,7 @@ def main(*args):
             metavar='pr-number')
     args = parser.parse_args()
 
-    if(args.list):
+    if args.list:
         pr_list = gh_api.get_pulls_list(gh_project)
         for pr in pr_list :
             mergeable = gh_api.get_pull_request(gh_project, pr['number'])['mergeable']
@@ -103,7 +103,7 @@ def main(*args):
                 title=pr['title'],
                 ismgb=ismgb))
 
-    if(args.merge_all):
+    if args.merge_all:
         branch_name = 'merge-' + '-'.join(str(pr['number']) for pr in pr_list)
         git_new_branch(branch_name)
         pr_list = gh_api.get_pulls_list(gh_project)

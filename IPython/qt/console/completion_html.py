@@ -20,7 +20,6 @@ def html_tableify(item_matrix, select=None, header=None , footer=None) :
     """ returnr a string for an html table"""
     if not item_matrix :
         return ''
-    html_cols = []
     tds = lambda text : u'<td>'+text+u'  </td>'
     trs = lambda text : u'<tr>'+text+u'</tr>'
     tds_items = [list(map(tds, row)) for row in item_matrix]
@@ -34,13 +33,13 @@ def html_tableify(item_matrix, select=None, header=None , footer=None) :
     head = ''
     foot = ''
     if header :
-        head = (u'<tr>'\
-            +''.join((u'<td>'+header+u'</td>')*len(item_matrix[0]))\
+        head = (u'<tr>'
+            +''.join((u'<td>'+header+u'</td>')*len(item_matrix[0]))
             +'</tr>')
 
     if footer : 
-        foot = (u'<tr>'\
-            +''.join((u'<td>'+footer+u'</td>')*len(item_matrix[0]))\
+        foot = (u'<tr>'
+            +''.join((u'<td>'+footer+u'</td>')*len(item_matrix[0]))
             +'</tr>')
     html = (u'<table class="completion" style="white-space:pre">'+head+(u''.join(html_cols))+foot+u'</table>')
     return html
@@ -337,7 +336,7 @@ class CompletionHtml(QtGui.QWidget):
                                        ]
 
         self._console_widget._clear_temporary_buffer()
-        if(hilight):
+        if hilight:
             sel = (self._sliding_interval.nth, self._index[1])
         else :
             sel = None
