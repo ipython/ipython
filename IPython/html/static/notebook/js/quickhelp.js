@@ -19,6 +19,7 @@ var IPython = (function (IPython) {
         // toggles display of keyboard shortcut dialog
         var that = this;
         if ( this.force_rebuild ) {
+            this.shortcut_dialog.remove();
             delete(this.shortcut_dialog);
             this.force_rebuild = false;
         }
