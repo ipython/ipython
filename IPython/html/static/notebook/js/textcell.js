@@ -113,68 +113,6 @@ var IPython = (function (IPython) {
         });
     };
 
-    TextCell.prototype.handle_keyevent = function (editor, event) {
-
-        // console.log('CM', this.mode, event.which, event.type)
-
-        if (this.mode === 'command') {
-            return true;
-        } else if (this.mode === 'edit') {
-            return this.handle_codemirror_keyevent(editor, event);
-        }
-    };
-
-    /**
-     * This method gets called in CodeMirror's onKeyDown/onKeyPress
-     * handlers and is used to provide custom key handling.
-     *
-     * Subclass should override this method to have custom handeling
-     *
-     * @method handle_codemirror_keyevent
-     * @param {CodeMirror} editor - The codemirror instance bound to the cell
-     * @param {event} event -
-     * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
-     */
-    TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        var that = this;
-
-        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey || event.altKey)) {
-            // Always ignore shift-enter in CodeMirror as we handle it.
-            return true;
-        } else if (event.which === keycodes.up && event.type === 'keydown') {
-            // If we are not at the top, let CM handle the up arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_top()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
-        } else if (event.which === keycodes.down && event.type === 'keydown') {
-            // If we are not at the bottom, let CM handle the down arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
-        } else if (event.which === keycodes.esc && event.type === 'keydown') {
-            if (that.code_mirror.options.keyMap === "vim-insert") {
-                // vim keyMap is active and in insert mode. In this case we leave vim
-                // insert mode, but remain in notebook edit mode.
-                // Let' CM handle this event and prevent global handling.
-                event.stop();
-                return false;
-            } else {
-                // vim keyMap is not active. Leave notebook edit mode.
-                // Don't let CM handle the event, defer to global handling.
-                return true;
-            }
-        }
-        return false;
-    };
-
     // Cell level actions
     
     TextCell.prototype.select = function () {
@@ -242,39 +180,6 @@ var IPython = (function (IPython) {
         this.element.find('div.text_cell_render').html(text);
     };
 
-    /**
-     * @method at_top
-     * @return {Boolean}
-     */
-    TextCell.prototype.at_top = function () {
-        if (this.rendered) {
-            return true;
-        } else {
-            var cursor = this.code_mirror.getCursor();
-            if (cursor.line === 0 && cursor.ch === 0) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    };
-
-    /**
-     * @method at_bottom
-     * @return {Boolean}
-     * */
-    TextCell.prototype.at_bottom = function () {
-        if (this.rendered) {
-            return true;
-        } else {
-            var cursor = this.code_mirror.getCursor();
-            if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    };
 
     /**
      * Create Text cell from JSON

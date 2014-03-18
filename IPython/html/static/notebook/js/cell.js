@@ -19,6 +19,7 @@ var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
+    var keycodes = IPython.keyboard.keycodes;
 
     /**
      * The Base `Cell` class from which to inherit
@@ -153,6 +154,30 @@ var IPython = (function (IPython) {
             });
         }
     };
+    
+    /**
+     * This method gets called in CodeMirror's onKeyDown/onKeyPress
+     * handlers and is used to provide custom key handling.
+     *
+     * To have custom handling, subclasses should override this method, but still call it
+     * in order to process the Edit mode keyboard shortcuts.
+     *
+     * @method handle_codemirror_keyevent
+     * @param {CodeMirror} editor - The codemirror instance bound to the cell
+     * @param {event} event - key press event which either should or should not be handled by CodeMirror
+     * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
+     */
+    Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        var that = this;
+        var shortcuts = IPython.keyboard_manager.edit_shortcuts;
+
+        // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
+        // manager will handle it
+        if (shortcuts.handles(event)) { return true; }
+        
+        return false;
+    };
+
 
     /**
      * Triger typsetting of math by mathjax on current cell element
@@ -227,6 +252,52 @@ var IPython = (function (IPython) {
         } else {
             return false;
         }
+    };
+
+    /**
+     * Delegates keyboard shortcut handling to either IPython keyboard
+     * manager when in command mode, or CodeMirror when in edit mode
+     *
+     * @method handle_keyevent
+     * @param {CodeMirror} editor - The codemirror instance bound to the cell
+     * @param {event} - key event to be handled
+     * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
+     */
+    Cell.prototype.handle_keyevent = function (editor, event) {
+
+        // console.log('CM', this.mode, event.which, event.type)
+
+        if (this.mode === 'command') {
+            return true;
+        } else if (this.mode === 'edit') {
+            return this.handle_codemirror_keyevent(editor, event);
+        }
+    };
+
+    /**
+     * @method at_top
+     * @return {Boolean}
+     */
+    Cell.prototype.at_top = function () {
+        var cm = this.code_mirror;
+        var cursor = cm.getCursor();
+        if (cursor.line === 0 && cursor.ch === 0) {
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * @method at_bottom
+     * @return {Boolean}
+     * */
+    Cell.prototype.at_bottom = function () {
+        var cm = this.code_mirror;
+        var cursor = cm.getCursor();
+        if (cursor.line === (cm.lineCount()-1) && cursor.ch === cm.getLine(cursor.line).length) {
+            return true;
+        }
+        return false;
     };
 
     /**

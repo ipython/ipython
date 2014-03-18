@@ -171,16 +171,6 @@ var IPython = (function (IPython) {
         );
     };
 
-    CodeCell.prototype.handle_keyevent = function (editor, event) {
-
-        // console.log('CM', this.mode, event.which, event.type)
-
-        if (this.mode === 'command') {
-            return true;
-        } else if (this.mode === 'edit') {
-            return this.handle_codemirror_keyevent(editor, event);
-        }
-    };
 
     /**
      *  This method gets called in CodeMirror's onKeyDown/onKeyPress
@@ -204,60 +194,26 @@ var IPython = (function (IPython) {
             this.auto_highlight();
         }
 
-        if (event.keyCode === keycodes.enter && (event.shiftKey || event.ctrlKey || event.altKey)) {
-            // Always ignore shift-enter in CodeMirror as we handle it.
-            return true;
-        } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
+        if (event.which === keycodes.down && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
             // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             // The second argument says to hide the tooltip if the docstring
             // is actually empty
             IPython.tooltip.pending(that, true);
-        } else if (event.which === keycodes.up && event.type === 'keydown') {
-            // If we are not at the top, let CM handle the up arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_top()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
+        } else if ( tooltip_closed && event.which === keycodes.esc && event.type === 'keydown') {
+            // If tooltip is active, cancel it.  The call to
+            // remove_and_cancel_tooltip above doesn't pass, force=true.
+            // Because of this it won't actually close the tooltip
+            // if it is in sticky mode. Thus, we have to check again if it is open
+            // and close it with force=true.
+            if (!IPython.tooltip._hidden) {
+                IPython.tooltip.remove_and_cancel_tooltip(true);
             }
-        } else if (event.which === keycodes.esc && event.type === 'keydown') {
-            // First see if the tooltip is active and if so cancel it.
-            if (tooltip_closed) {
-                // The call to remove_and_cancel_tooltip above in L177 doesn't pass
-                // force=true. Because of this it won't actually close the tooltip
-                // if it is in sticky mode. Thus, we have to check again if it is open
-                // and close it with force=true.
-                if (!IPython.tooltip._hidden) {
-                    IPython.tooltip.remove_and_cancel_tooltip(true);
-                }
-                // If we closed the tooltip, don't let CM or the global handlers
-                // handle this event.
-                event.stop();
-                return true;
-            }
-            if (that.code_mirror.options.keyMap === "vim-insert") {
-                // vim keyMap is active and in insert mode. In this case we leave vim
-                // insert mode, but remain in notebook edit mode.
-                // Let' CM handle this event and prevent global handling.
-                event.stop();
-                return false;
-            } else {
-                // vim keyMap is not active. Leave notebook edit mode.
-                // Don't let CM handle the event, defer to global handling.
-                return true;
-            }
-        } else if (event.which === keycodes.down && event.type === 'keydown') {
-            // If we are not at the bottom, let CM handle the down arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            }
+            // If we closed the tooltip, don't let CM or the global handlers
+            // handle this event.
+            event.stop();
+            return true;
         } else if (event.keyCode === keycodes.tab && event.type === 'keydown' && event.shiftKey) {
                 if (editor.somethingSelected()){
                     var anchor = editor.getCursor("anchor");
@@ -285,12 +241,11 @@ var IPython = (function (IPython) {
                 this.completer.startCompletion();
                 return true;
             }
-        } else {
-            // keypress/keyup also trigger on TAB press, and we don't want to
-            // use those to disable tab completion.
-            return false;
-        }
-        return false;
+        } 
+        
+        // keyboard event wasn't one of those unique to code cells, let's see
+        // if it's one of the generic ones (i.e. check edit mode shortcuts)
+        return IPython.Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
     };
 
     // Kernel related calls.
@@ -455,7 +410,7 @@ var IPython = (function (IPython) {
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns;
-        if (prompt_value == undefined) {
+        if (prompt_value === undefined) {
             ns = "&nbsp;";
         } else {
             ns = encodeURIComponent(prompt_value);
@@ -498,26 +453,6 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.set_text = function (code) {
         return this.code_mirror.setValue(code);
-    };
-
-
-    CodeCell.prototype.at_top = function () {
-        var cursor = this.code_mirror.getCursor();
-        if (cursor.line === 0 && cursor.ch === 0) {
-            return true;
-        } else {
-            return false;
-        }
-    };
-
-
-    CodeCell.prototype.at_bottom = function () {
-        var cursor = this.code_mirror.getCursor();
-        if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
-            return true;
-        } else {
-            return false;
-        }
     };
 
 
