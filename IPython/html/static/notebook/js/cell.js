@@ -283,9 +283,8 @@ var IPython = (function (IPython) {
         var cursor = cm.getCursor();
         if (cursor.line === 0 && cursor.ch === 0) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     };
 
     /**
@@ -297,10 +296,10 @@ var IPython = (function (IPython) {
         var cursor = cm.getCursor();
         if (cursor.line === (cm.lineCount()-1) && cursor.ch === cm.getLine(cursor.line).length) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     };
+
     /**
      * enter the command mode for the cell
      * @method command_mode

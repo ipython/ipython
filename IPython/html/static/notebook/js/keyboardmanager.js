@@ -108,8 +108,7 @@ var IPython = (function (IPython) {
                         IPython.notebook.select_prev();
                         IPython.notebook.edit_mode();
                         var cm = IPython.notebook.get_selected_cell().code_mirror;
-                        var prev_cursor = cell.code_mirror.getCursor();
-                        cm.setCursor(cm.lastLine(), prev_cursor.ch)
+                        cm.setCursor(cm.lastLine(), 0);
                         return false;
                     } else if (cell) {
                         var cm = cell.code_mirror;
@@ -134,8 +133,7 @@ var IPython = (function (IPython) {
                         IPython.notebook.select_next();
                         IPython.notebook.edit_mode();
                         var cm = IPython.notebook.get_selected_cell().code_mirror;
-                        var prev_cursor = cell.code_mirror.getCursor();
-                        cm.setCursor(0, prev_cursor.ch);
+                        cm.setCursor(0, 0);
                         return false;
                     } else if (cell) {
                         var cm = cell.code_mirror;
