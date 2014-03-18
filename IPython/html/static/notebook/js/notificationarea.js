@@ -44,21 +44,21 @@ var IPython = (function (IPython) {
     };
 
     NotificationArea.prototype.widget = function(name) {
-        if(this.widget_dict[name] == undefined) {
+        if(this.widget_dict[name] === undefined) {
             return this.new_notification_widget(name);
         }
         return this.get_widget(name);
     };
 
     NotificationArea.prototype.get_widget = function(name) {
-        if(this.widget_dict[name] == undefined) {
+        if(this.widget_dict[name] === undefined) {
             throw('no widgets with this name');
         }
         return this.widget_dict[name];
     };
 
     NotificationArea.prototype.new_notification_widget = function(name) {
-        if(this.widget_dict[name] != undefined) {
+        if(this.widget_dict[name] !== undefined) {
             throw('widget with that name already exists ! ');
         }
         var div = $('<div/>').attr('id','notification_'+name);
@@ -75,26 +75,26 @@ var IPython = (function (IPython) {
         // Command/Edit mode
         $([IPython.events]).on('edit_mode.Notebook',function () {
             IPython.save_widget.update_document_title();
-            $modal_ind_icon.attr('class','ipython-edit-mode').attr('title','Edit Mode');
+            $modal_ind_icon.attr('class','edit_mode_icon').attr('title','Edit Mode');
         });
 
         $([IPython.events]).on('command_mode.Notebook',function () {
             IPython.save_widget.update_document_title();
-            $modal_ind_icon.attr('class','ipython-command-mode').attr('title','Command Mode');
+            $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
         });
 
         // Implicitly start off in Command mode, switching to Edit mode will trigger event
-        $modal_ind_icon.attr('class','ipython-command-mode').attr('title','Command Mode');
+        $modal_ind_icon.attr('class','command-mode_icon').attr('title','Command Mode');
 
         // Kernel events
         $([IPython.events]).on('status_idle.Kernel',function () {
             IPython.save_widget.update_document_title();
-            $kernel_ind_icon.attr('class','ipython-kernel-idle').attr('title','Kernel Idle');
+            $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
         });
 
         $([IPython.events]).on('status_busy.Kernel',function () {
             window.document.title='(Busy) '+window.document.title;
-            $kernel_ind_icon.attr('class','ipython-kernel-busy').attr('title','Kernel Busy');
+            $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
         });
 
         $([IPython.events]).on('status_restarting.Kernel',function () {
@@ -108,7 +108,7 @@ var IPython = (function (IPython) {
         
         // Start the kernel indicator in the busy state, and send a kernel_info request.
         // When the kernel_info reply arrives, the kernel is idle.
-        $kernel_ind_icon.attr('class','ipython-kernel-busy').attr('title','Kernel Busy');
+        $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
 
         $([IPython.events]).on('status_started.Kernel', function (evt, data) {
             data.kernel.kernel_info(function () {
@@ -151,7 +151,7 @@ var IPython = (function (IPython) {
                     }, 5000);
                 return;
             }
-            console.log('WebSocket connection failed: ', ws_url)
+            console.log('WebSocket connection failed: ', ws_url);
             msg = "A WebSocket connection could not be established." +
                 " You will NOT be able to run code. Check your" +
                 " network connection or notebook server configuration.";
