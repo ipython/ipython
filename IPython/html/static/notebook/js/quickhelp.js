@@ -42,7 +42,7 @@ var IPython = (function (IPython) {
             'allows you to type code/text into a cell and is indicated by a green cell '+
             'border. <b>Command mode</b> binds the keyboard to notebook level actions '+
             'and is indicated by a grey cell border.'
-        )
+        );
         element.append(doc);
 
         // Command mode
@@ -68,7 +68,7 @@ var IPython = (function (IPython) {
     QuickHelp.prototype.build_command_help = function () {
         var command_shortcuts = IPython.keyboard_manager.command_shortcuts.help();
         return build_div('<h4>Command Mode (press <code>Esc</code> to enable)</h4>', command_shortcuts);
-    }
+    };
 
     var special_case = { pageup: "PageUp", pagedown: "Page Down" };
     var prettify = function (s) {
@@ -92,16 +92,16 @@ var IPython = (function (IPython) {
         var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
         // Edit mode
         return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', edit_shortcuts);
-    }
+    };
 
     var build_one = function (s) {
-        var help = s['help'];
-        var shortcut = prettify(s['shortcut']);
+        var help = s.help;
+        var shortcut = prettify(s.shortcut);
         return $('<div>').addClass('quickhelp').
             append($('<span/>').addClass('shortcut_key').append($(shortcut))).
-            append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
+            append($('<span/>').addClass('shortcut_descr').text(' : ' + help));
 
-    }
+    };
 
     var build_div = function (title, shortcuts) {
         var i, half, n;
@@ -111,12 +111,12 @@ var IPython = (function (IPython) {
         var col2 = $('<div/>').addClass('box-flex0');
         n = shortcuts.length;
         half = ~~(n/2);  // Truncate :)
-        for (i=0; i<half; i++) { col1.append( build_one(shortcuts[i]) ); };
-        for (i=half; i<n; i++) { col2.append( build_one(shortcuts[i]) ); };
+        for (i=0; i<half; i++) { col1.append( build_one(shortcuts[i]) ); }
+        for (i=half; i<n; i++) { col2.append( build_one(shortcuts[i]) ); }
         sub_div.append(col1).append(col2);
         div.append(sub_div);
         return div;
-    }
+    };
 
     // Set module variables
     IPython.QuickHelp = QuickHelp;

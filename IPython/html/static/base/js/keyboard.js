@@ -44,12 +44,12 @@ IPython.keyboard = (function (IPython) {
     // These apply to Firefox and Opera
     var _mozilla_keycodes = {
         '; :': 59, '= +': 61, '- _': 173, 'meta': 224
-    }
+    };
     
     // This apply to Webkit and IE
     var _ie_keycodes = {
         '; :': 186, '= +': 187, '- _': 189, 
-    }
+    };
     
     var browser = IPython.utils.browser[0];
     var platform = IPython.utils.platform;
@@ -65,21 +65,21 @@ IPython.keyboard = (function (IPython) {
     for (var name in _keycodes) {
         var names = name.split(' ');
         if (names.length === 1) {
-            var n = names[0]
-            keycodes[n] = _keycodes[n]
-            inv_keycodes[_keycodes[n]] = n
+            var n = names[0];
+            keycodes[n] = _keycodes[n];
+            inv_keycodes[_keycodes[n]] = n;
         } else {
             var primary = names[0];
             var secondary = names[1];
-            keycodes[primary] = _keycodes[name]
-            keycodes[secondary] = _keycodes[name]
-            inv_keycodes[_keycodes[name]] = primary
+            keycodes[primary] = _keycodes[name];
+            keycodes[secondary] = _keycodes[name];
+            inv_keycodes[_keycodes[name]] = primary;
         }
     }
 
     var normalize_key = function (key) {
         return inv_keycodes[keycodes[key]];
-    }
+    };
 
     var normalize_shortcut = function (shortcut) {
         // Put a shortcut into normalized form:
@@ -90,14 +90,14 @@ IPython.keyboard = (function (IPython) {
         shortcut = shortcut.toLowerCase().replace('cmd', 'meta');
         var values = shortcut.split("+");
         if (values.length === 1) {
-            return normalize_key(values[0])
+            return normalize_key(values[0]);
         } else {
             var modifiers = values.slice(0,-1);
             var key = normalize_key(values[values.length-1]);
             modifiers.sort();
             return modifiers.join('+') + '+' + key;
         }
-    }
+    };
 
     var shortcut_to_event = function (shortcut, type) {
         // Convert a shortcut (shift+r) to a jQuery Event object
@@ -112,19 +112,19 @@ IPython.keyboard = (function (IPython) {
         if (modifiers.indexOf('meta') !== -1) {opts.metaKey = true;}
         if (modifiers.indexOf('shift') !== -1) {opts.shiftKey = true;}
         return $.Event(type, opts);
-    }
+    };
 
     var event_to_shortcut = function (event) {
         // Convert a jQuery Event object to a shortcut (shift+r)
         var shortcut = '';
-        var key = inv_keycodes[event.which]
+        var key = inv_keycodes[event.which];
         if (event.altKey && key !== 'alt') {shortcut += 'alt+';}
         if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl+';}
         if (event.metaKey && key !== 'meta') {shortcut += 'meta+';}
         if (event.shiftKey && key !== 'shift') {shortcut += 'shift+';}
         shortcut += key;
-        return shortcut
-    }
+        return shortcut;
+    };
 
     var trigger_keydown = function (shortcut, element) {
         // Trigger shortcut keydown on an element
@@ -132,17 +132,17 @@ IPython.keyboard = (function (IPython) {
         element = $(element);
         var event = shortcut_to_event(shortcut, 'keydown');
         element.trigger(event);
-    }
+    };
 
 
     // Shortcut manager class
 
     var ShortcutManager = function (delay) {
-        this._shortcuts = {}
-        this._counts = {}
-        this._timers = {}
+        this._shortcuts = {};
+        this._counts = {};
+        this._timers = {};
         this.delay = delay || 800; // delay in milliseconds
-    }
+    };
 
     ShortcutManager.prototype.help = function () {
         var help = [];
@@ -168,15 +168,15 @@ IPython.keyboard = (function (IPython) {
             return 0;
         });
         return help;
-    }
+    };
 
     ShortcutManager.prototype.clear_shortcuts = function () {
         this._shortcuts = {};
-    }
+    };
 
     ShortcutManager.prototype.add_shortcut = function (shortcut, data, suppress_help_update) {
         if (typeof(data) === 'function') {
-            data = {help: '', help_index: '', handler: data}
+            data = {help: '', help_index: '', handler: data};
         }
         data.help_index = data.help_index || '';
         data.help = data.help || '';
@@ -189,9 +189,9 @@ IPython.keyboard = (function (IPython) {
         this._shortcuts[shortcut] = data;
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
-            $([IPython.events]).trigger('rebuild.QuickHelp')
+            $([IPython.events]).trigger('rebuild.QuickHelp');
         }
-    }
+    };
 
     ShortcutManager.prototype.add_shortcuts = function (data) {
         for (var shortcut in data) {
@@ -199,7 +199,7 @@ IPython.keyboard = (function (IPython) {
         }
         // update the keyboard shortcuts notebook help
         $([IPython.events]).trigger('rebuild.QuickHelp');
-    }
+    };
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut, suppress_help_update) {
         shortcut = normalize_shortcut(shortcut);
@@ -209,7 +209,7 @@ IPython.keyboard = (function (IPython) {
             // update the keyboard shortcuts notebook help
             $([IPython.events]).trigger('rebuild.QuickHelp');
         }
-    }
+    };
 
     ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
         var that = this;
@@ -229,7 +229,7 @@ IPython.keyboard = (function (IPython) {
             t[shortcut] = timer;
         }
         return false;
-    }
+    };
 
     ShortcutManager.prototype.call_handler = function (event) {
         var shortcut = event_to_shortcut(event);
@@ -245,7 +245,7 @@ IPython.keyboard = (function (IPython) {
             }
         }
         return true;
-    }
+    };
 
     return {
         keycodes : keycodes,
@@ -256,6 +256,6 @@ IPython.keyboard = (function (IPython) {
         shortcut_to_event : shortcut_to_event,
         event_to_shortcut : event_to_shortcut,
         trigger_keydown : trigger_keydown
-    }
+    };
 
 }(IPython));
