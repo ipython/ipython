@@ -584,6 +584,13 @@ def _default_pprint(obj, p, cycle):
     p.end_group(1, '>')
 
 
+def _enumerate(seq, limit):
+    """like enumerate, but with an upper limit on the number of items"""
+    for idx, x in enumerate(seq):
+        if idx >= limit:
+            raise StopIteration
+        yield idx, x
+
 def _seq_pprinter_factory(start, end, basetype):
     """
     Factory that returns a pprint function useful for sequences.  Used by
@@ -599,18 +606,17 @@ def _seq_pprinter_factory(start, end, basetype):
             return p.text(start + '...' + end)
         step = len(start)
         p.begin_group(step, start)
-        for idx, x in enumerate(obj):
-            if idx >= SEQ_LENGTH_LIMIT:
-                p.text(',')
-                p.breakable()
-                p.text('...')
-                p.end_group(step, end)
-                return
+        for idx, x in _enumerate(obj, SEQ_LENGTH_LIMIT):
             if idx:
                 p.text(',')
                 p.breakable()
             p.pretty(x)
-        if len(obj) == 1 and type(obj) is tuple:
+        
+        if len(obj) >= SEQ_LENGTH_LIMIT:
+            p.text(',')
+            p.breakable()
+            p.text('...')
+        elif len(obj) == 1 and type(obj) is tuple:
             # Special case for 1-item tuples.
             p.text(',')
         p.end_group(step, end)
@@ -642,17 +648,16 @@ def _set_pprinter_factory(start, end, basetype):
             except Exception:
                 # Sometimes the items don't sort.
                 pass
-            for idx, x in enumerate(items):
-                if idx >= SEQ_LENGTH_LIMIT:
-                    p.text(',')
-                    p.breakable()
-                    p.text('...')
-                    p.end_group(step, end)
-                    return
+            for idx, x in _enumerate(items, SEQ_LENGTH_LIMIT):
                 if idx:
                     p.text(',')
                     p.breakable()
                 p.pretty(x)
+            
+            if len(obj) >= SEQ_LENGTH_LIMIT:
+                p.text(',')
+                p.breakable()
+                p.text('...')
             p.end_group(step, end)
     return inner
 
@@ -677,19 +682,18 @@ def _dict_pprinter_factory(start, end, basetype=None):
         except Exception as e:
             # Sometimes the keys don't sort.
             pass
-        for idx, key in enumerate(keys):
-            if idx >= SEQ_LENGTH_LIMIT:
-                p.text(',')
-                p.breakable()
-                p.text('...')
-                p.end_group(1, end)
-                return
+        for idx, key in _enumerate(keys, SEQ_LENGTH_LIMIT):
             if idx:
                 p.text(',')
                 p.breakable()
             p.pretty(key)
             p.text(': ')
             p.pretty(obj[key])
+        
+        if len(obj) >= SEQ_LENGTH_LIMIT:
+            p.text(',')
+            p.breakable()
+            p.text('...')
         p.end_group(1, end)
     return inner
 
