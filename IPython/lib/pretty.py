@@ -122,8 +122,6 @@ else:
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name']
 
-SEQ_LENGTH_LIMIT = 1000
-
 _re_pattern_type = type(re.compile(''))
 
 def _failed_repr(obj, e):
@@ -230,10 +228,11 @@ class PrettyPrinter(_PrettyPrinterBase):
     callback method.
     """
 
-    def __init__(self, output, max_width=79, newline='\n'):
+    def __init__(self, output, max_width=79, newline='\n', max_seq_length=1000):
         self.output = output
         self.max_width = max_width
         self.newline = newline
+        self.max_seq_length = max_seq_length
         self.output_width = 0
         self.buffer_width = 0
         self.buffer = deque()
@@ -606,13 +605,13 @@ def _seq_pprinter_factory(start, end, basetype):
             return p.text(start + '...' + end)
         step = len(start)
         p.begin_group(step, start)
-        for idx, x in _enumerate(obj, SEQ_LENGTH_LIMIT):
+        for idx, x in _enumerate(obj, p.max_seq_length):
             if idx:
                 p.text(',')
                 p.breakable()
             p.pretty(x)
         
-        if len(obj) >= SEQ_LENGTH_LIMIT:
+        if len(obj) >= p.max_seq_length:
             p.text(',')
             p.breakable()
             p.text('...')
@@ -648,13 +647,13 @@ def _set_pprinter_factory(start, end, basetype):
             except Exception:
                 # Sometimes the items don't sort.
                 pass
-            for idx, x in _enumerate(items, SEQ_LENGTH_LIMIT):
+            for idx, x in _enumerate(items, p.max_seq_length):
                 if idx:
                     p.text(',')
                     p.breakable()
                 p.pretty(x)
             
-            if len(obj) >= SEQ_LENGTH_LIMIT:
+            if len(obj) >= p.max_seq_length:
                 p.text(',')
                 p.breakable()
                 p.text('...')
@@ -682,7 +681,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
         except Exception as e:
             # Sometimes the keys don't sort.
             pass
-        for idx, key in _enumerate(keys, SEQ_LENGTH_LIMIT):
+        for idx, key in _enumerate(keys, p.max_seq_length):
             if idx:
                 p.text(',')
                 p.breakable()
@@ -690,7 +689,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
             p.text(': ')
             p.pretty(obj[key])
         
-        if len(obj) >= SEQ_LENGTH_LIMIT:
+        if len(obj) >= p.max_seq_length:
             p.text(',')
             p.breakable()
             p.text('...')
