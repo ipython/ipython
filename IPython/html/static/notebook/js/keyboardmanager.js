@@ -100,23 +100,21 @@ var IPython = (function (IPython) {
             help_index : '',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
-                if (index !== null && index !== 0) {
-                    var cell = IPython.notebook.get_cell(index);
-                    if (cell && cell.at_top()) {
-                        event.preventDefault();
-                        IPython.notebook.command_mode();
-                        IPython.notebook.select_prev();
-                        IPython.notebook.edit_mode();
-                        var cm = IPython.notebook.get_selected_cell().code_mirror;
-                        cm.setCursor(cm.lastLine(), 0);
-                        return false;
-                    } else if (cell) {
-                        var cm = cell.code_mirror;
-                        var cursor = cm.getCursor();
-                        cursor.line -= 1;
-                        cm.setCursor(cursor);
-                        return false;
-                    }
+                var cell = IPython.notebook.get_cell(index);
+                if (cell && cell.at_top() && index !== 0) {
+                    event.preventDefault();
+                    IPython.notebook.command_mode();
+                    IPython.notebook.select_prev();
+                    IPython.notebook.edit_mode();
+                    var cm = IPython.notebook.get_selected_cell().code_mirror;
+                    cm.setCursor(cm.lastLine(), 0);
+                    return false;
+                } else if (cell) {
+                    var cm = cell.code_mirror;
+                    var cursor = cm.getCursor();
+                    cursor.line -= 1;
+                    cm.setCursor(cursor);
+                    return false;
                 }
             }
         },
@@ -125,23 +123,21 @@ var IPython = (function (IPython) {
             help_index : '',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
-                if (index !== null && index !== (IPython.notebook.ncells()-1)) {
-                    var cell = IPython.notebook.get_cell(index);
-                    if (cell && cell.at_bottom()) {
-                        event.preventDefault();
-                        IPython.notebook.command_mode();
-                        IPython.notebook.select_next();
-                        IPython.notebook.edit_mode();
-                        var cm = IPython.notebook.get_selected_cell().code_mirror;
-                        cm.setCursor(0, 0);
-                        return false;
-                    } else if (cell) {
-                        var cm = cell.code_mirror;
-                        var cursor = cm.getCursor();
-                        cursor.line += 1;
-                        cm.setCursor(cursor);
-                        return false;
-                    }
+                var cell = IPython.notebook.get_cell(index);
+                if (cell.at_bottom() && index !== (IPython.notebook.ncells()-1)) {
+                    event.preventDefault();
+                    IPython.notebook.command_mode();
+                    IPython.notebook.select_next();
+                    IPython.notebook.edit_mode();
+                    var cm = IPython.notebook.get_selected_cell().code_mirror;
+                    cm.setCursor(0, 0);
+                    return false;
+                } else {
+                    var cm = cell.code_mirror;
+                    var cursor = cm.getCursor();
+                    cursor.line += 1;
+                    cm.setCursor(cursor);
+                    return false;
                 }
             }
         },
