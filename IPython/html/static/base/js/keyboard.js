@@ -85,25 +85,25 @@ IPython.keyboard = (function (IPython) {
         // Put a shortcut into normalized form:
         // 1. Make lowercase
         // 2. Replace cmd by meta
-        // 3. Sort '+' separated modifiers into the order alt+ctrl+meta+shift
+        // 3. Sort '-' separated modifiers into the order alt-ctrl-meta-shift
         // 4. Normalize keys
         shortcut = shortcut.toLowerCase().replace('cmd', 'meta');
-        var values = shortcut.split("+");
+        var values = shortcut.split("-");
         if (values.length === 1) {
             return normalize_key(values[0]);
         } else {
             var modifiers = values.slice(0,-1);
             var key = normalize_key(values[values.length-1]);
             modifiers.sort();
-            return modifiers.join('+') + '+' + key;
+            return modifiers.join('-') + '-' + key;
         }
     };
 
     var shortcut_to_event = function (shortcut, type) {
-        // Convert a shortcut (shift+r) to a jQuery Event object
+        // Convert a shortcut (shift-r) to a jQuery Event object
         type = type || 'keydown';
         shortcut = normalize_shortcut(shortcut);
-        var values = shortcut.split("+");
+        var values = shortcut.split("-");
         var modifiers = values.slice(0,-1);
         var key = values[values.length-1];
         var opts = {which: keycodes[key]};
@@ -115,13 +115,13 @@ IPython.keyboard = (function (IPython) {
     };
 
     var event_to_shortcut = function (event) {
-        // Convert a jQuery Event object to a shortcut (shift+r)
+        // Convert a jQuery Event object to a shortcut (shift-r)
         var shortcut = '';
         var key = inv_keycodes[event.which];
-        if (event.altKey && key !== 'alt') {shortcut += 'alt+';}
-        if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl+';}
-        if (event.metaKey && key !== 'meta') {shortcut += 'meta+';}
-        if (event.shiftKey && key !== 'shift') {shortcut += 'shift+';}
+        if (event.altKey && key !== 'alt') {shortcut += 'alt-';}
+        if (event.ctrlKey && key !== 'ctrl') {shortcut += 'ctrl-';}
+        if (event.metaKey && key !== 'meta') {shortcut += 'meta-';}
+        if (event.shiftKey && key !== 'shift') {shortcut += 'shift-';}
         shortcut += key;
         return shortcut;
     };

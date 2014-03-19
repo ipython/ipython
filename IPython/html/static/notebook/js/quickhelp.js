@@ -73,7 +73,7 @@ var IPython = (function (IPython) {
 
     var special_case = { pageup: "PageUp", pagedown: "Page Down" };
     var prettify = function (s) {
-        var keys = s.split('+');
+        var keys = s.split('-');
         var k, i;
         for (i in keys) {
             k = keys[i];
