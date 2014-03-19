@@ -29,16 +29,19 @@ from __future__ import print_function
 
 import logging
 import select
-import SocketServer
+try:  # Python 3
+    import socketserver
+except ImportError:  # Python 2
+    import SocketServer as socketserver
 
 logger = logging.getLogger('ssh')
 
-class ForwardServer (SocketServer.ThreadingTCPServer):
+class ForwardServer (socketserver.ThreadingTCPServer):
     daemon_threads = True
     allow_reuse_address = True
     
 
-class Handler (SocketServer.BaseRequestHandler):
+class Handler (socketserver.BaseRequestHandler):
 
     def handle(self):
         try:
