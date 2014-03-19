@@ -98,13 +98,17 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_dont_cache_with_semicolon(self):
         "Ending a line with semicolon should not cache the returned object (GH-307)"
         oldlen = len(ip.user_ns['Out'])
-        a = ip.run_cell('1;', store_history=True)
-        newlen = len(ip.user_ns['Out'])
-        self.assertEqual(oldlen, newlen)
+        for cell in ['1;', '1; #a', '1;1;']:
+            ip.run_cell(cell, store_history=True)
+            newlen = len(ip.user_ns['Out'])
+            self.assertEqual(oldlen, newlen)
+        i = 0
         #also test the default caching behavior
-        ip.run_cell('1', store_history=True)
-        newlen = len(ip.user_ns['Out'])
-        self.assertEqual(oldlen+1, newlen)
+        for cell in ['1', '1 #;', '1;1']:
+            ip.run_cell(cell, store_history=True)
+            newlen = len(ip.user_ns['Out'])
+            i += 1
+            self.assertEqual(oldlen+i, newlen)
 
     def test_In_variable(self):
         "Verify that In variable grows with user input (GH-284)"
