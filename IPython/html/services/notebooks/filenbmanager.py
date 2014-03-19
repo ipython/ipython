@@ -89,20 +89,13 @@ class FileNotebookManager(NotebookManager):
     def _copy(self, src, dest):
         """copy src to dest
         
-        try copy2, fallback to copy, then finally copyfile
+        like shutil.copy2, but log errors in copystat
         """
-        exc = None
-        for name in ('copy2', 'copy', 'copyfile'):
-            cp = getattr(shutil, name)
-            try:
-                cp(src, dest)
-            except OSError as e:
-                exc = e # assignment required for Python 3
-                self.log.debug("%s(%r,%r) failed: %s", name, src, dest, e)
-            else:
-                return
-        # will only get here if all copies fail:
-        raise exc
+        shutil.copyfile(src, dest)
+        try:
+            shutil.copystat(src, dest)
+        except OSError as e:
+            self.log.debug("copystat on %s failed", dest, exc_info=True)
     
     def get_notebook_names(self, path=''):
         """List all notebook names in the notebook dir and path."""
