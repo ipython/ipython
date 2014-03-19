@@ -61,7 +61,8 @@ class TestCoalesceStreams(PreprocessorTestsBase):
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="\ra"),
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="\nz\rb"),
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="\nz"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="\rc")]
+                   nbformat.new_output(output_type="stream", stream="stdout", output_text="\rc\n"),
+                   nbformat.new_output(output_type="stream", stream="stdout", output_text="z\rz\rd")]
         cells=[nbformat.new_code_cell(input="# None", prompt_number=1,outputs=outputs)]
         worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
 
@@ -69,4 +70,4 @@ class TestCoalesceStreams(PreprocessorTestsBase):
         res = self.build_resources()
         nb, res = coalesce_streams(nb, res)
         outputs = nb.worksheets[0].cells[0].outputs
-        self.assertEqual(outputs[0].text, u'a\nb\nc')
+        self.assertEqual(outputs[0].text, u'a\nb\nc\nd')
