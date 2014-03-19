@@ -389,6 +389,7 @@ var IPython = (function (IPython) {
         var that = this;
         this.element.focusout(function() {
             that.auto_highlight();
+            that.render();
         });
 
         this.code_mirror.on('focus', function() { that.unrender(); });
@@ -409,6 +410,7 @@ var IPython = (function (IPython) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             this.set_text(text);
+            this.element.removeClass('rendered');
         }
         return cont;
     };
