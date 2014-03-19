@@ -229,10 +229,11 @@ class PrettyPrinter(_PrettyPrinterBase):
     callback method.
     """
 
-    def __init__(self, output, max_width=79, newline='\n'):
+    def __init__(self, output, max_width=79, newline='\n', max_seq_length=1000):
         self.output = output
         self.max_width = max_width
         self.newline = newline
+        self.max_seq_length = max_seq_length
         self.output_width = 0
         self.buffer_width = 0
         self.buffer = deque()
@@ -325,7 +326,17 @@ class PrettyPrinter(_PrettyPrinterBase):
         self.group_stack.append(group)
         self.group_queue.enq(group)
         self.indentation += indent
-
+    
+    def _enumerate(self, seq):
+        """like enumerate, but with an upper limit on the number of items"""
+        for idx, x in enumerate(seq):
+            if self.max_seq_length and idx >= self.max_seq_length:
+                self.text(',')
+                self.breakable()
+                self.text('...')
+                raise StopIteration
+            yield idx, x
+    
     def end_group(self, dedent=0, close=''):
         """End a group. See `begin_group` for more details."""
         self.indentation -= dedent
@@ -598,7 +609,7 @@ def _seq_pprinter_factory(start, end, basetype):
             return p.text(start + '...' + end)
         step = len(start)
         p.begin_group(step, start)
-        for idx, x in enumerate(obj):
+        for idx, x in p._enumerate(obj):
             if idx:
                 p.text(',')
                 p.breakable()
@@ -635,7 +646,7 @@ def _set_pprinter_factory(start, end, basetype):
             except Exception:
                 # Sometimes the items don't sort.
                 pass
-            for idx, x in enumerate(items):
+            for idx, x in p._enumerate(items):
                 if idx:
                     p.text(',')
                     p.breakable()
@@ -664,7 +675,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
         except Exception as e:
             # Sometimes the keys don't sort.
             pass
-        for idx, key in enumerate(keys):
+        for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')
                 p.breakable()
