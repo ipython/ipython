@@ -11,9 +11,13 @@ addition to the coalesce_streams pre-proccessor.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+import re
+
+#-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
-
 def cell_preprocessor(function):
     """
     Wrap a function to be executed on all cells of a notebook
@@ -66,21 +70,11 @@ def coalesce_streams(cell, resources, index):
             last.output_type == 'stream' and
             last.stream == output.stream
         ):
-            # Either append this output to the existing or replace the last line
-            # of the existing if a \r character is found.
-            if '\r' in output.text:
-                existing_lines = last.text.split('\n')
-                new_pieces = output.text.split('\r')
-                # If there is any text preceding the first occurance of '\r', it
-                # is appended as a new line to the lines.
-                if len(new_pieces[0]) > 0:
-                    existing_lines.append(new_pieces[0])
-                # The text following the last occurance of '\r' replaces the 
-                # last line of text in the output.
-                existing_lines[-1] = new_pieces[-1]
-                last.text = '\n'.join(existing_lines)
-            else:
-                last.text += output.text
+            last.text += output.text
+
+            # Respect \r characters.
+            cr_pat = re.compile(r'.*\r(?=[^\n])')
+            last.text = cr_pat.sub('', last.text)
         else:
             new_outputs.append(output)
             last = output
