@@ -62,8 +62,6 @@ This template does not define a docclass, the inheriting class must define this.
     
     % commands and environments needed by pandoc snippets
     % extracted from the output of `pandoc -s`
-    
-    \DefineShortVerb[commandchars=\\\{\}]{\|}
     \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
     % Add ',fontsize=\small' for more characters per line
     \newenvironment{Shaded}{}{}
