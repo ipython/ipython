@@ -20,6 +20,8 @@ from IPython.utils.traitlets import Unicode, Dict, CInt
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
 class _SelectionContainerWidget(ContainerWidget):
     _titles = Dict(help="Titles of the pages", sync=True)
     selected_index = CInt(0, sync=True)

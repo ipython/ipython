@@ -16,4 +16,4 @@ if __name__ == '__main__':
 
     pp = [x() for x in plugins]  # activate all builtin plugins first
     main(testRunner=IPDocTestRunner(),
-         plugins=pp+[ipdoctest.IPythonDoctest(),Doctest()])
+         plugins=pp + [ipdoctest.IPythonDoctest(), Doctest()])

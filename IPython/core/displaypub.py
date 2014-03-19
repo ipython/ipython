@@ -38,7 +38,9 @@ from IPython.utils.traitlets import List
 # Main payload class
 #-----------------------------------------------------------------------------
 
+
 class DisplayPublisher(Configurable):
+
     """A traited class that publishes display data to frontends.
 
     Instances of this class are created by the main IPython object and should
@@ -118,15 +120,16 @@ class DisplayPublisher(Configurable):
 
 
 class CapturingDisplayPublisher(DisplayPublisher):
+
     """A DisplayPublisher that stores"""
     outputs = List()
 
     def publish(self, source, data, metadata=None):
         self.outputs.append((source, data, metadata))
-    
+
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)
-        
+
         # empty the list, *do not* reassign a new list
         del self.outputs[:]
 
@@ -173,5 +176,3 @@ def publish_display_data(source, data, metadata=None):
         data,
         metadata
     )
-
-

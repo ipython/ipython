@@ -2,8 +2,8 @@
 
 # <markdowncell>
 
-# # Distributed hello world
-# 
+# Distributed hello world
+#
 # Originally by Ken Kinder (ken at kenkinder dom com)
 
 # <codecell>
@@ -17,6 +17,7 @@ rc = Client()
 view = rc.load_balanced_view()
 
 # <codecell>
+
 
 def sleep_and_echo(t, msg):
     import time
@@ -32,4 +33,3 @@ hello = view.apply_async(sleep_and_echo, 2, 'Hello')
 
 print("Submitted tasks:", hello.msg_ids, world.msg_ids)
 print(hello.get(), world.get())
-

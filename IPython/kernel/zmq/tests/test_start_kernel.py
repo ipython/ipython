@@ -4,6 +4,7 @@ from .test_embed_kernel import setup, teardown, setup_kernel
 
 TIMEOUT = 15
 
+
 def test_ipython_start_kernel_userns():
     cmd = ('from IPython import start_kernel\n'
            'ns = {"tre": 123}\n'
@@ -26,6 +27,7 @@ def test_ipython_start_kernel_userns():
         content = msg['content']
         assert content['found']
         nt.assert_in('DummyMod', content['string_form'])
+
 
 def test_ipython_start_kernel_no_userns():
     # Issue #4188 - user_ns should be passed to shell as None, not {}

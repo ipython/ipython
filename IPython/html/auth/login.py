@@ -28,13 +28,15 @@ from ..base.handlers import IPythonHandler
 # Handler
 #-----------------------------------------------------------------------------
 
+
 class LoginHandler(IPythonHandler):
 
     def _render(self, message=None):
         self.write(self.render_template('login.html',
-                next=url_escape(self.get_argument('next', default=self.base_url)),
-                message=message,
-        ))
+                                        next=url_escape(
+                                            self.get_argument('next', default=self.base_url)),
+                                        message=message,
+                                        ))
 
     def get(self):
         if self.current_user:

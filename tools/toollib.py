@@ -39,19 +39,22 @@ win_builds = ["python setup.py bdist_wininst "
               r"%s/.wine/dosdevices/c\:/Python32/python.exe setup.py build "
               "--plat-name=win-amd64 bdist_wininst "
               "--install-script=ipython_win_post_install.py" %
-              os.environ['HOME'] ]
+              os.environ['HOME']]
 
 # Utility functions
+
+
 def sh(cmd):
     """Run system command in shell, raise SystemExit if it returns an error."""
     print("$", cmd)
     stat = os.system(cmd)
-    #stat = 0  # Uncomment this and comment previous to run in debug mode
+    # stat = 0  # Uncomment this and comment previous to run in debug mode
     if stat:
         raise SystemExit("Command %s failed with code: %s" % (cmd, stat))
 
 # Backwards compatibility
 c = sh
+
 
 def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""

@@ -54,7 +54,7 @@ class Highlight2HTML(NbConvertBase):
         """
         from pygments.formatters import HtmlFormatter
         if not language:
-            language=self.default_language
+            language = self.default_language
 
         return _pygments_highlight(source if len(source) > 0 else ' ', HtmlFormatter(), language, metadata)
 
@@ -78,15 +78,16 @@ class Highlight2Latex(NbConvertBase):
         """
         from pygments.formatters import LatexFormatter
         if not language:
-            language=self.default_language
+            language = self.default_language
 
-        latex = _pygments_highlight(source, LatexFormatter(), language, metadata)
+        latex = _pygments_highlight(
+            source, LatexFormatter(), language, metadata)
         if strip_verbatim:
-            latex = latex.replace(r'\begin{Verbatim}[commandchars=\\\{\}]' + '\n', '')
+            latex = latex.replace(
+                r'\begin{Verbatim}[commandchars=\\\{\}]' + '\n', '')
             return latex.replace('\n\\end{Verbatim}\n', '')
         else:
             return latex
-
 
 
 def _pygments_highlight(source, output_formatter, language='ipython', metadata=None):
@@ -110,8 +111,8 @@ def _pygments_highlight(source, output_formatter, language='ipython', metadata=N
     # If the cell uses a magic extension language,
     # use the magic language instead.
     if language == 'ipython' \
-        and metadata \
-        and 'magics_language' in metadata:
+            and metadata \
+            and 'magics_language' in metadata:
 
         language = metadata['magics_language']
 

@@ -19,6 +19,7 @@ from IPython.utils.importstring import import_item
 # Tests
 #-----------------------------------------------------------------------------
 
+
 def test_import_plain():
     "Test simple imports"
     import os
@@ -36,4 +37,3 @@ def test_import_nested():
 def test_import_raises():
     "Test that failing imports raise the right exception"
     nt.assert_raises(ImportError, import_item, 'IPython.foobar')
-    

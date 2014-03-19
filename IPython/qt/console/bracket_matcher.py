@@ -6,13 +6,14 @@ from IPython.external.qt import QtCore, QtGui
 
 
 class BracketMatcher(QtCore.QObject):
+
     """ Matches square brackets, braces, and parentheses based on cursor
         position.
     """
 
     # Protected class variables.
-    _opening_map = { '(':')', '{':'}', '[':']' }
-    _closing_map = { ')':'(', '}':'{', ']':'[' }
+    _opening_map = {'(': ')', '{': '}', '[': ']'}
+    _closing_map = {')': '(', '}': '{', ']': '['}
 
     #--------------------------------------------------------------------------
     # 'QObject' interface
@@ -81,7 +82,7 @@ class BracketMatcher(QtCore.QObject):
         selection.format = self.format
         return selection
 
-    #------ Signal handlers ----------------------------------------------------
+    #------ Signal handlers --------------------------------------------------
 
     def _cursor_position_changed(self):
         """ Updates the document formatting based on the new cursor position.
@@ -95,6 +96,6 @@ class BracketMatcher(QtCore.QObject):
             position = cursor.position() - 1
             match_position = self._find_match(position)
             if match_position != -1:
-                extra_selections = [ self._selection_for_character(pos)
-                                     for pos in (position, match_position) ]
+                extra_selections = [self._selection_for_character(pos)
+                                    for pos in (position, match_position)]
                 self._text_edit.setExtraSelections(extra_selections)

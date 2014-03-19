@@ -5,6 +5,7 @@ All tests should be loaded by nose.
 """
 from __future__ import print_function
 
+
 def pyfunc():
     """Some pure python tests...
 

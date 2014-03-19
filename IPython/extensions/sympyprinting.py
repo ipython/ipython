@@ -40,6 +40,7 @@ import warnings
 # Definitions of special display functions for use with IPython
 #-----------------------------------------------------------------------------
 
+
 def print_basic_unicode(o, p, cycle):
     """A function to pretty print sympy Basic objects."""
     if cycle:
@@ -57,7 +58,7 @@ def print_png(o):
     s = latex(o, mode='inline')
     # mathtext does not understand certain latex flags, so we try to replace
     # them with suitable subs.
-    s = s.replace('\\operatorname','')
+    s = s.replace('\\operatorname', '')
     s = s.replace('\\overline', '\\bar')
     png = latex_to_png(s)
     return png
@@ -87,22 +88,24 @@ def can_print_latex(o):
         return all(can_print_latex(i) for i in o)
     elif isinstance(o, dict):
         return all((isinstance(i, string_types) or can_print_latex(i)) and can_print_latex(o[i]) for i in o)
-    elif isinstance(o,(sympy.Basic, sympy.matrices.Matrix, int, long, float)):
+    elif isinstance(o, (sympy.Basic, sympy.matrices.Matrix, int, long, float)):
         return True
     return False
+
 
 def print_latex(o):
     """A function to generate the latex representation of sympy
     expressions."""
     if can_print_latex(o):
         s = latex(o, mode='plain')
-        s = s.replace('\\dag','\\dagger')
+        s = s.replace('\\dag', '\\dagger')
         s = s.strip('$')
         return '$$%s$$' % s
     # Fallback to the string printer
     return None
 
 _loaded = False
+
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
@@ -116,8 +119,9 @@ def load_ipython_extension(ip):
         pass
     else:
         warnings.warn("The sympyprinting extension in IPython is deprecated, "
-            "use 'from sympy import init_printing; init_printing()'")
-        ip.extension_manager.load_extension('sympy.interactive.ipythonprinting')
+                      "use 'from sympy import init_printing; init_printing()'")
+        ip.extension_manager.load_extension(
+            'sympy.interactive.ipythonprinting')
         return
 
     global _loaded

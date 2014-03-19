@@ -35,6 +35,7 @@ else:
 
 
 class UnknownType(Exception):
+
     """
     An unknown type was given.
 
@@ -42,6 +43,7 @@ class UnknownType(Exception):
 
 
 class InvalidRef(Exception):
+
     """
     An invalid reference was given.
 
@@ -49,6 +51,7 @@ class InvalidRef(Exception):
 
 
 class SchemaError(Exception):
+
     """
     The provided schema is malformed.
 
@@ -65,6 +68,7 @@ class SchemaError(Exception):
 
 
 class ValidationError(Exception):
+
     """
     The instance didn't properly validate with the provided schema.
 
@@ -90,14 +94,15 @@ class ValidationError(Exception):
 
 
 class Draft3Validator(object):
+
     """
     A validator for JSON Schema draft 3.
 
     """
 
     DEFAULT_TYPES = {
-        "array" : list, "boolean" : bool, "integer" : int, "null" : type(None),
-        "number" : (int, float), "object" : dict, "string" : basestring,
+        "array": list, "boolean": bool, "integer": int, "null": type(None),
+        "number": (int, float), "object": dict, "string": basestring,
     }
 
     def __init__(self, schema, types=()):
@@ -207,13 +212,13 @@ class Draft3Validator(object):
                 self.is_type(type, "object") and
                 self.is_valid(instance, type)
 
-            # Or we have a type as a string, just check if the instance is that
-            # type. Also, HACK: we can reach the `or` here if skip_types is
-            # something other than error. If so, bail out.
+                # Or we have a type as a string, just check if the instance is that
+                # type. Also, HACK: we can reach the `or` here if skip_types is
+                # something other than error. If so, bail out.
 
-            ) or (
-                self.is_type(type, "string") and
-                (self.is_type(instance, type) or type not in self._types)
+                ) or (
+                    self.is_type(type, "string") and
+                    (self.is_type(instance, type) or type not in self._types)
             )):
                 return
         else:
@@ -384,7 +389,7 @@ class Draft3Validator(object):
 
     def validate_disallow(self, disallow, instance, schema):
         for disallowed in _list(disallow):
-            if self.is_valid(instance, {"type" : [disallowed]}):
+            if self.is_valid(instance, {"type": [disallowed]}):
                 yield ValidationError(
                     "%r is disallowed for %r" % (disallowed, instance)
                 )
@@ -407,90 +412,91 @@ class Draft3Validator(object):
 
 
 Draft3Validator.META_SCHEMA = {
-    "$schema" : "http://json-schema.org/draft-03/schema#",
-    "id" : "http://json-schema.org/draft-03/schema#",
-    "type" : "object",
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "id": "http://json-schema.org/draft-03/schema#",
+    "type": "object",
 
-    "properties" : {
-        "type" : {
-            "type" : ["string", "array"],
-            "items" : {"type" : ["string", {"$ref" : "#"}]},
-            "uniqueItems" : True,
-            "default" : "any"
+    "properties": {
+        "type": {
+            "type": ["string", "array"],
+            "items": {"type": ["string", {"$ref": "#"}]},
+            "uniqueItems": True,
+            "default": "any"
         },
-        "properties" : {
-            "type" : "object",
-            "additionalProperties" : {"$ref" : "#", "type": "object"},
-            "default" : {}
+        "properties": {
+            "type": "object",
+            "additionalProperties": {"$ref": "#", "type": "object"},
+            "default": {}
         },
-        "patternProperties" : {
-            "type" : "object",
-            "additionalProperties" : {"$ref" : "#"},
-            "default" : {}
+        "patternProperties": {
+            "type": "object",
+            "additionalProperties": {"$ref": "#"},
+            "default": {}
         },
-        "additionalProperties" : {
-            "type" : [{"$ref" : "#"}, "boolean"], "default" : {}
+        "additionalProperties": {
+            "type": [{"$ref": "#"}, "boolean"], "default": {}
         },
-        "items" : {
-            "type" : [{"$ref" : "#"}, "array"],
-            "items" : {"$ref" : "#"},
-            "default" : {}
+        "items": {
+            "type": [{"$ref": "#"}, "array"],
+            "items": {"$ref": "#"},
+            "default": {}
         },
-        "additionalItems" : {
-            "type" : [{"$ref" : "#"}, "boolean"], "default" : {}
+        "additionalItems": {
+            "type": [{"$ref": "#"}, "boolean"], "default": {}
         },
-        "required" : {"type" : "boolean", "default" : False},
-        "dependencies" : {
-            "type" : ["string", "array", "object"],
-            "additionalProperties" : {
-                "type" : ["string", "array", {"$ref" : "#"}],
-                "items" : {"type" : "string"}
+        "required": {"type": "boolean", "default": False},
+        "dependencies": {
+            "type": ["string", "array", "object"],
+            "additionalProperties": {
+                "type": ["string", "array", {"$ref": "#"}],
+                "items": {"type": "string"}
             },
-            "default" : {}
+            "default": {}
         },
-        "minimum" : {"type" : "number"},
-        "maximum" : {"type" : "number"},
-        "exclusiveMinimum" : {"type" : "boolean", "default" : False},
-        "exclusiveMaximum" : {"type" : "boolean", "default" : False},
-        "minItems" : {"type" : "integer", "minimum" : 0, "default" : 0},
-        "maxItems" : {"type" : "integer", "minimum" : 0},
-        "uniqueItems" : {"type" : "boolean", "default" : False},
-        "pattern" : {"type" : "string", "format" : "regex"},
-        "minLength" : {"type" : "integer", "minimum" : 0, "default" : 0},
-        "maxLength" : {"type" : "integer"},
-        "enum" : {"type" : "array", "minItems" : 1, "uniqueItems" : True},
-        "default" : {"type" : "any"},
-        "title" : {"type" : "string"},
-        "description" : {"type" : "string"},
-        "format" : {"type" : "string"},
-        "maxDecimal" : {"type" : "number", "minimum" : 0},
-        "divisibleBy" : {
-            "type" : "number",
-            "minimum" : 0,
-            "exclusiveMinimum" : True,
-            "default" : 1
+        "minimum": {"type": "number"},
+        "maximum": {"type": "number"},
+        "exclusiveMinimum": {"type": "boolean", "default": False},
+        "exclusiveMaximum": {"type": "boolean", "default": False},
+        "minItems": {"type": "integer", "minimum": 0, "default": 0},
+        "maxItems": {"type": "integer", "minimum": 0},
+        "uniqueItems": {"type": "boolean", "default": False},
+        "pattern": {"type": "string", "format": "regex"},
+        "minLength": {"type": "integer", "minimum": 0, "default": 0},
+        "maxLength": {"type": "integer"},
+        "enum": {"type": "array", "minItems": 1, "uniqueItems": True},
+        "default": {"type": "any"},
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "format": {"type": "string"},
+        "maxDecimal": {"type": "number", "minimum": 0},
+        "divisibleBy": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": True,
+            "default": 1
         },
-        "disallow" : {
-            "type" : ["string", "array"],
-            "items" : {"type" : ["string", {"$ref" : "#"}]},
-            "uniqueItems" : True
+        "disallow": {
+            "type": ["string", "array"],
+            "items": {"type": ["string", {"$ref": "#"}]},
+            "uniqueItems": True
         },
-        "extends" : {
-            "type" : [{"$ref" : "#"}, "array"],
-            "items" : {"$ref" : "#"},
-            "default" : {}
+        "extends": {
+            "type": [{"$ref": "#"}, "array"],
+            "items": {"$ref": "#"},
+            "default": {}
         },
-        "id" : {"type" : "string", "format" : "uri"},
-        "$ref" : {"type" : "string", "format" : "uri"},
-        "$schema" : {"type" : "string", "format" : "uri"},
+        "id": {"type": "string", "format": "uri"},
+        "$ref": {"type": "string", "format": "uri"},
+        "$schema": {"type": "string", "format": "uri"},
     },
-    "dependencies" : {
-        "exclusiveMinimum" : "minimum", "exclusiveMaximum" : "maximum"
+    "dependencies": {
+        "exclusiveMinimum": "minimum", "exclusiveMaximum": "maximum"
     },
 }
 
 
 class Validator(Draft3Validator):
+
     """
     Deprecated: Use :class:`Draft3Validator` instead.
 
@@ -509,6 +515,7 @@ class Validator(Draft3Validator):
 
 
 class ErrorTree(object):
+
     """
     ErrorTrees make it easier to check which validations failed.
 
@@ -718,7 +725,6 @@ def validate(instance, schema, cls=Draft3Validator, *args, **kwargs):
     validator.
 
     """
-
 
     meta_validate = kwargs.pop("meta_validate", None)
 

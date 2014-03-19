@@ -12,6 +12,7 @@ Color schemes for exception handling code in IPython.
 
 from IPython.utils.coloransi import ColorSchemeTable, TermColors, ColorScheme
 
+
 def exception_colors():
     """Return a color table with fields for exception reporting.
 
@@ -40,90 +41,91 @@ def exception_colors():
     ex_colors = ColorSchemeTable()
 
     # Populate it with color schemes
-    C = TermColors # shorthand and local lookup
+    C = TermColors  # shorthand and local lookup
     ex_colors.add_scheme(ColorScheme(
         'NoColor',
         # The color to be used for the top line
-        topline = C.NoColor,
+        topline=C.NoColor,
 
         # The colors to be used in the traceback
-        filename = C.NoColor,
-        lineno = C.NoColor,
-        name = C.NoColor,
-        vName = C.NoColor,
-        val = C.NoColor,
-        em = C.NoColor,
+        filename=C.NoColor,
+        lineno=C.NoColor,
+        name=C.NoColor,
+        vName=C.NoColor,
+        val=C.NoColor,
+        em=C.NoColor,
 
         # Emphasized colors for the last frame of the traceback
-        normalEm = C.NoColor,
-        filenameEm = C.NoColor,
-        linenoEm = C.NoColor,
-        nameEm = C.NoColor,
-        valEm = C.NoColor,
+        normalEm=C.NoColor,
+        filenameEm=C.NoColor,
+        linenoEm=C.NoColor,
+        nameEm=C.NoColor,
+        valEm=C.NoColor,
 
         # Colors for printing the exception
-        excName = C.NoColor,
-        line = C.NoColor,
-        caret = C.NoColor,
-        Normal = C.NoColor
-        ))
+        excName=C.NoColor,
+        line=C.NoColor,
+        caret=C.NoColor,
+        Normal=C.NoColor
+    ))
 
-    # make some schemes as instances so we can copy them for modification easily
+    # make some schemes as instances so we can copy them for modification
+    # easily
     ex_colors.add_scheme(ColorScheme(
         'Linux',
         # The color to be used for the top line
-        topline = C.LightRed,
+        topline=C.LightRed,
 
         # The colors to be used in the traceback
-        filename = C.Green,
-        lineno = C.Green,
-        name = C.Purple,
-        vName = C.Cyan,
-        val = C.Green,
-        em = C.LightCyan,
+        filename=C.Green,
+        lineno=C.Green,
+        name=C.Purple,
+        vName=C.Cyan,
+        val=C.Green,
+        em=C.LightCyan,
 
         # Emphasized colors for the last frame of the traceback
-        normalEm = C.LightCyan,
-        filenameEm = C.LightGreen,
-        linenoEm = C.LightGreen,
-        nameEm = C.LightPurple,
-        valEm = C.LightBlue,
+        normalEm=C.LightCyan,
+        filenameEm=C.LightGreen,
+        linenoEm=C.LightGreen,
+        nameEm=C.LightPurple,
+        valEm=C.LightBlue,
 
         # Colors for printing the exception
-        excName = C.LightRed,
-        line = C.Yellow,
-        caret = C.White,
-        Normal = C.Normal
-        ))
+        excName=C.LightRed,
+        line=C.Yellow,
+        caret=C.White,
+        Normal=C.Normal
+    ))
 
     # For light backgrounds, swap dark/light colors
     ex_colors.add_scheme(ColorScheme(
         'LightBG',
         # The color to be used for the top line
-        topline = C.Red,
+        topline=C.Red,
 
         # The colors to be used in the traceback
-        filename = C.LightGreen,
-        lineno = C.LightGreen,
-        name = C.LightPurple,
-        vName = C.Cyan,
-        val = C.LightGreen,
-        em = C.Cyan,
+        filename=C.LightGreen,
+        lineno=C.LightGreen,
+        name=C.LightPurple,
+        vName=C.Cyan,
+        val=C.LightGreen,
+        em=C.Cyan,
 
         # Emphasized colors for the last frame of the traceback
-        normalEm = C.Cyan,
-        filenameEm = C.Green,
-        linenoEm = C.Green,
-        nameEm = C.Purple,
-        valEm = C.Blue,
+        normalEm=C.Cyan,
+        filenameEm=C.Green,
+        linenoEm=C.Green,
+        nameEm=C.Purple,
+        valEm=C.Blue,
 
         # Colors for printing the exception
-        excName = C.Red,
-        #line = C.Brown,  # brown often is displayed as yellow
-        line = C.Red,
-        caret = C.Normal,
-        Normal = C.Normal,
-        ))
+        excName=C.Red,
+        # line = C.Brown,  # brown often is displayed as yellow
+        line=C.Red,
+        caret=C.Normal,
+        Normal=C.Normal,
+    ))
 
     return ex_colors
 

@@ -36,6 +36,7 @@ from .convert import downgrade, upgrade
 # Code
 #-----------------------------------------------------------------------------
 
+
 def parse_filename(fname):
     """Parse a notebook filename.
 
@@ -71,4 +72,3 @@ def parse_filename(fname):
         format = u'json'
     name = fname.split('.')[0]
     return fname, name, format
-

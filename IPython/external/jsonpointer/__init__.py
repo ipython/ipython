@@ -1,4 +1,4 @@
 try:
     from jsonpointer import *
-except ImportError :
+except ImportError:
     from ._jsonpointer import *

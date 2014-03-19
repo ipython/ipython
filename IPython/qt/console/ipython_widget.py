@@ -50,7 +50,9 @@ else:
 # IPythonWidget class
 #-----------------------------------------------------------------------------
 
+
 class IPythonWidget(FrontendWidget):
+
     """ A FrontendWidget for an IPython kernel.
     """
 
@@ -61,14 +63,14 @@ class IPythonWidget(FrontendWidget):
     custom_edit_requested = QtCore.Signal(object, object)
 
     editor = Unicode(default_editor, config=True,
-        help="""
+                     help="""
         A command for invoking a system text editor. If the string contains a
         {filename} format specifier, it will be used. Otherwise, the filename
         will be appended to the end the command.
         """)
 
     editor_line = Unicode(config=True,
-        help="""
+                          help="""
         The editor command to use when a specific line number is requested. The
         string should contain two format specifiers: {line} and {filename}. If
         this parameter is not specified, the line number option to the %edit
@@ -76,7 +78,7 @@ class IPythonWidget(FrontendWidget):
         """)
 
     style_sheet = Unicode(config=True,
-        help="""
+                          help="""
         A CSS stylesheet. The stylesheet can contain classes for:
             1. Qt: QPlainTextEdit, QFrame, QWidget, etc
             2. Pygments: .c, .k, .o, etc. (see PygmentsHighlighter)
@@ -84,7 +86,7 @@ class IPythonWidget(FrontendWidget):
         """)
 
     syntax_style = Unicode(config=True,
-        help="""
+                           help="""
         If not empty, use this Pygments style for syntax highlighting.
         Otherwise, the style sheet is queried for Pygments style
         information.
@@ -102,7 +104,7 @@ class IPythonWidget(FrontendWidget):
     _prompt_transformer = IPythonInputSplitter(physical_line_transforms=[ipy_prompt()],
                                                logical_line_transforms=[],
                                                python_line_transforms=[],
-                                              )
+                                               )
 
     # IPythonWidget protected class variables.
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
@@ -112,19 +114,19 @@ class IPythonWidget(FrontendWidget):
     _payload_source_page = 'page'
     _retrying_history_request = False
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'object' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def __init__(self, *args, **kw):
         super(IPythonWidget, self).__init__(*args, **kw)
 
         # IPythonWidget protected variables.
         self._payload_handlers = {
-            self._payload_source_edit : self._handle_payload_edit,
-            self._payload_source_exit : self._handle_payload_exit,
-            self._payload_source_page : self._handle_payload_page,
-            self._payload_source_next_input : self._handle_payload_next_input }
+            self._payload_source_edit: self._handle_payload_edit,
+            self._payload_source_exit: self._handle_payload_exit,
+            self._payload_source_page: self._handle_payload_page,
+            self._payload_source_next_input: self._handle_payload_next_input}
         self._previous_prompt_obj = None
         self._keep_kernel_on_exit = None
 
@@ -137,9 +139,9 @@ class IPythonWidget(FrontendWidget):
 
         self._guiref_loaded = False
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _handle_complete_reply(self, rep):
         """ Reimplemented to support IPython's improved completion machinery.
@@ -162,7 +164,7 @@ class IPythonWidget(FrontendWidget):
                 sep_count = len(parts) - 1
                 if sep_count:
                     chop_length = sum(map(len, parts[:sep_count])) + sep_count
-                    matches = [ match[chop_length:] for match in matches ]
+                    matches = [match[chop_length:] for match in matches]
                     offset -= chop_length
 
             # Move the cursor to the start of the match and complete.
@@ -191,7 +193,7 @@ class IPythonWidget(FrontendWidget):
         """
         content = msg['content']
         if 'history' not in content:
-            self.log.error("History request failed: %r"%content)
+            self.log.error("History request failed: %r" % content)
             if content.get('status', '') == 'aborted' and \
                                             not self._retrying_history_request:
                 # a *different* action caused this request to be aborted, so
@@ -199,16 +201,19 @@ class IPythonWidget(FrontendWidget):
                 self.log.error("Retrying aborted history request")
                 # prevent multiple retries of aborted requests:
                 self._retrying_history_request = True
-                # wait out the kernel's queue flush, which is currently timed at 0.1s
+                # wait out the kernel's queue flush, which is currently timed
+                # at 0.1s
                 time.sleep(0.25)
-                self.kernel_client.shell_channel.history(hist_access_type='tail',n=1000)
+                self.kernel_client.shell_channel.history(
+                    hist_access_type='tail', n=1000)
             else:
                 self._retrying_history_request = False
             return
         # reset retry flag
         self._retrying_history_request = False
         history_items = content['history']
-        self.log.debug("Received history reply with %i entries", len(history_items))
+        self.log.debug(
+            "Received history reply with %i entries", len(history_items))
         items = []
         last_cell = u""
         for _, _, cell in history_items:
@@ -280,16 +285,16 @@ class IPythonWidget(FrontendWidget):
         self.kernel_client.kernel_info()
 
         self.kernel_client.shell_channel.history(hist_access_type='tail',
-                                                  n=1000)
-    
+                                                 n=1000)
+
     def _started_kernel(self):
         """Load %guiref when the kernel starts (if channels are also started).
-        
+
         Principally triggered by kernel restart.
         """
         if self.kernel_client.shell_channel is not None:
             self._load_guiref_magic()
-    
+
     def _load_guiref_magic(self):
         """Load %guiref magic."""
         self.kernel_client.shell_channel.execute('\n'.join([
@@ -300,14 +305,14 @@ class IPythonWidget(FrontendWidget):
             "    get_ipython().register_magic_function(_usage.page_guiref, 'line', 'guiref')",
             "    del _usage",
         ]), silent=True)
-        
-    #---------------------------------------------------------------------------
-    # 'ConsoleWidget' public interface
-    #---------------------------------------------------------------------------
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
+    # 'ConsoleWidget' public interface
+    #-------------------------------------------------------------------------
+
+    #-------------------------------------------------------------------------
     # 'FrontendWidget' public interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def execute_file(self, path, hidden=False):
         """ Reimplemented to use the 'run' magic.
@@ -317,10 +322,10 @@ class IPythonWidget(FrontendWidget):
             path = os.path.normpath(path).replace('\\', '/')
 
         # Perhaps we should not be using %run directly, but while we
-        # are, it is necessary to quote or escape filenames containing spaces 
-        # or quotes. 
-        
-        # In earlier code here, to minimize escaping, we sometimes quoted the 
+        # are, it is necessary to quote or escape filenames containing spaces
+        # or quotes.
+
+        # In earlier code here, to minimize escaping, we sometimes quoted the
         # filename with single quotes. But to do this, this code must be
         # platform-aware, because run uses shlex rather than python string
         # parsing, so that:
@@ -328,16 +333,16 @@ class IPythonWidget(FrontendWidget):
         #   and we cannot use single quotes to quote the filename.
         # * In *nix: we can escape double quotes in a double quoted filename,
         #   but can't escape single quotes in a single quoted filename.
-        
+
         # So to keep this code non-platform-specific and simple, we now only
         # use double quotes to quote filenames, and escape when needed:
         if ' ' in path or "'" in path or '"' in path:
             path = '"%s"' % path.replace('"', '\\"')
         self.execute('%%run %s' % path, hidden=hidden)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _complete(self):
         """ Reimplemented to support IPython's improved completion machinery.
@@ -449,9 +454,9 @@ class IPythonWidget(FrontendWidget):
         # Show a new prompt with the kernel's estimated prompt number.
         self._show_interpreter_prompt(previous_prompt_number + 1)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'IPythonWidget' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def set_default_style(self, colors='lightbg'):
         """ Sets the widget style to the class defaults.
@@ -463,21 +468,21 @@ class IPythonWidget(FrontendWidget):
             background or B&W style.
         """
         colors = colors.lower()
-        if colors=='lightbg':
+        if colors == 'lightbg':
             self.style_sheet = styles.default_light_style_sheet
             self.syntax_style = styles.default_light_syntax_style
-        elif colors=='linux':
+        elif colors == 'linux':
             self.style_sheet = styles.default_dark_style_sheet
             self.syntax_style = styles.default_dark_syntax_style
-        elif colors=='nocolor':
+        elif colors == 'nocolor':
             self.style_sheet = styles.default_bw_style_sheet
             self.syntax_style = styles.default_bw_syntax_style
         else:
-            raise KeyError("No such color scheme: %s"%colors)
+            raise KeyError("No such color scheme: %s" % colors)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'IPythonWidget' protected interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _edit(self, filename, line=None):
         """ Opens a Python script for editing.
@@ -494,8 +499,8 @@ class IPythonWidget(FrontendWidget):
             self.custom_edit_requested.emit(filename, line)
         elif not self.editor:
             self._append_plain_text('No default editor available.\n'
-            'Specify a GUI text editor in the `IPythonWidget.editor` '
-            'configurable to enable the %edit magic')
+                                    'Specify a GUI text editor in the `IPythonWidget.editor` '
+                                    'configurable to enable the %edit magic')
         else:
             try:
                 filename = '"%s"' % filename
@@ -578,11 +583,10 @@ class IPythonWidget(FrontendWidget):
             self._control.document().setDefaultStyleSheet(self.style_sheet)
             bg_color = self._control.palette().window().color()
             self._ansi_processor.set_background_color(bg_color)
-        
+
         if self._page_control is not None:
-            self._page_control.document().setDefaultStyleSheet(self.style_sheet)
-
-
+            self._page_control.document().setDefaultStyleSheet(
+                self.style_sheet)
 
     def _syntax_style_changed(self):
         """ Set the style for the syntax highlighter.
@@ -595,7 +599,7 @@ class IPythonWidget(FrontendWidget):
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
-    #------ Trait default initializers -----------------------------------------
+    #------ Trait default initializers ---------------------------------------
 
     def _banner_default(self):
         from IPython.core.usage import default_gui_banner

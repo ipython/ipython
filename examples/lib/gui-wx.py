@@ -15,10 +15,12 @@ import wx
 
 
 class MyFrame(wx.Frame):
+
     """
     This is MyFrame.  It just shows a few controls on a wxPanel,
     and has a simple menu.
     """
+
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title,
                           pos=(150, 150), size=(350, 200))
@@ -66,7 +68,6 @@ class MyFrame(wx.Frame):
         panel.SetSizer(sizer)
         panel.Layout()
 
-
     def OnTimeToClose(self, evt):
         """Event handler for the button click."""
         print("See ya later!")
@@ -78,6 +79,7 @@ class MyFrame(wx.Frame):
 
 
 class MyApp(wx.App):
+
     def OnInit(self):
         frame = MyFrame(None, "Simple wxPython App")
         self.SetTopWindow(frame)

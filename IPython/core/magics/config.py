@@ -26,6 +26,8 @@ from IPython.utils.warn import error
 #-----------------------------------------------------------------------------
 
 reg = re.compile('^\w+\.\w+$')
+
+
 @magics_class
 class ConfigMagics(Magics):
 
@@ -110,9 +112,9 @@ class ConfigMagics(Magics):
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
         # this magic, as their presence is just noise:
-        configurables = [ c for c in self.shell.configurables
-                          if c.__class__.class_traits(config=True) ]
-        classnames = [ c.__class__.__name__ for c in configurables ]
+        configurables = [c for c in self.shell.configurables
+                         if c.__class__.class_traits(config=True)]
+        classnames = [c.__class__.__name__ for c in configurables]
 
         line = s.strip()
         if not line:
@@ -133,24 +135,25 @@ class ConfigMagics(Magics):
             return
         elif reg.match(line):
             cls, attr = line.split('.')
-            return getattr(configurables[classnames.index(cls)],attr)
+            return getattr(configurables[classnames.index(cls)], attr)
         elif '=' not in line:
             msg = "Invalid config statement: %r, "\
                   "should be `Class.trait = value`."
-            
+
             ll = line.lower()
             for classname in classnames:
                 if ll == classname.lower():
-                    msg = msg + '\nDid you mean %s (note the case)?' % classname
+                    msg = msg + \
+                        '\nDid you mean %s (note the case)?' % classname
                     break
 
-            raise UsageError( msg % line)
+            raise UsageError(msg % line)
 
         # otherwise, assume we are setting configurables.
         # leave quotes on args when splitting, because we want
         # unquoted args to eval in user_ns
         cfg = Config()
-        exec("cfg."+line, locals(), self.shell.user_ns)
+        exec("cfg." + line, locals(), self.shell.user_ns)
 
         for configurable in configurables:
             try:

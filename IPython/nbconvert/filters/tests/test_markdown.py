@@ -56,13 +56,11 @@ class TestMarkdown(TestsBase):
         'test',
         ('test', 'https://google.com/')]
 
-
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2latex(self):
         """markdown2latex test"""
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2latex, test, self.tokens[index])
-
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2html(self):
@@ -70,19 +68,17 @@ class TestMarkdown(TestsBase):
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2html, test, self.tokens[index])
 
-
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2rst(self):
         """markdown2rst test"""
 
-        #Modify token array for rst, escape asterik
+        # Modify token array for rst, escape asterik
         tokens = copy(self.tokens)
         tokens[0] = r'\*test'
         tokens[1] = r'\*\*test'
 
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2rst, test, tokens[index])
-
 
     def _try_markdown(self, method, test, tokens):
         results = method(test)

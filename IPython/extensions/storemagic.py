@@ -23,7 +23,10 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # Stdlib
-import inspect, os, sys, textwrap
+import inspect
+import os
+import sys
+import textwrap
 
 # Our own
 from IPython.core.error import UsageError
@@ -36,12 +39,13 @@ from IPython.utils.py3compat import string_types
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+
 def restore_aliases(ip):
     staliases = ip.db.get('stored_aliases', {})
-    for k,v in staliases.items():
-        #print "restore alias",k,v # dbg
+    for k, v in staliases.items():
+        # print "restore alias",k,v # dbg
         #self.alias_table[k] = v
-        ip.alias_manager.define_alias(k,v)
+        ip.alias_manager.define_alias(k, v)
 
 
 def refresh_variables(ip):
@@ -52,15 +56,16 @@ def refresh_variables(ip):
         try:
             obj = db[key]
         except KeyError:
-            print("Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey)
+            print(
+                "Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey)
             print("The error was:", sys.exc_info()[0])
         else:
-            #print "restored",justkey,"=",obj #dbg
+            # print "restored",justkey,"=",obj #dbg
             ip.user_ns[justkey] = obj
 
 
 def restore_dhist(ip):
-    ip.user_ns['_dh'] = ip.db.get('dhist',[])
+    ip.user_ns['_dh'] = ip.db.get('dhist', [])
 
 
 def restore_data(ip):
@@ -71,16 +76,17 @@ def restore_data(ip):
 
 @magics_class
 class StoreMagics(Magics):
+
     """Lightweight persistence for python variables.
 
     Provides the %store magic."""
-    
+
     autorestore = Bool(False, config=True, help=
-        """If True, any %store-d variables will be automatically restored
+                       """If True, any %store-d variables will be automatically restored
         when IPython starts.
         """
-    )
-    
+                       )
+
     def __init__(self, shell):
         super(StoreMagics, self).__init__(shell=shell)
         self.shell.configurables.append(self)
@@ -131,8 +137,8 @@ class StoreMagics(Magics):
         Also aliases can be %store'd across sessions.
         """
 
-        opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
-        args = argsl.split(None,1)
+        opts, argsl = self.parse_options(parameter_s, 'drz', mode='string')
+        args = argsl.split(None, 1)
         ip = self.shell
         db = ip.db
         # delete
@@ -173,7 +179,7 @@ class StoreMagics(Magics):
                 size = 0
 
             print('Stored variables and their in-db values:')
-            fmt = '%-'+str(size)+'s -> %s'
+            fmt = '%-' + str(size) + 's -> %s'
             get = db.get
             for var in vars:
                 justkey = os.path.basename(var)
@@ -191,10 +197,9 @@ class StoreMagics(Magics):
                     fil = open(fnam, 'w')
                 obj = ip.ev(args[0])
                 print("Writing '%s' (%s) to file '%s'." % (args[0],
-                  obj.__class__.__name__, fnam))
+                                                           obj.__class__.__name__, fnam))
 
-
-                if not isinstance (obj, string_types):
+                if not isinstance(obj, string_types):
                     from pprint import pprint
                     pprint(obj, fil)
                 else:
@@ -215,8 +220,8 @@ class StoreMagics(Magics):
                     cmd = ip.alias_manager.retrieve_alias(name)
                 except ValueError:
                     raise UsageError("Unknown variable '%s'" % name)
-                
-                staliases = db.get('stored_aliases',{})
+
+                staliases = db.get('stored_aliases', {})
                 staliases[name] = cmd
                 db['stored_aliases'] = staliases
                 print("Alias stored: %s (%s)" % (name, cmd))
@@ -233,11 +238,10 @@ class StoreMagics(Magics):
                     """ % (args[0], obj) ))
                     return
                 #pickled = pickle.dumps(obj)
-                db[ 'autorestore/' + args[0] ] = obj
+                db['autorestore/' + args[0]] = obj
                 print("Stored '%s' (%s)" % (args[0], obj.__class__.__name__))
 
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     ip.register_magics(StoreMagics)
-    

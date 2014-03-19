@@ -47,7 +47,7 @@ import os
 #-----------------------------------------------------------------------------
 def find_module(name, path=None):
     """imp.find_module variant that only return path of module.
-    
+
     The `imp.find_module` returns a filehandle that we are not interested in.
     Also we ignore any bytecode files that `imp.find_module` finds.
 
@@ -79,9 +79,10 @@ def find_module(name, path=None):
     else:
         return None
 
+
 def get_init(dirname):
     """Get __init__ file path for module directory
-    
+
     Parameters
     ----------
     dirname : str
@@ -92,7 +93,7 @@ def get_init(dirname):
     init_path : str
         Path to __init__ file
     """
-    fbase =  os.path.join(dirname, "__init__")
+    fbase = os.path.join(dirname, "__init__")
     for ext in [".py", ".pyw"]:
         fname = fbase + ext
         if os.path.isfile(fname):
@@ -101,16 +102,16 @@ def get_init(dirname):
 
 def find_mod(module_name):
     """Find module `module_name` on sys.path
-    
+
     Return the path to module `module_name`. If `module_name` refers to
     a module directory then return path to __init__ file. Return full 
     path of module or None if module is missing or does not have .py or .pyw
     extension. We are not interested in running bytecode.
-    
+
     Parameters
     ----------
     module_name : str
-    
+
     Returns
     -------
     modulepath : str

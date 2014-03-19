@@ -1,15 +1,15 @@
 """test building messages with streamsession"""
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
 import os
 import uuid
@@ -26,11 +26,14 @@ from IPython.testing.decorators import skipif, module_not_available
 from IPython.utils.py3compat import string_types
 from IPython.utils import jsonutil
 
+
 def _bad_packer(obj):
     raise TypeError("I don't work")
 
+
 def _bad_unpacker(bytes):
     raise TypeError("I don't work either")
+
 
 class SessionTestCase(BaseZMQTestCase):
 
@@ -44,15 +47,16 @@ class TestSession(SessionTestCase):
     def test_msg(self):
         """message format"""
         msg = self.session.msg('execute')
-        thekeys = set('header parent_header metadata content msg_type msg_id'.split())
+        thekeys = set(
+            'header parent_header metadata content msg_type msg_id'.split())
         s = set(msg.keys())
         self.assertEqual(s, thekeys)
-        self.assertTrue(isinstance(msg['content'],dict))
-        self.assertTrue(isinstance(msg['metadata'],dict))
-        self.assertTrue(isinstance(msg['header'],dict))
-        self.assertTrue(isinstance(msg['parent_header'],dict))
-        self.assertTrue(isinstance(msg['msg_id'],str))
-        self.assertTrue(isinstance(msg['msg_type'],str))
+        self.assertTrue(isinstance(msg['content'], dict))
+        self.assertTrue(isinstance(msg['metadata'], dict))
+        self.assertTrue(isinstance(msg['header'], dict))
+        self.assertTrue(isinstance(msg['parent_header'], dict))
+        self.assertTrue(isinstance(msg['msg_id'], str))
+        self.assertTrue(isinstance(msg['msg_type'], str))
         self.assertEqual(msg['header']['msg_type'], 'execute')
         self.assertEqual(msg['msg_type'], 'execute')
 
@@ -62,14 +66,15 @@ class TestSession(SessionTestCase):
         ident, msg_list = self.session.feed_identities(msg_list)
         new_msg = self.session.unserialize(msg_list)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
-        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
-        self.assertEqual(new_msg['header'],msg['header'])
-        self.assertEqual(new_msg['content'],msg['content'])
-        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
-        self.assertEqual(new_msg['metadata'],msg['metadata'])
+        self.assertEqual(new_msg['msg_id'], msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'], msg['msg_type'])
+        self.assertEqual(new_msg['header'], msg['header'])
+        self.assertEqual(new_msg['content'], msg['content'])
+        self.assertEqual(new_msg['parent_header'], msg['parent_header'])
+        self.assertEqual(new_msg['metadata'], msg['metadata'])
         # ensure floats don't come out as Decimal:
-        self.assertEqual(type(new_msg['content']['b']),type(new_msg['content']['b']))
+        self.assertEqual(
+            type(new_msg['content']['b']), type(new_msg['content']['b']))
 
     def test_send(self):
         ctx = zmq.Context.instance()
@@ -80,17 +85,17 @@ class TestSession(SessionTestCase):
 
         msg = self.session.msg('execute', content=dict(a=10))
         self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
-        
+
         ident, msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.unserialize(msg_list)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
-        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
-        self.assertEqual(new_msg['header'],msg['header'])
-        self.assertEqual(new_msg['content'],msg['content'])
-        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
-        self.assertEqual(new_msg['metadata'],msg['metadata'])
-        self.assertEqual(new_msg['buffers'],[b'bar'])
+        self.assertEqual(new_msg['msg_id'], msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'], msg['msg_type'])
+        self.assertEqual(new_msg['header'], msg['header'])
+        self.assertEqual(new_msg['content'], msg['content'])
+        self.assertEqual(new_msg['parent_header'], msg['parent_header'])
+        self.assertEqual(new_msg['metadata'], msg['metadata'])
+        self.assertEqual(new_msg['buffers'], [b'bar'])
 
         content = msg['content']
         header = msg['header']
@@ -98,28 +103,28 @@ class TestSession(SessionTestCase):
         metadata = msg['metadata']
         msg_type = header['msg_type']
         self.session.send(A, None, content=content, parent=parent,
-            header=header, metadata=metadata, ident=b'foo', buffers=[b'bar'])
+                          header=header, metadata=metadata, ident=b'foo', buffers=[b'bar'])
         ident, msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.unserialize(msg_list)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
-        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
-        self.assertEqual(new_msg['header'],msg['header'])
-        self.assertEqual(new_msg['content'],msg['content'])
-        self.assertEqual(new_msg['metadata'],msg['metadata'])
-        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
-        self.assertEqual(new_msg['buffers'],[b'bar'])
+        self.assertEqual(new_msg['msg_id'], msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'], msg['msg_type'])
+        self.assertEqual(new_msg['header'], msg['header'])
+        self.assertEqual(new_msg['content'], msg['content'])
+        self.assertEqual(new_msg['metadata'], msg['metadata'])
+        self.assertEqual(new_msg['parent_header'], msg['parent_header'])
+        self.assertEqual(new_msg['buffers'], [b'bar'])
 
         self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
         ident, new_msg = self.session.recv(B)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
-        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
-        self.assertEqual(new_msg['header'],msg['header'])
-        self.assertEqual(new_msg['content'],msg['content'])
-        self.assertEqual(new_msg['metadata'],msg['metadata'])
-        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
-        self.assertEqual(new_msg['buffers'],[b'bar'])
+        self.assertEqual(new_msg['msg_id'], msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'], msg['msg_type'])
+        self.assertEqual(new_msg['header'], msg['header'])
+        self.assertEqual(new_msg['content'], msg['content'])
+        self.assertEqual(new_msg['metadata'], msg['metadata'])
+        self.assertEqual(new_msg['parent_header'], msg['parent_header'])
+        self.assertEqual(new_msg['buffers'], [b'bar'])
 
         A.close()
         B.close()
@@ -144,7 +149,7 @@ class TestSession(SessionTestCase):
 
     def test_tracking(self):
         """test tracking messages"""
-        a,b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
+        a, b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
         s = self.session
         s.copy_threshold = 1
         stream = ZMQStream(a)
@@ -158,13 +163,12 @@ class TestSession(SessionTestCase):
         self.assertTrue(isinstance(t, zmq.MessageTracker))
         self.assertRaises(zmq.NotDone, t.wait, .1)
         del M
-        t.wait(1) # this will raise
-
+        t.wait(1)  # this will raise
 
     def test_unique_msg_ids(self):
         """test that messages receive unique ids"""
         ids = set()
-        for i in range(2**12):
+        for i in range(2 ** 12):
             h = self.session.msg_header('test')
             msg_id = h['msg_id']
             self.assertTrue(msg_id not in ids)
@@ -173,8 +177,8 @@ class TestSession(SessionTestCase):
     def test_feed_identities(self):
         """scrub the front for zmq IDENTITIES"""
         theids = "engine client other".split()
-        content = dict(code='whoda',stuff=object())
-        themsg = self.session.msg('execute',content=content)
+        content = dict(code='whoda', stuff=object())
+        themsg = self.session.msg('execute', content=content)
         pmsg = theids
 
     def test_session_id(self):
@@ -216,7 +220,7 @@ class TestSession(SessionTestCase):
         self.assertTrue(len(session.digest_history) == 100)
         session._add_digest(uuid.uuid4().bytes)
         self.assertTrue(len(session.digest_history) == 91)
-    
+
     def test_bad_pack(self):
         try:
             session = ss.Session(pack=_bad_packer)
@@ -225,7 +229,7 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_unpack(self):
         try:
             session = ss.Session(unpack=_bad_unpacker)
@@ -234,7 +238,7 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work either", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_packer(self):
         try:
             session = ss.Session(packer=__name__ + '._bad_packer')
@@ -243,7 +247,7 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_unpacker(self):
         try:
             session = ss.Session(unpacker=__name__ + '._bad_unpacker')
@@ -252,16 +256,17 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work either", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_roundtrip(self):
         with self.assertRaises(ValueError):
             session = ss.Session(unpack=lambda b: 5)
-    
+
     def _datetime_test(self, session):
         content = dict(t=datetime.now())
         metadata = dict(t=datetime.now())
         p = session.msg('msg')
-        msg = session.msg('msg', content=content, metadata=metadata, parent=p['header'])
+        msg = session.msg(
+            'msg', content=content, metadata=metadata, parent=p['header'])
         smsg = session.serialize(msg)
         msg2 = session.unserialize(session.feed_identities(smsg)[1])
         assert isinstance(msg2['header']['date'], datetime)
@@ -272,21 +277,24 @@ class TestSession(SessionTestCase):
         assert isinstance(msg['metadata']['t'], datetime)
         assert isinstance(msg2['content']['t'], string_types)
         assert isinstance(msg2['metadata']['t'], string_types)
-        self.assertEqual(msg['content'], jsonutil.extract_dates(msg2['content']))
-        self.assertEqual(msg['content'], jsonutil.extract_dates(msg2['content']))
-    
+        self.assertEqual(
+            msg['content'], jsonutil.extract_dates(msg2['content']))
+        self.assertEqual(
+            msg['content'], jsonutil.extract_dates(msg2['content']))
+
     def test_datetimes(self):
         self._datetime_test(self.session)
-    
+
     def test_datetimes_pickle(self):
         session = ss.Session(packer='pickle')
         self._datetime_test(session)
-    
+
     @skipif(module_not_available('msgpack'))
     def test_datetimes_msgpack(self):
-        session = ss.Session(packer='msgpack.packb', unpacker='msgpack.unpackb')
+        session = ss.Session(
+            packer='msgpack.packb', unpacker='msgpack.unpackb')
         self._datetime_test(session)
-    
+
     def test_send_raw(self):
         ctx = zmq.Context.instance()
         A = ctx.socket(zmq.PAIR)
@@ -295,18 +303,18 @@ class TestSession(SessionTestCase):
         B.connect("inproc://test")
 
         msg = self.session.msg('execute', content=dict(a=10))
-        msg_list = [self.session.pack(msg[part]) for part in 
+        msg_list = [self.session.pack(msg[part]) for part in
                     ['header', 'parent_header', 'metadata', 'content']]
         self.session.send_raw(A, msg_list, ident=b'foo')
-        
+
         ident, new_msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.unserialize(new_msg_list)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
-        self.assertEqual(new_msg['header'],msg['header'])
-        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
-        self.assertEqual(new_msg['content'],msg['content'])
-        self.assertEqual(new_msg['metadata'],msg['metadata'])
+        self.assertEqual(new_msg['msg_type'], msg['msg_type'])
+        self.assertEqual(new_msg['header'], msg['header'])
+        self.assertEqual(new_msg['parent_header'], msg['parent_header'])
+        self.assertEqual(new_msg['content'], msg['content'])
+        self.assertEqual(new_msg['metadata'], msg['metadata'])
 
         A.close()
         B.close()

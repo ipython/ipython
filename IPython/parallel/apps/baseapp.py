@@ -45,6 +45,7 @@ from IPython.utils.traitlets import Unicode, Bool, Instance, Dict
 # Module errors
 #-----------------------------------------------------------------------------
 
+
 class PIDFileError(Exception):
     pass
 
@@ -54,13 +55,14 @@ class PIDFileError(Exception):
 #-----------------------------------------------------------------------------
 
 class ParallelCrashHandler(CrashHandler):
+
     """sys.excepthook for IPython itself, leaves a detailed report on disk."""
 
     def __init__(self, app):
         contact_name = release.authors['Min'][0]
         contact_email = release.author_email
         bug_tracker = 'https://github.com/ipython/ipython/issues'
-        super(ParallelCrashHandler,self).__init__(
+        super(ParallelCrashHandler, self).__init__(
             app, contact_name, contact_email, bug_tracker
         )
 
@@ -71,58 +73,61 @@ class ParallelCrashHandler(CrashHandler):
 base_aliases = {}
 base_aliases.update(base_ip_aliases)
 base_aliases.update({
-    'work-dir' : 'BaseParallelApplication.work_dir',
-    'log-to-file' : 'BaseParallelApplication.log_to_file',
-    'clean-logs' : 'BaseParallelApplication.clean_logs',
-    'log-url' : 'BaseParallelApplication.log_url',
-    'cluster-id' : 'BaseParallelApplication.cluster_id',
+    'work-dir': 'BaseParallelApplication.work_dir',
+    'log-to-file': 'BaseParallelApplication.log_to_file',
+    'clean-logs': 'BaseParallelApplication.clean_logs',
+    'log-url': 'BaseParallelApplication.log_url',
+    'cluster-id': 'BaseParallelApplication.cluster_id',
 })
 
 base_flags = {
-    'log-to-file' : (
-        {'BaseParallelApplication' : {'log_to_file' : True}},
+    'log-to-file': (
+        {'BaseParallelApplication': {'log_to_file': True}},
         "send log output to a file"
     )
 }
 base_flags.update(base_ip_flags)
 
+
 class BaseParallelApplication(BaseIPythonApplication):
+
     """The base Application for IPython.parallel apps
-    
+
     Principle extensions to BaseIPyythonApplication:
-    
+
     * work_dir
     * remote logging via pyzmq
     * IOLoop instance
     """
 
     crash_handler_class = ParallelCrashHandler
-    
+
     def _log_level_default(self):
         # temporarily override default_log_level to INFO
         return logging.INFO
-    
+
     def _log_format_default(self):
         """override default log format to include time"""
         return u"%(asctime)s.%(msecs).03d [%(name)s]%(highlevel)s %(message)s"
 
     work_dir = Unicode(py3compat.getcwd(), config=True,
-        help='Set the working dir for the process.'
-    )
+                       help='Set the working dir for the process.'
+                       )
+
     def _work_dir_changed(self, name, old, new):
         self.work_dir = unicode_type(expand_path(new))
 
     log_to_file = Bool(config=True,
-        help="whether to log to a file")
+                       help="whether to log to a file")
 
     clean_logs = Bool(False, config=True,
-        help="whether to cleanup old logfiles before starting")
+                      help="whether to cleanup old logfiles before starting")
 
     log_url = Unicode('', config=True,
-        help="The ZMQ URL of the iplogger to aggregate logging.")
+                      help="The ZMQ URL of the iplogger to aggregate logging.")
 
     cluster_id = Unicode('', config=True,
-        help="""String id to add to runtime files, to prevent name collisions when
+                         help="""String id to add to runtime files, to prevent name collisions when
         using multiple clusters with a single profile simultaneously.
         
         When set, files will be named like: 'ipcontroller-<cluster_id>-engine.json'
@@ -131,30 +136,32 @@ class BaseParallelApplication(BaseIPythonApplication):
         Simple character strings are ideal, and spaces are not recommended (but should
         generally work).
         """
-    )
+                         )
+
     def _cluster_id_changed(self, name, old, new):
         self.name = self.__class__.name
         if new:
-            self.name += '-%s'%new
-    
+            self.name += '-%s' % new
+
     def _config_files_default(self):
         return ['ipcontroller_config.py', 'ipengine_config.py', 'ipcluster_config.py']
-    
+
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
+
     def _loop_default(self):
         from zmq.eventloop.ioloop import IOLoop
         return IOLoop.instance()
 
     aliases = Dict(base_aliases)
     flags = Dict(base_flags)
-    
+
     @catch_config_error
     def initialize(self, argv=None):
         """initialize the app"""
         super(BaseParallelApplication, self).initialize(argv)
         self.to_work_dir()
         self.reinit_logging()
-        
+
     def to_work_dir(self):
         wd = self.work_dir
         if unicode_type(wd) != py3compat.getcwd():
@@ -191,7 +198,7 @@ class BaseParallelApplication(BaseIPythonApplication):
             self._log_handler = self.log.handlers[0]
         # Add timestamps to log format:
         self._log_formatter = LevelFormatter(self.log_format,
-                                                datefmt=self.log_datefmt)
+                                             datefmt=self.log_datefmt)
         self._log_handler.setFormatter(self._log_formatter)
         # do not propagate log messages to root logger
         # ipcluster app will sometimes print duplicate messages during shutdown
@@ -210,11 +217,12 @@ class BaseParallelApplication(BaseIPythonApplication):
             if not overwrite:
                 raise PIDFileError(
                     'The pid file [%s] already exists. \nThis could mean that this '
-                    'server is already running with [pid=%s].' % (pid_file, pid)
+                    'server is already running with [pid=%s].' % (
+                        pid_file, pid)
                 )
         with open(pid_file, 'w') as f:
             self.log.info("Creating pid file: %s" % pid_file)
-            f.write(repr(os.getpid())+'\n')
+            f.write(repr(os.getpid()) + '\n')
 
     def remove_pid_file(self):
         """Remove the pid file.
@@ -243,34 +251,36 @@ class BaseParallelApplication(BaseIPythonApplication):
                 try:
                     pid = int(s)
                 except:
-                    raise PIDFileError("invalid pid file: %s (contents: %r)"%(pid_file, s))
+                    raise PIDFileError(
+                        "invalid pid file: %s (contents: %r)" % (pid_file, s))
                 return pid
         else:
             raise PIDFileError('pid file not found: %s' % pid_file)
-    
+
     def check_pid(self, pid):
         if os.name == 'nt':
             try:
                 import ctypes
                 # returns 0 if no such process (of ours) exists
                 # positive int otherwise
-                p = ctypes.windll.kernel32.OpenProcess(1,0,pid)
+                p = ctypes.windll.kernel32.OpenProcess(1, 0, pid)
             except Exception:
                 self.log.warn(
                     "Could not determine whether pid %i is running via `OpenProcess`. "
-                    " Making the likely assumption that it is."%pid
+                    " Making the likely assumption that it is." % pid
                 )
                 return True
             return bool(p)
         else:
             try:
-                p = Popen(['ps','x'], stdout=PIPE, stderr=PIPE)
-                output,_ = p.communicate()
+                p = Popen(['ps', 'x'], stdout=PIPE, stderr=PIPE)
+                output, _ = p.communicate()
             except OSError:
                 self.log.warn(
                     "Could not determine whether pid %i is running via `ps x`. "
-                    " Making the likely assumption that it is."%pid
+                    " Making the likely assumption that it is." % pid
                 )
                 return True
-            pids = list(map(int, re.findall(br'^\W*\d+', output, re.MULTILINE)))
+            pids = list(
+                map(int, re.findall(br'^\W*\d+', output, re.MULTILINE)))
             return pid in pids

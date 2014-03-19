@@ -19,6 +19,7 @@ from IPython.utils.traitlets import Unicode
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class RevealHelpPreprocessor(Preprocessor):
 
     url_prefix = Unicode('reveal.js', config=True,
@@ -28,7 +29,7 @@ class RevealHelpPreprocessor(Preprocessor):
                          
                          For speaker notes to work, a local reveal.js prefix must be used.
                          """
-    )
+                         )
 
     def preprocess(self, nb, resources):
         """
@@ -46,16 +47,18 @@ class RevealHelpPreprocessor(Preprocessor):
         for worksheet in nb.worksheets:
             for index, cell in enumerate(worksheet.cells):
 
-                #Make sure the cell has slideshow metadata.
-                cell.metadata.slide_type = cell.get('metadata', {}).get('slideshow', {}).get('slide_type', '-')
+                # Make sure the cell has slideshow metadata.
+                cell.metadata.slide_type = cell.get('metadata', {}).get(
+                    'slideshow', {}).get('slide_type', '-')
 
-                #Get the slide type.  If type is start of subslide or slide,
-                #end the last subslide/slide.
+                # Get the slide type.  If type is start of subslide or slide,
+                # end the last subslide/slide.
                 if cell.metadata.slide_type in ['slide']:
-                    worksheet.cells[index - 1].metadata.slide_helper = 'slide_end'
+                    worksheet.cells[
+                        index - 1].metadata.slide_helper = 'slide_end'
                 if cell.metadata.slide_type in ['subslide']:
-                    worksheet.cells[index - 1].metadata.slide_helper = 'subslide_end'
-
+                    worksheet.cells[
+                        index - 1].metadata.slide_helper = 'subslide_end'
 
         if not isinstance(resources['reveal'], dict):
             resources['reveal'] = {}

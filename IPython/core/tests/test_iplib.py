@@ -21,6 +21,7 @@ ip = get_ipython()
 # Test functions
 #-----------------------------------------------------------------------------
 
+
 def test_reset():
     """reset must clear most namespaces."""
 
@@ -36,7 +37,7 @@ def test_reset():
     ip.user_ns['x'] = 1
     ip.user_ns['y'] = 1
     ip.reset()
-    
+
     # Finally, check that all namespaces have only as many variables as we
     # expect to find in them:
     nt.assert_equal(len(ip.user_ns), nvars_user_ns)
@@ -44,7 +45,8 @@ def test_reset():
 
 
 # Tests for reporting of exceptions in various modes, handling of SystemExit,
-# and %tb functionality.  This is really a mix of testing ultraTB and interactiveshell.
+# and %tb functionality.  This is really a mix of testing ultraTB and
+# interactiveshell.
 
 def doctest_tb_plain():
     """
@@ -130,6 +132,7 @@ ZeroDivisionError                         Traceback (most recent call last)
 <BLANKLINE>
 ZeroDivisionError: ...
       """
+
 
 def doctest_tb_sysexit():
     """
@@ -244,7 +247,7 @@ def test_run_cell():
     """)
     # Simply verifies that this kind of input is run
     ip.run_cell(complex)
-    
+
 
 def test_db():
     """Test the internal database used for variable persistence."""

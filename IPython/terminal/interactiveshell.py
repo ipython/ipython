@@ -38,6 +38,7 @@ from IPython.utils.traitlets import Integer, CBool, Unicode
 # Utilities
 #-----------------------------------------------------------------------------
 
+
 def get_default_editor():
     try:
         ed = os.environ['EDITOR']
@@ -53,13 +54,14 @@ def get_default_editor():
     if os.name == 'posix':
         return 'vi'  # the only one guaranteed to be there!
     else:
-        return 'notepad' # same in Windows!
+        return 'notepad'  # same in Windows!
+
 
 def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
     """ Yield pasted lines until the user enters the given sentinel value.
     """
     if not quiet:
-        print("Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
+        print("Pasting code; enter '%s' alone on the line to stop or use Ctrl-D."
               % sentinel)
         prompt = ":"
     else:
@@ -82,10 +84,11 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
 
 @magics_class
 class TerminalMagics(Magics):
+
     def __init__(self, shell):
         super(TerminalMagics, self).__init__(shell)
         self.input_splitter = IPythonInputSplitter()
-        
+
     def store_or_execute(self, block, name):
         """ Execute a block, or store it in a variable, per the user's request.
         """
@@ -101,7 +104,7 @@ class TerminalMagics(Magics):
                 self.shell.run_cell(b)
             finally:
                 self.shell.using_paste_magics = False
-    
+
     def preclean_input(self, block):
         lines = block.splitlines()
         while lines and not lines[0].strip():
@@ -120,15 +123,17 @@ class TerminalMagics(Magics):
             raise UsageError(
                 "Variable 'pasted_block' is not a string, can't execute")
 
-        print("Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b)))
+        print("Re-executing '%s...' (%d chars)" %
+              (b.split('\n', 1)[0], len(b)))
         self.shell.run_cell(b)
 
     @line_magic
-    def autoindent(self, parameter_s = ''):
+    def autoindent(self, parameter_s=''):
         """Toggle autoindent on/off (if available)."""
 
         self.shell.set_autoindent()
-        print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
+        print("Automatic indentation is:",
+              ['OFF', 'ON'][self.shell.autoindent])
 
     @skip_doctest
     @line_magic
@@ -254,40 +259,41 @@ class TerminalMagics(Magics):
 # Main class
 #-----------------------------------------------------------------------------
 
+
 class TerminalInteractiveShell(InteractiveShell):
 
     autoedit_syntax = CBool(False, config=True,
-        help="auto editing of files with syntax errors.")
+                            help="auto editing of files with syntax errors.")
     banner = Unicode('')
     banner1 = Unicode(default_banner, config=True,
-        help="""The part of the banner to be printed before the profile"""
-    )
+                      help="""The part of the banner to be printed before the profile"""
+                      )
     banner2 = Unicode('', config=True,
-        help="""The part of the banner to be printed after the profile"""
-    )
+                      help="""The part of the banner to be printed after the profile"""
+                      )
     confirm_exit = CBool(True, config=True,
-        help="""
+                         help="""
         Set to confirm when you try to exit IPython with an EOF (Control-D
         in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
         you can force a direct exit without any confirmation.""",
-    )
+                         )
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
     # because for the terminal based application, the banner behavior
     # is controlled by Global.display_banner, which IPythonApp looks at
     # to determine if *it* should call show_banner() by hand or not.
-    display_banner = CBool(False) # This isn't configurable!
+    display_banner = CBool(False)  # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
     editor = Unicode(get_default_editor(), config=True,
-        help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
-    )
+                     help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
+                     )
     pager = Unicode('less', config=True,
-        help="The shell program to be used for paging.")
+                    help="The shell program to be used for paging.")
 
     screen_length = Integer(0, config=True,
-        help=
-        """Number of lines of your screen, used to control printing of very
+                            help=
+                            """Number of lines of your screen, used to control printing of very
         long strings.  Strings longer than this number of lines will be sent
         through a pager instead of directly printed.  The default value for
         this is 0, which means IPython will auto-detect your screen size every
@@ -296,11 +302,11 @@ class TerminalInteractiveShell(InteractiveShell):
         internally). If for some reason this isn't working well (it needs
         curses support), specify it yourself. Otherwise don't change the
         default.""",
-    )
+                            )
     term_title = CBool(False, config=True,
-        help="Enable auto setting the terminal title."
-    )
-    
+                       help="Enable auto setting the terminal title."
+                       )
+
     # This `using_paste_magics` is used to detect whether the code is being
     # executed via paste magics functions
     using_paste_magics = CBool(False)
@@ -316,9 +322,9 @@ class TerminalInteractiveShell(InteractiveShell):
             return real_enable_gui(gui, app)
         except ValueError as e:
             raise UsageError("%s" % e)
-    
+
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
-                 user_ns=None, user_module=None, custom_exceptions=((),None),
+                 user_ns=None, user_module=None, custom_exceptions=((), None),
                  usage=None, banner1=None, banner2=None, display_banner=None,
                  **kwargs):
 
@@ -353,7 +359,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if self.screen_length == 0:
             return 0
         else:
-            num_lines_bot = self.separate_in.count('\n')+1
+            num_lines_bot = self.separate_in.count('\n') + 1
             return self.screen_length - num_lines_bot
 
     def init_term_title(self):
@@ -379,7 +385,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if os.name == 'posix':
             aliases = [('clear', 'clear'), ('more', 'more'), ('less', 'less'),
                        ('man', 'man')]
-        else :
+        else:
             aliases = []
 
         for name, cmd in aliases:
@@ -441,7 +447,7 @@ class TerminalInteractiveShell(InteractiveShell):
             while 1:
                 try:
                     self.interact(display_banner=display_banner)
-                    #self.interact_with_readline()
+                    # self.interact_with_readline()
                     # XXX for testing of a readline-decoupled repl loop, call
                     # interact_with_readline above
                     break
@@ -474,7 +480,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.readline.remove_history_item(hlen - i - 1)
         stdin_encoding = get_stream_enc(sys.stdin, 'utf-8')
         self.readline.add_history(py3compat.unicode_to_str(source_raw.rstrip(),
-                                    stdin_encoding))
+                                                           stdin_encoding))
         return self.readline.get_current_history_length()
 
     def interact(self, display_banner=None):
@@ -514,7 +520,8 @@ class TerminalInteractiveShell(InteractiveShell):
 
             else:
                 try:
-                    prompt = self.separate_in + self.prompt_manager.render('in')
+                    prompt = self.separate_in + \
+                        self.prompt_manager.render('in')
                 except:
                     self.showtraceback()
             try:
@@ -526,12 +533,14 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.rl_do_indent = False
 
             except KeyboardInterrupt:
-                #double-guard against keyboardinterrupts during kbdint handling
+                # double-guard against keyboardinterrupts during kbdint
+                # handling
                 try:
                     self.write('\nKeyboardInterrupt\n')
                     source_raw = self.input_splitter.raw_reset()
                     hlen_b4_cell = \
-                        self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+                        self._replace_rlhist_multiline(
+                            source_raw, hlen_b4_cell)
                     more = False
                 except KeyboardInterrupt:
                     pass
@@ -560,13 +569,14 @@ class TerminalInteractiveShell(InteractiveShell):
                     # the exception.
                     more = False
                 if (self.SyntaxTB.last_syntax_error and
-                    self.autoedit_syntax):
+                        self.autoedit_syntax):
                     self.edit_syntax_error()
                 if not more:
                     source_raw = self.input_splitter.raw_reset()
                     self.run_cell(source_raw, store_history=True)
                     hlen_b4_cell = \
-                        self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+                        self._replace_rlhist_multiline(
+                            source_raw, hlen_b4_cell)
 
         # Turn off the exit flag, so the mainloop can be restarted if desired
         self.exit_now = False
@@ -621,7 +631,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 return
             try:
                 # may set last_syntax_error again if a SyntaxError is raised
-                self.safe_execfile(err.filename,self.user_ns)
+                self.safe_execfile(err.filename, self.user_ns)
             except:
                 self.showtraceback()
             else:
@@ -636,18 +646,18 @@ class TerminalInteractiveShell(InteractiveShell):
                 except:
                     self.showtraceback()
 
-    def _should_recompile(self,e):
+    def _should_recompile(self, e):
         """Utility routine for edit_syntax_error"""
 
-        if e.filename in ('<ipython console>','<input>','<string>',
-                          '<console>','<BackgroundJob compilation>',
+        if e.filename in ('<ipython console>', '<input>', '<string>',
+                          '<console>', '<BackgroundJob compilation>',
                           None):
 
             return False
         try:
             if (self.autoedit_syntax and
                 not self.ask_yes_no('Return to editor to correct syntax error? '
-                              '[Y/n] ','y')):
+                                    '[Y/n] ', 'y')):
                 return False
         except EOFError:
             return False
@@ -660,7 +670,7 @@ class TerminalInteractiveShell(InteractiveShell):
         # always pass integer line and offset values to editor hook
         try:
             self.hooks.fix_error_editor(e.filename,
-                int0(e.lineno),int0(e.offset),e.msg)
+                                        int0(e.lineno), int0(e.offset), e.msg)
         except TryNext:
             warn('Could not open editor')
             return False
@@ -679,7 +689,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         This method calls the ask_exit callback."""
         if self.confirm_exit:
-            if self.ask_yes_no('Do you really want to exit ([y]/n)?','y'):
+            if self.ask_yes_no('Do you really want to exit ([y]/n)?', 'y'):
                 self.ask_exit()
         else:
             self.ask_exit()
@@ -696,7 +706,7 @@ class TerminalInteractiveShell(InteractiveShell):
         super(TerminalInteractiveShell, self).showindentationerror()
         if not self.using_paste_magics:
             print("If you want to paste code into IPython, try the "
-                "%paste and %cpaste magic functions.")
+                  "%paste and %cpaste magic functions.")
 
 
 InteractiveShellABC.register(TerminalInteractiveShell)

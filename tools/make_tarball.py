@@ -7,7 +7,7 @@ import os
 import sys
 import shutil
 
-from  toollib import *
+from toollib import *
 
 tag = commands.getoutput('git describe --tags')
 base_name = 'ipython-%s' % tag

@@ -34,13 +34,14 @@ from IPython.utils.py3compat import unicode_type
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class DuplicateKernelError(Exception):
     pass
 
 
-
 def kernel_method(f):
     """decorator for proxying MKM.method(kernel_id) to individual KMs by ID"""
+
     def wrapped(self, kernel_id, *args, **kwargs):
         # get the kernel
         km = self.get_kernel(kernel_id)
@@ -56,22 +57,27 @@ def kernel_method(f):
 
 
 class MultiKernelManager(LoggingConfigurable):
+
     """A class for managing multiple kernels."""
-    
+
     kernel_manager_class = DottedObjectName(
         "IPython.kernel.ioloop.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """
     )
+
     def _kernel_manager_class_changed(self, name, old, new):
         self.kernel_manager_factory = import_item(new)
-    
-    kernel_manager_factory = Any(help="this is kernel_manager_class after import")
+
+    kernel_manager_factory = Any(
+        help="this is kernel_manager_class after import")
+
     def _kernel_manager_factory_default(self):
         return import_item(self.kernel_manager_class)
-    
+
     context = Instance('zmq.Context')
+
     def _context_default(self):
         return zmq.Context.instance()
 
@@ -110,8 +116,8 @@ class MultiKernelManager(LoggingConfigurable):
         # subclass we are using. It can be configured as any Configurable,
         # including things like its transport and ip.
         km = self.kernel_manager_factory(connection_file=os.path.join(
-                    self.connection_dir, "kernel-%s.json" % kernel_id),
-                    parent=self, autorestart=True, log=self.log
+            self.connection_dir, "kernel-%s.json" % kernel_id),
+            parent=self, autorestart=True, log=self.log
         )
         km.start_kernel(**kwargs)
         self._kernels[kernel_id] = km

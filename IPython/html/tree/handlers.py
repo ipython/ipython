@@ -27,6 +27,7 @@ from ..utils import url_path_join, path2url, url2path, url_escape, is_hidden
 
 
 class TreeHandler(IPythonHandler):
+
     """Render the tree view, listing notebooks, clusters, etc."""
 
     def generate_breadcrumbs(self, path):
@@ -35,18 +36,19 @@ class TreeHandler(IPythonHandler):
         ncomps = len(comps)
         for i in range(ncomps):
             if comps[i]:
-                link = url_escape(url_path_join(self.base_url, 'tree', *comps[0:i+1]))
+                link = url_escape(
+                    url_path_join(self.base_url, 'tree', *comps[0:i + 1]))
                 breadcrumbs.append((link, comps[i]))
         return breadcrumbs
 
     def generate_page_title(self, path):
         comps = path.split('/')
         if len(comps) > 3:
-            for i in range(len(comps)-2):
+            for i in range(len(comps) - 2):
                 comps.pop(0)
         page_title = url_escape(url_path_join(*comps))
         if page_title:
-            return page_title+'/'
+            return page_title + '/'
         else:
             return 'Home'
 
@@ -66,19 +68,21 @@ class TreeHandler(IPythonHandler):
                 # Directory is hidden or does not exist.
                 raise web.HTTPError(404)
             elif nbm.is_hidden(path):
-                self.log.info("Refusing to serve hidden directory, via 404 Error")
+                self.log.info(
+                    "Refusing to serve hidden directory, via 404 Error")
                 raise web.HTTPError(404)
             breadcrumbs = self.generate_breadcrumbs(path)
             page_title = self.generate_page_title(path)
             self.write(self.render_template('tree.html',
-                project=self.project_dir,
-                page_title=page_title,
-                notebook_path=path,
-                breadcrumbs=breadcrumbs
-            ))
+                                            project=self.project_dir,
+                                            page_title=page_title,
+                                            notebook_path=path,
+                                            breadcrumbs=breadcrumbs
+                                            ))
 
 
 class TreeRedirectHandler(IPythonHandler):
+
     """Redirect a request to the corresponding tree URL"""
 
     @web.authenticated
@@ -100,4 +104,4 @@ default_handlers = [
     (r"/tree%s" % path_regex, TreeHandler),
     (r"/tree", TreeHandler),
     (r"/", TreeRedirectHandler),
-    ]
+]

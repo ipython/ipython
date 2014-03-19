@@ -9,12 +9,13 @@ from IPython.core.display import DisplayObject
 
 
 class Audio(DisplayObject):
+
     """Create an audio object.
 
     When this object is returned by an input cell or passed to the
     display function, it will result in Audio controls being displayed
     in the frontend (only works in the notebook).
-    
+
     Parameters
     ----------
     data : numpy array, list, unicode, str or bytes
@@ -24,9 +25,9 @@ class Audio(DisplayObject):
         * String containing the filename
         * Bytestring containing raw PCM data or
         * URL pointing to a file on the web. 
-        
+
         If the array option is used the waveform will be normalized.
-        
+
         If a filename or url is used the format support will be browser 
         dependent. 
     url : unicode
@@ -72,20 +73,21 @@ class Audio(DisplayObject):
 
     def __init__(self, data=None, filename=None, url=None, embed=None, rate=None, autoplay=False):
         if filename is None and url is None and data is None:
-            raise ValueError("No image data found. Expecting filename, url, or data.")
+            raise ValueError(
+                "No image data found. Expecting filename, url, or data.")
         if embed is False and url is None:
             raise ValueError("No url found. Expecting url when embed=False")
-            
+
         if url is not None and embed is not True:
             self.embed = False
         else:
             self.embed = True
         self.autoplay = autoplay
         super(Audio, self).__init__(data=data, url=url, filename=filename)
-            
+
         if self.data is not None and not isinstance(self.data, bytes):
-            self.data = self._make_wav(data,rate)
-            
+            self.data = self._make_wav(data, rate)
+
     def reload(self):
         """Reload the raw data from file or URL."""
         import mimetypes
@@ -98,7 +100,7 @@ class Audio(DisplayObject):
             self.mimetype = mimetypes.guess_type(self.url)[0]
         else:
             self.mimetype = "audio/wav"
-           
+
     def _make_wav(self, data, rate):
         """ Transform a numpy array to a PCM bytestring """
         import struct
@@ -106,24 +108,25 @@ class Audio(DisplayObject):
         import wave
         try:
             import numpy as np
-            data = np.array(data,dtype=float)
+            data = np.array(data, dtype=float)
             if len(data.shape) > 1:
-                raise ValueError("encoding of stereo PCM signals are unsupported")  
-            scaled = np.int16(data/np.max(np.abs(data))*32767).tolist()
+                raise ValueError(
+                    "encoding of stereo PCM signals are unsupported")
+            scaled = np.int16(data / np.max(np.abs(data)) * 32767).tolist()
         except ImportError:
             maxabsvalue = float(max([abs(x) for x in data]))
-            scaled = [int(x/maxabsvalue*32767) for x in data] 
+            scaled = [int(x / maxabsvalue * 32767) for x in data]
         fp = BytesIO()
-        waveobj = wave.open(fp,mode='wb')
+        waveobj = wave.open(fp, mode='wb')
         waveobj.setnchannels(1)
         waveobj.setframerate(rate)
         waveobj.setsampwidth(2)
-        waveobj.setcomptype('NONE','NONE')
-        waveobj.writeframes(b''.join([struct.pack('<h',x) for x in scaled]))
+        waveobj.setcomptype('NONE', 'NONE')
+        waveobj.writeframes(b''.join([struct.pack('<h', x) for x in scaled]))
         val = fp.getvalue()
         waveobj.close()
-        return val 
-    
+        return val
+
     def _data_and_metadata(self):
         """shortcut for returning metadata with url information, if defined"""
         md = {}
@@ -133,7 +136,7 @@ class Audio(DisplayObject):
             return self.data, md
         else:
             return self.data
-        
+
     def _repr_html_(self):
         src = """
                 <audio controls="controls" {autoplay}>
@@ -141,12 +144,12 @@ class Audio(DisplayObject):
                     Your browser does not support the audio element.
                 </audio>
               """
-        return src.format(src=self.src_attr(),type=self.mimetype, autoplay=self.autoplay_attr())
+        return src.format(src=self.src_attr(), type=self.mimetype, autoplay=self.autoplay_attr())
 
     def src_attr(self):
         import base64
         if self.embed and (self.data is not None):
-            data = base64=base64.b64encode(self.data).decode('ascii')
+            data = base64 = base64.b64encode(self.data).decode('ascii')
             return """data:{type};base64,{base64}""".format(type=self.mimetype,
                                                             base64=data)
         elif self.url is not None:
@@ -160,7 +163,9 @@ class Audio(DisplayObject):
         else:
             return ''
 
+
 class IFrame(object):
+
     """
     Generic class to embed an iframe in an IPython notebook
     """
@@ -185,7 +190,7 @@ class IFrame(object):
         """return the embed iframe"""
         if self.params:
             try:
-                from urllib.parse import urlencode # Py 3
+                from urllib.parse import urlencode  # Py 3
             except ImportError:
                 from urllib import urlencode
             params = "?" + urlencode(self.params)
@@ -196,7 +201,9 @@ class IFrame(object):
                                   height=self.height,
                                   params=params)
 
+
 class YouTubeVideo(IFrame):
+
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
 
     e.g. to embed the video from https://www.youtube.com/watch?v=foo , you would
@@ -223,16 +230,20 @@ class YouTubeVideo(IFrame):
         src = "https://www.youtube.com/embed/{0}".format(id)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
 
+
 class VimeoVideo(IFrame):
+
     """
     Class for embedding a Vimeo video in an IPython session, based on its video id.
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="https://player.vimeo.com/video/{0}".format(id)
+        src = "https://player.vimeo.com/video/{0}".format(id)
         super(VimeoVideo, self).__init__(src, width, height, **kwargs)
 
+
 class ScribdDocument(IFrame):
+
     """
     Class for embedding a Scribd document in an IPython session
 
@@ -245,10 +256,12 @@ class ScribdDocument(IFrame):
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
-        src="https://www.scribd.com/embeds/{0}/content".format(id)
+        src = "https://www.scribd.com/embeds/{0}/content".format(id)
         super(ScribdDocument, self).__init__(src, width, height, **kwargs)
 
+
 class FileLink(object):
+
     """Class for embedding a local file link in an IPython session, based on path
 
     e.g. to embed a link that was generated in the IPython notebook as my/data.txt
@@ -285,14 +298,14 @@ class FileLink(object):
         """
         if isdir(path):
             raise ValueError("Cannot display a directory using FileLink. "
-              "Use FileLinks to display '%s'." % path)
+                             "Use FileLinks to display '%s'." % path)
         self.path = path
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
         self.result_html_suffix = result_html_suffix
 
     def _format_path(self):
-        fp = ''.join([self.url_prefix,self.path])
+        fp = ''.join([self.url_prefix, self.path])
         return ''.join([self.result_html_prefix,
                         self.html_link_str % (fp, self.path),
                         self.result_html_suffix])
@@ -313,7 +326,9 @@ class FileLink(object):
         """
         return abspath(self.path)
 
+
 class FileLinks(FileLink):
+
     """Class for embedding local file links in an IPython session, based on path
 
     e.g. to embed links to files that were generated in the IPython notebook
@@ -326,6 +341,7 @@ class FileLinks(FileLink):
 
         FileLinks("my/data")
     """
+
     def __init__(self,
                  path,
                  url_prefix='',
@@ -371,7 +387,7 @@ class FileLinks(FileLink):
         """
         if isfile(path):
             raise ValueError("Cannot display a file using FileLinks. "
-              "Use FileLink to display '%s'." % path)
+                             "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashs for more consistent output formatting
         path = path.rstrip('/')
@@ -382,9 +398,11 @@ class FileLinks(FileLink):
         self.result_html_suffix = result_html_suffix
 
         self.notebook_display_formatter = \
-             notebook_display_formatter or self._get_notebook_display_formatter()
+            notebook_display_formatter or self._get_notebook_display_formatter(
+            )
         self.terminal_display_formatter = \
-             terminal_display_formatter or self._get_terminal_display_formatter()
+            terminal_display_formatter or self._get_terminal_display_formatter(
+            )
 
     def _get_display_formatter(self,
                                dirname_output_format,
@@ -414,10 +432,10 @@ class FileLinks(FileLink):
             # are going to be displayed
             display_fnames = []
             for fname in fnames:
-                if (isfile(join(dirname,fname)) and
-                       (included_suffixes == None or
+                if (isfile(join(dirname, fname)) and
+                    (included_suffixes == None or
                         splitext(fname)[1] in included_suffixes)):
-                      display_fnames.append(fname)
+                    display_fnames.append(fname)
 
             if len(display_fnames) == 0:
                 # if there are no filenames to display, don't print anything
@@ -429,7 +447,7 @@ class FileLinks(FileLink):
                 dirname_output_line = dirname_output_format % dirname
                 result.append(dirname_output_line)
                 for fname in display_fnames:
-                    fp = fp_format % (dirname,fname)
+                    fp = fp_format % (dirname, fname)
                     if fp_cleaner is not None:
                         fp = fp_cleaner(fp)
                     try:
@@ -447,9 +465,10 @@ class FileLinks(FileLink):
         """ generate function to use for notebook formatting
         """
         dirname_output_format = \
-         self.result_html_prefix + "%s/" + self.result_html_suffix
+            self.result_html_prefix + "%s/" + self.result_html_suffix
         fname_output_format = \
-         self.result_html_prefix + spacer + self.html_link_str + self.result_html_suffix
+            self.result_html_prefix + spacer + \
+            self.html_link_str + self.result_html_suffix
         fp_format = self.url_prefix + '%s/%s'
         if sep == "\\":
             # Working on a platform where the path separator is "\", so
@@ -458,7 +477,7 @@ class FileLinks(FileLink):
                 # Replace all occurences of backslash ("\") with a forward
                 # slash ("/") - this is necessary on windows when a path is
                 # provided as input, but we must link to a URI
-                return fp.replace('\\','/')
+                return fp.replace('\\', '/')
         else:
             fp_cleaner = None
 
@@ -484,7 +503,8 @@ class FileLinks(FileLink):
         walked_dir = list(walk(self.path))
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
-            result_lines += self.notebook_display_formatter(dirname, fnames, self.included_suffixes)
+            result_lines += self.notebook_display_formatter(
+                dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
 
     def __repr__(self):
@@ -494,5 +514,6 @@ class FileLinks(FileLink):
         walked_dir = list(walk(self.path))
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
-            result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
+            result_lines += self.terminal_display_formatter(
+                dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)

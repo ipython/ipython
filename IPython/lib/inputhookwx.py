@@ -54,6 +54,7 @@ def inputhook_wx1():
         pass
     return 0
 
+
 class EventLoopTimer(wx.Timer):
 
     def __init__(self, func):
@@ -62,6 +63,7 @@ class EventLoopTimer(wx.Timer):
 
     def Notify(self):
         self.func()
+
 
 class EventLoopRunner(object):
 
@@ -75,6 +77,7 @@ class EventLoopRunner(object):
         if stdin_ready():
             self.timer.Stop()
             self.evtloop.Exit()
+
 
 def inputhook_wx2():
     """Run the wx event loop, polling for stdin.
@@ -101,6 +104,7 @@ def inputhook_wx2():
     except KeyboardInterrupt:
         pass
     return 0
+
 
 def inputhook_wx3():
     """Run the wx event loop by processing pending events only.

@@ -20,6 +20,7 @@ from ..reader import read, get_version
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class TestReader(TestsBase):
 
     def test_read(self):

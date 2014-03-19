@@ -29,6 +29,7 @@ from IPython.nbformat import v2
 # Code
 #-----------------------------------------------------------------------------
 
+
 def upgrade(nb, from_version=2, from_minor=0):
     """Convert a notebook to v3.
 
@@ -45,7 +46,7 @@ def upgrade(nb, from_version=2, from_minor=0):
         # Mark the original nbformat so consumers know it has been converted.
         nb.nbformat = nbformat
         nb.nbformat_minor = nbformat_minor
-        
+
         nb.orig_nbformat = 2
         return nb
     elif from_version == 3:
@@ -54,21 +55,21 @@ def upgrade(nb, from_version=2, from_minor=0):
         nb.nbformat_minor = nbformat_minor
         return nb
     else:
-        raise ValueError('Cannot convert a notebook directly from v%s to v3.  ' \
-                'Try using the IPython.nbformat.convert module.' % from_version)
- 
+        raise ValueError('Cannot convert a notebook directly from v%s to v3.  '
+                         'Try using the IPython.nbformat.convert module.' % from_version)
+
 
 def heading_to_md(cell):
     """turn heading cell into corresponding markdown"""
     cell.cell_type = "markdown"
     level = cell.pop('level', 1)
-    cell.source = '#'*level + ' ' + cell.source
- 
- 
+    cell.source = '#' * level + ' ' + cell.source
+
+
 def raw_to_md(cell):
     """let raw passthrough as markdown"""
     cell.cell_type = "markdown"
- 
+
 
 def downgrade(nb):
     """Convert a v3 notebook to v2.

@@ -10,14 +10,17 @@ import requests
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 
+
 class KernelAPI(object):
+
     """Wrapper for kernel REST API requests"""
+
     def __init__(self, base_url):
         self.base_url = base_url
 
     def _req(self, verb, path, body=None):
         response = requests.request(verb,
-                url_path_join(self.base_url, 'api/kernels', path), data=body)
+                                    url_path_join(self.base_url, 'api/kernels', path), data=body)
 
         if 400 <= response.status_code < 600:
             try:
@@ -46,8 +49,11 @@ class KernelAPI(object):
     def restart(self, id):
         return self._req('POST', url_path_join(id, 'restart'))
 
+
 class KernelAPITest(NotebookTestBase):
+
     """Test the kernels web service API"""
+
     def setUp(self):
         self.kern_api = KernelAPI(self.base_url())
 
@@ -90,7 +96,7 @@ class KernelAPITest(NotebookTestBase):
 
         # Restart a kernel
         r = self.kern_api.restart(kern2['id'])
-        self.assertEqual(r.headers['Location'], '/api/kernels/'+kern2['id'])
+        self.assertEqual(r.headers['Location'], '/api/kernels/' + kern2['id'])
         rekern = r.json()
         self.assertEqual(rekern['id'], kern2['id'])
 

@@ -25,6 +25,8 @@ from internal_ipkernel import InternalIPKernel
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
+
+
 class SimpleWindow(Qt.QWidget, InternalIPKernel):
 
     def __init__(self, app):
@@ -65,11 +67,11 @@ class SimpleWindow(Qt.QWidget, InternalIPKernel):
 #-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app = Qt.QApplication([]) 
+    app = Qt.QApplication([])
     # Create our window
     win = SimpleWindow(app)
     win.show()
-    
+
     # Very important, IPython-specific step: this gets GUI event loop
     # integration going, and it replaces calling app.exec_()
     win.ipkernel.start()

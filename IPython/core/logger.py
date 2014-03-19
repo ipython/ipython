@@ -25,7 +25,9 @@ from IPython.utils.py3compat import str_to_unicode
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
 # ipython and does input cache management.  Finish cleanup later...
 
+
 class Logger(object):
+
     """A Logfile class with different policies for file creation"""
 
     def __init__(self, home_dir, logfname='Logger.log', loghead=u'',
@@ -53,15 +55,15 @@ class Logger(object):
         self.log_active = False
 
     # logmode is a validated property
-    def _set_mode(self,mode):
-        if mode not in ['append','backup','global','over','rotate']:
+    def _set_mode(self, mode):
+        if mode not in ['append', 'backup', 'global', 'over', 'rotate']:
             raise ValueError('invalid log mode %s given' % mode)
         self._logmode = mode
 
     def _get_mode(self):
         return self._logmode
 
-    logmode = property(_get_mode,_set_mode)
+    logmode = property(_get_mode, _set_mode)
 
     def logstart(self, logfname=None, loghead=None, logmode=None,
                  log_output=False, timestamp=False, log_raw_input=False):
@@ -74,9 +76,12 @@ class Logger(object):
                                self.logfname)
 
         # The parameters can override constructor defaults
-        if logfname is not None: self.logfname = logfname
-        if loghead is not None: self.loghead = loghead
-        if logmode is not None: self.logmode = logmode
+        if logfname is not None:
+            self.logfname = logfname
+        if loghead is not None:
+            self.loghead = loghead
+        if logmode is not None:
+            self.logmode = logmode
 
         # Parameters not part of the constructor
         self.timestamp = timestamp
@@ -92,34 +97,34 @@ class Logger(object):
 
         elif logmode == 'backup':
             if isfile(self.logfname):
-                backup_logname = self.logfname+'~'
+                backup_logname = self.logfname + '~'
                 # Manually remove any old backup, since os.rename may fail
                 # under Windows.
                 if isfile(backup_logname):
                     os.remove(backup_logname)
-                os.rename(self.logfname,backup_logname)
+                os.rename(self.logfname, backup_logname)
             self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 
         elif logmode == 'global':
-            self.logfname = os.path.join(self.home_dir,self.logfname)
+            self.logfname = os.path.join(self.home_dir, self.logfname)
             self.logfile = io.open(self.logfname, 'a', encoding='utf-8')
 
         elif logmode == 'over':
             if isfile(self.logfname):
                 os.remove(self.logfname)
-            self.logfile = io.open(self.logfname,'w', encoding='utf-8')
+            self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 
         elif logmode == 'rotate':
             if isfile(self.logfname):
-                if isfile(self.logfname+'.001~'):
-                    old = glob.glob(self.logfname+'.*~')
+                if isfile(self.logfname + '.001~'):
+                    old = glob.glob(self.logfname + '.*~')
                     old.sort()
                     old.reverse()
                     for f in old:
                         root, ext = os.path.splitext(f)
-                        num = int(ext[1:-1])+1
-                        os.rename(f, root+'.'+repr(num).zfill(3)+'~')
-                os.rename(self.logfname, self.logfname+'.001~')
+                        num = int(ext[1:-1]) + 1
+                        os.rename(f, root + '.' + repr(num).zfill(3) + '~')
+                os.rename(self.logfname, self.logfname + '.001~')
             self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 
         if logmode != 'append':
@@ -128,14 +133,14 @@ class Logger(object):
         self.logfile.flush()
         self.log_active = True
 
-    def switch_log(self,val):
+    def switch_log(self, val):
         """Switch logging on/off. val should be ONLY a boolean."""
 
-        if val not in [False,True,0,1]:
+        if val not in [False, True, 0, 1]:
             raise ValueError('Call switch_log ONLY with a boolean argument, '
                              'not with: %s' % val)
 
-        label = {0:'OFF',1:'ON',False:'OFF',True:'ON'}
+        label = {0: 'OFF', 1: 'ON', False: 'OFF', True: 'ON'}
 
         if self.logfile is None:
             print("""
@@ -147,9 +152,9 @@ which already exists. But you must first start the logging process with
 
         else:
             if self.log_active == val:
-                print('Logging is already',label[val])
+                print('Logging is already', label[val])
             else:
-                print('Switching logging',label[val])
+                print('Switching logging', label[val])
                 self.log_active = not self.log_active
                 self.log_active_out = self.log_active
 
@@ -189,15 +194,15 @@ which already exists. But you must first start the logging process with
     def log_write(self, data, kind='input'):
         """Write data to the log file, if active"""
 
-        #print 'data: %r' % data # dbg
+        # print 'data: %r' % data # dbg
         if self.log_active and data:
             write = self.logfile.write
-            if kind=='input':
+            if kind == 'input':
                 if self.timestamp:
                     write(str_to_unicode(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
-                                        time.localtime())))
+                                                       time.localtime())))
                 write(data)
-            elif kind=='output' and self.log_output:
+            elif kind == 'output' and self.log_output:
                 odata = u'\n'.join([u'#[Out]# %s' % s
                                    for s in data.splitlines()])
                 write(u'%s\n' % odata)

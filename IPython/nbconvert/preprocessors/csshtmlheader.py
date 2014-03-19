@@ -25,7 +25,9 @@ from IPython.utils.traitlets import Unicode
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class CSSHTMLHeaderPreprocessor(Preprocessor):
+
     """
     Preprocessor used to pre-process notebook for HTML output.  Adds IPython notebook
     front-end CSS and Pygments CSS to HTML output.
@@ -39,7 +41,7 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
     def __init__(self, config=None, **kw):
         """
         Public constructor
-        
+
         Parameters
         ----------
         config : Config
@@ -47,12 +49,11 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
         **kw : misc
             Additional arguments
         """
-        
+
         super(CSSHTMLHeaderPreprocessor, self).__init__(config=config, **kw)
 
-        if self.enabled :
+        if self.enabled:
             self._regen_header()
-
 
     def preprocess(self, nb, resources):
         """Fetch and add CSS to the resource dictionary
@@ -60,7 +61,7 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
         Fetch CSS from IPython and Pygments to add at the beginning
         of the html files.  Add this css in resources in the 
         "inlining.css" key
-        
+
         Parameters
         ----------
         nb : NotebookNode
@@ -69,12 +70,11 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
             Additional resources used in the conversion process.  Allows
             preprocessors to pass variables into the Jinja engine.
         """
-        
+
         resources['inlining'] = {}
         resources['inlining']['css'] = self.header
-        
-        return nb, resources
 
+        return nb, resources
 
     def _regen_header(self):
         """ 
@@ -82,25 +82,24 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
         and Pygments.
         """
         from pygments.formatters import HtmlFormatter
-        
-        #Clear existing header.
+
+        # Clear existing header.
         header = []
-        
-        #Construct path to IPy CSS
+
+        # Construct path to IPy CSS
         from IPython.html import DEFAULT_STATIC_FILES_PATH
         sheet_filename = os.path.join(DEFAULT_STATIC_FILES_PATH,
-            'style', 'style.min.css')
-        
-        #Load style CSS file.
+                                      'style', 'style.min.css')
+
+        # Load style CSS file.
         with io.open(sheet_filename, encoding='utf-8') as file:
             file_text = file.read()
             header.append(file_text)
 
-        #Add pygments CSS
+        # Add pygments CSS
         formatter = HtmlFormatter()
         pygments_css = formatter.get_style_defs(self.highlight_class)
         header.append(pygments_css)
 
-        #Set header        
+        # Set header
         self.header = header
-

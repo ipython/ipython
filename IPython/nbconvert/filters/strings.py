@@ -52,7 +52,7 @@ def wrap_text(text, width=100):
     """ 
     Intelligently wrap text.
     Wrap text without breaking words if possible.
-    
+
     Parameters
     ----------
     text : str
@@ -62,14 +62,14 @@ def wrap_text(text, width=100):
     """
 
     split_text = text.split('\n')
-    wrp = map(lambda x:textwrap.wrap(x,width), split_text)
+    wrp = map(lambda x: textwrap.wrap(x, width), split_text)
     wrpd = map('\n'.join, wrp)
     return '\n'.join(wrpd)
 
 
 def html2text(element):
     """extract inner text from html
-    
+
     Analog of jQuery's $(element).text()
     """
     if isinstance(element, py3compat.string_types):
@@ -78,7 +78,7 @@ def html2text(element):
         except Exception:
             # failed to parse, just return it unmodified
             return element
-    
+
     text = element.text or ""
     for child in element:
         text += html2text(child)
@@ -88,17 +88,18 @@ def html2text(element):
 
 def add_anchor(html):
     """Add an anchor-link to an html header tag
-    
+
     For use in heading cells
     """
     try:
-        h = ElementTree.fromstring(py3compat.cast_bytes_py2(html, encoding='utf-8'))
+        h = ElementTree.fromstring(
+            py3compat.cast_bytes_py2(html, encoding='utf-8'))
     except Exception:
         # failed to parse, just return it unmodified
         return html
     link = html2text(h).replace(' ', '-')
     h.set('id', link)
-    a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
+    a = ElementTree.Element("a", {"class": "anchor-link", "href": "#" + link})
     a.text = u'¶'
     h.append(a)
 
@@ -117,11 +118,11 @@ def add_prompts(code, first='>>> ', cont='... '):
         new_code.append(cont + line)
     return '\n'.join(new_code)
 
-    
+
 def strip_dollars(text):
     """
     Remove all dollar symbols from text
-    
+
     Parameters
     ----------
     text : str
@@ -132,13 +133,15 @@ def strip_dollars(text):
 
 
 files_url_pattern = re.compile(r'(src|href)\=([\'"]?)/?files/')
-markdown_url_pattern = re.compile(r'(!?)\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
+markdown_url_pattern = re.compile(
+    r'(!?)\[(?P<caption>.*?)\]\(/?files/(?P<location>.*?)\)')
+
 
 def strip_files_prefix(text):
     """
     Fix all fake URLs that start with `files/`, stripping out the `files/` prefix.
     Applies to both urls (for html) and relative paths (for markdown paths).
-    
+
     Parameters
     ----------
     text : str
@@ -152,7 +155,7 @@ def strip_files_prefix(text):
 def comment_lines(text, prefix='# '):
     """
     Build a Python comment line from input text.
-    
+
     Parameters
     ----------
     text : str
@@ -160,18 +163,18 @@ def comment_lines(text, prefix='# '):
     prefix : str
         Character to append to the start of each line.
     """
-    
-    #Replace line breaks with line breaks and comment symbols.
-    #Also add a comment symbol at the beginning to comment out
-    #the first line.
-    return prefix + ('\n'+prefix).join(text.split('\n')) 
+
+    # Replace line breaks with line breaks and comment symbols.
+    # Also add a comment symbol at the beginning to comment out
+    # the first line.
+    return prefix + ('\n' + prefix).join(text.split('\n'))
 
 
-def get_lines(text, start=None,end=None):
+def get_lines(text, start=None, end=None):
     """
     Split the input text into separate lines and then return the 
     lines that the caller is interested in.
-    
+
     Parameters
     ----------
     text : str
@@ -181,12 +184,13 @@ def get_lines(text, start=None,end=None):
     end : int, optional
         Last line to grab from.
     """
-    
+
     # Split the input into lines.
     lines = text.split("\n")
-    
+
     # Return the right lines.
-    return "\n".join(lines[start:end]) #re-join
+    return "\n".join(lines[start:end])  # re-join
+
 
 def ipython2python(code):
     """Transform IPython syntax to pure Python syntax
@@ -200,9 +204,10 @@ def ipython2python(code):
     shell = InteractiveShell.instance()
     return shell.input_transformer_manager.transform_cell(code)
 
+
 def posix_path(path):
     """Turn a path into posix-style path/to/etc
-    
+
     Mainly for use in latex on Windows,
     where native Windows paths are not allowed.
     """
@@ -210,10 +215,12 @@ def posix_path(path):
         return path.replace(os.path.sep, '/')
     return path
 
+
 def path2url(path):
     """Turn a file path into a URL"""
     parts = path.split(os.path.sep)
     return '/'.join(quote(part) for part in parts)
+
 
 def ascii_only(s):
     """ensure a string is ascii"""

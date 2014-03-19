@@ -23,6 +23,7 @@ from gi.repository import Gtk, GLib
 # Code
 #-----------------------------------------------------------------------------
 
+
 def _main_quit(*args, **kwargs):
     Gtk.main_quit()
     return False

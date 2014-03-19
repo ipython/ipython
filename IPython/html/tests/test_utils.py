@@ -23,6 +23,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 # Test functions
 #-----------------------------------------------------------------------------
 
+
 def test_help_output():
     """ipython notebook --help-all works"""
     tt.help_all_output_test('notebook')
@@ -40,10 +41,11 @@ def test_url_escape():
 
     path = url_escape('/path with a/notebook and space.ipynb')
     nt.assert_equal(path, '/path%20with%20a/notebook%20and%20space.ipynb')
-    
+
     path = url_escape('/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
     nt.assert_equal(path,
-        '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
+                    '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
+
 
 def test_url_unescape():
 
@@ -61,6 +63,7 @@ def test_url_unescape():
     path = url_unescape(
         '/%20%21%40%24%23%25%5E%26%2A%20/%20test%20%25%5E%20notebook%20%40%23%24%20name.ipynb')
     nt.assert_equal(path, '/ !@$#%^&* / test %^ notebook @#$ name.ipynb')
+
 
 def test_is_hidden():
     with TemporaryDirectory() as root:

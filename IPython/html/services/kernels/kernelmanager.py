@@ -34,13 +34,14 @@ from IPython.utils.py3compat import getcwd
 
 
 class MappingKernelManager(MultiKernelManager):
+
     """A KernelManager that handles notebook mapping and HTTP error handling"""
 
     def _kernel_manager_class_default(self):
         return "IPython.kernel.ioloop.IOLoopKernelManager"
 
     kernel_argv = List(Unicode)
-    
+
     root_dir = Unicode(getcwd(), config=True)
 
     def _root_dir_changed(self, name, old, new):
@@ -60,7 +61,7 @@ class MappingKernelManager(MultiKernelManager):
         """notice that a kernel died"""
         self.log.warn("Kernel %s died, removing from map.", kernel_id)
         self.remove_kernel(kernel_id)
-    
+
     def cwd_for_path(self, path):
         """Turn API path into absolute OS path."""
         os_path = to_os_path(path, self.root_dir)
@@ -87,14 +88,16 @@ class MappingKernelManager(MultiKernelManager):
             kwargs['extra_arguments'] = self.kernel_argv
             if path is not None:
                 kwargs['cwd'] = self.cwd_for_path(path)
-            kernel_id = super(MappingKernelManager, self).start_kernel(**kwargs)
+            kernel_id = super(
+                MappingKernelManager, self).start_kernel(**kwargs)
             self.log.info("Kernel started: %s" % kernel_id)
             self.log.debug("Kernel args: %r" % kwargs)
             # register callback for failed auto-restart
             self.add_restart_callback(kernel_id,
-                lambda : self._handle_kernel_died(kernel_id),
-                'dead',
-            )
+                                      lambda: self._handle_kernel_died(
+                                          kernel_id),
+                                      'dead',
+                                      )
         else:
             self._check_kernel_id(kernel_id)
             self.log.info("Using existing kernel: %s" % kernel_id)
@@ -109,7 +112,7 @@ class MappingKernelManager(MultiKernelManager):
         """Return a dictionary of kernel information described in the
         JSON standard model."""
         self._check_kernel_id(kernel_id)
-        model = {"id":kernel_id}
+        model = {"id": kernel_id}
         return model
 
     def list_kernels(self):

@@ -26,6 +26,7 @@ from IPython.utils.py3compat import unicode_type
 # Code
 #-----------------------------------------------------------------------------
 
+
 class NotebookNode(Struct):
     pass
 
@@ -33,7 +34,7 @@ class NotebookNode(Struct):
 def from_dict(d):
     if isinstance(d, dict):
         newd = NotebookNode()
-        for k,v in d.items():
+        for k, v in d.items():
             newd[k] = from_dict(v)
         return newd
     elif isinstance(d, (tuple, list)):
@@ -70,4 +71,3 @@ def new_notebook(cells=None):
     else:
         nb.cells = []
     return nb
-

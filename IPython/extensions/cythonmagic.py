@@ -79,14 +79,14 @@ from Cython.Build.Dependencies import cythonize
 class CythonMagics(Magics):
 
     def __init__(self, shell):
-        super(CythonMagics,self).__init__(shell)
+        super(CythonMagics, self).__init__(shell)
         self._reloads = {}
         self._code_cache = {}
 
     def _import_all(self, module):
-        for k,v in module.__dict__.items():
+        for k, v in module.__dict__.items():
             if not k.startswith('__'):
-                self.shell.push({k:v})
+                self.shell.push({k: v})
 
     @cell_magic
     def cython_inline(self, line, cell):
@@ -205,7 +205,7 @@ class CythonMagics(Magics):
             ...
         """
         args = magic_arguments.parse_argstring(self.cython, line)
-        code = cell if cell.endswith('\n') else cell+'\n'
+        code = cell if cell.endswith('\n') else cell + '\n'
         lib_dir = os.path.join(get_ipython_cache_dir(), 'cython')
         quiet = True
         key = code, sys.version_info, sys.executable, Cython.__version__
@@ -221,7 +221,8 @@ class CythonMagics(Magics):
         if args.name:
             module_name = py3compat.unicode_to_str(args.name)
         else:
-            module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
+            module_name = "_cython_magic_" + \
+                hashlib.md5(str(key).encode('utf-8')).hexdigest()
         module_path = os.path.join(lib_dir, module_name + self.so_ext)
 
         have_module = os.path.isfile(module_path)
@@ -238,33 +239,34 @@ class CythonMagics(Magics):
                 import numpy
                 c_include_dirs.append(numpy.get_include())
             pyx_file = os.path.join(lib_dir, module_name + '.pyx')
-            pyx_file = py3compat.cast_bytes_py2(pyx_file, encoding=sys.getfilesystemencoding())
+            pyx_file = py3compat.cast_bytes_py2(
+                pyx_file, encoding=sys.getfilesystemencoding())
             with io.open(pyx_file, 'w', encoding='utf-8') as f:
                 f.write(code)
             extension = Extension(
-                name = module_name,
-                sources = [pyx_file],
-                include_dirs = c_include_dirs,
-                library_dirs = args.library_dirs,
-                extra_compile_args = args.compile_args,
-                extra_link_args = args.link_args,
-                libraries = args.lib,
-                language = 'c++' if args.cplus else 'c',
+                name=module_name,
+                sources=[pyx_file],
+                include_dirs=c_include_dirs,
+                library_dirs=args.library_dirs,
+                extra_compile_args=args.compile_args,
+                extra_link_args=args.link_args,
+                libraries=args.lib,
+                language='c++' if args.cplus else 'c',
             )
             build_extension = self._get_build_extension()
             try:
                 opts = dict(
                     quiet=quiet,
-                    annotate = args.annotate,
-                    force = True,
-                    )
+                    annotate=args.annotate,
+                    force=True,
+                )
                 build_extension.extensions = cythonize([extension], **opts)
             except CompileError:
                 return
 
         if not have_module:
             build_extension.build_temp = os.path.dirname(pyx_file)
-            build_extension.build_lib  = lib_dir
+            build_extension.build_lib = lib_dir
             build_extension.run()
             self._code_cache[key] = module_name
 
@@ -297,7 +299,7 @@ class CythonMagics(Magics):
 
     def _clear_distutils_mkpath_cache(self):
         """clear distutils mkpath cache
-        
+
         prevents distutils from skipping re-creation of dirs that have been removed
         """
         try:
@@ -306,7 +308,7 @@ class CythonMagics(Magics):
             pass
         else:
             _path_created.clear()
-    
+
     def _get_build_extension(self):
         self._clear_distutils_mkpath_cache()
         dist = Distribution()
@@ -332,13 +334,14 @@ class CythonMagics(Magics):
         return html
 
 __doc__ = __doc__.format(
-                # rST doesn't see the -+ flag as part of an option list, so we
-                # hide it from the module-level docstring.
-                CYTHON_DOC = dedent(CythonMagics.cython.__doc__\
-                            .replace('-+, --cplus','--cplus    ')),
-                CYTHON_INLINE_DOC = dedent(CythonMagics.cython_inline.__doc__),
-                CYTHON_PYXIMPORT_DOC = dedent(CythonMagics.cython_pyximport.__doc__),
+    # rST doesn't see the -+ flag as part of an option list, so we
+    # hide it from the module-level docstring.
+    CYTHON_DOC=dedent(CythonMagics.cython.__doc__
+                      .replace('-+, --cplus', '--cplus    ')),
+    CYTHON_INLINE_DOC=dedent(CythonMagics.cython_inline.__doc__),
+    CYTHON_PYXIMPORT_DOC=dedent(CythonMagics.cython_pyximport.__doc__),
 )
+
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""

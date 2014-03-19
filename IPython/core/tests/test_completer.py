@@ -24,33 +24,35 @@ from IPython.utils.py3compat import string_types, unicode_type
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
+
+
 def test_protect_filename():
-    pairs = [ ('abc','abc'),
-              (' abc',r'\ abc'),
-              ('a bc',r'a\ bc'),
-              ('a  bc',r'a\ \ bc'),
-              ('  bc',r'\ \ bc'),
-              ]
+    pairs = [('abc', 'abc'),
+             (' abc', r'\ abc'),
+             ('a bc', r'a\ bc'),
+             ('a  bc', r'a\ \ bc'),
+             ('  bc', r'\ \ bc'),
+             ]
     # On posix, we also protect parens and other special characters
     if sys.platform != 'win32':
-        pairs.extend( [('a(bc',r'a\(bc'),
-                       ('a)bc',r'a\)bc'),
-                       ('a( )bc',r'a\(\ \)bc'),
-                       ('a[1]bc', r'a\[1\]bc'),
-                       ('a{1}bc', r'a\{1\}bc'),
-                       ('a#bc', r'a\#bc'),
-                       ('a?bc', r'a\?bc'),
-                       ('a=bc', r'a\=bc'),
-                       ('a\\bc', r'a\\bc'),
-                       ('a|bc', r'a\|bc'),
-                       ('a;bc', r'a\;bc'),
-                       ('a:bc', r'a\:bc'),
-                       ("a'bc", r"a\'bc"),
-                       ('a*bc', r'a\*bc'),
-                       ('a"bc', r'a\"bc'),
-                       ('a^bc', r'a\^bc'),
-                       ('a&bc', r'a\&bc'),
-                       ] )
+        pairs.extend([('a(bc', r'a\(bc'),
+                      ('a)bc', r'a\)bc'),
+                      ('a( )bc', r'a\(\ \)bc'),
+                      ('a[1]bc', r'a\[1\]bc'),
+                      ('a{1}bc', r'a\{1\}bc'),
+                      ('a#bc', r'a\#bc'),
+                      ('a?bc', r'a\?bc'),
+                      ('a=bc', r'a\=bc'),
+                      ('a\\bc', r'a\\bc'),
+                      ('a|bc', r'a\|bc'),
+                      ('a;bc', r'a\;bc'),
+                      ('a:bc', r'a\:bc'),
+                      ("a'bc", r"a\'bc"),
+                      ('a*bc', r'a\*bc'),
+                      ('a"bc', r'a\"bc'),
+                      ('a^bc', r'a\^bc'),
+                      ('a&bc', r'a\&bc'),
+                      ])
     # run the actual tests
     for s1, s2 in pairs:
         s1p = completer.protect_filename(s1)
@@ -60,7 +62,7 @@ def test_protect_filename():
 def check_line_split(splitter, test_specs):
     for part1, part2, split in test_specs:
         cursor_pos = len(part1)
-        line = part1+part2
+        line = part1 + part2
         out = splitter.split_line(line, cursor_pos)
         nt.assert_equal(out, split)
 
@@ -85,19 +87,21 @@ def test_line_split():
     check_line_split(sp, t)
     # Ensure splitting works OK with unicode by re-running the tests with
     # all inputs turned into unicode
-    check_line_split(sp, [ map(unicode_type, p) for p in t] )
+    check_line_split(sp, [map(unicode_type, p) for p in t])
 
 
 def test_custom_completion_error():
     """Test that errors from custom attribute completers are silenced."""
     ip = get_ipython()
-    class A(object): pass
+
+    class A(object):
+        pass
     ip.user_ns['a'] = A()
-    
+
     @complete_object.when_type(A)
     def complete_A(a, existing_completions):
         raise TypeError("this should be silenced")
-    
+
     ip.complete("a.")
 
 
@@ -117,6 +121,7 @@ def test_unicode_completions():
 
 
 class CompletionSplitterTestCase(unittest.TestCase):
+
     def setUp(self):
         self.sp = completer.CompletionSplitter()
 
@@ -161,7 +166,7 @@ def test_abspath_file_completions():
     with TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, 'foo')
         suffixes = ['1', '2']
-        names = [prefix+s for s in suffixes]
+        names = [prefix + s for s in suffixes]
         for n in names:
             open(n, 'w').close()
 
@@ -172,7 +177,7 @@ def test_abspath_file_completions():
         # Now check with a function call
         cmd = 'a = f("%s' % prefix
         c = ip.complete(prefix, cmd)[1]
-        comp = [prefix+s for s in suffixes]
+        comp = [prefix + s for s in suffixes]
         nt.assert_equal(c, comp)
 
 
@@ -184,7 +189,7 @@ def test_local_file_completions():
             os.chdir(tmpdir)
             prefix = './foo'
             suffixes = ['1', '2']
-            names = [prefix+s for s in suffixes]
+            names = [prefix + s for s in suffixes]
             for n in names:
                 open(n, 'w').close()
 
@@ -195,7 +200,7 @@ def test_local_file_completions():
             # Now check with a function call
             cmd = 'a = f("%s' % prefix
             c = ip.complete(prefix, cmd)[1]
-            comp = [prefix+s for s in suffixes]
+            comp = [prefix + s for s in suffixes]
             nt.assert_equal(c, comp)
     finally:
         # prevent failures from making chdir stick
@@ -208,12 +213,13 @@ def test_greedy_completions():
     try:
         ip.Completer.greedy = False
         ip.ex('a=list(range(5))')
-        _,c = ip.complete('.',line='a[0].')
+        _, c = ip.complete('.', line='a[0].')
         nt.assert_false('a[0].real' in c,
-                        "Shouldn't have completed on a[0]: %s"%c)
+                        "Shouldn't have completed on a[0]: %s" % c)
         ip.Completer.greedy = True
-        _,c = ip.complete('.',line='a[0].')
-        nt.assert_true('a[0].real' in c, "Should have completed on a[0]: %s"%c)
+        _, c = ip.complete('.', line='a[0].')
+        nt.assert_true(
+            'a[0].real' in c, "Should have completed on a[0]: %s" % c)
     finally:
         ip.Completer.greedy = greedy_original
 
@@ -227,17 +233,17 @@ def test_omit__names():
     cfg = Config()
     cfg.IPCompleter.omit__names = 0
     c.update_config(cfg)
-    s,matches = c.complete('ip.')
+    s, matches = c.complete('ip.')
     nt.assert_in('ip.__str__', matches)
     nt.assert_in('ip._hidden_attr', matches)
     cfg.IPCompleter.omit__names = 1
     c.update_config(cfg)
-    s,matches = c.complete('ip.')
+    s, matches = c.complete('ip.')
     nt.assert_not_in('ip.__str__', matches)
     nt.assert_in('ip._hidden_attr', matches)
     cfg.IPCompleter.omit__names = 2
     c.update_config(cfg)
-    s,matches = c.complete('ip.')
+    s, matches = c.complete('ip.')
     nt.assert_not_in('ip.__str__', matches)
     nt.assert_not_in('ip._hidden_attr', matches)
     del ip._hidden_attr
@@ -294,7 +300,7 @@ def test_func_kw_completions():
     nt.assert_in('b=', matches)
     s, matches = c.complete(None, 'myfunc(a="escaped\\")string",b')
     nt.assert_in('b=', matches)
-    #builtin function
+    # builtin function
     s, matches = c.complete(None, 'min(k, k')
     nt.assert_in('key=', matches)
 
@@ -306,14 +312,15 @@ def test_default_arguments_from_docstring():
     kwd = c._default_arguments_from_docstring(
         'min(iterable[, key=func]) -> value')
     nt.assert_equal(kwd, ['key'])
-    #with cython type etc
+    # with cython type etc
     kwd = c._default_arguments_from_docstring(
         'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
     nt.assert_equal(kwd, ['ncall', 'resume', 'nsplit'])
-    #white spaces
+    # white spaces
     kwd = c._default_arguments_from_docstring(
         '\n Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
     nt.assert_equal(kwd, ['ncall', 'resume', 'nsplit'])
+
 
 def test_line_magics():
     ip = get_ipython()
@@ -330,7 +337,7 @@ def test_cell_magics():
     @register_cell_magic
     def _foo_cellm(line, cell):
         pass
-    
+
     ip = get_ipython()
     c = ip.Completer
 
@@ -346,7 +353,7 @@ def test_line_cell_magics():
     @register_line_cell_magic
     def _bar_cellm(line, cell):
         pass
-    
+
     ip = get_ipython()
     c = ip.Completer
 
@@ -378,17 +385,14 @@ def test_magic_completion_order():
     text, matches = c.complete('mat')
     nt.assert_equal(matches, ["%matplotlib"])
 
-
     ip.run_cell("matplotlib = 1")  # introduce name into namespace
 
     # After the import, there should be two options, ordered like this:
     text, matches = c.complete('mat')
     nt.assert_equal(matches, ["matplotlib", "%matplotlib"])
 
-
     ip.run_cell("timeit = 1")  # define a user variable called 'timeit'
 
     # Order of user variable and line and cell magics with same name:
     text, matches = c.complete('timeit')
-    nt.assert_equal(matches, ["timeit", "%timeit","%%timeit"])
-
+    nt.assert_equal(matches, ["timeit", "%timeit", "%%timeit"])

@@ -31,6 +31,7 @@ from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path
 
+
 def sort_key(item):
     """Case-insensitive sorting."""
     return item['name'].lower()
@@ -39,19 +40,20 @@ def sort_key(item):
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class FileNotebookManager(NotebookManager):
-    
+
     save_script = Bool(False, config=True,
-        help="""Automatically create a Python script when saving the notebook.
+                       help="""Automatically create a Python script when saving the notebook.
         
         For easier use of import, %run and %load across notebooks, a
         <notebook-name>.py script will be created next to any
         <notebook-name>.ipynb on each save.  This can also be set with the
         short `--script` flag.
         """
-    )
+                       )
     notebook_dir = Unicode(getcwd(), config=True)
-    
+
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
         if not os.path.isabs(new):
@@ -62,14 +64,15 @@ class FileNotebookManager(NotebookManager):
             raise TraitError("notebook dir %r is not a directory" % new)
 
     checkpoint_dir = Unicode(config=True,
-        help="""The location in which to keep notebook checkpoints
+                             help="""The location in which to keep notebook checkpoints
         
         By default, it is notebook-dir/.ipynb_checkpoints
         """
-    )
+                             )
+
     def _checkpoint_dir_default(self):
         return os.path.join(self.notebook_dir, '.ipynb_checkpoints')
-    
+
     def _checkpoint_dir_changed(self, name, old, new):
         """do a bit of validation of the checkpoint dir"""
         if not os.path.isabs(new):
@@ -91,20 +94,20 @@ class FileNotebookManager(NotebookManager):
         path = path.strip('/')
         if not os.path.isdir(self._get_os_path(path=path)):
             raise web.HTTPError(404, 'Directory not found: ' + path)
-        names = glob.glob(self._get_os_path('*'+self.filename_ext, path))
+        names = glob.glob(self._get_os_path('*' + self.filename_ext, path))
         names = [os.path.basename(name)
                  for name in names]
         return names
 
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
-        
+
         Parameters
         ----------
         path : string
             The path to check. This is an API path (`/` separated,
             relative to base notebook-dir).
-        
+
         Returns
         -------
         exists : bool
@@ -116,18 +119,18 @@ class FileNotebookManager(NotebookManager):
 
     def is_hidden(self, path):
         """Does the API style path correspond to a hidden directory or file?
-        
+
         Parameters
         ----------
         path : string
             The path to check. This is an API path (`/` separated,
             relative to base notebook-dir).
-        
+
         Returns
         -------
         exists : bool
             Whether the path is hidden.
-        
+
         """
         path = path.strip('/')
         os_path = self._get_os_path(path=path)
@@ -211,7 +214,7 @@ class FileNotebookManager(NotebookManager):
         last_modified = tz.utcfromtimestamp(info.st_mtime)
         created = tz.utcfromtimestamp(info.st_ctime)
         # Create the notebook model.
-        model ={}
+        model = {}
         model['name'] = name
         model['path'] = path
         model['last_modified'] = last_modified
@@ -222,13 +225,13 @@ class FileNotebookManager(NotebookManager):
     def list_notebooks(self, path):
         """Returns a list of dictionaries that are the standard model
         for all notebooks in the relative 'path'.
-        
+
         Parameters
         ----------
         path : str
             the URL path that describes the relative path for the
             listed notebooks
-        
+
         Returns
         -------
         notebooks : list of dicts
@@ -237,13 +240,13 @@ class FileNotebookManager(NotebookManager):
         path = path.strip('/')
         notebook_names = self.get_notebook_names(path)
         notebooks = [self.get_notebook(name, path, content=False)
-                        for name in notebook_names if self.should_list(name)]
+                     for name in notebook_names if self.should_list(name)]
         notebooks = sorted(notebooks, key=sort_key)
         return notebooks
 
     def get_notebook(self, name, path='', content=True):
         """ Takes a path and name for a notebook and returns its model
-        
+
         Parameters
         ----------
         name : str
@@ -251,7 +254,7 @@ class FileNotebookManager(NotebookManager):
         path : str
             the URL path that describes the relative path for
             the notebook
-            
+
         Returns
         -------
         model : dict
@@ -266,7 +269,7 @@ class FileNotebookManager(NotebookManager):
         last_modified = tz.utcfromtimestamp(info.st_mtime)
         created = tz.utcfromtimestamp(info.st_ctime)
         # Create the notebook model.
-        model ={}
+        model = {}
         model['name'] = name
         model['path'] = path
         model['last_modified'] = last_modified
@@ -277,7 +280,8 @@ class FileNotebookManager(NotebookManager):
                 try:
                     nb = current.read(f, u'json')
                 except Exception as e:
-                    raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
+                    raise web.HTTPError(
+                        400, u"Unreadable Notebook: %s %s" % (os_path, e))
             self.mark_trusted_cells(nb, name, path)
             model['content'] = nb
         return model
@@ -302,9 +306,9 @@ class FileNotebookManager(NotebookManager):
         # Save the notebook file
         os_path = self._get_os_path(new_name, new_path)
         nb = current.to_notebook_json(model['content'])
-        
+
         self.check_and_sign(nb, new_name, new_path)
-        
+
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
         try:
@@ -312,7 +316,8 @@ class FileNotebookManager(NotebookManager):
             with io.open(os_path, 'w', encoding='utf-8') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
-            raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
+            raise web.HTTPError(
+                400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
 
         # Save .py script as well
         if self.save_script:
@@ -322,7 +327,8 @@ class FileNotebookManager(NotebookManager):
                 with io.open(py_path, 'w', encoding='utf-8') as f:
                     current.write(nb, f, u'py')
             except Exception as e:
-                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s %s' % (py_path, e))
+                raise web.HTTPError(
+                    400, u'Unexpected error while saving notebook as script: %s %s' % (py_path, e))
 
         model = self.get_notebook(new_name, new_path, content=False)
         return model
@@ -343,7 +349,7 @@ class FileNotebookManager(NotebookManager):
         os_path = self._get_os_path(name, path)
         if not os.path.isfile(os_path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % os_path)
-        
+
         # clear checkpoints
         for checkpoint in self.list_checkpoints(name, path):
             checkpoint_id = checkpoint['id']
@@ -351,7 +357,7 @@ class FileNotebookManager(NotebookManager):
             if os.path.isfile(cp_path):
                 self.log.debug("Unlinking checkpoint %s", cp_path)
                 os.unlink(cp_path)
-        
+
         self.log.debug("Unlinking notebook %s", os_path)
         os.unlink(os_path)
 
@@ -361,41 +367,47 @@ class FileNotebookManager(NotebookManager):
         new_path = new_path.strip('/')
         if new_name == old_name and new_path == old_path:
             return
-        
+
         new_os_path = self._get_os_path(new_name, new_path)
         old_os_path = self._get_os_path(old_name, old_path)
 
         # Should we proceed with the move?
         if os.path.isfile(new_os_path):
-            raise web.HTTPError(409, u'Notebook with name already exists: %s' % new_os_path)
+            raise web.HTTPError(
+                409, u'Notebook with name already exists: %s' % new_os_path)
         if self.save_script:
             old_py_path = os.path.splitext(old_os_path)[0] + '.py'
             new_py_path = os.path.splitext(new_os_path)[0] + '.py'
             if os.path.isfile(new_py_path):
-                raise web.HTTPError(409, u'Python script with name already exists: %s' % new_py_path)
+                raise web.HTTPError(
+                    409, u'Python script with name already exists: %s' % new_py_path)
 
         # Move the notebook file
         try:
             os.rename(old_os_path, new_os_path)
         except Exception as e:
-            raise web.HTTPError(500, u'Unknown error renaming notebook: %s %s' % (old_os_path, e))
+            raise web.HTTPError(
+                500, u'Unknown error renaming notebook: %s %s' % (old_os_path, e))
 
         # Move the checkpoints
         old_checkpoints = self.list_checkpoints(old_name, old_path)
         for cp in old_checkpoints:
             checkpoint_id = cp['id']
-            old_cp_path = self.get_checkpoint_path(checkpoint_id, old_name, old_path)
-            new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, new_path)
+            old_cp_path = self.get_checkpoint_path(
+                checkpoint_id, old_name, old_path)
+            new_cp_path = self.get_checkpoint_path(
+                checkpoint_id, new_name, new_path)
             if os.path.isfile(old_cp_path):
-                self.log.debug("Renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
+                self.log.debug(
+                    "Renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
                 os.rename(old_cp_path, new_cp_path)
 
         # Move the .py script
         if self.save_script:
             os.rename(old_py_path, new_py_path)
-  
+
     # Checkpoint-related utilities
-    
+
     def get_checkpoint_path(self, checkpoint_id, name, path=''):
         """find the path to a checkpoint"""
         path = path.strip('/')
@@ -415,13 +427,13 @@ class FileNotebookManager(NotebookManager):
         stats = os.stat(cp_path)
         last_modified = tz.utcfromtimestamp(stats.st_mtime)
         info = dict(
-            id = checkpoint_id,
-            last_modified = last_modified,
+            id=checkpoint_id,
+            last_modified=last_modified,
         )
         return info
-        
+
     # public checkpoint API
-    
+
     def create_checkpoint(self, name, path=''):
         """Create a checkpoint from the current state of a notebook"""
         path = path.strip('/')
@@ -433,13 +445,13 @@ class FileNotebookManager(NotebookManager):
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
         shutil.copy2(nb_path, cp_path)
-        
+
         # return the checkpoint info
         return self.get_checkpoint_model(checkpoint_id, name, path)
-    
+
     def list_checkpoints(self, name, path=''):
         """list the checkpoints for a given notebook
-        
+
         This notebook manager currently only supports one checkpoint per notebook.
         """
         path = path.strip('/')
@@ -449,35 +461,38 @@ class FileNotebookManager(NotebookManager):
             return []
         else:
             return [self.get_checkpoint_model(checkpoint_id, name, path)]
-        
-    
+
     def restore_checkpoint(self, checkpoint_id, name, path=''):
         """restore a notebook to a checkpointed state"""
         path = path.strip('/')
-        self.log.info("restoring Notebook %s from checkpoint %s", name, checkpoint_id)
+        self.log.info(
+            "restoring Notebook %s from checkpoint %s", name, checkpoint_id)
         nb_path = self._get_os_path(name, path)
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         if not os.path.isfile(cp_path):
             self.log.debug("checkpoint file does not exist: %s", cp_path)
             raise web.HTTPError(404,
-                u'Notebook checkpoint does not exist: %s-%s' % (name, checkpoint_id)
-            )
-        # ensure notebook is readable (never restore from an unreadable notebook)
+                                u'Notebook checkpoint does not exist: %s-%s' % (
+                                    name, checkpoint_id)
+                                )
+        # ensure notebook is readable (never restore from an unreadable
+        # notebook)
         with io.open(cp_path, 'r', encoding='utf-8') as f:
             current.read(f, u'json')
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
-    
+
     def delete_checkpoint(self, checkpoint_id, name, path=''):
         """delete a notebook's checkpoint"""
         path = path.strip('/')
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         if not os.path.isfile(cp_path):
             raise web.HTTPError(404,
-                u'Notebook checkpoint does not exist: %s%s-%s' % (path, name, checkpoint_id)
-            )
+                                u'Notebook checkpoint does not exist: %s%s-%s' % (
+                                    path, name, checkpoint_id)
+                                )
         self.log.debug("unlinking %s", cp_path)
         os.unlink(cp_path)
-    
+
     def info_string(self):
         return "Serving notebooks from local directory: %s" % self.notebook_dir

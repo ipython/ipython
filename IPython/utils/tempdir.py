@@ -17,6 +17,7 @@ except ImportError:
     from tempfile import mkdtemp, template
 
     class TemporaryDirectory(object):
+
         """Create and return a temporary directory.  This has the same
         behavior as mkdtemp but can be used as a context manager.  For
         example:
@@ -59,7 +60,6 @@ except ImportError:
         def __del__(self):
             # Issue a ResourceWarning if implicit cleanup needed
             self.cleanup(_warn=True)
-
 
         # XXX (ncoghlan): The following code attempts to make
         # this class tolerant of the module nulling out process
@@ -126,6 +126,7 @@ class NamedFileInTemporaryDirectory(object):
 
 
 class TemporaryWorkingDirectory(TemporaryDirectory):
+
     """
     Creates a temporary directory and sets the cwd to that directory.
     Automatically reverts to previous cwd upon cleanup.
@@ -134,6 +135,7 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
         with TemporaryWorkingDirectory() as tmpdir:
             ...
     """
+
     def __enter__(self):
         self.old_wd = _os.getcwd()
         _os.chdir(self.name)
@@ -142,4 +144,3 @@ class TemporaryWorkingDirectory(TemporaryDirectory):
     def __exit__(self, exc, value, tb):
         _os.chdir(self.old_wd)
         return super(TemporaryWorkingDirectory, self).__exit__(exc, value, tb)
-

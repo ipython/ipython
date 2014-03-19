@@ -35,8 +35,8 @@ if __name__ == '__main__':
     if not '_refbug_cache' in ip.user_ns:
         ip.user_ns['_refbug_cache'] = []
 
-
     aglobal = 'Hello'
+
     def f():
         return aglobal
 
@@ -45,4 +45,4 @@ if __name__ == '__main__':
 
     def call_f():
         for func in cache:
-            print('lowercased:',func().lower())
+            print('lowercased:', func().lower())

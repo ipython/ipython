@@ -24,7 +24,9 @@ from datetime import tzinfo, timedelta, datetime
 # constant for zero offset
 ZERO = timedelta(0)
 
+
 class tzUTC(tzinfo):
+
     """tzinfo object for UTC (zero offset)"""
 
     def utcoffset(self, d):
@@ -34,6 +36,7 @@ class tzUTC(tzinfo):
         return ZERO
 
 UTC = tzUTC()
+
 
 def utc_aware(unaware):
     """decorator for adding UTC tzinfo to datetime's utcfoo methods"""

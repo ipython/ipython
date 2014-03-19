@@ -49,6 +49,7 @@ def test_latex_to_png_dvipng_runs():
         with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
             yield (latextools.latex_to_png_dvipng, s, wrap)
 
+
 @skipif_not_matplotlib
 def test_latex_to_png_mpl_runs():
     """
@@ -64,10 +65,11 @@ def test_latex_to_png_mpl_runs():
         with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
             yield (latextools.latex_to_png_mpl, s, wrap)
 
+
 @skipif_not_matplotlib
 def test_latex_to_html():
     img = latextools.latex_to_html("$x^2$")
-    nt.assert_in("data:image/png;base64,iVBOR", img) 
+    nt.assert_in("data:image/png;base64,iVBOR", img)
 
 
 def test_genelatex_no_wrap():

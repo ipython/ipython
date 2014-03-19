@@ -35,41 +35,43 @@ from .exporter import Exporter
 # Globals and constants
 #-----------------------------------------------------------------------------
 
-#Jinja2 extensions to load.
+# Jinja2 extensions to load.
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 
 default_filters = {
-        'indent': text.indent,
-        'markdown2html': filters.markdown2html,
-        'ansi2html': filters.ansi2html,
-        'filter_data_type': filters.DataTypeFilter,
-        'get_lines': filters.get_lines,
-        'highlight2html': filters.Highlight2HTML,
-        'highlight2latex': filters.Highlight2Latex,
-        'ipython2python': filters.ipython2python,
-        'posix_path': filters.posix_path,
-        'markdown2latex': filters.markdown2latex,
-        'markdown2rst': filters.markdown2rst,
-        'comment_lines': filters.comment_lines,
-        'strip_ansi': filters.strip_ansi,
-        'strip_dollars': filters.strip_dollars,
-        'strip_files_prefix': filters.strip_files_prefix,
-        'html2text' : filters.html2text,
-        'add_anchor': filters.add_anchor,
-        'ansi2latex': filters.ansi2latex,
-        'wrap_text': filters.wrap_text,
-        'escape_latex': filters.escape_latex,
-        'citation2latex': filters.citation2latex,
-        'path2url': filters.path2url,
-        'add_prompts': filters.add_prompts,
-        'ascii_only': filters.ascii_only,
+    'indent': text.indent,
+    'markdown2html': filters.markdown2html,
+    'ansi2html': filters.ansi2html,
+    'filter_data_type': filters.DataTypeFilter,
+    'get_lines': filters.get_lines,
+    'highlight2html': filters.Highlight2HTML,
+    'highlight2latex': filters.Highlight2Latex,
+    'ipython2python': filters.ipython2python,
+    'posix_path': filters.posix_path,
+    'markdown2latex': filters.markdown2latex,
+    'markdown2rst': filters.markdown2rst,
+    'comment_lines': filters.comment_lines,
+    'strip_ansi': filters.strip_ansi,
+    'strip_dollars': filters.strip_dollars,
+    'strip_files_prefix': filters.strip_files_prefix,
+    'html2text': filters.html2text,
+    'add_anchor': filters.add_anchor,
+    'ansi2latex': filters.ansi2latex,
+    'wrap_text': filters.wrap_text,
+    'escape_latex': filters.escape_latex,
+    'citation2latex': filters.citation2latex,
+    'path2url': filters.path2url,
+    'add_prompts': filters.add_prompts,
+    'ascii_only': filters.ascii_only,
 }
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
+
 class TemplateExporter(Exporter):
+
     """
     Exports notebooks into other file formats.  Uses Jinja 2 templating engine
     to output new formats.  Inherit from this class if you are creating a new
@@ -80,14 +82,15 @@ class TemplateExporter(Exporter):
 
     {filters}
     """
-    
-    # finish the docstring
-    __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
 
+    # finish the docstring
+    __doc__ = __doc__.format(
+        filters='- ' + '\n    - '.join(default_filters.keys()))
 
     template_file = Unicode(u'default',
-            config=True,
-            help="Name of the template file to use")
+                            config=True,
+                            help="Name of the template file to use")
+
     def _template_file_changed(self, name, old, new):
         if new == 'default':
             self.template_file = self.default_template
@@ -95,49 +98,50 @@ class TemplateExporter(Exporter):
             self.template_file = new
         self.template = None
         self._load_template()
-    
+
     default_template = Unicode(u'')
     template = Any()
     environment = Any()
 
     template_path = List(['.'], config=True)
+
     def _template_path_changed(self, name, old, new):
         self._load_template()
 
     default_template_path = Unicode(
-        os.path.join("..", "templates"), 
+        os.path.join("..", "templates"),
         help="Path where the template files are located.")
 
     template_skeleton_path = Unicode(
-        os.path.join("..", "templates", "skeleton"), 
-        help="Path where the template skeleton files are located.") 
+        os.path.join("..", "templates", "skeleton"),
+        help="Path where the template skeleton files are located.")
 
-    #Jinja block definitions
+    # Jinja block definitions
     jinja_comment_block_start = Unicode("", config=True)
     jinja_comment_block_end = Unicode("", config=True)
     jinja_variable_block_start = Unicode("", config=True)
     jinja_variable_block_end = Unicode("", config=True)
     jinja_logic_block_start = Unicode("", config=True)
     jinja_logic_block_end = Unicode("", config=True)
-    
-    #Extension that the template files use.    
+
+    # Extension that the template files use.
     template_extension = Unicode(".tpl", config=True)
 
     filters = Dict(config=True,
-        help="""Dictionary of filters, by name and namespace, to add to the Jinja
+                   help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
 
     raw_mimetypes = List(config=True,
-        help="""formats of raw cells to be included in this Exporter's output."""
-    )
+                         help="""formats of raw cells to be included in this Exporter's output."""
+                         )
+
     def _raw_mimetypes_default(self):
         return [self.output_mimetype, '']
-
 
     def __init__(self, config=None, extra_loaders=None, **kw):
         """
         Public constructor
-    
+
         Parameters
         ----------
         config : config
@@ -150,22 +154,21 @@ class TemplateExporter(Exporter):
         """
         super(TemplateExporter, self).__init__(config=config, **kw)
 
-        #Init
+        # Init
         self._init_template()
         self._init_environment(extra_loaders=extra_loaders)
         self._init_filters()
 
-
     def _load_template(self):
         """Load the Jinja template object from the template file
-        
+
         This is a no-op if the template attribute is already defined,
         or the Jinja environment is not setup yet.
-        
+
         This is triggered by various trait changes that would change the template.
         """
         from jinja2 import TemplateNotFound
-        
+
         if self.template is not None:
             return
         # called too early, do nothing
@@ -173,7 +176,7 @@ class TemplateExporter(Exporter):
             return
         # Try different template names during conversion.  First try to load the
         # template by name with extension added, then try loading the template
-        # as if the name is explicitly specified, then try the name as a 
+        # as if the name is explicitly specified, then try the name as a
         # 'flavor', and lastly just try to load the template by module name.
         try_names = []
         if self.template_file:
@@ -188,7 +191,8 @@ class TemplateExporter(Exporter):
             except (TemplateNotFound, IOError):
                 pass
             except Exception as e:
-                self.log.warn("Unexpected exception loading template: %s", try_name, exc_info=True)
+                self.log.warn(
+                    "Unexpected exception loading template: %s", try_name, exc_info=True)
             else:
                 self.log.info("Loaded template %s", try_name)
                 break
@@ -197,7 +201,7 @@ class TemplateExporter(Exporter):
     def from_notebook_node(self, nb, resources=None, **kw):
         """
         Convert a notebook from a notebook node instance.
-    
+
         Parameters
         ----------
         nb : :class:`~{nbformat_mod}.nbbase.NotebookNode`
@@ -206,7 +210,8 @@ class TemplateExporter(Exporter):
           Additional resources that can be accessed read/write by
           preprocessors and filters.
         """
-        nb_copy, resources = super(TemplateExporter, self).from_notebook_node(nb, resources, **kw)
+        nb_copy, resources = super(
+            TemplateExporter, self).from_notebook_node(nb, resources, **kw)
         resources.setdefault('raw_mimetypes', self.raw_mimetypes)
 
         self._load_template()
@@ -214,16 +219,16 @@ class TemplateExporter(Exporter):
         if self.template is not None:
             output = self.template.render(nb=nb_copy, resources=resources)
         else:
-            raise IOError('template file "%s" could not be found' % self.template_file)
+            raise IOError('template file "%s" could not be found' %
+                          self.template_file)
         return output, resources
-
 
     def register_filter(self, name, jinja_filter):
         """
         Register a filter.
         A filter is a function that accepts and acts on one string.  
         The filters are accesible within the Jinja templating engine.
-    
+
         Parameters
         ----------
         name : str
@@ -235,42 +240,41 @@ class TemplateExporter(Exporter):
         isclass = isinstance(jinja_filter, type)
         constructed = not isclass
 
-        #Handle filter's registration based on it's type
+        # Handle filter's registration based on it's type
         if constructed and isinstance(jinja_filter, py3compat.string_types):
-            #filter is a string, import the namespace and recursively call
-            #this register_filter method
+            # filter is a string, import the namespace and recursively call
+            # this register_filter method
             filter_cls = import_item(jinja_filter)
             return self.register_filter(name, filter_cls)
-        
+
         if constructed and hasattr(jinja_filter, '__call__'):
-            #filter is a function, no need to construct it.
+            # filter is a function, no need to construct it.
             self.environment.filters[name] = jinja_filter
             return jinja_filter
 
         elif isclass and isinstance(jinja_filter, MetaHasTraits):
-            #filter is configurable.  Make sure to pass in new default for 
-            #the enabled flag if one was specified.
+            # filter is configurable.  Make sure to pass in new default for
+            # the enabled flag if one was specified.
             filter_instance = jinja_filter(parent=self)
-            self.register_filter(name, filter_instance )
+            self.register_filter(name, filter_instance)
 
         elif isclass:
-            #filter is not configurable, construct it
+            # filter is not configurable, construct it
             filter_instance = jinja_filter()
             self.register_filter(name, filter_instance)
 
         else:
-            #filter is an instance of something without a __call__ 
-            #attribute.  
+            # filter is an instance of something without a __call__
+            # attribute.
             raise TypeError('filter')
 
-        
     def _init_template(self):
         """
         Make sure a template name is specified.  If one isn't specified, try to
         build one from the information we know.
         """
-        self._template_file_changed('template_file', self.template_file, self.template_file)
-        
+        self._template_file_changed(
+            'template_file', self.template_file, self.template_file)
 
     def _init_environment(self, extra_loaders=None):
         """
@@ -288,11 +292,11 @@ class TemplateExporter(Exporter):
         loaders.append(FileSystemLoader(paths))
 
         self.environment = Environment(
-            loader= ChoiceLoader(loaders),
+            loader=ChoiceLoader(loaders),
             extensions=JINJA_EXTENSIONS
-            )
-        
-        #Set special Jinja2 syntax that will not conflict with latex.
+        )
+
+        # Set special Jinja2 syntax that will not conflict with latex.
         if self.jinja_logic_block_start:
             self.environment.block_start_string = self.jinja_logic_block_start
         if self.jinja_logic_block_end:
@@ -306,17 +310,16 @@ class TemplateExporter(Exporter):
         if self.jinja_comment_block_end:
             self.environment.comment_end_string = self.jinja_comment_block_end
 
-    
     def _init_filters(self):
         """
         Register all of the filters required for the exporter.
         """
-        
-        #Add default filters to the Jinja2 environment
+
+        # Add default filters to the Jinja2 environment
         for key, value in default_filters.items():
             self.register_filter(key, value)
 
-        #Load user filters.  Overwrite existing filters if need be.
+        # Load user filters.  Overwrite existing filters if need be.
         if self.filters:
             for key, user_filter in self.filters.items():
                 self.register_filter(key, user_filter)

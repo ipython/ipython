@@ -28,7 +28,7 @@ try:
     _suffixes = all_suffixes()
 except ImportError:
     from imp import get_suffixes
-    _suffixes = [ s[0] for s in get_suffixes() ]
+    _suffixes = [s[0] for s in get_suffixes()]
 
 # Third-party imports
 from time import time
@@ -67,6 +67,7 @@ magic_run_re = re.compile(r'.*(\.ipy|\.ipynb|\.py[w]?)$')
 # Local utilities
 #-----------------------------------------------------------------------------
 
+
 def module_list(path):
     """
     Return the list containing the names of the modules available in the given
@@ -85,10 +86,10 @@ def module_list(path):
         # recurse more than one level into subdirectories.
         files = []
         for root, dirs, nondirs in os.walk(path):
-            subdir = root[len(path)+1:]
+            subdir = root[len(path) + 1:]
             if subdir:
                 files.extend(pjoin(subdir, f) for f in nondirs)
-                dirs[:] = [] # Do not recurse into additional subdirectories.
+                dirs[:] = []  # Do not recurse into additional subdirectories.
             else:
                 files.extend(nondirs)
 
@@ -128,7 +129,7 @@ def get_root_modules():
                 modules.remove('__init__')
             except ValueError:
                 pass
-            if path not in ('', '.'): # cwd modules should not be cached
+            if path not in ('', '.'):  # cwd modules should not be cached
                 rootmodules_cache[path] = modules
             if time() - start_time > TIMEOUT_STORAGE and not store:
                 store = True
@@ -166,8 +167,8 @@ def try_import(mod, only_modules=False):
 
     completions = []
     if (not hasattr(m, '__file__')) or (not only_modules) or m_is_init:
-        completions.extend( [attr for attr in dir(m) if
-                             is_importable(m, attr, only_modules)])
+        completions.extend([attr for attr in dir(m) if
+                            is_importable(m, attr, only_modules)])
 
     completions.extend(getattr(m, '__all__', []))
     if m_is_init:
@@ -203,7 +204,8 @@ def quick_completer(cmd, completions):
     def do_complete(self, event):
         return completions
 
-    get_ipython().set_hook('complete_command',do_complete, str_key = cmd)
+    get_ipython().set_hook('complete_command', do_complete, str_key=cmd)
+
 
 def module_completion(line):
     """
@@ -222,7 +224,7 @@ def module_completion(line):
         return ['import ']
 
     # 'from xy<tab>' or 'import xy<tab>'
-    if nwords < 3 and (words[0] in ['import','from']) :
+    if nwords < 3 and (words[0] in ['import', 'from']):
         if nwords == 1:
             return get_root_modules()
         mod = words[1].split('.')
@@ -242,7 +244,8 @@ def module_completion(line):
 # These all have the func(self, event) signature to be used as custom
 # completers
 
-def module_completer(self,event):
+
+def module_completer(self, event):
     """Give completions after user has typed 'import ...' or 'from ...'"""
 
     # This works in all versions of python.  While 2.5 has
@@ -256,6 +259,7 @@ def module_completer(self,event):
 # FIXME: there's a lot of logic common to the run, cd and builtin file
 # completers, that is currently reimplemented in each.
 
+
 def magic_run_completer(self, event):
     """Complete files that end in .py or .ipy or .ipynb for the %run command.
     """
@@ -266,9 +270,9 @@ def magic_run_completer(self, event):
     else:
         relpath = ''
 
-    #print("\nev=", event)  # dbg
-    #print("rp=", relpath)  # dbg
-    #print('comps=', comps)  # dbg
+    # print("\nev=", event)  # dbg
+    # print("rp=", relpath)  # dbg
+    # print('comps=', comps)  # dbg
 
     lglob = glob.glob
     isdir = os.path.isdir
@@ -279,17 +283,18 @@ def magic_run_completer(self, event):
     # be arguments to the input script.
 
     if any(magic_run_re.match(c) for c in comps):
-        matches =  [f.replace('\\','/') + ('/' if isdir(f) else '')
-                            for f in lglob(relpath+'*')]
+        matches = [f.replace('\\', '/') + ('/' if isdir(f) else '')
+                   for f in lglob(relpath + '*')]
     else:
-        dirs = [f.replace('\\','/') + "/" for f in lglob(relpath+'*') if isdir(f)]
-        pys =  [f.replace('\\','/')
-                for f in lglob(relpath+'*.py') + lglob(relpath+'*.ipy') +
-                lglob(relpath+'*.ipynb') + lglob(relpath + '*.pyw')]
+        dirs = [
+            f.replace('\\', '/') + "/" for f in lglob(relpath + '*') if isdir(f)]
+        pys = [f.replace('\\', '/')
+               for f in lglob(relpath + '*.py') + lglob(relpath + '*.ipy') +
+               lglob(relpath + '*.ipynb') + lglob(relpath + '*.pyw')]
 
         matches = dirs + pys
 
-    #print('run comp:', dirs+pys) # dbg
+    # print('run comp:', dirs+pys) # dbg
     return [compress_user(p, tilde_expand, tilde_val) for p in matches]
 
 
@@ -298,7 +303,7 @@ def cd_completer(self, event):
     ip = get_ipython()
     relpath = event.symbol
 
-    #print(event) # dbg
+    # print(event) # dbg
     if event.line.endswith('-b') or ' -b ' in event.line:
         # return only bookmark completions
         bkms = self.db.get('bookmarks', None)
@@ -310,8 +315,8 @@ def cd_completer(self, event):
     if event.symbol == '-':
         width_dh = str(len(str(len(ip.user_ns['_dh']) + 1)))
         # jump in directory history by number
-        fmt = '-%0' + width_dh +'d [%s]'
-        ents = [ fmt % (i,s) for i,s in enumerate(ip.user_ns['_dh'])]
+        fmt = '-%0' + width_dh + 'd [%s]'
+        ents = [fmt % (i, s) for i, s in enumerate(ip.user_ns['_dh'])]
         if len(ents) > 1:
             return ents
         return []
@@ -321,10 +326,10 @@ def cd_completer(self, event):
 
     # Expand ~ in path and normalize directory separators.
     relpath, tilde_expand, tilde_val = expand_user(relpath)
-    relpath = relpath.replace('\\','/')
+    relpath = relpath.replace('\\', '/')
 
     found = []
-    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
+    for d in [f.replace('\\', '/') + '/' for f in glob.glob(relpath + '*')
               if os.path.isdir(f)]:
         if ' ' in d:
             # we don't want to deal with any of that, complex code
@@ -338,7 +343,7 @@ def cd_completer(self, event):
             return [compress_user(relpath, tilde_expand, tilde_val)]
 
         # if no completions so far, try bookmarks
-        bks = self.db.get('bookmarks',{})
+        bks = self.db.get('bookmarks', {})
         bkmatches = [s for s in bks if s.startswith(event.symbol)]
         if bkmatches:
             return bkmatches
@@ -346,6 +351,7 @@ def cd_completer(self, event):
         raise TryNext
 
     return [compress_user(p, tilde_expand, tilde_val) for p in found]
+
 
 def reset_completer(self, event):
     "A completer for %reset magic"

@@ -21,9 +21,11 @@ from .html import HTMLExporter
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class SlidesExporter(HTMLExporter):
+
     """Exports HTML slides with reveal.js"""
-    
+
     def _file_extension_default(self):
         return 'slides.html'
 
@@ -37,7 +39,7 @@ class SlidesExporter(HTMLExporter):
         c = Config({
             'RevealHelpPreprocessor': {
                 'enabled': True,
-                },
-            })
-        c.merge(super(SlidesExporter,self).default_config)
+            },
+        })
+        c.merge(super(SlidesExporter, self).default_config)
         return c

@@ -34,6 +34,7 @@ TMP_TEST_DIR = tempfile.mkdtemp()
 
 old_syspath = sys.path
 
+
 def make_empty_file(fname):
     f = open(fname, 'w')
     f.close()
@@ -53,6 +54,7 @@ def setup():
     make_empty_file(join(TMP_TEST_DIR, "packpyc.pyc"))
     sys.path = [TMP_TEST_DIR]
 
+
 def teardown():
     """Teardown testenvironment for the module:
 
@@ -71,15 +73,18 @@ def test_get_init_1():
     with make_tempfile(join(TMP_TEST_DIR, "__init__.py")):
         assert mp.get_init(TMP_TEST_DIR)
 
+
 def test_get_init_2():
     """See if get_init can find __init__.pyw in this testdir"""
     with make_tempfile(join(TMP_TEST_DIR, "__init__.pyw")):
         assert mp.get_init(TMP_TEST_DIR)
 
+
 def test_get_init_3():
     """get_init can't find __init__.pyc in this testdir"""
     with make_tempfile(join(TMP_TEST_DIR, "__init__.pyc")):
         assert mp.get_init(TMP_TEST_DIR) is None
+
 
 def test_get_init_4():
     """get_init can't find __init__ in empty testdir"""
@@ -90,36 +95,45 @@ def test_find_mod_1():
     modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
     assert mp.find_mod("xmod") == modpath
 
+
 def test_find_mod_2():
     modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
     assert mp.find_mod("xmod") == modpath
+
 
 def test_find_mod_3():
     modpath = join(TMP_TEST_DIR, "xmod", "sub.py")
     assert mp.find_mod("xmod.sub") == modpath
 
+
 def test_find_mod_4():
     modpath = join(TMP_TEST_DIR, "pack.py")
     assert mp.find_mod("pack") == modpath
 
+
 def test_find_mod_5():
     assert mp.find_mod("packpyc") is None
+
 
 def test_find_module_1():
     modpath = join(TMP_TEST_DIR, "xmod")
     assert mp.find_module("xmod") == modpath
 
+
 def test_find_module_2():
     """Testing sys.path that is empty"""
     assert mp.find_module("xmod", []) is None
+
 
 def test_find_module_3():
     """Testing sys.path that is empty"""
     assert mp.find_module(None, None) is None
 
+
 def test_find_module_4():
     """Testing sys.path that is empty"""
     assert mp.find_module(None) is None
+
 
 def test_find_module_5():
     assert mp.find_module("xmod.nopack") is None

@@ -16,7 +16,7 @@ print('unless auto_all has been set to true in the demo object')
 
 # The mark below defines a block boundary, which is a point where IPython will
 # stop execution and return to the interactive prompt.
-# Note that in actual interactive execution, 
+# Note that in actual interactive execution,
 # <demo> --- stop ---
 
 x = 1
@@ -33,9 +33,9 @@ print('This is a silent block, which gets executed but not printed.')
 # <demo> auto
 print('This is an automatic block.')
 print('It is executed without asking for confirmation, but printed.')
-z = x+y
+z = x + y
 
-print('z=',x)
+print('z=', x)
 
 # <demo> --- stop ---
 # This is just another normal block.

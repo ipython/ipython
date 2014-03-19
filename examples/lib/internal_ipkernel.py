@@ -10,6 +10,8 @@ from IPython.kernel.zmq.kernelapp import IPKernelApp
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
+
+
 def mpl_kernel(gui):
     """Launch and return an IPython kernel with matplotlib support for the desired gui
     """
@@ -27,14 +29,14 @@ class InternalIPKernel(object):
         self.ipkernel = mpl_kernel(backend)
         # To create and track active qt consoles
         self.consoles = []
-        
+
         # This application will also act on the shell user namespace
         self.namespace = self.ipkernel.shell.user_ns
 
         # Example: a variable that will be seen by the user in the shell, and
         # that the GUI modifies (the 'Counter++' button increments it):
         self.namespace['app_counter'] = 0
-        #self.namespace['ipkernel'] = self.ipkernel  # dbg
+        # self.namespace['ipkernel'] = self.ipkernel  # dbg
 
     def print_namespace(self, evt=None):
         print("\n***Variables in User namespace***")

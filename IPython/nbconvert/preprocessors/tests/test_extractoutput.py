@@ -23,8 +23,8 @@ from ..extractoutput import ExtractOutputPreprocessor
 #-----------------------------------------------------------------------------
 
 class TestExtractOutput(PreprocessorTestsBase):
-    """Contains test functions for extractoutput.py"""
 
+    """Contains test functions for extractoutput.py"""
 
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
@@ -33,11 +33,9 @@ class TestExtractOutput(PreprocessorTestsBase):
         preprocessor.enabled = True
         return preprocessor
 
-
     def test_constructor(self):
         """Can a ExtractOutputPreprocessor be constructed?"""
         self.build_preprocessor()
-    
 
     def test_output(self):
         """Test the output of the ExtractOutputPreprocessor"""
@@ -55,7 +53,7 @@ class TestExtractOutput(PreprocessorTestsBase):
         output = nb.worksheets[0].cells[0].outputs[6]
         assert 'png_filename' in output
         png_filename = output['png_filename']
-        
+
         # Check that pdf was extracted
         output = nb.worksheets[0].cells[0].outputs[7]
         assert 'application/pdf_filename' in output

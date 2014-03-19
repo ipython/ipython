@@ -7,6 +7,7 @@ import os
 from distutils.command.install_data import install_data
 from distutils.util import change_root, convert_path
 
+
 class install_data_ext(install_data):
 
     def initialize_options(self):
@@ -23,7 +24,6 @@ class install_data_ext(install_data):
         self.force = 0
         self.data_files = self.distribution.data_files
         self.warn_dir = 1
-        
 
     def finalize_options(self):
         self.set_undefined_options('install',
@@ -40,7 +40,6 @@ class install_data_ext(install_data):
                                    ('install_scripts',
                                     'install_scripts'),
                                    ('install_data', 'install_data'))
-                                   
 
     def run(self):
         """
@@ -73,8 +72,7 @@ class install_data_ext(install_data):
                 for f in files:
                     f = convert_path(f)
                     (out, _) = self.copy_file(f, dir)
-                    #print "DEBUG: ", out  # dbg
+                    # print "DEBUG: ", out  # dbg
                     self.outfiles.append(out)
-                    
 
         return self.outfiles

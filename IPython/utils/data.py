@@ -11,6 +11,7 @@
 
 from .py3compat import xrange
 
+
 def uniq_stable(elems):
     """uniq_stable(elems) -> list
 
@@ -28,10 +29,8 @@ def flatten(seq):
     """Flatten a list of lists (NOT recursive, only works for 2d lists)."""
 
     return [x for subseq in seq for x in subseq]
-    
+
 
 def chop(seq, size):
     """Chop a sequence into chunks of the given size."""
-    return [seq[i:i+size] for i in xrange(0,len(seq),size)]
-
-
+    return [seq[i:i + size] for i in xrange(0, len(seq), size)]

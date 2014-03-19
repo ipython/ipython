@@ -19,7 +19,9 @@ from ..python import PythonExporter
 # Class
 #-----------------------------------------------------------------------------
 
+
 class TestPythonExporter(ExportersTestsBase):
+
     """Tests for PythonExporter"""
 
     exporter_class = PythonExporter
@@ -31,10 +33,10 @@ class TestPythonExporter(ExportersTestsBase):
         """
         PythonExporter()
 
-
     def test_export(self):
         """
         Can a PythonExporter export something?
         """
-        (output, resources) = PythonExporter().from_filename(self._get_notebook())
+        (output, resources) = PythonExporter().from_filename(
+            self._get_notebook())
         assert len(output) > 0

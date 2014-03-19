@@ -20,7 +20,9 @@ from IPython.testing.decorators import onlyif_cmds_exist
 # Class
 #-----------------------------------------------------------------------------
 
+
 class TestRSTExporter(ExportersTestsBase):
+
     """Tests for RSTExporter"""
 
     exporter_class = RSTExporter
@@ -31,7 +33,6 @@ class TestRSTExporter(ExportersTestsBase):
         Can a RSTExporter be constructed?
         """
         RSTExporter()
-
 
     @onlyif_cmds_exist('pandoc')
     def test_export(self):

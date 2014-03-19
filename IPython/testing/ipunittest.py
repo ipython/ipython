@@ -44,28 +44,30 @@ from doctest import DocTestFinder, DocTestRunner, TestResults
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 def count_failures(runner):
     """Count number of failures in a doctest runner.
 
     Code modeled after the summarize() method in doctest.
     """
-    return [TestResults(f, t) for f, t in runner._name2ft.values() if f > 0 ]
+    return [TestResults(f, t) for f, t in runner._name2ft.values() if f > 0]
 
 
 class IPython2PythonConverter(object):
+
     """Convert IPython 'syntax' to valid Python.
 
     Eventually this code may grow to be the full IPython syntax conversion
     implementation, but for now it only does prompt convertion."""
-    
+
     def __init__(self):
         self.rps1 = re.compile(r'In\ \[\d+\]: ')
         self.rps2 = re.compile(r'\ \ \ \.\.\.+: ')
         self.rout = re.compile(r'Out\[\d+\]: \s*?\n?')
         self.pyps1 = '>>> '
         self.pyps2 = '... '
-        self.rpyps1 = re.compile ('(\s*%s)(.*)$' % self.pyps1)
-        self.rpyps2 = re.compile ('(\s*%s)(.*)$' % self.pyps2)
+        self.rpyps1 = re.compile('(\s*%s)(.*)$' % self.pyps1)
+        self.rpyps2 = re.compile('(\s*%s)(.*)$' % self.pyps2)
 
     def __call__(self, ds):
         """Convert IPython prompts to python ones in a string."""
@@ -89,30 +91,32 @@ class IPython2PythonConverter(object):
             mps1 = self.rpyps1.match(line)
             if mps1 is not None:
                 prompt, text = mps1.groups()
-                newline(prompt+ip.prefilter(text, False))
+                newline(prompt + ip.prefilter(text, False))
                 continue
 
             mps2 = self.rpyps2.match(line)
             if mps2 is not None:
                 prompt, text = mps2.groups()
-                newline(prompt+ip.prefilter(text, True))
+                newline(prompt + ip.prefilter(text, True))
                 continue
-            
+
             newline(line)
         newline('')  # ensure a closing newline, needed by doctest
-        #print "PYSRC:", '\n'.join(out)  # dbg
+        # print "PYSRC:", '\n'.join(out)  # dbg
         return '\n'.join(out)
 
-    #return dnew
+    # return dnew
 
 
 class Doc2UnitTester(object):
+
     """Class whose instances act as a decorator for docstring testing.
 
     In practice we're only likely to need one instance ever, made below (though
     no attempt is made at turning it into a singleton, there is no need for
     that).
     """
+
     def __init__(self, verbose=False):
         """New decorator.
 
@@ -128,7 +132,7 @@ class Doc2UnitTester(object):
 
     def __call__(self, func):
         """Use as a decorator: doctest a function's docstring as a unittest.
-        
+
         This version runs normal doctests, but the idea is to make it later run
         ipython syntax instead."""
 
@@ -144,6 +148,7 @@ class Doc2UnitTester(object):
         # Now, create a tester object that is a real unittest instance, so
         # normal unittest machinery (or Nose, or Trial) can find it.
         class Tester(unittest.TestCase):
+
             def test(self):
                 # Make a new runner per function to be tested
                 runner = DocTestRunner(verbose=d2u.verbose)
@@ -158,7 +163,7 @@ class Doc2UnitTester(object):
                         raise ValueError(err)
                     # Report a normal failure.
                     self.fail('failed doctests: %s' % str(failed[0]))
-                    
+
         # Rename it so test reports have the original signature.
         Tester.__name__ = func.__name__
         return Tester
@@ -171,7 +176,7 @@ def ipdocstring(func):
         func.__doc__ = ip2py(func.__doc__)
     return func
 
-        
+
 # Make an instance of the classes for public use
 ipdoctest = Doc2UnitTester()
 ip2py = IPython2PythonConverter()

@@ -71,9 +71,12 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 
 # Simple example of the basic idea
+
+
 def as_unittest(func):
     """Decorator to make a simple function into a normal test via unittest."""
     class Tester(unittest.TestCase):
+
         def test(self):
             func()
 
@@ -83,7 +86,8 @@ def as_unittest(func):
 
 # Utility functions
 
-def apply_wrapper(wrapper,func):
+
+def apply_wrapper(wrapper, func):
     """Apply a wrapper to a function for decoration.
 
     This mixes Michele Simionato's decorator tool with nose's make_decorator,
@@ -94,10 +98,10 @@ def apply_wrapper(wrapper,func):
     """
     import nose.tools
 
-    return decorator(wrapper,nose.tools.make_decorator(func)(wrapper))
+    return decorator(wrapper, nose.tools.make_decorator(func)(wrapper))
 
 
-def make_label_dec(label,ds=None):
+def make_label_dec(label, ds=None):
     """Factory function to create a decorator that applies one or more labels.
 
     Parameters
@@ -123,9 +127,9 @@ def make_label_dec(label,ds=None):
     >>> slow = make_label_dec('slow')
     >>> slow.__doc__
     "Labels a test as 'slow'."
-    
+
     And one that uses multiple labels and a custom docstring:
-    
+
     >>> rare = make_label_dec(['slow','hard'],
     ... "Mix labels 'slow' and 'hard' for rare tests.")
     >>> rare.__doc__
@@ -149,14 +153,14 @@ def make_label_dec(label,ds=None):
 
     # Validate that the given label(s) are OK for use in setattr() by doing a
     # dry run on a dummy function.
-    tmp = lambda : None
+    tmp = lambda: None
     for label in labels:
-        setattr(tmp,label,True)
+        setattr(tmp, label, True)
 
     # This is the actual decorator we'll return
     def decor(f):
         for label in labels:
-            setattr(f,label,True)
+            setattr(f, label, True)
         return f
 
     # Apply the user's docstring, or autogenerate a basic one
@@ -207,27 +211,29 @@ def skipif(skip_condition, msg=None):
         if callable(skip_condition):
             skip_val = skip_condition
         else:
-            skip_val = lambda : skip_condition
+            skip_val = lambda: skip_condition
 
-        def get_msg(func,msg=None):
+        def get_msg(func, msg=None):
             """Skip message with information about function being skipped."""
-            if msg is None: out = 'Test skipped due to test condition.'
-            else: out = msg
-            return "Skipping test: %s. %s" % (func.__name__,out)
+            if msg is None:
+                out = 'Test skipped due to test condition.'
+            else:
+                out = msg
+            return "Skipping test: %s. %s" % (func.__name__, out)
 
         # We need to define *two* skippers because Python doesn't allow both
         # return with value and yield inside the same function.
         def skipper_func(*args, **kwargs):
             """Skipper for normal test functions."""
             if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
+                raise nose.SkipTest(get_msg(f, msg))
             else:
                 return f(*args, **kwargs)
 
         def skipper_gen(*args, **kwargs):
             """Skipper for test generators."""
             if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
+                raise nose.SkipTest(get_msg(f, msg))
             else:
                 for x in f(*args, **kwargs):
                     yield x
@@ -244,6 +250,8 @@ def skipif(skip_condition, msg=None):
 
 # A version with the condition set to true, common case just to attach a message
 # to a skip decorator
+
+
 def skip(msg=None):
     """Decorator factory - mark a test function for skipping from test suite.
 
@@ -259,21 +267,23 @@ def skip(msg=None):
          to be raised, with the optional message added.
       """
 
-    return skipif(True,msg)
+    return skipif(True, msg)
 
 
 def onlyif(condition, msg):
     """The reverse from skipif, see skipif for details."""
 
     if callable(condition):
-        skip_condition = lambda : not condition()
+        skip_condition = lambda: not condition()
     else:
-        skip_condition = lambda : not condition
+        skip_condition = lambda: not condition
 
     return skipif(skip_condition, msg)
 
 #-----------------------------------------------------------------------------
 # Utility functions for decorators
+
+
 def module_not_available(module):
     """Can module be imported?  Returns true if module does NOT import.
 
@@ -291,7 +301,7 @@ def module_not_available(module):
 
 def decorated_dummy(dec, name):
     """Return a dummy function decorated with dec, with the given name.
-    
+
     Examples
     --------
     import IPython.testing.decorators as dec
@@ -309,7 +319,8 @@ skip_win32 = skipif(sys.platform == 'win32',
                     "This test does not run under Windows")
 skip_linux = skipif(sys.platform.startswith('linux'),
                     "This test does not run under Linux")
-skip_osx = skipif(sys.platform == 'darwin',"This test does not run under OS X")
+skip_osx = skipif(
+    sys.platform == 'darwin', "This test does not run under OS X")
 
 
 # Decorators to skip tests if not on specific platforms.
@@ -328,13 +339,16 @@ _x11_skip_msg = "Skipped under *nix when X11/XOrg not available"
 skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 
 # not a decorator itself, returns a dummy function to be used as setup
+
+
 def skip_file_no_x11(name):
     return decorated_dummy(skip_if_no_x11, name) if _x11_skip_cond else None
 
 # Other skip decorators
 
 # generic skip without module
-skip_without = lambda mod: skipif(module_not_available(mod), "This test requires %s" % mod)
+skip_without = lambda mod: skipif(
+    module_not_available(mod), "This test requires %s" % mod)
 
 skipif_not_numpy = skip_without('numpy')
 
@@ -342,10 +356,10 @@ skipif_not_matplotlib = skip_without('matplotlib')
 
 skipif_not_sympy = skip_without('sympy')
 
-skip_known_failure = knownfailureif(True,'This test is known to fail')
+skip_known_failure = knownfailureif(True, 'This test is known to fail')
 
-known_failure_py3 = knownfailureif(sys.version_info[0] >= 3, 
-                                    'This test is known to fail on Python 3.')
+known_failure_py3 = knownfailureif(sys.version_info[0] >= 3,
+                                   'This test is known to fail on Python 3.')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
@@ -362,7 +376,7 @@ else:
     f.close()
 
 onlyif_unicode_paths = onlyif(unicode_paths, ("This test is only applicable "
-                                    "where we can use unicode in filenames."))
+                                              "where we can use unicode in filenames."))
 
 
 def onlyif_cmds_exist(*commands):
@@ -375,12 +389,14 @@ def onlyif_cmds_exist(*commands):
                 return skip("This test runs only if command '{0}' "
                             "is installed".format(cmd))
         except ImportError as e:
-            # is_cmd_found uses pywin32 on windows, which might not be available
+            # is_cmd_found uses pywin32 on windows, which might not be
+            # available
             if sys.platform == 'win32' and 'pywin32' in str(e):
                 return skip("This test runs only if pywin32 and command '{0}' "
                             "is installed".format(cmd))
             raise e
     return null_deco
+
 
 def onlyif_any_cmd_exists(*commands):
     """
@@ -391,7 +407,8 @@ def onlyif_any_cmd_exists(*commands):
             if is_cmd_found(cmd):
                 return null_deco
         except ImportError as e:
-            # is_cmd_found uses pywin32 on windows, which might not be available
+            # is_cmd_found uses pywin32 on windows, which might not be
+            # available
             if sys.platform == 'win32' and 'pywin32' in str(e):
                 return skip("This test runs only if pywin32 and commands '{0}' "
                             "are installed".format(commands))

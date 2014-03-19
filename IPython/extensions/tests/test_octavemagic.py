@@ -13,6 +13,7 @@ except Exception as e:
 
 global octave
 
+
 def setup():
     ip = get_ipython()
     global octave
@@ -22,10 +23,12 @@ def setup():
 
     ip.ex('import numpy as np')
 
+
 def test_octave_inline():
     ip = get_ipython()
     result = ip.run_line_magic('octave', '[1, 2, 3] + 1;')
     npt.assert_array_equal(result, [[2, 3, 4]])
+
 
 def test_octave_roundtrip():
     ip = get_ipython()
@@ -36,6 +39,7 @@ def test_octave_roundtrip():
 
     npt.assert_array_equal(ip.user_ns['x'], [[1, 2, 3]])
     nt.assert_equal(ip.user_ns['y'], 5.5)
+
 
 def test_octave_cell_magic():
     ip = get_ipython()
@@ -53,6 +57,7 @@ def verify_publish_data(source, data):
 
         test_octave_plot.svgs_generated += 1
 
+
 def test_octave_plot():
     octave._publish_display_data = verify_publish_data
     test_octave_plot.svgs_generated = 0
@@ -63,10 +68,11 @@ def test_octave_plot():
 
     nt.assert_equal(test_octave_plot.svgs_generated, 2)
 
+
 def test_octavemagic_localscope():
     ip = get_ipython()
     ip.magic('load_ext octavemagic')
-    ip.push({'x':0})
+    ip.push({'x': 0})
     ip.run_line_magic('octave', '-i x -o result result = x+1')
     result = ip.user_ns['result']
     nt.assert_equal(result, 1)

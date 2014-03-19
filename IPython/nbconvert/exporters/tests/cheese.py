@@ -19,11 +19,12 @@ from ...preprocessors.base import Preprocessor
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class CheesePreprocessor(Preprocessor):
+
     """
     Adds a cheese tag to the resources object
     """
-
 
     def __init__(self, **kw):
         """
@@ -31,11 +32,10 @@ class CheesePreprocessor(Preprocessor):
         """
         super(CheesePreprocessor, self).__init__(**kw)
 
-
     def preprocess(self, nb, resources):
         """
         Sphinx preprocessing to apply on each notebook.
-        
+
         Parameters
         ----------
         nb : NotebookNode

@@ -72,7 +72,7 @@ def toggle_set_term_title(val):
     ignore_termtitle = not(val)
 
 
-def _set_term_title(*args,**kw):
+def _set_term_title(*args, **kw):
     """Dummy no-op."""
     pass
 
@@ -82,7 +82,7 @@ def _set_term_title_xterm(title):
     sys.stdout.write('\033]0;%s\007' % title)
 
 if os.name == 'posix':
-    TERM = os.environ.get('TERM','')
+    TERM = os.environ.get('TERM', '')
     if TERM.startswith('xterm'):
         _set_term_title = _set_term_title_xterm
 
@@ -93,7 +93,7 @@ if sys.platform == 'win32':
 
         SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
         SetConsoleTitleW.argtypes = [ctypes.c_wchar_p]
-    
+
         def _set_term_title(title):
             """Set terminal title using ctypes to access the Win32 APIs."""
             SetConsoleTitleW(title)
@@ -161,4 +161,3 @@ if sys.platform == 'win32':
             return (sizex, sizey)
         else:
             return (defaultx, defaulty)
-

@@ -21,6 +21,7 @@ go into another topical module in :mod:`IPython.utils`.
 # Code
 #-----------------------------------------------------------------------------
 
+
 def flag_calls(func):
     """Wrap a function to detect and flag when it gets called.
 
@@ -33,14 +34,14 @@ def flag_calls(func):
 
     Testing for truth in wrapper.called allows you to determine if a call to
     func() was attempted and succeeded."""
-    
+
     # don't wrap twice
     if hasattr(func, 'called'):
         return func
 
-    def wrapper(*args,**kw):
+    def wrapper(*args, **kw):
         wrapper.called = False
-        out = func(*args,**kw)
+        out = func(*args, **kw)
         wrapper.called = True
         return out
 
@@ -48,11 +49,11 @@ def flag_calls(func):
     wrapper.__doc__ = func.__doc__
     return wrapper
 
+
 def undoc(func):
     """Mark a function or class as undocumented.
-    
+
     This is found by inspecting the AST, so for now it must be used directly
     as @undoc, not as e.g. @decorators.undoc
     """
     return func
-

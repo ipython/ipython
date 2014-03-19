@@ -16,5 +16,7 @@ Deprecated, parallel magics are no longer an extension.
 
 from warnings import warn
 
+
 def load_ipython_extension(ip):
-    warn("Parallel Magics are no longer defined in an extension", DeprecationWarning)
+    warn("Parallel Magics are no longer defined in an extension",
+         DeprecationWarning)

@@ -12,7 +12,7 @@ from IPython.utils import openpy
 
 if py3compat.PY3:
     getline = linecache.getline
-    
+
     # getlines has to be looked up at runtime, because doctests monkeypatch it.
     @functools.wraps(linecache.getlines)
     def getlines(filename, module_globals=None):
@@ -24,11 +24,11 @@ else:
         Update the cache if it doesn't contain an entry for this file already."""
         filename = py3compat.cast_bytes(filename, sys.getfilesystemencoding())
         lines = linecache.getlines(filename, module_globals=module_globals)
-        
+
         # The bits we cache ourselves can be unicode.
         if (not lines) or isinstance(lines[0], py3compat.unicode_type):
             return lines
-        
+
         readline = openpy._list_readline(lines)
         try:
             encoding, _ = openpy.detect_encoding(readline)
@@ -40,6 +40,6 @@ else:
     def getline(filename, lineno, module_globals=None):
         lines = getlines(filename, module_globals)
         if 1 <= lineno <= len(lines):
-            return lines[lineno-1]
+            return lines[lineno - 1]
         else:
             return ''

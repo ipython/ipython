@@ -37,23 +37,27 @@ class NotebookHandler(IPythonHandler):
         path = path.strip('/')
         nbm = self.notebook_manager
         if name is None:
-            raise web.HTTPError(500, "This shouldn't be accessible: %s" % self.request.uri)
-        
+            raise web.HTTPError(
+                500, "This shouldn't be accessible: %s" % self.request.uri)
+
         # a .ipynb filename was given
         if not nbm.notebook_exists(name, path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s/%s' % (path, name))
+            raise web.HTTPError(
+                404, u'Notebook does not exist: %s/%s' % (path, name))
         name = url_escape(name)
         path = url_escape(path)
         self.write(self.render_template('notebook.html',
-            project=self.project_dir,
-            notebook_path=path,
-            notebook_name=name,
-            kill_kernel=False,
-            mathjax_url=self.mathjax_url,
-            )
-        )
+                                        project=self.project_dir,
+                                        notebook_path=path,
+                                        notebook_name=name,
+                                        kill_kernel=False,
+                                        mathjax_url=self.mathjax_url,
+                                        )
+                   )
+
 
 class NotebookRedirectHandler(IPythonHandler):
+
     def get(self, path=''):
         nbm = self.notebook_manager
         if nbm.path_exists(path):
@@ -72,7 +76,7 @@ class NotebookRedirectHandler(IPythonHandler):
                 self.log.warn("filespath: %s", files_path)
                 if not os.path.exists(files_path):
                     path = path.replace('/files/', '/', 1)
-            
+
             url = url_path_join(self.base_url, 'files', path)
         url = url_escape(url)
         self.log.debug("Redirecting %s to %s", self.request.path, url)
@@ -87,4 +91,3 @@ default_handlers = [
     (r"/notebooks%s" % notebook_path_regex, NotebookHandler),
     (r"/notebooks%s" % path_regex, NotebookRedirectHandler),
 ]
-

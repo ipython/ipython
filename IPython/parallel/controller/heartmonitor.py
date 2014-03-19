@@ -28,7 +28,9 @@ from IPython.utils.traitlets import Set, Instance, CFloat, Integer, Dict
 
 from IPython.parallel.util import log_errors
 
+
 class Heart(object):
+
     """A basic heart object for responding to a HeartMonitor.
     This is a simple wrapper with defaults for the most common
     Device model for responding to heartbeats.
@@ -37,18 +39,20 @@ class Heart(object):
     SUB/DEALER for in/out.
 
     You can specify the DEALER's IDENTITY via the optional heart_id argument."""
-    device=None
-    id=None
+    device = None
+    id = None
+
     def __init__(self, in_addr, out_addr, mon_addr=None, in_type=zmq.SUB, out_type=zmq.DEALER, mon_type=zmq.PUB, heart_id=None):
         if mon_addr is None:
             self.device = ThreadDevice(zmq.FORWARDER, in_type, out_type)
         else:
-            self.device = ThreadMonitoredQueue(in_type, out_type, mon_type, in_prefix=b"", out_prefix=b"")
+            self.device = ThreadMonitoredQueue(
+                in_type, out_type, mon_type, in_prefix=b"", out_prefix=b"")
         # do not allow the device to share global Context.instance,
         # which is the default behavior in pyzmq > 2.1.10
         self.device.context_factory = zmq.Context
-        
-        self.device.daemon=True
+
+        self.device.daemon = True
         self.device.connect_in(in_addr)
         self.device.connect_out(out_addr)
         if mon_addr is not None:
@@ -65,30 +69,32 @@ class Heart(object):
 
 
 class HeartMonitor(LoggingConfigurable):
+
     """A basic HeartMonitor class
     pingstream: a PUB stream
     pongstream: an ROUTER stream
     period: the period of the heartbeat in milliseconds"""
 
     period = Integer(3000, config=True,
-        help='The frequency at which the Hub pings the engines for heartbeats '
-        '(in ms)',
-    )
+                     help='The frequency at which the Hub pings the engines for heartbeats '
+                     '(in ms)',
+                     )
     max_heartmonitor_misses = Integer(10, config=True,
-        help='Allowed consecutive missed pings from controller Hub to engine before unregistering.',
-    )
+                                      help='Allowed consecutive missed pings from controller Hub to engine before unregistering.',
+                                      )
 
-    pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
-    pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
+    pingstream = Instance('zmq.eventloop.zmqstream.ZMQStream')
+    pongstream = Instance('zmq.eventloop.zmqstream.ZMQStream')
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
+
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
     # not settable:
-    hearts=Set()
-    responses=Set()
-    on_probation=Dict()
-    last_ping=CFloat(0)
+    hearts = Set()
+    responses = Set()
+    on_probation = Dict()
+    last_ping = CFloat(0)
     _new_handlers = Set()
     _failure_handlers = Set()
     lifetime = CFloat(0)
@@ -101,7 +107,8 @@ class HeartMonitor(LoggingConfigurable):
 
     def start(self):
         self.tic = time.time()
-        self.caller = ioloop.PeriodicCallback(self.beat, self.period, self.loop)
+        self.caller = ioloop.PeriodicCallback(
+            self.beat, self.period, self.loop)
         self.caller.start()
 
     def add_new_heart_handler(self, handler):
@@ -119,7 +126,7 @@ class HeartMonitor(LoggingConfigurable):
         self.last_ping = self.lifetime
 
         toc = time.time()
-        self.lifetime += toc-self.tic
+        self.lifetime += toc - self.tic
         self.tic = toc
         self.log.debug("heartbeat::sending %s", self.lifetime)
         goodhearts = self.hearts.intersection(self.responses)
@@ -133,7 +140,7 @@ class HeartMonitor(LoggingConfigurable):
             self.handle_heart_failure(failure)
         self.on_probation = on_probation
         self.responses = set()
-        #print self.on_probation, self.hearts
+        # print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts", self.lifetime, len(self.hearts))
         self.pingstream.send(str_to_bytes(str(self.lifetime)))
         # flush stream to force immediate socket send
@@ -146,7 +153,8 @@ class HeartMonitor(LoggingConfigurable):
         new_probation = {}
         for cur_heart in (b for b in missed_beats if b in hearts):
             miss_count = on_probation.get(cur_heart, 0) + 1
-            self.log.info("heartbeat::missed %s : %s" % (cur_heart, miss_count))
+            self.log.info("heartbeat::missed %s : %s" %
+                          (cur_heart, miss_count))
             if miss_count > self.max_heartmonitor_misses:
                 failures.append(cur_heart)
             else:
@@ -167,12 +175,12 @@ class HeartMonitor(LoggingConfigurable):
                 try:
                     handler(heart)
                 except Exception as e:
-                    self.log.error("heartbeat::Bad Handler! %s", handler, exc_info=True)
+                    self.log.error(
+                        "heartbeat::Bad Handler! %s", handler, exc_info=True)
                     pass
         else:
             self.log.info("heartbeat::Heart %s failed :(", heart)
         self.hearts.remove(heart)
-
 
     @log_errors
     def handle_pong(self, msg):
@@ -180,13 +188,14 @@ class HeartMonitor(LoggingConfigurable):
         current = str_to_bytes(str(self.lifetime))
         last = str_to_bytes(str(self.last_ping))
         if msg[1] == current:
-            delta = time.time()-self.tic
+            delta = time.time() - self.tic
             # self.log.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
             self.responses.add(msg[0])
         elif msg[1] == last:
-            delta = time.time()-self.tic + (self.lifetime-self.last_ping)
-            self.log.warn("heartbeat::heart %r missed a beat, and took %.2f ms to respond", msg[0], 1000*delta)
+            delta = time.time() - self.tic + (self.lifetime - self.last_ping)
+            self.log.warn(
+                "heartbeat::heart %r missed a beat, and took %.2f ms to respond", msg[0], 1000 * delta)
             self.responses.add(msg[0])
         else:
-            self.log.warn("heartbeat::got bad heartbeat (possibly old?): %s (current=%.3f)", msg[1], self.lifetime)
-
+            self.log.warn(
+                "heartbeat::got bad heartbeat (possibly old?): %s (current=%.3f)", msg[1], self.lifetime)

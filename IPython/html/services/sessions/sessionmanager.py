@@ -28,13 +28,14 @@ from IPython.utils.py3compat import unicode_type
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class SessionManager(LoggingConfigurable):
-    
+
     # Session database initialized below
     _cursor = None
     _connection = None
     _columns = {'session_id', 'name', 'path', 'kernel_id'}
-    
+
     @property
     def cursor(self):
         """Start a cursor and create a database called 'session'"""
@@ -51,14 +52,15 @@ class SessionManager(LoggingConfigurable):
             self._connection = sqlite3.connect(':memory:')
             self._connection.row_factory = self.row_factory
         return self._connection
-        
+
     def __del__(self):
         """Close connection once SessionManager closes"""
         self.cursor.close()
 
     def session_exists(self, name, path):
         """Check to see if the session for a given notebook exists"""
-        self.cursor.execute("SELECT * FROM session WHERE name=? AND path=?", (name, path))
+        self.cursor.execute(
+            "SELECT * FROM session WHERE name=? AND path=?", (name, path))
         reply = self.cursor.fetchone()
         if reply is None:
             return False
@@ -76,11 +78,11 @@ class SessionManager(LoggingConfigurable):
 
     def save_session(self, session_id, name=None, path=None, kernel_id=None):
         """Saves the items for the session with the given session_id
-        
+
         Given a session_id (and any other of the arguments), this method
         creates a row in the sqlite session database that holds the information
         for a session.
-        
+
         Parameters
         ----------
         session_id : str
@@ -91,20 +93,20 @@ class SessionManager(LoggingConfigurable):
             the path to the named notebook
         kernel_id : str
             a uuid for the kernel associated with this session
-        
+
         Returns
         -------
         model : dict
             a dictionary of the session model
         """
         self.cursor.execute("INSERT INTO session VALUES (?,?,?,?)",
-            (session_id, name, path, kernel_id)
-        )
+                            (session_id, name, path, kernel_id)
+                            )
         return self.get_session(session_id=session_id)
 
     def get_session(self, **kwargs):
         """Returns the model for a particular session.
-        
+
         Takes a keyword argument and searches for the value in the session
         database, then returns the rest of the session's info.
 
@@ -143,10 +145,10 @@ class SessionManager(LoggingConfigurable):
 
     def update_session(self, session_id, **kwargs):
         """Updates the values in the session database.
-        
+
         Changes the values of the session with the given session_id
         with the values from the keyword arguments. 
-        
+
         Parameters
         ----------
         session_id : str
@@ -196,4 +198,5 @@ class SessionManager(LoggingConfigurable):
         """Deletes the row in the session database with given session_id"""
         # Check that session exists before deleting
         self.get_session(session_id=session_id)
-        self.cursor.execute("DELETE FROM session WHERE session_id=?", (session_id,))
+        self.cursor.execute(
+            "DELETE FROM session WHERE session_id=?", (session_id,))

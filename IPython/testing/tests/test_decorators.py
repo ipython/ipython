@@ -19,6 +19,8 @@ from IPython.testing.skipdoctest import skip_doctest
 
 # Note: copied from OInspect, kept here so the testing stuff doesn't create
 # circular dependencies and is easier to reuse.
+
+
 def getargspec(obj):
     """Get the names and default values of a function's arguments.
 
@@ -42,6 +44,7 @@ def getargspec(obj):
 #-----------------------------------------------------------------------------
 # Testing functions
 
+
 @dec.as_unittest
 def trivial():
     """A trivial test"""
@@ -51,31 +54,32 @@ def trivial():
 @dec.skip
 def test_deliberately_broken():
     """A deliberately broken test - we want to skip this one."""
-    1/0
+    1 / 0
+
 
 @dec.skip('Testing the skip decorator')
 def test_deliberately_broken2():
     """Another deliberately broken test - we want to skip this one."""
-    1/0
+    1 / 0
 
 
 # Verify that we can correctly skip the doctest for a function at will, but
 # that the docstring itself is NOT destroyed by the decorator.
 @skip_doctest
-def doctest_bad(x,y=1,**k):
+def doctest_bad(x, y=1, **k):
     """A function whose doctest we need to skip.
 
     >>> 1+1
     3
     """
-    print('x:',x)
-    print('y:',y)
-    print('k:',k)
+    print('x:', x)
+    print('y:', y)
+    print('k:', k)
 
 
 def call_doctest_bad():
     """Check that we can still call the decorated functions.
-    
+
     >>> doctest_bad(3,y=4)
     x: 3
     y: 4
@@ -95,12 +99,13 @@ def test_skip_dt_decorator():
     """
     # Fetch the docstring from doctest_bad after decoration.
     val = doctest_bad.__doc__
-    
-    nt.assert_equal(check,val,"doctest_bad docstrings don't match")
+
+    nt.assert_equal(check, val, "doctest_bad docstrings don't match")
 
 
 # Doctest skipping should work for class methods too
 class FooClass(object):
+
     """FooClass
 
     Example:
@@ -110,7 +115,7 @@ class FooClass(object):
     """
 
     @skip_doctest
-    def __init__(self,x):
+    def __init__(self, x):
         """Make a FooClass.
 
         Example:
@@ -120,9 +125,9 @@ class FooClass(object):
         """
         print('Making a FooClass.')
         self.x = x
-        
+
     @skip_doctest
-    def bar(self,y):
+    def bar(self, y):
         """Example:
 
         >>> ff = FooClass(3)
@@ -131,9 +136,9 @@ class FooClass(object):
         >>> 1/0
         bam!
         """
-        return 1/y
+        return 1 / y
 
-    def baz(self,y):
+    def baz(self, y):
         """Example:
 
         >>> ff2 = FooClass(3)
@@ -141,7 +146,7 @@ class FooClass(object):
         >>> ff2.baz(3)
         True
         """
-        return self.x==y
+        return self.x == y
 
 
 def test_skip_dt_decorator2():
@@ -151,19 +156,23 @@ def test_skip_dt_decorator2():
     dtargs = (['x', 'y'], None, 'k', (1,))
     # Introspect out the value
     dtargsr = getargspec(doctest_bad)
-    assert dtargsr==dtargs, \
-           "Incorrectly reconstructed args for doctest_bad: %s" % (dtargsr,)
+    assert dtargsr == dtargs, \
+        "Incorrectly reconstructed args for doctest_bad: %s" % (dtargsr,)
 
 
 @dec.skip_linux
 def test_linux():
-    nt.assert_false(sys.platform.startswith('linux'),"This test can't run under linux")
+    nt.assert_false(
+        sys.platform.startswith('linux'), "This test can't run under linux")
+
 
 @dec.skip_win32
 def test_win32():
-    nt.assert_not_equal(sys.platform,'win32',"This test can't run under windows")
+    nt.assert_not_equal(
+        sys.platform, 'win32', "This test can't run under windows")
+
 
 @dec.skip_osx
 def test_osx():
-    nt.assert_not_equal(sys.platform,'darwin',"This test can't run under osx")
-
+    nt.assert_not_equal(
+        sys.platform, 'darwin', "This test can't run under osx")

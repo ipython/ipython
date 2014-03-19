@@ -8,6 +8,7 @@ from pygments.styles import get_style_by_name
 # Local imports
 from IPython.utils.py3compat import string_types
 
+
 def get_tokens_unprocessed(self, text, stack=('root',)):
     """ Split ``text`` into (tokentype, text) pairs.
 
@@ -69,6 +70,7 @@ RegexLexer.get_tokens_unprocessed = get_tokens_unprocessed
 
 
 class PygmentsBlockUserData(QtGui.QTextBlockUserData):
+
     """ Storage for the user data associated with each line.
     """
 
@@ -81,17 +83,18 @@ class PygmentsBlockUserData(QtGui.QTextBlockUserData):
 
     def __repr__(self):
         attrs = ['syntax_stack']
-        kwds = ', '.join([ '%s=%r' % (attr, getattr(self, attr))
-                           for attr in attrs ])
+        kwds = ', '.join(['%s=%r' % (attr, getattr(self, attr))
+                          for attr in attrs])
         return 'PygmentsBlockUserData(%s)' % kwds
 
 
 class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
+
     """ Syntax highlighter that uses Pygments for parsing. """
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'QSyntaxHighlighter' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def __init__(self, parent, lexer=None):
         super(PygmentsHighlighter, self).__init__(parent)
@@ -124,9 +127,9 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
             # Clean up for the next go-round.
             del self._lexer._saved_state_stack
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'PygmentsHighlighter' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def set_style(self, style):
         """ Sets the style to the specified Pygments style.
@@ -149,9 +152,9 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         self._style = None
         self._clear_caches()
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Protected interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _clear_caches(self):
         """ Clear caches for brushes and formats.
@@ -223,4 +226,3 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
                       int(color[2:4], base=16),
                       int(color[4:6], base=16))
         return qcolor
-

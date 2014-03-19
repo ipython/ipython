@@ -24,6 +24,7 @@ from .reader import get_version, versions
 # Functions
 #-----------------------------------------------------------------------------
 
+
 def convert(nb, to_version):
     """Convert a notebook node object to a specific version.  Assumes that
     all the versions starting from 1 to the latest major X are implemented.
@@ -49,7 +50,7 @@ def convert(nb, to_version):
     # If the version exist, try to convert to it one step at a time.
     elif to_version in versions:
 
-        # Get the the version that this recursion will convert to as a step 
+        # Get the the version that this recursion will convert to as a step
         # closer to the final revision.  Make sure the newer of the conversion
         # functions is used to perform the conversion.
         if to_version > version:
@@ -62,11 +63,11 @@ def convert(nb, to_version):
         # Convert and make sure version changed during conversion.
         converted = convert_function(nb)
         if converted.get('nbformat', 1) == version:
-            raise Exception("Cannot convert notebook from v%d to v%d.  Operation" \
-                "failed silently." % (major, step_version))
+            raise Exception("Cannot convert notebook from v%d to v%d.  Operation"
+                            "failed silently." % (major, step_version))
 
         # Recursively convert until target version is reached.
         return convert(converted, to_version)
     else:
-        raise Exception("Cannot convert notebook to v%d because that " \
+        raise Exception("Cannot convert notebook to v%d because that "
                         "version doesn't exist" % (to_version))

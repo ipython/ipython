@@ -5,6 +5,7 @@ All tests should be loaded by nose.
 """
 from __future__ import print_function
 
+
 def pyfunc():
     """Some pure python tests...
 
@@ -23,6 +24,7 @@ def pyfunc():
     0 1 1 2 2 3 
     """
     return 'pyfunc'
+
 
 def ipfunc():
     """Some ipython tests...
@@ -60,7 +62,7 @@ def ipfunc():
 
     In [8]: print(repr(_))
     'hi'
-    
+
     In [7]: 3+4
     Out[7]: 7
 
@@ -127,6 +129,7 @@ def random_all():
     """
     pass
 
+
 def iprand():
     """Some ipython tests with random output.
 
@@ -141,11 +144,12 @@ def iprand():
     """
     return 'iprand'
 
+
 def iprand_all():
     """Some ipython tests with fully random output.
 
     # all-random
-    
+
     In [7]: 1
     Out[7]: 99
 

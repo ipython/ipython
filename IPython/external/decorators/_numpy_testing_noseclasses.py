@@ -7,12 +7,15 @@ import os
 
 from nose.plugins.errorclass import ErrorClass, ErrorClassPlugin
 
+
 class KnownFailureTest(Exception):
+
     '''Raise this exception to mark a test as a known failing test.'''
     pass
 
 
 class KnownFailure(ErrorClassPlugin):
+
     '''Plugin that installs a KNOWNFAIL error class for the
     KnownFailureClass exception.  When KnownFailureTest is raised,
     the exception will be logged in the knownfail attribute of the
@@ -37,5 +40,3 @@ class KnownFailure(ErrorClassPlugin):
         disable = getattr(options, 'noKnownFail', False)
         if disable:
             self.enabled = False
-
-

@@ -29,8 +29,8 @@ from .py3compat import string_types, input, PY3
 
 class IOStream:
 
-    def __init__(self,stream, fallback=None):
-        if not hasattr(stream,'write') or not hasattr(stream,'flush'):
+    def __init__(self, stream, fallback=None):
+        if not hasattr(stream, 'write') or not hasattr(stream, 'flush'):
             if fallback is not None:
                 stream = fallback
             else:
@@ -49,7 +49,7 @@ class IOStream:
         tpl = '{mod}.{cls}({args})'
         return tpl.format(mod=cls.__module__, cls=cls.__name__, args=self.stream)
 
-    def write(self,data):
+    def write(self, data):
         try:
             self._swrite(data)
         except:
@@ -81,12 +81,14 @@ class IOStream:
         pass
 
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-devnull = open(os.devnull, 'w') 
+devnull = open(os.devnull, 'w')
 stdin = IOStream(sys.stdin, fallback=devnull)
 stdout = IOStream(sys.stdout, fallback=devnull)
 stderr = IOStream(sys.stderr, fallback=devnull)
 
+
 class IOTerm:
+
     """ Term holds the file or file-like objects for handling I/O operations.
 
     These are normally just sys.stdin, sys.stdout and sys.stderr but for
@@ -98,12 +100,13 @@ class IOTerm:
     # are not a normal terminal (such as a GUI-based shell)
     def __init__(self, stdin=None, stdout=None, stderr=None):
         mymodule = sys.modules[__name__]
-        self.stdin  = IOStream(stdin, mymodule.stdin)
+        self.stdin = IOStream(stdin, mymodule.stdin)
         self.stdout = IOStream(stdout, mymodule.stdout)
         self.stderr = IOStream(stderr, mymodule.stderr)
 
 
 class Tee(object):
+
     """A class to duplicate an output stream to stdout/err.
 
     This works in a manner very similar to the Unix 'tee' command.
@@ -175,11 +178,11 @@ def ask_yes_no(prompt, default=None, interrupt=None):
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
 
-    answers = {'y':True,'n':False,'yes':True,'no':False}
+    answers = {'y': True, 'n': False, 'yes': True, 'no': False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = input(prompt+' ').lower()
+            ans = input(prompt + ' ').lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:
@@ -212,7 +215,7 @@ def temp_pyfile(src, ext='.py'):
       It is the caller's responsibility to close the open file and unlink it.
     """
     fname = tempfile.mkstemp(ext)[1]
-    f = open(fname,'w')
+    f = open(fname, 'w')
     f.write(src)
     f.flush()
     return fname, f
@@ -238,6 +241,7 @@ def raw_print_err(*args, **kw):
 rprint = raw_print
 rprinte = raw_print_err
 
+
 def unicode_std_stream(stream='stdout'):
     u"""Get a wrapper to write unicode to stdout/stderr as UTF-8.
 
@@ -249,7 +253,7 @@ def unicode_std_stream(stream='stdout'):
         unicode_std_stream().write(u'ł@e¶ŧ←')
     """
     assert stream in ('stdout', 'stderr')
-    stream  = getattr(sys, stream)
+    stream = getattr(sys, stream)
     if PY3:
         try:
             stream_b = stream.buffer

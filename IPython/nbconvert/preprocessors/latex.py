@@ -21,16 +21,18 @@ from .base import Preprocessor
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class LatexPreprocessor(Preprocessor):
+
     """Preprocessor for latex destined documents.
-    
+
     Mainly populates the `latex` key in the resources dict,
     adding definitions for pygments highlight styles.
     """
 
     def preprocess(self, nb, resources):
         """Preprocessing to apply on each notebook.
-        
+
         Parameters
         ----------
         nb : NotebookNode
@@ -41,7 +43,8 @@ class LatexPreprocessor(Preprocessor):
         """
         # Generate Pygments definitions for Latex
         from pygments.formatters import LatexFormatter
-        
+
         resources.setdefault("latex", {})
-        resources["latex"].setdefault("pygments_definitions", LatexFormatter().get_style_defs())
+        resources["latex"].setdefault(
+            "pygments_definitions", LatexFormatter().get_style_defs())
         return nb, resources

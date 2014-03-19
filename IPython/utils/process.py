@@ -107,14 +107,13 @@ def pycmd2argv(cmd):
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
-    cwd = py3compat.getcwd().replace('\\','/')
+    cwd = py3compat.getcwd().replace('\\', '/')
     drivepart = ''
     tail = cwd
     if sys.platform == 'win32':
         if len(cwd) < 4:
             return cwd
-        drivepart,tail = os.path.splitdrive(cwd)
-
+        drivepart, tail = os.path.splitdrive(cwd)
 
     parts = tail.split('/')
     if len(parts) > 2:

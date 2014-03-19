@@ -13,7 +13,8 @@ from __future__ import print_function
 
 # Third-party imports
 import matplotlib
-from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg # analysis: ignore
+# analysis: ignore
+from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg
 from matplotlib._pylab_helpers import Gcf
 
 # Local imports
@@ -25,6 +26,7 @@ from .config import InlineBackend
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
 
 def show(close=None):
     """Show all figures as SVG/PNG payloads sent to the IPython clients.
@@ -74,7 +76,7 @@ def draw_if_interactive():
     # For further reference:
     # https://github.com/ipython/ipython/issues/1612
     # https://github.com/matplotlib/matplotlib/issues/835
-    
+
     if not hasattr(fig, 'show'):
         # Queue up `fig` for display
         fig.show = lambda *a: display(fig)
@@ -103,7 +105,7 @@ def flush_figures():
 
     This is meant to be called automatically and will call show() if, during
     prior code execution, there had been any calls to draw_if_interactive.
-    
+
     This function is meant to be used as a post_execute callback in IPython,
     so user-caused errors are handled with showtraceback() instead of being
     allowed to raise.  If this function is not called from within IPython,
@@ -111,7 +113,7 @@ def flush_figures():
     """
     if not show._draw_called:
         return
-    
+
     if InlineBackend.instance().close_figures:
         # ignore the tracking, just draw and close all figures
         try:
@@ -127,7 +129,7 @@ def flush_figures():
     try:
         # exclude any figures that were closed:
         active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
-        for fig in [ fig for fig in show._to_draw if fig in active ]:
+        for fig in [fig for fig in show._to_draw if fig in active]:
             try:
                 display(fig)
             except Exception as e:
@@ -148,4 +150,3 @@ def flush_figures():
 # figurecanvas. This is set here to a Agg canvas
 # See https://github.com/matplotlib/matplotlib/pull/1125
 FigureCanvas = FigureCanvasAgg
-

@@ -26,10 +26,11 @@ from IPython.utils import text
 # Globals
 #-----------------------------------------------------------------------------
 
+
 def test_columnize():
     """Basic columnize tests."""
     size = 5
-    items = [l*size for l in 'abc']
+    items = [l * size for l in 'abc']
     out = text.columnize(items, displaywidth=80)
     nt.assert_equal(out, 'aaaaa  bbbbb  ccccc\n')
     out = text.columnize(items, displaywidth=12)
@@ -37,42 +38,48 @@ def test_columnize():
     out = text.columnize(items, displaywidth=10)
     nt.assert_equal(out, 'aaaaa\nbbbbb\nccccc\n')
 
+
 def test_columnize_random():
     """Test with random input to hopfully catch edge case """
-    for nitems in [random.randint(2,70) for i in range(2,20)]:
-        displaywidth = random.randint(20,200)
-        rand_len = [random.randint(2,displaywidth) for i in range(nitems)]
-        items = ['x'*l for l in rand_len]
+    for nitems in [random.randint(2, 70) for i in range(2, 20)]:
+        displaywidth = random.randint(20, 200)
+        rand_len = [random.randint(2, displaywidth) for i in range(nitems)]
+        items = ['x' * l for l in rand_len]
         out = text.columnize(items, displaywidth=displaywidth)
         longer_line = max([len(x) for x in out.split('\n')])
         longer_element = max(rand_len)
         if longer_line > displaywidth:
-            print("Columnize displayed something lager than displaywidth : %s " % longer_line)
+            print(
+                "Columnize displayed something lager than displaywidth : %s " % longer_line)
             print("longer element : %s " % longer_element)
             print("displaywidth : %s " % displaywidth)
             print("number of element : %s " % nitems)
             print("size of each element :\n %s" % rand_len)
             assert False
 
+
 def test_columnize_medium():
     """Test with inputs than shouldn't be wider tahn 80 """
     size = 40
-    items = [l*size for l in 'abc']
+    items = [l * size for l in 'abc']
     out = text.columnize(items, displaywidth=80)
-    nt.assert_equal(out, '\n'.join(items+['']))
+    nt.assert_equal(out, '\n'.join(items + ['']))
+
 
 def test_columnize_long():
     """Test columnize with inputs longer than the display window"""
     size = 11
-    items = [l*size for l in 'abc']
-    out = text.columnize(items, displaywidth=size-1)
-    nt.assert_equal(out, '\n'.join(items+['']))
+    items = [l * size for l in 'abc']
+    out = text.columnize(items, displaywidth=size - 1)
+    nt.assert_equal(out, '\n'.join(items + ['']))
+
 
 def eval_formatter_check(f):
-    ns = dict(n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
+    ns = dict(
+        n=12, pi=math.pi, stuff='hello there', os=os, u=u"café", b="café")
     s = f.format("{n} {n//4} {stuff.split()[0]}", **ns)
     nt.assert_equal(s, "12 3 hello")
-    s = f.format(' '.join(['{n//%i}'%i for i in range(1,8)]), **ns)
+    s = f.format(' '.join(['{n//%i}' % i for i in range(1, 8)]), **ns)
     nt.assert_equal(s, "12 6 4 3 2 2 1")
     s = f.format('{[n//i for i in range(1,8)]}', **ns)
     nt.assert_equal(s, "[12, 6, 4, 3, 2, 2, 1]")
@@ -80,14 +87,15 @@ def eval_formatter_check(f):
     nt.assert_equal(s, ns['stuff'])
     s = f.format("{stuff!r}", **ns)
     nt.assert_equal(s, repr(ns['stuff']))
-    
+
     # Check with unicode:
     s = f.format("{u}", **ns)
     nt.assert_equal(s, ns['u'])
     # This decodes in a platform dependent manner, but it shouldn't error out
     s = f.format("{b}", **ns)
-        
+
     nt.assert_raises(NameError, f.format, '{dne}', **ns)
+
 
 def eval_formatter_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
@@ -97,18 +105,19 @@ def eval_formatter_slicing_check(f):
     nt.assert_equal(s, " ['there', 'hello'] ")
     s = f.format("{stuff[::2]}", **ns)
     nt.assert_equal(s, ns['stuff'][::2])
-    
+
     nt.assert_raises(SyntaxError, f.format, "{n:x}", **ns)
+
 
 def eval_formatter_no_slicing_check(f):
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
-    
+
     s = f.format('{n:x} {pi**2:+f}', **ns)
     nt.assert_equal(s, "c +9.869604")
-    
+
     s = f.format('{stuff[slice(1,4)]}', **ns)
     nt.assert_equal(s, 'ell')
-    
+
     if sys.version_info >= (3, 4):
         # String formatting has changed in Python 3.4, so this now works.
         s = f.format("{a[:]}", a=[1, 2])
@@ -116,21 +125,24 @@ def eval_formatter_no_slicing_check(f):
     else:
         nt.assert_raises(SyntaxError, f.format, "{a[:]}")
 
+
 def test_eval_formatter():
     f = text.EvalFormatter()
     eval_formatter_check(f)
     eval_formatter_no_slicing_check(f)
+
 
 def test_full_eval_formatter():
     f = text.FullEvalFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
 
+
 def test_dollar_formatter():
     f = text.DollarFormatter()
     eval_formatter_check(f)
     eval_formatter_slicing_check(f)
-    
+
     ns = dict(n=12, pi=math.pi, stuff='hello there', os=os)
     s = f.format("$n", **ns)
     nt.assert_equal(s, "12")
@@ -153,9 +165,11 @@ def test_long_substr2():
     data = ['abc', 'abd', 'abf', 'ab']
     nt.assert_equal(text.long_substr(data), 'ab')
 
+
 def test_long_substr_empty():
     data = []
     nt.assert_equal(text.long_substr(data), '')
+
 
 def test_strip_email():
     src = """\
@@ -176,15 +190,19 @@ def test_strip_email2():
     cln = 'list()'
     nt.assert_equal(text.strip_email_quotes(src), cln)
 
+
 def test_LSString():
     lss = text.LSString("abc\ndef")
     nt.assert_equal(lss.l, ['abc', 'def'])
     nt.assert_equal(lss.s, 'abc def')
 
+
 def test_SList():
     sl = text.SList(['a 11', 'b 1', 'a 2'])
     nt.assert_equal(sl.n, 'a 11\nb 1\na 2')
     nt.assert_equal(sl.s, 'a 11 b 1 a 2')
-    nt.assert_equal(sl.grep(lambda x: x.startswith('a')), text.SList(['a 11', 'a 2']))
+    nt.assert_equal(
+        sl.grep(lambda x: x.startswith('a')), text.SList(['a 11', 'a 2']))
     nt.assert_equal(sl.fields(0), text.SList(['a', 'b', 'a']))
-    nt.assert_equal(sl.sort(field=1, nums=True), text.SList(['b 1', 'a 2', 'a 11']))
+    nt.assert_equal(
+        sl.sort(field=1, nums=True), text.SList(['b 1', 'a 2', 'a 11']))

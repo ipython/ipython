@@ -10,4 +10,3 @@ from IPython.parallel import *
 """
 
 app.exec_lines.append(lines)
-

@@ -27,14 +27,16 @@ tests = [
     ('??%hist3', ('', '??', '%hist3', '')),
     ('??%%hist4', ('', '??', '%%hist4', '')),
     ('?x*', ('', '?', 'x*', '')),
-    ]
+]
 if py3compat.PY3:
     tests.append((u"Pérez Fernando", (u'', u'', u'Pérez', u'Fernando')))
 else:
     tests.append((u"Pérez Fernando", (u'', u'', u'P', u'érez Fernando')))
 
+
 def test_split_user_input():
     return tt.check_pairs(split_user_input, tests)
+
 
 def test_LineInfo():
     """Simple test for LineInfo construction and str()"""

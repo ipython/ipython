@@ -22,6 +22,7 @@ from base64 import encodestring, decodestring
 # Code
 #-----------------------------------------------------------------------------
 
+
 class NotebookReader(object):
 
     def reads(self, s, **kwargs):
@@ -41,7 +42,4 @@ class NotebookWriter(object):
 
     def write(self, nb, fp, **kwargs):
         """Write a notebook to a file like object"""
-        return fp.write(self.writes(nb,**kwargs))
-
-
-
+        return fp.write(self.writes(nb, **kwargs))

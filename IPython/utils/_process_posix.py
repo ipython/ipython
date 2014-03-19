@@ -30,6 +30,7 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 # Function definitions
 #-----------------------------------------------------------------------------
 
+
 def _find_cmd(cmd):
     """Find the full path to a command using which."""
 
@@ -39,6 +40,7 @@ def _find_cmd(cmd):
 
 
 class ProcessHandler(object):
+
     """Execute subprocesses under the control of pexpect.
     """
     # Timeout in seconds to wait on each reading of the subprocess' output.
@@ -58,11 +60,11 @@ class ProcessHandler(object):
 
     @property
     def sh(self):
-        if self._sh is None:        
+        if self._sh is None:
             self._sh = pexpect.which('sh')
             if self._sh is None:
                 raise OSError('"sh" shell not found')
-        
+
         return self._sh
 
     def __init__(self, logfile=None, read_timeout=None, terminate_timeout=None):
@@ -130,7 +132,7 @@ class ProcessHandler(object):
         """
         # Get likely encoding for the output.
         enc = DEFAULT_ENCODING
-        
+
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
         patterns = [pexpect.TIMEOUT, pexpect.EOF]
@@ -150,9 +152,10 @@ class ProcessHandler(object):
             # the text itself.
             #child = pexpect.spawn(pcmd, searchwindowsize=1)
             if hasattr(pexpect, 'spawnb'):
-                child = pexpect.spawnb(self.sh, args=['-c', cmd]) # Pexpect-U
+                child = pexpect.spawnb(self.sh, args=['-c', cmd])  # Pexpect-U
             else:
-                child = pexpect.spawn(self.sh, args=['-c', cmd])  # Vanilla Pexpect
+                # Vanilla Pexpect
+                child = pexpect.spawn(self.sh, args=['-c', cmd])
             flush = sys.stdout.flush
             while True:
                 # res is the index of the pattern that caused the match, so we
@@ -160,7 +163,7 @@ class ProcessHandler(object):
                 res_idx = child.expect_list(patterns, self.read_timeout)
                 print(child.before[out_size:].decode(enc, 'replace'), end='')
                 flush()
-                if res_idx==EOF_index:
+                if res_idx == EOF_index:
                     break
                 # Update the pointer to what we've already printed
                 out_size = len(child.before)
@@ -191,7 +194,8 @@ class ProcessHandler(object):
         # on Linux, sh returns 128+n for signals terminating child processes on Linux
         # on BSD (OS X), the signal code is set instead
         if child.exitstatus is None:
-            # on WIFSIGNALED, pexpect sets signalstatus, leaving exitstatus=None
+            # on WIFSIGNALED, pexpect sets signalstatus, leaving
+            # exitstatus=None
             if child.signalstatus is None:
                 # this condition may never occur,
                 # but let's be certain we always return an integer.
@@ -208,6 +212,3 @@ class ProcessHandler(object):
 # programs think they are talking to a tty and produce highly formatted output
 # (ls is a good example) that makes them hard.
 system = ProcessHandler().system
-
-
-

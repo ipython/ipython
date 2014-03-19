@@ -29,7 +29,9 @@ from IPython.utils.py3compat import with_metaclass
 # Generic socket interface
 #-----------------------------------------------------------------------------
 
+
 class SocketABC(with_metaclass(abc.ABCMeta, object)):
+
     @abc.abstractmethod
     def recv_multipart(self, flags=0, copy=True, track=False):
         raise NotImplementedError
@@ -44,11 +46,13 @@ SocketABC.register(zmq.Socket)
 # Dummy socket class
 #-----------------------------------------------------------------------------
 
+
 class DummySocket(HasTraits):
+
     """ A dummy socket implementing (part of) the zmq.Socket interface. """
-    
+
     queue = Instance(Queue, ())
-    message_sent = Int(0) # Should be an Event
+    message_sent = Int(0)  # Should be an Event
 
     #-------------------------------------------------------------------------
     # Socket interface

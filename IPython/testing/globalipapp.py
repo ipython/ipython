@@ -36,7 +36,9 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 # Functions
 #-----------------------------------------------------------------------------
 
+
 class StreamProxy(io.IOStream):
+
     """Proxy for sys.stdout/err.  This will request the stream *at call time*
     allowing for nose's Capture plugin's redirection of sys.stdout/err.
 
@@ -47,7 +49,7 @@ class StreamProxy(io.IOStream):
     """
 
     def __init__(self, name):
-        self.name=name
+        self.name = name
 
     @property
     def stream(self):
@@ -60,26 +62,28 @@ class StreamProxy(io.IOStream):
 # test globals.  Once we move over to a clean magic system, this will be done
 # with much less ugliness.
 
+
 class py_file_finder(object):
-    def __init__(self,test_filename):
+
+    def __init__(self, test_filename):
         self.test_filename = test_filename
 
-    def __call__(self,name,win32=False):
+    def __call__(self, name, win32=False):
         from IPython.utils.path import get_py_filename
         try:
-            return get_py_filename(name,win32=win32)
+            return get_py_filename(name, win32=win32)
         except IOError:
             test_dir = os.path.dirname(self.test_filename)
-            new_path = os.path.join(test_dir,name)
-            return get_py_filename(new_path,win32=win32)
+            new_path = os.path.join(test_dir, name)
+            return get_py_filename(new_path, win32=win32)
 
 
-def _run_ns_sync(self,arg_s,runner=None):
+def _run_ns_sync(self, arg_s, runner=None):
     """Modified version of %run that syncs testing namespaces.
 
     This is strictly needed for running doctests that call %run.
     """
-    #print('in run_ns_sync', arg_s, file=sys.stderr)  # dbg
+    # print('in run_ns_sync', arg_s, file=sys.stderr)  # dbg
     finder = py_file_finder(arg_s)
     return get_ipython().magic_run_ori(arg_s, runner, finder)
 
@@ -98,7 +102,8 @@ def xsys(self, cmd):
     """
     # We use getoutput, but we need to strip it because pexpect captures
     # the trailing newline differently from commands.getoutput
-    print(self.getoutput(cmd, split=False, depth=1).rstrip(), end='', file=sys.stdout)
+    print(self.getoutput(cmd, split=False, depth=1).rstrip(),
+          end='', file=sys.stdout)
     sys.stdout.flush()
 
 
@@ -143,7 +148,7 @@ def start_ipython():
     # can capture subcommands and print them to Python's stdout, otherwise the
     # doctest machinery would miss them.
     shell.system = py3compat.MethodType(xsys, shell)
-    
+
     shell._showtraceback = py3compat.MethodType(_showtraceback, shell)
 
     # IPython is ready, now clean up some global state...
@@ -165,11 +170,11 @@ def start_ipython():
     # To avoid extra IPython messages during testing, suppress io.stdout/stderr
     io.stdout = StreamProxy('stdout')
     io.stderr = StreamProxy('stderr')
-    
+
     # Override paging, so we don't require user interaction during the tests.
     def nopage(strng, start=0, screen_lines=0, pager_cmd=None):
         print(strng)
-    
+
     page.orig_page = page.page
     page.page = nopage
 

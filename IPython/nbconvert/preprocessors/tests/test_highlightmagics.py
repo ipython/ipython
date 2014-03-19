@@ -23,8 +23,8 @@ from ..highlightmagics import HighlightMagicsPreprocessor
 #-----------------------------------------------------------------------------
 
 class TestHighlightMagics(PreprocessorTestsBase):
-    """Contains test functions for highlightmagics.py"""
 
+    """Contains test functions for highlightmagics.py"""
 
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
@@ -52,7 +52,8 @@ class TestHighlightMagics(PreprocessorTestsBase):
 
         assert('magics_language' in nb.worksheets[0].cells[0]['metadata'])
 
-        self.assertEqual(nb.worksheets[0].cells[0]['metadata']['magics_language'], 'r')
+        self.assertEqual(
+            nb.worksheets[0].cells[0]['metadata']['magics_language'], 'r')
 
     def test_no_false_positive(self):
         """Test that HighlightMagicsPreprocessor does not tag false positives"""

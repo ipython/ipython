@@ -16,11 +16,12 @@ from IPython.utils.version import check_version
 # Available APIs.
 QT_API_PYQT = 'pyqt'
 QT_API_PYQTv1 = 'pyqtv1'
-QT_API_PYQT_DEFAULT = 'pyqtdefault' # don't set SIP explicitly
+QT_API_PYQT_DEFAULT = 'pyqtdefault'  # don't set SIP explicitly
 QT_API_PYSIDE = 'pyside'
 
 
 class ImportDenier(object):
+
     """Import Hook that will guard against bad Qt imports
     once IPython commits to a specific binding
     """
@@ -102,14 +103,14 @@ def has_binding(api):
 
     import imp
     try:
-        #importing top level PyQt4/PySide module is ok...
+        # importing top level PyQt4/PySide module is ok...
         mod = __import__(module_name)
         #...importing submodules is not
         imp.find_module('QtCore', mod.__path__)
         imp.find_module('QtGui', mod.__path__)
         imp.find_module('QtSvg', mod.__path__)
 
-        #we can also safely check PySide version
+        # we can also safely check PySide version
         if api == QT_API_PYSIDE:
             return check_version(mod.__version__, '1.0.3')
         else:
@@ -237,7 +238,7 @@ def load_qt(api_options):
         if not can_import(api):
             continue
 
-        #cannot safely recover from an ImportError during this
+        # cannot safely recover from an ImportError during this
         result = loaders[api]()
         api = result[-1]  # changed if api = QT_API_PYQT_DEFAULT
         commit_api(api)

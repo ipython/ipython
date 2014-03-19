@@ -22,6 +22,7 @@ import sys
 # Decorators
 #-----------------------------------------------------------------------------
 
+
 def skip_doctest(f):
     """Decorator - mark a function or method for skipping its doctest.
 

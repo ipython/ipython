@@ -22,7 +22,7 @@ pjoin = os.path.join
 
 # suffix for start menu folder names
 pyver = "(Py%i.%i %i bit)" % (sys.version_info[0], sys.version_info[1],
-                              (32, 64)[sys.maxsize > 2**32])
+                              (32, 64)[sys.maxsize > 2 ** 32])
 
 
 def mkshortcut(target, description, linkdir, arguments="", iconpath='',
@@ -123,7 +123,7 @@ def install():
     # Disable pysh Start item until the profile restores functionality
     # Most of this code is in IPython/deathrow, and needs to be updated
     # to 0.11 APIs
-    #mkshortcut(python, 'IPython%s (command prompt mode)', ip_start_menu,
+    # mkshortcut(python, 'IPython%s (command prompt mode)', ip_start_menu,
     #           arguments(scripts, 'ipython', 'profile=pysh --init'))
 
 

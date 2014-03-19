@@ -15,12 +15,12 @@ from IPython.utils.version import check_version
 
 def patch_pyzmq():
     """backport a few patches from newer pyzmq
-    
+
     These can be removed as we bump our minimum pyzmq version
     """
-    
+
     import zmq
-    
+
     # fallback on stdlib json if jsonlib is selected, because jsonlib breaks things.
     # jsonlib support is removed from pyzmq >= 2.2.0
 
@@ -34,13 +34,13 @@ def check_for_zmq(minimum_version, required_by='Someone'):
     try:
         import zmq
     except ImportError:
-        raise ImportError("%s requires pyzmq >= %s"%(required_by, minimum_version))
-    
-    patch_pyzmq()
-    
-    pyzmq_version = zmq.__version__
-    
-    if not check_version(pyzmq_version, minimum_version):
-        raise ImportError("%s requires pyzmq >= %s, but you have %s"%(
-                        required_by, minimum_version, pyzmq_version))
+        raise ImportError("%s requires pyzmq >= %s" %
+                          (required_by, minimum_version))
 
+    patch_pyzmq()
+
+    pyzmq_version = zmq.__version__
+
+    if not check_version(pyzmq_version, minimum_version):
+        raise ImportError("%s requires pyzmq >= %s, but you have %s" % (
+            required_by, minimum_version, pyzmq_version))

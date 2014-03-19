@@ -43,6 +43,7 @@ from .remotefunction import ParallelFunction, parallel, remote, getname
 # Decorators
 #-----------------------------------------------------------------------------
 
+
 @decorator
 def save_ids(f, self, *args, **kwargs):
     """Keep our history and outstanding attributes up to date after a method call."""
@@ -55,6 +56,7 @@ def save_ids(f, self, *args, **kwargs):
         self.history.extend(msg_ids)
         self.outstanding.update(msg_ids)
     return ret
+
 
 @decorator
 def sync_results(f, self, *args, **kwargs):
@@ -69,6 +71,7 @@ def sync_results(f, self, *args, **kwargs):
         self._sync_results()
     return ret
 
+
 @decorator
 def spin_after(f, self, *args, **kwargs):
     """call spin after the method."""
@@ -80,8 +83,10 @@ def spin_after(f, self, *args, **kwargs):
 # Classes
 #-----------------------------------------------------------------------------
 
+
 @skip_doctest
 class View(HasTraits):
+
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
 
     Don't use this class, use subclasses.
@@ -111,11 +116,11 @@ class View(HasTraits):
 
     """
     # flags
-    block=Bool(False)
-    track=Bool(True)
+    block = Bool(False)
+    track = Bool(True)
     targets = Any()
 
-    history=List()
+    history = List()
     outstanding = Set()
     results = Dict()
     client = Instance('IPython.parallel.Client')
@@ -138,9 +143,9 @@ class View(HasTraits):
     def __repr__(self):
         strtargets = str(self.targets)
         if len(strtargets) > 16:
-            strtargets = strtargets[:12]+'...]'
-        return "<%s %s>"%(self.__class__.__name__, strtargets)
-    
+            strtargets = strtargets[:12] + '...]'
+        return "<%s %s>" % (self.__class__.__name__, strtargets)
+
     def __len__(self):
         if isinstance(self.targets, list):
             return len(self.targets)
@@ -148,7 +153,7 @@ class View(HasTraits):
             return 1
         else:
             return len(self.client)
-    
+
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
 
@@ -167,7 +172,7 @@ class View(HasTraits):
         """
         for name, value in iteritems(kwargs):
             if name not in self._flag_names:
-                raise KeyError("Invalid name: %r"%name)
+                raise KeyError("Invalid name: %r" % name)
             else:
                 setattr(self, name, value)
 
@@ -201,20 +206,18 @@ class View(HasTraits):
             # postflight: restore saved flags
             self.set_flags(**saved_flags)
 
-
     #----------------------------------------------------------------
     # apply
     #----------------------------------------------------------------
-
     def _sync_results(self):
         """to be called by @sync_results decorator
-        
+
         after submitting any tasks.
         """
         delta = self.outstanding.difference(self.client.outstanding)
         completed = self.outstanding.intersection(delta)
         self.outstanding = self.outstanding.difference(completed)
-        
+
     @sync_results
     @save_ids
     def _really_apply(self, f, args, kwargs, block=None, **options):
@@ -292,7 +295,7 @@ class View(HasTraits):
         block = block if block is not None else self.block
         targets = targets if targets is not None else self.targets
         jobs = jobs if jobs is not None else list(self.outstanding)
-        
+
         return self.client.abort(jobs=jobs, targets=targets, block=block)
 
     def queue_status(self, targets=None, verbose=False):
@@ -325,9 +328,9 @@ class View(HasTraits):
             indices_or_msg_ids = -1
         if isinstance(indices_or_msg_ids, int):
             indices_or_msg_ids = self.history[indices_or_msg_ids]
-        elif isinstance(indices_or_msg_ids, (list,tuple,set)):
+        elif isinstance(indices_or_msg_ids, (list, tuple, set)):
             indices_or_msg_ids = list(indices_or_msg_ids)
-            for i,index in enumerate(indices_or_msg_ids):
+            for i, index in enumerate(indices_or_msg_ids):
                 if isinstance(index, int):
                     indices_or_msg_ids[i] = self.history[index]
         return self.client.get_result(indices_or_msg_ids)
@@ -349,9 +352,10 @@ class View(HasTraits):
         See `self.map` for details.
         """
         if 'block' in kwargs:
-            raise TypeError("map_async doesn't take a `block` keyword argument.")
+            raise TypeError(
+                "map_async doesn't take a `block` keyword argument.")
         kwargs['block'] = False
-        return self.map(f,*sequences,**kwargs)
+        return self.map(f, *sequences, **kwargs)
 
     def map_sync(self, f, *sequences, **kwargs):
         """Parallel version of builtin :func:`python:map`, using this view's engines.
@@ -361,9 +365,10 @@ class View(HasTraits):
         See `self.map` for details.
         """
         if 'block' in kwargs:
-            raise TypeError("map_sync doesn't take a `block` keyword argument.")
+            raise TypeError(
+                "map_sync doesn't take a `block` keyword argument.")
         kwargs['block'] = True
-        return self.map(f,*sequences,**kwargs)
+        return self.map(f, *sequences, **kwargs)
 
     def imap(self, f, *sequences, **kwargs):
         """Parallel version of :func:`itertools.imap`.
@@ -372,7 +377,7 @@ class View(HasTraits):
 
         """
 
-        return iter(self.map_async(f,*sequences, **kwargs))
+        return iter(self.map_async(f, *sequences, **kwargs))
 
     #-------------------------------------------------------------------
     # Decorators
@@ -388,8 +393,10 @@ class View(HasTraits):
         block = self.block if block is None else block
         return parallel(self, dist=dist, block=block, **flags)
 
+
 @skip_doctest
 class DirectView(View):
+
     """Direct Multiplexer View of one or more engines.
 
     These are created via indexed access to a client:
@@ -409,7 +416,8 @@ class DirectView(View):
     """
 
     def __init__(self, client=None, socket=None, targets=None):
-        super(DirectView, self).__init__(client=client, socket=socket, targets=targets)
+        super(DirectView, self).__init__(
+            client=client, socket=socket, targets=targets)
 
     @property
     def importer(self):
@@ -425,14 +433,14 @@ class DirectView(View):
         """Context Manager for performing simultaneous local and remote imports.
 
         'import x as y' will *not* work.  The 'as y' part will simply be ignored.
-        
+
         If `local=True`, then the package will also be imported locally.
-        
+
         If `quiet=True`, no output will be produced when attempting remote 
         imports. 
-        
+
         Note that remote-only (`local=False`) imports have not been implemented.
-        
+
         >>> with view.sync_imports():
         ...    from numpy import recarray
         importing recarray from numpy on engine(s)
@@ -442,6 +450,7 @@ class DirectView(View):
         local_import = builtin_mod.__import__
         modules = set()
         results = []
+
         @util.interactive
         def remote_import(name, fromlist, level):
             """the function to be passed to apply, that actually performs the import
@@ -473,18 +482,21 @@ class DirectView(View):
             if local:
                 mod = local_import(name, globals, locals, fromlist, level)
             else:
-                raise NotImplementedError("remote-only imports not yet implemented")
+                raise NotImplementedError(
+                    "remote-only imports not yet implemented")
             imp.release_lock()
 
-            key = name+':'+','.join(fromlist or [])
+            key = name + ':' + ','.join(fromlist or [])
             if level <= 0 and key not in modules:
                 modules.add(key)
                 if not quiet:
                     if fromlist:
-                        print("importing %s from %s on engine(s)"%(','.join(fromlist), name))
+                        print("importing %s from %s on engine(s)" %
+                              (','.join(fromlist), name))
                     else:
-                        print("importing %s on engine(s)"%name)
-                results.append(self.apply_async(remote_import, name, fromlist, level))
+                        print("importing %s on engine(s)" % name)
+                results.append(
+                    self.apply_async(remote_import, name, fromlist, level))
             # restore override
             builtin_mod.__import__ = save_import
 
@@ -508,17 +520,16 @@ class DirectView(View):
         for r in results:
             # raise possible remote ImportErrors here
             r.get()
-    
+
     def use_dill(self):
         """Expand serialization support with dill
-        
+
         adds support for closures, etc.
-        
+
         This calls IPython.utils.pickleutil.use_dill() here and on each engine.
         """
         pickleutil.use_dill()
         return self.apply(pickleutil.use_dill)
-
 
     @sync_results
     @save_ids
@@ -558,27 +569,27 @@ class DirectView(View):
         block = self.block if block is None else block
         track = self.track if track is None else track
         targets = self.targets if targets is None else targets
-        
+
         _idents, _targets = self.client._build_targets(targets)
         msg_ids = []
         trackers = []
         for ident in _idents:
             msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
-                                    ident=ident)
+                                                 ident=ident)
             if track:
                 trackers.append(msg['tracker'])
             msg_ids.append(msg['header']['msg_id'])
         if isinstance(targets, int):
             msg_ids = msg_ids[0]
         tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=_targets, tracker=tracker)
+        ar = AsyncResult(
+            self.client, msg_ids, fname=getname(f), targets=_targets, tracker=tracker)
         if block:
             try:
                 return ar.get()
             except KeyboardInterrupt:
                 pass
         return ar
-
 
     @sync_results
     def map(self, f, *sequences, **kwargs):
@@ -617,7 +628,7 @@ class DirectView(View):
         block = kwargs.pop('block', self.block)
         for k in kwargs.keys():
             if k not in ['block', 'track']:
-                raise TypeError("invalid keyword arg, %r"%k)
+                raise TypeError("invalid keyword arg, %r" % k)
 
         assert len(sequences) > 0, "must have some sequences to map onto!"
         pf = ParallelFunction(self, f, block=block, **kwargs)
@@ -646,11 +657,13 @@ class DirectView(View):
         msg_ids = []
         trackers = []
         for ident in _idents:
-            msg = self.client.send_execute_request(self._socket, code, silent=silent, ident=ident)
+            msg = self.client.send_execute_request(
+                self._socket, code, silent=silent, ident=ident)
             msg_ids.append(msg['header']['msg_id'])
         if isinstance(targets, int):
             msg_ids = msg_ids[0]
-        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=_targets)
+        ar = AsyncResult(
+            self.client, msg_ids, fname='execute', targets=_targets)
         if block:
             try:
                 ar.get()
@@ -679,7 +692,7 @@ class DirectView(View):
         with open(filename, 'r') as f:
             # add newline in case of trailing indented whitespace
             # which will cause SyntaxError
-            code = f.read()+'\n'
+            code = f.read() + '\n'
         return self.execute(code, block=block, targets=targets)
 
     def update(self, ns):
@@ -707,7 +720,7 @@ class DirectView(View):
         targets = targets if targets is not None else self.targets
         # applier = self.apply_sync if block else self.apply_async
         if not isinstance(ns, dict):
-            raise TypeError("Must be a dict, not %s"%type(ns))
+            raise TypeError("Must be a dict, not %s" % type(ns))
         return self._really_apply(util._push, kwargs=ns, block=block, track=track, targets=targets)
 
     def get(self, key_s):
@@ -729,12 +742,13 @@ class DirectView(View):
         applier = self.apply_sync if block else self.apply_async
         if isinstance(names, string_types):
             pass
-        elif isinstance(names, (list,tuple,set)):
+        elif isinstance(names, (list, tuple, set)):
             for key in names:
                 if not isinstance(key, string_types):
-                    raise TypeError("keys must be str, not type %r"%type(key))
+                    raise TypeError(
+                        "keys must be str, not type %r" % type(key))
         else:
-            raise TypeError("names must be strs, not %r"%names)
+            raise TypeError("names must be strs, not %r" % names)
         return self._really_apply(util._pull, (names,), block=block, targets=targets)
 
     def scatter(self, key, seq, dist='b', flatten=False, targets=None, block=None, track=None):
@@ -744,7 +758,7 @@ class DirectView(View):
         block = block if block is not None else self.block
         track = track if track is not None else self.track
         targets = targets if targets is not None else self.targets
-        
+
         # construct integer ID list:
         targets = self.client._build_targets(targets)[1]
 
@@ -768,7 +782,8 @@ class DirectView(View):
         else:
             tracker = None
 
-        r = AsyncResult(self.client, msg_ids, fname='scatter', targets=targets, tracker=tracker)
+        r = AsyncResult(
+            self.client, msg_ids, fname='scatter', targets=targets, tracker=tracker)
         if block:
             r.wait()
         else:
@@ -787,9 +802,10 @@ class DirectView(View):
 
         # construct integer ID list:
         targets = self.client._build_targets(targets)[1]
-        
+
         for index, engineid in enumerate(targets):
-            msg_ids.extend(self.pull(key, block=False, targets=engineid).msg_ids)
+            msg_ids.extend(
+                self.pull(key, block=False, targets=engineid).msg_ids)
 
         r = AsyncMapResult(self.client, msg_ids, mapObject, fname='gather')
 
@@ -803,8 +819,8 @@ class DirectView(View):
     def __getitem__(self, key):
         return self.get(key)
 
-    def __setitem__(self,key, value):
-        self.update({key:value})
+    def __setitem__(self, key, value):
+        self.update({key: value})
 
     def clear(self, targets=None, block=None):
         """Clear the remote namespaces on my engines."""
@@ -818,36 +834,38 @@ class DirectView(View):
 
     def activate(self, suffix=''):
         """Activate IPython magics associated with this View
-        
+
         Defines the magics `%px, %autopx, %pxresult, %%px, %pxconfig`
-        
+
         Parameters
         ----------
-        
+
         suffix: str [default: '']
             The suffix, if any, for the magics.  This allows you to have
             multiple views associated with parallel magics at the same time.
-            
+
             e.g. ``rc[::2].activate(suffix='_even')`` will give you
             the magics ``%px_even``, ``%pxresult_even``, etc. for running magics 
             on the even engines.
         """
-        
+
         from IPython.parallel.client.magics import ParallelMagics
-        
+
         try:
             # This is injected into __builtins__.
             ip = get_ipython()
         except NameError:
-            print("The IPython parallel magics (%px, etc.) only work within IPython.")
+            print(
+                "The IPython parallel magics (%px, etc.) only work within IPython.")
             return
-        
+
         M = ParallelMagics(ip, self, suffix)
         ip.magics_manager.register(M)
 
 
 @skip_doctest
 class LoadBalancedView(View):
+
     """An load-balancing View that only executes via the Task scheduler.
 
     Load-balanced views can be created with the client's `view` method:
@@ -862,17 +880,19 @@ class LoadBalancedView(View):
 
     """
 
-    follow=Any()
-    after=Any()
-    timeout=CFloat()
+    follow = Any()
+    after = Any()
+    timeout = CFloat()
     retries = Integer(0)
 
     _task_scheme = Any()
-    _flag_names = List(['targets', 'block', 'track', 'follow', 'after', 'timeout', 'retries'])
+    _flag_names = List(
+        ['targets', 'block', 'track', 'follow', 'after', 'timeout', 'retries'])
 
     def __init__(self, client=None, socket=None, **flags):
-        super(LoadBalancedView, self).__init__(client=client, socket=socket, **flags)
-        self._task_scheme=client._task_scheme
+        super(LoadBalancedView, self).__init__(
+            client=client, socket=socket, **flags)
+        self._task_scheme = client._task_scheme
 
     def _validate_dependency(self, dep):
         """validate a dependency.
@@ -881,7 +901,7 @@ class LoadBalancedView(View):
         """
         if dep is None or isinstance(dep, string_types + (AsyncResult, Dependency)):
             return True
-        elif isinstance(dep, (list,set, tuple)):
+        elif isinstance(dep, (list, set, tuple)):
             for d in dep:
                 if not isinstance(d, string_types + (AsyncResult,)):
                     return False
@@ -956,22 +976,22 @@ class LoadBalancedView(View):
                 if self._validate_dependency(value):
                     setattr(self, name, value)
                 else:
-                    raise ValueError("Invalid dependency: %r"%value)
+                    raise ValueError("Invalid dependency: %r" % value)
         if 'timeout' in kwargs:
             t = kwargs['timeout']
             if not isinstance(t, (int, float, type(None))):
                 if (not PY3) and (not isinstance(t, long)):
-                    raise TypeError("Invalid type for timeout: %r"%type(t))
+                    raise TypeError("Invalid type for timeout: %r" % type(t))
             if t is not None:
                 if t < 0:
-                    raise ValueError("Invalid timeout: %s"%t)
+                    raise ValueError("Invalid timeout: %s" % t)
             self.timeout = t
 
     @sync_results
     @save_ids
     def _really_apply(self, f, args=None, kwargs=None, block=None, track=None,
-                                        after=None, follow=None, timeout=None,
-                                        targets=None, retries=None):
+                      after=None, follow=None, timeout=None,
+                      targets=None, retries=None):
         """calls f(*args, **kwargs) on a remote engine, returning the result.
 
         This method temporarily sets all of `apply`'s flags for a single call.
@@ -1034,24 +1054,26 @@ class LoadBalancedView(View):
         targets = self.targets if targets is None else targets
 
         if not isinstance(retries, int):
-            raise TypeError('retries must be int, not %r'%type(retries))
+            raise TypeError('retries must be int, not %r' % type(retries))
 
         if targets is None:
             idents = []
         else:
             idents = self.client._build_targets(targets)[0]
             # ensure *not* bytes
-            idents = [ ident.decode() for ident in idents ]
+            idents = [ident.decode() for ident in idents]
 
         after = self._render_dependency(after)
         follow = self._render_dependency(follow)
-        metadata = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
+        metadata = dict(
+            after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
 
         msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
-                                metadata=metadata)
+                                             metadata=metadata)
         tracker = None if track is False else msg['tracker']
 
-        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=getname(f), targets=None, tracker=tracker)
+        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=getname(
+            f), targets=None, tracker=tracker)
 
         if block:
             try:
@@ -1091,7 +1113,7 @@ class LoadBalancedView(View):
         ordered : bool [default True]
             Whether the results should be gathered as they arrive, or enforce
             the order of submission.
-            
+
             Only applies when iterating through AsyncMapResult as results arrive.
             Has no effect when block=True.
 
@@ -1115,11 +1137,12 @@ class LoadBalancedView(View):
         keyset = set(kwargs.keys())
         extra_keys = keyset.difference_update(set(['block', 'chunksize']))
         if extra_keys:
-            raise TypeError("Invalid kwargs: %s"%list(extra_keys))
+            raise TypeError("Invalid kwargs: %s" % list(extra_keys))
 
         assert len(sequences) > 0, "must have some sequences to map onto!"
 
-        pf = ParallelFunction(self, f, block=block, chunksize=chunksize, ordered=ordered)
+        pf = ParallelFunction(
+            self, f, block=block, chunksize=chunksize, ordered=ordered)
         return pf.map(*sequences)
 
 __all__ = ['LoadBalancedView', 'DirectView']

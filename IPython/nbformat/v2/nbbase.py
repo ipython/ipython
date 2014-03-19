@@ -31,6 +31,7 @@ from IPython.utils.py3compat import unicode_type
 # Code
 #-----------------------------------------------------------------------------
 
+
 class NotebookNode(Struct):
     pass
 
@@ -38,7 +39,7 @@ class NotebookNode(Struct):
 def from_dict(d):
     if isinstance(d, dict):
         newd = NotebookNode()
-        for k,v in d.items():
+        for k, v in d.items():
             newd[k] = from_dict(v)
         return newd
     elif isinstance(d, (tuple, list)):
@@ -48,9 +49,9 @@ def from_dict(d):
 
 
 def new_output(output_type=None, output_text=None, output_png=None,
-    output_html=None, output_svg=None, output_latex=None, output_json=None,
-    output_javascript=None, output_jpeg=None, prompt_number=None,
-    etype=None, evalue=None, traceback=None):
+               output_html=None, output_svg=None, output_latex=None, output_json=None,
+               output_javascript=None, output_jpeg=None, prompt_number=None,
+               etype=None, evalue=None, traceback=None):
     """Create a new code cell with input and output"""
     output = NotebookNode()
     if output_type is not None:
@@ -84,13 +85,14 @@ def new_output(output_type=None, output_text=None, output_png=None,
         if evalue is not None:
             output.evalue = unicode_type(evalue)
         if traceback is not None:
-            output.traceback = [unicode_type(frame) for frame in list(traceback)]
+            output.traceback = [unicode_type(frame)
+                                for frame in list(traceback)]
 
     return output
 
 
 def new_code_cell(input=None, prompt_number=None, outputs=None,
-    language=u'python', collapsed=False):
+                  language=u'python', collapsed=False):
     """Create a new code cell with input and output"""
     cell = NotebookNode()
     cell.cell_type = u'code'
@@ -108,6 +110,7 @@ def new_code_cell(input=None, prompt_number=None, outputs=None,
         cell.collapsed = bool(collapsed)
 
     return cell
+
 
 def new_text_cell(cell_type, source=None, rendered=None):
     """Create a new text cell."""
@@ -148,7 +151,7 @@ def new_notebook(metadata=None, worksheets=None):
 
 
 def new_metadata(name=None, authors=None, license=None, created=None,
-    modified=None, gistid=None):
+                 modified=None, gistid=None):
     """Create a new metadata node."""
     metadata = NotebookNode()
     if name is not None:
@@ -165,6 +168,7 @@ def new_metadata(name=None, authors=None, license=None, created=None,
         metadata.gistid = unicode_type(gistid)
     return metadata
 
+
 def new_author(name=None, email=None, affiliation=None, url=None):
     """Create a new author."""
     author = NotebookNode()
@@ -177,4 +181,3 @@ def new_author(name=None, email=None, affiliation=None, url=None):
     if url is not None:
         author.url = unicode_type(url)
     return author
-

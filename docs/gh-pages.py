@@ -35,6 +35,8 @@ pages_repo = 'git@github.com:ipython/ipython-doc.git'
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+
 def sh(cmd):
     """Execute command in a subshell, return status code."""
     return check_call(cmd, shell=True)
@@ -68,7 +70,7 @@ def sh3(cmd):
 
 def init_repo(path):
     """clone the gh-pages repo if we haven't already."""
-    sh("git clone %s %s"%(pages_repo, path))
+    sh("git clone %s %s" % (pages_repo, path))
     here = os.getcwdu()
     cd(path)
     sh('git checkout gh-pages')
@@ -83,7 +85,7 @@ if __name__ == '__main__':
         tag = sys.argv[1]
     except IndexError:
         tag = "dev"
-    
+
     startdir = os.getcwdu()
     if not os.path.exists(pages_dir):
         # init the repo

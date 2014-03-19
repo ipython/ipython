@@ -32,8 +32,10 @@ from .script import ScriptMagics
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
+
 @magics_class
 class UserMagics(Magics):
+
     """Placeholder for user-defined magics to be added at runtime.
 
     All magics are eventually merged into a single namespace at runtime, but we

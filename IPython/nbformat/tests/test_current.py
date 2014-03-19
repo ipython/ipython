@@ -21,6 +21,7 @@ from ..current import read, current_nbformat
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class TestCurrent(TestsBase):
 
     def test_read(self):
@@ -31,6 +32,7 @@ class TestCurrent(TestsBase):
         with self.fopen(u'test2.ipynb', u'r') as f:
             nb = read(f, u'json')
 
-        # Check that the notebook was upgraded to the latest version automatically.
+        # Check that the notebook was upgraded to the latest version
+        # automatically.
         (major, minor) = get_version(nb)
         self.assertEqual(major, current_nbformat)

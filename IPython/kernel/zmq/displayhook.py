@@ -9,10 +9,12 @@ from IPython.utils.py3compat import builtin_mod
 from IPython.utils.traitlets import Instance, Dict
 from .session import extract_header, Session
 
+
 class ZMQDisplayHook(object):
+
     """A simple displayhook that publishes the object's repr over a ZeroMQ
     socket."""
-    topic=b'pyout'
+    topic = b'pyout'
 
     def __init__(self, session, pub_socket):
         self.session = session
@@ -26,18 +28,19 @@ class ZMQDisplayHook(object):
         builtin_mod._ = obj
         sys.stdout.flush()
         sys.stderr.flush()
-        msg = self.session.send(self.pub_socket, u'pyout', {u'data':repr(obj)},
-                               parent=self.parent_header, ident=self.topic)
+        msg = self.session.send(self.pub_socket, u'pyout', {u'data': repr(obj)},
+                                parent=self.parent_header, ident=self.topic)
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)
 
 
 class ZMQShellDisplayHook(DisplayHook):
+
     """A displayhook subclass that publishes data using ZeroMQ. This is intended
     to work with an InteractiveShell instance. It sends a dict of different
     representations of the object."""
-    topic=None
+    topic = None
 
     session = Instance(Session)
     pub_socket = Instance(SocketABC)
@@ -64,4 +67,3 @@ class ZMQShellDisplayHook(DisplayHook):
         sys.stderr.flush()
         self.session.send(self.pub_socket, self.msg, ident=self.topic)
         self.msg = None
-

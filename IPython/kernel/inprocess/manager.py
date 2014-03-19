@@ -19,7 +19,9 @@ from IPython.kernel.manager import KernelManager
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
+
 class InProcessKernelManager(KernelManager):
+
     """A manager for an in-process kernel.
 
     This class implements the interface of
@@ -32,7 +34,8 @@ class InProcessKernelManager(KernelManager):
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
     # the client class for KM.client() shortcut
-    client_class = DottedObjectName('IPython.kernel.inprocess.BlockingInProcessKernelClient')
+    client_class = DottedObjectName(
+        'IPython.kernel.inprocess.BlockingInProcessKernelClient')
 
     #--------------------------------------------------------------------------
     # Kernel management methods

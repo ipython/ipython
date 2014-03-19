@@ -60,9 +60,9 @@ def _safe_is_tarfile(path):
 
 def check_nbextension(files, ipython_dir=None):
     """Check whether nbextension files have been installed
-    
+
     files should be a list of relative paths within nbextensions.
-    
+
     Returns True if all files are found, False if any are missing.
     """
     ipython_dir = ipython_dir or get_ipython_dir()
@@ -70,24 +70,24 @@ def check_nbextension(files, ipython_dir=None):
     # make sure nbextensions dir exists
     if not os.path.exists(nbext):
         return False
-    
+
     if isinstance(files, string_types):
         # one file given, turn it into a list
         files = [files]
-    
+
     return all(os.path.exists(pjoin(nbext, f)) for f in files)
 
 
 def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None, verbose=1):
     """Install a Javascript extension for the notebook
-    
+
     Stages files and/or directories into IPYTHONDIR/nbextensions.
     By default, this compares modification time, and only stages files that need updating.
     If `overwrite` is specified, matching files are purged before proceeding.
-    
+
     Parameters
     ----------
-    
+
     files : list(paths or URLs)
         One or more paths or URLs to existing files directories to install.
         These will be installed with their base name, so '/path/to/foo'
@@ -105,19 +105,19 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
         Set verbosity level. The default is 1, where file actions are printed.
         set verbose=2 for more output, or verbose=0 for silence.
     """
-    
+
     ipython_dir = ipython_dir or get_ipython_dir()
     nbext = pjoin(ipython_dir, u'nbextensions')
     # make sure nbextensions dir exists
     if not os.path.exists(nbext):
         os.makedirs(nbext)
-    
+
     if isinstance(files, string_types):
         # one file given, turn it into a list
         files = [files]
-    
+
     for path in map(cast_unicode_py2, files):
-        
+
         if path.startswith(('https://', 'http://')):
             if symlink:
                 raise ValueError("Cannot symlink from URLs")
@@ -129,16 +129,17 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
                     print("downloading %s to %s" % (path, local_path))
                 urlretrieve(path, local_path)
                 # now install from the local copy
-                install_nbextension(local_path, overwrite, symlink, ipython_dir, verbose)
+                install_nbextension(
+                    local_path, overwrite, symlink, ipython_dir, verbose)
             continue
-        
+
         # handle archives
         archive = None
         if path.endswith('.zip'):
             archive = zipfile.ZipFile(path)
         elif _safe_is_tarfile(path):
             archive = tarfile.open(path)
-        
+
         if archive:
             if symlink:
                 raise ValueError("Cannot symlink from archives")
@@ -147,7 +148,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
             archive.extractall(nbext)
             archive.close()
             continue
-        
+
         dest = pjoin(nbext, basename(path))
         if overwrite and os.path.exists(dest):
             if verbose >= 1:
@@ -156,7 +157,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
                 shutil.rmtree(dest)
             else:
                 os.remove(dest)
-        
+
         if symlink:
             path = os.path.abspath(path)
             if not os.path.exists(dest):
@@ -190,36 +191,38 @@ from IPython.utils.traitlets import Bool, Enum
 from IPython.core.application import BaseIPythonApplication
 
 flags = {
-    "overwrite" : ({
-        "NBExtensionApp" : {
-            "overwrite" : True,
+    "overwrite": ({
+        "NBExtensionApp": {
+            "overwrite": True,
         }}, "Force overwrite of existing files"
     ),
-    "debug" : ({
-        "NBExtensionApp" : {
-            "verbose" : 2,
+    "debug": ({
+        "NBExtensionApp": {
+            "verbose": 2,
         }}, "Extra output"
     ),
-    "quiet" : ({
-        "NBExtensionApp" : {
-            "verbose" : 0,
+    "quiet": ({
+        "NBExtensionApp": {
+            "verbose": 0,
         }}, "Minimal output"
     ),
-    "symlink" : ({
-        "NBExtensionApp" : {
-            "symlink" : True,
+    "symlink": ({
+        "NBExtensionApp": {
+            "symlink": True,
         }}, "Create symlinks instead of copying files"
     ),
 }
 flags['s'] = flags['symlink']
 
 aliases = {
-    "ipython-dir" : "NBExtensionApp.ipython_dir"
+    "ipython-dir": "NBExtensionApp.ipython_dir"
 }
 
+
 class NBExtensionApp(BaseIPythonApplication):
+
     """Entry point for installing notebook extensions"""
-    
+
     description = """Install IPython notebook extensions
     
     Usage
@@ -232,27 +235,29 @@ class NBExtensionApp(BaseIPythonApplication):
     If the requested files are already up to date, no action is taken
     unless --overwrite is specified.
     """
-    
+
     examples = """
     ipython install-nbextension /path/to/d3.js /path/to/myextension
     """
     aliases = aliases
     flags = flags
-    
-    overwrite = Bool(False, config=True, help="Force overwrite of existing files")
-    symlink = Bool(False, config=True, help="Create symlinks instead of copying files")
-    verbose = Enum((0,1,2), default_value=1, config=True,
-        help="Verbosity level"
-    )
-    
+
+    overwrite = Bool(
+        False, config=True, help="Force overwrite of existing files")
+    symlink = Bool(
+        False, config=True, help="Create symlinks instead of copying files")
+    verbose = Enum((0, 1, 2), default_value=1, config=True,
+                   help="Verbosity level"
+                   )
+
     def install_extensions(self):
         install_nbextension(self.extra_args,
-            overwrite=self.overwrite,
-            symlink=self.symlink,
-            verbose=self.verbose,
-            ipython_dir=self.ipython_dir,
-        )
-    
+                            overwrite=self.overwrite,
+                            symlink=self.symlink,
+                            verbose=self.verbose,
+                            ipython_dir=self.ipython_dir,
+                            )
+
     def start(self):
         if not self.extra_args:
             nbext = pjoin(self.ipython_dir, u'nbextensions')
@@ -265,4 +270,3 @@ class NBExtensionApp(BaseIPythonApplication):
 
 if __name__ == '__main__':
     NBExtensionApp.launch_instance()
-    

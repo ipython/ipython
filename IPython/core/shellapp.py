@@ -43,7 +43,7 @@ from IPython.lib.inputhook import guis
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-gui_keys = tuple(sorted([ key for key in guis if key is not None ]))
+gui_keys = tuple(sorted([key for key in guis if key is not None]))
 
 backend_keys = sorted(pylabtools.backends.keys())
 backend_keys.insert(0, 'auto')
@@ -53,30 +53,30 @@ shell_flags = {}
 addflag = lambda *args: shell_flags.update(boolean_flag(*args))
 addflag('autoindent', 'InteractiveShell.autoindent',
         'Turn on autoindenting.', 'Turn off autoindenting.'
-)
+        )
 addflag('automagic', 'InteractiveShell.automagic',
         """Turn on the auto calling of magic commands. Type %%magic at the
         IPython  prompt  for  more information.""",
         'Turn off the auto calling of magic commands.'
-)
+        )
 addflag('pdb', 'InteractiveShell.pdb',
-    "Enable auto calling the pdb debugger after every exception.",
-    "Disable auto calling the pdb debugger after every exception."
-)
+        "Enable auto calling the pdb debugger after every exception.",
+        "Disable auto calling the pdb debugger after every exception."
+        )
 # pydb flag doesn't do any config, as core.debugger switches on import,
 # which is before parsing.  This just allows the flag to be passed.
 shell_flags.update(dict(
-    pydb = ({},
-        """Use the third party 'pydb' package as debugger, instead of pdb.
+    pydb=({},
+          """Use the third party 'pydb' package as debugger, instead of pdb.
         Requires that pydb is installed."""
-    )
+          )
 ))
 addflag('pprint', 'PlainTextFormatter.pprint',
-    "Enable auto pretty printing of results.",
-    "Disable auto pretty printing of results."
-)
+        "Enable auto pretty printing of results.",
+        "Disable auto pretty printing of results."
+        )
 addflag('color-info', 'InteractiveShell.color_info',
-    """IPython can display information about objects via a set of func-
+        """IPython can display information about objects via a set of func-
     tions, and optionally can use colors for this, syntax highlighting
     source code and various other elements.  However, because this
     information is passed through a pager (like 'less') and many pagers get
@@ -85,10 +85,10 @@ addflag('color-info', 'InteractiveShell.color_info',
     works for you.  Test it and turn it on permanently if it works with
     your system.  The magic function %%color_info allows you to toggle this
     interactively for testing.""",
-    "Disable using colors for info related things."
-)
+        "Disable using colors for info related things."
+        )
 addflag('deep-reload', 'InteractiveShell.deep_reload',
-    """Enable deep (recursive) reloading by default. IPython can use the
+        """Enable deep (recursive) reloading by default. IPython can use the
     deep_reload module which reloads changes in modules recursively (it
     replaces the reload() function, so you don't need to change anything to
     use it). deep_reload() forces a full reload of modules whose code may
@@ -97,21 +97,21 @@ addflag('deep-reload', 'InteractiveShell.deep_reload',
     deep_reload will still be available as dreload(). This feature is off
     by default [which means that you have both normal reload() and
     dreload()].""",
-    "Disable deep (recursive) reloading by default."
-)
+        "Disable deep (recursive) reloading by default."
+        )
 nosep_config = Config()
 nosep_config.InteractiveShell.separate_in = ''
 nosep_config.InteractiveShell.separate_out = ''
 nosep_config.InteractiveShell.separate_out2 = ''
 
-shell_flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
+shell_flags['nosep'] = (nosep_config, "Eliminate all spacing between prompts.")
 shell_flags['pylab'] = (
-    {'InteractiveShellApp' : {'pylab' : 'auto'}},
+    {'InteractiveShellApp': {'pylab': 'auto'}},
     """Pre-load matplotlib and numpy for interactive use with
     the default matplotlib backend."""
 )
 shell_flags['matplotlib'] = (
-    {'InteractiveShellApp' : {'matplotlib' : 'auto'}},
+    {'InteractiveShellApp': {'matplotlib': 'auto'}},
     """Configure matplotlib for interactive use with
     the default matplotlib backend."""
 )
@@ -135,9 +135,11 @@ shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 # Main classes and functions
 #-----------------------------------------------------------------------------
 
+
 class InteractiveShellApp(Configurable):
+
     """A Mixin for applications that start InteractiveShell instances.
-    
+
     Provides configurables for loading extensions and executing files
     as part of configuring a Shell environment.
 
@@ -151,67 +153,70 @@ class InteractiveShellApp(Configurable):
       - :meth:`init_code`
     """
     extensions = List(Unicode, config=True,
-        help="A list of dotted module names of IPython extensions to load."
-    )
+                      help="A list of dotted module names of IPython extensions to load."
+                      )
     extra_extension = Unicode('', config=True,
-        help="dotted module name of an IPython extension to load."
-    )
+                              help="dotted module name of an IPython extension to load."
+                              )
+
     def _extra_extension_changed(self, name, old, new):
         if new:
             # add to self.extensions
             self.extensions.append(new)
-    
+
     # Extensions that are always loaded (not configurable)
     default_extensions = List(Unicode, [u'storemagic'], config=False)
-    
+
     hide_initial_ns = Bool(True, config=True,
-        help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
+                           help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
         be hidden from tools like %who?"""
-    )
+                           )
 
     exec_files = List(Unicode, config=True,
-        help="""List of files to run at IPython startup."""
-    )
+                      help="""List of files to run at IPython startup."""
+                      )
     exec_PYTHONSTARTUP = Bool(True, config=True,
-        help="""Run the file referenced by the PYTHONSTARTUP environment
+                              help="""Run the file referenced by the PYTHONSTARTUP environment
         variable at IPython startup."""
-    )
+                              )
     file_to_run = Unicode('', config=True,
-        help="""A file to be run""")
+                          help="""A file to be run""")
 
     exec_lines = List(Unicode, config=True,
-        help="""lines of code to run at IPython startup."""
-    )
+                      help="""lines of code to run at IPython startup."""
+                      )
     code_to_run = Unicode('', config=True,
-        help="Execute the given command string."
-    )
+                          help="Execute the given command string."
+                          )
     module_to_run = Unicode('', config=True,
-        help="Run the module as a script."
-    )
+                            help="Run the module as a script."
+                            )
     gui = CaselessStrEnum(gui_keys, config=True,
-        help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
-    )
+                          help="Enable GUI event loop integration with any of {0}.".format(
+                              gui_keys)
+                          )
     matplotlib = CaselessStrEnum(backend_keys,
-        config=True,
-        help="""Configure matplotlib for interactive use with
+                                 config=True,
+                                 help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
-    )
+                                 )
     pylab = CaselessStrEnum(backend_keys,
-        config=True,
-        help="""Pre-load matplotlib and numpy for interactive use,
+                            config=True,
+                            help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
         """
-    )
+                            )
     pylab_import_all = Bool(True, config=True,
-        help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
+                            help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
         and an ``import *`` is done from numpy and pylab, when using pylab mode.
         
         When False, pylab mode should not import any names into the user namespace.
         """
-    )
+                            )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    
+
     user_ns = Instance(dict, args=None, allow_none=True)
+
     def _user_ns_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_ns = new
@@ -230,7 +235,8 @@ class InteractiveShellApp(Configurable):
         enable = False
         shell = self.shell
         if self.pylab:
-            enable = lambda key: shell.enable_pylab(key, import_all=self.pylab_import_all)
+            enable = lambda key: shell.enable_pylab(
+                key, import_all=self.pylab_import_all)
             key = self.pylab
         elif self.matplotlib:
             enable = shell.enable_matplotlib
@@ -238,31 +244,32 @@ class InteractiveShellApp(Configurable):
         elif self.gui:
             enable = shell.enable_gui
             key = self.gui
-        
+
         if not enable:
             return
-        
+
         try:
             r = enable(key)
         except ImportError:
-            self.log.warn("Eventloop or matplotlib integration failed. Is matplotlib installed?")
+            self.log.warn(
+                "Eventloop or matplotlib integration failed. Is matplotlib installed?")
             self.shell.showtraceback()
             return
         except Exception:
             self.log.warn("GUI event loop or pylab initialization failed")
             self.shell.showtraceback()
             return
-            
+
         if isinstance(r, tuple):
             gui, backend = r[:2]
             self.log.info("Enabling GUI event loop integration, "
-                      "eventloop=%s, matplotlib=%s", gui, backend)
+                          "eventloop=%s, matplotlib=%s", gui, backend)
             if key == "auto":
                 print("Using matplotlib backend: %s" % backend)
         else:
             gui = r
             self.log.info("Enabling GUI event loop integration, "
-                      "eventloop=%s", gui)
+                          "eventloop=%s", gui)
 
     def init_extensions(self):
         """Load all IPython extensions in IPythonApp.extensions.
@@ -279,8 +286,8 @@ class InteractiveShellApp(Configurable):
                     self.shell.extension_manager.load_extension(ext)
                 except:
                     self.log.warn("Error in loading extension: %s" % ext +
-                        "\nCheck your config files in %s" % self.profile_dir.location
-                    )
+                                  "\nCheck your config files in %s" % self.profile_dir.location
+                                  )
                     self.shell.showtraceback()
         except:
             self.log.warn("Unknown error in loading extensions:")
@@ -291,16 +298,16 @@ class InteractiveShellApp(Configurable):
         self._run_startup_files()
         self._run_exec_lines()
         self._run_exec_files()
-        
+
         # Hide variables defined here from %who etc.
         if self.hide_initial_ns:
             self.shell.user_ns_hidden.update(self.shell.user_ns)
-        
+
         # command-line execution (ipython -i script.py, ipython -m module)
         # should *not* be excluded from %whos
         self._run_cmd_line_code()
         self._run_module()
-        
+
         # flush output, so itwon't be attached to the first cell
         sys.stdout.flush()
         sys.stderr.flush()
@@ -328,7 +335,7 @@ class InteractiveShellApp(Configurable):
         try:
             full_filename = filefind(fname, [u'.', self.ipython_dir])
         except IOError as e:
-            self.log.warn("File not found: %r"%fname)
+            self.log.warn("File not found: %r" % fname)
             return
         # Make sure that the running script gets a proper sys.argv as if it
         # were run from a system shell.
@@ -336,7 +343,7 @@ class InteractiveShellApp(Configurable):
         sys.argv = [full_filename] + self.extra_args[1:]
         # protect sys.argv from potential unicode strings on Python 2:
         if not py3compat.PY3:
-            sys.argv = [ py3compat.cast_bytes(a) for a in sys.argv ]
+            sys.argv = [py3compat.cast_bytes(a) for a in sys.argv]
         try:
             if os.path.isfile(full_filename):
                 self.log.info("Running file in user namespace: %s" %
@@ -365,7 +372,7 @@ class InteractiveShellApp(Configurable):
         startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))
         if not startup_files:
             return
-        
+
         self.log.debug("Running startup files from %s...", startup_dir)
         try:
             for fname in sorted(startup_files):
@@ -400,7 +407,8 @@ class InteractiveShellApp(Configurable):
                               line)
                 self.shell.showtraceback()
 
-        # Like Python itself, ignore the second if the first of these is present
+        # Like Python itself, ignore the second if the first of these is
+        # present
         elif self.file_to_run:
             fname = self.file_to_run
             try:

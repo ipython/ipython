@@ -1,4 +1,4 @@
 try:
     from jsonschema import *
-except ImportError :
+except ImportError:
     from ._jsonschema import *

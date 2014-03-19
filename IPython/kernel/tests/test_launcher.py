@@ -26,6 +26,7 @@ from IPython.kernel.launcher import swallow_argv
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 def test_swallow_argv():
     tests = [
         # expected  , argv       , aliases, flags
@@ -41,18 +42,17 @@ def test_swallow_argv():
         (['5'], ['--foo', '5'], [], ['foo']),
         (['bar'], ['--foo', '5', 'bar'], ['foo'], ['foo']),
         (['bar'], ['--foo=5', 'bar'], ['foo'], ['foo']),
-        (['5','bar'], ['--foo', '5', 'bar'], None, ['foo']),
+        (['5', 'bar'], ['--foo', '5', 'bar'], None, ['foo']),
         (['bar'], ['--foo', '5', 'bar'], ['foo'], None),
         (['bar'], ['--foo=5', 'bar'], ['foo'], None),
     ]
     for expected, argv, aliases, flags in tests:
         stripped = swallow_argv(argv, aliases=aliases, flags=flags)
         message = '\n'.join(['',
-            "argv: %r" % argv,
-            "aliases: %r" % aliases,
-            "flags : %r" % flags,
-            "expected : %r" % expected,
-            "returned : %r" % stripped,
-        ])
+                             "argv: %r" % argv,
+                             "aliases: %r" % aliases,
+                             "flags : %r" % flags,
+                             "expected : %r" % expected,
+                             "returned : %r" % stripped,
+                             ])
         nt.assert_equal(expected, stripped, message)
-

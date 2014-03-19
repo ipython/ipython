@@ -21,7 +21,7 @@ try:
     from tokenize import detect_encoding
 except ImportError:
     from codecs import lookup, BOM_UTF8
-    
+
     # Copied from Python 3.2 tokenize
     def _get_normal_name(orig_enc):
         """Imitates get_normal_name in tokenizer.c."""
@@ -33,7 +33,7 @@ except ImportError:
            enc.startswith(("latin-1-", "iso-8859-1-", "iso-latin-1-")):
             return "iso-8859-1"
         return orig_enc
-    
+
     # Copied from Python 3.2 tokenize
     def detect_encoding(readline):
         """
@@ -55,6 +55,7 @@ except ImportError:
         bom_found = False
         encoding = None
         default = 'utf-8'
+
         def read_or_stop():
             try:
                 return readline()
@@ -115,12 +116,14 @@ except ImportError:
         """Open a file in read only mode using the encoding detected by
         detect_encoding().
         """
-        buffer = io.open(filename, 'rb')   # Tweaked to use io.open for Python 2
+        buffer = io.open(
+            filename, 'rb')   # Tweaked to use io.open for Python 2
         encoding, lines = detect_encoding(buffer.readline)
         buffer.seek(0)
         text = TextIOWrapper(buffer, encoding, line_buffering=True)
         text.mode = 'r'
-        return text   
+        return text
+
 
 def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
     """Converts a bytes string with python source code to unicode.
@@ -148,6 +151,7 @@ def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
     else:
         return text.read()
 
+
 def strip_encoding_cookie(filelike):
     """Generator to pull lines from a text-mode file, skipping the encoding
     cookie if it is found in the first two lines.
@@ -162,13 +166,14 @@ def strip_encoding_cookie(filelike):
             yield second
     except StopIteration:
         return
-    
+
     for line in it:
         yield line
 
+
 def read_py_file(filename, skip_encoding_cookie=True):
     """Read a Python file, using the encoding declared inside the file.
-    
+
     Parameters
     ----------
     filename : str
@@ -177,7 +182,7 @@ def read_py_file(filename, skip_encoding_cookie=True):
       If True (the default), and the encoding declaration is found in the first
       two lines, that line will be excluded from the output - compiling a
       unicode string with an encoding declaration is a SyntaxError in Python 2.
-    
+
     Returns
     -------
     A unicode string containing the contents of the file.
@@ -188,9 +193,10 @@ def read_py_file(filename, skip_encoding_cookie=True):
         else:
             return f.read()
 
+
 def read_py_url(url, errors='replace', skip_encoding_cookie=True):
     """Read a Python file from a URL, using the encoding declared inside the file.
-    
+
     Parameters
     ----------
     url : str
@@ -202,25 +208,27 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
       If True (the default), and the encoding declaration is found in the first
       two lines, that line will be excluded from the output - compiling a
       unicode string with an encoding declaration is a SyntaxError in Python 2.
-    
+
     Returns
     -------
     A unicode string containing the contents of the file.
     """
     # Deferred import for faster start
     try:
-        from urllib.request import urlopen # Py 3
+        from urllib.request import urlopen  # Py 3
     except ImportError:
         from urllib import urlopen
     response = urlopen(url)
     buffer = io.BytesIO(response.read())
     return source_to_unicode(buffer, errors, skip_encoding_cookie)
 
+
 def _list_readline(x):
     """Given a list, returns a readline() function that returns the next element
     with each call.
     """
     x = iter(x)
+
     def readline():
         return next(x)
     return readline
@@ -237,7 +245,7 @@ except ImportError:
             raise ValueError('Not a cached Python file extension', ext)
         # Should we look for .pyw files?
         return basename + '.py'
-    
+
     def cache_from_source(path, debug_override=None):
         if debug_override is None:
             debug_override = __debug__

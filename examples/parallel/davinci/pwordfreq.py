@@ -15,18 +15,19 @@ from wordfreq import print_wordfreq, wordfreq
 
 from IPython.parallel import Client, Reference
 
-from __future__ import division 
+from __future__ import division
 
-try: #python2
+try:  # python2
     from urllib import urlretrieve
-except ImportError: #python3
+except ImportError:  # python3
     from urllib.request import urlretrieve
 
 davinci_url = "http://www.gutenberg.org/cache/epub/5000/pg5000.txt"
 
+
 def pwordfreq(view, fnames):
     """Parallel word frequency counter.
-    
+
     view - An IPython DirectView
     fnames - The filenames containing the split data.
     """
@@ -46,14 +47,14 @@ def pwordfreq(view, fnames):
 if __name__ == '__main__':
     # Create a Client and View
     rc = Client()
-    
+
     view = rc[:]
 
     if not os.path.exists('davinci.txt'):
         # download from project gutenberg
         print("Downloading Da Vinci's notebooks from Project Gutenberg")
         urlretrieve(davinci_url, 'davinci.txt')
-        
+
     # Run the serial version
     print("Serial word frequency count:")
     text = open('davinci.txt').read()
@@ -61,30 +62,30 @@ if __name__ == '__main__':
     freqs = wordfreq(text)
     toc = time.time()
     print_wordfreq(freqs, 10)
-    print("Took %.3f s to calculate"%(toc-tic))
-    
-    
+    print("Took %.3f s to calculate" % (toc - tic))
+
     # The parallel version
     print("\nParallel word frequency count:")
     # split the davinci.txt into one file per engine:
     lines = text.splitlines()
     nlines = len(lines)
     n = len(rc)
-    block = nlines//n
+    block = nlines // n
     for i in range(n):
-        chunk = lines[i*block:i*(block+1)]
-        with open('davinci%i.txt'%i, 'w') as f:
+        chunk = lines[i * block:i * (block + 1)]
+        with open('davinci%i.txt' % i, 'w') as f:
             f.write('\n'.join(chunk))
-    
-    try: #python2
+
+    try:  # python2
         cwd = os.path.abspath(os.getcwdu())
-    except AttributeError: #python3
+    except AttributeError:  # python3
         cwd = os.path.abspath(os.getcwd())
-    fnames = [ os.path.join(cwd, 'davinci%i.txt'%i) for i in range(n)]
+    fnames = [os.path.join(cwd, 'davinci%i.txt' % i) for i in range(n)]
     tic = time.time()
-    pfreqs = pwordfreq(view,fnames)
+    pfreqs = pwordfreq(view, fnames)
     toc = time.time()
     print_wordfreq(freqs)
-    print("Took %.3f s to calculate on %i engines"%(toc-tic, len(view.targets)))
+    print("Took %.3f s to calculate on %i engines" %
+          (toc - tic, len(view.targets)))
     # cleanup split files
     map(os.remove, fnames)

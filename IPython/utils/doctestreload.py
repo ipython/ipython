@@ -20,7 +20,8 @@ import sys
 # Code
 #-----------------------------------------------------------------------------
 
-def dhook_wrap(func,*a,**k):
+
+def dhook_wrap(func, *a, **k):
     """Wrap a function call in a sys.displayhook controller.
 
     Returns a wrapper around func which calls func, with all its arguments and
@@ -29,12 +30,12 @@ def dhook_wrap(func,*a,**k):
     rely on the default behavior, notably doctest.
     """
 
-    def f(*a,**k):
+    def f(*a, **k):
 
         dhook_s = sys.displayhook
         sys.displayhook = sys.__displayhook__
         try:
-            out = func(*a,**k)
+            out = func(*a, **k)
         finally:
             sys.displayhook = dhook_s
 
@@ -62,7 +63,7 @@ def doctest_reload():
 
     Notes
     -----
-    
+
     As of Python 2.6.6, 2.7.1 and 3.2, this monkeypatching is no longer required.
     doctest now takes care of resetting sys.displayhook itself. This function
     remains for now in case anyone has to work with older versions, but it's
@@ -77,4 +78,3 @@ def doctest_reload():
     import doctest
     doctest.master = None
     doctest.DocTestRunner.run = dhook_wrap(doctest.DocTestRunner.run)
-

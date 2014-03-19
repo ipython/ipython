@@ -7,6 +7,7 @@ from IPython.external.qt import QtCore, QtGui, QtSvg
 # Our own imports
 from IPython.utils.py3compat import unicode_type
 
+
 def save_svg(string, parent=None):
     """ Prompts the user to save an SVG document to disk.
 
@@ -40,6 +41,7 @@ def save_svg(string, parent=None):
         return filename
     return None
 
+
 def svg_to_clipboard(string):
     """ Copy a SVG document to the clipboard.
 
@@ -54,7 +56,8 @@ def svg_to_clipboard(string):
     mime_data = QtCore.QMimeData()
     mime_data.setData('image/svg+xml', string)
     QtGui.QApplication.clipboard().setMimeData(mime_data)
-        
+
+
 def svg_to_image(string, size=None):
     """ Convert a SVG document to a QImage.
 
@@ -66,7 +69,7 @@ def svg_to_image(string, size=None):
     size : QSize, optional
         The size of the image that is produced. If not specified, the SVG
         document's default size is used.
-    
+
     Raises
     ------
     ValueError

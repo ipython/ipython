@@ -25,12 +25,15 @@ import time
 import random
 
 # Functions
+
+
 def compute_particles(number):
     x = N.random.standard_normal(number)
     y = N.random.standard_normal(number)
     px = N.random.standard_normal(number)
     py = N.random.standard_normal(number)
     return x, y, px, py
+
 
 def downsample(array, k):
     """Choose k random elements of array."""
@@ -44,7 +47,7 @@ d_number = 1000
 
 # The actual run
 
-time.sleep(0) # Pretend it took a while
+time.sleep(0)  # Pretend it took a while
 x, y, px, py = compute_particles(number)
 # Now downsample the data
 downx = downsample(x, d_number)

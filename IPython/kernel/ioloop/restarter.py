@@ -29,10 +29,13 @@ from IPython.utils.traitlets import (
 # Code
 #-----------------------------------------------------------------------------
 
+
 class IOLoopKernelRestarter(KernelRestarter):
+
     """Monitor and autorestart a kernel."""
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
@@ -42,7 +45,7 @@ class IOLoopKernelRestarter(KernelRestarter):
         """Start the polling of the kernel."""
         if self._pcallback is None:
             self._pcallback = ioloop.PeriodicCallback(
-                self.poll, 1000*self.time_to_dead, self.loop
+                self.poll, 1000 * self.time_to_dead, self.loop
             )
             self._pcallback.start()
 
@@ -51,4 +54,3 @@ class IOLoopKernelRestarter(KernelRestarter):
         if self._pcallback is not None:
             self._pcallback.stop()
             self._pcallback = None
-

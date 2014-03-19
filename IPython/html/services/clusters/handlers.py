@@ -63,10 +63,12 @@ class ClusterActionHandler(IPythonHandler):
 
 
 _cluster_action_regex = r"(?P<action>start|stop)"
-_profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
+# there is almost no text that is invalid
+_profile_regex = r"(?P<profile>[^\/]+)"
 
 default_handlers = [
     (r"/clusters", MainClusterHandler),
-    (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
+    (r"/clusters/%s/%s" %
+     (_profile_regex, _cluster_action_regex), ClusterActionHandler),
     (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
 ]

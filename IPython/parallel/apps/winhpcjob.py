@@ -54,14 +54,14 @@ def as_str(value):
 
 
 def indent(elem, level=0):
-    i = "\n" + level*"  "
+    i = "\n" + level * "  "
     if len(elem):
         if not elem.text or not elem.text.strip():
             elem.text = i + "  "
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
         for elem in elem:
-            indent(elem, level+1)
+            indent(elem, level + 1)
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
     else:
@@ -71,7 +71,7 @@ def indent(elem, level=0):
 
 def find_username():
     domain = os.environ.get('USERDOMAIN')
-    username = os.environ.get('USERNAME','')
+    username = os.environ.get('USERNAME', '')
     if domain is None:
         return username
     else:
@@ -95,8 +95,8 @@ class WinHPCJob(Configurable):
     is_exclusive = Bool(False, config=True)
     username = Unicode(find_username(), config=True)
     job_type = Unicode('Batch', config=True)
-    priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
-        default_value='Highest', config=True)
+    priority = Enum(('Lowest', 'BelowNormal', 'Normal', 'AboveNormal', 'Highest'),
+                    default_value='Highest', config=True)
     requested_nodes = Unicode('', config=True)
     project = Unicode('IPython', config=True)
     xmlns = Unicode('http://schemas.microsoft.com/HPCS2008/scheduler/')
@@ -148,7 +148,7 @@ class WinHPCJob(Configurable):
         indent(root)
         txt = ET.tostring(root, encoding="utf-8").decode('utf-8')
         # Now remove the tokens used to order the attributes.
-        txt = re.sub(r'_[A-Z]_','',txt)
+        txt = re.sub(r'_[A-Z]_', '', txt)
         txt = '<?xml version="1.0" encoding="utf-8"?>\n' + txt
         return txt
 
@@ -225,15 +225,13 @@ class WinHPCTask(Configurable):
         return env_vars
 
 
-
 # By declaring these, we can configure the controller and engine separately!
-
 class IPControllerJob(WinHPCJob):
     job_name = Unicode('IPController', config=False)
     is_exclusive = Bool(False, config=True)
     username = Unicode(find_username(), config=True)
-    priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
-        default_value='Highest', config=True)
+    priority = Enum(('Lowest', 'BelowNormal', 'Normal', 'AboveNormal', 'Highest'),
+                    default_value='Highest', config=True)
     requested_nodes = Unicode('', config=True)
     project = Unicode('IPython', config=True)
 
@@ -242,8 +240,8 @@ class IPEngineSetJob(WinHPCJob):
     job_name = Unicode('IPEngineSet', config=False)
     is_exclusive = Bool(False, config=True)
     username = Unicode(find_username(), config=True)
-    priority = Enum(('Lowest','BelowNormal','Normal','AboveNormal','Highest'),
-        default_value='Highest', config=True)
+    priority = Enum(('Lowest', 'BelowNormal', 'Normal', 'AboveNormal', 'Highest'),
+                    default_value='Highest', config=True)
     requested_nodes = Unicode('', config=True)
     project = Unicode('IPython', config=True)
 
@@ -268,8 +266,10 @@ class IPControllerTask(WinHPCTask):
     def __init__(self, **kwargs):
         super(IPControllerTask, self).__init__(**kwargs)
         the_uuid = uuid.uuid1()
-        self.std_out_file_path = os.path.join('log','ipcontroller-%s.out' % the_uuid)
-        self.std_err_file_path = os.path.join('log','ipcontroller-%s.err' % the_uuid)
+        self.std_out_file_path = os.path.join(
+            'log', 'ipcontroller-%s.out' % the_uuid)
+        self.std_err_file_path = os.path.join(
+            'log', 'ipcontroller-%s.err' % the_uuid)
 
     @property
     def command_line(self):
@@ -294,10 +294,12 @@ class IPEngineTask(WinHPCTask):
     work_directory = Unicode('', config=False)
 
     def __init__(self, **kwargs):
-        super(IPEngineTask,self).__init__(**kwargs)
+        super(IPEngineTask, self).__init__(**kwargs)
         the_uuid = uuid.uuid1()
-        self.std_out_file_path = os.path.join('log','ipengine-%s.out' % the_uuid)
-        self.std_err_file_path = os.path.join('log','ipengine-%s.err' % the_uuid)
+        self.std_out_file_path = os.path.join(
+            'log', 'ipengine-%s.out' % the_uuid)
+        self.std_err_file_path = os.path.join(
+            'log', 'ipengine-%s.err' % the_uuid)
 
     @property
     def command_line(self):
@@ -317,4 +319,3 @@ class IPEngineTask(WinHPCTask):
 # t.std_err_file_path = 'controller-err.txt'
 # t.environment_variables['PYTHONPATH'] = r"\\blue\domainusers$\bgranger\Python\Python25\Lib\site-packages"
 # j.add_task(t)
-

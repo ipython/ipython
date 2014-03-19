@@ -38,6 +38,7 @@ from IPython.utils.warn import error
 # This is used as the pattern for calls to split_user_input.
 shell_line_split = re.compile(r'^(\s*)()(\S+)(.*$)')
 
+
 def default_aliases():
     """Return list of shell aliases to auto-define.
     """
@@ -103,14 +104,16 @@ class AliasError(Exception):
 class InvalidAliasError(AliasError):
     pass
 
+
 class Alias(object):
+
     """Callable object storing the details of one alias.
 
     Instances are registered as magic functions to allow use of aliases.
     """
 
     # Prepare blacklist
-    blacklist = {'cd','popd','pushd','dhist','alias','unalias'}
+    blacklist = {'cd', 'popd', 'pushd', 'dhist', 'alias', 'unalias'}
 
     def __init__(self, shell, name, cmd):
         self.shell = shell
@@ -154,7 +157,7 @@ class Alias(object):
         if cmd.find('%l') >= 0:
             cmd = cmd.replace('%l', rest)
             rest = ''
-        if nargs==0:
+        if nargs == 0:
             # Simple, argument-less aliases
             cmd = '%s %s' % (cmd, rest)
         else:
@@ -162,14 +165,15 @@ class Alias(object):
             args = rest.split(None, nargs)
             if len(args) < nargs:
                 raise UsageError('Alias <%s> requires %s arguments, %s given.' %
-                      (self.name, nargs, len(args)))
-            cmd = '%s %s' % (cmd % tuple(args[:nargs]),' '.join(args[nargs:]))
+                                 (self.name, nargs, len(args)))
+            cmd = '%s %s' % (cmd % tuple(args[:nargs]), ' '.join(args[nargs:]))
 
         self.shell.system(cmd)
 
 #-----------------------------------------------------------------------------
 # Main AliasManager class
 #-----------------------------------------------------------------------------
+
 
 class AliasManager(Configurable):
 
@@ -191,7 +195,7 @@ class AliasManager(Configurable):
     @property
     def aliases(self):
         return [(n, func.cmd) for (n, func) in self.linemagics.items()
-                            if isinstance(func, Alias)]
+                if isinstance(func, Alias)]
 
     def soft_define_alias(self, name, cmd):
         """Define an alias, but don't raise on an AliasError."""

@@ -72,6 +72,7 @@ so you don't have to depend on IPython.
 # wx
 #-----------------------------------------------------------------------------
 
+
 def get_app_wx(*args, **kwargs):
     """Create a new wx app or return an exiting one."""
     import wx
@@ -82,6 +83,7 @@ def get_app_wx(*args, **kwargs):
         app = wx.PySimpleApp(*args, **kwargs)
     return app
 
+
 def is_event_loop_running_wx(app=None):
     """Is the wx event loop running."""
     if app is None:
@@ -90,6 +92,7 @@ def is_event_loop_running_wx(app=None):
         return app._in_event_loop
     else:
         return app.IsMainLoopRunning()
+
 
 def start_event_loop_wx(app=None):
     """Start the wx event loop in a consistent manner."""
@@ -106,6 +109,7 @@ def start_event_loop_wx(app=None):
 # qt4
 #-----------------------------------------------------------------------------
 
+
 def get_app_qt4(*args, **kwargs):
     """Create a new qt4 app or return an existing one."""
     from IPython.external.qt_for_kernel import QtGui
@@ -116,6 +120,7 @@ def get_app_qt4(*args, **kwargs):
         app = QtGui.QApplication(*args, **kwargs)
     return app
 
+
 def is_event_loop_running_qt4(app=None):
     """Is the qt4 event loop running."""
     if app is None:
@@ -125,6 +130,7 @@ def is_event_loop_running_qt4(app=None):
     else:
         # Does qt4 provide a other way to detect this?
         return False
+
 
 def start_event_loop_qt4(app=None):
     """Start the qt4 event loop in a consistent manner."""

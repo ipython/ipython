@@ -34,9 +34,11 @@ def as_zmqstream(f):
         return ZMQStream(socket, self.loop)
     return wrapped
 
+
 class IOLoopKernelManager(KernelManager):
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 

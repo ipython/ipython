@@ -13,6 +13,7 @@ import IPython.utils.text as text
 
 
 class CompletionPlain(QtGui.QWidget):
+
     """ A widget for tab completion,  navigable by arrow keys """
 
     #--------------------------------------------------------------------------
@@ -23,7 +24,8 @@ class CompletionPlain(QtGui.QWidget):
         """ Create a completion widget that is attached to the specified Qt
             text edit widget.
         """
-        assert isinstance(console_widget._control, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
+        assert isinstance(
+            console_widget._control, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
         super(CompletionPlain, self).__init__()
 
         self._text_edit = console_widget._control
@@ -38,7 +40,7 @@ class CompletionPlain(QtGui.QWidget):
         if obj == self._text_edit:
             etype = event.type()
 
-            if etype in( QtCore.QEvent.KeyPress, QtCore.QEvent.FocusOut ):
+            if etype in(QtCore.QEvent.KeyPress, QtCore.QEvent.FocusOut):
                 self.cancel_completion()
 
         return super(CompletionPlain, self).eventFilter(obj, event)
@@ -50,12 +52,11 @@ class CompletionPlain(QtGui.QWidget):
         """Cancel the completion, reseting internal variable, clearing buffer """
         self._console_widget._clear_temporary_buffer()
 
-
     def show_items(self, cursor, items):
         """ Shows the completion widget with 'items' at the position specified
             by 'cursor'.
         """
-        if not items :
+        if not items:
             return
         self.cancel_completion()
         strng = text.columnize(items)

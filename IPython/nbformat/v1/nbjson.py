@@ -25,6 +25,7 @@ import json
 # Code
 #-----------------------------------------------------------------------------
 
+
 class JSONReader(NotebookReader):
 
     def reads(self, s, **kwargs):
@@ -51,4 +52,3 @@ read = _reader.read
 to_notebook = _reader.to_notebook
 write = _writer.write
 writes = _writer.writes
-

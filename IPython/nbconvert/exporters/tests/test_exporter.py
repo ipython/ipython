@@ -26,6 +26,7 @@ from ..exporter import Exporter
 #-----------------------------------------------------------------------------
 
 class PizzaPreprocessor(Preprocessor):
+
     """Simple preprocessor that adds a 'pizza' entry to the NotebookNode.  Used 
     to test Exporter.
     """
@@ -36,20 +37,18 @@ class PizzaPreprocessor(Preprocessor):
 
 
 class TestExporter(ExportersTestsBase):
-    """Contains test functions for exporter.py"""
 
+    """Contains test functions for exporter.py"""
 
     def test_constructor(self):
         """Can an Exporter be constructed?"""
         Exporter()
-
 
     def test_export(self):
         """Can an Exporter export something?"""
         exporter = Exporter()
         (notebook, resources) = exporter.from_filename(self._get_notebook())
         assert isinstance(notebook, dict)
-
 
     def test_preprocessor(self):
         """Do preprocessors work?"""

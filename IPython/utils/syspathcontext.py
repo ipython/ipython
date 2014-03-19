@@ -26,7 +26,9 @@ from IPython.utils.py3compat import cast_bytes_py2
 # Code
 #-----------------------------------------------------------------------------
 
+
 class appended_to_syspath(object):
+
     """A context for appending a directory to sys.path for a second."""
 
     def __init__(self, dir):
@@ -48,7 +50,9 @@ class appended_to_syspath(object):
         # Returning False causes any exceptions to be re-raised.
         return False
 
+
 class prepended_to_syspath(object):
+
     """A context for prepending a directory to sys.path for a second."""
 
     def __init__(self, dir):
@@ -56,7 +60,7 @@ class prepended_to_syspath(object):
 
     def __enter__(self):
         if self.dir not in sys.path:
-            sys.path.insert(0,self.dir)
+            sys.path.insert(0, self.dir)
             self.added = True
         else:
             self.added = False

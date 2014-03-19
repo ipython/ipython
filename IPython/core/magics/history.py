@@ -96,7 +96,7 @@ class HistoryMagics(Magics):
     @argument('range', nargs='*')
     @skip_doctest
     @line_magic
-    def history(self, parameter_s = ''):
+    def history(self, parameter_s=''):
         """Print input history (_i<n> variables), with most recent last.
 
         By default, input history is printed without line numbers so it can be
@@ -104,7 +104,7 @@ class HistoryMagics(Magics):
 
         By default, all input history from the current session is displayed.
         Ranges of history can be indicated using the syntax:
-        
+
         ``4``
             Line 4, current session
         ``4-6``
@@ -116,7 +116,7 @@ class HistoryMagics(Magics):
         ``~8/1-~6/5``
             From the first line of 8 sessions ago, to the fifth line of 6
             sessions ago.
-        
+
         Multiple ranges can be entered, separated by spaces
 
         The same syntax is used by %macro, %save, %edit, %rerun
@@ -152,7 +152,8 @@ class HistoryMagics(Magics):
         else:
             if os.path.exists(outfname):
                 try:
-                    ans = io.ask_yes_no("File %r exists. Overwrite?" % outfname)
+                    ans = io.ask_yes_no(
+                        "File %r exists. Overwrite?" % outfname)
                 except StdinNotImplementedError:
                     ans = True
                 if not ans:
@@ -206,7 +207,7 @@ class HistoryMagics(Magics):
             line_sep = '\n' if multiline else ' '
             if print_nums:
                 print(u'%s:%s' % (_format_lineno(session, lineno).rjust(width),
-                        line_sep),  file=outfile, end=u'')
+                                  line_sep),  file=outfile, end=u'')
             if pyprompts:
                 print(u">>> ", end=u"", file=outfile)
                 if multiline:
@@ -266,7 +267,7 @@ class HistoryMagics(Magics):
         try:                        # Variable in user namespace
             cmd = str(eval(arg, self.shell.user_ns))
         except Exception:           # Search for term in history
-            histlines = self.shell.history_manager.search("*"+arg+"*")
+            histlines = self.shell.history_manager.search("*" + arg + "*")
             for h in reversed([x[2] for x in histlines]):
                 if 'recall' in h or 'rep' in h:
                     continue
@@ -295,7 +296,7 @@ class HistoryMagics(Magics):
             n = int(opts['l'])
             hist = self.shell.history_manager.get_tail(n)
         elif "g" in opts:       # Search
-            p = "*"+opts['g']+"*"
+            p = "*" + opts['g'] + "*"
             hist = list(self.shell.history_manager.search(p))
             for l in reversed(hist):
                 if "rerun" not in l[2]:

@@ -58,18 +58,22 @@ from IPython.core.magic_arguments import (
 from IPython.utils.py3compat import unicode_to_str
 from IPython.utils.text import dedent
 
+
 class OctaveMagicError(oct2py.Oct2PyError):
     pass
 
-_mimetypes = {'png' : 'image/png',
-             'svg' : 'image/svg+xml',
-             'jpg' : 'image/jpeg',
+_mimetypes = {'png': 'image/png',
+              'svg': 'image/svg+xml',
+              'jpg': 'image/jpeg',
               'jpeg': 'image/jpeg'}
+
 
 @magics_class
 class OctaveMagics(Magics):
+
     """A set of magics useful for interactive work with Octave via oct2py.
     """
+
     def __init__(self, shell):
         """
         Parameters
@@ -88,7 +92,6 @@ class OctaveMagics(Magics):
         # Allow publish_display_data to be overridden for
         # testing purposes.
         self._publish_display_data = publish_display_data
-
 
     def _fix_gnuplot_svg_size(self, image, size=None):
         """
@@ -115,7 +118,6 @@ class OctaveMagics(Magics):
         svg.setAttribute('width', '%dpx' % width)
         svg.setAttribute('height', '%dpx' % height)
         return svg.toxml()
-
 
     @skip_doctest
     @line_magic
@@ -144,7 +146,6 @@ class OctaveMagics(Magics):
             input = unicode_to_str(input)
             self._oct.put(input, self.shell.user_ns[input])
 
-
     @skip_doctest
     @line_magic
     def octave_pull(self, line):
@@ -171,34 +172,32 @@ class OctaveMagics(Magics):
             output = unicode_to_str(output)
             self.shell.push({output: self._oct.get(output)})
 
-
     @skip_doctest
     @magic_arguments()
     @argument(
         '-i', '--input', action='append',
         help='Names of input variables to be pushed to Octave. Multiple names '
              'can be passed, separated by commas with no whitespace.'
-        )
+    )
     @argument(
         '-o', '--output', action='append',
         help='Names of variables to be pulled from Octave after executing cell '
              'body. Multiple names can be passed, separated by commas with no '
              'whitespace.'
-        )
+    )
     @argument(
         '-s', '--size', action='store',
         help='Pixel size of plots, "width,height". Default is "-s 400,250".'
-        )
+    )
     @argument(
         '-f', '--format', action='store',
         help='Plot format (png, svg or jpg).'
-        )
-
+    )
     @needs_local_scope
     @argument(
         'code',
         nargs='*',
-        )
+    )
     @line_cell_magic
     def octave(self, line, cell=None, local_ns=None):
         '''
@@ -340,7 +339,7 @@ class OctaveMagics(Magics):
             display_data.append((key, {'text/plain': text_output}))
 
         # Publish images
-        images = [open(imgfile, 'rb').read() for imgfile in \
+        images = [open(imgfile, 'rb').read() for imgfile in
                   glob("%s/*" % plot_dir)]
         rmtree(plot_dir)
 
@@ -371,10 +370,10 @@ class OctaveMagics(Magics):
 
 
 __doc__ = __doc__.format(
-    OCTAVE_DOC = dedent(OctaveMagics.octave.__doc__),
-    OCTAVE_PUSH_DOC = dedent(OctaveMagics.octave_push.__doc__),
-    OCTAVE_PULL_DOC = dedent(OctaveMagics.octave_pull.__doc__)
-    )
+    OCTAVE_DOC=dedent(OctaveMagics.octave.__doc__),
+    OCTAVE_PUSH_DOC=dedent(OctaveMagics.octave_push.__doc__),
+    OCTAVE_PULL_DOC=dedent(OctaveMagics.octave_pull.__doc__)
+)
 
 
 def load_ipython_extension(ip):

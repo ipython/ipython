@@ -29,7 +29,9 @@ from .channels import (
 # Main kernel Client class
 #-----------------------------------------------------------------------------
 
+
 class InProcessKernelClient(KernelClient):
+
     """A client for an in-process kernel.
 
     This class implements the interface of

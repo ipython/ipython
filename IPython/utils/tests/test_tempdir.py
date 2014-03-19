@@ -20,6 +20,7 @@ def test_named_file_in_temporary_directory():
     assert file.closed
     assert not os.path.exists(name)
 
+
 def test_temporary_working_directory():
     with TemporaryWorkingDirectory() as dir:
         assert os.path.exists(dir)

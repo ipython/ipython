@@ -10,6 +10,7 @@ import IPython.testing.decorators as dec
 
 setup = dec.skip_file_no_x11(__name__)
 
+
 class TestKillRing(unittest.TestCase):
 
     @classmethod
@@ -73,7 +74,7 @@ class TestKillRing(unittest.TestCase):
         """
         text_edit = QtGui.QPlainTextEdit()
         ring = QtKillRing(text_edit)
-        
+
         ring.kill('foo')
         ring.kill('bar')
         ring.yank()

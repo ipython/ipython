@@ -89,18 +89,20 @@ ipython nbconvert           # convert notebooks to/from other formats
 # Crash handler for this application
 #-----------------------------------------------------------------------------
 
+
 class IPAppCrashHandler(CrashHandler):
+
     """sys.excepthook for IPython itself, leaves a detailed report on disk."""
 
     def __init__(self, app):
         contact_name = release.author
         contact_email = release.author_email
         bug_tracker = 'https://github.com/ipython/ipython/issues'
-        super(IPAppCrashHandler,self).__init__(
+        super(IPAppCrashHandler, self).__init__(
             app, contact_name, contact_email, bug_tracker
         )
 
-    def make_report(self,traceback):
+    def make_report(self, traceback):
         """Return a string containing a crash report."""
 
         sec_sep = self.section_sep
@@ -109,11 +111,12 @@ class IPAppCrashHandler(CrashHandler):
         # Add interactive-specific info we may have
         rpt_add = report.append
         try:
-            rpt_add(sec_sep+"History of session input:")
+            rpt_add(sec_sep + "History of session input:")
             for line in self.app.shell.user_ns['_ih']:
                 rpt_add(line)
-            rpt_add('\n*** Last line of input (may not be in above history):\n')
-            rpt_add(self.app.shell._last_input_line+'\n')
+            rpt_add(
+                '\n*** Last line of input (may not be in above history):\n')
+            rpt_add(self.app.shell._last_input_line + '\n')
         except:
             pass
 
@@ -129,21 +132,21 @@ addflag = lambda *args: frontend_flags.update(boolean_flag(*args))
 addflag('autoedit-syntax', 'TerminalInteractiveShell.autoedit_syntax',
         'Turn on auto editing of files with syntax errors.',
         'Turn off auto editing of files with syntax errors.'
-)
+        )
 addflag('banner', 'TerminalIPythonApp.display_banner',
         "Display a banner upon starting IPython.",
         "Don't display a banner upon starting IPython."
-)
+        )
 addflag('confirm-exit', 'TerminalInteractiveShell.confirm_exit',
-    """Set to confirm when you try to exit IPython with an EOF (Control-D
+        """Set to confirm when you try to exit IPython with an EOF (Control-D
     in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
     you can force a direct exit without any confirmation.""",
-    "Don't prompt the user when exiting."
-)
+        "Don't prompt the user when exiting."
+        )
 addflag('term-title', 'TerminalInteractiveShell.term_title',
-    "Enable auto setting the terminal title.",
-    "Disable auto setting the terminal title."
-)
+        "Enable auto setting the terminal title.",
+        "Disable auto setting the terminal title."
+        )
 classic_config = Config()
 classic_config.InteractiveShell.cache_size = 0
 classic_config.PlainTextFormatter.pprint = False
@@ -156,23 +159,23 @@ classic_config.InteractiveShell.separate_out2 = ''
 classic_config.InteractiveShell.colors = 'NoColor'
 classic_config.InteractiveShell.xmode = 'Plain'
 
-frontend_flags['classic']=(
+frontend_flags['classic'] = (
     classic_config,
     "Gives IPython a similar feel to the classic Python prompt."
 )
-# # log doesn't make so much sense this way anymore
+# log doesn't make so much sense this way anymore
 # paa('--log','-l',
 #     action='store_true', dest='InteractiveShell.logstart',
 #     help="Start logging to the default log file (./ipython_log.py).")
 #
-# # quick is harder to implement
-frontend_flags['quick']=(
-    {'TerminalIPythonApp' : {'quick' : True}},
+# quick is harder to implement
+frontend_flags['quick'] = (
+    {'TerminalIPythonApp': {'quick': True}},
     "Enable quick startup with no config files."
 )
 
 frontend_flags['i'] = (
-    {'TerminalIPythonApp' : {'force_interact' : True}},
+    {'TerminalIPythonApp': {'force_interact': True}},
     """If running code from the command line, become interactive afterwards.
     Note: can also be given simply as '-i'."""
 )
@@ -190,9 +193,10 @@ class LocateIPythonApp(BaseIPythonApplication):
     description = """print the path to the IPython dir"""
     subcommands = Dict(dict(
         profile=('IPython.core.profileapp.ProfileLocate',
-            "print the path to an IPython profile directory",
-        ),
+                 "print the path to an IPython profile directory",
+                 ),
     ))
+
     def start(self):
         if self.subapp is not None:
             return self.subapp.start()
@@ -209,11 +213,13 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     flags = Dict(flags)
     aliases = Dict(aliases)
     classes = List()
+
     def _classes_default(self):
         """This has to be in a method, for TerminalIPythonApp to be available."""
         return [
-            InteractiveShellApp, # ShellApp comes before TerminalApp, because
-            self.__class__,      # it will also affect subclasses (e.g. QtConsole)
+            InteractiveShellApp,  # ShellApp comes before TerminalApp, because
+            # it will also affect subclasses (e.g. QtConsole)
+            self.__class__,
             TerminalInteractiveShell,
             PromptManager,
             HistoryManager,
@@ -226,32 +232,32 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     subcommands = dict(
         qtconsole=('IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
-            """Launch the IPython Qt Console."""
-        ),
+                   """Launch the IPython Qt Console."""
+                   ),
         notebook=('IPython.html.notebookapp.NotebookApp',
-            """Launch the IPython HTML Notebook Server."""
-        ),
+                  """Launch the IPython HTML Notebook Server."""
+                  ),
         profile = ("IPython.core.profileapp.ProfileApp",
-            "Create and manage IPython profiles."
-        ),
+                   "Create and manage IPython profiles."
+                   ),
         kernel = ("IPython.kernel.zmq.kernelapp.IPKernelApp",
-            "Start a kernel without an attached frontend."
-        ),
+                  "Start a kernel without an attached frontend."
+                  ),
         console=('IPython.terminal.console.app.ZMQTerminalIPythonApp',
-            """Launch the IPython terminal-based Console."""
-        ),
+                 """Launch the IPython terminal-based Console."""
+                 ),
         locate=('IPython.terminal.ipapp.LocateIPythonApp',
-            LocateIPythonApp.description
-        ),
+                LocateIPythonApp.description
+                ),
         history=('IPython.core.historyapp.HistoryApp',
-            "Manage the IPython history database."
-        ),
+                 "Manage the IPython history database."
+                 ),
         nbconvert=('IPython.nbconvert.nbconvertapp.NbConvertApp',
-            "Convert notebooks to/from other formats."
-        ),
+                   "Convert notebooks to/from other formats."
+                   ),
         trust=('IPython.nbformat.sign.TrustNotebookApp',
-            "Sign notebooks to trust their potentially unsafe contents at load."
-        ),
+               "Sign notebooks to trust their potentially unsafe contents at load."
+               ),
     )
     subcommands['install-nbextension'] = (
         "IPython.html.nbextensions.NBExtensionApp",
@@ -259,30 +265,32 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     )
 
     # *do* autocreate requested profile, but don't create the config file.
-    auto_create=Bool(True)
+    auto_create = Bool(True)
     # configurables
-    ignore_old_config=Bool(False, config=True,
-        help="Suppress warning messages about legacy config files"
-    )
+    ignore_old_config = Bool(False, config=True,
+                             help="Suppress warning messages about legacy config files"
+                             )
     quick = Bool(False, config=True,
-        help="""Start IPython quickly by skipping the loading of config files."""
-    )
+                 help="""Start IPython quickly by skipping the loading of config files."""
+                 )
+
     def _quick_changed(self, name, old, new):
         if new:
             self.load_config_file = lambda *a, **kw: None
-            self.ignore_old_config=True
+            self.ignore_old_config = True
 
     display_banner = Bool(True, config=True,
-        help="Whether to display a banner upon starting IPython."
-    )
+                          help="Whether to display a banner upon starting IPython."
+                          )
 
     # if there is code of files to run from the cmd line, don't interact
     # unless the --i flag (App.force_interact) is true.
     force_interact = Bool(False, config=True,
-        help="""If a command or file is given via the command-line,
+                          help="""If a command or file is given via the command-line,
         e.g. 'ipython foo.py', start an interactive shell after executing the
         file or command."""
-    )
+                          )
+
     def _force_interact_changed(self, name, old, new):
         if new:
             self.interact = True
@@ -291,13 +299,13 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if new:
             self.something_to_run = True
         if new and not self.force_interact:
-                self.interact = False
+            self.interact = False
     _code_to_run_changed = _file_to_run_changed
     _module_to_run_changed = _file_to_run_changed
 
     # internal, not-configurable
-    interact=Bool(True)
-    something_to_run=Bool(False)
+    interact = Bool(True)
+    something_to_run = Bool(False)
 
     def parse_command_line(self, argv=None):
         """override to allow old '-pylab' flag with deprecation warning"""
@@ -307,14 +315,14 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if '-pylab' in argv:
             # deprecated `-pylab` given,
             # warn and transform into current syntax
-            argv = argv[:] # copy, don't clobber
+            argv = argv[:]  # copy, don't clobber
             idx = argv.index('-pylab')
             warn.warn("`-pylab` flag has been deprecated.\n"
-            "    Use `--matplotlib <backend>` and import pylab manually.")
+                      "    Use `--matplotlib <backend>` and import pylab manually.")
             argv[idx] = '--pylab'
 
         return super(TerminalIPythonApp, self).parse_command_line(argv)
-    
+
     @catch_config_error
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
@@ -344,8 +352,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         # based app, because we call shell.show_banner() by hand below
         # so the banner shows *before* all extension loading stuff.
         self.shell = TerminalInteractiveShell.instance(parent=self,
-                        display_banner=False, profile_dir=self.profile_dir,
-                        ipython_dir=self.ipython_dir, user_ns=self.user_ns)
+                                                       display_banner=False, profile_dir=self.profile_dir,
+                                                       ipython_dir=self.ipython_dir, user_ns=self.user_ns)
         self.shell.configurables.append(self)
 
     def init_banner(self):
@@ -353,7 +361,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if self.display_banner and self.interact:
             self.shell.show_banner()
         # Make sure there is a space below the banner.
-        if self.log_level <= logging.INFO: print()
+        if self.log_level <= logging.INFO:
+            print()
 
     def _pylab_changed(self, name, old, new):
         """Replace --pylab='inline' with --pylab='auto'"""
@@ -371,6 +380,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.shell.mainloop()
         else:
             self.log.debug("IPython not interactive...")
+
 
 def load_default_config(ipython_dir=None):
     """Load the default config file from the default ipython_dir.

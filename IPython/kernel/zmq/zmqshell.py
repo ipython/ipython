@@ -57,7 +57,9 @@ from .session import Session
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+
 class ZMQDisplayPublisher(DisplayPublisher):
+
     """A display publisher that publishes data using a ZeroMQ PUB socket."""
 
     session = Instance(Session)
@@ -68,7 +70,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
         self.parent_header = extract_header(parent)
-    
+
     def _flush_streams(self):
         """flush IO Streams prior to display"""
         sys.stdout.flush()
@@ -94,11 +96,12 @@ class ZMQDisplayPublisher(DisplayPublisher):
         print('\r', file=sys.stdout, end='')
         print('\r', file=sys.stderr, end='')
         self._flush_streams()
-        
+
         self.session.send(
             self.pub_socket, u'clear_output', content,
             parent=self.parent_header, ident=self.topic,
         )
+
 
 @magics_class
 class KernelMagics(Magics):
@@ -150,7 +153,7 @@ class KernelMagics(Magics):
         # save a few values we'll need to recover later
         mode = save_dstore('mode', False)
         save_dstore('rc_pprint', ptformatter.pprint)
-        save_dstore('rc_active_types',disp_formatter.active_types)
+        save_dstore('rc_active_types', disp_formatter.active_types)
         save_dstore('xmode', shell.InteractiveTB.mode)
 
         if mode == False:
@@ -165,8 +168,8 @@ class KernelMagics(Magics):
             shell.magic("xmode " + dstore.xmode)
 
         # Store new mode and inform on console
-        dstore.mode = bool(1-int(mode))
-        mode_label = ['OFF','ON'][dstore.mode]
+        dstore.mode = bool(1 - int(mode))
+        mode_label = ['OFF', 'ON'][dstore.mode]
         print('Doctest mode is:', mode_label)
 
         # Send the payload back so that clients can modify their prompt display
@@ -174,13 +177,12 @@ class KernelMagics(Magics):
             source='doctest_mode',
             mode=dstore.mode)
         shell.payload_manager.write_payload(payload)
-        
-    
+
     _find_edit_target = CodeMagics._find_edit_target
 
     @skip_doctest
     @line_magic
-    def edit(self, parameter_s='', last_call=['','']):
+    def edit(self, parameter_s='', last_call=['', '']):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -257,10 +259,11 @@ class KernelMagics(Magics):
         Note that %edit is also available through the alias %ed.
         """
 
-        opts,args = self.parse_options(parameter_s,'prn:')
+        opts, args = self.parse_options(parameter_s, 'prn:')
 
         try:
-            filename, lineno, _ = CodeMagics._find_edit_target(self.shell, args, opts, last_call)
+            filename, lineno, _ = CodeMagics._find_edit_target(
+                self.shell, args, opts, last_call)
         except MacroToEdit as e:
             # TODO: Implement macro editing over 2 processes.
             print("Macro editing not yet implemented in 2-process model.")
@@ -271,9 +274,9 @@ class KernelMagics(Magics):
         filename = os.path.abspath(filename)
 
         payload = {
-            'source' : 'edit_magic',
-            'filename' : filename,
-            'line_number' : lineno
+            'source': 'edit_magic',
+            'filename': filename,
+            'line_number': lineno
         }
         self.shell.payload_manager.write_payload(payload)
 
@@ -304,7 +307,8 @@ class KernelMagics(Magics):
 
         cont = open(arg_s).read()
         if arg_s.endswith('.py'):
-            cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
+            cont = self.shell.pycolorize(
+                openpy.read_py_file(arg_s, skip_encoding_cookie=False))
         else:
             cont = open(arg_s).read()
         page.page(cont)
@@ -322,19 +326,19 @@ class KernelMagics(Magics):
     @line_magic
     def connect_info(self, arg_s):
         """Print information for connecting other clients to this kernel
-        
+
         It will print the contents of this session's connection file, as well as
         shortcuts for local clients.
-        
+
         In the simplest case, when called from the most recently launched kernel,
         secondary clients can be connected, simply with:
-        
+
         $> ipython <app> --existing
-        
+
         """
-        
+
         from IPython.core.application import BaseIPythonApplication as BaseIPApp
-        
+
         if BaseIPApp.initialized():
             app = BaseIPApp.instance()
             security_dir = app.profile_dir.security_dir
@@ -342,78 +346,78 @@ class KernelMagics(Magics):
         else:
             profile = 'default'
             security_dir = ''
-        
+
         try:
             connection_file = get_connection_file()
             info = get_connection_info(unpack=False)
         except Exception as e:
             error("Could not get connection info: %r" % e)
             return
-        
+
         # add profile flag for non-default profile
         profile_flag = "--profile %s" % profile if profile != 'default' else ""
-        
+
         # if it's in the security dir, truncate to basename
         if security_dir == os.path.dirname(connection_file):
             connection_file = os.path.basename(connection_file)
-        
-        
+
         print (info + '\n')
         print ("Paste the above JSON into a file, and connect with:\n"
-            "    $> ipython <app> --existing <file>\n"
-            "or, if you are local, you can connect with just:\n"
-            "    $> ipython <app> --existing {0} {1}\n"
-            "or even just:\n"
-            "    $> ipython <app> --existing {1}\n"
-            "if this is the most recent IPython session you have started.".format(
-            connection_file, profile_flag
-            )
-        )
+               "    $> ipython <app> --existing <file>\n"
+               "or, if you are local, you can connect with just:\n"
+               "    $> ipython <app> --existing {0} {1}\n"
+               "or even just:\n"
+               "    $> ipython <app> --existing {1}\n"
+               "if this is the most recent IPython session you have started.".format(
+                   connection_file, profile_flag
+               )
+               )
 
     @line_magic
     def qtconsole(self, arg_s):
         """Open a qtconsole connected to this kernel.
-        
+
         Useful for connecting a qtconsole to running notebooks, for better
         debugging.
         """
-        
+
         # %qtconsole should imply bind_kernel for engines:
         try:
             from IPython.parallel import bind_kernel
         except ImportError:
-            # technically possible, because parallel has higher pyzmq min-version
+            # technically possible, because parallel has higher pyzmq
+            # min-version
             pass
         else:
             bind_kernel()
-        
+
         try:
-            p = connect_qtconsole(argv=arg_split(arg_s, os.name=='posix'))
+            p = connect_qtconsole(argv=arg_split(arg_s, os.name == 'posix'))
         except Exception as e:
             error("Could not start qtconsole: %r" % e)
             return
-    
+
     @line_magic
     def autosave(self, arg_s):
         """Set the autosave interval in the notebook (in seconds).
-        
+
         The default value is 120, or two minutes.
         ``%autosave 0`` will disable autosave.
-        
+
         This magic only has an effect when called from the notebook interface.
         It has no effect when called in a startup file.
         """
-        
+
         try:
             interval = int(arg_s)
         except ValueError:
             raise UsageError("%%autosave requires an integer, got %r" % arg_s)
-        
+
         # javascript wants milliseconds
         milliseconds = 1000 * interval
         display(Javascript("IPython.notebook.set_autosave_interval(%i)" % milliseconds),
-            include=['application/javascript']
-        )
+                include=['application/javascript']
+                )
         if interval:
             print("Autosaving every %i seconds" % interval)
         else:
@@ -421,6 +425,7 @@ class KernelMagics(Magics):
 
 
 class ZMQInteractiveShell(InteractiveShell):
+
     """A subclass of InteractiveShell for ZMQ."""
 
     displayhook_class = Type(ZMQShellDisplayHook)
@@ -439,14 +444,15 @@ class ZMQInteractiveShell(InteractiveShell):
     autoindent = CBool(False)
 
     exiter = Instance(ZMQExitAutocall)
+
     def _exiter_default(self):
         return ZMQExitAutocall(self)
-    
+
     def _exit_now_changed(self, name, old, new):
         """stop eventloop when exit_now fires"""
         if new:
             loop = ioloop.IOLoop.instance()
-            loop.add_timeout(time.time()+0.1, loop.stop)
+            loop.add_timeout(time.time() + 0.1, loop.stop)
 
     keepkernel_on_exit = None
 
@@ -473,7 +479,7 @@ class ZMQInteractiveShell(InteractiveShell):
         # subprocesses as much as possible.
         env['PAGER'] = 'cat'
         env['GIT_PAGER'] = 'cat'
-        
+
         # And install the payload version of page.
         install_payload_page()
 
@@ -487,7 +493,7 @@ class ZMQInteractiveShell(InteractiveShell):
         payload = dict(
             source='auto_rewrite_input',
             transformed_input=new,
-            )
+        )
         self.payload_manager.write_payload(payload)
 
     def ask_exit(self):
@@ -497,7 +503,7 @@ class ZMQInteractiveShell(InteractiveShell):
             source='ask_exit',
             exit=True,
             keepkernel=self.keepkernel_on_exit,
-            )
+        )
         self.payload_manager.write_payload(payload)
 
     def _showtraceback(self, etype, evalue, stb):
@@ -506,9 +512,9 @@ class ZMQInteractiveShell(InteractiveShell):
         sys.stderr.flush()
 
         exc_content = {
-            u'traceback' : stb,
-            u'ename' : unicode_type(etype.__name__),
-            u'evalue' : py3compat.safe_unicode(evalue),
+            u'traceback': stb,
+            u'ename': unicode_type(etype.__name__),
+            u'evalue': py3compat.safe_unicode(evalue),
         }
 
         dh = self.displayhook
@@ -517,8 +523,9 @@ class ZMQInteractiveShell(InteractiveShell):
         topic = None
         if dh.topic:
             topic = dh.topic.replace(b'pyout', b'pyerr')
-        
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
+
+        exc_msg = dh.session.send(
+            dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
@@ -539,7 +546,7 @@ class ZMQInteractiveShell(InteractiveShell):
             text=text
         )
         self.payload_manager.write_payload(payload)
-    
+
     def set_parent(self, parent):
         """Set the parent header for associating output with its triggering input"""
         self.parent_header = parent
@@ -554,10 +561,10 @@ class ZMQInteractiveShell(InteractiveShell):
             sys.stderr.set_parent(parent)
         except AttributeError:
             pass
-    
+
     def get_parent(self):
         return self.parent_header
-    
+
     #-------------------------------------------------------------------------
     # Things related to magics
     #-------------------------------------------------------------------------
@@ -566,7 +573,7 @@ class ZMQInteractiveShell(InteractiveShell):
         super(ZMQInteractiveShell, self).init_magics()
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias('ed', 'edit')
-    
+
     def init_comms(self):
         self.comm_manager = CommManager(shell=self, parent=self)
         self.configurables.append(self.comm_manager)

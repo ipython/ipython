@@ -5,16 +5,16 @@ Authors:
 * Min RK
 """
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 #  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
 import os
 
@@ -40,9 +40,11 @@ if 'DB_PORT' in os.environ:
 try:
     c = Connection(**conn_kwargs)
 except Exception:
-    c=None
+    c = None
+
 
 class TestMongoBackend(test_db.TaskDBTest, TestCase):
+
     """MongoDB backend tests"""
 
     def create_db(self):
@@ -50,6 +52,7 @@ class TestMongoBackend(test_db.TaskDBTest, TestCase):
             return MongoDB(database='iptestdb', _connection=c)
         except Exception:
             raise SkipTest("Couldn't connect to mongodb")
+
 
 def teardown(self):
     if c is not None:

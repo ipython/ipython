@@ -25,6 +25,7 @@ from .nbbase import (
 # Code
 #-----------------------------------------------------------------------------
 
+
 def upgrade(nb, from_version=1):
     """Convert a notebook to the v2 format.
 
@@ -40,14 +41,16 @@ def upgrade(nb, from_version=1):
         ws = new_worksheet()
         for cell in nb.cells:
             if cell.cell_type == u'code':
-                newcell = new_code_cell(input=cell.get('code'),prompt_number=cell.get('prompt_number'))
+                newcell = new_code_cell(
+                    input=cell.get('code'), prompt_number=cell.get('prompt_number'))
             elif cell.cell_type == u'text':
-                newcell = new_text_cell(u'markdown',source=cell.get('text'))
+                newcell = new_text_cell(u'markdown', source=cell.get('text'))
             ws.cells.append(newcell)
         newnb.worksheets.append(ws)
         return newnb
     else:
-        raise ValueError('Cannot convert a notebook from v%s to v2' % orig_version)
+        raise ValueError(
+            'Cannot convert a notebook from v%s to v2' % orig_version)
 
 
 def downgrade(nb):

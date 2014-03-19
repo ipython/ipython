@@ -11,6 +11,7 @@ from IPython.utils.localinterfaces import localhost
 from IPython.kernel import KernelManager
 from IPython.kernel.multikernelmanager import MultiKernelManager
 
+
 class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
@@ -30,7 +31,7 @@ class TestKernelManager(TestCase):
         self.assertTrue(km.is_alive(kid))
         self.assertTrue(kid in km)
         self.assertTrue(kid in km.list_kernel_ids())
-        self.assertEqual(len(km),1)
+        self.assertEqual(len(km), 1)
         km.restart_kernel(kid, now=True)
         self.assertTrue(km.is_alive(kid))
         self.assertTrue(kid in km.list_kernel_ids())
@@ -61,7 +62,7 @@ class TestKernelManager(TestCase):
     def test_tcp_lifecycle(self):
         km = self._get_tcp_km()
         self._run_lifecycle(km)
-    
+
     def test_tcp_cinfo(self):
         km = self._get_tcp_km()
         self._run_cinfo(km, 'tcp', localhost())
@@ -70,9 +71,8 @@ class TestKernelManager(TestCase):
     def test_ipc_lifecycle(self):
         km = self._get_ipc_km()
         self._run_lifecycle(km)
-    
+
     @dec.skip_win32
     def test_ipc_cinfo(self):
         km = self._get_ipc_km()
         self._run_cinfo(km, 'ipc', 'test')
-

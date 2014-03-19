@@ -46,13 +46,14 @@ from IPython.core.error import TryNext
 
 __all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
            'shutdown_hook', 'late_startup_hook',
-           'show_in_pager','pre_prompt_hook',
+           'show_in_pager', 'pre_prompt_hook',
            'pre_run_code_hook', 'clipboard_get']
 
 deprecated = {'pre_run_code_hook': "a callback for the 'pre_execute' or 'pre_run_cell' event",
               'late_startup_hook': "a callback for the 'shell_initialized' event",
               'shutdown_hook': "the atexit module",
-             }
+              }
+
 
 def editor(self, filename, linenum=None, wait=True):
     """Open the default editor at the given filename and linenumber.
@@ -66,7 +67,7 @@ def editor(self, filename, linenum=None, wait=True):
     editor = self.editor
 
     # marker for at which line to open the file (for existing objects)
-    if linenum is None or editor=='notepad':
+    if linenum is None or editor == 'notepad':
         linemark = ''
     else:
         linemark = '+%d' % int(linenum)
@@ -82,7 +83,9 @@ def editor(self, filename, linenum=None, wait=True):
         raise TryNext()
 
 import tempfile
-def fix_error_editor(self,filename,linenum,column,msg):
+
+
+def fix_error_editor(self, filename, linenum, column, msg):
     """Open the editor at the given filename, linenumber, column and
     show an error message. This is used for correcting syntax errors.
     The current implementation only has special support for the VIM editor,
@@ -92,11 +95,11 @@ def fix_error_editor(self,filename,linenum,column,msg):
     """
     def vim_quickfix_file():
         t = tempfile.NamedTemporaryFile()
-        t.write('%s:%d:%d:%s\n' % (filename,linenum,column,msg))
+        t.write('%s:%d:%d:%s\n' % (filename, linenum, column, msg))
         t.flush()
         return t
     if os.path.basename(self.editor) != 'vim':
-        self.hooks.editor(filename,linenum)
+        self.hooks.editor(filename, linenum)
         return
     t = vim_quickfix_file()
     try:
@@ -107,32 +110,33 @@ def fix_error_editor(self,filename,linenum,column,msg):
 
 
 def synchronize_with_editor(self, filename, linenum, column):
-        pass
+    pass
 
 
 class CommandChainDispatcher:
+
     """ Dispatch calls to a chain of commands until some func can handle it
 
     Usage: instantiate, execute "add" to add commands (with optional
     priority), execute normally via f() calling mechanism.
 
     """
-    def __init__(self,commands=None):
+
+    def __init__(self, commands=None):
         if commands is None:
             self.chain = []
         else:
             self.chain = commands
 
-
-    def __call__(self,*args, **kw):
+    def __call__(self, *args, **kw):
         """ Command chain is called just like normal func.
 
         This will call all funcs in chain with the same args as were given to
         this function, and return the result of first func that didn't raise
         TryNext"""
         last_exc = TryNext()
-        for prio,cmd in self.chain:
-            #print "prio",prio,"cmd",cmd #dbg
+        for prio, cmd in self.chain:
+            # print "prio",prio,"cmd",cmd #dbg
             try:
                 return cmd(*args, **kw)
             except TryNext as exc:
@@ -162,7 +166,7 @@ def shutdown_hook(self):
     Typically, shotdown hooks should raise TryNext so all shutdown ops are done
     """
 
-    #print "default shutdown hook ok" # dbg
+    # print "default shutdown hook ok" # dbg
     return
 
 
@@ -170,10 +174,10 @@ def late_startup_hook(self):
     """ Executed after ipython has been constructed and configured
 
     """
-    #print "default startup hook ok" # dbg
+    # print "default startup hook ok" # dbg
 
 
-def show_in_pager(self,s):
+def show_in_pager(self, s):
     """ Run a string through pager """
     # raising TryNext here will use the default paging functionality
     raise TryNext

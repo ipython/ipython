@@ -8,16 +8,18 @@ artificially).
 """
 from IPython.utils.py3compat import doctest_refactor_print
 
+
 @doctest_refactor_print
 def doctest_simple():
     """ipdoctest must handle simple inputs
-    
+
     In [1]: 1
     Out[1]: 1
 
     In [2]: print 1
     1
     """
+
 
 @doctest_refactor_print
 def doctest_multiline1():
@@ -31,6 +33,7 @@ def doctest_multiline1():
     2
     3
     """
+
 
 @doctest_refactor_print
 def doctest_multiline2():

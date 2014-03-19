@@ -59,7 +59,7 @@ class EmbeddedMagics(Magics):
         """
 
         kill = ask_yes_no("Are you sure you want to kill this embedded instance "
-                         "(y/n)? [y/N] ",'n')
+                          "(y/n)? [y/N] ", 'n')
         if kill:
             self.shell.embedded_active = False
             print ("This embedded IPython will not reactivate anymore "
@@ -77,15 +77,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     display_banner = CBool(True)
 
     def __init__(self, config=None, ipython_dir=None, user_ns=None,
-                 user_module=None, custom_exceptions=((),None),
+                 user_module=None, custom_exceptions=((), None),
                  usage=None, banner1=None, banner2=None,
                  display_banner=None, exit_msg=u'', user_global_ns=None):
-    
+
         if user_global_ns is not None:
             warnings.warn("user_global_ns has been replaced by user_module. The\
                            parameter will be ignored.", DeprecationWarning)
 
-        super(InteractiveShellEmbed,self).__init__(
+        super(InteractiveShellEmbed, self).__init__(
             config=config, ipython_dir=ipython_dir, user_ns=user_ns,
             user_module=user_module, custom_exceptions=custom_exceptions,
             usage=usage, banner1=banner1, banner2=banner2,
@@ -183,15 +183,16 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
           the shell was called.
 
         """
-        
+
         if (global_ns is not None) and (module is None):
-            warnings.warn("global_ns is deprecated, use module instead.", DeprecationWarning)
+            warnings.warn(
+                "global_ns is deprecated, use module instead.", DeprecationWarning)
             module = DummyMod()
             module.__dict__ = global_ns
 
         # Get locals and globals from caller
         if ((local_ns is None or module is None or compile_flags is None)
-            and self.default_user_namespaces):
+                and self.default_user_namespaces):
             call_frame = sys._getframe(stack_depth).f_back
 
             if local_ns is None:
@@ -202,15 +203,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             if compile_flags is None:
                 compile_flags = (call_frame.f_code.co_flags &
                                  compilerop.PyCF_MASK)
-        
-        # Save original namespace and module so we can restore them after 
+
+        # Save original namespace and module so we can restore them after
         # embedding; otherwise the shell doesn't shut down correctly.
         orig_user_module = self.user_module
         orig_user_ns = self.user_ns
         orig_compile_flags = self.compile.flags
-        
+
         # Update namespaces and fire up interpreter
-        
+
         # The global one is easy, we can just throw it in
         if module is not None:
             self.user_module = module
@@ -234,7 +235,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # And now, since it wasn't called in the previous version, I'm
         # commenting out these lines so they can't be called with my new changes
         # --TK, 2011-12-10
-        #if local_ns is None and module is None:
+        # if local_ns is None and module is None:
         #    self.user_global_ns.update(__main__.__dict__)
 
         # make sure the tab-completer has the correct frame information, so it
@@ -243,12 +244,12 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         with self.builtin_trap, self.display_trap:
             self.interact(display_banner=display_banner)
-        
+
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
             for name in self.user_ns_hidden:
                 local_ns.pop(name, None)
-        
+
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
         self.user_ns = orig_user_ns

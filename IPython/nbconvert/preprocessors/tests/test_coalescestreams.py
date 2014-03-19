@@ -25,6 +25,7 @@ from ..coalescestreams import coalesce_streams
 #-----------------------------------------------------------------------------
 
 class TestCoalesceStreams(PreprocessorTestsBase):
+
     """Contains test functions for coalescestreams.py"""
 
     def test_coalesce_streams(self):
@@ -38,19 +39,25 @@ class TestCoalesceStreams(PreprocessorTestsBase):
         self.assertEqual(outputs[2].text, "cd")
         self.assertEqual(outputs[3].text, "ef")
 
-
     def test_coalesce_sequenced_streams(self):
         """Can the coalesce streams preprocessor merge a sequence of streams?"""
 
         outputs = [nbformat.new_output(output_type="stream", stream="stdout", output_text="0"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="1"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="2"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="3"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="4"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="5"),
-                   nbformat.new_output(output_type="stream", stream="stdout", output_text="6"),
+                   nbformat.new_output(
+                       output_type="stream", stream="stdout", output_text="1"),
+                   nbformat.new_output(
+                       output_type="stream", stream="stdout", output_text="2"),
+                   nbformat.new_output(
+                       output_type="stream", stream="stdout", output_text="3"),
+                   nbformat.new_output(
+                       output_type="stream", stream="stdout", output_text="4"),
+                   nbformat.new_output(
+                       output_type="stream", stream="stdout", output_text="5"),
+                   nbformat.new_output(
+                       output_type="stream", stream="stdout", output_text="6"),
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="7")]
-        cells=[nbformat.new_code_cell(input="# None", prompt_number=1,outputs=outputs)]
+        cells = [nbformat.new_code_cell(
+            input="# None", prompt_number=1, outputs=outputs)]
         worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
 
         nb = nbformat.new_notebook(name="notebook1", worksheets=worksheets)

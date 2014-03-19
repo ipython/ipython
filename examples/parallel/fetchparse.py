@@ -15,7 +15,9 @@ from __future__ import print_function
 import sys
 from IPython.parallel import Client, error
 import time
-import BeautifulSoup # this isn't necessary, but it helps throw the dependency error earlier
+# this isn't necessary, but it helps throw the dependency error earlier
+import BeautifulSoup
+
 
 def fetchAndParse(url, data=None):
     import urllib2
@@ -34,6 +36,7 @@ def fetchAndParse(url, data=None):
                 if href:
                     links.append(urlparse.urljoin(url, href))
         return links
+
 
 class DistributedSpider(object):
 
@@ -86,6 +89,7 @@ class DistributedSpider(object):
                 print(url, ':', e.traceback)
             else:
                 self.onVisitDone(links, url)
+
 
 def main():
     if len(sys.argv) > 1:

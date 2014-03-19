@@ -16,8 +16,10 @@ import gtk
 def hello_world(wigdet, data=None):
     print("Hello World")
 
+
 def delete_event(widget, event, data=None):
     return False
+
 
 def destroy(widget, data=None):
     gtk.main_quit()

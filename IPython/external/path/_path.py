@@ -125,15 +125,18 @@ def simple_cache(func):
 
 
 class ClassProperty(property):
+
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
 
 
 class multimethod(object):
+
     """
     Acts like a classmethod when invoked from the class and like an
     instancemethod when invoked from the instance.
     """
+
     def __init__(self, func):
         self.func = func
 
@@ -145,6 +148,7 @@ class multimethod(object):
 
 
 class path(unicode):
+
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -1203,6 +1207,7 @@ class path(unicode):
 
 
 class tempdir(path):
+
     """
     A temporary directory via tempfile.mkdtemp, and constructed with the
     same parameters that you can use as a context manager.

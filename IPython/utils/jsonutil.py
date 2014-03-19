@@ -34,7 +34,8 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
 # timestamp formats
 ISO8601 = "%Y-%m-%dT%H:%M:%S.%f"
-ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d{1,6})?Z?([\+\-]\d{2}:?\d{2})?$")
+ISO8601_PAT = re.compile(
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d{1,6})?Z?([\+\-]\d{2}:?\d{2})?$")
 
 # holy crap, strptime is not threadsafe.
 # Calling it once at import seems to help.
@@ -44,12 +45,13 @@ datetime.strptime("1", "%d")
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 def rekey(dikt):
     """Rekey a dict that has been forced to use str keys where there should be
     ints by json."""
     for k in dikt:
         if isinstance(k, string_types):
-            ik=fk=None
+            ik = fk = None
             try:
                 ik = int(k)
             except ValueError:
@@ -62,13 +64,14 @@ def rekey(dikt):
             else:
                 nk = fk
             if nk in dikt:
-                raise KeyError("already have key %r"%nk)
+                raise KeyError("already have key %r" % nk)
             dikt[nk] = dikt.pop(k)
     return dikt
 
+
 def parse_date(s):
     """parse an ISO8601 date string
-    
+
     If it is None or not a valid ISO8601 timestamp,
     it will be returned unmodified.
     Otherwise, it will return a datetime object.
@@ -86,37 +89,40 @@ def parse_date(s):
         return datetime.strptime(notz, ISO8601)
     return s
 
+
 def extract_dates(obj):
     """extract ISO8601 dates from unpacked JSON"""
     if isinstance(obj, dict):
-        new_obj = {} # don't clobber
-        for k,v in iteritems(obj):
+        new_obj = {}  # don't clobber
+        for k, v in iteritems(obj):
             new_obj[k] = extract_dates(v)
         obj = new_obj
     elif isinstance(obj, (list, tuple)):
-        obj = [ extract_dates(o) for o in obj ]
+        obj = [extract_dates(o) for o in obj]
     elif isinstance(obj, string_types):
         obj = parse_date(obj)
     return obj
 
+
 def squash_dates(obj):
     """squash datetime objects into ISO8601 strings"""
     if isinstance(obj, dict):
-        obj = dict(obj) # don't clobber
-        for k,v in iteritems(obj):
+        obj = dict(obj)  # don't clobber
+        for k, v in iteritems(obj):
             obj[k] = squash_dates(v)
     elif isinstance(obj, (list, tuple)):
-        obj = [ squash_dates(o) for o in obj ]
+        obj = [squash_dates(o) for o in obj]
     elif isinstance(obj, datetime):
         obj = obj.isoformat()
     return obj
+
 
 def date_default(obj):
     """default function for packing datetime objects in JSON."""
     if isinstance(obj, datetime):
         return obj.isoformat()
     else:
-        raise TypeError("%r is not JSON serializable"%obj)
+        raise TypeError("%r is not JSON serializable" % obj)
 
 
 # constants for identifying png/jpeg data
@@ -128,6 +134,7 @@ JPEG = b'\xff\xd8'
 JPEG64 = b'/9'
 # front of PDF base64-encoded
 PDF64 = b'JVBER'
+
 
 def encode_images(format_dict):
     """b64-encodes images in a displaypub format dict
@@ -221,9 +228,10 @@ def json_clean(obj):
         if math.isnan(obj) or math.isinf(obj):
             return repr(obj)
         return float(obj)
-    
+
     if isinstance(obj, int):
-        # cast int to int, in case subclasses override __str__ (e.g. boost enum, #4598)
+        # cast int to int, in case subclasses override __str__ (e.g. boost
+        # enum, #4598)
         if isinstance(obj, bool):
             # bools are ints, but we don't want to cast them to 0,1
             return obj
@@ -236,7 +244,7 @@ def json_clean(obj):
         return obj.decode(DEFAULT_ENCODING, 'replace')
 
     if isinstance(obj, container_to_list) or (
-        hasattr(obj, '__iter__') and hasattr(obj, next_attr_name)):
+            hasattr(obj, '__iter__') and hasattr(obj, next_attr_name)):
         obj = list(obj)
 
     if isinstance(obj, list):
@@ -253,7 +261,7 @@ def json_clean(obj):
                              'key collision would lead to dropped values')
         # If all OK, proceed by making the new dict that will be json-safe
         out = {}
-        for k,v in iteritems(obj):
+        for k, v in iteritems(obj):
             out[str(k)] = json_clean(v)
         return out
 

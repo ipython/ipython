@@ -23,13 +23,13 @@ class TestJSON(formattest.NBFormatTest, TestCase):
         # ensures that notebooks written prior to splitlines change
         # are still readable.
         s = writes(nb0, split_lines=False)
-        self.assertEqual(nbjson.reads(s),nb0)
+        self.assertEqual(nbjson.reads(s), nb0)
 
     def test_roundtrip_split(self):
         """Ensure that splitting multiline blocks is safe"""
         # This won't differ from test_roundtrip unless the default changes
         s = writes(nb0, split_lines=True)
-        self.assertEqual(nbjson.reads(s),nb0)
+        self.assertEqual(nbjson.reads(s), nb0)
 
     def test_read_png(self):
         """PNG output data is b64 unicode"""
@@ -66,7 +66,3 @@ class TestJSON(formattest.NBFormatTest, TestCase):
                     b64bytes = jpegdata.encode('ascii')
                     raw_bytes = decodestring(b64bytes)
         assert found_jpeg, "never found jpeg output"
-
-
-
-

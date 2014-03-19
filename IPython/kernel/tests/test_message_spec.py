@@ -30,6 +30,7 @@ from .utils import TIMEOUT, start_global_kernel, flush_channels, execute
 #-----------------------------------------------------------------------------
 KC = None
 
+
 def setup():
     global KC
     KC = start_global_kernel()
@@ -37,6 +38,7 @@ def setup():
 #-----------------------------------------------------------------------------
 # Message Spec References
 #-----------------------------------------------------------------------------
+
 
 class Reference(HasTraits):
 
@@ -70,11 +72,13 @@ class RMessage(Reference):
     parent_header = Dict()
     content = Dict()
 
+
 class RHeader(Reference):
     msg_id = Unicode()
     msg_type = Unicode()
     session = Unicode()
     username = Unicode()
+
 
 class RContent(Reference):
     status = Enum((u'ok', u'error'))
@@ -83,7 +87,7 @@ class RContent(Reference):
 class ExecuteReply(Reference):
     execution_count = Integer()
     status = Enum((u'ok', u'error'))
-    
+
     def check(self, d):
         Reference.check(self, d)
         if d['status'] == 'ok':
@@ -124,7 +128,7 @@ class OInfoReply(Reference):
     call_def = Unicode()
     call_docstring = Unicode()
     source = Unicode()
-    
+
     def check(self, d):
         Reference.check(self, d)
         if d['argspec'] is not None:
@@ -160,7 +164,8 @@ class KernelInfoReply(Reference):
     def _ipython_version_changed(self, name, old, new):
         for v in new:
             assert isinstance(v, int) or isinstance(v, string_types), \
-            'expected int or string as version component, got {0!r}'.format(v)
+                'expected int or string as version component, got {0!r}'.format(
+                    v)
 
 
 # IOPub messages
@@ -180,12 +185,14 @@ class Stream(Reference):
 
 mime_pat = re.compile(r'\w+/\w+')
 
+
 class DisplayData(Reference):
     source = Unicode()
     metadata = Dict()
     data = Dict()
+
     def _data_changed(self, name, old, new):
-        for k,v in iteritems(new):
+        for k, v in iteritems(new):
             assert mime_pat.match(k)
             nt.assert_is_instance(v, string_types)
 
@@ -193,23 +200,24 @@ class DisplayData(Reference):
 class PyOut(Reference):
     execution_count = Integer()
     data = Dict()
+
     def _data_changed(self, name, old, new):
-        for k,v in iteritems(new):
+        for k, v in iteritems(new):
             assert mime_pat.match(k)
             nt.assert_is_instance(v, string_types)
 
 
 references = {
-    'execute_reply' : ExecuteReply(),
-    'object_info_reply' : OInfoReply(),
-    'status' : Status(),
-    'complete_reply' : CompleteReply(),
+    'execute_reply': ExecuteReply(),
+    'object_info_reply': OInfoReply(),
+    'status': Status(),
+    'complete_reply': CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
-    'pyin' : PyIn(),
-    'pyout' : PyOut(),
-    'pyerr' : PyErr(),
-    'stream' : Stream(),
-    'display_data' : DisplayData(),
+    'pyin': PyIn(),
+    'pyout': PyOut(),
+    'pyerr': PyErr(),
+    'stream': Stream(),
+    'display_data': DisplayData(),
 }
 """
 Specifications of `content` part of the reply messages.
@@ -218,10 +226,10 @@ Specifications of `content` part of the reply messages.
 
 def validate_message(msg, msg_type=None, parent=None):
     """validate a message
-    
+
     This is a generator, and must be iterated through to actually
     trigger each test.
-    
+
     If msg_type and/or parent are given, the msg_type and/or parent msg_id
     are compared with the given values.
     """
@@ -243,7 +251,7 @@ def validate_message(msg, msg_type=None, parent=None):
 
 def test_execute():
     flush_channels()
-    
+
     msg_id = KC.execute(code='x=1')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'execute_reply', msg_id)
@@ -252,7 +260,7 @@ def test_execute():
 def test_execute_silent():
     flush_channels()
     msg_id, reply = execute(code='x=1', silent=True)
-    
+
     # flush status=idle
     status = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(status, 'status', msg_id)
@@ -260,14 +268,14 @@ def test_execute_silent():
 
     nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
     count = reply['execution_count']
-    
+
     msg_id, reply = execute(code='x=2', silent=True)
-    
+
     # flush status=idle
     status = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(status, 'status', msg_id)
     nt.assert_equal(status['content']['execution_state'], 'idle')
-    
+
     nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
     count_2 = reply['execution_count']
     nt.assert_equal(count_2, count)
@@ -275,11 +283,11 @@ def test_execute_silent():
 
 def test_execute_error():
     flush_channels()
-    
+
     msg_id, reply = execute(code='1/0')
     nt.assert_equal(reply['status'], 'error')
     nt.assert_equal(reply['ename'], 'ZeroDivisionError')
-    
+
     pyerr = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(pyerr, 'pyerr', msg_id)
 
@@ -290,12 +298,12 @@ def test_execute_inc():
 
     msg_id, reply = execute(code='x=1')
     count = reply['execution_count']
-    
+
     flush_channels()
-    
+
     msg_id, reply = execute(code='x=2')
     count_2 = reply['execution_count']
-    nt.assert_equal(count_2, count+1)
+    nt.assert_equal(count_2, count + 1)
 
 
 def test_user_variables():
@@ -335,7 +343,8 @@ def test_user_expressions():
 def test_user_expressions_fail():
     flush_channels()
 
-    msg_id, reply = execute(code='x=0', user_expressions=dict(foo='nosuchname'))
+    msg_id, reply = execute(
+        code='x=0', user_expressions=dict(foo='nosuchname'))
     user_expressions = reply['user_expressions']
     foo = user_expressions['foo']
     nt.assert_equal(foo['status'], 'error')
@@ -354,7 +363,7 @@ def test_oinfo_found():
     flush_channels()
 
     msg_id, reply = execute(code='a=5')
-    
+
     msg_id = KC.object_info('a')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'object_info_reply', msg_id)
@@ -368,14 +377,15 @@ def test_oinfo_detail():
     flush_channels()
 
     msg_id, reply = execute(code='ip=get_ipython()')
-    
+
     msg_id = KC.object_info('ip.object_inspect', detail_level=2)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'object_info_reply', msg_id)
     content = reply['content']
     assert content['found']
     argspec = content['argspec']
-    nt.assert_is_instance(argspec, dict, "expected non-empty argspec dict, got %r" % argspec)
+    nt.assert_is_instance(
+        argspec, dict, "expected non-empty argspec dict, got %r" % argspec)
     nt.assert_equal(argspec['defaults'], [0])
 
 
@@ -393,7 +403,7 @@ def test_complete():
     flush_channels()
 
     msg_id, reply = execute(code="alpha = albert = 5")
-    
+
     msg_id = KC.complete('al', 'al', 2)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'complete_reply', msg_id)
@@ -412,7 +422,7 @@ def test_kernel_info_request():
 
 def test_single_payload():
     flush_channels()
-    msg_id, reply = execute(code="for i in range(3):\n"+
+    msg_id, reply = execute(code="for i in range(3):\n" +
                                  "   x=range?\n")
     payload = reply['payload']
     next_input_pls = [pl for pl in payload if pl["source"] == "set_next_input"]
@@ -437,10 +447,10 @@ def test_stream():
 def test_display_data():
     flush_channels()
 
-    msg_id, reply = execute("from IPython.core.display import display; display(1)")
-    
+    msg_id, reply = execute(
+        "from IPython.core.display import display; display(1)")
+
     display = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(display, 'display_data', parent=msg_id)
     data = display['content']['data']
     nt.assert_equal(data['text/plain'], u'1')
-

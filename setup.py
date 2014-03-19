@@ -26,7 +26,7 @@ import sys
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info[:2] < (2,7):
+if sys.version_info[:2] < (2, 7):
     error = "ERROR: IPython requires Python Version 2.7 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -35,9 +35,9 @@ PY3 = (sys.version_info[0] >= 3)
 
 # At least we're on the python version we need, move on.
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Imports
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
 # Stdlib imports
 import os
@@ -47,7 +47,8 @@ from glob import glob
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+if os.path.exists('MANIFEST'):
+    os.remove('MANIFEST')
 
 from distutils.core import setup
 
@@ -85,6 +86,7 @@ pjoin = os.path.join
 # Function definitions
 #-----------------------------------------------------------------------------
 
+
 def cleanup():
     """Clean up the junk left around by the build process"""
     if "develop" not in sys.argv and "egg_info" not in sys.argv:
@@ -96,11 +98,11 @@ def cleanup():
             except:
                 pass
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Handle OS specific things
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
-if os.name in ('nt','dos'):
+if os.name in ('nt', 'dos'):
     os_name = 'windows'
 else:
     os_name = os.name
@@ -112,10 +114,11 @@ if os_name == 'windows' and 'sdist' in sys.argv:
     print('The sdist command is not available under Windows.  Exiting.')
     sys.exit(1)
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Make sure we aren't trying to run without submodules
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 here = os.path.abspath(os.path.dirname(__file__))
+
 
 def require_clean_submodules():
     """Check on git submodules before distutils can do anything
@@ -125,7 +128,7 @@ def require_clean_submodules():
     this is not a distutils command.
     """
     # PACKAGERS: Add a return here to skip checks for git submodules
-    
+
     # don't do anything if nothing is actually supposed to happen
     for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
         if do_nothing in sys.argv:
@@ -149,42 +152,41 @@ def require_clean_submodules():
 
 require_clean_submodules()
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Things related to the IPython documentation
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
 # update the manuals when building a source dist
-if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
+if len(sys.argv) >= 2 and sys.argv[1] in ('sdist', 'bdist_rpm'):
 
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
     to_update = [
-                  # FIXME - Disabled for now: we need to redo an automatic way
-                  # of generating the magic info inside the rst.
-                  #('docs/magic.tex',
-                  #['IPython/Magic.py'],
-                  #"cd doc && ./update_magic.sh" ),
+        # FIXME - Disabled for now: we need to redo an automatic way
+        # of generating the magic info inside the rst.
+        #('docs/magic.tex',
+        #['IPython/Magic.py'],
+        #"cd doc && ./update_magic.sh" ),
 
-                 ('docs/man/ipcluster.1.gz',
-                  ['docs/man/ipcluster.1'],
-                  'cd docs/man && gzip -9c ipcluster.1 > ipcluster.1.gz'),
+        ('docs/man/ipcluster.1.gz',
+         ['docs/man/ipcluster.1'],
+         'cd docs/man && gzip -9c ipcluster.1 > ipcluster.1.gz'),
 
-                 ('docs/man/ipcontroller.1.gz',
-                  ['docs/man/ipcontroller.1'],
-                  'cd docs/man && gzip -9c ipcontroller.1 > ipcontroller.1.gz'),
+        ('docs/man/ipcontroller.1.gz',
+         ['docs/man/ipcontroller.1'],
+         'cd docs/man && gzip -9c ipcontroller.1 > ipcontroller.1.gz'),
 
-                 ('docs/man/ipengine.1.gz',
-                  ['docs/man/ipengine.1'],
-                  'cd docs/man && gzip -9c ipengine.1 > ipengine.1.gz'),
+        ('docs/man/ipengine.1.gz',
+         ['docs/man/ipengine.1'],
+         'cd docs/man && gzip -9c ipengine.1 > ipengine.1.gz'),
 
-                 ('docs/man/ipython.1.gz',
-                  ['docs/man/ipython.1'],
-                  'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
+        ('docs/man/ipython.1.gz',
+         ['docs/man/ipython.1'],
+         'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
 
-                 ]
+    ]
 
-
-    [ target_update(*t) for t in to_update ]
+    [target_update(*t) for t in to_update]
 
 #---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
@@ -206,12 +208,14 @@ setup_args['data_files'] = data_files
 from distutils.command.sdist import sdist
 from distutils.command.upload import upload
 
+
 class UploadWindowsInstallers(upload):
 
     description = "Upload Windows installers to PyPI (only used from tools/release_windows.py)"
     user_options = upload.user_options + [
         ('files=', 'f', 'exe file (or glob) to upload')
     ]
+
     def initialize_options(self):
         upload.initialize_options(self)
         meta = self.distribution.metadata
@@ -227,15 +231,15 @@ class UploadWindowsInstallers(upload):
 
 setup_args['cmdclass'] = {
     'build_py': check_package_data_first(git_prebuild('IPython')),
-    'sdist' : git_prebuild('IPython', sdist),
-    'upload_wininst' : UploadWindowsInstallers,
-    'submodule' : UpdateSubmodules,
-    'css' : CompileCSS,
+    'sdist': git_prebuild('IPython', sdist),
+    'upload_wininst': UploadWindowsInstallers,
+    'submodule': UpdateSubmodules,
+    'css': CompileCSS,
     'symlink': install_symlinked,
     'install_lib_symlink': install_lib_symlink,
     'install_scripts_sym': install_scripts_for_symlink,
     'unsymlink': unsymlink,
-    'jsversion' : JavascriptVersion,
+    'jsversion': JavascriptVersion,
 }
 
 #---------------------------------------------------------------------------
@@ -245,9 +249,9 @@ setup_args['cmdclass'] = {
 # For some commands, use setuptools.  Note that we do NOT list install here!
 # If you want a setuptools-enhanced install, just run 'setupegg.py install'
 needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
-           'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
-           'egg_info', 'easy_install', 'upload', 'install_egg_info',
-            ))
+                        'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
+                        'egg_info', 'easy_install', 'upload', 'install_egg_info',
+                        ))
 if sys.platform == 'win32':
     # Depend on setuptools for install on *Windows only*
     # If we get script-installation working without setuptools,
@@ -265,13 +269,13 @@ setuptools_extra_args = {}
 # setuptools requirements
 
 extras_require = dict(
-    parallel = ['pyzmq>=2.1.11'],
-    qtconsole = ['pyzmq>=2.1.11', 'pygments'],
-    zmq = ['pyzmq>=2.1.11'],
-    doc = ['Sphinx>=1.1', 'numpydoc'],
-    test = ['nose>=0.10.1'],
-    notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
-    nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
+    parallel=['pyzmq>=2.1.11'],
+    qtconsole=['pyzmq>=2.1.11', 'pygments'],
+    zmq=['pyzmq>=2.1.11'],
+    doc=['Sphinx>=1.1', 'numpydoc'],
+    test=['nose>=0.10.1'],
+    notebook=['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
+    nbconvert=['pygments', 'jinja2', 'Sphinx>=0.3']
 )
 if sys.version_info < (3, 3):
     extras_require['test'].append('mock')
@@ -294,9 +298,10 @@ if 'setuptools' in sys.modules:
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
     setup_args['cmdclass']['bdist_wheel'] = get_bdist_wheel()
-    
+
     setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
+    setuptools_extra_args['entry_points'] = {
+        'console_scripts': find_entry_points()}
     setup_args['extras_require'] = extras_require
     requires = setup_args['install_requires'] = install_requires
 
@@ -306,12 +311,13 @@ if 'setuptools' in sys.modules:
     # doesn't find them.
     if 'bdist_wininst' in sys.argv:
         if len(sys.argv) > 2 and \
-               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
+                ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
             print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
             sys.exit(1)
         setup_args['data_files'].append(
             ['Scripts', ('scripts/ipython.ico', 'scripts/ipython_nb.ico')])
-        setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
+        setup_args['scripts'] = [
+            pjoin('scripts', 'ipython_win_post_install.py')]
         setup_args['options'] = {"bdist_wininst":
                                  {"install_script":
                                   "ipython_win_post_install.py"}}
@@ -325,7 +331,8 @@ else:
             check_for_dependencies()
             break
     # scripts has to be a non-empty list, or install_scripts isn't called
-    setup_args['scripts'] = [e.split('=')[0].strip() for e in find_entry_points()]
+    setup_args['scripts'] = [e.split('=')[0].strip()
+                             for e in find_entry_points()]
 
     setup_args['cmdclass']['build_scripts'] = build_scripts_entrypt
 
@@ -334,6 +341,7 @@ else:
 #---------------------------------------------------------------------------
 
 setup_args.update(setuptools_extra_args)
+
 
 def main():
     setup(**setup_args)

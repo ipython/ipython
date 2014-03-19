@@ -24,6 +24,7 @@ from .channels import (
 # Blocking kernel manager
 #-----------------------------------------------------------------------------
 
+
 class BlockingKernelClient(KernelClient):
 
     # The classes to use for the various channels

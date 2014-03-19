@@ -19,7 +19,7 @@ import IPython.testing.tools as tt
 # Test functions
 #-----------------------------------------------------------------------------
 
+
 def test_help_output():
     """ipython qtconsole --help-all works"""
     tt.help_all_output_test('qtconsole')
-

@@ -21,21 +21,24 @@ from IPython import kernel
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 def test_kms():
     for base in ("", "Multi"):
         KM = base + "KernelManager"
         nt.assert_in(KM, dir(kernel))
+
 
 def test_kcs():
     for base in ("", "Blocking"):
         KM = base + "KernelClient"
         nt.assert_in(KM, dir(kernel))
 
+
 def test_launcher():
     for name in launcher.__all__:
         nt.assert_in(name, dir(kernel))
 
+
 def test_connect():
     for name in connect.__all__:
         nt.assert_in(name, dir(kernel))
-

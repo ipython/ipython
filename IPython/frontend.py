@@ -34,8 +34,9 @@ warn("The top-level `frontend` package has been deprecated. "
 # Class declarations
 #-----------------------------------------------------------------------------
 
+
 class ShimModule(types.ModuleType):
-    
+
     def __init__(self, *args, **kwargs):
         self._mirror = kwargs.pop("mirror")
         super(ShimModule, self).__init__(*args, **kwargs)
@@ -56,7 +57,7 @@ class ShimModule(types.ModuleType):
         #
         # from IPython.utils.importstring import import_item
         # return import_item('MIRROR.' + key)
-        
+
         parts = name.rsplit('.', 1)
         if len(parts) == 2:
             # called with 'foo.bar....'
@@ -75,5 +76,6 @@ class ShimModule(types.ModuleType):
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above
 
-sys.modules['IPython.frontend.html.notebook'] = ShimModule('notebook', mirror='IPython.html')
+sys.modules['IPython.frontend.html.notebook'] = ShimModule(
+    'notebook', mirror='IPython.html')
 sys.modules['IPython.frontend'] = ShimModule('frontend', mirror='IPython')

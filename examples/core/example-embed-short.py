@@ -10,7 +10,7 @@ cut and paste use once you understand how to use the system."""
 try:
     get_ipython
 except NameError:
-    banner=exit_msg=''
+    banner = exit_msg = ''
 else:
     banner = '*** Nested interpreter ***'
     exit_msg = '*** Back in main IPython ***'
@@ -20,7 +20,7 @@ from IPython.terminal.embed import InteractiveShellEmbed
 # Now create the IPython shell instance. Put ipshell() anywhere in your code
 # where you want it to open.
 ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)
-                            
+
 #---------------------------------------------------------------------------
 # This code will load an embeddable IPython shell always with no changes for
 # nested embededings.
@@ -42,6 +42,7 @@ except NameError:
 else:
     # Define a dummy ipshell() so the same code doesn't crash inside an
     # interactive IPython
-    def ipshell(): pass
+    def ipshell():
+        pass
 
 #******************* End of file <example-embed-short.py> ********************
