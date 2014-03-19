@@ -7,7 +7,7 @@ Authors:
 """
 from __future__ import print_function
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
+#  Copyright (C) 2014  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -171,8 +171,9 @@ class NotebookWebApplication(web.Application):
             # authentication
             cookie_secret=ipython_app.cookie_secret,
             login_url=url_path_join(base_url,'/login'),
+            login_handler_class=ipython_app.login_handler_class,
             password=ipython_app.password,
-            
+
             # managers
             kernel_manager=kernel_manager,
             notebook_manager=notebook_manager,
@@ -180,7 +181,7 @@ class NotebookWebApplication(web.Application):
             session_manager=session_manager,
 
             # IPython stuff
-            nbextensions_path = ipython_app.nbextensions_path,
+            nbextensions_path=ipython_app.nbextensions_path,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             jinja2_env=env,
@@ -195,7 +196,7 @@ class NotebookWebApplication(web.Application):
         handlers = []
         handlers.extend(load_handlers('base.handlers'))
         handlers.extend(load_handlers('tree.handlers'))
-        handlers.extend(load_handlers('auth.login'))
+        handlers.extend([(r"/login", settings['login_handler_class'])])
         handlers.extend(load_handlers('auth.logout'))
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
@@ -411,7 +412,6 @@ class NotebookApp(BaseIPythonApplication):
 
     jinja_environment_options = Dict(config=True, 
             help="Supply extra arguments that will be passed to Jinja environment.")
-
     
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
@@ -512,6 +512,10 @@ class NotebookApp(BaseIPythonApplication):
         config=True,
         help='The notebook manager class to use.')
 
+    login_handler = DottedObjectName('IPython.html.auth.login.LoginHandler',
+        config=True,
+        help='The login handler class to use.')
+
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
               "sent by the upstream reverse proxy. Necessary if the proxy handles SSL")
@@ -539,7 +543,6 @@ class NotebookApp(BaseIPythonApplication):
         # setting App.notebook_dir implies setting notebook and kernel dirs as well
         self.config.FileNotebookManager.notebook_dir = new
         self.config.MappingKernelManager.root_dir = new
-        
 
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
@@ -588,6 +591,7 @@ class NotebookApp(BaseIPythonApplication):
         self.session_manager = SessionManager(parent=self, log=self.log)
         self.cluster_manager = ClusterManager(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
+        self.login_handler_class = import_item(self.login_handler)
 
     def init_logging(self):
         # This prevents double log messages because tornado use a root logger that
@@ -615,17 +619,10 @@ class NotebookApp(BaseIPythonApplication):
                 ssl_options['keyfile'] = self.keyfile
         else:
             ssl_options = None
-        self.web_app.password = self.password
+        self.login_handler_class.validate_notebook_app_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
                                                  xheaders=self.trust_xheaders)
-        if not self.ip:
-            warning = "WARNING: The notebook server is listening on all IP addresses"
-            if ssl_options is None:
-                self.log.critical(warning + " and not using encryption. This "
-                    "is not recommended.")
-            if not self.password:
-                self.log.critical(warning + " and not using authentication. "
-                    "This is highly insecure and not recommended.")
+
         success = None
         for port in random_ports(self.port, self.port_retries+1):
             try:
