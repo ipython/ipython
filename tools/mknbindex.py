@@ -7,11 +7,11 @@ import urllib
 
 notebooks = sorted(glob.glob('*.ipynb'))
 
-tpl = ( '* [{0}](http://nbviewer.ipython.org/url/github.com/ipython/ipython/'
-        'raw/master/examples/notebooks/{1})' )
+tpl = ('* [{0}](http://nbviewer.ipython.org/url/github.com/ipython/ipython/'
+       'raw/master/examples/notebooks/{1})')
 
-idx = [ 
-"""# A collection of Notebooks for using IPython effectively
+idx = [
+    """# A collection of Notebooks for using IPython effectively
 
 The following notebooks showcase multiple aspects of IPython, from its basic
 use to more advanced scenarios.  They introduce you to the use of the Notebook
@@ -28,7 +28,7 @@ where you will find many more examples that cover areas from basic Python
 programming to advanced topics in scientific computing.
 """]
 
-idx.extend(tpl.format(nb.replace('.ipynb',''), urllib.quote(nb)) 
+idx.extend(tpl.format(nb.replace('.ipynb', ''), urllib.quote(nb))
            for nb in notebooks)
 
 with open('README.md', 'w') as f:

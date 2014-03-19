@@ -28,6 +28,7 @@ class QtKernelRestarter(KernelRestarter, QtKernelRestarterMixin):
 
 
 class QtKernelManager(KernelManager, QtKernelManagerMixin):
+
     """A KernelManager with Qt signals for restart"""
 
     client_class = DottedObjectName('IPython.qt.client.QtKernelClient')

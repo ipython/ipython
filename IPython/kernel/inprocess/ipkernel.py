@@ -29,6 +29,7 @@ from .socket import DummySocket
 # Main kernel class
 #-----------------------------------------------------------------------------
 
+
 class InProcessKernel(Kernel):
 
     #-------------------------------------------------------------------------
@@ -126,7 +127,7 @@ class InProcessKernel(Kernel):
         ident, msg = self.session.recv(self.iopub_socket, copy=False)
         for frontend in self.frontends:
             frontend.iopub_channel.call_handlers(msg)
-        
+
     #------ Trait initializers -----------------------------------------------
 
     def _log_default(self):
@@ -150,6 +151,7 @@ class InProcessKernel(Kernel):
 #-----------------------------------------------------------------------------
 # Interactive shell subclass
 #-----------------------------------------------------------------------------
+
 
 class InProcessInteractiveShell(ZMQInteractiveShell):
 
@@ -177,6 +179,6 @@ class InProcessInteractiveShell(ZMQInteractiveShell):
         if not gui:
             gui = self.kernel.gui
         return super(InProcessInteractiveShell, self).enable_pylab(gui, import_all,
-                                                            welcome_message)
+                                                                   welcome_message)
 
 InteractiveShellABC.register(InProcessInteractiveShell)

@@ -17,4 +17,3 @@ app.exec_lines.append(lines)
 
 # Load the sympy_printing extension to enable nice printing of sympy expr's.
 app.extensions.append('sympy.interactive.ipythonprinting')
-

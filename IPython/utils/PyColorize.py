@@ -32,7 +32,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-__all__ = ['ANSICodeColors','Parser']
+__all__ = ['ANSICodeColors', 'Parser']
 
 _scheme_default = 'Linux'
 
@@ -60,11 +60,11 @@ else:
     from StringIO import StringIO
 
 #############################################################################
-### Python Source Parser (does Hilighting)
+# Python Source Parser (does Hilighting)
 #############################################################################
 
 _KEYWORD = token.NT_OFFSET + 1
-_TEXT    = token.NT_OFFSET + 2
+_TEXT = token.NT_OFFSET + 2
 
 #****************************************************************************
 # Builtin color schemes
@@ -73,59 +73,61 @@ Colors = TermColors  # just a shorthand
 
 # Build a few color schemes
 NoColor = ColorScheme(
-    'NoColor',{
-    token.NUMBER     : Colors.NoColor,
-    token.OP         : Colors.NoColor,
-    token.STRING     : Colors.NoColor,
-    tokenize.COMMENT : Colors.NoColor,
-    token.NAME       : Colors.NoColor,
-    token.ERRORTOKEN : Colors.NoColor,
+    'NoColor', {
+        token.NUMBER: Colors.NoColor,
+        token.OP: Colors.NoColor,
+        token.STRING: Colors.NoColor,
+        tokenize.COMMENT: Colors.NoColor,
+        token.NAME: Colors.NoColor,
+        token.ERRORTOKEN: Colors.NoColor,
 
-    _KEYWORD         : Colors.NoColor,
-    _TEXT            : Colors.NoColor,
+        _KEYWORD: Colors.NoColor,
+        _TEXT: Colors.NoColor,
 
-    'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
+        'normal': Colors.NoColor  # color off (usu. Colors.Normal)
+    })
 
 LinuxColors = ColorScheme(
-    'Linux',{
-    token.NUMBER     : Colors.LightCyan,
-    token.OP         : Colors.Yellow,
-    token.STRING     : Colors.LightBlue,
-    tokenize.COMMENT : Colors.LightRed,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
+    'Linux', {
+        token.NUMBER: Colors.LightCyan,
+        token.OP: Colors.Yellow,
+        token.STRING: Colors.LightBlue,
+        tokenize.COMMENT: Colors.LightRed,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
 
-    _KEYWORD         : Colors.LightGreen,
-    _TEXT            : Colors.Yellow,
+        _KEYWORD: Colors.LightGreen,
+        _TEXT: Colors.Yellow,
 
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
+        'normal': Colors.Normal  # color off (usu. Colors.Normal)
+    })
 
 LightBGColors = ColorScheme(
-    'LightBG',{
-    token.NUMBER     : Colors.Cyan,
-    token.OP         : Colors.Blue,
-    token.STRING     : Colors.Blue,
-    tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
+    'LightBG', {
+        token.NUMBER: Colors.Cyan,
+        token.OP: Colors.Blue,
+        token.STRING: Colors.Blue,
+        tokenize.COMMENT: Colors.Red,
+        token.NAME: Colors.Normal,
+        token.ERRORTOKEN: Colors.Red,
 
-    _KEYWORD         : Colors.Green,
-    _TEXT            : Colors.Blue,
+        _KEYWORD: Colors.Green,
+        _TEXT: Colors.Blue,
 
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
+        'normal': Colors.Normal  # color off (usu. Colors.Normal)
+    })
 
 # Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
+ANSICodeColors = ColorSchemeTable([NoColor, LinuxColors, LightBGColors],
                                   _scheme_default)
 
+
 class Parser:
+
     """ Format colored Python source.
     """
 
-    def __init__(self, color_table=None,out = sys.stdout):
+    def __init__(self, color_table=None, out=sys.stdout):
         """ Create a parser with a specified color table and output channel.
 
         Call format() to process code.
@@ -133,10 +135,10 @@ class Parser:
         self.color_table = color_table and color_table or ANSICodeColors
         self.out = out
 
-    def format(self, raw, out = None, scheme = ''):
+    def format(self, raw, out=None, scheme=''):
         return self.format2(raw, out, scheme)[0]
 
-    def format2(self, raw, out = None, scheme = ''):
+    def format2(self, raw, out=None, scheme=''):
         """ Parse and send the colored source.
 
         If out and scheme are not specified, the defaults (given to
@@ -148,7 +150,7 @@ class Parser:
 
         string_output = 0
         if out == 'str' or self.out == 'str' or \
-           isinstance(self.out,StringIO):
+           isinstance(self.out, StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
@@ -164,13 +166,13 @@ class Parser:
             error = False
             self.out.write(raw)
             if string_output:
-                return raw,error
+                return raw, error
             else:
-                return None,error
+                return None, error
 
         # local shorthands
         colors = self.color_table[scheme].colors
-        self.colors = colors # put in object so __call__ sees it
+        self.colors = colors  # put in object so __call__ sees it
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
@@ -182,7 +184,8 @@ class Parser:
         lines_append = self.lines.append
         while 1:
             pos = raw_find('\n', pos) + 1
-            if not pos: break
+            if not pos:
+                break
             lines_append(pos)
         lines_append(len(self.raw))
 
@@ -203,7 +206,7 @@ class Parser:
                             colors.normal)
                            )
             error = True
-        self.out.write(colors.normal+'\n')
+        self.out.write(colors.normal + '\n')
         if string_output:
             output = self.out.getvalue()
             self.out = out_old
@@ -212,8 +215,8 @@ class Parser:
 
     def __call__(self, toktype, toktext, start_pos, end_pos, line):
         """ Token handler, with syntax highlighting."""
-        (srow,scol) = start_pos
-        (erow,ecol) = end_pos
+        (srow, scol) = start_pos
+        (erow, ecol) = end_pos
         colors = self.colors
         owrite = self.out.write
 
@@ -241,16 +244,17 @@ class Parser:
             toktype = _KEYWORD
         color = colors.get(toktype, colors[_TEXT])
 
-        #print '<%s>' % toktext,    # dbg
+        # print '<%s>' % toktext,    # dbg
 
         # Triple quoted strings must be handled carefully so that backtracking
         # in pagers works correctly. We need color terminators on _each_ line.
         if linesep in toktext:
             toktext = toktext.replace(linesep, '%s%s%s' %
-                                      (colors.normal,linesep,color))
+                                      (colors.normal, linesep, color))
 
         # send text
-        owrite('%s%s%s' % (color,toktext,colors.normal))
+        owrite('%s%s%s' % (color, toktext, colors.normal))
+
 
 def main(argv=None):
     """Run as a command-line script: colorize a python file or stdin using ANSI
@@ -270,19 +274,19 @@ If no filename is given, or if filename is -, read standard input."""
     import optparse
     parser = optparse.OptionParser(usage=usage_msg)
     newopt = parser.add_option
-    newopt('-s','--scheme',metavar='NAME',dest='scheme_name',action='store',
-           choices=['Linux','LightBG','NoColor'],default=_scheme_default,
+    newopt('-s', '--scheme', metavar='NAME', dest='scheme_name', action='store',
+           choices=['Linux', 'LightBG', 'NoColor'], default=_scheme_default,
            help="give the color scheme to use. Currently only 'Linux'\
  (default) and 'LightBG' and 'NoColor' are implemented (give without\
  quotes)")
 
-    opts,args = parser.parse_args(argv)
+    opts, args = parser.parse_args(argv)
 
     if len(args) > 1:
         parser.error("you must give at most one filename.")
 
     if len(args) == 0:
-        fname = '-' # no filename given; setup to read from stdin
+        fname = '-'  # no filename given; setup to read from stdin
     else:
         fname = args[0]
 
@@ -302,14 +306,14 @@ If no filename is given, or if filename is -, read standard input."""
     try:
         try:
             # write colorized version to stdout
-            parser.format(stream.read(),scheme=opts.scheme_name)
+            parser.format(stream.read(), scheme=opts.scheme_name)
         except IOError as msg:
             # if user reads through a pager and quits, don't print traceback
-            if msg.args != (32,'Broken pipe'):
+            if msg.args != (32, 'Broken pipe'):
                 raise
     finally:
         if stream is not sys.stdin:
-            stream.close() # in case a non-handled exception happened above
+            stream.close()  # in case a non-handled exception happened above
 
 if __name__ == "__main__":
     main()

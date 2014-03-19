@@ -4,6 +4,7 @@ from IPython.external.qt import QtCore, QtGui
 
 
 class CompletionWidget(QtGui.QListWidget):
+
     """ A widget for GUI tab completion.
     """
 

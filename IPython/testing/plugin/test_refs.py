@@ -9,9 +9,11 @@ import inspect
 #-----------------------------------------------------------------------------
 # Testing functions
 
+
 def test_trivial():
     """A trivial passing test."""
     pass
+
 
 def doctest_run():
     """Test running a trivial script.
@@ -19,7 +21,8 @@ def doctest_run():
     In [13]: run simplevars.py
     x is: 1
     """
-    
+
+
 def doctest_runvars():
     """Test that variables defined in scripts get loaded correcly via %run.
 
@@ -30,6 +33,7 @@ def doctest_runvars():
     Out[14]: 1
     """
 
+
 def doctest_ivars():
     """Test that variables defined interactively are picked up.
     In [5]: zz=1
@@ -37,6 +41,7 @@ def doctest_ivars():
     In [6]: zz
     Out[6]: 1
     """
+
 
 def doctest_refs():
     """DocTest reference holding issues when running scripts.

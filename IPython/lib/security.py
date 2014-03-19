@@ -26,6 +26,7 @@ salt_len = 12
 # Functions
 #-----------------------------------------------------------------------------
 
+
 @skip_doctest
 def passwd(passphrase=None, algorithm='sha1'):
     """Generate hashed password and salt for use in notebook configuration.

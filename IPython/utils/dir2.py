@@ -63,9 +63,8 @@ def dir2(obj):
     words = set(dir(obj))
 
     if safe_hasattr(obj, '__class__'):
-        #words.add('__class__')
+        # words.add('__class__')
         words |= set(get_class_members(obj.__class__))
-
 
     # for objects with Enthought's traits, add trait_names() list
     # for PyCrust-style, add _getAttributeNames() magic method list

@@ -19,7 +19,9 @@ from ..markdown import MarkdownExporter
 # Class
 #-----------------------------------------------------------------------------
 
+
 class TestMarkdownExporter(ExportersTestsBase):
+
     """Tests for MarkdownExporter"""
 
     exporter_class = MarkdownExporter
@@ -31,10 +33,10 @@ class TestMarkdownExporter(ExportersTestsBase):
         """
         MarkdownExporter()
 
-
     def test_export(self):
         """
         Can a MarkdownExporter export something?
         """
-        (output, resources) = MarkdownExporter().from_filename(self._get_notebook())
+        (output, resources) = MarkdownExporter().from_filename(
+            self._get_notebook())
         assert len(output) > 0

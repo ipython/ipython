@@ -7,8 +7,10 @@
 #-----------------------------------------------------------------------------
 import io
 
-# N.B. For the test suite, page.page is overridden (see IPython.testing.globalipapp)
+# N.B. For the test suite, page.page is overridden (see
+# IPython.testing.globalipapp)
 from IPython.core import page
+
 
 def test_detect_screen_size():
     """Simple smoketest for page._detect_screen_size."""

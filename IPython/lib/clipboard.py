@@ -6,8 +6,10 @@ import subprocess
 from IPython.core.error import TryNext
 import IPython.utils.py3compat as py3compat
 
+
 class ClipboardEmpty(ValueError):
     pass
+
 
 def win32_clipboard_get():
     """ Get the current clipboard's text on Windows.
@@ -32,16 +34,18 @@ def win32_clipboard_get():
         win32clipboard.CloseClipboard()
     return text
 
+
 def osx_clipboard_get():
     """ Get the clipboard's text on OS X.
     """
     p = subprocess.Popen(['pbpaste', '-Prefer', 'ascii'],
-        stdout=subprocess.PIPE)
+                         stdout=subprocess.PIPE)
     text, stderr = p.communicate()
     # Text comes in with old Mac \r line endings. Change them to \n.
     text = text.replace(b'\r', b'\n')
     text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
     return text
+
 
 def tkinter_clipboard_get():
     """ Get the clipboard's text using Tkinter.
@@ -68,5 +72,3 @@ def tkinter_clipboard_get():
         root.destroy()
     text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
     return text
-
-

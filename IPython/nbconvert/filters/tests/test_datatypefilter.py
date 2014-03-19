@@ -24,21 +24,20 @@ from ..datatypefilter import DataTypeFilter
 #-----------------------------------------------------------------------------
 
 class TestDataTypeFilter(TestsBase):
-    """Contains test functions for datatypefilter.py"""
 
+    """Contains test functions for datatypefilter.py"""
 
     def test_constructor(self):
         """Can an instance of a DataTypeFilter be created?"""
         DataTypeFilter()
 
-
     def test_junk_types(self):
         """Can the DataTypeFilter pickout a useful type from a list of junk types?"""
         filter = DataTypeFilter()
         assert "png" in filter(["hair", "water", "png", "rock"])
-        assert "application/pdf" in filter(["application/pdf", "hair", "water", "png", "rock"])
+        assert "application/pdf" in filter(["application/pdf",
+                                           "hair", "water", "png", "rock"])
         self.assertEqual(filter(["hair", "water", "rock"]), [])
-
 
     def test_null(self):
         """Will the DataTypeFilter fail if no types are passed in?"""

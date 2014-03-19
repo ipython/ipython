@@ -44,7 +44,7 @@ kernel_protocol_version_info = (4, 1)
 description = "IPython: Productive Interactive Computing"
 
 long_description = \
-"""
+    """
 IPython provides a rich toolkit to help you make the most out of using Python
 interactively.  Its main components are:
 
@@ -111,15 +111,15 @@ site <http://github.com/ipython>`_.
 
 license = 'BSD'
 
-authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
-           'Janko'    : ('Janko Hauser','jhauser@zscout.de'),
-           'Nathan'   : ('Nathaniel Gray','n8gray@caltech.edu'),
-           'Ville'    : ('Ville Vainio','vivainio@gmail.com'),
-           'Brian'    : ('Brian E Granger', 'ellisonbg@gmail.com'),
-           'Min'      : ('Min Ragan-Kelley', 'benjaminrk@gmail.com'),
-           'Thomas'   : ('Thomas A. Kluyver', 'takowl@gmail.com'),
-           'Jorgen'   : ('Jorgen Stenarson', 'jorgen.stenarson@bostream.nu'),
-           'Matthias' : ('Matthias Bussonnier', 'bussonniermatthias@gmail.com'),
+authors = {'Fernando': ('Fernando Perez', 'fperez.net@gmail.com'),
+           'Janko': ('Janko Hauser', 'jhauser@zscout.de'),
+           'Nathan': ('Nathaniel Gray', 'n8gray@caltech.edu'),
+           'Ville': ('Ville Vainio', 'vivainio@gmail.com'),
+           'Brian': ('Brian E Granger', 'ellisonbg@gmail.com'),
+           'Min': ('Min Ragan-Kelley', 'benjaminrk@gmail.com'),
+           'Thomas': ('Thomas A. Kluyver', 'takowl@gmail.com'),
+           'Jorgen': ('Jorgen Stenarson', 'jorgen.stenarson@bostream.nu'),
+           'Matthias': ('Matthias Bussonnier', 'bussonniermatthias@gmail.com'),
            }
 
 author = 'The IPython Development Team'
@@ -130,9 +130,9 @@ url = 'http://ipython.org'
 
 download_url = 'https://github.com/ipython/ipython/downloads'
 
-platforms = ['Linux','Mac OSX','Windows XP/Vista/7/8']
+platforms = ['Linux', 'Mac OSX', 'Windows XP/Vista/7/8']
 
-keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed',
+keywords = ['Interactive', 'Interpreter', 'Shell', 'Parallel', 'Distributed',
             'Web-based computing', 'Qt console', 'Embedding']
 
 classifiers = [
@@ -145,4 +145,4 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Topic :: System :: Distributed Computing',
     'Topic :: System :: Shells'
-    ]
+]

@@ -30,11 +30,14 @@ from .client import InProcessKernelClient
 # Blocking kernel manager
 #-----------------------------------------------------------------------------
 
+
 class BlockingInProcessShellChannel(BlockingChannelMixin, InProcessShellChannel):
     pass
 
+
 class BlockingInProcessIOPubChannel(BlockingChannelMixin, InProcessIOPubChannel):
     pass
+
 
 class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel):
 
@@ -49,6 +52,7 @@ class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel)
             prompt = msg['content']['prompt']
             raw_print(prompt, end='')
             self.input(_raw_input())
+
 
 class BlockingInProcessKernelClient(InProcessKernelClient):
 

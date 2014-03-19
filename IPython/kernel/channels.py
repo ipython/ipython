@@ -37,6 +37,7 @@ from IPython.utils.py3compat import string_types, iteritems
 # Constants and exceptions
 #-----------------------------------------------------------------------------
 
+
 class InvalidPortNumber(Exception):
     pass
 
@@ -46,6 +47,7 @@ class InvalidPortNumber(Exception):
 
 # some utilities to validate message structure, these might get moved elsewhere
 # if they prove to have more generic utility
+
 
 def validate_string_list(lst):
     """Validate that the input is a list of strings.
@@ -62,7 +64,7 @@ def validate_string_dict(dct):
     """Validate that the input is a dict with string keys and values.
 
     Raises ValueError if not."""
-    for k,v in iteritems(dct):
+    for k, v in iteritems(dct):
         if not isinstance(k, string_types):
             raise ValueError('key %r in dict must be a string' % k)
         if not isinstance(v, string_types):
@@ -74,6 +76,7 @@ def validate_string_dict(dct):
 #-----------------------------------------------------------------------------
 
 class ZMQSocketChannel(Thread):
+
     """The base class for the channels that use ZMQ sockets."""
     context = None
     session = None
@@ -141,7 +144,7 @@ class ZMQSocketChannel(Thread):
             self.ioloop.stop()
         self.join()
         self.close()
-    
+
     def close(self):
         if self.ioloop is not None:
             try:
@@ -182,12 +185,12 @@ class ZMQSocketChannel(Thread):
 
         Unpacks message, and calls handlers with it.
         """
-        ident,smsg = self.session.feed_identities(msg)
+        ident, smsg = self.session.feed_identities(msg)
         self.call_handlers(self.session.unserialize(smsg))
 
 
-
 class ShellChannel(ZMQSocketChannel):
+
     """The shell channel for issuing request/replies to the kernel."""
 
     command_queue = None
@@ -223,7 +226,8 @@ class ShellChannel(ZMQSocketChannel):
         so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
+        raise NotImplementedError(
+            'call_handlers must be defined in a subclass.')
 
     def execute(self, code, silent=False, store_history=True,
                 user_variables=None, user_expressions=None, allow_stdin=None):
@@ -270,7 +274,6 @@ class ShellChannel(ZMQSocketChannel):
         if allow_stdin is None:
             allow_stdin = self.allow_stdin
 
-
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, string_types):
             raise ValueError('code %r must be a string' % code)
@@ -308,7 +311,8 @@ class ShellChannel(ZMQSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        content = dict(text=text, line=line, block=block, cursor_pos=cursor_pos)
+        content = dict(
+            text=text, line=line, block=block, cursor_pos=cursor_pos)
         msg = self.session.msg('complete_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
@@ -365,7 +369,7 @@ class ShellChannel(ZMQSocketChannel):
         The msg_id of the message sent.
         """
         content = dict(raw=raw, output=output, hist_access_type=hist_access_type,
-                                                                    **kwargs)
+                       **kwargs)
         msg = self.session.msg('history_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
@@ -389,13 +393,13 @@ class ShellChannel(ZMQSocketChannel):
         """
         # Send quit message to kernel. Once we implement kernel-side setattr,
         # this should probably be done that way, but for now this will do.
-        msg = self.session.msg('shutdown_request', {'restart':restart})
+        msg = self.session.msg('shutdown_request', {'restart': restart})
         self._queue_send(msg)
         return msg['header']['msg_id']
 
 
-
 class IOPubChannel(ZMQSocketChannel):
+
     """The iopub channel which listens for messages that the kernel publishes.
 
     This channel is where all output is published to frontends.
@@ -408,7 +412,7 @@ class IOPubChannel(ZMQSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.SUB)
-        self.socket.setsockopt(zmq.SUBSCRIBE,b'')
+        self.socket.setsockopt(zmq.SUBSCRIBE, b'')
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect(self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
@@ -423,7 +427,8 @@ class IOPubChannel(ZMQSocketChannel):
         so that some logic must be done to ensure that the application leve
         handlers are called in the application thread.
         """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
+        raise NotImplementedError(
+            'call_handlers must be defined in a subclass.')
 
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the iopub channel.
@@ -456,6 +461,7 @@ class IOPubChannel(ZMQSocketChannel):
 
 
 class StdInChannel(ZMQSocketChannel):
+
     """The stdin channel to handle raw_input requests that the kernel makes."""
 
     msg_queue = None
@@ -482,7 +488,8 @@ class StdInChannel(ZMQSocketChannel):
         so that some logic must be done to ensure that the application leve
         handlers are called in the application thread.
         """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
+        raise NotImplementedError(
+            'call_handlers must be defined in a subclass.')
 
     def input(self, string):
         """Send a string of raw input to the kernel."""
@@ -492,6 +499,7 @@ class StdInChannel(ZMQSocketChannel):
 
 
 class HBChannel(ZMQSocketChannel):
+
     """The heartbeat channel which monitors the kernel heartbeat.
 
     Note that the heartbeat channel is paused by default. As long as you start
@@ -509,7 +517,7 @@ class HBChannel(ZMQSocketChannel):
     def __init__(self, context, session, address):
         super(HBChannel, self).__init__(context, session, address)
         self._running = False
-        self._pause =True
+        self._pause = True
         self.poller = zmq.Poller()
 
     def _create_socket(self):
@@ -585,11 +593,13 @@ class HBChannel(ZMQSocketChannel):
                     time.sleep(remainder)
                 continue
             else:
-                # nothing was received within the time limit, signal heart failure
+                # nothing was received within the time limit, signal heart
+                # failure
                 self._beating = False
                 since_last_heartbeat = time.time() - request_time
                 self.call_handlers(since_last_heartbeat)
-                # and close/reopen the socket, because the REQ/REP cycle has been broken
+                # and close/reopen the socket, because the REQ/REP cycle has
+                # been broken
                 self._create_socket()
                 continue
 
@@ -621,10 +631,11 @@ class HBChannel(ZMQSocketChannel):
         so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
+        raise NotImplementedError(
+            'call_handlers must be defined in a subclass.')
 
 
-#---------------------------------------------------------------------#-----------------------------------------------------------------------------
+# ---------------------------------------------------------------------#--
 # ABC Registration
 #-----------------------------------------------------------------------------
 

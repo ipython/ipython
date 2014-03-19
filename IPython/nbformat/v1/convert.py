@@ -11,6 +11,6 @@
 # Code
 #-----------------------------------------------------------------------------
 
+
 def upgrade(nb, orig_version=None):
     raise ValueError('Cannot convert to v1 notebook format')
-

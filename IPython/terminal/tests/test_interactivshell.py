@@ -25,13 +25,16 @@ from IPython.testing.decorators import skipif
 from IPython.utils import py3compat
 from IPython.testing import tools as tt
 
-# Decorator for interaction loop tests -----------------------------------------
+# Decorator for interaction loop tests -----------------------------------
+
 
 class mock_input_helper(object):
+
     """Machinery for tests of the main interact loop.
 
     Used by the mock_input decorator.
     """
+
     def __init__(self, testgen):
         self.testgen = testgen
         self.exception = None
@@ -56,12 +59,14 @@ class mock_input_helper(object):
             self.ip.exit_now = True
             return u''
 
+
 def mock_input(testfunc):
     """Decorator for tests of the main interact loop.
 
     Write the test as a generator, yield-ing the input strings, which IPython
     will see as if they were typed in at the prompt.
     """
+
     def test_method(self):
         testgen = testfunc(self)
         with mock_input_helper(testgen) as mih:
@@ -77,9 +82,11 @@ def mock_input(testfunc):
 
     return test_method
 
-# Test classes -----------------------------------------------------------------
+# Test classes -----------------------------------------------------------
+
 
 class InteractiveShellTestCase(unittest.TestCase):
+
     def rl_hist_entries(self, rl, n):
         """Get last n readline history entries as a list"""
         return [rl.get_history_item(rl.get_current_history_length() - x)
@@ -111,13 +118,13 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         ghist = [u'line1', u'line2']
         for h in ghist:
-           ip.readline.add_history(h)
+            ip.readline.add_history(h)
         hlen_b4_cell = ip.readline.get_current_history_length()
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
                                                     hlen_b4_cell)
 
         self.assertEqual(ip.readline.get_current_history_length(),
-                          hlen_b4_cell)
+                         hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 2)
         self.assertEqual(hist, ghist)
 
@@ -132,7 +139,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€', hlen_b4_cell)
 
         self.assertEqual(hlen_b4_cell,
-                          ip.readline.get_current_history_length())
+                         ip.readline.get_current_history_length())
 
     @skipif(not get_ipython().has_readline, 'no readline')
     @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
@@ -144,19 +151,18 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         ghist = [u'line1', u'line2']
         for h in ghist:
-           ip.readline.add_history(h)
+            ip.readline.add_history(h)
 
-        #start cell
+        # start cell
         hlen_b4_cell = ip.readline.get_current_history_length()
-		# nothing added to rl history, should do nothing
+                # nothing added to rl history, should do nothing
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
                                                     hlen_b4_cell)
 
         self.assertEqual(ip.readline.get_current_history_length(),
-                          hlen_b4_cell)
+                         hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 2)
         self.assertEqual(hist, ghist)
-
 
     @skipif(not get_ipython().has_readline, 'no readline')
     @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
@@ -167,28 +173,27 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.multiline_history = True
 
         ip.readline.add_history(u'line0')
-        #start cell
+        # start cell
         hlen_b4_cell = ip.readline.get_current_history_length()
         ip.readline.add_history('l€ne1')
         ip.readline.add_history('line2')
-        #replace cell with single line
+        # replace cell with single line
         hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne1\nline2',
                                                     hlen_b4_cell)
         ip.readline.add_history('l€ne3')
         ip.readline.add_history('line4')
-        #replace cell with single line
+        # replace cell with single line
         hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne3\nline4',
                                                     hlen_b4_cell)
 
         self.assertEqual(ip.readline.get_current_history_length(),
-                          hlen_b4_cell)
+                         hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 3)
         expected = [u'line0', u'l€ne1\nline2', u'l€ne3\nline4']
         # perform encoding, in case of casting due to ASCII locale
         enc = sys.stdin.encoding or "utf-8"
-        expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
+        expected = [py3compat.unicode_to_str(e, enc) for e in expected]
         self.assertEqual(hist, expected)
-
 
     @skipif(not get_ipython().has_readline, 'no readline')
     @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
@@ -199,7 +204,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.multiline_history = True
 
         ip.readline.add_history(u'line0')
-        #start cell
+        # start cell
         hlen_b4_cell = ip.readline.get_current_history_length()
         ip.readline.add_history('l€ne1')
         ip.readline.add_history('line2')
@@ -218,15 +223,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         hlen_b4_cell = ip._replace_rlhist_multiline(u'line4', hlen_b4_cell)
 
         self.assertEqual(ip.readline.get_current_history_length(),
-                          hlen_b4_cell)
+                         hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 4)
         # expect no empty cells in history
         expected = [u'line0', u'l€ne1\nline2', u'l€ne3', u'line4']
         # perform encoding, in case of casting due to ASCII locale
         enc = sys.stdin.encoding or "utf-8"
-        expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
+        expected = [py3compat.unicode_to_str(e, enc) for e in expected]
         self.assertEqual(hist, expected)
-    
+
     @mock_input
     def test_inputtransformer_syntaxerror(self):
         ip = get_ipython()
@@ -247,10 +252,12 @@ class InteractiveShellTestCase(unittest.TestCase):
 
         finally:
             ip.input_splitter.python_line_transforms.remove(transformer)
-            ip.input_transformer_manager.python_line_transforms.remove(transformer)
+            ip.input_transformer_manager.python_line_transforms.remove(
+                transformer)
 
 
 class SyntaxErrorTransformer(InputTransformer):
+
     def push(self, line):
         pos = line.find('syntaxerror')
         if pos >= 0:
@@ -263,7 +270,9 @@ class SyntaxErrorTransformer(InputTransformer):
     def reset(self):
         pass
 
+
 class TerminalMagicsTestCase(unittest.TestCase):
+
     def test_paste_magics_message(self):
         """Test that an IndentationError while using paste magics doesn't
         trigger a message about paste magics and also the opposite."""
@@ -274,11 +283,11 @@ class TerminalMagicsTestCase(unittest.TestCase):
 
         tm = ip.magics_manager.registry['TerminalMagics']
         with tt.AssertPrints("If you want to paste code into IPython, try the "
-                "%paste and %cpaste magic functions."):
+                             "%paste and %cpaste magic functions."):
             ip.run_cell(s)
 
         with tt.AssertNotPrints("If you want to paste code into IPython, try the "
-                "%paste and %cpaste magic functions."):
+                                "%paste and %cpaste magic functions."):
             tm.store_or_execute(s, name=None)
 
     def test_paste_magics_blankline(self):
@@ -288,8 +297,8 @@ class TerminalMagicsTestCase(unittest.TestCase):
              '    b = a+1\n'
              '\n'
              '    return b')
-        
+
         tm = ip.magics_manager.registry['TerminalMagics']
         tm.store_or_execute(s, name=None)
-        
+
         self.assertEqual(ip.user_ns['pasted_func'](54), 55)

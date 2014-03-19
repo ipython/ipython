@@ -31,7 +31,9 @@ if PY3:
 # Main class
 #-----------------------------------------------------------------------------
 
+
 class ExtensionManager(Configurable):
+
     """A class to manage IPython extensions.
 
     An IPython extension is an importable Python module that has
@@ -45,7 +47,7 @@ class ExtensionManager(Configurable):
     the only argument.  You can do anything you want with IPython at
     that point, including defining new magic and aliases, adding new
     components, etc.
-    
+
     You can also optionally define an :func:`unload_ipython_extension(ipython)`
     function, which will be called if the user unloads or reloads the extension.
     The extension manager will only call :func:`load_ipython_extension` again
@@ -78,7 +80,7 @@ class ExtensionManager(Configurable):
 
     def _on_ipython_dir_changed(self):
         if not os.path.isdir(self.ipython_extension_dir):
-            os.makedirs(self.ipython_extension_dir, mode = 0o777)
+            os.makedirs(self.ipython_extension_dir, mode=0o777)
 
     def load_extension(self, module_str):
         """Load an IPython extension by its module name.
@@ -89,9 +91,9 @@ class ExtensionManager(Configurable):
         """
         if module_str in self.loaded:
             return "already loaded"
-        
+
         from IPython.utils.syspathcontext import prepended_to_syspath
-        
+
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
                 with prepended_to_syspath(self.ipython_extension_dir):
@@ -107,14 +109,14 @@ class ExtensionManager(Configurable):
 
         This function looks up the extension's name in ``sys.modules`` and
         simply calls ``mod.unload_ipython_extension(self)``.
-        
+
         Returns the string "no unload function" if the extension doesn't define
         a function to unload itself, "not loaded" if the extension isn't loaded,
         otherwise None.
         """
         if module_str not in self.loaded:
             return "not loaded"
-        
+
         if module_str in sys.modules:
             mod = sys.modules[module_str]
             if self._call_unload_ipython_extension(mod):
@@ -163,7 +165,7 @@ class ExtensionManager(Configurable):
         """
         # Ensure the extension directory exists
         if not os.path.isdir(self.ipython_extension_dir):
-            os.makedirs(self.ipython_extension_dir, mode = 0o777)
+            os.makedirs(self.ipython_extension_dir, mode=0o777)
 
         if os.path.isfile(url):
             src_filename = os.path.basename(url)
@@ -182,7 +184,8 @@ class ExtensionManager(Configurable):
         if filename is None:
             filename = src_filename
         if os.path.splitext(filename)[1] not in ('.py', '.zip'):
-            raise ValueError("The file must have a .py or .zip extension", filename)
+            raise ValueError(
+                "The file must have a .py or .zip extension", filename)
 
         filename = os.path.join(self.ipython_extension_dir, filename)
         copy(url, filename)

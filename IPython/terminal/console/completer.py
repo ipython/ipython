@@ -11,7 +11,9 @@ from IPython.core.completer import IPCompleter
 from IPython.utils.traitlets import Float
 import IPython.utils.rlineimpl as readline
 
+
 class ZMQCompleter(IPCompleter):
+
     """Client-side completion machinery.
 
     How it works: self.complete will be called multiple times, with
@@ -19,28 +21,28 @@ class ZMQCompleter(IPCompleter):
     and then return them for each value of state."""
 
     timeout = Float(5.0, config=True, help='timeout before completion abort')
-    
+
     def __init__(self, shell, client, config=None):
-        super(ZMQCompleter,self).__init__(config=config)
+        super(ZMQCompleter, self).__init__(config=config)
 
         self.shell = shell
-        self.client =  client
+        self.client = client
         self.matches = []
-        
-    def complete_request(self,text):
+
+    def complete_request(self, text):
         line = readline.get_line_buffer()
         cursor_pos = readline.get_endidx()
-        
+
         # send completion request to kernel
         # Give the kernel up to 0.5s to respond
         msg_id = self.client.shell_channel.complete(text=text, line=line,
-                                                        cursor_pos=cursor_pos)
-        
+                                                    cursor_pos=cursor_pos)
+
         msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
             return msg["content"]["matches"]
         return []
-    
+
     def rlcomplete(self, text, state):
         if state == 0:
             try:
@@ -48,11 +50,11 @@ class ZMQCompleter(IPCompleter):
             except Empty:
                 #print('WARNING: Kernel timeout on tab completion.')
                 pass
-        
+
         try:
             return self.matches[state]
         except IndexError:
             return None
-    
+
     def complete(self, text, line, cursor_pos=None):
         return self.rlcomplete(text, 0)

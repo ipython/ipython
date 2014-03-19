@@ -61,11 +61,14 @@ from IPython.utils.text import dedent
 
 NAME_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9_-]*$")
 
+
 @undoc
 class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
+
     """A HelpFormatter with a couple of changes to meet our needs.
     """
     # Modified to dedent text.
+
     def _fill_text(self, text, width, indent):
         return argparse.RawDescriptionHelpFormatter._fill_text(self, dedent(text), width, indent)
 
@@ -100,11 +103,15 @@ class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
     # Override the default prefix ('usage') to our % magic escape,
     # in a code block.
     def add_usage(self, usage, actions, groups, prefix="::\n\n  %"):
-        super(MagicHelpFormatter, self).add_usage(usage, actions, groups, prefix)
+        super(MagicHelpFormatter, self).add_usage(
+            usage, actions, groups, prefix)
+
 
 class MagicArgumentParser(argparse.ArgumentParser):
+
     """ An ArgumentParser tweaked for use by IPython magics.
     """
+
     def __init__(self,
                  prog=None,
                  usage=None,
@@ -119,10 +126,10 @@ class MagicArgumentParser(argparse.ArgumentParser):
         if parents is None:
             parents = []
         super(MagicArgumentParser, self).__init__(prog=prog, usage=usage,
-            description=description, epilog=epilog,
-            parents=parents, formatter_class=formatter_class,
-            prefix_chars=prefix_chars, argument_default=argument_default,
-            conflict_handler=conflict_handler, add_help=add_help)
+                                                  description=description, epilog=epilog,
+                                                  parents=parents, formatter_class=formatter_class,
+                                                  prefix_chars=prefix_chars, argument_default=argument_default,
+                                                  conflict_handler=conflict_handler, add_help=add_help)
 
     def error(self, message):
         """ Raise a catchable error instead of exiting.
@@ -174,6 +181,7 @@ def real_name(magic_func):
 
 
 class ArgDecorator(object):
+
     """ Base class for decorators to add ArgumentParser information to a method.
     """
 
@@ -191,6 +199,7 @@ class ArgDecorator(object):
 
 
 class magic_arguments(ArgDecorator):
+
     """ Mark the magic as having argparse arguments and possibly adjust the
     name.
     """
@@ -235,6 +244,7 @@ class ArgMethodWrapper(ArgDecorator):
 
 
 class argument(ArgMethodWrapper):
+
     """ Store arguments and keywords to pass to add_argument().
 
     Instances also serve to decorate command methods.
@@ -243,6 +253,7 @@ class argument(ArgMethodWrapper):
 
 
 class defaults(ArgMethodWrapper):
+
     """ Store arguments and keywords to pass to set_defaults().
 
     Instances also serve to decorate command methods.
@@ -251,6 +262,7 @@ class defaults(ArgMethodWrapper):
 
 
 class argument_group(ArgMethodWrapper):
+
     """ Store arguments and keywords to pass to add_argument_group().
 
     Instances also serve to decorate command methods.
@@ -263,8 +275,10 @@ class argument_group(ArgMethodWrapper):
 
 
 class kwds(ArgDecorator):
+
     """ Provide other keywords to the sub-parser constructor.
     """
+
     def __init__(self, **kwds):
         self.kwds = kwds
 
@@ -275,4 +289,4 @@ class kwds(ArgDecorator):
 
 
 __all__ = ['magic_arguments', 'argument', 'argument_group', 'kwds',
-    'parse_argstring']
+           'parse_argstring']

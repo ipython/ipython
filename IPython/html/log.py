@@ -8,9 +8,10 @@
 import json
 from tornado.log import access_log
 
+
 def log_request(handler):
     """log a bit more information about each request than tornado's default
-    
+
     - move static file get success to debug-level (reduces noise)
     - get proxied IP instead of proxy IP
     - log referer for redirect and failed requests
@@ -27,7 +28,7 @@ def log_request(handler):
         log_method = access_log.warning
     else:
         log_method = access_log.error
-    
+
     request_time = 1000.0 * handler.request.request_time()
     ns = dict(
         status=status,
@@ -45,4 +46,3 @@ def log_request(handler):
         # log all headers if it caused an error
         log_method(json.dumps(request.headers, indent=2))
     log_method(msg.format(**ns))
-

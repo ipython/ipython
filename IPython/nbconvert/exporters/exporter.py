@@ -36,12 +36,15 @@ from IPython.utils import text, py3compat
 # Class
 #-----------------------------------------------------------------------------
 
+
 class ResourcesDict(collections.defaultdict):
+
     def __missing__(self, key):
         return ''
 
 
 class Exporter(LoggingConfigurable):
+
     """
     Class containing methods that sequentially run a list of preprocessors on a 
     NotebookNode object and then return the modified NotebookNode object and 
@@ -51,16 +54,16 @@ class Exporter(LoggingConfigurable):
     file_extension = Unicode(
         'txt', config=True,
         help="Extension of the file that should be written to disk"
-        )
+    )
 
     # MIME type of the result file, for HTTP response headers.
     # This is *not* a traitlet, because we want to be able to access it from
     # the class, not just on instances.
     output_mimetype = ''
 
-    #Configurability, allows the user to easily add filters and preprocessors.
+    # Configurability, allows the user to easily add filters and preprocessors.
     preprocessors = List(config=True,
-        help="""List of preprocessors, by name or namespace, to enable.""")
+                         help="""List of preprocessors, by name or namespace, to enable.""")
 
     _preprocessors = List()
 
@@ -71,10 +74,9 @@ class Exporter(LoggingConfigurable):
                                   'IPython.nbconvert.preprocessors.RevealHelpPreprocessor',
                                   'IPython.nbconvert.preprocessors.LatexPreprocessor',
                                   'IPython.nbconvert.preprocessors.HighlightMagicsPreprocessor'],
-        config=True,
-        help="""List of preprocessors available by default, by name, namespace, 
+                                 config=True,
+                                 help="""List of preprocessors available by default, by name, namespace, 
         instance, or type.""")
-
 
     def __init__(self, config=None, **kw):
         """
@@ -88,11 +90,10 @@ class Exporter(LoggingConfigurable):
         with_default_config = self.default_config
         if config:
             with_default_config.merge(config)
-        
+
         super(Exporter, self).__init__(config=with_default_config, **kw)
 
         self._init_preprocessors()
-
 
     @property
     def default_config(self):
@@ -115,7 +116,7 @@ class Exporter(LoggingConfigurable):
         """
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)
-        
+
         if 'language' in nb['metadata']:
             resources['language'] = nb['metadata']['language'].lower()
 
@@ -123,7 +124,6 @@ class Exporter(LoggingConfigurable):
         nb_copy, resources = self._preprocess(nb_copy, resources)
 
         return nb_copy, resources
-
 
     def from_filename(self, filename, resources=None, **kw):
         """
@@ -144,12 +144,13 @@ class Exporter(LoggingConfigurable):
         notebook_name = basename[:basename.rfind('.')]
         resources['metadata']['name'] = notebook_name
 
-        modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
-        resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
+        modified_date = datetime.datetime.fromtimestamp(
+            os.path.getmtime(filename))
+        resources['metadata'][
+            'modified_date'] = modified_date.strftime(text.date_format)
 
         with io.open(filename, encoding='utf-8') as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources, **kw)
-
 
     def from_file(self, file_stream, resources=None, **kw):
         """
@@ -161,7 +162,6 @@ class Exporter(LoggingConfigurable):
             Notebook file-like object to convert.
         """
         return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
-
 
     def register_preprocessor(self, preprocessor, enabled=False):
         """
@@ -196,7 +196,7 @@ class Exporter(LoggingConfigurable):
             return preprocessor
 
         elif isclass and isinstance(preprocessor, MetaHasTraits):
-            # Preprocessor is configurable.  Make sure to pass in new default for 
+            # Preprocessor is configurable.  Make sure to pass in new default for
             # the enabled flag if one was specified.
             self.register_preprocessor(preprocessor(parent=self), enabled)
 
@@ -205,10 +205,9 @@ class Exporter(LoggingConfigurable):
             self.register_preprocessor(preprocessor(), enabled)
 
         else:
-            # Preprocessor is an instance of something without a __call__ 
-            # attribute.  
+            # Preprocessor is an instance of something without a __call__
+            # attribute.
             raise TypeError('preprocessor')
-
 
     def _init_preprocessors(self):
         """
@@ -225,10 +224,9 @@ class Exporter(LoggingConfigurable):
         for preprocessor in self.preprocessors:
             self.register_preprocessor(preprocessor, enabled=True)
 
-
     def _init_resources(self, resources):
 
-        #Make sure the resources dict is of ResourcesDict type.
+        # Make sure the resources dict is of ResourcesDict type.
         if resources is None:
             resources = ResourcesDict()
         if not isinstance(resources, ResourcesDict):
@@ -236,7 +234,7 @@ class Exporter(LoggingConfigurable):
             new_resources.update(resources)
             resources = new_resources
 
-        #Make sure the metadata extension exists in resources
+        # Make sure the metadata extension exists in resources
         if 'metadata' in resources:
             if not isinstance(resources['metadata'], ResourcesDict):
                 resources['metadata'] = ResourcesDict(resources['metadata'])
@@ -245,10 +243,9 @@ class Exporter(LoggingConfigurable):
             if not resources['metadata']['name']:
                 resources['metadata']['name'] = 'Notebook'
 
-        #Set the output extension
+        # Set the output extension
         resources['output_extension'] = self.file_extension
         return resources
-
 
     def _preprocess(self, nb, resources):
         """
@@ -265,11 +262,11 @@ class Exporter(LoggingConfigurable):
 
         # Do a copy.deepcopy first,
         # we are never safe enough with what the preprocessors could do.
-        nbc =  copy.deepcopy(nb)
+        nbc = copy.deepcopy(nb)
         resc = copy.deepcopy(resources)
 
-        #Run each preprocessor on the notebook.  Carry the output along
-        #to each preprocessor
+        # Run each preprocessor on the notebook.  Carry the output along
+        # to each preprocessor
         for preprocessor in self._preprocessors:
             nbc, resc = preprocessor(nbc, resc)
         return nbc, resc

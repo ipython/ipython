@@ -10,7 +10,7 @@ ipdir = get_ipdir()
 distdir = pjoin(ipdir, 'dist')
 
 # Load release info
-execfile(pjoin(ipdir, 'IPython','core','release.py'))
+execfile(pjoin(ipdir, 'IPython', 'core', 'release.py'))
 
 # Build site addresses for file uploads
 testing_site = '%s/testing/%s' % (archive, version)

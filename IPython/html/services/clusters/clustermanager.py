@@ -34,14 +34,16 @@ from IPython.utils.path import get_ipython_dir
 
 
 class DummyIPClusterStart(IPClusterStart):
+
     """Dummy subclass to skip init steps that conflict with global app.
-    
+
     Instantiating and initializing this class should result in fully configured
     launchers, but no other side effects or state.
     """
 
     def init_signal(self):
         pass
+
     def reinit_logging(self):
         pass
 
@@ -51,9 +53,10 @@ class ClusterManager(LoggingConfigurable):
     profiles = Dict()
 
     delay = CFloat(1., config=True,
-        help="delay (in s) between starting the controller and the engines")
+                   help="delay (in s) between starting the controller and the engines")
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
+
     def _loop_default(self):
         from zmq.eventloop.ioloop import IOLoop
         return IOLoop.instance()
@@ -67,7 +70,7 @@ class ClusterManager(LoggingConfigurable):
         return cl, esl, n
 
     def get_profile_dir(self, name, path):
-        p = ProfileDir.find_profile_dir_by_name(path,name=name)
+        p = ProfileDir.find_profile_dir_by_name(path, name=name)
         return p.location
 
     def update_profiles(self):
@@ -88,7 +91,8 @@ class ClusterManager(LoggingConfigurable):
         self.update_profiles()
         # sorted list, but ensure that 'default' always comes first
         default_first = lambda name: name if name != 'default' else ''
-        result = [self.profile_info(p) for p in sorted(self.profiles, key=default_first)]
+        result = [self.profile_info(p)
+                  for p in sorted(self.profiles, key=default_first)]
         return result
 
     def check_profile(self, profile):
@@ -114,17 +118,20 @@ class ClusterManager(LoggingConfigurable):
             raise web.HTTPError(409, u'cluster already running')
         cl, esl, default_n = self.build_launchers(data['profile_dir'])
         n = n if n is not None else default_n
+
         def clean_data():
-            data.pop('controller_launcher',None)
-            data.pop('engine_set_launcher',None)
-            data.pop('n',None)
+            data.pop('controller_launcher', None)
+            data.pop('engine_set_launcher', None)
+            data.pop('n', None)
             data['status'] = 'stopped'
+
         def engines_stopped(r):
             self.log.debug('Engines stopped')
             if cl.running:
                 cl.stop()
             clean_data()
         esl.on_stop(engines_stopped)
+
         def controller_stopped(r):
             self.log.debug('Controller stopped')
             if esl.running:
@@ -134,7 +141,8 @@ class ClusterManager(LoggingConfigurable):
 
         dc = ioloop.DelayedCallback(lambda: cl.start(), 0, self.loop)
         dc.start()
-        dc = ioloop.DelayedCallback(lambda: esl.start(n), 1000*self.delay, self.loop)
+        dc = ioloop.DelayedCallback(
+            lambda: esl.start(n), 1000 * self.delay, self.loop)
         dc.start()
 
         self.log.debug('Cluster started')

@@ -126,6 +126,7 @@ from IPython.utils.py3compat import PY3
 # Autoreload functionality
 #------------------------------------------------------------------------------
 
+
 class ModuleReloader(object):
     enabled = False
     """Whether this reloader is enabled"""
@@ -249,7 +250,7 @@ class ModuleReloader(object):
                         del self.failed[py_filename]
                 except:
                     print("[autoreload of %s failed: %s]" % (
-                            modname, traceback.format_exc(1)), file=sys.stderr)
+                        modname, traceback.format_exc(1)), file=sys.stderr)
                     self.failed[py_filename] = pymtime
 
 #------------------------------------------------------------------------------
@@ -289,12 +290,13 @@ def update_class(old, new):
                 pass
             continue
 
-        if update_generic(old_obj, new_obj): continue
+        if update_generic(old_obj, new_obj):
+            continue
 
         try:
             setattr(old, key, getattr(new, key))
         except (AttributeError, TypeError):
-            pass # skip non-writable attributes
+            pass  # skip non-writable attributes
 
 
 def update_property(old, new):
@@ -321,13 +323,13 @@ UPDATE_RULES = [
 if PY3:
     UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.MethodType),
                           lambda a, b: update_function(a.__func__, b.__func__)),
-                        ])
+                         ])
 else:
     UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.ClassType),
                           update_class),
                          (lambda a, b: isinstance2(a, b, types.MethodType),
                           lambda a, b: update_function(a.__func__, b.__func__)),
-                        ])
+                         ])
 
 
 def update_generic(a, b):
@@ -339,8 +341,10 @@ def update_generic(a, b):
 
 
 class StrongRef(object):
+
     def __init__(self, obj):
         self.obj = obj
+
     def __call__(self):
         return self.obj
 
@@ -390,12 +394,14 @@ def superreload(module, reload=reload, old_objects={}):
     # iterate over all objects and update functions & classes
     for name, new_obj in list(module.__dict__.items()):
         key = (module.__name__, name)
-        if key not in old_objects: continue
+        if key not in old_objects:
+            continue
 
         new_refs = []
         for old_ref in old_objects[key]:
             old_obj = old_ref()
-            if old_obj is None: continue
+            if old_obj is None:
+                continue
             new_refs.append(old_ref)
             update_generic(old_obj, new_obj)
 
@@ -412,8 +418,10 @@ def superreload(module, reload=reload, old_objects={}):
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
+
 @magics_class
 class AutoreloadMagics(Magics):
+
     def __init__(self, *a, **kw):
         super(AutoreloadMagics, self).__init__(*a, **kw)
         self._reloader = ModuleReloader()
@@ -521,7 +529,8 @@ class AutoreloadMagics(Magics):
         """
         newly_loaded_modules = set(sys.modules) - self.loaded_modules
         for modname in newly_loaded_modules:
-            _, pymtime = self._reloader.filename_and_mtime(sys.modules[modname])
+            _, pymtime = self._reloader.filename_and_mtime(
+                sys.modules[modname])
             if pymtime is not None:
                 self._reloader.modules_mtimes[modname] = pymtime
 

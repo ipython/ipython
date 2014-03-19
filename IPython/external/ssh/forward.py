@@ -33,30 +33,32 @@ import SocketServer
 
 logger = logging.getLogger('ssh')
 
+
 class ForwardServer (SocketServer.ThreadingTCPServer):
     daemon_threads = True
     allow_reuse_address = True
-    
+
 
 class Handler (SocketServer.BaseRequestHandler):
 
     def handle(self):
         try:
             chan = self.ssh_transport.open_channel('direct-tcpip',
-                                                   (self.chain_host, self.chain_port),
+                                                   (self.chain_host,
+                                                    self.chain_port),
                                                    self.request.getpeername())
         except Exception as e:
             logger.debug('Incoming request to %s:%d failed: %s' % (self.chain_host,
-                                                              self.chain_port,
-                                                              repr(e)))
+                                                                   self.chain_port,
+                                                                   repr(e)))
             return
         if chan is None:
             logger.debug('Incoming request to %s:%d was rejected by the SSH server.' %
-                    (self.chain_host, self.chain_port))
+                         (self.chain_host, self.chain_port))
             return
 
         logger.debug('Connected!  Tunnel open %r -> %r -> %r' % (self.request.getpeername(),
-                                                            chan.getpeername(), (self.chain_host, self.chain_port)))
+                                                                 chan.getpeername(), (self.chain_host, self.chain_port)))
         while True:
             r, w, x = select.select([self.request, chan], [], [])
             if self.request in r:

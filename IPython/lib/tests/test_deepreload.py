@@ -19,6 +19,7 @@ from IPython.lib.deepreload import reload as dreload
 # Test functions begin
 #-----------------------------------------------------------------------------
 
+
 @dec.skipif_not_numpy
 def test_deepreload_numpy():
     "Test that NumPy can be deep reloaded."
@@ -28,8 +29,9 @@ def test_deepreload_numpy():
         'sys', 'os.path', builtin_mod_name, '__main__',
         # Test-related exclusions:
         'unittest', 'UserDict',
-        ]
+    ]
     dreload(numpy, exclude=exclude)
+
 
 def test_deepreload():
     "Test that dreload does deep reloads and skips excluded modules."

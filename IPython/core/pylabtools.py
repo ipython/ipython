@@ -33,10 +33,10 @@ backends = {'tk': 'TkAgg',
             'gtk': 'GTKAgg',
             'gtk3': 'GTK3Agg',
             'wx': 'WXAgg',
-            'qt': 'Qt4Agg', # qt3 not supported
+            'qt': 'Qt4Agg',  # qt3 not supported
             'qt4': 'Qt4Agg',
             'osx': 'MacOSX',
-            'inline' : 'module://IPython.kernel.zmq.pylab.backend_inline'}
+            'inline': 'module://IPython.kernel.zmq.pylab.backend_inline'}
 
 # We also need a reverse backends2guis mapping that will properly choose which
 # GUI support to activate based on the desired matplotlib backend.  For the
@@ -97,7 +97,7 @@ def figsize(sizex, sizey):
 
 def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     """Print a figure to an image, and return the resulting bytes
-    
+
     Any keyword args are passed to fig.canvas.print_figure,
     such as ``quality`` or ``bbox_inches``.
     """
@@ -111,7 +111,7 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     if fmt == 'retina':
         dpi = dpi * 2
         fmt = 'png'
-    
+
     # build keyword args
     kw = dict(
         format=fmt,
@@ -122,20 +122,23 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     )
     # **kwargs get higher priority
     kw.update(kwargs)
-    
+
     bytes_io = BytesIO()
     fig.canvas.print_figure(bytes_io, **kw)
     return bytes_io.getvalue()
-    
+
+
 def retina_figure(fig, **kwargs):
     """format a figure as a pixel-doubled (retina) PNG"""
     pngdata = print_figure(fig, fmt='retina', **kwargs)
     w, h = _pngxy(pngdata)
-    metadata = dict(width=w//2, height=h//2)
+    metadata = dict(width=w // 2, height=h // 2)
     return pngdata, metadata
 
 # We need a little factory function here to create the closure where
 # safe_execfile can live.
+
+
 def mpl_runner(safe_execfile):
     """Factory to return a matplotlib-enabled runner for %run.
 
@@ -150,8 +153,8 @@ def mpl_runner(safe_execfile):
     A function suitable for use as the ``runner`` argument of the %run magic
     function.
     """
-    
-    def mpl_execfile(fname,*where,**kw):
+
+    def mpl_execfile(fname, *where, **kw):
         """matplotlib-aware wrapper around safe_execfile.
 
         Its interface is identical to that of the :func:`execfile` builtin.
@@ -162,11 +165,11 @@ def mpl_runner(safe_execfile):
         import matplotlib
         import matplotlib.pylab as pylab
 
-        #print '*** Matplotlib runner ***' # dbg
+        # print '*** Matplotlib runner ***' # dbg
         # turn off rendering until end of script
         is_interactive = matplotlib.rcParams['interactive']
         matplotlib.interactive(False)
-        safe_execfile(fname,*where,**kw)
+        safe_execfile(fname, *where, **kw)
         matplotlib.interactive(is_interactive)
         # make rendering call now, if the user tried to do it
         if pylab.draw_if_interactive.called:
@@ -201,25 +204,30 @@ def select_figure_formats(shell, formats, **kwargs):
     # cast in case of list / tuple
     formats = set(formats)
 
-    [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
-    
+    [f.pop(Figure, None) for f in shell.display_formatter.formatters.values()]
+
     supported = {'png', 'png2x', 'retina', 'jpg', 'jpeg', 'svg', 'pdf'}
     bad = formats.difference(supported)
     if bad:
         bs = "%s" % ','.join([repr(f) for f in bad])
         gs = "%s" % ','.join([repr(f) for f in supported])
         raise ValueError("supported formats are: %s not %s" % (gs, bs))
-    
+
     if 'png' in formats:
-        png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png', **kwargs))
+        png_formatter.for_type(
+            Figure, lambda fig: print_figure(fig, 'png', **kwargs))
     if 'retina' in formats or 'png2x' in formats:
-        png_formatter.for_type(Figure, lambda fig: retina_figure(fig, **kwargs))
+        png_formatter.for_type(
+            Figure, lambda fig: retina_figure(fig, **kwargs))
     if 'jpg' in formats or 'jpeg' in formats:
-        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', **kwargs))
+        jpg_formatter.for_type(
+            Figure, lambda fig: print_figure(fig, 'jpg', **kwargs))
     if 'svg' in formats:
-        svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg', **kwargs))
+        svg_formatter.for_type(
+            Figure, lambda fig: print_figure(fig, 'svg', **kwargs))
     if 'pdf' in formats:
-        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf', **kwargs))
+        pdf_formatter.for_type(
+            Figure, lambda fig: print_figure(fig, 'pdf', **kwargs))
 
 #-----------------------------------------------------------------------------
 # Code for initializing matplotlib and importing pylab
@@ -272,7 +280,7 @@ def activate_matplotlib(backend):
 
     import matplotlib
     matplotlib.interactive(True)
-    
+
     # Matplotlib had a bug where even switch_backend could not force
     # the rcParam to update. This needs to be set *before* the module
     # magic of switch_backend().
@@ -293,29 +301,29 @@ def activate_matplotlib(backend):
 
 def import_pylab(user_ns, import_all=True):
     """Populate the namespace with pylab-related values.
-    
+
     Imports matplotlib, pylab, numpy, and everything from pylab and numpy.
-    
+
     Also imports a few names from IPython (figsize, display, getfigs)
-    
+
     """
 
     # Import numpy as np/pyplot as plt are conventions we're trying to
     # somewhat standardize on.  Making them available to users by default
     # will greatly help this.
     s = ("import numpy\n"
-          "import matplotlib\n"
-          "from matplotlib import pylab, mlab, pyplot\n"
-          "np = numpy\n"
-          "plt = pyplot\n"
-          )
+         "import matplotlib\n"
+         "from matplotlib import pylab, mlab, pyplot\n"
+         "np = numpy\n"
+         "plt = pyplot\n"
+         )
     exec(s, user_ns)
-    
+
     if import_all:
         s = ("from matplotlib.pylab import *\n"
              "from numpy import *\n")
         exec(s, user_ns)
-    
+
     # IPython symbols to add
     user_ns['figsize'] = figsize
     from IPython.core.display import display
@@ -373,4 +381,3 @@ def configure_inline_support(shell, backend):
 
     # Setup the default figure format
     select_figure_formats(shell, cfg.figure_formats, **cfg.print_figure_kwargs)
-

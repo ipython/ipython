@@ -45,16 +45,19 @@ BackSpaceAction = namedtuple('BackSpaceAction', ['action'])
 CSI_COMMANDS = 'ABCDEFGHJKSTfmnsu'
 CSI_SUBPATTERN = '\[(.*?)([%s])' % CSI_COMMANDS
 OSC_SUBPATTERN = '\](.*?)[\x07\x1b]'
-ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' % \
+ANSI_PATTERN = ('\x01?\x1b(%s|%s)\x02?' %
                 (CSI_SUBPATTERN, OSC_SUBPATTERN))
-ANSI_OR_SPECIAL_PATTERN = re.compile('(\a|\b|\r(?!\n)|\r?\n)|(?:%s)' % ANSI_PATTERN)
+ANSI_OR_SPECIAL_PATTERN = re.compile(
+    '(\a|\b|\r(?!\n)|\r?\n)|(?:%s)' % ANSI_PATTERN)
 SPECIAL_PATTERN = re.compile('([\f])')
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class AnsiCodeProcessor(object):
+
     """ Translates special ASCII characters and ANSI escape codes into readable
         attributes. It also supports a few non-standard, xterm-specific codes.
     """
@@ -67,9 +70,9 @@ class AnsiCodeProcessor(object):
     # to use a custom color format.
     default_color_map = {}
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # AnsiCodeProcessor interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def __init__(self):
         self.actions = []
@@ -125,7 +128,7 @@ class AnsiCodeProcessor(object):
                 yield g0
                 self.actions = []
             else:
-                params = [ param for param in groups[1].split(';') if param ]
+                params = [param for param in groups[1].split(';') if param]
                 if g0.startswith('['):
                     # Case 1: CSI code.
                     try:
@@ -166,7 +169,7 @@ class AnsiCodeProcessor(object):
             else:
                 self.set_sgr_code([0])
 
-        elif (command == 'J' or # ED - Erase Data
+        elif (command == 'J' or  # ED - Erase Data
               command == 'K'):  # EL - Erase in Line
             code = params[0] if params else 0
             if 0 <= code <= 2:
@@ -179,7 +182,7 @@ class AnsiCodeProcessor(object):
                     erase_to = 'all'
                 self.actions.append(EraseAction('erase', area, erase_to))
 
-        elif (command == 'S' or # SU - Scroll Up
+        elif (command == 'S' or  # SU - Scroll Up
               command == 'T'):  # SD - Scroll Down
             dir = 'up' if command == 'S' else 'down'
             count = params[0] if params else 1
@@ -262,9 +265,9 @@ class AnsiCodeProcessor(object):
         # Recurse with unconsumed parameters.
         self.set_sgr_code(params)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Protected interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _parse_xterm_color_spec(self, spec):
         if spec.startswith('rgb:'):
@@ -284,27 +287,28 @@ class AnsiCodeProcessor(object):
 
 
 class QtAnsiCodeProcessor(AnsiCodeProcessor):
+
     """ Translates ANSI escape codes into QTextCharFormats.
     """
 
     # A map from ANSI color codes to SVG color names or RGB(A) tuples.
     darkbg_color_map = {
-        0  : 'black',       # black
-        1  : 'darkred',     # red
-        2  : 'darkgreen',   # green
-        3  : 'brown',       # yellow
-        4  : 'darkblue',    # blue
-        5  : 'darkviolet',  # magenta
-        6  : 'steelblue',   # cyan
-        7  : 'grey',        # white
-        8  : 'grey',        # black (bright)
-        9  : 'red',         # red (bright)
-        10 : 'lime',        # green (bright)
-        11 : 'yellow',      # yellow (bright)
-        12 : 'deepskyblue', # blue (bright)
-        13 : 'magenta',     # magenta (bright)
-        14 : 'cyan',        # cyan (bright)
-        15 : 'white' }      # white (bright)
+        0: 'black',       # black
+        1: 'darkred',     # red
+        2: 'darkgreen',   # green
+        3: 'brown',       # yellow
+        4: 'darkblue',    # blue
+        5: 'darkviolet',  # magenta
+        6: 'steelblue',   # cyan
+        7: 'grey',        # white
+        8: 'grey',        # black (bright)
+        9: 'red',         # red (bright)
+        10: 'lime',        # green (bright)
+        11: 'yellow',      # yellow (bright)
+        12: 'deepskyblue',  # blue (bright)
+        13: 'magenta',     # magenta (bright)
+        14: 'cyan',        # cyan (bright)
+        15: 'white'}      # white (bright)
 
     # Set the default color map for super class.
     default_color_map = darkbg_color_map.copy()

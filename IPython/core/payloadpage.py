@@ -34,6 +34,7 @@ from IPython.core.interactiveshell import InteractiveShell
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 def page(strng, start=0, screen_lines=0, pager_cmd=None,
          html=None, auto_html=False):
     """Print a string, piping through a pager.
@@ -48,7 +49,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None,
 
     start : int
       Starting line at which to place the display.
-    
+
     html : str, optional
       If given, an html string to send as well.
 
@@ -80,13 +81,13 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None,
                                   settings_overrides=defaults)
         except:
             pass
-        
+
     payload = dict(
         source='page',
         text=strng,
         html=html,
         start_line_number=start
-        )
+    )
     shell.payload_manager.write_payload(payload)
 
 

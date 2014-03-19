@@ -23,8 +23,8 @@ from ..csshtmlheader import CSSHTMLHeaderPreprocessor
 #-----------------------------------------------------------------------------
 
 class TestCSSHTMLHeader(PreprocessorTestsBase):
-    """Contains test functions for csshtmlheader.py"""
 
+    """Contains test functions for csshtmlheader.py"""
 
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
@@ -32,11 +32,9 @@ class TestCSSHTMLHeader(PreprocessorTestsBase):
         preprocessor.enabled = True
         return preprocessor
 
-
     def test_constructor(self):
         """Can a CSSHTMLHeaderPreprocessor be constructed?"""
         self.build_preprocessor()
-    
 
     def test_output(self):
         """Test the output of the CSSHTMLHeaderPreprocessor"""
@@ -44,4 +42,4 @@ class TestCSSHTMLHeader(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-        assert 'css' in res['inlining'] 
+        assert 'css' in res['inlining']

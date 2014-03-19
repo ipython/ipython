@@ -20,7 +20,9 @@ import unittest
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
+
 class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
+
     """Test the behavior of the file_to_run parameter."""
 
     def test_py_script_file_attribute(self):

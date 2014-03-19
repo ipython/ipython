@@ -22,7 +22,9 @@ from IPython.testing.decorators import onlyif_cmds_exist
 # Class
 #-----------------------------------------------------------------------------
 
+
 class TestLatexExporter(ExportersTestsBase):
+
     """Contains test functions for latex.py"""
 
     exporter_class = LatexExporter
@@ -34,38 +36,38 @@ class TestLatexExporter(ExportersTestsBase):
         """
         LatexExporter()
 
-
     @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a LatexExporter export something?
         """
-        (output, resources) = LatexExporter().from_filename(self._get_notebook())
+        (output, resources) = LatexExporter().from_filename(
+            self._get_notebook())
         assert len(output) > 0
-
 
     @onlyif_cmds_exist('pandoc')
     def test_export_book(self):
         """
         Can a LatexExporter export using 'report' template?
         """
-        (output, resources) = LatexExporter(template_file='report').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(
+            template_file='report').from_filename(self._get_notebook())
         assert len(output) > 0
-
 
     @onlyif_cmds_exist('pandoc')
     def test_export_basic(self):
         """
         Can a LatexExporter export using 'article' template?
         """
-        (output, resources) = LatexExporter(template_file='article').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(
+            template_file='article').from_filename(self._get_notebook())
         assert len(output) > 0
-
 
     @onlyif_cmds_exist('pandoc')
     def test_export_article(self):
         """
         Can a LatexExporter export using 'article' template?
         """
-        (output, resources) = LatexExporter(template_file='article').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(
+            template_file='article').from_filename(self._get_notebook())
         assert len(output) > 0

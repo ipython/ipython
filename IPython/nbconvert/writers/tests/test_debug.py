@@ -31,11 +31,12 @@ else:
 #-----------------------------------------------------------------------------
 
 class TestDebug(TestsBase):
+
     """Contains test functions for debug.py"""
 
     def test_output(self):
         """Test debug writer output."""
-        
+
         # Capture the stdout.  Remember original.
         stdout = sys.stdout
         stream = StringIO()

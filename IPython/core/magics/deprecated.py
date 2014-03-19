@@ -20,8 +20,10 @@ from IPython.core.magic import Magics, magics_class, line_magic
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
+
 @magics_class
 class DeprecatedMagics(Magics):
+
     """Magics slated for later removal."""
 
     @line_magic

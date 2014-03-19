@@ -25,6 +25,7 @@ from IPython.utils.traitlets import List
 # Main payload class
 #-----------------------------------------------------------------------------
 
+
 class PayloadManager(Configurable):
 
     _payload = List([])
@@ -37,7 +38,8 @@ class PayloadManager(Configurable):
         """
 
         if not isinstance(data, dict):
-            raise TypeError('Each payload write must be a dict, got: %r' % data)
+            raise TypeError(
+                'Each payload write must be a dict, got: %r' % data)
 
         if single and 'source' in data:
             source = data['source']

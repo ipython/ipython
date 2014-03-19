@@ -20,11 +20,13 @@ from .templateexporter import TemplateExporter
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class RSTExporter(TemplateExporter):
+
     """
     Exports restructured text documents.
     """
-    
+
     def _file_extension_default(self):
         return 'rst'
 
@@ -35,6 +37,6 @@ class RSTExporter(TemplateExporter):
 
     @property
     def default_config(self):
-        c = Config({'ExtractOutputPreprocessor':{'enabled':True}})
-        c.merge(super(RSTExporter,self).default_config)
+        c = Config({'ExtractOutputPreprocessor': {'enabled': True}})
+        c.merge(super(RSTExporter, self).default_config)
         return c

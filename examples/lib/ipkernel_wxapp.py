@@ -29,7 +29,9 @@ from internal_ipkernel import InternalIPKernel
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+
 class MyFrame(wx.Frame, InternalIPKernel):
+
     """
     This is MyFrame.  It just shows a few controls on a wxPanel,
     and has a simple menu.
@@ -42,7 +44,7 @@ class MyFrame(wx.Frame, InternalIPKernel):
         # Create the menubar
         menuBar = wx.MenuBar()
 
-        # and a menu 
+        # and a menu
         menu = wx.Menu()
 
         # add an item to the menu, using \tKeyName automatically
@@ -100,6 +102,7 @@ class MyFrame(wx.Frame, InternalIPKernel):
 
 
 class MyApp(wx.App):
+
     def OnInit(self):
         frame = MyFrame(None, "Simple wxPython App")
         self.SetTopWindow(frame)

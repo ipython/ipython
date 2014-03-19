@@ -28,37 +28,38 @@ from IPython.utils.py3compat import cast_bytes_py2
 # Launching Kernels
 #-----------------------------------------------------------------------------
 
+
 def swallow_argv(argv, aliases=None, flags=None):
     """strip frontend-specific aliases and flags from an argument list
-    
+
     For use primarily in frontend apps that want to pass a subset of command-line
     arguments through to a subprocess, where frontend-specific flags and aliases
     should be removed from the list.
-    
+
     Parameters
     ----------
-    
+
     argv : list(str)
         The starting argv, to be filtered
     aliases : container of aliases (dict, list, set, etc.)
         The frontend-specific aliases to be removed
     flags : container of flags (dict, list, set, etc.)
         The frontend-specific flags to be removed
-    
+
     Returns
     -------
-    
+
     argv : list(str)
         The argv list, excluding flags and aliases that have been stripped
     """
-    
+
     if aliases is None:
         aliases = set()
     if flags is None:
         flags = set()
-    
-    stripped = list(argv) # copy
-    
+
+    stripped = list(argv)  # copy
+
     swallow_next = False
     was_flag = False
     for a in argv:
@@ -89,7 +90,7 @@ def swallow_argv(argv, aliases=None, flags=None):
             elif len(split) == 1 and any(flag.startswith(name) for flag in flags):
                 # strip flag, but don't swallow next, as flags don't take args
                 stripped.remove(a)
-    
+
     # return shortened list
     return stripped
 
@@ -107,17 +108,17 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
 
     extra_arguments : list, optional
         A list of extra arguments to pass when executing the launch code.
-    
+
     Returns
     -------
-    
+
     A Popen command list
     """
-    
+
     # Build the kernel launch command.
     if executable is None:
         executable = sys.executable
-    arguments = [ executable, '-c', code, '-f', '{connection_file}' ]
+    arguments = [executable, '-c', code, '-f', '{connection_file}']
     arguments.extend(extra_arguments)
 
     # Spawn a kernel.
@@ -137,10 +138,10 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
 
 
 def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
-                        independent=False,
-                        cwd=None, ipython_kernel=True,
-                        **kw
-                        ):
+                  independent=False,
+                  cwd=None, ipython_kernel=True,
+                  **kw
+                  ):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -166,7 +167,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
 
     Returns
     -------
-    
+
     Popen instance for the kernel subprocess
     """
 
@@ -189,21 +190,21 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
         _stderr = PIPE if stderr is None else stderr
     else:
         _stdout, _stderr = stdout, stderr
-    
+
     encoding = getdefaultencoding(prefer_stream=False)
-    
+
     # Spawn a kernel.
     if sys.platform == 'win32':
         # Popen on Python 2 on Windows cannot handle unicode args or cwd
-        cmd = [ cast_bytes_py2(c, encoding) for c in cmd ]
+        cmd = [cast_bytes_py2(c, encoding) for c in cmd]
         if cwd:
             cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
-        
+
         from IPython.kernel.zmq.parentpoller import ParentPollerWindows
         # Create a Win32 event for interrupting the kernel.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
         if ipython_kernel:
-            cmd += [ '--interrupt=%i' % interrupt_event ]
+            cmd += ['--interrupt=%i' % interrupt_event]
 
             # If the kernel is running on pythonw and stdout/stderr are not been
             # re-directed, it will crash when more than 4KB of data is written to
@@ -220,7 +221,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
         # Launch the kernel process.
         if independent:
             proc = Popen(cmd,
-                         creationflags=512, # CREATE_NEW_PROCESS_GROUP
+                         creationflags=512,  # CREATE_NEW_PROCESS_GROUP
                          stdin=_stdin, stdout=_stdout, stderr=_stderr, env=os.environ)
         else:
             if ipython_kernel:
@@ -232,15 +233,15 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
                         DUPLICATE_SAME_ACCESS
                 pid = GetCurrentProcess()
                 handle = DuplicateHandle(pid, pid, pid, 0,
-                                         True, # Inheritable by new processes.
+                                         True,  # Inheritable by new processes.
                                          DUPLICATE_SAME_ACCESS)
-                cmd +=[ '--parent=%i' % handle ]
-            
-            
+                cmd += ['--parent=%i' % handle]
+
             proc = Popen(cmd,
                          stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
 
-        # Attach the interrupt event to the Popen objet so it can be used later.
+        # Attach the interrupt event to the Popen objet so it can be used
+        # later.
         proc.win32_interrupt_event = interrupt_event
 
     else:

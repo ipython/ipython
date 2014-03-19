@@ -29,6 +29,7 @@ files.difference_update({'README.md',
 # Absolute paths
 files = {pjoin(pr_dir, f) for f in files}
 
+
 def getmtime(f):
     return check_output(['git', 'log', '-1', '--format="%ai"', '--', f])
 

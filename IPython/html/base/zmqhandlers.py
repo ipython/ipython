@@ -17,9 +17,9 @@ Authors:
 #-----------------------------------------------------------------------------
 
 try:
-    from urllib.parse import urlparse # Py 3
+    from urllib.parse import urlparse  # Py 3
 except ImportError:
-    from urlparse import urlparse # Py 2
+    from urlparse import urlparse  # Py 2
 
 try:
     from http.cookies import SimpleCookie  # Py 3
@@ -40,6 +40,7 @@ from .handlers import IPythonHandler
 #-----------------------------------------------------------------------------
 # ZMQ handlers
 #-----------------------------------------------------------------------------
+
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
 
@@ -94,17 +95,19 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
     def _on_zmq_reply(self, msg_list):
         # Sometimes this gets triggered when the on_close method is scheduled in the
         # eventloop but hasn't been called.
-        if self.stream.closed(): return
+        if self.stream.closed():
+            return
         try:
             msg = self._reserialize_reply(msg_list)
         except Exception:
-            self.log.critical("Malformed message: %r" % msg_list, exc_info=True)
+            self.log.critical("Malformed message: %r" %
+                              msg_list, exc_info=True)
         else:
             self.write_message(msg)
 
     def allow_draft76(self):
         """Allow draft 76, until browsers such as Safari update to RFC 6455.
-        
+
         This has been disabled by default in tornado in release 2.2.0, and
         support will be removed in later versions.
         """
@@ -135,12 +138,14 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             identity, msg = msg.split(':', 1)
             self.session.session = cast_unicode(identity, 'ascii')
         except Exception:
-            logging.error("First ws message didn't have the form 'identity:[cookie]' - %r", msg)
-        
+            logging.error(
+                "First ws message didn't have the form 'identity:[cookie]' - %r", msg)
+
         try:
             self.request._cookies = SimpleCookie(msg)
         except:
-            self.log.warn("couldn't parse cookie string: %s",msg, exc_info=True)
+            self.log.warn(
+                "couldn't parse cookie string: %s", msg, exc_info=True)
 
     def on_first_message(self, msg):
         self._inject_cookie_message(msg)

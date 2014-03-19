@@ -48,6 +48,7 @@ Handlers must be registered in the `doctests` dict at the end of this module.
 
 """
 
+
 def str_to_array(s):
     """
     Simplistic converter of strings from repr to float NumPy arrays.
@@ -81,6 +82,7 @@ def str_to_array(s):
         # Assume its a regular float. Force 1D so we can index into it.
         a = np.atleast_1d(float(s))
     return a
+
 
 def float_doctest(sphinx_shell, args, input_lines, found, submitted):
     """

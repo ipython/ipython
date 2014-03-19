@@ -37,7 +37,8 @@ __author__ = 'Ka-Ping Yee <ping@lfw.org>'
 __credits__ = ('GvR, ESR, Tim Peters, Thomas Wouters, Fred Drake, '
                'Skip Montanaro, Raymond Hettinger')
 
-import string, re
+import string
+import re
 from token import *
 
 import token
@@ -54,9 +55,17 @@ NL = N_TOKENS + 1
 tok_name[NL] = 'NL'
 N_TOKENS += 2
 
-def group(*choices): return '(' + '|'.join(choices) + ')'
-def any(*choices): return group(*choices) + '*'
-def maybe(*choices): return group(*choices) + '?'
+
+def group(*choices):
+    return '(' + '|'.join(choices) + ')'
+
+
+def any(*choices):
+    return group(*choices) + '*'
+
+
+def maybe(*choices):
+    return group(*choices) + '?'
 
 Whitespace = r'[ \f\t]*'
 Comment = r'#[^\r\n]*'
@@ -150,20 +159,26 @@ for t in ("'", '"',
           "uR'", 'uR"', "UR'", 'UR"',
           "b'", 'b"', "B'", 'B"',
           "br'", 'br"', "Br'", 'Br"',
-          "bR'", 'bR"', "BR'", 'BR"' ):
+          "bR'", 'bR"', "BR'", 'BR"'):
     single_quoted[t] = t
 
 tabsize = 8
 
-class TokenError(Exception): pass
 
-class StopTokenizing(Exception): pass
+class TokenError(Exception):
+    pass
 
-def printtoken(type, token, srow_scol, erow_ecol, line): # for testing
+
+class StopTokenizing(Exception):
+    pass
+
+
+def printtoken(type, token, srow_scol, erow_ecol, line):  # for testing
     srow, scol = srow_scol
     erow, ecol = erow_ecol
-    print("%d,%d-%d,%d:\t%s\t%s" % \
-        (srow, scol, erow, ecol, tok_name[type], repr(token)))
+    print("%d,%d-%d,%d:\t%s\t%s" %
+          (srow, scol, erow, ecol, tok_name[type], repr(token)))
+
 
 def tokenize(readline, tokeneater=printtoken):
     """
@@ -184,9 +199,12 @@ def tokenize(readline, tokeneater=printtoken):
         pass
 
 # backwards compatible interface
+
+
 def tokenize_loop(readline, tokeneater):
     for token_info in generate_tokens(readline):
         tokeneater(*token_info)
+
 
 class Untokenizer:
 
@@ -255,6 +273,7 @@ class Untokenizer:
                 startline = False
             toks_append(tokval)
 
+
 def untokenize(iterable):
     """Transform tokens back into Python source code.
 
@@ -275,6 +294,7 @@ def untokenize(iterable):
     """
     ut = Untokenizer()
     return ut.untokenize(iterable)
+
 
 def generate_tokens(readline):
     """
@@ -318,7 +338,7 @@ def generate_tokens(readline):
                 contline = None
             elif needcont and line[-2:] != '\\\n' and line[-3:] != '\\\r\n':
                 yield (ERRORTOKEN, contstr + line,
-                           strstart, (lnum, len(line)), contline)
+                       strstart, (lnum, len(line)), contline)
                 contstr = ''
                 contline = None
                 continue
@@ -328,13 +348,14 @@ def generate_tokens(readline):
                 continue
 
         elif parenlev == 0 and not continued:  # new statement
-            if not line: break
+            if not line:
+                break
             column = 0
             while pos < max:                   # measure leading whitespace
                 if line[pos] == ' ':
                     column += 1
                 elif line[pos] == '\t':
-                    column = (column//tabsize + 1)*tabsize
+                    column = (column // tabsize + 1) * tabsize
                 elif line[pos] == '\f':
                     column = 0
                 else:
@@ -401,8 +422,8 @@ def generate_tokens(readline):
                         contline = line
                         break
                 elif initial in single_quoted or \
-                    token[:2] in single_quoted or \
-                    token[:3] in single_quoted:
+                        token[:2] in single_quoted or \
+                        token[:3] in single_quoted:
                     if token[-1] == '\n':                  # continued string
                         strstart = (lnum, start)
                         endprog = (endprogs[initial] or endprogs[token[1]] or
@@ -424,7 +445,7 @@ def generate_tokens(readline):
                     yield (OP, token, spos, epos, line)
             else:
                 yield (ERRORTOKEN, line[pos],
-                           (lnum, pos), (lnum, pos+1), line)
+                       (lnum, pos), (lnum, pos + 1), line)
                 pos += 1
 
     for indent in indents[1:]:                 # pop remaining indent levels

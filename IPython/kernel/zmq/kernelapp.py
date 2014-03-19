@@ -64,13 +64,13 @@ from .zmqshell import ZMQInteractiveShell
 
 kernel_aliases = dict(base_aliases)
 kernel_aliases.update({
-    'ip' : 'IPKernelApp.ip',
-    'hb' : 'IPKernelApp.hb_port',
-    'shell' : 'IPKernelApp.shell_port',
-    'iopub' : 'IPKernelApp.iopub_port',
-    'stdin' : 'IPKernelApp.stdin_port',
-    'control' : 'IPKernelApp.control_port',
-    'f' : 'IPKernelApp.connection_file',
+    'ip': 'IPKernelApp.ip',
+    'hb': 'IPKernelApp.hb_port',
+    'shell': 'IPKernelApp.shell_port',
+    'iopub': 'IPKernelApp.iopub_port',
+    'stdin': 'IPKernelApp.stdin_port',
+    'control': 'IPKernelApp.control_port',
+    'f': 'IPKernelApp.connection_file',
     'parent': 'IPKernelApp.parent_handle',
     'transport': 'IPKernelApp.transport',
 })
@@ -79,14 +79,14 @@ if sys.platform.startswith('win'):
 
 kernel_flags = dict(base_flags)
 kernel_flags.update({
-    'no-stdout' : (
-            {'IPKernelApp' : {'no_stdout' : True}},
-            "redirect stdout to the null device"),
-    'no-stderr' : (
-            {'IPKernelApp' : {'no_stderr' : True}},
-            "redirect stderr to the null device"),
-    'pylab' : (
-        {'IPKernelApp' : {'pylab' : 'auto'}},
+    'no-stdout': (
+        {'IPKernelApp': {'no_stdout': True}},
+        "redirect stdout to the null device"),
+    'no-stderr': (
+        {'IPKernelApp': {'no_stderr': True}},
+        "redirect stderr to the null device"),
+    'pylab': (
+        {'IPKernelApp': {'pylab': 'auto'}},
         """Pre-load matplotlib and numpy for interactive use with
         the default matplotlib backend."""),
 })
@@ -113,42 +113,47 @@ To read more about this, see https://github.com/ipython/ipython/issues/2049
 # Application class for starting an IPython Kernel
 #-----------------------------------------------------------------------------
 
+
 class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
-    name='ipkernel'
+    name = 'ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
     kernel_class = DottedObjectName('IPython.kernel.zmq.ipkernel.Kernel', config=True,
-    help="""The Kernel subclass to be used.
+                                    help="""The Kernel subclass to be used.
     
     This should allow easy re-use of the IPKernelApp entry point
     to configure and launch kernels other than IPython's own.
     """)
     kernel = Any()
-    poller = Any() # don't restrict this even though current pollers are all Threads
+    # don't restrict this even though current pollers are all Threads
+    poller = Any()
     heartbeat = Instance(Heartbeat)
     session = Instance('IPython.kernel.zmq.session.Session')
     ports = Dict()
-    
+
     # ipkernel doesn't get its own config file
     def _config_file_name_default(self):
         return 'ipython_config.py'
-    
+
     # inherit config file name from parent:
     parent_appname = Unicode(config=True)
+
     def _parent_appname_changed(self, name, old, new):
         if self.config_file_specified:
             # it was manually specified, ignore
             return
-        self.config_file_name = new.replace('-','_') + u'_config.py'
+        self.config_file_name = new.replace('-', '_') + u'_config.py'
         # don't let this count as specifying the config file
         self.config_file_specified.remove(self.config_file_name)
-        
+
     # connection info:
-    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
+    transport = CaselessStrEnum(
+        ['tcp', 'ipc'], default_value='tcp', config=True)
     ip = Unicode(config=True,
-        help="Set the IP or interface on which the kernel will listen.")
+                 help="Set the IP or interface on which the kernel will listen.")
+
     def _ip_default(self):
         if self.transport == 'ipc':
             if self.connection_file:
@@ -157,42 +162,49 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 return 'kernel-ipc'
         else:
             return localhost()
-    
-    hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
-    shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
-    iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True, help="set the stdin (ROUTER) port [default: random]")
-    control_port = Integer(0, config=True, help="set the control (ROUTER) port [default: random]")
-    connection_file = Unicode('', config=True, 
-    help="""JSON file in which to store connection info [default: kernel-<pid>.json]
+
+    hb_port = Integer(
+        0, config=True, help="set the heartbeat port [default: random]")
+    shell_port = Integer(
+        0, config=True, help="set the shell (ROUTER) port [default: random]")
+    iopub_port = Integer(
+        0, config=True, help="set the iopub (PUB) port [default: random]")
+    stdin_port = Integer(
+        0, config=True, help="set the stdin (ROUTER) port [default: random]")
+    control_port = Integer(
+        0, config=True, help="set the control (ROUTER) port [default: random]")
+    connection_file = Unicode('', config=True,
+                              help="""JSON file in which to store connection info [default: kernel-<pid>.json]
     
     This file will contain the IP, ports, and authentication key needed to connect
     clients to this kernel. By default, this file will be created in the security dir
     of the current profile, but can be specified by absolute path.
     """)
+
     @property
     def abs_connection_file(self):
         if os.path.basename(self.connection_file) == self.connection_file:
             return os.path.join(self.profile_dir.security_dir, self.connection_file)
         else:
             return self.connection_file
-        
 
     # streams, etc.
-    no_stdout = Bool(False, config=True, help="redirect stdout to the null device")
-    no_stderr = Bool(False, config=True, help="redirect stderr to the null device")
+    no_stdout = Bool(
+        False, config=True, help="redirect stdout to the null device")
+    no_stderr = Bool(
+        False, config=True, help="redirect stderr to the null device")
     outstream_class = DottedObjectName('IPython.kernel.zmq.iostream.OutStream',
-        config=True, help="The importstring for the OutStream factory")
+                                       config=True, help="The importstring for the OutStream factory")
     displayhook_class = DottedObjectName('IPython.kernel.zmq.displayhook.ZMQDisplayHook',
-        config=True, help="The importstring for the DisplayHook factory")
+                                         config=True, help="The importstring for the DisplayHook factory")
 
     # polling
     parent_handle = Integer(0, config=True,
-        help="""kill this process if its parent dies.  On Windows, the argument
+                            help="""kill this process if its parent dies.  On Windows, the argument
         specifies the HANDLE of the parent process, otherwise it is simply boolean.
         """)
     interrupt = Integer(0, config=True,
-        help="""ONLY USED ON WINDOWS
+                        help="""ONLY USED ON WINDOWS
         Interrupt this process when the parent is signaled.
         """)
 
@@ -204,7 +216,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     def init_poller(self):
         if sys.platform == 'win32':
             if self.interrupt or self.parent_handle:
-                self.poller = ParentPollerWindows(self.interrupt, self.parent_handle)
+                self.poller = ParentPollerWindows(
+                    self.interrupt, self.parent_handle)
         elif self.parent_handle:
             self.poller = ParentPollerUnix()
 
@@ -230,9 +243,11 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     def load_connection_file(self):
         """load ip/port/hmac config from JSON connection file"""
         try:
-            fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
+            fname = filefind(
+                self.connection_file, ['.', self.profile_dir.security_dir])
         except IOError:
-            self.log.debug("Connection file not found: %s", self.connection_file)
+            self.log.debug(
+                "Connection file not found: %s", self.connection_file)
             # This means I own it, so I will clean it up:
             atexit.register(self.cleanup_connection_file)
             return
@@ -251,15 +266,15 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 setattr(self, name, cfg[name])
         if 'key' in cfg:
             self.config.Session.key = str_to_bytes(cfg['key'])
-    
+
     def write_connection_file(self):
         """write connection info to JSON file"""
         cf = self.abs_connection_file
         self.log.debug("Writing connection file: %s", cf)
         write_connection_file(cf, ip=self.ip, key=self.session.key, transport=self.transport,
-        shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
-        iopub_port=self.iopub_port, control_port=self.control_port)
-    
+                              shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
+                              iopub_port=self.iopub_port, control_port=self.control_port)
+
     def cleanup_connection_file(self):
         cf = self.abs_connection_file
         self.log.debug("Cleaning up connection file: %s", cf)
@@ -267,9 +282,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
             os.remove(cf)
         except (IOError, OSError):
             pass
-        
+
         self.cleanup_ipc_files()
-    
+
     def cleanup_ipc_files(self):
         """cleanup ipc files if we wrote them"""
         if self.transport != 'ipc':
@@ -280,16 +295,17 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 os.remove(ipcfile)
             except (IOError, OSError):
                 pass
-    
+
     def init_connection_file(self):
         if not self.connection_file:
-            self.connection_file = "kernel-%s.json"%os.getpid()
+            self.connection_file = "kernel-%s.json" % os.getpid()
         try:
             self.load_connection_file()
         except Exception:
-            self.log.error("Failed to load connection file: %r", self.connection_file, exc_info=True)
+            self.log.error(
+                "Failed to load connection file: %r", self.connection_file, exc_info=True)
             self.exit(1)
-    
+
     def init_sockets(self):
         # Create a context, a session, and the kernel sockets.
         self.log.info("Starting the kernel at pid: %i", os.getpid())
@@ -310,24 +326,28 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         self.log.debug("stdin ROUTER Channel on port: %i" % self.stdin_port)
 
         self.control_socket = context.socket(zmq.ROUTER)
-        self.control_port = self._bind_socket(self.control_socket, self.control_port)
-        self.log.debug("control ROUTER Channel on port: %i" % self.control_port)
-    
+        self.control_port = self._bind_socket(
+            self.control_socket, self.control_port)
+        self.log.debug("control ROUTER Channel on port: %i" %
+                       self.control_port)
+
     def init_heartbeat(self):
         """start the heart beating"""
         # heartbeat doesn't share context, because it mustn't be blocked
-        # by the GIL, which is accessed by libzmq when freeing zero-copy messages
+        # by the GIL, which is accessed by libzmq when freeing zero-copy
+        # messages
         hb_ctx = zmq.Context()
-        self.heartbeat = Heartbeat(hb_ctx, (self.transport, self.ip, self.hb_port))
+        self.heartbeat = Heartbeat(
+            hb_ctx, (self.transport, self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i" % self.hb_port)
         self.heartbeat.start()
-    
+
     def log_connection_info(self):
         """display connection info, and store ports"""
         basename = os.path.basename(self.connection_file)
         if basename == self.connection_file or \
-            os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
+                os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
             # use shortname
             tail = basename
             if self.profile != 'default':
@@ -351,8 +371,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 io.rprint(line)
 
         self.ports = dict(shell=self.shell_port, iopub=self.iopub_port,
-                                stdin=self.stdin_port, hb=self.hb_port,
-                                control=self.control_port)
+                          stdin=self.stdin_port, hb=self.hb_port,
+                          control=self.control_port)
 
     def init_session(self):
         """create our session object"""
@@ -367,16 +387,19 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 sys.stdout = sys.__stdout__ = blackhole
             if self.no_stderr:
                 sys.stderr = sys.__stderr__ = blackhole
-    
+
     def init_io(self):
         """Redirect input streams and set a display hook."""
         if self.outstream_class:
             outstream_factory = import_item(str(self.outstream_class))
-            sys.stdout = outstream_factory(self.session, self.iopub_socket, u'stdout')
-            sys.stderr = outstream_factory(self.session, self.iopub_socket, u'stderr')
+            sys.stdout = outstream_factory(
+                self.session, self.iopub_socket, u'stdout')
+            sys.stderr = outstream_factory(
+                self.session, self.iopub_socket, u'stderr')
         if self.displayhook_class:
             displayhook_factory = import_item(str(self.displayhook_class))
-            sys.displayhook = displayhook_factory(self.session, self.iopub_socket)
+            sys.displayhook = displayhook_factory(
+                self.session, self.iopub_socket)
 
     def init_signal(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -385,7 +408,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         """Create the Kernel object itself"""
         shell_stream = ZMQStream(self.shell_socket)
         control_stream = ZMQStream(self.control_socket)
-        
+
         kernel_factory = import_item(str(self.kernel_class))
 
         kernel = kernel_factory(parent=self, session=self.session,
@@ -395,7 +418,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                                 log=self.log,
                                 profile_dir=self.profile_dir,
                                 user_ns=self.user_ns,
-        )
+                                )
         kernel.record_ports(self.ports)
         self.kernel = kernel
 
@@ -434,7 +457,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         self.init_poller()
         self.init_sockets()
         self.init_heartbeat()
-        # writing/displaying connection info must be *after* init_sockets/heartbeat
+        # writing/displaying connection info must be *after*
+        # init_sockets/heartbeat
         self.log_connection_info()
         self.write_connection_file()
         self.init_io()
@@ -461,6 +485,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
             pass
 
 launch_new_instance = IPKernelApp.launch_instance
+
 
 def main():
     """Run an IPKernel as an application"""

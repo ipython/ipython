@@ -19,10 +19,13 @@ from IPython.utils.traitlets import Unicode, Bool
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
 class _StringWidget(DOMWidget):
     value = Unicode(help="String value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
-    description = Unicode(help="Description of the value this widget represents", sync=True)
+    description = Unicode(
+        help="Description of the value this widget represents", sync=True)
 
 
 class HTMLWidget(_StringWidget):

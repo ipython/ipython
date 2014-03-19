@@ -2,11 +2,11 @@
 Contains base test class for nbconvert
 """
 #-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
+# Copyright (c) 2013, the IPython Development Team.
 #
-#Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the Modified BSD License.
 #
-#The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -35,12 +35,12 @@ ipy_cmd = get_ipython_cmd(as_string=True) + " "
 
 
 class TestsBase(unittest.TestCase):
+
     """Base tests class.  Contains useful fuzzy comparison and nbconvert
     functions."""
 
-
-    def fuzzy_compare(self, a, b, newlines_are_spaces=True, tabs_are_spaces=True, 
-                      fuzzy_spacing=True, ignore_spaces=False, 
+    def fuzzy_compare(self, a, b, newlines_are_spaces=True, tabs_are_spaces=True,
+                      fuzzy_spacing=True, ignore_spaces=False,
                       ignore_newlines=False, case_sensitive=False, leave_padding=False):
         """
         Performs a fuzzy comparison of two strings.  A fuzzy comparison is a
@@ -79,7 +79,6 @@ class TestsBase(unittest.TestCase):
 
         self.assertEqual(a, b)
 
-
     def recursive_replace(self, text, search, replacement):
         """
         Performs a recursive replacement operation.  Replaces all instances
@@ -107,19 +106,18 @@ class TestsBase(unittest.TestCase):
     def create_temp_cwd(self, copy_filenames=None):
         temp_dir = TemporaryWorkingDirectory()
 
-        #Copy the files if requested.
+        # Copy the files if requested.
         if copy_filenames is not None:
             self.copy_files_to(copy_filenames, dest=temp_dir.name)
 
-        #Return directory handler
+        # Return directory handler
         return temp_dir
-    
+
     def create_empty_notebook(self, path):
         nb = current.new_notebook()
         nb.worksheets.append(current.new_worksheet())
         with io.open(path, 'w', encoding='utf-8') as f:
             current.write(nb, f, 'json')
-
 
     def copy_files_to(self, copy_filenames, dest='.'):
         "Copy test files into the destination directory"
@@ -128,22 +126,21 @@ class TestsBase(unittest.TestCase):
         files_path = self._get_files_path()
         for pattern in copy_filenames:
             for match in glob.glob(os.path.join(files_path, pattern)):
-                shutil.copyfile(match, os.path.join(dest, os.path.basename(match)))
-
+                shutil.copyfile(
+                    match, os.path.join(dest, os.path.basename(match)))
 
     def _get_files_path(self):
 
-        #Get the relative path to this module in the IPython directory.
+        # Get the relative path to this module in the IPython directory.
         names = self.__module__.split('.')[1:-1]
         names.append('files')
-        
-        #Build a path using the IPython directory and the relative path we just
-        #found.
+
+        # Build a path using the IPython directory and the relative path we just
+        # found.
         path = get_ipython_package_dir()
         for name in names:
             path = os.path.join(path, name)
         return path
-
 
     def call(self, parameters, ignore_return_code=False):
         """

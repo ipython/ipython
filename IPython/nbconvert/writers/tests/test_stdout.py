@@ -32,11 +32,12 @@ else:
 #-----------------------------------------------------------------------------
 
 class TestStdout(TestsBase):
+
     """Contains test functions for stdout.py"""
 
     def test_output(self):
         """Test stdout writer output."""
-        
+
         # Capture the stdout.  Remember original.
         stdout = sys.stdout
         stream = StringIO()

@@ -187,21 +187,25 @@ from IPython.utils import io
 from IPython.utils.text import marquee
 from IPython.utils import openpy
 from IPython.utils import py3compat
-__all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
+__all__ = ['Demo', 'IPythonDemo', 'LineDemo', 'IPythonLineDemo', 'DemoError']
 
-class DemoError(Exception): pass
+
+class DemoError(Exception):
+    pass
+
 
 def re_mark(mark):
-    return re.compile(r'^\s*#\s+<demo>\s+%s\s*$' % mark,re.MULTILINE)
+    return re.compile(r'^\s*#\s+<demo>\s+%s\s*$' % mark, re.MULTILINE)
+
 
 class Demo(object):
 
-    re_stop     = re_mark('-*\s?stop\s?-*')
-    re_silent   = re_mark('silent')
-    re_auto     = re_mark('auto')
+    re_stop = re_mark('-*\s?stop\s?-*')
+    re_silent = re_mark('silent')
+    re_auto = re_mark('auto')
     re_auto_all = re_mark('auto_all')
 
-    def __init__(self,src,title='',arg_str='',auto_all=None):
+    def __init__(self, src, title='', arg_str='', auto_all=None):
         """Make a new demo object.  To run the demo, simply call the object.
 
         See the module docstring for full details and an example (you can use
@@ -252,11 +256,11 @@ class Demo(object):
         # sync with the ipython mode being used.  This class is only meant to
         # be used inside ipython anyways,  so it's OK.
         ip = get_ipython()  # this is in builtins whenever IPython is running
-        self.ip_ns       = ip.user_ns
+        self.ip_ns = ip.user_ns
         self.ip_colorize = ip.pycolorize
-        self.ip_showtb   = ip.showtraceback
+        self.ip_showtb = ip.showtraceback
         self.ip_run_cell = ip.run_cell
-        self.shell       = ip
+        self.shell = ip
 
         # load user data and initialize data structures
         self.reload()
@@ -265,7 +269,7 @@ class Demo(object):
         """Load file object."""
         # read data and parse into blocks
         if hasattr(self, 'fobj') and self.fobj is not None:
-           self.fobj.close()
+            self.fobj.close()
         if hasattr(self.src, "read"):
              # It seems to be a file or a file-like object
             self.fobj = self.src
@@ -277,10 +281,10 @@ class Demo(object):
         """Reload source from disk and initialize state."""
         self.fload()
 
-        self.src     = "".join(openpy.strip_encoding_cookie(self.fobj))
-        src_b        = [b.strip() for b in self.re_stop.split(self.src) if b]
+        self.src = "".join(openpy.strip_encoding_cookie(self.fobj))
+        src_b = [b.strip() for b in self.re_stop.split(self.src) if b]
         self._silent = [bool(self.re_silent.findall(b)) for b in src_b]
-        self._auto   = [bool(self.re_auto.findall(b)) for b in src_b]
+        self._auto = [bool(self.re_auto.findall(b)) for b in src_b]
 
         # if auto_all is not given (def. None), we read it from the file
         if self.auto_all is None:
@@ -291,75 +295,76 @@ class Demo(object):
         # Clean the sources from all markup so it doesn't get displayed when
         # running the demo
         src_blocks = []
-        auto_strip = lambda s: self.re_auto.sub('',s)
-        for i,b in enumerate(src_b):
+        auto_strip = lambda s: self.re_auto.sub('', s)
+        for i, b in enumerate(src_b):
             if self._auto[i]:
                 src_blocks.append(auto_strip(b))
             else:
                 src_blocks.append(b)
         # remove the auto_all marker
-        src_blocks[0] = self.re_auto_all.sub('',src_blocks[0])
+        src_blocks[0] = self.re_auto_all.sub('', src_blocks[0])
 
         self.nblocks = len(src_blocks)
         self.src_blocks = src_blocks
 
         # also build syntax-highlighted source
-        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+        self.src_blocks_colored = map(self.ip_colorize, self.src_blocks)
 
         # ensure clean namespace and seek offset
         self.reset()
 
     def reset(self):
         """Reset the namespace and seek pointer to restart the demo"""
-        self.user_ns     = {}
-        self.finished    = False
+        self.user_ns = {}
+        self.finished = False
         self.block_index = 0
 
-    def _validate_index(self,index):
-        if index<0 or index>=self.nblocks:
+    def _validate_index(self, index):
+        if index < 0 or index >= self.nblocks:
             raise ValueError('invalid block index %s' % index)
 
-    def _get_index(self,index):
+    def _get_index(self, index):
         """Get the current block index, validating and checking status.
 
         Returns None if the demo is finished"""
 
         if index is None:
             if self.finished:
-                print('Demo finished.  Use <demo_name>.reset() if you want to rerun it.', file=io.stdout)
+                print(
+                    'Demo finished.  Use <demo_name>.reset() if you want to rerun it.', file=io.stdout)
                 return None
             index = self.block_index
         else:
             self._validate_index(index)
         return index
 
-    def seek(self,index):
+    def seek(self, index):
         """Move the current seek pointer to the given block.
 
         You can use negative indices to seek from the end, with identical
         semantics to those of Python lists."""
-        if index<0:
+        if index < 0:
             index = self.nblocks + index
         self._validate_index(index)
         self.block_index = index
         self.finished = False
 
-    def back(self,num=1):
+    def back(self, num=1):
         """Move the seek pointer back num blocks (default is 1)."""
-        self.seek(self.block_index-num)
+        self.seek(self.block_index - num)
 
-    def jump(self,num=1):
+    def jump(self, num=1):
         """Jump a given number of blocks relative to the current one.
 
         The offset can be positive or negative, defaults to 1."""
-        self.seek(self.block_index+num)
+        self.seek(self.block_index + num)
 
     def again(self):
         """Move the seek pointer back one block and re-execute."""
         self.back(1)
         self()
 
-    def edit(self,index=None):
+    def edit(self, index=None):
         """Edit a block.
 
         If no number is given, use the last block executed.
@@ -375,11 +380,11 @@ class Demo(object):
             return
         # decrease the index by one (unless we're at the very beginning), so
         # that the default demo.edit() call opens up the sblock we've last run
-        if index>0:
+        if index > 0:
             index -= 1
 
         filename = self.shell.mktempfile(self.src_blocks[index])
-        self.shell.hooks.editor(filename,1)
+        self.shell.hooks.editor(filename, 1)
         with open(filename, 'r') as f:
             new_block = f.read()
         # update the source and colored block
@@ -389,7 +394,7 @@ class Demo(object):
         # call to run with the newly edited index
         self()
 
-    def show(self,index=None):
+    def show(self, index=None):
         """Show a single block on screen"""
 
         index = self._get_index(index)
@@ -397,7 +402,7 @@ class Demo(object):
             return
 
         print(self.marquee('<%s> block # %s (%s remaining)' %
-                           (self.title,index,self.nblocks-index-1)), file=io.stdout)
+                           (self.title, index, self.nblocks - index - 1)), file=io.stdout)
         print(self.src_blocks_colored[index], file=io.stdout)
         sys.stdout.flush()
 
@@ -409,22 +414,22 @@ class Demo(object):
         nblocks = self.nblocks
         silent = self._silent
         marquee = self.marquee
-        for index,block in enumerate(self.src_blocks_colored):
+        for index, block in enumerate(self.src_blocks_colored):
             if silent[index]:
                 print(marquee('<%s> SILENT block # %s (%s remaining)' %
-                              (title,index,nblocks-index-1)), file=io.stdout)
+                              (title, index, nblocks - index - 1)), file=io.stdout)
             else:
                 print(marquee('<%s> block # %s (%s remaining)' %
-                              (title,index,nblocks-index-1)), file=io.stdout)
+                              (title, index, nblocks - index - 1)), file=io.stdout)
             print(block, end=' ', file=io.stdout)
         sys.stdout.flush()
 
-    def run_cell(self,source):
+    def run_cell(self, source):
         """Execute a string with one or more lines of code"""
 
         exec(source, self.user_ns)
 
-    def __call__(self,index=None):
+    def __call__(self, index=None):
         """run a block of the demo.
 
         If index is given, it should be an integer >=1 and <= nblocks.  This
@@ -442,14 +447,15 @@ class Demo(object):
             self.block_index += 1
             if self._silent[index]:
                 print(marquee('Executing silent block # %s (%s remaining)' %
-                              (index,self.nblocks-index-1)), file=io.stdout)
+                              (index, self.nblocks - index - 1)), file=io.stdout)
             else:
                 self.pre_cmd()
                 self.show(index)
                 if self.auto_all or self._auto[index]:
                     print(marquee('output:'), file=io.stdout)
                 else:
-                    print(marquee('Press <q> to quit, <Enter> to execute...'), end=' ', file=io.stdout)
+                    print(
+                        marquee('Press <q> to quit, <Enter> to execute...'), end=' ', file=io.stdout)
                     ans = py3compat.input().strip()
                     if ans:
                         print(marquee('Block NOT executed'), file=io.stdout)
@@ -473,14 +479,15 @@ class Demo(object):
                 # avoid spurious print >>io.stdout,s if empty marquees are used
                 print(file=io.stdout)
                 print(mq1, file=io.stdout)
-                print(self.marquee('Use <demo_name>.reset() if you want to rerun it.'), file=io.stdout)
+                print(
+                    self.marquee('Use <demo_name>.reset() if you want to rerun it.'), file=io.stdout)
             self.finished = True
 
     # These methods are meant to be overridden by subclasses who may wish to
     # customize the behavior of of their demos.
-    def marquee(self,txt='',width=78,mark='*'):
+    def marquee(self, txt='', width=78, mark='*'):
         """Return the input string centered in a 'marquee'."""
-        return marquee(txt,width,mark)
+        return marquee(txt, width, mark)
 
     def pre_cmd(self):
         """Method called before executing each block."""
@@ -492,6 +499,7 @@ class Demo(object):
 
 
 class IPythonDemo(Demo):
+
     """Class for interactive demos with IPython's input processing applied.
 
     This subclasses Demo, but instead of executing each block by the Python
@@ -504,12 +512,14 @@ class IPythonDemo(Demo):
     class requires the input to be valid, pure Python code.
     """
 
-    def run_cell(self,source):
+    def run_cell(self, source):
         """Execute a string with one or more lines of code"""
 
         self.shell.run_cell(source)
 
+
 class LineDemo(Demo):
+
     """Demo where each line is executed as a separate block.
 
     The input script should be valid Python code.
@@ -527,29 +537,31 @@ class LineDemo(Demo):
         """Reload source from disk and initialize state."""
         # read data and parse into blocks
         self.fload()
-        lines           = self.fobj.readlines()
-        src_b           = [l for l in lines if l.strip()]
-        nblocks         = len(src_b)
-        self.src        = ''.join(lines)
-        self._silent    = [False]*nblocks
-        self._auto      = [True]*nblocks
-        self.auto_all   = True
-        self.nblocks    = nblocks
+        lines = self.fobj.readlines()
+        src_b = [l for l in lines if l.strip()]
+        nblocks = len(src_b)
+        self.src = ''.join(lines)
+        self._silent = [False] * nblocks
+        self._auto = [True] * nblocks
+        self.auto_all = True
+        self.nblocks = nblocks
         self.src_blocks = src_b
 
         # also build syntax-highlighted source
-        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+        self.src_blocks_colored = map(self.ip_colorize, self.src_blocks)
 
         # ensure clean namespace and seek offset
         self.reset()
 
 
-class IPythonLineDemo(IPythonDemo,LineDemo):
+class IPythonLineDemo(IPythonDemo, LineDemo):
+
     """Variant of the LineDemo class whose input is processed by IPython."""
     pass
 
 
 class ClearMixin(object):
+
     """Use this mixin to make Demo classes with less visual clutter.
 
     Demos using this mixin will clear the screen before every block and use
@@ -564,7 +576,7 @@ class ClearMixin(object):
     will provide an IPythonDemo class with the mixin's features.
     """
 
-    def marquee(self,txt='',width=78,mark='*'):
+    def marquee(self, txt='', width=78, mark='*'):
         """Blank marquee that returns '' no matter what the input."""
         return ''
 
@@ -575,9 +587,10 @@ class ClearMixin(object):
         from IPython.utils.terminal import term_clear
         term_clear()
 
-class ClearDemo(ClearMixin,Demo):
+
+class ClearDemo(ClearMixin, Demo):
     pass
 
 
-class ClearIPDemo(ClearMixin,IPythonDemo):
+class ClearIPDemo(ClearMixin, IPythonDemo):
     pass

@@ -50,6 +50,7 @@ class MultipleInstanceError(ConfigurableError):
 # Configurable implementation
 #-----------------------------------------------------------------------------
 
+
 class Configurable(HasTraits):
 
     config = Instance(Config, (), {})
@@ -86,7 +87,7 @@ class Configurable(HasTraits):
             if kwargs.get('config', None) is None:
                 kwargs['config'] = parent.config
             self.parent = parent
-        
+
         config = kwargs.pop('config', None)
         if config is not None:
             # We used to deepcopy, but for now we are trying to just save
@@ -104,25 +105,25 @@ class Configurable(HasTraits):
     #-------------------------------------------------------------------------
     # Static trait notifiations
     #-------------------------------------------------------------------------
-    
+
     @classmethod
     def section_names(cls):
         """return section names as a list"""
-        return  [c.__name__ for c in reversed(cls.__mro__) if
-            issubclass(c, Configurable) and issubclass(cls, c)
-        ]
-    
+        return [c.__name__ for c in reversed(cls.__mro__) if
+                issubclass(c, Configurable) and issubclass(cls, c)
+                ]
+
     def _find_my_config(self, cfg):
         """extract my config from a global Config object
-        
+
         will construct a Config object of only the config values that apply to me
         based on my mro(), as well as those of my parent(s) if they exist.
-        
+
         If I am Bar and my parent is Foo, and their parent is Tim,
         this will return merge following config sections, in this order::
-        
+
             [Bar, Foo.bar, Tim.Foo.Bar]
-        
+
         With the last item being the highest priority.
         """
         cfgs = [cfg]
@@ -136,26 +137,27 @@ class Configurable(HasTraits):
                 if c._has_section(sname):
                     my_config.merge(c[sname])
         return my_config
-    
+
     def _load_config(self, cfg, section_names=None, traits=None):
         """load traits from a Config object"""
-        
+
         if traits is None:
             traits = self.traits(config=True)
         if section_names is None:
             section_names = self.section_names()
-        
+
         my_config = self._find_my_config(cfg)
         for name, config_value in iteritems(my_config):
             if name in traits:
                 if isinstance(config_value, LazyConfigValue):
                     # ConfigValue is a wrapper for using append / update on containers
-                    # without having to copy the 
+                    # without having to copy the
                     initial = getattr(self, name)
                     config_value = config_value.get_value(initial)
                 # We have to do a deepcopy here if we don't deepcopy the entire
                 # config object. If we don't, a mutable config_value will be
-                # shared by all instances, effectively making it a class attribute.
+                # shared by all instances, effectively making it a class
+                # attribute.
                 setattr(self, name, deepcopy(config_value))
 
     def _config_changed(self, name, old, new):
@@ -187,14 +189,14 @@ class Configurable(HasTraits):
     @classmethod
     def class_get_help(cls, inst=None):
         """Get the help string for this class in ReST format.
-        
+
         If `inst` is given, it's current trait values will be used in place of
         class defaults.
         """
         assert inst is None or isinstance(inst, cls)
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
-        final_help.append(len(final_help[0])*u'-')
+        final_help.append(len(final_help[0]) * u'-')
         for k, v in sorted(cls.class_traits(config=True).items()):
             help = cls.class_get_trait_help(v, inst)
             final_help.append(help)
@@ -203,13 +205,14 @@ class Configurable(HasTraits):
     @classmethod
     def class_get_trait_help(cls, trait, inst=None):
         """Get the help string for a single trait.
-        
+
         If `inst` is given, it's current trait values will be used in place of
         the class default.
         """
         assert inst is None or isinstance(inst, cls)
         lines = []
-        header = "--%s.%s=<%s>" % (cls.__name__, trait.name, trait.__class__.__name__)
+        header = "--%s.%s=<%s>" % (cls.__name__,
+                                   trait.name, trait.__class__.__name__)
         lines.append(header)
         if inst is not None:
             lines.append(indent('Current: %r' % getattr(inst, trait.name), 4))
@@ -217,10 +220,10 @@ class Configurable(HasTraits):
             try:
                 dvr = repr(trait.get_default_value())
             except Exception:
-                dvr = None # ignore defaults we can't construct
+                dvr = None  # ignore defaults we can't construct
             if dvr is not None:
                 if len(dvr) > 64:
-                    dvr = dvr[:61]+'...'
+                    dvr = dvr[:61] + '...'
                 lines.append(indent('Default: %s' % dvr, 4))
         if 'Enum' in trait.__class__.__name__:
             # include Enum choices
@@ -247,7 +250,7 @@ class Configurable(HasTraits):
             return '# ' + s.replace('\n', '\n# ')
 
         # section header
-        breaker = '#' + '-'*78
+        breaker = '#' + '-' * 78
         s = "# %s configuration" % cls.__name__
         lines = [breaker, s, breaker, '']
         # get the description trait
@@ -271,20 +274,22 @@ class Configurable(HasTraits):
                 parents.append(parent)
 
         if parents:
-            pstr = ', '.join([ p.__name__ for p in parents ])
-            lines.append(c('%s will inherit config from: %s'%(cls.__name__, pstr)))
+            pstr = ', '.join([p.__name__ for p in parents])
+            lines.append(
+                c('%s will inherit config from: %s' % (cls.__name__, pstr)))
             lines.append('')
 
         for name, trait in iteritems(cls.class_traits(config=True)):
             help = trait.get_metadata('help') or ''
             lines.append(c(help))
-            lines.append('# c.%s.%s = %r'%(cls.__name__, name, trait.get_default_value()))
+            lines.append('# c.%s.%s = %r' %
+                         (cls.__name__, name, trait.get_default_value()))
             lines.append('')
         return '\n'.join(lines)
 
 
-
 class SingletonConfigurable(Configurable):
+
     """A configurable that only allows one instance.
 
     This class is for classes that should only have one instance of itself
@@ -371,6 +376,7 @@ class SingletonConfigurable(Configurable):
 
 
 class LoggingConfigurable(Configurable):
+
     """A parent class for Configurables that log.
 
     Subclasses have a log trait, and the default behavior
@@ -379,8 +385,7 @@ class LoggingConfigurable(Configurable):
     """
 
     log = Instance('logging.Logger')
+
     def _log_default(self):
         from IPython.config.application import Application
         return Application.instance().log
-
-

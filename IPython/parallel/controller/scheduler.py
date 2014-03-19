@@ -49,21 +49,24 @@ from IPython.parallel.util import connect_logger, local_logger
 
 from .dependency import Dependency
 
+
 @decorator
-def logged(f,self,*args,**kwargs):
+def logged(f, self, *args, **kwargs):
     # print ("#--------------------")
     self.log.debug("scheduler::%s(*%s,**%s)", f.__name__, args, kwargs)
     # print ("#--")
-    return f(self,*args, **kwargs)
+    return f(self, *args, **kwargs)
 
 #----------------------------------------------------------------------
 # Chooser functions
 #----------------------------------------------------------------------
 
+
 def plainrandom(loads):
     """Plain random pick."""
     n = len(loads)
-    return randint(0,n-1)
+    return randint(0, n - 1)
+
 
 def lru(loads):
     """Always pick the front of the line.
@@ -74,6 +77,7 @@ def lru(loads):
     """
     return 0
 
+
 def twobin(loads):
     """Pick two at random, use the LRU of the two.
 
@@ -82,9 +86,10 @@ def twobin(loads):
     Assumes LRU ordering of loads, with oldest first.
     """
     n = len(loads)
-    a = randint(0,n-1)
-    b = randint(0,n-1)
-    return min(a,b)
+    a = randint(0, n - 1)
+    b = randint(0, n - 1)
+    return min(a, b)
+
 
 def weighted(loads):
     """Pick two at random using inverse load as weight.
@@ -92,11 +97,11 @@ def weighted(loads):
     Return the less loaded of the two.
     """
     # weight 0 a million times more than 1:
-    weights = 1./(1e-6+numpy.array(loads))
+    weights = 1. / (1e-6 + numpy.array(loads))
     sums = weights.cumsum()
     t = sums[-1]
-    x = random()*t
-    y = random()*t
+    x = random() * t
+    y = random() * t
     idx = 0
     idy = 0
     while sums[idx] < x:
@@ -107,6 +112,7 @@ def weighted(loads):
         return idy
     else:
         return idx
+
 
 def leastload(loads):
     """Always choose the lowest load.
@@ -127,9 +133,11 @@ MET = Dependency([])
 
 
 class Job(object):
+
     """Simple container for a job"""
+
     def __init__(self, msg_id, raw_msg, idents, msg, header, metadata,
-                    targets, after, follow, timeout):
+                 targets, after, follow, timeout):
         self.msg_id = msg_id
         self.raw_msg = raw_msg
         self.idents = idents
@@ -140,8 +148,8 @@ class Job(object):
         self.after = after
         self.follow = follow
         self.timeout = timeout
-        
-        self.removed = False # used for lazy-delete from sorted queue
+
+        self.removed = False  # used for lazy-delete from sorted queue
         self.timestamp = time.time()
         self.timeout_id = 0
         self.blacklist = set()
@@ -158,6 +166,7 @@ class Job(object):
 
 
 class TaskScheduler(SessionFactory):
+
     """Python TaskScheduler object.
 
     This is the simplest object that supports msg_id based
@@ -167,7 +176,7 @@ class TaskScheduler(SessionFactory):
     """
 
     hwm = Integer(1, config=True,
-        help="""specify the High Water Mark (HWM) for the downstream
+                  help="""specify the High Water Mark (HWM) for the downstream
         socket in the Task scheduler. This is the maximum number
         of allowed outstanding tasks on each engine.
         
@@ -180,62 +189,68 @@ class TaskScheduler(SessionFactory):
         two.
 
         """
-    )
+                  )
     scheme_name = Enum(('leastload', 'pure', 'lru', 'plainrandom', 'weighted', 'twobin'),
-        'leastload', config=True, allow_none=False,
-        help="""select the task scheduler scheme  [default: Python LRU]
+                       'leastload', config=True, allow_none=False,
+                       help="""select the task scheduler scheme  [default: Python LRU]
         Options are: 'pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'"""
-    )
+                       )
+
     def _scheme_name_changed(self, old, new):
-        self.log.debug("Using scheme %r"%new)
+        self.log.debug("Using scheme %r" % new)
         self.scheme = globals()[new]
 
     # input arguments:
-    scheme = Instance(FunctionType) # function for determining the destination
+    scheme = Instance(FunctionType)  # function for determining the destination
+
     def _scheme_default(self):
         return leastload
-    client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
-    engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
-    notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
-    mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
-    query_stream = Instance(zmqstream.ZMQStream) # hub-facing DEALER stream
+    client_stream = Instance(zmqstream.ZMQStream)  # client-facing stream
+    engine_stream = Instance(zmqstream.ZMQStream)  # engine-facing stream
+    notifier_stream = Instance(zmqstream.ZMQStream)  # hub-facing sub stream
+    mon_stream = Instance(zmqstream.ZMQStream)  # hub-facing pub stream
+    query_stream = Instance(zmqstream.ZMQStream)  # hub-facing DEALER stream
 
     # internals:
-    queue = Instance(deque) # sorted list of Jobs
+    queue = Instance(deque)  # sorted list of Jobs
+
     def _queue_default(self):
         return deque()
-    queue_map = Dict() # dict by msg_id of Jobs (for O(1) access to the Queue)
-    graph = Dict() # dict by msg_id of [ msg_ids that depend on key ]
-    retries = Dict() # dict by msg_id of retries remaining (non-neg ints)
+    queue_map = Dict()  # dict by msg_id of Jobs (for O(1) access to the Queue)
+    graph = Dict()  # dict by msg_id of [ msg_ids that depend on key ]
+    retries = Dict()  # dict by msg_id of retries remaining (non-neg ints)
     # waiting = List() # list of msg_ids ready to run, but haven't due to HWM
-    pending = Dict() # dict by engine_uuid of submitted tasks
-    completed = Dict() # dict by engine_uuid of completed tasks
-    failed = Dict() # dict by engine_uuid of failed tasks
-    destinations = Dict() # dict by msg_id of engine_uuids where jobs ran (reverse of completed+failed)
-    clients = Dict() # dict by msg_id for who submitted the task
-    targets = List() # list of target IDENTs
-    loads = List() # list of engine loads
+    pending = Dict()  # dict by engine_uuid of submitted tasks
+    completed = Dict()  # dict by engine_uuid of completed tasks
+    failed = Dict()  # dict by engine_uuid of failed tasks
+    # dict by msg_id of engine_uuids where jobs ran (reverse of
+    # completed+failed)
+    destinations = Dict()
+    clients = Dict()  # dict by msg_id for who submitted the task
+    targets = List()  # list of target IDENTs
+    loads = List()  # list of engine loads
     # full = Set() # set of IDENTs that have HWM outstanding tasks
-    all_completed = Set() # set of all completed tasks
-    all_failed = Set() # set of all failed tasks
-    all_done = Set() # set of all finished tasks=union(completed,failed)
-    all_ids = Set() # set of all submitted task IDs
+    all_completed = Set()  # set of all completed tasks
+    all_failed = Set()  # set of all failed tasks
+    all_done = Set()  # set of all finished tasks=union(completed,failed)
+    all_ids = Set()  # set of all submitted task IDs
 
-    ident = CBytes() # ZMQ identity. This should just be self.session.session
+    ident = CBytes()  # ZMQ identity. This should just be self.session.session
                      # but ensure Bytes
+
     def _ident_default(self):
         return self.session.bsession
 
     def start(self):
         self.query_stream.on_recv(self.dispatch_query_reply)
         self.session.send(self.query_stream, "connection_request", {})
-        
+
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
         self.client_stream.on_recv(self.dispatch_submission, copy=False)
 
         self._notification_handlers = dict(
-            registration_notification = self._register_engine,
-            unregistration_notification = self._unregister_engine
+            registration_notification=self._register_engine,
+            unregistration_notification=self._unregister_engine
         )
         self.notifier_stream.on_recv(self.dispatch_notification)
         self.log.info("Scheduler started [%s]" % self.scheme_name)
@@ -252,56 +267,55 @@ class TaskScheduler(SessionFactory):
     #-----------------------------------------------------------------------
     # [Un]Registration Handling
     #-----------------------------------------------------------------------
-    
-    
+
     def dispatch_query_reply(self, msg):
         """handle reply to our initial connection request"""
         try:
-            idents,msg = self.session.feed_identities(msg)
+            idents, msg = self.session.feed_identities(msg)
         except ValueError:
-            self.log.warn("task::Invalid Message: %r",msg)
+            self.log.warn("task::Invalid Message: %r", msg)
             return
         try:
             msg = self.session.unserialize(msg)
         except ValueError:
-            self.log.warn("task::Unauthorized message from: %r"%idents)
+            self.log.warn("task::Unauthorized message from: %r" % idents)
             return
-        
+
         content = msg['content']
         for uuid in content.get('engines', {}).values():
             self._register_engine(cast_bytes(uuid))
 
-    
     @util.log_errors
     def dispatch_notification(self, msg):
         """dispatch register/unregister events."""
         try:
-            idents,msg = self.session.feed_identities(msg)
+            idents, msg = self.session.feed_identities(msg)
         except ValueError:
-            self.log.warn("task::Invalid Message: %r",msg)
+            self.log.warn("task::Invalid Message: %r", msg)
             return
         try:
             msg = self.session.unserialize(msg)
         except ValueError:
-            self.log.warn("task::Unauthorized message from: %r"%idents)
+            self.log.warn("task::Unauthorized message from: %r" % idents)
             return
 
         msg_type = msg['header']['msg_type']
 
         handler = self._notification_handlers.get(msg_type, None)
         if handler is None:
-            self.log.error("Unhandled message type: %r"%msg_type)
+            self.log.error("Unhandled message type: %r" % msg_type)
         else:
             try:
                 handler(cast_bytes(msg['content']['uuid']))
             except Exception:
-                self.log.error("task::Invalid notification msg: %r", msg, exc_info=True)
+                self.log.error(
+                    "task::Invalid notification msg: %r", msg, exc_info=True)
 
     def _register_engine(self, uid):
         """New engine with ident `uid` became available."""
         # head of the line:
-        self.targets.insert(0,uid)
-        self.loads.insert(0,0)
+        self.targets.insert(0, uid)
+        self.loads.insert(0, 0)
 
         # initialize sets
         self.completed[uid] = set()
@@ -332,12 +346,12 @@ class TaskScheduler(SessionFactory):
         # wait 5 seconds before cleaning up pending jobs, since the results might
         # still be incoming
         if self.pending[uid]:
-            dc = ioloop.DelayedCallback(lambda : self.handle_stranded_tasks(uid), 5000, self.loop)
+            dc = ioloop.DelayedCallback(
+                lambda: self.handle_stranded_tasks(uid), 5000, self.loop)
             dc.start()
         else:
             self.completed.pop(uid)
             self.failed.pop(uid)
-
 
     def handle_stranded_tasks(self, engine):
         """Deal with jobs resident in an engine that died."""
@@ -348,13 +362,14 @@ class TaskScheduler(SessionFactory):
                 continue
 
             raw_msg = lost[msg_id].raw_msg
-            idents,msg = self.session.feed_identities(raw_msg, copy=False)
+            idents, msg = self.session.feed_identities(raw_msg, copy=False)
             parent = self.session.unpack(msg[1].bytes)
             idents = [engine, idents[0]]
 
             # build fake error reply
             try:
-                raise error.EngineError("Engine %r died while running task %r"%(engine, msg_id))
+                raise error.EngineError(
+                    "Engine %r died while running task %r" % (engine, msg_id))
             except:
                 content = error.wrap_exception()
             # build fake metadata
@@ -363,8 +378,10 @@ class TaskScheduler(SessionFactory):
                 engine=engine.decode('ascii'),
                 date=datetime.now(),
             )
-            msg = self.session.msg('apply_reply', content, parent=parent, metadata=md)
-            raw_reply = list(map(zmq.Message, self.session.serialize(msg, ident=idents)))
+            msg = self.session.msg(
+                'apply_reply', content, parent=parent, metadata=md)
+            raw_reply = list(
+                map(zmq.Message, self.session.serialize(msg, ident=idents)))
             # and dispatch it
             self.dispatch_result(raw_reply)
 
@@ -372,12 +389,9 @@ class TaskScheduler(SessionFactory):
         self.completed.pop(engine)
         self.failed.pop(engine)
 
-
     #-----------------------------------------------------------------------
     # Job Submission
     #-----------------------------------------------------------------------
-    
-
     @util.log_errors
     def dispatch_submission(self, raw_msg):
         """Dispatch job submission to appropriate handlers."""
@@ -387,12 +401,12 @@ class TaskScheduler(SessionFactory):
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
             msg = self.session.unserialize(msg, content=False, copy=False)
         except Exception:
-            self.log.error("task::Invaid task msg: %r"%raw_msg, exc_info=True)
+            self.log.error("task::Invaid task msg: %r" %
+                           raw_msg, exc_info=True)
             return
 
-
         # send to monitor
-        self.mon_stream.send_multipart([b'intask']+raw_msg, copy=False)
+        self.mon_stream.send_multipart([b'intask'] + raw_msg, copy=False)
 
         header = msg['header']
         md = msg['metadata']
@@ -414,16 +428,16 @@ class TaskScheduler(SessionFactory):
             if after.all:
                 if after.success:
                     after = Dependency(after.difference(self.all_completed),
-                                success=after.success,
-                                failure=after.failure,
-                                all=after.all,
-                    )
+                                       success=after.success,
+                                       failure=after.failure,
+                                       all=after.all,
+                                       )
                 if after.failure:
                     after = Dependency(after.difference(self.all_failed),
-                                success=after.success,
-                                failure=after.failure,
-                                all=after.all,
-                    )
+                                       success=after.success,
+                                       failure=after.failure,
+                                       all=after.all,
+                                       )
             if after.check(self.all_completed, self.all_failed):
                 # recast as empty set, if `after` already met,
                 # to prevent unnecessary set comparisons
@@ -439,12 +453,12 @@ class TaskScheduler(SessionFactory):
             timeout = float(timeout)
 
         job = Job(msg_id=msg_id, raw_msg=raw_msg, idents=idents, msg=msg,
-                 header=header, targets=targets, after=after, follow=follow,
-                 timeout=timeout, metadata=md,
-        )
+                  header=header, targets=targets, after=after, follow=follow,
+                  timeout=timeout, metadata=md,
+                  )
         # validate and reduce dependencies:
-        for dep in after,follow:
-            if not dep: # empty dependency
+        for dep in after, follow:
+            if not dep:  # empty dependency
                 continue
             # check valid:
             if msg_id in dep or dep.difference(self.all_ids):
@@ -467,7 +481,7 @@ class TaskScheduler(SessionFactory):
 
     def job_timeout(self, job, timeout_id):
         """callback for a job's timeout.
-        
+
         The job may or may not have been run at this point.
         """
         if job.timeout_id != timeout_id:
@@ -476,8 +490,8 @@ class TaskScheduler(SessionFactory):
         now = time.time()
         if job.timeout >= (now + 1):
             self.log.warn("task %s timeout fired prematurely: %s > %s",
-                job.msg_id, job.timeout, now
-            )
+                          job.msg_id, job.timeout, now
+                          )
         if job.msg_id in self.queue_map:
             # still waiting, but ran out of time
             self.log.info("task %r timed out", job.msg_id)
@@ -500,14 +514,16 @@ class TaskScheduler(SessionFactory):
             raise why()
         except:
             content = error.wrap_exception()
-        self.log.debug("task %r failing as unreachable with: %s", msg_id, content['ename'])
+        self.log.debug(
+            "task %r failing as unreachable with: %s", msg_id, content['ename'])
 
         self.all_done.add(msg_id)
         self.all_failed.add(msg_id)
 
         msg = self.session.send(self.client_stream, 'apply_reply', content,
-                                                parent=job.header, ident=job.idents)
-        self.session.send(self.mon_stream, msg, ident=[b'outtask']+job.idents)
+                                parent=job.header, ident=job.idents)
+        self.session.send(
+            self.mon_stream, msg, ident=[b'outtask'] + job.idents)
 
         self.update_graph(msg_id, success=False)
 
@@ -529,7 +545,7 @@ class TaskScheduler(SessionFactory):
         if not available:
             # no engines, definitely can't run
             return False
-        
+
         if job.follow or job.targets or job.blacklist or self.hwm:
             # we need a can_run filter
             def can_run(idx):
@@ -589,14 +605,13 @@ class TaskScheduler(SessionFactory):
             if dep_id not in self.graph:
                 self.graph[dep_id] = set()
             self.graph[dep_id].add(msg_id)
-        
+
         # schedule timeout callback
         if job.timeout:
             timeout_id = job.timeout_id = job.timeout_id + 1
             self.loop.add_timeout(time.time() + job.timeout,
-                lambda : self.job_timeout(job, timeout_id)
-            )
-        
+                                  lambda: self.job_timeout(job, timeout_id)
+                                  )
 
     def submit_task(self, job, indices=None):
         """Submit a task to any of a subset of our targets."""
@@ -618,25 +633,22 @@ class TaskScheduler(SessionFactory):
         # notify Hub
         content = dict(msg_id=job.msg_id, engine_id=target.decode('ascii'))
         self.session.send(self.mon_stream, 'task_destination', content=content,
-                        ident=[b'tracktask',self.ident])
-
+                          ident=[b'tracktask', self.ident])
 
     #-----------------------------------------------------------------------
     # Result Handling
     #-----------------------------------------------------------------------
-    
-    
     @util.log_errors
     def dispatch_result(self, raw_msg):
         """dispatch method for result replies"""
         try:
-            idents,msg = self.session.feed_identities(raw_msg, copy=False)
+            idents, msg = self.session.feed_identities(raw_msg, copy=False)
             msg = self.session.unserialize(msg, content=False, copy=False)
             engine = idents[0]
             try:
                 idx = self.targets.index(engine)
             except ValueError:
-                pass # skip load-update for dead engines
+                pass  # skip load-update for dead engines
             else:
                 self.finish_job(idx)
         except Exception:
@@ -658,7 +670,8 @@ class TaskScheduler(SessionFactory):
                 # relay to client and update graph
                 self.handle_result(idents, parent, raw_msg, success)
                 # send to Hub monitor
-                self.mon_stream.send_multipart([b'outtask']+raw_msg, copy=False)
+                self.mon_stream.send_multipart(
+                    [b'outtask'] + raw_msg, copy=False)
         else:
             self.handle_unmet_dependency(idents, parent)
 
@@ -668,7 +681,7 @@ class TaskScheduler(SessionFactory):
         engine = idents[0]
         client = idents[1]
         # swap_ids for ROUTER-ROUTER mirror
-        raw_msg[:2] = [client,engine]
+        raw_msg[:2] = [client, engine]
         # print (map(str, raw_msg[:4]))
         self.client_stream.send_multipart(raw_msg, copy=False)
         # now, update our data structures
@@ -706,9 +719,9 @@ class TaskScheduler(SessionFactory):
             try:
                 idx = self.targets.index(engine)
             except ValueError:
-                pass # skip load-update for dead engines
+                pass  # skip load-update for dead engines
             else:
-                if self.loads[idx] == self.hwm-1:
+                if self.loads[idx] == self.hwm - 1:
                     self.update_graph(None)
 
     def update_graph(self, dep_id=None, success=True):
@@ -730,36 +743,37 @@ class TaskScheduler(SessionFactory):
         # recheck *all* jobs if
         # a) we have HWM and an engine just become no longer full
         # or b) dep_id was given as None
-        
-        if dep_id is None or self.hwm and any( [ load==self.hwm-1 for load in self.loads ]):
+
+        if dep_id is None or self.hwm and any([load == self.hwm - 1 for load in self.loads]):
             jobs = self.queue
             using_queue = True
         else:
             using_queue = False
-            jobs = deque(sorted( self.queue_map[msg_id] for msg_id in msg_ids ))
-        
+            jobs = deque(sorted(self.queue_map[msg_id] for msg_id in msg_ids))
+
         to_restore = []
         while jobs:
             job = jobs.popleft()
             if job.removed:
                 continue
             msg_id = job.msg_id
-            
+
             put_it_back = True
-            
+
             if job.after.unreachable(self.all_completed, self.all_failed)\
                     or job.follow.unreachable(self.all_completed, self.all_failed):
                 self.fail_unreachable(msg_id)
                 put_it_back = False
 
-            elif job.after.check(self.all_completed, self.all_failed): # time deps met, maybe run
+            # time deps met, maybe run
+            elif job.after.check(self.all_completed, self.all_failed):
                 if self.maybe_run(job):
                     put_it_back = False
                     self.queue_map.pop(msg_id)
                     for mid in job.dependents:
                         if mid in self.graph:
                             self.graph[mid].remove(msg_id)
-                    
+
                     # abort the loop if we just filled up all of our engines.
                     # avoids an O(N) operation in situation of full queue,
                     # where graph update is triggered as soon as an engine becomes
@@ -767,17 +781,17 @@ class TaskScheduler(SessionFactory):
                     # even though they can't run.
                     if not self.available_engines():
                         break
-            
+
             if using_queue and put_it_back:
                 # popped a job from the queue but it neither ran nor failed,
                 # so we need to put it back when we are done
                 # make sure to_restore preserves the same ordering
                 to_restore.append(job)
-        
+
         # put back any tasks we popped but didn't run
         if using_queue:
             self.queue.extendleft(to_restore)
-    
+
     #----------------------------------------------------------------------
     # methods to be overridden by subclasses
     #----------------------------------------------------------------------
@@ -790,17 +804,15 @@ class TaskScheduler(SessionFactory):
         for lis in (self.targets, self.loads):
             lis.append(lis.pop(idx))
 
-
     def finish_job(self, idx):
         """Called after self.targets[idx] just finished a job.
         Override with subclasses."""
         self.loads[idx] -= 1
 
 
-
 def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, reg_addr, config=None,
-                        logname='root', log_url=None, loglevel=logging.DEBUG,
-                        identity=b'task', in_thread=False):
+                     logname='root', log_url=None, loglevel=logging.DEBUG,
+                     identity=b'task', in_thread=False):
 
     ZMQStream = zmqstream.ZMQStream
 
@@ -817,43 +829,43 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, reg_addr, config=Non
         # for safety with multiprocessing
         ctx = zmq.Context()
         loop = ioloop.IOLoop()
-    ins = ZMQStream(ctx.socket(zmq.ROUTER),loop)
+    ins = ZMQStream(ctx.socket(zmq.ROUTER), loop)
     util.set_hwm(ins, 0)
     ins.setsockopt(zmq.IDENTITY, identity + b'_in')
     ins.bind(in_addr)
 
-    outs = ZMQStream(ctx.socket(zmq.ROUTER),loop)
+    outs = ZMQStream(ctx.socket(zmq.ROUTER), loop)
     util.set_hwm(outs, 0)
     outs.setsockopt(zmq.IDENTITY, identity + b'_out')
     outs.bind(out_addr)
-    mons = zmqstream.ZMQStream(ctx.socket(zmq.PUB),loop)
+    mons = zmqstream.ZMQStream(ctx.socket(zmq.PUB), loop)
     util.set_hwm(mons, 0)
     mons.connect(mon_addr)
-    nots = zmqstream.ZMQStream(ctx.socket(zmq.SUB),loop)
+    nots = zmqstream.ZMQStream(ctx.socket(zmq.SUB), loop)
     nots.setsockopt(zmq.SUBSCRIBE, b'')
     nots.connect(not_addr)
-    
-    querys = ZMQStream(ctx.socket(zmq.DEALER),loop)
+
+    querys = ZMQStream(ctx.socket(zmq.DEALER), loop)
     querys.connect(reg_addr)
-    
+
     # setup logging.
     if in_thread:
         log = Application.instance().log
     else:
         if log_url:
-            log = connect_logger(logname, ctx, log_url, root="scheduler", loglevel=loglevel)
+            log = connect_logger(
+                logname, ctx, log_url, root="scheduler", loglevel=loglevel)
         else:
             log = local_logger(logname, loglevel)
 
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
-                            mon_stream=mons, notifier_stream=nots,
-                            query_stream=querys,
-                            loop=loop, log=log,
-                            config=config)
+                              mon_stream=mons, notifier_stream=nots,
+                              query_stream=querys,
+                              loop=loop, log=log,
+                              config=config)
     scheduler.start()
     if not in_thread:
         try:
             loop.start()
         except KeyboardInterrupt:
             scheduler.log.critical("Interrupted, exiting...")
-

@@ -18,7 +18,9 @@ from IPython.utils.traitlets import HasTraits, TraitType
 MetaHasTraits = type(HasTraits)
 MetaQObject = type(QtCore.QObject)
 
+
 class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
+
     """ A metaclass that inherits from the metaclasses of HasTraits and QObject.
 
     Using this metaclass allows a class to inherit from both HasTraits and
@@ -28,7 +30,7 @@ class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
     def __new__(mcls, name, bases, classdict):
         # FIXME: this duplicates the code from MetaHasTraits.
         # I don't think a super() call will help me here.
-        for k,v in iteritems(classdict):
+        for k, v in iteritems(classdict):
             if isinstance(v, TraitType):
                 v.name = k
             elif inspect.isclass(v):
@@ -48,7 +50,9 @@ class MetaQObjectHasTraits(MetaQObject, MetaHasTraits):
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class SuperQObject(QtCore.QObject):
+
     """ Permits the use of super() in class hierarchies that contain QObject.
 
     Unlike QObject, SuperQObject does not accept a QObject parent. If it did,
@@ -79,6 +83,7 @@ class SuperQObject(QtCore.QObject):
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
 
 def get_font(family, fallback=None):
     """Return a font of the requested family, using fallback as alternative.

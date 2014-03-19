@@ -4,6 +4,7 @@ from tornado import web
 
 from ...base.handlers import IPythonHandler, json_errors
 
+
 class NbconvertRootHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET',)
 

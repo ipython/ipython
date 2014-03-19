@@ -85,21 +85,22 @@ class KernelActionHandler(IPythonHandler):
         if action == 'restart':
             km.restart_kernel(kernel_id)
             model = km.kernel_model(kernel_id)
-            self.set_header('Location', '{0}api/kernels/{1}'.format(self.base_url, kernel_id))
+            self.set_header(
+                'Location', '{0}api/kernels/{1}'.format(self.base_url, kernel_id))
             self.write(jsonapi.dumps(model))
         self.finish()
 
 
 class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
-    
+
     def create_stream(self):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
         self.zmq_stream = meth(self.kernel_id, identity=self.session.bsession)
-    
+
     def initialize(self, *args, **kwargs):
         self.zmq_stream = None
-    
+
     def on_first_message(self, msg):
         try:
             super(ZMQChannelHandler, self).on_first_message(msg)
@@ -132,13 +133,13 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
 
 class IOPubHandler(ZMQChannelHandler):
     channel = 'iopub'
-    
+
     def create_stream(self):
         super(IOPubHandler, self).create_stream()
         km = self.kernel_manager
         km.add_restart_callback(self.kernel_id, self.on_kernel_restarted)
         km.add_restart_callback(self.kernel_id, self.on_restart_failed, 'dead')
-    
+
     def on_close(self):
         km = self.kernel_manager
         if self.kernel_id in km:
@@ -149,11 +150,11 @@ class IOPubHandler(ZMQChannelHandler):
                 self.kernel_id, self.on_restart_failed, 'dead',
             )
         super(IOPubHandler, self).on_close()
-    
+
     def _send_status_message(self, status):
         msg = self.session.msg("status",
-            {'execution_state': status}
-        )
+                               {'execution_state': status}
+                               )
         self.write_message(jsonapi.dumps(msg, default=date_default))
 
     def on_kernel_restarted(self):
@@ -163,7 +164,7 @@ class IOPubHandler(ZMQChannelHandler):
     def on_restart_failed(self):
         logging.error("kernel %s restarted failed!", self.kernel_id)
         self._send_status_message('dead')
-    
+
     def on_message(self, msg):
         """IOPub messages make no sense"""
         pass
@@ -188,7 +189,8 @@ _kernel_action_regex = r"(?P<action>restart|interrupt)"
 default_handlers = [
     (r"/api/kernels", MainKernelHandler),
     (r"/api/kernels/%s" % _kernel_id_regex, KernelHandler),
-    (r"/api/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
+    (r"/api/kernels/%s/%s" %
+     (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
     (r"/api/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
     (r"/api/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
     (r"/api/kernels/%s/stdin" % _kernel_id_regex, StdinHandler)

@@ -24,13 +24,16 @@ from IPython.utils.py3compat import unicode_type
 #-----------------------------------------------------------------------------
 # SelectionWidget
 #-----------------------------------------------------------------------------
+
+
 class _SelectionWidget(DOMWidget):
+
     """Base class for Selection widgets
-    
+
     ``values`` can be specified as a list or dict. If given as a list,
     it will be transformed to a dict of the form ``{str(value):value}``.
     """
-    
+
     value = Any(help="Selected value")
     values = Dict(help="""Dictionary of {name: value} the user can select.
     
@@ -47,8 +50,8 @@ class _SelectionWidget(DOMWidget):
         
         These strings are used to display the choices in the front-end.""", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
-    description = Unicode(help="Description of the value this widget represents", sync=True)
-    
+    description = Unicode(
+        help="Description of the value this widget represents", sync=True)
 
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
@@ -58,9 +61,10 @@ class _SelectionWidget(DOMWidget):
             # convert list values to an dict of {str(v):v}
             if isinstance(values, list):
                 # preserve list order with an OrderedDict
-                kwargs['values'] = OrderedDict((unicode_type(v), v) for v in values)
+                kwargs['values'] = OrderedDict(
+                    (unicode_type(v), v) for v in values)
         DOMWidget.__init__(self, *args, **kwargs)
-    
+
     def _values_changed(self, name, old, new):
         """Handles when the values dict has been changed.
 
@@ -71,21 +75,22 @@ class _SelectionWidget(DOMWidget):
             self.value_names = list(new.keys())
         finally:
             self._in_values_changed = False
-        
+
         # ensure that the chosen value is one of the choices
         if self.value not in new.values():
             self.value = next(iter(new.values()))
-    
+
     def _value_names_changed(self, name, old, new):
         if not self._in_values_changed:
-            raise TraitError("value_names is a read-only proxy to values.keys(). Use the values dict instead.")
+            raise TraitError(
+                "value_names is a read-only proxy to values.keys(). Use the values dict instead.")
 
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
         if self.value_lock.acquire(False):
             try:
                 # Reverse dictionary lookup for the value name
-                for k,v in self.values.items():
+                for k, v in self.values.items():
                     if new == v:
                         # set the selected value name
                         self.value_name = k
@@ -115,7 +120,7 @@ class DropdownWidget(_SelectionWidget):
 
 class RadioButtonsWidget(_SelectionWidget):
     _view_name = Unicode('RadioButtonsView', sync=True)
-    
+
 
 class SelectWidget(_SelectionWidget):
     _view_name = Unicode('SelectView', sync=True)

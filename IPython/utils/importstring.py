@@ -18,6 +18,7 @@ Authors:
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+
 def import_item(name):
     """Import and return ``bar`` given the string ``foo.bar``.
 
@@ -34,7 +35,7 @@ def import_item(name):
     mod : module object
        The module that was imported.
     """
-    
+
     parts = name.rsplit('.', 1)
     if len(parts) == 2:
         # called with 'foo.bar....'

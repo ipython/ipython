@@ -18,6 +18,8 @@ import locale
 import warnings
 
 # to deal with the possibility of sys.std* not being a stream at all
+
+
 def get_stream_enc(stream, default=None):
     """Return the given stream's encoding or a default.
 
@@ -35,12 +37,14 @@ def get_stream_enc(stream, default=None):
 # to match the environment.
 # Defined here as central function, so if we find better choices, we
 # won't need to make changes all over IPython.
+
+
 def getdefaultencoding(prefer_stream=True):
     """Return IPython's guess for the default encoding for bytes as text.
-    
+
     If prefer_stream is True (default), asks for stdin.encoding first,
     to match the calling Terminal, but that is often None for subprocesses.
-    
+
     Then fall back on locale.getpreferredencoding(),
     which should be a sensible platform default (that respects LANG environment),
     and finally to sys.getdefaultencoding() which is the most conservative option,
@@ -49,10 +53,11 @@ def getdefaultencoding(prefer_stream=True):
     enc = None
     if prefer_stream:
         enc = get_stream_enc(sys.stdin)
-    if not enc or enc=='ascii':
+    if not enc or enc == 'ascii':
         try:
             # There are reports of getpreferredencoding raising errors
-            # in some cases, which may well be fixed, but let's be conservative here.
+            # in some cases, which may well be fixed, but let's be conservative
+            # here.
             enc = locale.getpreferredencoding()
         except Exception:
             pass

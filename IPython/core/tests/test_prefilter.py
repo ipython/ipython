@@ -13,18 +13,21 @@ from IPython.testing.globalipapp import get_ipython
 #-----------------------------------------------------------------------------
 ip = get_ipython()
 
+
 def test_prefilter():
     """Test user input conversions"""
 
     # pairs of (raw, expected correct) input
-    pairs = [ ('2+2','2+2'),
+    pairs = [('2+2', '2+2'),
              ]
 
     for raw, correct in pairs:
         nt.assert_equal(ip.prefilter(raw), correct)
 
+
 def test_prefilter_shadowed():
-    def dummy_magic(line): pass
+    def dummy_magic(line):
+        pass
 
     prev_automagic_state = ip.automagic
     ip.automagic = True
@@ -32,21 +35,22 @@ def test_prefilter_shadowed():
 
     try:
         # These should not be transformed - they are shadowed by other names
-        for name in ['if', 'zip', 'get_ipython']: # keyword, builtin, global
+        for name in ['if', 'zip', 'get_ipython']:  # keyword, builtin, global
             ip.register_magic_function(dummy_magic, magic_name=name)
-            res = ip.prefilter(name+' foo')
-            nt.assert_equal(res, name+' foo')
+            res = ip.prefilter(name + ' foo')
+            nt.assert_equal(res, name + ' foo')
             del ip.magics_manager.magics['line'][name]
 
         # These should be transformed
         for name in ['fi', 'piz', 'nohtypi_teg']:
             ip.register_magic_function(dummy_magic, magic_name=name)
-            res = ip.prefilter(name+' foo')
-            nt.assert_not_equal(res, name+' foo')
+            res = ip.prefilter(name + ' foo')
+            nt.assert_not_equal(res, name + ' foo')
             del ip.magics_manager.magics['line'][name]
 
     finally:
         ip.automagic = prev_automagic_state
+
 
 def test_autocall_binops():
     """See https://github.com/ipython/ipython/issues/81"""
@@ -54,7 +58,7 @@ def test_autocall_binops():
     f = lambda x: x
     ip.user_ns['f'] = f
     try:
-        nt.assert_equal(ip.prefilter('f 1'),'f(1)')
+        nt.assert_equal(ip.prefilter('f 1'), 'f(1)')
         for t in ['f +1', 'f -1']:
             nt.assert_equal(ip.prefilter(t), t)
 
@@ -101,8 +105,10 @@ def test_prefilter_attribute_errors():
     See http://github.com/ipython/ipython/issues/988."""
 
     class X(object):
+
         def __getattr__(self, k):
             raise ValueError('broken object')
+
         def __call__(self, x):
             return x
 

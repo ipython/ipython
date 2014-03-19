@@ -18,10 +18,13 @@ from .templateexporter import TemplateExporter
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class PythonExporter(TemplateExporter):
+
     """
     Exports a Python code file.
     """
+
     def _file_extension_default(self):
         return 'py'
 

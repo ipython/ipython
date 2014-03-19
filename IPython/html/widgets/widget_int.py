@@ -19,14 +19,18 @@ from IPython.utils.traitlets import Unicode, CInt, Bool, Enum
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
 class _IntWidget(DOMWidget):
-    value = CInt(0, help="Int value", sync=True) 
+    value = CInt(0, help="Int value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
-    description = Unicode(help="Description of the value this widget represents", sync=True)
+    description = Unicode(
+        help="Description of the value this widget represents", sync=True)
 
 
 class _BoundedIntWidget(_IntWidget):
-    step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    step = CInt(
+        1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     max = CInt(100, help="Max value", sync=True)
     min = CInt(0, help="Min value", sync=True)
 
@@ -51,9 +55,10 @@ class BoundedIntTextWidget(_BoundedIntWidget):
 
 class IntSliderWidget(_BoundedIntWidget):
     _view_name = Unicode('IntSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
-        help="Vertical or horizontal.", sync=True)
-    readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
+                       help="Vertical or horizontal.", sync=True)
+    readout = Bool(
+        True, help="Display the current value of the slider next to it.", sync=True)
 
 
 class IntProgressWidget(_BoundedIntWidget):

@@ -23,6 +23,7 @@ from IPython.testing import decorators as dec
 # Tests
 #-----------------------------------------------------------------------------
 
+
 @dec.skip_win32
 def test_console_starts():
     """test that `ipython console` starts a terminal"""
@@ -31,6 +32,7 @@ def test_console_starts():
     idx = p.expect([r'Out\[\d+\]: 5', pexpect.EOF], timeout=t)
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
     stop_console(p, pexpect, t)
+
 
 def test_help_output():
     """ipython console --help-all works"""
@@ -50,6 +52,7 @@ def test_display_text():
     p.expect([r'Available line magics:', pexpect.EOF], timeout=t)
     stop_console(p, pexpect, t)
 
+
 def stop_console(p, pexpect, t):
     "Stop a running `ipython console` running via pexpect"
     # send ctrl-D;ctrl-D to exit
@@ -63,20 +66,20 @@ def stop_console(p, pexpect, t):
 def start_console():
     "Start `ipython console` using pexpect"
     from IPython.external import pexpect
-    
+
     args = ['console', '--colors=NoColor']
     # FIXME: remove workaround for 2.6 support
-    if sys.version_info[:2] > (2,6):
+    if sys.version_info[:2] > (2, 6):
         args = ['-m', 'IPython'] + args
         cmd = sys.executable
     else:
         cmd = 'ipython'
-    
+
     try:
         p = pexpect.spawn(cmd, args=args)
     except IOError:
         raise SkipTest("Couldn't find command %s" % cmd)
-    
+
     # timeout after one minute
     t = 60
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)

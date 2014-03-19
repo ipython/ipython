@@ -8,8 +8,3 @@ e = os.environ
 
 e['EDITOR'] = editor
 e['VISUAL'] = editor
-
-
-
-
-

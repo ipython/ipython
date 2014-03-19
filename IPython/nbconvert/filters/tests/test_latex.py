@@ -24,19 +24,20 @@ from ..latex import escape_latex
 
 class TestLatex(TestsBase):
 
-
     def test_escape_latex(self):
         """escape_latex test"""
         tests = [
-            (r'How are \you doing today?', r'How are \textbackslash{}you doing today?'),
-            (r'\escapechar=`\A\catcode`\|=0 |string|foo', r'\textbackslash{}escapechar=`\textbackslash{}A\textbackslash{}catcode`\textbackslash{}|=0 |string|foo'),
-            (r'# $ % & ~ _ ^ \ { }', r'\# \$ \% \& \textasciitilde{} \_ \^{} \textbackslash{} \{ \}'),
+            (r'How are \you doing today?',
+             r'How are \textbackslash{}you doing today?'),
+            (r'\escapechar=`\A\catcode`\|=0 |string|foo',
+             r'\textbackslash{}escapechar=`\textbackslash{}A\textbackslash{}catcode`\textbackslash{}|=0 |string|foo'),
+            (r'# $ % & ~ _ ^ \ { }',
+             r'\# \$ \% \& \textasciitilde{} \_ \^{} \textbackslash{} \{ \}'),
             ('...', r'\ldots'),
-            ('','')]
+            ('', '')]
 
         for test in tests:
             self._try_escape_latex(test[0], test[1])
-
 
     def _try_escape_latex(self, test, result):
         """Try to remove latex from string"""

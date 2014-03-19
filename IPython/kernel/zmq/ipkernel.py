@@ -15,7 +15,7 @@ import uuid
 
 from datetime import datetime
 from signal import (
-        signal, default_int_handler, SIGINT
+    signal, default_int_handler, SIGINT
 )
 
 # System library imports
@@ -51,12 +51,13 @@ language_version = list(sys.version_info[:3])
 
 class Kernel(Configurable):
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Kernel interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     # attribute to override with a GUI
     eventloop = Any(None)
+
     def _eventloop_changed(self, name, old, new):
         """schedule call to eventloop from IOLoop"""
         loop = ioloop.IOLoop.instance()
@@ -72,13 +73,15 @@ class Kernel(Configurable):
     iopub_socket = Instance(zmq.Socket)
     stdin_socket = Instance(zmq.Socket)
     log = Instance(logging.Logger)
-    
+
     user_module = Any()
+
     def _user_module_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_module = new
-    
+
     user_ns = Instance(dict, args=None, allow_none=True)
+
     def _user_ns_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_ns = new
@@ -92,13 +95,13 @@ class Kernel(Configurable):
         return unicode_type(uuid.uuid4())
 
     # Private interface
-    
+
     _darwin_app_nap = Bool(True, config=True,
-        help="""Whether to use appnope for compatiblity with OS X App Nap.
+                           help="""Whether to use appnope for compatiblity with OS X App Nap.
         
         Only affects OS X >= 10.9.
         """
-    )
+                           )
 
     # Time to sleep after flushing the stdout/err buffers in each execute
     # cycle.  While this introduces a hard limit on the minimal latency of the
@@ -133,17 +136,16 @@ class Kernel(Configurable):
     # set of aborted msg_ids
     aborted = Set()
 
-
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
         self.shell = self.shell_class.instance(parent=self,
-            profile_dir = self.profile_dir,
-            user_module = self.user_module,
-            user_ns     = self.user_ns,
-            kernel      = self,
-        )
+                                               profile_dir=self.profile_dir,
+                                               user_module=self.user_module,
+                                               user_ns=self.user_ns,
+                                               kernel=self,
+                                               )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
         self.shell.displayhook.topic = self._topic('pyout')
@@ -156,30 +158,29 @@ class Kernel(Configurable):
         self.shell._reply_content = None
 
         # Build dict of handlers for message types
-        msg_types = [ 'execute_request', 'complete_request',
-                      'object_info_request', 'history_request',
-                      'kernel_info_request',
-                      'connect_request', 'shutdown_request',
-                      'apply_request',
-                    ]
+        msg_types = ['execute_request', 'complete_request',
+                     'object_info_request', 'history_request',
+                     'kernel_info_request',
+                     'connect_request', 'shutdown_request',
+                     'apply_request',
+                     ]
         self.shell_handlers = {}
         for msg_type in msg_types:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
-        
-        comm_msg_types = [ 'comm_open', 'comm_msg', 'comm_close' ]
+
+        comm_msg_types = ['comm_open', 'comm_msg', 'comm_close']
         comm_manager = self.shell.comm_manager
         for msg_type in comm_msg_types:
             self.shell_handlers[msg_type] = getattr(comm_manager, msg_type)
-        
-        control_msg_types = msg_types + [ 'clear_request', 'abort_request' ]
+
+        control_msg_types = msg_types + ['clear_request', 'abort_request']
         self.control_handlers = {}
         for msg_type in control_msg_types:
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
-
     def dispatch_control(self, msg):
         """dispatch control requests"""
-        idents,msg = self.session.feed_identities(msg, copy=False)
+        idents, msg = self.session.feed_identities(msg, copy=False)
         try:
             msg = self.session.unserialize(msg, content=True, copy=False)
         except:
@@ -200,14 +201,14 @@ class Kernel(Configurable):
                 handler(self.control_stream, idents, msg)
             except Exception:
                 self.log.error("Exception in control handler:", exc_info=True)
-    
+
     def dispatch_shell(self, stream, msg):
         """dispatch shell requests"""
         # flush control requests first
         if self.control_stream:
             self.control_stream.flush()
-        
-        idents,msg = self.session.feed_identities(msg, copy=False)
+
+        idents, msg = self.session.feed_identities(msg, copy=False)
         try:
             msg = self.session.unserialize(msg, content=True, copy=False)
         except:
@@ -217,7 +218,7 @@ class Kernel(Configurable):
         header = msg['header']
         msg_id = header['msg_id']
         msg_type = msg['header']['msg_type']
-        
+
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
@@ -228,13 +229,13 @@ class Kernel(Configurable):
             self.aborted.remove(msg_id)
             # is it safe to assume a msg_id will not be resubmitted?
             reply_type = msg_type.split('_')[0] + '_reply'
-            status = {'status' : 'aborted'}
-            md = {'engine' : self.ident}
+            status = {'status': 'aborted'}
+            md = {'engine': self.ident}
             md.update(status)
             reply_msg = self.session.send(stream, reply_type, metadata=md,
-                        content=status, parent=msg, ident=idents)
+                                          content=status, parent=msg, ident=idents)
             return
-        
+
         handler = self.shell_handlers.get(msg_type, None)
         if handler is None:
             self.log.error("UNKNOWN MESSAGE TYPE: %r", msg_type)
@@ -247,7 +248,7 @@ class Kernel(Configurable):
                 self.log.error("Exception in message handler:", exc_info=True)
             finally:
                 signal(SIGINT, sig)
-    
+
     def enter_eventloop(self):
         """enter eventloop"""
         self.log.info("entering eventloop %s", self.eventloop)
@@ -286,7 +287,7 @@ class Kernel(Configurable):
 
         # publish idle status
         self._publish_status('starting')
-    
+
     def do_one_iteration(self):
         """step eventloop just once"""
         if self.control_stream:
@@ -296,7 +297,6 @@ class Kernel(Configurable):
             stream.flush(zmq.POLLIN, 1)
             stream.flush(zmq.POLLOUT)
 
-
     def record_ports(self, ports):
         """Record the ports that this kernel is using.
 
@@ -305,29 +305,29 @@ class Kernel(Configurable):
         """
         self._recorded_ports = ports
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Kernel request handlers
-    #---------------------------------------------------------------------------
-    
+    #-------------------------------------------------------------------------
+
     def _make_metadata(self, other=None):
         """init metadata dict, for execute/apply_reply"""
         new_md = {
-            'dependencies_met' : True,
-            'engine' : self.ident,
+            'dependencies_met': True,
+            'engine': self.ident,
             'started': datetime.now(),
         }
         if other:
             new_md.update(other)
         return new_md
-    
+
     def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
 
         self.session.send(self.iopub_socket, u'pyin',
-                            {u'code':code, u'execution_count': execution_count},
-                            parent=parent, ident=self._topic('pyin')
-        )
-    
+                          {u'code': code, u'execution_count': execution_count},
+                          parent=parent, ident=self._topic('pyin')
+                          )
+
     def _publish_status(self, status, parent=None):
         """send status (busy/idle) on IOPub"""
         self.session.send(self.iopub_socket,
@@ -336,13 +336,12 @@ class Kernel(Configurable):
                           parent=parent,
                           ident=self._topic('status'),
                           )
-        
 
     def execute_request(self, stream, ident, parent):
         """handle an execute_request"""
-        
+
         self._publish_status(u'busy', parent)
-        
+
         try:
             content = parent[u'content']
             code = py3compat.cast_unicode_py2(content[u'code'])
@@ -352,18 +351,19 @@ class Kernel(Configurable):
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
             return
-        
+
         md = self._make_metadata(parent['metadata'])
 
-        shell = self.shell # we'll need this a lot here
+        shell = self.shell  # we'll need this a lot here
 
         # Replace raw_input. Note that is not sufficient to replace
         # raw_input in the user namespace.
         if content.get('allow_stdin', False):
-            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
+            raw_input = lambda prompt='': self._raw_input(
+                prompt, ident, parent)
             input = lambda prompt='': eval(raw_input(prompt))
         else:
-            raw_input = input = lambda prompt='' : self._no_raw_input()
+            raw_input = input = lambda prompt='': self._no_raw_input()
 
         if py3compat.PY3:
             self._sys_raw_input = builtin_mod.input
@@ -402,11 +402,11 @@ class Kernel(Configurable):
             status = u'ok'
         finally:
             # Restore raw_input.
-             if py3compat.PY3:
-                 builtin_mod.input = self._sys_raw_input
-             else:
-                 builtin_mod.raw_input = self._sys_raw_input
-                 builtin_mod.input = self._sys_eval_input
+            if py3compat.PY3:
+                builtin_mod.input = self._sys_raw_input
+            else:
+                builtin_mod.raw_input = self._sys_raw_input
+                builtin_mod.input = self._sys_eval_input
 
         reply_content[u'status'] = status
 
@@ -417,22 +417,23 @@ class Kernel(Configurable):
         # runlines.  We'll need to clean up this logic later.
         if shell._reply_content is not None:
             reply_content.update(shell._reply_content)
-            e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method='execute')
+            e_info = dict(
+                engine_uuid=self.ident, engine_id=self.int_id, method='execute')
             reply_content['engine_info'] = e_info
             # reset after use
             shell._reply_content = None
-        
+
         if 'traceback' in reply_content:
-            self.log.info("Exception in execute request:\n%s", '\n'.join(reply_content['traceback']))
-        
+            self.log.info(
+                "Exception in execute request:\n%s", '\n'.join(reply_content['traceback']))
 
         # At this point, we can tell whether the main code execution succeeded
         # or not.  If it did, we proceed to evaluate user_variables/expressions
         if reply_content['status'] == 'ok':
             reply_content[u'user_variables'] = \
-                         shell.user_variables(content.get(u'user_variables', []))
+                shell.user_variables(content.get(u'user_variables', []))
             reply_content[u'user_expressions'] = \
-                         shell.user_expressions(content.get(u'user_expressions', {}))
+                shell.user_expressions(content.get(u'user_expressions', {}))
         else:
             # If there was an error, don't even try to compute variables or
             # expressions
@@ -458,16 +459,16 @@ class Kernel(Configurable):
 
         # Send the reply.
         reply_content = json_clean(reply_content)
-        
+
         md['status'] = reply_content['status']
         if reply_content['status'] == 'error' and \
-                        reply_content['ename'] == 'UnmetDependency':
-                md['dependencies_met'] = False
+                reply_content['ename'] == 'UnmetDependency':
+            md['dependencies_met'] = False
 
         reply_msg = self.session.send(stream, u'execute_reply',
                                       reply_content, parent, metadata=md,
                                       ident=ident)
-        
+
         self.log.debug("%s", reply_msg)
 
         if not silent and reply_msg['content']['status'] == u'error':
@@ -477,9 +478,9 @@ class Kernel(Configurable):
 
     def complete_request(self, stream, ident, parent):
         txt, matches = self._complete(parent)
-        matches = {'matches' : matches,
-                   'matched_text' : txt,
-                   'status' : 'ok'}
+        matches = {'matches': matches,
+                   'matched_text': txt,
+                   'status': 'ok'}
         matches = json_clean(matches)
         completion_msg = self.session.send(stream, 'complete_reply',
                                            matches, parent, ident)
@@ -488,8 +489,9 @@ class Kernel(Configurable):
     def object_info_request(self, stream, ident, parent):
         content = parent['content']
         object_info = self.shell.object_inspect(content['oname'],
-                        detail_level = content.get('detail_level', 0)
-        )
+                                                detail_level=content.get(
+                                                    'detail_level', 0)
+                                                )
         # Before we send this object over, we scrub it for JSON usage
         oinfo = json_clean(object_info)
         msg = self.session.send(stream, 'object_info_reply',
@@ -505,7 +507,7 @@ class Kernel(Configurable):
         if hist_access_type == 'tail':
             n = parent['content']['n']
             hist = self.shell.history_manager.get_tail(n, raw=raw, output=output,
-                                                            include_latest=True)
+                                                       include_latest=True)
 
         elif hist_access_type == 'range':
             session = parent['content']['session']
@@ -524,7 +526,7 @@ class Kernel(Configurable):
         else:
             hist = []
         hist = list(hist)
-        content = {'history' : hist}
+        content = {'history': hist}
         content = json_clean(content)
         msg = self.session.send(stream, 'history_reply',
                                 content, parent, ident)
@@ -554,20 +556,21 @@ class Kernel(Configurable):
         self.shell.exit_now = True
         content = dict(status='ok')
         content.update(parent['content'])
-        self.session.send(stream, u'shutdown_reply', content, parent, ident=ident)
+        self.session.send(
+            stream, u'shutdown_reply', content, parent, ident=ident)
         # same content, but different msg_id for broadcasting on IOPub
         self._shutdown_message = self.session.msg(u'shutdown_reply',
                                                   content, parent
-        )
+                                                  )
 
         self._at_shutdown()
         # call sys.exit after a short delay
         loop = ioloop.IOLoop.instance()
-        loop.add_timeout(time.time()+0.1, loop.stop)
+        loop.add_timeout(time.time() + 0.1, loop.stop)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Engine methods
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def apply_request(self, stream, ident, parent):
         try:
@@ -591,21 +594,22 @@ class Kernel(Configurable):
         try:
             working = shell.user_ns
 
-            prefix = "_"+str(msg_id).replace("-","")+"_"
+            prefix = "_" + str(msg_id).replace("-", "") + "_"
 
-            f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
+            f, args, kwargs = unpack_apply_message(bufs, working, copy=False)
 
             fname = getattr(f, '__name__', 'f')
 
-            fname = prefix+"f"
-            argname = prefix+"args"
-            kwargname = prefix+"kwargs"
-            resultname = prefix+"result"
+            fname = prefix + "f"
+            argname = prefix + "args"
+            kwargname = prefix + "kwargs"
+            resultname = prefix + "result"
 
-            ns = { fname : f, argname : args, kwargname : kwargs , resultname : None }
+            ns = {fname: f, argname: args, kwargname: kwargs, resultname: None}
             # print ns
             working.update(ns)
-            code = "%s = %s(*%s,**%s)" % (resultname, fname, argname, kwargname)
+            code = "%s = %s(*%s,**%s)" % (resultname,
+                                          fname, argname, kwargname)
             try:
                 exec(code, shell.user_global_ns, shell.user_ns)
                 result = working.get(resultname)
@@ -614,10 +618,10 @@ class Kernel(Configurable):
                     working.pop(key)
 
             result_buf = serialize_object(result,
-                buffer_threshold=self.session.buffer_threshold,
-                item_threshold=self.session.item_threshold,
-            )
-        
+                                          buffer_threshold=self.session.buffer_threshold,
+                                          item_threshold=self.session.item_threshold,
+                                          )
+
         except:
             # invoke IPython traceback formatting
             shell.showtraceback()
@@ -626,20 +630,22 @@ class Kernel(Configurable):
             reply_content = {}
             if shell._reply_content is not None:
                 reply_content.update(shell._reply_content)
-                e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method='apply')
+                e_info = dict(
+                    engine_uuid=self.ident, engine_id=self.int_id, method='apply')
                 reply_content['engine_info'] = e_info
                 # reset after use
                 shell._reply_content = None
-            
+
             self.session.send(self.iopub_socket, u'pyerr', reply_content, parent=parent,
-                                ident=self._topic('pyerr'))
-            self.log.info("Exception in apply request:\n%s", '\n'.join(reply_content['traceback']))
+                              ident=self._topic('pyerr'))
+            self.log.info(
+                "Exception in apply request:\n%s", '\n'.join(reply_content['traceback']))
             result_buf = []
 
             if reply_content['ename'] == 'UnmetDependency':
                 md['dependencies_met'] = False
         else:
-            reply_content = {'status' : 'ok'}
+            reply_content = {'status': 'ok'}
 
         # put 'ok'/'error' status in header, for scheduler introspection:
         md['status'] = reply_content['status']
@@ -647,15 +653,15 @@ class Kernel(Configurable):
         # flush i/o
         sys.stdout.flush()
         sys.stderr.flush()
-        
+
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
-                    parent=parent, ident=ident,buffers=result_buf, metadata=md)
+                                      parent=parent, ident=ident, buffers=result_buf, metadata=md)
 
         self._publish_status(u'idle', parent)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Control messages
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def abort_request(self, stream, ident, parent):
         """abort a specifig msg by id"""
@@ -669,25 +675,24 @@ class Kernel(Configurable):
 
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content,
-                parent=parent, ident=ident)
+                                      parent=parent, ident=ident)
         self.log.debug("%s", reply_msg)
 
     def clear_request(self, stream, idents, parent):
         """Clear our namespace."""
         self.shell.reset(False)
         msg = self.session.send(stream, 'clear_reply', ident=idents, parent=parent,
-                content = dict(status='ok'))
+                                content=dict(status='ok'))
 
-
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Protected interface
-    #---------------------------------------------------------------------------
-
+    #-------------------------------------------------------------------------
     def _wrap_exception(self, method=None):
         # import here, because _wrap_exception is only used in parallel,
         # and parallel has higher min pyzmq version
         from IPython.parallel.error import wrap_exception
-        e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method=method)
+        e_info = dict(
+            engine_uuid=self.ident, engine_id=self.int_id, method=method)
         content = wrap_exception(e_info)
         return content
 
@@ -697,9 +702,9 @@ class Kernel(Configurable):
             base = "engine.%i" % self.int_id
         else:
             base = "kernel.%s" % self.ident
-        
+
         return py3compat.cast_bytes("%s.%s" % (base, topic))
-    
+
     def _abort_queues(self):
         for stream in self.shell_streams:
             if stream:
@@ -709,7 +714,7 @@ class Kernel(Configurable):
         poller = zmq.Poller()
         poller.register(stream.socket, zmq.POLLIN)
         while True:
-            idents,msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
+            idents, msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
             if msg is None:
                 return
 
@@ -718,23 +723,22 @@ class Kernel(Configurable):
             msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
 
-            status = {'status' : 'aborted'}
-            md = {'engine' : self.ident}
+            status = {'status': 'aborted'}
+            md = {'engine': self.ident}
             md.update(status)
             reply_msg = self.session.send(stream, reply_type, metadata=md,
-                        content=status, parent=msg, ident=idents)
+                                          content=status, parent=msg, ident=idents)
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             poller.poll(50)
 
-
     def _no_raw_input(self):
         """Raise StdinNotImplentedError if active frontend doesn't support
         stdin."""
         raise StdinNotImplementedError("raw_input was called, but this "
-                                       "frontend does not support stdin.") 
-        
+                                       "frontend does not support stdin.")
+
     def _raw_input(self, prompt, ident, parent):
         # Flush output before making the request.
         sys.stderr.flush()
@@ -748,7 +752,7 @@ class Kernel(Configurable):
                     break
                 else:
                     raise
-        
+
         # Send the input request.
         content = json_clean(dict(prompt=prompt))
         self.session.send(self.stdin_socket, u'input_request', content, parent,
@@ -785,7 +789,7 @@ class Kernel(Configurable):
             # least attempt the completion guessing the cursor is at the end of
             # the text, if there's any, and otherwise of the line
             cpos = len(c['text'])
-            if cpos==0:
+            if cpos == 0:
                 cpos = len(c['line'])
         return self.shell.complete(c['text'], c['line'], cpos)
 
@@ -794,7 +798,7 @@ class Kernel(Configurable):
         """
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
-            self.session.send(self.iopub_socket, self._shutdown_message, ident=self._topic('shutdown'))
+            self.session.send(
+                self.iopub_socket, self._shutdown_message, ident=self._topic('shutdown'))
             self.log.debug("%s", self._shutdown_message)
-        [ s.flush(zmq.POLLOUT) for s in self.shell_streams ]
-
+        [s.flush(zmq.POLLOUT) for s in self.shell_streams]

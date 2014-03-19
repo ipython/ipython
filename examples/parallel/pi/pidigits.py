@@ -21,25 +21,28 @@ from __future__ import division, with_statement
 import numpy as np
 from matplotlib import pyplot as plt
 
-try : #python2
+try:  # python2
     from urllib import urlretrieve
-except ImportError : #python3
+except ImportError:  # python3
     from urllib.request import urlretrieve
 
-	# Top-level functions
+        # Top-level functions
+
 
 def fetch_pi_file(filename):
     """This will download a segment of pi from super-computing.org
     if the file is not already present.
     """
-    import os, urllib
-    ftpdir="ftp://pi.super-computing.org/.2/pi200m/"
+    import os
+    import urllib
+    ftpdir = "ftp://pi.super-computing.org/.2/pi200m/"
     if os.path.exists(filename):
         # we already have it
         return
     else:
         # download it
-        urlretrieve(ftpdir+filename,filename)
+        urlretrieve(ftpdir + filename, filename)
+
 
 def compute_one_digit_freqs(filename):
     """
@@ -49,6 +52,7 @@ def compute_one_digit_freqs(filename):
     freqs = one_digit_freqs(d)
     return freqs
 
+
 def compute_two_digit_freqs(filename):
     """
     Read digits of pi from a file and compute the 2 digit frequencies.
@@ -56,6 +60,7 @@ def compute_two_digit_freqs(filename):
     d = txt_file_to_digits(filename)
     freqs = two_digit_freqs(d)
     return freqs
+
 
 def reduce_freqs(freqlist):
     """
@@ -65,6 +70,7 @@ def reduce_freqs(freqlist):
     for f in freqlist:
         allfreqs += f
     return allfreqs
+
 
 def compute_n_digit_freqs(filename, n):
     """
@@ -76,6 +82,7 @@ def compute_n_digit_freqs(filename, n):
 
 # Read digits from a txt file
 
+
 def txt_file_to_digits(filename, the_type=str):
     """
     Yield the digits of pi read from a .txt file.
@@ -83,10 +90,11 @@ def txt_file_to_digits(filename, the_type=str):
     with open(filename, 'r') as f:
         for line in f.readlines():
             for c in line:
-                if c != '\n' and c!= ' ':
+                if c != '\n' and c != ' ':
                     yield the_type(c)
 
 # Actual counting functions
+
 
 def one_digit_freqs(digits, normalize=False):
     """
@@ -96,8 +104,9 @@ def one_digit_freqs(digits, normalize=False):
     for d in digits:
         freqs[int(d)] += 1
     if normalize:
-        freqs = freqs/freqs.sum()
+        freqs = freqs / freqs.sum()
     return freqs
+
 
 def two_digit_freqs(digits, normalize=False):
     """
@@ -112,8 +121,9 @@ def two_digit_freqs(digits, normalize=False):
         last = this
         this = d
     if normalize:
-        freqs = freqs/freqs.sum()
+        freqs = freqs / freqs.sum()
     return freqs
+
 
 def n_digit_freqs(digits, n, normalize=False):
     """
@@ -121,7 +131,7 @@ def n_digit_freqs(digits, n, normalize=False):
 
     This should only be used for 1-6 digits.
     """
-    freqs = np.zeros(pow(10,n), dtype='i4')
+    freqs = np.zeros(pow(10, n), dtype='i4')
     current = np.zeros(n, dtype=int)
     for i in range(n):
         current[i] = next(digits)
@@ -131,31 +141,33 @@ def n_digit_freqs(digits, n, normalize=False):
         current[0:-1] = current[1:]
         current[-1] = d
     if normalize:
-        freqs = freqs/freqs.sum()
+        freqs = freqs / freqs.sum()
     return freqs
 
 # Plotting functions
+
 
 def plot_two_digit_freqs(f2):
     """
     Plot two digits frequency counts using matplotlib.
     """
     f2_copy = f2.copy()
-    f2_copy.shape = (10,10)
+    f2_copy.shape = (10, 10)
     ax = plt.matshow(f2_copy)
     plt.colorbar()
     for i in range(10):
         for j in range(10):
-            plt.text(i-0.2, j+0.2, str(j)+str(i))
+            plt.text(i - 0.2, j + 0.2, str(j) + str(i))
     plt.ylabel('First digit')
     plt.xlabel('Second digit')
     return ax
+
 
 def plot_one_digit_freqs(f1):
     """
     Plot one digit frequency counts using matplotlib.
     """
-    ax = plt.plot(f1,'bo-')
+    ax = plt.plot(f1, 'bo-')
     plt.title('Single digit counts in pi')
     plt.xlabel('Digit')
     plt.ylabel('Count')

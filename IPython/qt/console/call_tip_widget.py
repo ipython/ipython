@@ -7,6 +7,7 @@ from IPython.external.qt import QtCore, QtGui
 
 
 class CallTipWidget(QtGui.QLabel):
+
     """ Shows call tips by parsing the current text of Q[Plain]TextEdit.
     """
 
@@ -33,9 +34,9 @@ class CallTipWidget(QtGui.QLabel):
         self.setIndent(1)
         self.setFrameStyle(QtGui.QFrame.NoFrame)
         self.setMargin(1 + self.style().pixelMetric(
-                QtGui.QStyle.PM_ToolTipLabelFrameWidth, None, self))
+            QtGui.QStyle.PM_ToolTipLabelFrameWidth, None, self))
         self.setWindowOpacity(self.style().styleHint(
-                QtGui.QStyle.SH_ToolTipLabel_Opacity, None, self, None) / 255.0)
+            QtGui.QStyle.SH_ToolTipLabel_Opacity, None, self, None) / 255.0)
 
     def eventFilter(self, obj, event):
         """ Reimplemented to hide on certain key presses and on text edit focus
@@ -158,7 +159,7 @@ class CallTipWidget(QtGui.QLabel):
         # Locate and show the widget. Place the tip below the current line
         # unless it would be off the screen.  In that case, decide the best
         # location based trying to minimize the  area that goes off-screen.
-        padding = 3 # Distance in pixels between cursor bounds and tip box.
+        padding = 3  # Distance in pixels between cursor bounds and tip box.
         cursor_rect = text_edit.cursorRect(cursor)
         screen_rect = QtGui.qApp.desktop().screenGeometry(text_edit)
         point = text_edit.mapToGlobal(cursor_rect.bottomRight())
@@ -175,7 +176,7 @@ class CallTipWidget(QtGui.QLabel):
             if point_.y() - tip_height < padding:
                 # If point is in upper half of screen, show tip below it.
                 # otherwise above it.
-                if 2*point.y() < screen_rect.height():
+                if 2 * point.y() < screen_rect.height():
                     vertical = 'bottom'
                 else:
                     vertical = 'top'
@@ -186,13 +187,13 @@ class CallTipWidget(QtGui.QLabel):
             # If tip is still off-screen, check if point is in the right or
             # left half of the screen.
             if point_.x() - tip_width < padding:
-                if 2*point.x() < screen_rect.width():
+                if 2 * point.x() < screen_rect.width():
                     horizontal = 'Right'
                 else:
                     horizontal = 'Left'
             else:
                 horizontal = 'Left'
-        pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
+        pos = getattr(cursor_rect, '%s%s' % (vertical, horizontal))
         point = text_edit.mapToGlobal(pos())
         if vertical == 'top':
             point.setY(point.y() - tip_height - padding)
@@ -241,13 +242,13 @@ class CallTipWidget(QtGui.QLabel):
             not over the tooltip).
         """
         if (not self._hide_timer.isActive() and
-            # If Enter events always came after Leave events, we wouldn't need
-            # this check. But on Mac OS, it sometimes happens the other way
-            # around when the tooltip is created.
-            QtGui.qApp.topLevelAt(QtGui.QCursor.pos()) != self):
+                # If Enter events always came after Leave events, we wouldn't need
+                # this check. But on Mac OS, it sometimes happens the other way
+                # around when the tooltip is created.
+                QtGui.qApp.topLevelAt(QtGui.QCursor.pos()) != self):
             self._hide_timer.start(300, self)
 
-    def _format_tooltip(self,doc):
+    def _format_tooltip(self, doc):
         import textwrap
 
         # make sure a long argument list does not make
@@ -257,11 +258,11 @@ class CallTipWidget(QtGui.QLabel):
         if len(rows) == 1:
             return doc
         max_text_width = max(80, max([len(x) for x in rows[1:]]))
-        rows= textwrap.wrap(rows[0],max_text_width) + rows[1:]
+        rows = textwrap.wrap(rows[0], max_text_width) + rows[1:]
         doc = "\n".join(rows)
         return doc
 
-    #------ Signal handlers ----------------------------------------------------
+    #------ Signal handlers --------------------------------------------------
 
     def _cursor_position_changed(self):
         """ Updates the tip based on user cursor movement.

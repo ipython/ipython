@@ -2,7 +2,7 @@
 
 # <markdowncell>
 
-# # Simple task farming example
+# Simple task farming example
 
 # <codecell>
 from __future__ import print_function
@@ -11,7 +11,8 @@ from IPython.parallel import Client
 
 # <markdowncell>
 
-# A `Client.load_balanced_view` is used to get the object used for working with load balanced tasks.
+# A `Client.load_balanced_view` is used to get the object used for working
+# with load balanced tasks.
 
 # <codecell>
 
@@ -32,8 +33,9 @@ rc[:]['d'] = 30
 
 # <codecell>
 
+
 def task(a):
-    return a, 10*d, a*10*d
+    return a, 10 * d, a * 10 * d
 
 # <markdowncell>
 
@@ -50,4 +52,3 @@ ar = v.apply(task, 5)
 # <codecell>
 
 print("a, b, c: ", ar.get())
-

@@ -49,11 +49,12 @@ from IPython.testing.skipdoctest import skip_doctest
 line_re = re.compile('.*?\n')
 
 ipython_tokens = [
-  (r'(\%+)(\w+)\s+(\.*)(\n)', bygroups(Operator, Keyword,
-                                       using(BashLexer), Text)),
-  (r'(\%+)(\w+)\b', bygroups(Operator, Keyword)),
-  (r'^(!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
+    (r'(\%+)(\w+)\s+(\.*)(\n)', bygroups(Operator, Keyword,
+                                         using(BashLexer), Text)),
+    (r'(\%+)(\w+)\b', bygroups(Operator, Keyword)),
+    (r'^(!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
 ]
+
 
 def build_ipy_lexer(python3):
     """Builds IPython lexers depending on the value of `python3`.
@@ -98,6 +99,7 @@ IPythonLexer = build_ipy_lexer(python3=False)
 
 
 class IPythonPartialTracebackLexer(RegexLexer):
+
     """
     Partial lexer for IPython tracebacks.
 
@@ -116,9 +118,9 @@ class IPythonPartialTracebackLexer(RegexLexer):
             # These two regexps define how IPythonConsoleLexer finds a
             # traceback.
             #
-            ## Non-syntax traceback
+            # Non-syntax traceback
             (r'^(\^C)?(-+\n)', bygroups(Error, Generic.Traceback)),
-            ## Syntax traceback
+            # Syntax traceback
             (r'^(  File)(.*)(, line )(\d+\n)',
              bygroups(Generic.Traceback, Name.Namespace,
                       Generic.Traceback, Literal.Number.Integer)),
@@ -147,6 +149,7 @@ class IPythonPartialTracebackLexer(RegexLexer):
 
 
 class IPythonTracebackLexer(DelegatingLexer):
+
     """
     IPython traceback lexer.
 
@@ -180,8 +183,10 @@ class IPythonTracebackLexer(DelegatingLexer):
         DelegatingLexer.__init__(self, IPyLexer,
                                  IPythonPartialTracebackLexer, **options)
 
+
 @skip_doctest
 class IPythonConsoleLexer(Lexer):
+
     """
     An IPython console lexer for IPython code-blocks and doctests, such as:
 
@@ -223,9 +228,9 @@ class IPythonConsoleLexer(Lexer):
     # The regexps used to determine what is input and what is output.
     # The default prompts for IPython are:
     #
-    #     c.PromptManager.in_template  = 'In [\#]: '
+    # c.PromptManager.in_template  = 'In [\#]: '
     #     c.PromptManager.in2_template = '   .\D.: '
-    #     c.PromptManager.out_template = 'Out[\#]: '
+    # c.PromptManager.out_template = 'Out[\#]: '
     #
     in1_regex = r'In \[[0-9]+\]: '
     in2_regex = r'   \.\.+\.: '
@@ -315,7 +320,7 @@ class IPythonConsoleLexer(Lexer):
             tokens = [(0, Generic.Output, self.buffer)]
         elif self.mode == 'input':
             tokens = self.pylexer.get_tokens_unprocessed(self.buffer)
-        else: # traceback
+        else:  # traceback
             tokens = self.tblexer.get_tokens_unprocessed(self.buffer)
 
         for i, t, v in do_insertions(self.insertions, tokens):
@@ -381,7 +386,6 @@ class IPythonConsoleLexer(Lexer):
             insertion = (0, Generic.Heading, line[:idx])
             return mode, code, insertion
 
-
         # Check for input or continuation prompt (non stripped version)
         in1_match = self.in1_regex.match(line)
         if in1_match or (in2_match and self.mode != 'tb'):
@@ -391,7 +395,7 @@ class IPythonConsoleLexer(Lexer):
             mode = 'input'
             if in1_match:
                 idx = in1_match.end()
-            else: # in2_match
+            else:  # in2_match
                 idx = in2_match.end()
             code = line[idx:]
             insertion = (0, Generic.Prompt, line[:idx])
@@ -406,7 +410,7 @@ class IPythonConsoleLexer(Lexer):
             mode = 'input'
             if in1_match_rstrip:
                 idx = in1_match_rstrip.end()
-            else: # in2_match
+            else:  # in2_match
                 idx = in2_match_rstrip.end()
             code = line[idx:]
             insertion = (0, Generic.Prompt, line[:idx])
@@ -463,7 +467,9 @@ class IPythonConsoleLexer(Lexer):
             for token in self.buffered_tokens():
                 yield token
 
+
 class IPyLexer(Lexer):
+
     """
     Primary lexer for all IPython-like code.
 
@@ -497,4 +503,3 @@ class IPyLexer(Lexer):
             lex = self.IPythonLexer
         for token in lex.get_tokens_unprocessed(text):
             yield token
-

@@ -30,6 +30,7 @@ from IPython.utils.traitlets import Any
 
 
 class DisplayTrap(Configurable):
+
     """Object to manage sys.displayhook.
 
     This came from IPython.core.kernel.display_hook, but is simplified
@@ -67,4 +68,3 @@ class DisplayTrap(Configurable):
     def unset(self):
         """Unset the hook."""
         sys.displayhook = self.old_hook
-

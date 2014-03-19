@@ -51,6 +51,8 @@ from IPython.utils.py3compat import doctest_refactor_print
 #-----------------------------------------------------------------------------
 # Test classes and functions
 #-----------------------------------------------------------------------------
+
+
 @ipdoctest
 @doctest_refactor_print
 def simple_dt():
@@ -103,6 +105,7 @@ def ipdt_indented_test():
 
 
 class Foo(object):
+
     """For methods, the normal decorator doesn't work.
 
     But rewriting the docstring with ip2py does, *but only if using nose

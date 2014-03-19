@@ -34,33 +34,35 @@ pypi_cmd_t = "python setup.py upload_wininst -f {fname}"
 
 pythons = {
     2: {
-        'win32' : r'C:\\Python27\Python.exe',
+        'win32': r'C:\\Python27\Python.exe',
         'win-amd64': r'C:\\Python27_64\Python.exe',
     },
     3: {
-        'win32' : r'C:\\Python33\Python.exe',
+        'win32': r'C:\\Python33\Python.exe',
         'win-amd64': r'C:\\Python33_64\Python.exe',
     },
 }
 
-for v,plat_py in pythons.items():
+for v, plat_py in pythons.items():
     # deliberately mangle the name,
     # so easy_install doesn't find these and do horrible wrong things
     try:
         shutil.rmtree('build')
     except OSError:
         pass
-    for plat,py in plat_py.items():
+    for plat, py in plat_py.items():
         cmd = cmd_t.format(**locals())
         sh(cmd)
-        orig = glob.glob(os.path.join('dist', 'ipython-*.{plat}.exe'.format(**locals())))[0]
+        orig = glob.glob(
+            os.path.join('dist', 'ipython-*.{plat}.exe'.format(**locals())))[0]
         mangled = orig.replace('.{plat}.exe'.format(**locals()),
                                '.py{v}-{plat}.exe'.format(**locals())
-        )
+                               )
         os.rename(orig, mangled)
         if pypi:
             sh(pypi_cmd_t.format(fname=mangled))
         if github and gh_api:
             print ("Uploading %s to GitHub" % mangled)
-            desc = "IPython Installer for Python {v}.x on {plat}".format(**locals())
+            desc = "IPython Installer for Python {v}.x on {plat}".format(
+                **locals())
             gh_api.post_download('ipython/ipython', mangled, description=desc)

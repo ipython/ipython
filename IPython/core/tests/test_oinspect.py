@@ -47,9 +47,11 @@ ip = get_ipython()
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
 THIS_LINE_NUMBER = 49  # Put here the actual number of this line
+
+
 def test_find_source_lines():
-    nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
-                    THIS_LINE_NUMBER+1)
+    nt.assert_equal(oinspect.find_source_lines(test_find_source_lines),
+                    THIS_LINE_NUMBER + 1)
 
 
 # A couple of utilities to ensure these tests work the same from a source or a
@@ -63,7 +65,8 @@ def match_pyfiles(f1, f2):
 
 
 def test_find_file():
-    match_pyfiles(oinspect.find_file(test_find_file), os.path.abspath(__file__))
+    match_pyfiles(
+        oinspect.find_file(test_find_file), os.path.abspath(__file__))
 
 
 def test_find_file_decorated1():
@@ -77,7 +80,7 @@ def test_find_file_decorated1():
     @noop1
     def f(x):
         "My docstring"
-    
+
     match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
     nt.assert_equal(f.__doc__, "My docstring")
 
@@ -91,10 +94,10 @@ def test_find_file_decorated2():
     @noop2
     def f(x):
         "My docstring 2"
-    
+
     match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
     nt.assert_equal(f.__doc__, "My docstring 2")
-    
+
 
 def test_find_file_magic():
     run = ip.find_line_magic('run')
@@ -104,6 +107,7 @@ def test_find_file_magic():
 # A few generic objects we can then inspect in the tests below
 
 class Call(object):
+
     """This is the class docstring."""
 
     def __init__(self, x, y=1):
@@ -115,12 +119,15 @@ class Call(object):
     def method(self, x, z=2):
         """Some method's docstring"""
 
+
 class SimpleClass(object):
+
     def method(self, x, z=2):
         """Some method's docstring"""
 
 
 class OldStyle:
+
     """An old-style class for testing."""
     pass
 
@@ -150,20 +157,22 @@ def lcmagic(line, cell=None):
 
 @magics_class
 class SimpleMagics(Magics):
+
     @line_magic
     def Clmagic(self, cline):
         "A class-based line magic"
-        
+
     @cell_magic
     def Ccmagic(self, cline, ccell):
         "A class-based cell magic"
-        
+
     @line_cell_magic
     def Clcmagic(self, cline, ccell=None):
         "A class-based line/cell magic"
 
 
 class Awkward(object):
+
     def __getattr__(self, name):
         raise Exception(name)
 
@@ -178,6 +187,7 @@ def check_calltip(obj, name, call, docstring):
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
+
 
 def test_calltip_class():
     check_calltip(Call, 'Call', 'Call(x, y=1)', Call.__init__.__doc__)
@@ -208,15 +218,15 @@ def test_calltip_builtin():
 def test_calltip_line_magic():
     check_calltip(lmagic, 'lmagic', 'lmagic(line)', "A line magic")
 
-        
+
 def test_calltip_cell_magic():
     check_calltip(cmagic, 'cmagic', 'cmagic(line, cell)', "A cell magic")
 
-        
+
 def test_calltip_line_cell_magic():
-    check_calltip(lcmagic, 'lcmagic', 'lcmagic(line, cell=None)', 
+    check_calltip(lcmagic, 'lcmagic', 'lcmagic(line, cell=None)',
                   "A line/cell magic")
-        
+
 
 def test_class_magics():
     cm = SimpleMagics(ip)
@@ -227,15 +237,17 @@ def test_class_magics():
                   "A class-based cell magic")
     check_calltip(cm.Clcmagic, 'Clcmagic', 'Clcmagic(cline, ccell=None)',
                   "A class-based line/cell magic")
-    
+
 
 def test_info():
     "Check that Inspector.info fills out various fields as expected."
     i = inspector.info(Call, oname='Call')
     nt.assert_equal(i['type_name'], 'type')
-    expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
+    # <class 'type'> (Python 3) or <type 'type'>
+    expted_class = str(type(type))
     nt.assert_equal(i['base_class'], expted_class)
-    nt.assert_equal(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'>")
+    nt.assert_equal(
+        i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'>")
     fname = __file__
     if fname.endswith(".pyc"):
         fname = fname[:-1]
@@ -262,7 +274,8 @@ def test_info():
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
     nt.assert_equal(i['call_docstring'], Call.__call__.__doc__)
 
-    # Test old-style classes, which for example may not have an __init__ method.
+    # Test old-style classes, which for example may not have an __init__
+    # method.
     if not py3compat.PY3:
         i = inspector.info(OldStyle)
         nt.assert_equal(i['type_name'], 'classobj')
@@ -271,9 +284,11 @@ def test_info():
         nt.assert_equal(i['type_name'], 'instance')
         nt.assert_equal(i['docstring'], OldStyle.__doc__)
 
+
 def test_info_awkward():
     # Just test that this doesn't throw an error.
     i = inspector.info(Awkward())
+
 
 def test_calldef_none():
     # We should ignore __call__ for all of these.
@@ -285,38 +300,48 @@ def test_calldef_none():
 if py3compat.PY3:
     exec("def f_kwarg(pos, *, kwonly): pass")
 
+
 @skipif(not py3compat.PY3)
 def test_definition_kwonlyargs():
     i = inspector.info(f_kwarg, oname='f_kwarg')  # analysis:ignore
     nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)\n")
 
+
 def test_getdoc():
     class A(object):
+
         """standard docstring"""
         pass
-    
+
     class B(object):
+
         """standard docstring"""
+
         def getdoc(self):
             return "custom docstring"
-    
+
     class C(object):
+
         """standard docstring"""
+
         def getdoc(self):
             return None
-    
+
     a = A()
     b = B()
     c = C()
-    
+
     nt.assert_equal(oinspect.getdoc(a), "standard docstring")
     nt.assert_equal(oinspect.getdoc(b), "custom docstring")
     nt.assert_equal(oinspect.getdoc(c), "standard docstring")
 
+
 def test_pdef():
     # See gh-1914
-    def foo(): pass
+    def foo():
+        pass
     inspector.pdef(foo, 'foo')
+
 
 def test_pinfo_nonascii():
     # See gh-1177

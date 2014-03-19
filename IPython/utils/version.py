@@ -22,6 +22,7 @@ from distutils.version import LooseVersion
 # Code
 #-----------------------------------------------------------------------------
 
+
 def check_version(v, check):
     """check version string v >= check
 
@@ -33,4 +34,3 @@ def check_version(v, check):
         return LooseVersion(v) >= LooseVersion(check)
     except TypeError:
         return True
-

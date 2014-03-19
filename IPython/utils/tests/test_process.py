@@ -39,7 +39,7 @@ def test_find_cmd_ls():
     path = find_cmd('ls')
     nt.assert_true(path.endswith('ls'))
 
-    
+
 def has_pywin32():
     try:
         import win32api
@@ -55,13 +55,13 @@ def test_find_cmd_pythonw():
     nt.assert_true(path.endswith('pythonw.exe'))
 
 
-@dec.onlyif(lambda : sys.platform != 'win32' or has_pywin32(),
+@dec.onlyif(lambda: sys.platform != 'win32' or has_pywin32(),
             "This test runs on posix or in win32 with win32api installed")
 def test_find_cmd_fail():
     """Make sure that FindCmdError is raised if we can't find the cmd."""
-    nt.assert_raises(FindCmdError,find_cmd,'asdfasdf')
+    nt.assert_raises(FindCmdError, find_cmd, 'asdfasdf')
 
-    
+
 @dec.skip_win32
 def test_arg_split():
     """Ensure that argument lines are correctly split like in a shell."""
@@ -76,7 +76,8 @@ def test_arg_split():
              ]
     for argstr, argv in tests:
         nt.assert_equal(arg_split(argstr), argv)
-    
+
+
 @dec.skip_if_not_win32
 def test_arg_split_win32():
     """Ensure that argument lines are correctly split like in a shell."""
@@ -91,6 +92,7 @@ def test_arg_split_win32():
 
 
 class SubProcessTestCase(TestCase, tt.TempFileMixin):
+
     def setUp(self):
         """Make a valid python temp file."""
         lines = ["from __future__ import print_function",
@@ -121,7 +123,7 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         out = getoutput('%s -c "print (1)"' % python)
         self.assertEqual(out.strip(), '1')
 
-    #Invalid quoting on windows
+    # Invalid quoting on windows
     @dec.skip_win32
     def test_getoutput_quoted2(self):
         out = getoutput("%s -c 'print (1)'" % python)
@@ -133,14 +135,15 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         out, err = getoutputerror('%s "%s"' % (python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
-    
+
     def test_get_output_error_code(self):
         quiet_exit = '%s -c "import sys; sys.exit(1)"' % python
         out, err, code = get_output_error_code(quiet_exit)
         self.assertEqual(out, '')
         self.assertEqual(err, '')
         self.assertEqual(code, 1)
-        out, err, code = get_output_error_code('%s "%s"' % (python, self.fname))
+        out, err, code = get_output_error_code(
+            '%s "%s"' % (python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
         self.assertEqual(code, 0)

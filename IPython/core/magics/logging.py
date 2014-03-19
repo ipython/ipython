@@ -25,8 +25,10 @@ from IPython.utils.py3compat import str_to_unicode
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
+
 @magics_class
 class LoggingMagics(Magics):
+
     """Magics related to all logging machinery."""
 
     @line_magic
@@ -85,7 +87,7 @@ class LoggingMagics(Magics):
             comments).
         """
 
-        opts,par = self.parse_options(parameter_s,'ort')
+        opts, par = self.parse_options(parameter_s, 'ort')
         log_output = 'o' in opts
         log_raw_input = 'r' in opts
         timestamp = 't' in opts
@@ -96,7 +98,7 @@ class LoggingMagics(Magics):
         # ipython remain valid
         if par:
             try:
-                logfname,logmode = par.split()
+                logfname, logmode = par.split()
             except:
                 logfname = par
                 logmode = 'backup'
@@ -135,10 +137,11 @@ class LoggingMagics(Magics):
             if log_output:
                 log_write = logger.log_write
                 output_hist = self.shell.history_manager.output_hist
-                for n in range(1,len(input_hist)-1):
+                for n in range(1, len(input_hist) - 1):
                     log_write(input_hist[n].rstrip() + u'\n')
                     if n in output_hist:
-                        log_write(str_to_unicode(repr(output_hist[n])),'output')
+                        log_write(
+                            str_to_unicode(repr(output_hist[n])), 'output')
             else:
                 logger.log_write(u'\n'.join(input_hist[1:]))
                 logger.log_write(u'\n')

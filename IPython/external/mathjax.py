@@ -63,7 +63,7 @@ import zipfile
 from IPython.utils.path import get_ipython_dir
 
 try:
-    from urllib.request import urlopen # Py 3
+    from urllib.request import urlopen  # Py 3
 except ImportError:
     from urllib2 import urlopen
 
@@ -78,17 +78,18 @@ default_dest = os.path.join(nbextensions, 'mathjax')
 
 # Test for access to install mathjax
 
+
 def prepare_dest(dest, replace=False):
     """prepare the destination folder for mathjax install
-    
+
     Returns False if mathjax appears to already be installed and there is nothing to do,
     True otherwise.
     """
-    
+
     parent = os.path.abspath(os.path.join(dest, os.path.pardir))
     if not os.path.exists(parent):
         os.makedirs(parent)
-    
+
     if os.path.exists(dest):
         if replace:
             print("removing existing MathJax at %s" % dest)
@@ -97,7 +98,8 @@ def prepare_dest(dest, replace=False):
         else:
             mathjax_js = os.path.join(dest, 'MathJax.js')
             if not os.path.exists(mathjax_js):
-                raise IOError("%s exists, but does not contain MathJax.js" % dest)
+                raise IOError(
+                    "%s exists, but does not contain MathJax.js" % dest)
             print("%s already exists" % mathjax_js)
             return False
     else:
@@ -112,7 +114,8 @@ def extract_tar(fd, dest):
     # The first entry in the archive is the top-level dir
     topdir = tar.firstmember.path
 
-    # extract the archive (contains a single directory) to the destination directory
+    # extract the archive (contains a single directory) to the destination
+    # directory
     parent = os.path.abspath(os.path.join(dest, os.path.pardir))
     tar.extractall(parent)
 
@@ -127,7 +130,8 @@ def extract_zip(fd, dest):
     # The first entry in the archive is the top-level dir
     topdir = z.namelist()[0]
 
-    # extract the archive (contains a single directory) to the static/ directory
+    # extract the archive (contains a single directory) to the static/
+    # directory
     parent = os.path.abspath(os.path.join(dest, os.path.pardir))
     z.extractall(parent)
 
@@ -169,7 +173,7 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
 
     if file is None:
         # download mathjax
-        mathjax_url = "https://github.com/mathjax/MathJax/archive/%s.tar.gz" %tag
+        mathjax_url = "https://github.com/mathjax/MathJax/archive/%s.tar.gz" % tag
         print("Downloading mathjax source from %s" % mathjax_url)
         response = urlopen(mathjax_url)
         file = response.fp
@@ -181,29 +185,29 @@ def install_mathjax(tag='v2.2', dest=default_dest, replace=False, file=None, ext
 
 def main():
     parser = argparse.ArgumentParser(
-            description="""Install mathjax from internet or local archive""",
+        description="""Install mathjax from internet or local archive""",
     )
 
     parser.add_argument(
-            '-i',
-            '--install-dir',
-            default=nbextensions,
-            help='custom installation directory. Mathjax will be installed in here/mathjax')
+        '-i',
+        '--install-dir',
+        default=nbextensions,
+        help='custom installation directory. Mathjax will be installed in here/mathjax')
 
     parser.add_argument(
-            '-d',
-            '--print-dest',
-            action='store_true',
-            help='print where mathjax would be installed and exit')
+        '-d',
+        '--print-dest',
+        action='store_true',
+        help='print where mathjax would be installed and exit')
     parser.add_argument(
-            '-r',
-            '--replace',
-            action='store_true',
-            help='Whether to replace current mathjax if it already exists')
+        '-r',
+        '--replace',
+        action='store_true',
+        help='Whether to replace current mathjax if it already exists')
     parser.add_argument('filename',
-            help="the local tar/zip-ball filename containing mathjax",
-            nargs='?',
-            metavar='filename')
+                        help="the local tar/zip-ball filename containing mathjax",
+                        nargs='?',
+                        metavar='filename')
 
     pargs = parser.parse_args()
 
@@ -224,7 +228,7 @@ def main():
         # on file content, but really not cost-effective here.
         if fname.endswith('.zip'):
             extractor = extract_zip
-        else :
+        else:
             extractor = extract_tar
         # do it
         return install_mathjax(file=open(fname, "rb"), replace=replace, extractor=extractor, dest=dest)
@@ -232,7 +236,7 @@ def main():
         return install_mathjax(replace=replace, dest=dest)
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     sys.exit(main())
 
 __all__ = ['install_mathjax', 'main', 'default_dest']

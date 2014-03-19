@@ -11,7 +11,9 @@ from IPython.external.qt import QtCore, QtGui
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class KillRing(object):
+
     """ A generic Emacs-style kill ring.
     """
 
@@ -51,7 +53,9 @@ class KillRing(object):
             return self._ring[self._index]
         return None
 
+
 class QtKillRing(QtCore.QObject):
+
     """ A kill ring attached to Q[Plain]TextEdit.
     """
 
@@ -111,7 +115,7 @@ class QtKillRing(QtCore.QObject):
                 cursor = self._text_edit.textCursor()
                 cursor.movePosition(QtGui.QTextCursor.Left,
                                     QtGui.QTextCursor.KeepAnchor,
-                                    n = len(self._prev_yank))
+                                    n=len(self._prev_yank))
                 cursor.insertText(text)
                 self._prev_yank = text
 
@@ -119,7 +123,7 @@ class QtKillRing(QtCore.QObject):
     # Protected interface
     #--------------------------------------------------------------------------
 
-    #------ Signal handlers ----------------------------------------------------
+    #------ Signal handlers --------------------------------------------------
 
     def _cursor_position_changed(self):
         if self._skip_cursor:

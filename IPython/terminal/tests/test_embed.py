@@ -36,12 +36,13 @@ print('bye!')
 
 _exit = b"exit\r"
 
+
 def test_ipython_embed():
     """test that `IPython.embed()` works"""
     with NamedFileInTemporaryDirectory('file_with_embed.py') as f:
         f.write(_sample_embed)
         f.flush()
-        f.close() # otherwise msft won't be able to read the file
+        f.close()  # otherwise msft won't be able to read the file
 
         # run `python file_with_embed.py`
         cmd = [sys.executable, f.name]
@@ -54,4 +55,3 @@ def test_ipython_embed():
             # TODO: Fix up our different stdout references, see issue gh-14
             nt.assert_in('IPython', std)
         nt.assert_in('bye!', std)
-

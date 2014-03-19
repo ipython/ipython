@@ -23,8 +23,8 @@ from ..serve import ServePostProcessor
 #-----------------------------------------------------------------------------
 
 class TestServe(TestsBase):
-    """Contains test functions for serve.py"""
 
+    """Contains test functions for serve.py"""
 
     def test_constructor(self):
         """Can a ServePostProcessor be constructed?"""

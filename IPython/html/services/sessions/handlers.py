@@ -42,7 +42,7 @@ class SessionRootHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self):
-        # Creates a new session 
+        # Creates a new session
         #(unless a session already exists for the named nb)
         sm = self.session_manager
         nbm = self.notebook_manager
@@ -63,11 +63,13 @@ class SessionRootHandler(IPythonHandler):
             model = sm.get_session(name=name, path=path)
         else:
             kernel_id = km.start_kernel(path=path)
-            model = sm.create_session(name=name, path=path, kernel_id=kernel_id)
+            model = sm.create_session(
+                name=name, path=path, kernel_id=kernel_id)
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))
         self.set_status(201)
         self.finish(json.dumps(model, default=date_default))
+
 
 class SessionHandler(IPythonHandler):
 
@@ -124,4 +126,3 @@ default_handlers = [
     (r"/api/sessions/%s" % _session_id_regex, SessionHandler),
     (r"/api/sessions",  SessionRootHandler)
 ]
-

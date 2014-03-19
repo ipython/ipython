@@ -15,7 +15,8 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import sys, os
+import sys
+import os
 
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -24,7 +25,7 @@ if ON_RTD:
     # see
     # http://read-the-docs.readthedocs.org/en/latest/faq.html
     tags.add('rtd')
-    
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -32,7 +33,7 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
-execfile('../../IPython/core/release.py',iprelease)
+execfile('../../IPython/core/release.py', iprelease)
 
 # General configuration
 # ---------------------
@@ -88,7 +89,8 @@ copyright = '2008, The IPython Development Team'
 github_project_url = "https://github.com/ipython/ipython"
 
 # numpydoc config
-numpydoc_show_class_members = False # Otherwise Sphinx emits thousands of warnings
+# Otherwise Sphinx emits thousands of warnings
+numpydoc_show_class_members = False
 numpydoc_class_members_toctree = False
 
 # The default replacements for |version| and |release|, also used in various
@@ -164,7 +166,7 @@ html_last_updated_fmt = '%b %d, %Y'
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 html_additional_pages = {
-                         'interactive/htmlnotebook': 'htmlnotebook.html',
+    'interactive/htmlnotebook': 'htmlnotebook.html',
 }
 
 # If false, no module index is generated.
@@ -228,12 +230,12 @@ latex_use_modindex = True
 # --------------------------
 
 texinfo_documents = [
-  (master_doc, 'ipython', 'IPython Documentation',
-   'The IPython Development Team',
-   'IPython',
-   'IPython Documentation',
-   'Programming',
-   1),
+    (master_doc, 'ipython', 'IPython Documentation',
+     'The IPython Development Team',
+     'IPython',
+     'IPython Documentation',
+     'Programming',
+     1),
 ]
 
 modindex_common_prefix = ['IPython.']

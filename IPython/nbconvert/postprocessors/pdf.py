@@ -2,11 +2,11 @@
 Contains writer for writing nbconvert output to PDF.
 """
 #-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
+# Copyright (c) 2013, the IPython Development Team.
 #
-#Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the Modified BSD License.
 #
-#The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -24,7 +24,10 @@ from .base import PostProcessorBase
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
 class PDFPostProcessor(PostProcessorBase):
+
     """Writer designed to write to PDF files"""
 
     latex_count = Integer(3, config=True, help="""
@@ -41,8 +44,8 @@ class PDFPostProcessor(PostProcessorBase):
         Whether or not to display the output of the compile call.
         """)
 
-    temp_file_exts = List(['.aux', '.bbl', '.blg', '.idx', '.log', '.out'], 
-        config=True, help="""
+    temp_file_exts = List(['.aux', '.bbl', '.blg', '.idx', '.log', '.out'],
+                          config=True, help="""
         Filename extensions of temp files to remove after running.
         """)
     pdf_open = Bool(False, config=True, help="""
@@ -51,7 +54,7 @@ class PDFPostProcessor(PostProcessorBase):
 
     def run_command(self, command_list, filename, count, log_function):
         """Run command_list count times.
-        
+
         Parameters
         ----------
         command_list : list
@@ -61,7 +64,7 @@ class PDFPostProcessor(PostProcessorBase):
             The name of the file to convert.
         count : int
             How many times to run the command.
-        
+
         Returns
         -------
         continue : bool
@@ -69,15 +72,16 @@ class PDFPostProcessor(PostProcessorBase):
             or failed (False).
         """
         command = [c.format(filename=filename) for c in command_list]
-        #In windows and python 2.x there is a bug in subprocess.Popen and
+        # In windows and python 2.x there is a bug in subprocess.Popen and
         # unicode commands are not supported
-        if sys.platform == 'win32' and sys.version_info < (3,0):
-            #We must use cp1252 encoding for calling subprocess.Popen
-            #Note that sys.stdin.encoding and encoding.DEFAULT_ENCODING
+        if sys.platform == 'win32' and sys.version_info < (3, 0):
+            # We must use cp1252 encoding for calling subprocess.Popen
+            # Note that sys.stdin.encoding and encoding.DEFAULT_ENCODING
             # could be different (cp437 in case of dos console)
-            command = [c.encode('cp1252') for c in command]        
+            command = [c.encode('cp1252') for c in command]
         times = 'time' if count == 1 else 'times'
-        self.log.info("Running %s %i %s: %s", command_list[0], count, times, command)
+        self.log.info(
+            "Running %s %i %s: %s", command_list[0], count, times, command)
         with open(os.devnull, 'rb') as null:
             stdout = subprocess.PIPE if not self.verbose else None
             for index in range(count):
@@ -91,8 +95,8 @@ class PDFPostProcessor(PostProcessorBase):
                     else:
                         out = out.decode('utf-8', 'replace')
                     log_function(command, out)
-                    return False # failure
-        return True # success
+                    return False  # failure
+        return True  # success
 
     def run_latex(self, filename):
         """Run pdflatex self.latex_count times."""
@@ -100,8 +104,8 @@ class PDFPostProcessor(PostProcessorBase):
         def log_error(command, out):
             self.log.critical(u"%s failed: %s\n%s", command[0], command, out)
 
-        return self.run_command(self.latex_command, filename, 
-            self.latex_count, log_error)
+        return self.run_command(self.latex_command, filename,
+                                self.latex_count, log_error)
 
     def run_bib(self, filename):
         """Run bibtex self.latex_count times."""
@@ -109,7 +113,7 @@ class PDFPostProcessor(PostProcessorBase):
 
         def log_error(command, out):
             self.log.warn('%s had problems, most likely because there were no citations',
-                command[0])
+                          command[0])
             self.log.debug(u"%s output: %s\n%s", command[0], command, out)
 
         return self.run_command(self.bib_command, filename, 1, log_error)
@@ -120,7 +124,7 @@ class PDFPostProcessor(PostProcessorBase):
         filename = os.path.splitext(filename)[0]
         for ext in self.temp_file_exts:
             try:
-                os.remove(filename+ext)
+                os.remove(filename + ext)
             except OSError:
                 pass
 
@@ -147,10 +151,9 @@ class PDFPostProcessor(PostProcessorBase):
             cont = self.run_latex(filename)
         self.clean_temp_files(filename)
         filename = os.path.splitext(filename)[0]
-        if os.path.isfile(filename+'.pdf'):
+        if os.path.isfile(filename + '.pdf'):
             self.log.info('PDF successfully created')
-            if self.pdf_open: 
+            if self.pdf_open:
                 self.log.info('Viewer called')
-                self.open_pdf(filename+'.pdf')
+                self.open_pdf(filename + '.pdf')
         return
- 

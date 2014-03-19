@@ -25,7 +25,7 @@ def setup():
 
 def test_cython_inline():
     ip.ex('a=10; b=20')
-    result = ip.run_cell_magic('cython_inline','','return a+b')
+    result = ip.run_cell_magic('cython_inline', '', 'return a+b')
     nt.assert_equal(result, 30)
 
 
@@ -39,7 +39,7 @@ def test_cython_pyximport():
     ip.ex('h = f(-10)')
     nt.assert_equal(ip.user_ns['h'], -20.0)
     try:
-        os.remove(module_name+'.pyx')
+        os.remove(module_name + '.pyx')
     except OSError:
         pass
 
@@ -67,4 +67,3 @@ x = sin(0.0)
     ip.user_ns['x'] = 1
     ip.run_cell_magic('cython', '-l m', code)
     nt.assert_equal(ip.user_ns['x'], 0)
-    

@@ -14,14 +14,16 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
 
+
 class Macro(object):
+
     """Simple class to store the value of macros as strings.
 
     Macro is just a callable that executes a string of IPython
     input when called.
     """
 
-    def __init__(self,code):
+    def __init__(self, code):
         """store the macro value, as a single string which can be executed"""
         lines = []
         enc = None
@@ -35,20 +37,20 @@ class Macro(object):
         if isinstance(code, bytes):
             code = code.decode(enc or DEFAULT_ENCODING)
         self.value = code + '\n'
-    
+
     def __str__(self):
         return py3compat.unicode_to_str(self.value)
-    
+
     def __unicode__(self):
         return self.value
 
     def __repr__(self):
         return 'IPython.macro.Macro(%s)' % repr(self.value)
-    
+
     def __getstate__(self):
         """ needed for safe pickling via %store """
         return {'value': self.value}
-    
+
     def __add__(self, other):
         if isinstance(other, Macro):
             return Macro(self.value + other.value)

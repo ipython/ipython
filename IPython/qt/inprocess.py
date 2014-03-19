@@ -18,16 +18,21 @@ from .kernel_mixins import (
 class QtInProcessShellChannel(QtShellChannelMixin, InProcessShellChannel):
     pass
 
+
 class QtInProcessIOPubChannel(QtIOPubChannelMixin, InProcessIOPubChannel):
     pass
+
 
 class QtInProcessStdInChannel(QtStdInChannelMixin, InProcessStdInChannel):
     pass
 
+
 class QtInProcessHBChannel(QtHBChannelMixin, InProcessHBChannel):
     pass
 
+
 class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
+
     """ An in-process KernelManager with signals and slots.
     """
 
@@ -35,6 +40,7 @@ class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
     shell_channel_class = Type(QtInProcessShellChannel)
     stdin_channel_class = Type(QtInProcessStdInChannel)
     hb_channel_class = Type(QtInProcessHBChannel)
+
 
 class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
     client_class = __module__ + '.QtInProcessKernelClient'

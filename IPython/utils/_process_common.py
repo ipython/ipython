@@ -24,6 +24,7 @@ from IPython.utils import py3compat
 # Function definitions
 #-----------------------------------------------------------------------------
 
+
 def read_no_interrupt(p):
     """Read from a pipe ignoring EINTR errors.
 
@@ -142,6 +143,7 @@ def getoutputerror(cmd):
     """
     return get_output_error_code(cmd)[:2]
 
+
 def get_output_error_code(cmd):
     """Return (standard output, standard error, return code) of executing cmd
     in a shell.
@@ -165,6 +167,7 @@ def get_output_error_code(cmd):
         return '', '', p.returncode
     out, err = out_err
     return py3compat.bytes_to_str(out), py3compat.bytes_to_str(err), p.returncode
+
 
 def arg_split(s, posix=False, strict=True):
     """Split a command line's arguments in a shell-like manner.
@@ -195,7 +198,7 @@ def arg_split(s, posix=False, strict=True):
     # and it shouldn't raise an exception.
     # It may be a bad idea to parse things that are not command-line args
     # through this function, but we do, so let's be safe about it.
-    lex.commenters='' #fix for GH-1269
+    lex.commenters = ''  # fix for GH-1269
     tokens = []
     while True:
         try:
@@ -208,7 +211,7 @@ def arg_split(s, posix=False, strict=True):
             # couldn't parse, get remaining blob as last token
             tokens.append(lex.token)
             break
-    
+
     if is_unicode:
         # Convert the tokens back to unicode.
         tokens = [x.decode('utf-8') for x in tokens]

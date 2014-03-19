@@ -73,7 +73,7 @@ ws.cells.append(new_code_cell(
         output_json=u'json data',
         output_javascript=u'var i=0;',
         prompt_number=3
-    ),new_output(
+    ), new_output(
         output_type=u'display_data',
         output_text=u'<array a>',
         output_html=u'The HTML rep',
@@ -83,25 +83,25 @@ ws.cells.append(new_code_cell(
         output_svg=u'<svg>',
         output_json=u'json data',
         output_javascript=u'var i=0;'
-    ),new_output(
+    ), new_output(
         output_type=u'pyerr',
         ename=u'NameError',
         evalue=u'NameError was here',
         traceback=[u'frame 0', u'frame 1', u'frame 2']
-    ),new_output(
+    ), new_output(
         output_type=u'stream',
         output_text='foo\rbar\r\n'
-    ),new_output(
+    ), new_output(
         output_type=u'stream',
         stream='stderr',
         output_text='\rfoo\rbar\n'
     )]
 ))
 
-authors = [new_author(name='Bart Simpson',email='bsimpson@fox.com',
-           affiliation=u'Fox',url=u'http://www.fox.com')]
-md = new_metadata(name=u'My Notebook',license=u'BSD',created=u'8601_goes_here',
-    modified=u'8601_goes_here',gistid=u'21341231',authors=authors)
+authors = [new_author(name='Bart Simpson', email='bsimpson@fox.com',
+           affiliation=u'Fox', url=u'http://www.fox.com')]
+md = new_metadata(name=u'My Notebook', license=u'BSD', created=u'8601_goes_here',
+                  modified=u'8601_goes_here', gistid=u'21341231', authors=authors)
 
 nb0 = new_notebook(
     worksheets=[ws, new_worksheet(name='worksheet2')],
@@ -150,5 +150,3 @@ b = 5
 print "ünîcødé"
 
 """ % (nbformat, nbformat_minor)
-
-

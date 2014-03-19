@@ -37,6 +37,7 @@ else:
 
 noop = lambda *a, **kw: None
 
+
 class FakeShell(object):
 
     def __init__(self):
@@ -64,6 +65,7 @@ class FakeShell(object):
 
 
 class Fixture(object):
+
     """Fixture for creating test module files"""
 
     test_dir = None
@@ -85,7 +87,8 @@ class Fixture(object):
         self.shell = None
 
     def get_module(self):
-        module_name = "tmpmod_" + "".join(random.sample(self.filename_chars,20))
+        module_name = "tmpmod_" + \
+            "".join(random.sample(self.filename_chars, 20))
         if module_name in sys.modules:
             del sys.modules[module_name]
         file_name = os.path.join(self.test_dir, module_name + ".py")
@@ -130,7 +133,9 @@ class Fixture(object):
 # Test automatic reloading
 #-----------------------------------------------------------------------------
 
+
 class TestAutoreload(Fixture):
+
     def _check_smoketest(self, use_aimport=True):
         """
         Functional test for the automatic reloader using either
@@ -170,7 +175,8 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
             self.shell.magic_aimport(mod_name)
             stream = StringIO()
             self.shell.magic_aimport("", stream=stream)
-            nt.assert_in(("Modules to reload:\n%s" % mod_name), stream.getvalue())
+            nt.assert_in(
+                ("Modules to reload:\n%s" % mod_name), stream.getvalue())
 
             with nt.assert_raises(ImportError):
                 self.shell.magic_aimport("tmpmod_as318989e89ds")
@@ -220,9 +226,9 @@ a syntax error
 """)
 
         with tt.AssertPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
-            self.shell.run_code("pass") # trigger reload
+            self.shell.run_code("pass")  # trigger reload
         with tt.AssertNotPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
-            self.shell.run_code("pass") # trigger another reload
+            self.shell.run_code("pass")  # trigger another reload
         check_module_contents()
 
         #
@@ -252,11 +258,11 @@ class Bar:    # old-style class
             nt.assert_equal(mod.x, 10)
             nt.assert_false(hasattr(mod, 'z'))
 
-            nt.assert_equal(old_foo(0), 4) # superreload magic!
+            nt.assert_equal(old_foo(0), 4)  # superreload magic!
             nt.assert_equal(mod.foo(0), 4)
 
             obj = mod.Baz(9)
-            nt.assert_equal(old_obj.bar(1), 11) # superreload magic!
+            nt.assert_equal(old_obj.bar(1), 11)  # superreload magic!
             nt.assert_equal(obj.bar(1), 11)
 
             nt.assert_equal(old_obj.quux, 43)
@@ -269,7 +275,7 @@ class Bar:    # old-style class
             nt.assert_equal(old_obj2.foo(), 2)
             nt.assert_equal(obj2.foo(), 2)
 
-        self.shell.run_code("pass") # trigger reload
+        self.shell.run_code("pass")  # trigger reload
         check_module_contents()
 
         #
@@ -277,7 +283,7 @@ class Bar:    # old-style class
         #
         os.unlink(mod_fn)
 
-        self.shell.run_code("pass") # trigger reload
+        self.shell.run_code("pass")  # trigger reload
         check_module_contents()
 
         #
@@ -299,7 +305,7 @@ class Bar:    # old-style class
 x = -99
 """)
 
-        self.shell.run_code("pass") # trigger reload
+        self.shell.run_code("pass")  # trigger reload
         self.shell.run_code("pass")
         check_module_contents()
 
@@ -311,7 +317,7 @@ x = -99
         else:
             self.shell.magic_autoreload("")
 
-        self.shell.run_code("pass") # trigger reload
+        self.shell.run_code("pass")  # trigger reload
         nt.assert_equal(mod.x, -99)
 
     def test_smoketest_aimport(self):

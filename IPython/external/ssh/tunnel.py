@@ -14,14 +14,14 @@ Authors
 #-----------------------------------------------------------------------------
 
 
-
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
 from __future__ import print_function
 
-import os,sys, atexit
+import os
+import sys
+import atexit
 import signal
 import socket
 from multiprocessing import Process
@@ -48,6 +48,7 @@ except ImportError:
 
 # select_random_ports copied from IPython.parallel.util
 _random_ports = set()
+
 
 def select_random_ports(n):
     """Selects and return n random ports that are available."""
@@ -87,11 +88,12 @@ def try_passwordless_ssh(server, keyfile, paramiko=None):
         f = _try_passwordless_paramiko
     return f(server, keyfile)
 
+
 def _try_passwordless_openssh(server, keyfile):
     """Try passwordless login with shell ssh command."""
     if pexpect is None:
         raise ImportError("pexpect unavailable, use paramiko")
-    cmd = 'ssh -f '+ server
+    cmd = 'ssh -f ' + server
     if keyfile:
         cmd += ' -i ' + keyfile
     cmd += ' exit'
@@ -105,6 +107,7 @@ def _try_passwordless_openssh(server, keyfile):
             return True
         else:
             return False
+
 
 def _try_passwordless_paramiko(server, keyfile):
     """Try passwordless login with paramiko."""
@@ -121,7 +124,7 @@ def _try_passwordless_paramiko(server, keyfile):
     client.set_missing_host_key_policy(paramiko.WarningPolicy())
     try:
         client.connect(server, port, username=username, key_filename=keyfile,
-               look_for_keys=True)
+                       look_for_keys=True)
     except paramiko.AuthenticationException:
         return False
     else:
@@ -138,7 +141,8 @@ def tunnel_connection(socket, addr, server, keyfile=None, password=None, paramik
     selected local port of the tunnel.
 
     """
-    new_url, tunnel = open_tunnel(addr, server, keyfile=keyfile, password=password, paramiko=paramiko, timeout=timeout)
+    new_url, tunnel = open_tunnel(
+        addr, server, keyfile=keyfile, password=password, paramiko=paramiko, timeout=timeout)
     socket.connect(new_url)
     return tunnel
 
@@ -156,7 +160,7 @@ def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None, timeou
 
     lport = select_random_ports(1)[0]
     transport, addr = addr.split('://')
-    ip,rport = addr.split(':')
+    ip, rport = addr.split(':')
     rport = int(rport)
     if paramiko is None:
         paramiko = sys.platform == 'win32'
@@ -165,8 +169,10 @@ def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None, timeou
     else:
         tunnelf = openssh_tunnel
 
-    tunnel = tunnelf(lport, rport, server, remoteip=ip, keyfile=keyfile, password=password, timeout=timeout)
-    return 'tcp://127.0.0.1:%i'%lport, tunnel
+    tunnel = tunnelf(lport, rport, server, remoteip=ip,
+                     keyfile=keyfile, password=password, timeout=timeout)
+    return 'tcp://127.0.0.1:%i' % lport, tunnel
+
 
 def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
     """Create an ssh tunnel using command-line ssh that connects port lport
@@ -206,14 +212,14 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
     """
     if pexpect is None:
         raise ImportError("pexpect unavailable, use paramiko_tunnel")
-    ssh="ssh "
+    ssh = "ssh "
     if keyfile:
         ssh += "-i " + keyfile
-    
+
     if ':' in server:
         server, port = server.split(':')
         ssh += " -p %s" % port
-        
+
     cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
         ssh, lport, remoteip, rport, server, timeout)
     tunnel = pexpect.spawn(cmd)
@@ -228,21 +234,22 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
                 print (tunnel.exitstatus)
                 print (tunnel.before)
                 print (tunnel.after)
-                raise RuntimeError("tunnel '%s' failed to start"%(cmd))
+                raise RuntimeError("tunnel '%s' failed to start" % (cmd))
             else:
                 return tunnel.pid
         else:
             if failed:
                 print("Password rejected, try again")
-                password=None
+                password = None
             if password is None:
-                password = getpass("%s's password: "%(server))
+                password = getpass("%s's password: " % (server))
             tunnel.sendline(password)
             failed = True
 
+
 def _split_server(server):
     if '@' in server:
-        username,server = server.split('@', 1)
+        username, server = server.split('@', 1)
     else:
         username = getuser()
     if ':' in server:
@@ -251,6 +258,7 @@ def _split_server(server):
     else:
         port = 22
     return username, server, port
+
 
 def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, password=None, timeout=60):
     """launch a tunner with paramiko in a subprocess. This should only be used
@@ -297,19 +305,21 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
 
     if password is None:
         if not _try_passwordless_paramiko(server, keyfile):
-            password = getpass("%s's password: "%(server))
+            password = getpass("%s's password: " % (server))
 
     p = Process(target=_paramiko_tunnel,
-            args=(lport, rport, server, remoteip),
-            kwargs=dict(keyfile=keyfile, password=password))
-    p.daemon=False
+                args=(lport, rport, server, remoteip),
+                kwargs=dict(keyfile=keyfile, password=password))
+    p.daemon = False
     p.start()
     atexit.register(_shutdown_process, p)
     return p
 
+
 def _shutdown_process(p):
     if p.is_alive():
         p.terminate()
+
 
 def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None):
     """Function for actually starting a paramiko tunnel, to be passed
@@ -332,17 +342,17 @@ def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None
     except Exception as e:
         print ('*** Failed to connect to %s:%d: %r' % (server, port, e))
         sys.exit(1)
-    
+
     # Don't let SIGINT kill the tunnel subprocess
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    
+
     try:
         forward_tunnel(lport, remoteip, rport, client.get_transport())
     except KeyboardInterrupt:
         print ('SIGINT: Port forwarding stopped cleanly')
         sys.exit(0)
     except Exception as e:
-        print ("Port forwarding stopped uncleanly: %s"%e)
+        print ("Port forwarding stopped uncleanly: %s" % e)
         sys.exit(255)
 
 if sys.platform == 'win32':
@@ -351,6 +361,5 @@ else:
     ssh_tunnel = openssh_tunnel
 
 
-__all__ = ['tunnel_connection', 'ssh_tunnel', 'openssh_tunnel', 'paramiko_tunnel', 'try_passwordless_ssh']
-
-
+__all__ = ['tunnel_connection', 'ssh_tunnel', 'openssh_tunnel',
+           'paramiko_tunnel', 'try_passwordless_ssh']

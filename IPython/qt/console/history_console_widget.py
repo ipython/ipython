@@ -8,20 +8,21 @@ from .console_widget import ConsoleWidget
 
 
 class HistoryConsoleWidget(ConsoleWidget):
+
     """ A ConsoleWidget that keeps a history of the commands that have been
         executed and provides a readline-esque interface to this history.
     """
 
-    #------ Configuration ------------------------------------------------------
+    #------ Configuration ----------------------------------------------------
 
     # If enabled, the input buffer will become "locked" to history movement when
     # an edit is made to a multi-line input buffer. To override the lock, use
     # Shift in conjunction with the standard history cycling keys.
     history_lock = Bool(False, config=True)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'object' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def __init__(self, *args, **kw):
         super(HistoryConsoleWidget, self).__init__(*args, **kw)
@@ -32,9 +33,9 @@ class HistoryConsoleWidget(ConsoleWidget):
         self._history_index = 0
         self._history_prefix = ''
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def execute(self, source=None, hidden=False, interactive=False):
         """ Reimplemented to the store history.
@@ -60,9 +61,9 @@ class HistoryConsoleWidget(ConsoleWidget):
 
         return executed
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _up_pressed(self, shift_modifier):
         """ Called when the up key is pressed. Returns whether to continue
@@ -80,30 +81,30 @@ class HistoryConsoleWidget(ConsoleWidget):
             # use the *shortest* of the cursor column and the history prefix
             # to determine if the prefix has changed
             n = min(col, len(self._history_prefix))
-            
+
             # prefix changed, restart search from the beginning
             if (self._history_prefix[:n] != input_buffer[:n]):
                 self._history_index = len(self._history)
-            
+
             # the only time we shouldn't set the history prefix
             # to the line up to the cursor is if we are already
             # in a simple scroll (no prefix),
             # and the cursor is at the end of the first line
-            
+
             # check if we are at the end of the first line
             c = self._get_cursor()
             current_pos = c.position()
             c.movePosition(QtGui.QTextCursor.EndOfLine)
             at_eol = (c.position() == current_pos)
-            
+
             if self._history_index == len(self._history) or \
-                not (self._history_prefix == '' and at_eol) or \
-                not (self._get_edited_history(self._history_index)[:col] == input_buffer[:col]):
+                    not (self._history_prefix == '' and at_eol) or \
+                    not (self._get_edited_history(self._history_index)[:col] == input_buffer[:col]):
                 self._history_prefix = input_buffer[:col]
 
             # Perform the search.
             self.history_previous(self._history_prefix,
-                                    as_prefix=not shift_modifier)
+                                  as_prefix=not shift_modifier)
 
             # Go to the first line of the prompt for seemless history scrolling.
             # Emulate readline: keep the cursor position fixed for a prefix
@@ -132,7 +133,7 @@ class HistoryConsoleWidget(ConsoleWidget):
 
             # Perform the search.
             replaced = self.history_next(self._history_prefix,
-                                            as_prefix=not shift_modifier)
+                                         as_prefix=not shift_modifier)
 
             # Emulate readline: keep the cursor position fixed for a prefix
             # search. (We don't need to move the cursor to the end of the buffer
@@ -148,9 +149,9 @@ class HistoryConsoleWidget(ConsoleWidget):
 
         return True
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'HistoryConsoleWidget' public interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def history_previous(self, substring='', as_prefix=True):
         """ If possible, set the input buffer to a previous history item.
@@ -172,7 +173,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             index -= 1
             history = self._get_edited_history(index)
             if (as_prefix and history.startswith(substring)) \
-                or (not as_prefix and substring in history):
+                    or (not as_prefix and substring in history):
                 replace = True
                 break
 
@@ -203,7 +204,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             index += 1
             history = self._get_edited_history(index)
             if (as_prefix and history.startswith(substring)) \
-                or (not as_prefix and substring in history):
+                    or (not as_prefix and substring in history):
                 replace = True
                 break
 
@@ -226,18 +227,19 @@ class HistoryConsoleWidget(ConsoleWidget):
 
     def _request_update_session_history_length(self):
         msg_id = self.kernel_client.shell_channel.execute('',
-            silent=True,
-            user_expressions={
-                'hlen':'len(get_ipython().history_manager.input_hist_raw)',
-                }
-            )
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'save_magic')
+                                                          silent=True,
+                                                          user_expressions={
+                                                              'hlen': 'len(get_ipython().history_manager.input_hist_raw)',
+                                                          }
+                                                          )
+        self._request_info['execute'][
+            msg_id] = self._ExecutionRequest(msg_id, 'save_magic')
 
     def _handle_execute_reply(self, msg):
         """ Handles replies for code execution, here only session history length
         """
         msg_id = msg['parent_header']['msg_id']
-        info = self._request_info['execute'].pop(msg_id,None)
+        info = self._request_info['execute'].pop(msg_id, None)
         if info and info.kind == 'save_magic' and not self._hidden:
             content = msg['content']
             status = content['status']
@@ -250,26 +252,27 @@ class HistoryConsoleWidget(ConsoleWidget):
         # update the session history length
         self._request_update_session_history_length()
 
-        file_name,extFilter = QtGui.QFileDialog.getSaveFileName(self,
-            "Enter A filename",
-            filter='Python File (*.py);; All files (*.*)'
-            )
+        file_name, extFilter = QtGui.QFileDialog.getSaveFileName(self,
+                                                                 "Enter A filename",
+                                                                 filter='Python File (*.py);; All files (*.*)'
+                                                                 )
 
         # let's the user search/type for a file name, while the history length
         # is fetched
 
         if file_name:
             hist_range, ok = QtGui.QInputDialog.getText(self,
-                'Please enter an interval of command to save',
-                'Saving commands:',
-                text=str('1-'+str(self._max_session_history))
-                )
+                                                        'Please enter an interval of command to save',
+                                                        'Saving commands:',
+                                                        text=str(
+                                                            '1-' + str(self._max_session_history))
+                                                        )
             if ok:
-                self.execute("%save"+" "+file_name+" "+str(hist_range))
+                self.execute("%save" + " " + file_name + " " + str(hist_range))
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'HistoryConsoleWidget' protected interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _history_locked(self):
         """ Returns whether history movement is locked.

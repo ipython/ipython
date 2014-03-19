@@ -2,4 +2,5 @@
 from IPython import embed
 
 user_ns = dict(cookie='monster')
-embed(user_ns=user_ns, banner1="check 'cookie' present, locals and globals equivalent")
+embed(user_ns=user_ns,
+      banner1="check 'cookie' present, locals and globals equivalent")

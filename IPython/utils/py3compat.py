@@ -10,12 +10,15 @@ from .encoding import DEFAULT_ENCODING
 
 orig_open = open
 
+
 def no_code(x, encoding=None):
     return x
+
 
 def decode(s, encoding=None):
     encoding = encoding or DEFAULT_ENCODING
     return s.decode(encoding, "replace")
+
 
 def encode(u, encoding=None):
     encoding = encoding or DEFAULT_ENCODING
@@ -27,10 +30,12 @@ def cast_unicode(s, encoding=None):
         return decode(s, encoding)
     return s
 
+
 def cast_bytes(s, encoding=None):
     if not isinstance(s, bytes):
         return encode(s, encoding)
     return s
+
 
 def _modify_str_or_docstring(str_change_func):
     @functools.wraps(str_change_func)
@@ -41,14 +46,15 @@ def _modify_str_or_docstring(str_change_func):
         else:
             func = func_or_str
             doc = func.__doc__
-        
+
         doc = str_change_func(doc)
-        
+
         if func:
             func.__doc__ = doc
             return func
         return doc
     return wrapper
+
 
 def safe_unicode(e):
     """unicode(e) with various fallbacks. Used for exceptions, which may not be
@@ -73,131 +79,142 @@ def safe_unicode(e):
 
 if sys.version_info[0] >= 3:
     PY3 = True
-    
+
     # keep reference to builtin_mod because the kernel overrides that value
     # to forward requests to a frontend.
     def input(prompt=''):
         return builtin_mod.input(prompt)
-    
+
     builtin_mod_name = "builtins"
     import builtins as builtin_mod
-    
+
     str_to_unicode = no_code
     unicode_to_str = no_code
     str_to_bytes = encode
     bytes_to_str = decode
     cast_bytes_py2 = no_code
     cast_unicode_py2 = no_code
-    
+
     string_types = (str,)
     unicode_type = str
-    
+
     def isidentifier(s, dotted=False):
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return s.isidentifier()
-    
+
     open = orig_open
     xrange = range
-    def iteritems(d): return iter(d.items())
-    def itervalues(d): return iter(d.values())
+
+    def iteritems(d):
+        return iter(d.items())
+
+    def itervalues(d):
+        return iter(d.values())
     getcwd = os.getcwd
-    
+
     MethodType = types.MethodType
-    
+
     def execfile(fname, glob, loc=None):
         loc = loc if (loc is not None) else glob
         with open(fname, 'rb') as f:
             exec(compile(f.read(), fname, 'exec'), glob, loc)
-    
+
     # Refactor print statements in doctests.
     _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
+
     def _print_statement_sub(match):
         expr = match.groups('expr')
         return "print(%s)" % expr
-    
+
     @_modify_str_or_docstring
     def doctest_refactor_print(doc):
         """Refactor 'print x' statements in a doctest to print(x) style. 2to3
         unfortunately doesn't pick up on our doctests.
-        
+
         Can accept a string or a function, so it can be used as a decorator."""
         return _print_statement_re.sub(_print_statement_sub, doc)
-    
+
     # Abstract u'abc' syntax:
     @_modify_str_or_docstring
     def u_format(s):
         """"{u}'abc'" --> "'abc'" (Python 3)
-        
+
         Accepts a string or a function, so it can be used as a decorator."""
         return s.format(u='')
 
 else:
     PY3 = False
-    
+
     # keep reference to builtin_mod because the kernel overrides that value
     # to forward requests to a frontend.
     def input(prompt=''):
         return builtin_mod.raw_input(prompt)
-    
+
     builtin_mod_name = "__builtin__"
     import __builtin__ as builtin_mod
-    
+
     str_to_unicode = decode
     unicode_to_str = encode
     str_to_bytes = no_code
     bytes_to_str = no_code
     cast_bytes_py2 = cast_bytes
     cast_unicode_py2 = cast_unicode
-    
+
     string_types = (str, unicode)
     unicode_type = unicode
-    
+
     import re
     _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
+
     def isidentifier(s, dotted=False):
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return bool(_name_re.match(s))
-    
+
     class open(object):
+
         """Wrapper providing key part of Python 3 open() interface."""
+
         def __init__(self, fname, mode="r", encoding="utf-8"):
             self.f = orig_open(fname, mode)
             self.enc = encoding
-        
+
         def write(self, s):
             return self.f.write(s.encode(self.enc))
-        
+
         def read(self, size=-1):
             return self.f.read(size).decode(self.enc)
-        
+
         def close(self):
             return self.f.close()
-        
+
         def __enter__(self):
             return self
-        
+
         def __exit__(self, etype, value, traceback):
             self.f.close()
-    
+
     xrange = xrange
-    def iteritems(d): return d.iteritems()
-    def itervalues(d): return d.itervalues()
+
+    def iteritems(d):
+        return d.iteritems()
+
+    def itervalues(d):
+        return d.itervalues()
     getcwd = os.getcwdu
 
     def MethodType(func, instance):
         return types.MethodType(func, instance, type(instance))
-    
+
     def doctest_refactor_print(func_or_str):
         return func_or_str
-
 
     # Abstract u'abc' syntax:
     @_modify_str_or_docstring
     def u_format(s):
         """"{u}'abc'" --> "u'abc'" (Python 2)
-        
+
         Accepts a string or a function, so it can be used as a decorator."""
         return s.format(u='u')
 
@@ -228,6 +245,7 @@ def annotate(**kwargs):
     """Python 3 compatible function annotation for Python 2."""
     if not kwargs:
         raise ValueError('annotations must be provided as keyword arguments')
+
     def dec(f):
         if hasattr(f, '__annotations__'):
             for k, v in kwargs.items():

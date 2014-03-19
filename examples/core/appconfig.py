@@ -38,6 +38,7 @@ from IPython.utils.traitlets import (
 
 
 class Foo(Configurable):
+
     """A class that has configurable, typed attributes.
 
     """
@@ -59,16 +60,17 @@ class MyApp(Application):
                    help="Is the app running?")
     classes = List([Bar, Foo])
     config_file = Unicode(u'', config=True,
-                   help="Load this config file")
-    
-    aliases = Dict(dict(i='Foo.i',j='Foo.j',name='Foo.name', running='MyApp.running',
+                          help="Load this config file")
+
+    aliases = Dict(dict(i='Foo.i', j='Foo.j', name='Foo.name', running='MyApp.running',
                         enabled='Bar.enabled', log_level='MyApp.log_level'))
-    
-    flags = Dict(dict(enable=({'Bar': {'enabled' : True}}, "Enable Bar"),
-                  disable=({'Bar': {'enabled' : False}}, "Disable Bar"),
-                  debug=({'MyApp':{'log_level':10}}, "Set loglevel to DEBUG")
-            ))
-    
+
+    flags = Dict(dict(enable=({'Bar': {'enabled': True}}, "Enable Bar"),
+                      disable=({'Bar': {'enabled': False}}, "Disable Bar"),
+                      debug=(
+                          {'MyApp': {'log_level': 10}}, "Set loglevel to DEBUG")
+                      ))
+
     def init_foo(self):
         # Pass config to other classes for them to inherit the config.
         self.foo = Foo(config=self.config)
@@ -83,7 +85,7 @@ class MyApp(Application):
             self.load_config_file(self.config_file)
         self.init_foo()
         self.init_bar()
-    
+
     def start(self):
         print("app.config:")
         print(self.config)

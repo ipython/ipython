@@ -20,11 +20,11 @@ ipbackupdir = os.path.expanduser('~/ipython/backup')
 cd(ipdir)
 
 # Load release info
-execfile(pjoin('IPython','core','release.py'))
+execfile(pjoin('IPython', 'core', 'release.py'))
 
 # Build site addresses for file uploads
 release_site = '%s/release/%s' % (archive, version)
-backup_site =  '%s/backup/' % archive
+backup_site = '%s/backup/' % archive
 
 # Start actual release process
 print()
@@ -45,14 +45,14 @@ sh('mv ipython-*.tgz %s' % ipbackupdir)
 sh('./build_release %s' % ipdir)
 
 # Register with the Python Package Index (PyPI)
-print( 'Registering with PyPI...')
+print('Registering with PyPI...')
 cd(ipdir)
 sh('./setup.py register')
 
 # Upload all files
 sh(sdists + ' upload')
 cd(distdir)
-print( 'Uploading distribution files...')
+print('Uploading distribution files...')
 
 for fname in os.listdir('.'):
     # GitHub doesn't have an API for uploads at the moment
@@ -65,7 +65,7 @@ for fname in os.listdir('.'):
 sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
 sh('scp * %s' % release_site)
 
-print( 'Uploading backup files...')
+print('Uploading backup files...')
 cd(ipbackupdir)
 sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
 

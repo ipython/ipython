@@ -52,24 +52,25 @@ from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import (str_to_bytes, str_to_unicode, unicode_type,
                                      iteritems)
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName, CUnicode, Dict, Integer,
-                                        TraitError,
-)
+                                     DottedObjectName, CUnicode, Dict, Integer,
+                                     TraitError,
+                                     )
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
 # utility functions
 #-----------------------------------------------------------------------------
 
+
 def squash_unicode(obj):
     """coerce unicode back to bytestrings."""
-    if isinstance(obj,dict):
+    if isinstance(obj, dict):
         for key in obj.keys():
             obj[key] = squash_unicode(obj[key])
             if isinstance(key, unicode_type):
                 obj[squash_unicode(key)] = obj.pop(key)
     elif isinstance(obj, list):
-        for i,v in enumerate(obj):
+        for i, v in enumerate(obj):
             obj[i] = squash_unicode(v)
     elif isinstance(obj, unicode_type):
         obj = obj.encode('utf8')
@@ -83,7 +84,7 @@ def squash_unicode(obj):
 json_packer = lambda obj: jsonapi.dumps(obj, default=date_default)
 json_unpacker = lambda s: jsonapi.loads(s)
 
-pickle_packer = lambda o: pickle.dumps(squash_dates(o),-1)
+pickle_packer = lambda o: pickle.dumps(squash_dates(o), -1)
 pickle_unpacker = pickle.loads
 
 default_packer = json_packer
@@ -98,28 +99,29 @@ DONE = zmq.MessageTracker()
 #-----------------------------------------------------------------------------
 
 session_aliases = dict(
-    ident = 'Session.session',
-    user = 'Session.username',
-    keyfile = 'Session.keyfile',
+    ident='Session.session',
+    user='Session.username',
+    keyfile='Session.keyfile',
 )
 
-session_flags  = {
-    'secure' : ({'Session' : { 'key' : str_to_bytes(str(uuid.uuid4())),
-                            'keyfile' : '' }},
-        """Use HMAC digests for authentication of messages.
+session_flags = {
+    'secure': ({'Session': {'key': str_to_bytes(str(uuid.uuid4())),
+                            'keyfile': ''}},
+               """Use HMAC digests for authentication of messages.
         Setting this flag will generate a new UUID to use as the HMAC key.
         """),
-    'no-secure' : ({'Session' : { 'key' : b'', 'keyfile' : '' }},
-        """Don't authenticate messages."""),
+    'no-secure': ({'Session': {'key': b'', 'keyfile': ''}},
+                  """Don't authenticate messages."""),
 }
+
 
 def default_secure(cfg):
     """Set the default behavior for a config environment to be secure.
-    
+
     If Session.key/keyfile have not been set, set Session.key to
     a new random UUID.
     """
-    
+
     if 'Session' in cfg:
         if 'key' in cfg.Session or 'keyfile' in cfg.Session:
             return
@@ -132,22 +134,26 @@ def default_secure(cfg):
 #-----------------------------------------------------------------------------
 
 class SessionFactory(LoggingConfigurable):
+
     """The Base class for configurables that have a Session, Context, logger,
     and IOLoop.
     """
 
     logname = Unicode('')
+
     def _logname_changed(self, name, old, new):
         self.log = logging.getLogger(new)
 
     # not configurable:
     context = Instance('zmq.Context')
+
     def _context_default(self):
         return zmq.Context.instance()
 
     session = Instance('IPython.kernel.zmq.session.Session')
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+
     def _loop_default(self):
         return IOLoop.instance()
 
@@ -160,6 +166,7 @@ class SessionFactory(LoggingConfigurable):
 
 
 class Message(object):
+
     """A simple message object that maps dict keys to attributes.
 
     A Message can be created from a dict and a dict from a Message instance
@@ -193,6 +200,7 @@ def msg_header(msg_id, msg_type, username, session):
     date = datetime.now()
     return locals()
 
+
 def extract_header(msg_or_header):
     """Given a message or header, return the header."""
     if not msg_or_header:
@@ -212,7 +220,9 @@ def extract_header(msg_or_header):
         h = dict(h)
     return h
 
+
 class Session(Configurable):
+
     """Object for handling serialization and sending of messages.
 
     The Session object handles building messages and sending them
@@ -253,12 +263,13 @@ class Session(Configurable):
 
     """
 
-    debug=Bool(False, config=True, help="""Debug output in the Session""")
+    debug = Bool(False, config=True, help="""Debug output in the Session""")
 
-    packer = DottedObjectName('json',config=True,
-            help="""The name of the packer for serializing messages.
+    packer = DottedObjectName('json', config=True,
+                              help="""The name of the packer for serializing messages.
             Should be one of 'json', 'pickle', or an import name
             for a custom callable serializer.""")
+
     def _packer_changed(self, name, old, new):
         if new.lower() == 'json':
             self.pack = json_packer
@@ -272,8 +283,9 @@ class Session(Configurable):
             self.pack = import_item(str(new))
 
     unpacker = DottedObjectName('json', config=True,
-        help="""The name of the unpacker for unserializing messages.
+                                help="""The name of the unpacker for unserializing messages.
         Only used with custom functions for `packer`.""")
+
     def _unpacker_changed(self, name, old, new):
         if new.lower() == 'json':
             self.pack = json_packer
@@ -287,7 +299,8 @@ class Session(Configurable):
             self.unpack = import_item(str(new))
 
     session = CUnicode(u'', config=True,
-        help="""The UUID identifying this session.""")
+                       help="""The UUID identifying this session.""")
+
     def _session_default(self):
         u = unicode_type(uuid.uuid4())
         self.bsession = u.encode('ascii')
@@ -300,82 +313,88 @@ class Session(Configurable):
     bsession = CBytes(b'')
 
     username = Unicode(str_to_unicode(os.environ.get('USER', 'username')),
-        help="""Username for the Session. Default is your system username.""",
-        config=True)
+                       help="""Username for the Session. Default is your system username.""",
+                       config=True)
 
     metadata = Dict({}, config=True,
-        help="""Metadata dictionary, which serves as the default top-level metadata dict for each message.""")
+                    help="""Metadata dictionary, which serves as the default top-level metadata dict for each message.""")
 
     # message signature related traits:
-    
+
     key = CBytes(b'', config=True,
-        help="""execution key, for extra authentication.""")
+                 help="""execution key, for extra authentication.""")
+
     def _key_changed(self, name, old, new):
         if new:
             self.auth = hmac.HMAC(new, digestmod=self.digest_mod)
         else:
             self.auth = None
-    
+
     signature_scheme = Unicode('hmac-sha256', config=True,
-        help="""The digest scheme used to construct the message signatures.
+                               help="""The digest scheme used to construct the message signatures.
         Must have the form 'hmac-HASH'.""")
+
     def _signature_scheme_changed(self, name, old, new):
         if not new.startswith('hmac-'):
-            raise TraitError("signature_scheme must start with 'hmac-', got %r" % new)
+            raise TraitError(
+                "signature_scheme must start with 'hmac-', got %r" % new)
         hash_name = new.split('-', 1)[1]
         try:
             self.digest_mod = getattr(hashlib, hash_name)
         except AttributeError:
             raise TraitError("hashlib has no such attribute: %s" % hash_name)
-    
+
     digest_mod = Any()
+
     def _digest_mod_default(self):
         return hashlib.sha256
-    
+
     auth = Instance(hmac.HMAC)
-    
+
     digest_history = Set()
-    digest_history_size = Integer(2**16, config=True,
-        help="""The maximum number of digests to remember.
+    digest_history_size = Integer(2 ** 16, config=True,
+                                  help="""The maximum number of digests to remember.
         
         The digest history will be culled when it exceeds this value.
         """
-    )
+                                  )
 
     keyfile = Unicode('', config=True,
-        help="""path to file containing execution key.""")
+                      help="""path to file containing execution key.""")
+
     def _keyfile_changed(self, name, old, new):
         with open(new, 'rb') as f:
             self.key = f.read().strip()
 
     # for protecting against sends from forks
     pid = Integer()
-    
+
     # serialization traits:
-    
-    pack = Any(default_packer) # the actual packer function
+
+    pack = Any(default_packer)  # the actual packer function
+
     def _pack_changed(self, name, old, new):
         if not callable(new):
-            raise TypeError("packer must be callable, not %s"%type(new))
+            raise TypeError("packer must be callable, not %s" % type(new))
 
-    unpack = Any(default_unpacker) # the actual packer function
+    unpack = Any(default_unpacker)  # the actual packer function
+
     def _unpack_changed(self, name, old, new):
         # unpacker is not checked - it is assumed to be
         if not callable(new):
-            raise TypeError("unpacker must be callable, not %s"%type(new))
-    
+            raise TypeError("unpacker must be callable, not %s" % type(new))
+
     # thresholds:
-    copy_threshold = Integer(2**16, config=True,
-        help="Threshold (in bytes) beyond which a buffer should be sent without copying.")
+    copy_threshold = Integer(2 ** 16, config=True,
+                             help="Threshold (in bytes) beyond which a buffer should be sent without copying.")
     buffer_threshold = Integer(MAX_BYTES, config=True,
-        help="Threshold (in bytes) beyond which an object's buffer should be extracted to avoid pickling.")
+                               help="Threshold (in bytes) beyond which an object's buffer should be extracted to avoid pickling.")
     item_threshold = Integer(MAX_ITEMS, config=True,
-        help="""The maximum number of items for a container to be introspected for custom serialization.
+                             help="""The maximum number of items for a container to be introspected for custom serialization.
         Containers larger than this are pickled outright.
         """
-    )
+                             )
 
-    
     def __init__(self, **kwargs):
         """create a Session object
 
@@ -434,7 +453,7 @@ class Session(Configurable):
         unpack = self.unpack
 
         # check simple serialization
-        msg = dict(a=[1,'hi'])
+        msg = dict(a=[1, 'hi'])
         try:
             packed = pack(msg)
         except Exception as e:
@@ -449,7 +468,8 @@ class Session(Configurable):
 
         # ensure packed message is bytes
         if not isinstance(packed, bytes):
-            raise ValueError("message packed to %r, but bytes are required"%type(packed))
+            raise ValueError(
+                "message packed to %r, but bytes are required" % type(packed))
 
         # check that unpack is pack's inverse
         try:
@@ -462,7 +482,8 @@ class Session(Configurable):
             else:
                 jsonmsg = ""
             raise ValueError(
-                msg.format(packer=self.packer, unpacker=self.unpacker, e=e, jsonmsg=jsonmsg)
+                msg.format(
+                    packer=self.packer, unpacker=self.unpacker, e=e, jsonmsg=jsonmsg)
             )
 
         # check datetime support
@@ -547,13 +568,13 @@ class Session(Configurable):
             # should be bytes, but JSON often spits out unicode
             content = content.encode('utf8')
         else:
-            raise TypeError("Content incorrect type: %s"%type(content))
+            raise TypeError("Content incorrect type: %s" % type(content))
 
         real_message = [self.pack(msg['header']),
                         self.pack(msg['parent_header']),
                         self.pack(msg['metadata']),
                         content,
-        ]
+                        ]
 
         to_send = []
 
@@ -609,7 +630,7 @@ class Session(Configurable):
         track : bool
             Whether to track.  Only for use with Sockets, because ZMQStream
             objects cannot track messages.
-            
+
 
         Returns
         -------
@@ -634,9 +655,9 @@ class Session(Configurable):
         buffers = [] if buffers is None else buffers
         to_send = self.serialize(msg, ident)
         to_send.extend(buffers)
-        longest = max([ len(s) for s in to_send ])
+        longest = max([len(s) for s in to_send])
         copy = (longest < self.copy_threshold)
-        
+
         if buffers and track and not copy:
             # only really track when we are doing zero-copy buffers
             tracker = stream.send_multipart(to_send, copy=False, track=True)
@@ -703,7 +724,7 @@ class Session(Configurable):
             if e.errno == zmq.EAGAIN:
                 # We can convert EAGAIN to None as we know in this case
                 # recv_multipart won't return None.
-                return None,None
+                return None, None
             else:
                 raise
         # split multipart message into identity list and message dict
@@ -740,16 +761,16 @@ class Session(Configurable):
         """
         if copy:
             idx = msg_list.index(DELIM)
-            return msg_list[:idx], msg_list[idx+1:]
+            return msg_list[:idx], msg_list[idx + 1:]
         else:
             failed = True
-            for idx,m in enumerate(msg_list):
+            for idx, m in enumerate(msg_list):
                 if m.bytes == DELIM:
                     failed = False
                     break
             if failed:
                 raise ValueError("DELIM not in msg_list")
-            idents, msg_list = msg_list[:idx], msg_list[idx+1:]
+            idents, msg_list = msg_list[:idx], msg_list[idx + 1:]
             return [m.bytes for m in idents], msg_list
 
     def _add_digest(self, signature):
@@ -757,15 +778,15 @@ class Session(Configurable):
         if self.digest_history_size == 0:
             # no history, never add digests
             return
-        
+
         self.digest_history.add(signature)
         if len(self.digest_history) > self.digest_history_size:
             # threshold reached, cull 10%
             self._cull_digest_history()
-    
+
     def _cull_digest_history(self):
         """cull the digest history
-        
+
         Removes a randomly selected 10% of the digest history
         """
         current = len(self.digest_history)
@@ -775,7 +796,7 @@ class Session(Configurable):
             return
         to_cull = random.sample(self.digest_history, n_to_cull)
         self.digest_history.difference_update(to_cull)
-    
+
     def unserialize(self, msg_list, content=True, copy=True):
         """Unserialize a msg_list to a nested message dict.
 
@@ -817,7 +838,8 @@ class Session(Configurable):
             if not signature == check:
                 raise ValueError("Invalid Signature: %r" % signature)
         if not len(msg_list) >= minlen:
-            raise TypeError("malformed message, must have at least %i elements"%minlen)
+            raise TypeError(
+                "malformed message, must have at least %i elements" % minlen)
         header = self.unpack(msg_list[1])
         message['header'] = extract_dates(header)
         message['msg_id'] = header['msg_id']
@@ -831,6 +853,7 @@ class Session(Configurable):
 
         message['buffers'] = msg_list[5:]
         return message
+
 
 def test_msg2obj():
     am = dict(x=1)
@@ -847,4 +870,3 @@ def test_msg2obj():
     am2 = dict(ao)
     assert am['x'] == am2['x']
     assert am['y']['z'] == am2['y']['z']
-

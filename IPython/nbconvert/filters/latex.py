@@ -24,7 +24,8 @@ LATEX_RE_SUBS = (
 )
 
 # Latex substitutions for escaping latex.
-# see: http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
+# see:
+# http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
 
 LATEX_SUBS = {
     '&':  r'\&',
@@ -46,6 +47,7 @@ LATEX_SUBS = {
 
 __all__ = ['escape_latex']
 
+
 def escape_latex(text):
     """
     Escape characters that may conflict with latex.
@@ -60,4 +62,3 @@ def escape_latex(text):
         text = pattern.sub(replacement, text)
 
     return text
-    

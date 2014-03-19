@@ -16,6 +16,7 @@ def test_base():
     nt.assert_equal(res.count('x'), 1)
     nt.assert_equal(res.count('__class__'), 1)
 
+
 def test_SubClass():
 
     class SubClass(Base):
@@ -31,18 +32,20 @@ def test_SubClass_with_trait_names_method():
 
     class SubClass(Base):
         y = 2
+
         def trait_names(self):
             return ['t', 'umbrella']
 
     res = dir2(SubClass())
     assert('trait_names' in res)
     assert('umbrella' in res)
-    nt.assert_equal(res[-6:], ['t', 'trait_names','umbrella', 'x','y','z'])
+    nt.assert_equal(res[-6:], ['t', 'trait_names', 'umbrella', 'x', 'y', 'z'])
     nt.assert_equal(res.count('t'), 1)
 
 
 def test_SubClass_with_trait_names_attr():
-    # usecase: trait_names is used in a class describing psychological classification
+    # usecase: trait_names is used in a class describing psychological
+    # classification
 
     class SubClass(Base):
         y = 2
@@ -57,6 +60,7 @@ def test_misbehaving_object_without_trait_names():
     # something other than AttribteErrors on bad getattr.
 
     class BadTraitNames(object):
+
         @property
         def trait_names(self):
             raise KeyboardInterrupt("This should be caught")
@@ -65,6 +69,7 @@ def test_misbehaving_object_without_trait_names():
             pass
 
     class MisbehavingGetattr(object):
+
         def __getattr__(self):
             raise KeyError("I should be caught")
 
@@ -72,6 +77,7 @@ def test_misbehaving_object_without_trait_names():
             pass
 
     class SillierWithDir(MisbehavingGetattr):
+
         def __dir__(self):
             return ['some_method']
 

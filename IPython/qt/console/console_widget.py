@@ -35,7 +35,8 @@ from .kill_ring import QtKillRing
 #-----------------------------------------------------------------------------
 
 ESCAPE_CHARS = ''.join(ESC_SEQUENCES)
-ESCAPE_RE = re.compile("^["+ESCAPE_CHARS+"]+")
+ESCAPE_RE = re.compile("^[" + ESCAPE_CHARS + "]+")
+
 
 def commonprefix(items):
     """Get common prefix for completions
@@ -48,16 +49,18 @@ def commonprefix(items):
     """
     # the last item will always have the least leading % symbol
     # min / max are first/last in alphabetical order
-    first_match  = ESCAPE_RE.match(min(items))
-    last_match  = ESCAPE_RE.match(max(items))
+    first_match = ESCAPE_RE.match(min(items))
+    last_match = ESCAPE_RE.match(max(items))
     # common suffix is (common prefix of reversed items) reversed
     if first_match and last_match:
-        prefix = os.path.commonprefix((first_match.group(0)[::-1], last_match.group(0)[::-1]))[::-1]
+        prefix = os.path.commonprefix(
+            (first_match.group(0)[::-1], last_match.group(0)[::-1]))[::-1]
     else:
         prefix = ''
 
     items = [s.lstrip(ESCAPE_CHARS) for s in items]
-    return prefix+os.path.commonprefix(items)
+    return prefix + os.path.commonprefix(items)
+
 
 def is_letter_or_number(char):
     """ Returns whether the specified unicode character is a letter or a number.
@@ -69,7 +72,9 @@ def is_letter_or_number(char):
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.QWidget), {})):
+
     """ An abstract base class for console-type widgets. This class has
         functionality for:
 
@@ -83,28 +88,28 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         convenient to implementors of a console-style widget.
     """
 
-    #------ Configuration ------------------------------------------------------
+    #------ Configuration ----------------------------------------------------
 
     ansi_codes = Bool(True, config=True,
-        help="Whether to process ANSI escape codes."
-    )
+                      help="Whether to process ANSI escape codes."
+                      )
     buffer_size = Integer(500, config=True,
-        help="""
+                          help="""
         The maximum number of lines of text before truncation. Specifying a
         non-positive number disables text truncation (not recommended).
         """
-    )
+                          )
     execute_on_complete_input = Bool(True, config=True,
-        help="""Whether to automatically execute on syntactically complete input.
+                                     help="""Whether to automatically execute on syntactically complete input.
         
         If False, Shift-Enter is required to submit each execution.
         Disabling this is mainly useful for non-Python kernels,
         where the completion check would be wrong.
         """
-    )
+                                     )
     gui_completion = Enum(['plain', 'droplist', 'ncurses'], config=True,
-                    default_value = 'ncurses',
-                    help="""
+                          default_value='ncurses',
+                          help="""
                     The type of completer to use. Valid values are:
 
                     'plain'   : Show the available completion as a text list
@@ -115,19 +120,19 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                     'ncurses' : Show the completion as a text list which is navigable by
                                 `tab` and arrow keys.
                     """
-    )
+                          )
     # NOTE: this value can only be specified during initialization.
     kind = Enum(['plain', 'rich'], default_value='plain', config=True,
-        help="""
+                help="""
         The type of underlying text widget to use. Valid values are 'plain',
         which specifies a QPlainTextEdit, and 'rich', which specifies a
         QTextEdit.
         """
-    )
+                )
     # NOTE: this value can only be specified during initialization.
     paging = Enum(['inside', 'hsplit', 'vsplit', 'custom', 'none'],
                   default_value='inside', config=True,
-        help="""
+                  help="""
         The type of paging to use. Valid values are:
 
         'inside'
@@ -145,11 +150,12 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         """)
 
     font_family = Unicode(config=True,
-        help="""The font family to use for the console.
+                          help="""The font family to use for the console.
         On OSX this defaults to Monaco, on Windows the default is
         Consolas with fallback of Courier, and on other platforms
         the default is Monospace.
         """)
+
     def _font_family_default(self):
         if sys.platform == 'win32':
             # Consolas ships with Vista/Win7, fallback to Courier if needed
@@ -162,17 +168,17 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             return 'Monospace'
 
     font_size = Integer(config=True,
-        help="""The font size. If unconfigured, Qt will be entrusted
+                        help="""The font size. If unconfigured, Qt will be entrusted
         with the size of the font.
         """)
 
     width = Integer(81, config=True,
-        help="""The width of the console at start time in number
+                    help="""The width of the console at start time in number
         of characters (will double with `hsplit` paging)
         """)
 
     height = Integer(25, config=True,
-        help="""The height of the console at start time in number
+                     help="""The height of the console at start time in number
         of characters (will double with `vsplit` paging)
         """)
 
@@ -180,15 +186,15 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
     # priority (when it has focus) over, e.g., window-level menu shortcuts.
     override_shortcuts = Bool(False)
-    
-    # ------ Custom Qt Widgets -------------------------------------------------
-    
+
+    # ------ Custom Qt Widgets -----------------------------------------------
+
     # For other projects to easily override the Qt widgets used by the console
     # (e.g. Spyder)
     custom_control = None
     custom_page_control = None
 
-    #------ Signals ------------------------------------------------------------
+    #------ Signals ----------------------------------------------------------
 
     # Signals that indicate ConsoleWidget state.
     copy_available = QtCore.Signal(bool)
@@ -202,7 +208,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     # Signal emitted when the font is changed.
     font_changed = QtCore.Signal(QtGui.QFont)
 
-    #------ Protected class variables ------------------------------------------
+    #------ Protected class variables ----------------------------------------
 
     # control handles
     _control = None
@@ -210,12 +216,12 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     _splitter = None
 
     # When the control key is down, these keys are mapped.
-    _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
-                         QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
-                         QtCore.Qt.Key_A : QtCore.Qt.Key_Home,
-                         QtCore.Qt.Key_P : QtCore.Qt.Key_Up,
-                         QtCore.Qt.Key_N : QtCore.Qt.Key_Down,
-                         QtCore.Qt.Key_H : QtCore.Qt.Key_Backspace, }
+    _ctrl_down_remap = {QtCore.Qt.Key_B: QtCore.Qt.Key_Left,
+                        QtCore.Qt.Key_F: QtCore.Qt.Key_Right,
+                        QtCore.Qt.Key_A: QtCore.Qt.Key_Home,
+                        QtCore.Qt.Key_P: QtCore.Qt.Key_Up,
+                        QtCore.Qt.Key_N: QtCore.Qt.Key_Down,
+                        QtCore.Qt.Key_H: QtCore.Qt.Key_Backspace, }
     if not sys.platform == 'darwin':
         # On OS X, Ctrl-E already does the right thing, whereas End moves the
         # cursor to the bottom of the buffer.
@@ -224,14 +230,14 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     # The shortcuts defined by this widget. We need to keep track of these to
     # support 'override_shortcuts' above.
     _shortcuts = set(_ctrl_down_remap.keys()) | \
-                     { QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
-                       QtCore.Qt.Key_V }
+        {QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
+         QtCore.Qt.Key_V}
 
     _temp_buffer_filled = False
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'QObject' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def __init__(self, parent=None, **kw):
         """ Create a ConsoleWidget.
@@ -315,7 +321,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         self._pending_text_flush_interval.setInterval(100)
         self._pending_text_flush_interval.setSingleShot(True)
         self._pending_text_flush_interval.timeout.connect(
-                                            self._on_flush_pending_stream_timer)
+            self._on_flush_pending_stream_timer)
 
         # Set a monospaced font.
         self.reset_font()
@@ -355,36 +361,36 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         self.select_all_action = action
 
         self.increase_font_size = QtGui.QAction("Bigger Font",
-                self,
-                shortcut=QtGui.QKeySequence.ZoomIn,
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
-                statusTip="Increase the font size by one point",
-                triggered=self._increase_font_size)
+                                                self,
+                                                shortcut=QtGui.QKeySequence.ZoomIn,
+                                                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                                                statusTip="Increase the font size by one point",
+                                                triggered=self._increase_font_size)
         self.addAction(self.increase_font_size)
 
         self.decrease_font_size = QtGui.QAction("Smaller Font",
-                self,
-                shortcut=QtGui.QKeySequence.ZoomOut,
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
-                statusTip="Decrease the font size by one point",
-                triggered=self._decrease_font_size)
+                                                self,
+                                                shortcut=QtGui.QKeySequence.ZoomOut,
+                                                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                                                statusTip="Decrease the font size by one point",
+                                                triggered=self._decrease_font_size)
         self.addAction(self.decrease_font_size)
 
         self.reset_font_size = QtGui.QAction("Normal Font",
-                self,
-                shortcut="Ctrl+0",
-                shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
-                statusTip="Restore the Normal font size",
-                triggered=self.reset_font)
+                                             self,
+                                             shortcut="Ctrl+0",
+                                             shortcutContext=QtCore.Qt.WidgetWithChildrenShortcut,
+                                             statusTip="Restore the Normal font size",
+                                             triggered=self.reset_font)
         self.addAction(self.reset_font_size)
 
         # Accept drag and drop events here. Drops were already turned off
         # in self._control when that widget was created.
         self.setAcceptDrops(True)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Drag and drop support
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls():
@@ -486,9 +492,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'QWidget' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def sizeHint(self):
         """ Reimplemented to suggest a size that is 80 characters wide and
@@ -516,9 +522,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
 
         return QtCore.QSize(width, height)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def can_copy(self):
         """ Returns whether text can be copied to the clipboard.
@@ -741,7 +747,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     def open_anchor(self, anchor):
         """ Open selected anchor in the default webbrowser
         """
-        webbrowser.open( anchor )
+        webbrowser.open(anchor)
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -764,7 +770,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             text = QtGui.QApplication.clipboard().text(mode).rstrip()
             self._insert_plain_text_into_buffer(cursor, dedent(text))
 
-    def print_(self, printer = None):
+    def print_(self, printer=None):
         """ Print the contents of the ConsoleWidget to the specified QPrinter.
         """
         if (not printer):
@@ -812,7 +818,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         """Change the font size by the specified amount (in points).
         """
         font = self.font
-        size = max(font.pointSize() + delta, 1) # minimum 1 point
+        size = max(font.pointSize() + delta, 1)  # minimum 1 point
         font.setPointSize(size)
         self._set_font(font)
 
@@ -848,9 +854,9 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         """
         self._control.undo()
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'ConsoleWidget' abstract interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _is_complete(self, source, interactive):
         """ Returns whether 'source' can be executed. When triggered by an
@@ -970,7 +976,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         else:
             # We've reached the end of the input buffer and no text follows.
             return
-        cursor.movePosition(QtGui.QTextCursor.Left) # Grab the newline.
+        cursor.movePosition(QtGui.QTextCursor.Left)  # Grab the newline.
         cursor.movePosition(QtGui.QTextCursor.End,
                             QtGui.QTextCursor.KeepAnchor)
         cursor.removeSelectedText()
@@ -1004,7 +1010,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(prefix))
             self._completion_widget.show_items(cursor, items)
 
-
     def _fill_temporary_buffer(self, cursor, text, html=False):
         """fill the area below the active editting zone with text"""
 
@@ -1020,7 +1025,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         self._control.setTextCursor(cursor)
 
         self._temp_buffer_filled = True
-
 
     def _context_menu_make(self, pos):
         """ Creates a context menu for the given QPoint (in widget coordinates).
@@ -1148,7 +1152,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         alt_down = event.modifiers() & QtCore.Qt.AltModifier
         shift_down = event.modifiers() & QtCore.Qt.ShiftModifier
 
-        #------ Special sequences ----------------------------------------------
+        #------ Special sequences ---------------------------------------------
 
         if event.matches(QtGui.QKeySequence.Copy):
             self.copy()
@@ -1162,7 +1166,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             self.paste()
             intercepted = True
 
-        #------ Special modifier logic -----------------------------------------
+        #------ Special modifier logic ----------------------------------------
 
         elif key in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
             intercepted = True
@@ -1188,7 +1192,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                     single_line = (self._get_end_cursor().blockNumber() ==
                                    self._get_prompt_cursor().blockNumber())
                     if (at_end or shift_down or single_line) and not ctrl_down:
-                        self.execute(interactive = not shift_down)
+                        self.execute(interactive=not shift_down)
                     else:
                         # Do this inside an edit block for clean undo/redo.
                         cursor.beginEditBlock()
@@ -1203,7 +1207,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                         self._control.moveCursor(QtGui.QTextCursor.End)
                         self._control.setTextCursor(cursor)
 
-        #------ Control/Cmd modifier -------------------------------------------
+        #------ Control/Cmd modifier ------------------------------------------
 
         elif ctrl_down:
             if key == QtCore.Qt.Key_G:
@@ -1259,7 +1263,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             elif key in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
                 if key == QtCore.Qt.Key_Backspace:
                     cursor = self._get_word_start_cursor(position)
-                else: # key == QtCore.Qt.Key_Delete
+                else:  # key == QtCore.Qt.Key_Delete
                     cursor = self._get_word_end_cursor(position)
                 cursor.setPosition(position, QtGui.QTextCursor.KeepAnchor)
                 self._kill_ring.kill_cursor(cursor)
@@ -1275,7 +1279,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                     QtGui.qApp.sendEvent(self._control, new_event)
                     intercepted = True
 
-        #------ Alt modifier ---------------------------------------------------
+        #------ Alt modifier --------------------------------------------------
 
         elif alt_down:
             if key == QtCore.Qt.Key_B:
@@ -1313,7 +1317,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                 self._control.setTextCursor(self._get_prompt_cursor())
                 intercepted = True
 
-        #------ No modifiers ---------------------------------------------------
+        #------ No modifiers --------------------------------------------------
 
         else:
             if shift_down:
@@ -1343,7 +1347,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                 if not self._reading:
                     if self._tab_pressed():
                         # real tab-key, insert four spaces
-                        cursor.insertText(' '*4)
+                        cursor.insertText(' ' * 4)
                     intercepted = True
 
             elif key == QtCore.Qt.Key_Left:
@@ -1365,7 +1369,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             elif key == QtCore.Qt.Key_Right:
                 original_block_number = cursor.blockNumber()
                 cursor.movePosition(QtGui.QTextCursor.Right,
-                                mode=anchormode)
+                                    mode=anchormode)
                 if cursor.blockNumber() != original_block_number:
                     cursor.movePosition(QtGui.QTextCursor.Right,
                                         n=len(self._continuation_prompt),
@@ -1411,7 +1415,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                     if anchor == position:
                         intercepted = not self._in_buffer(position - 1)
                     else:
-                        intercepted = not self._in_buffer(min(anchor, position))
+                        intercepted = not self._in_buffer(
+                            min(anchor, position))
 
             elif key == QtCore.Qt.Key_Delete:
 
@@ -1517,7 +1522,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         self._insert_plain_text(self._get_end_cursor(), text, flush=True)
         # Set the flush interval to equal the maximum time to update text.
         self._pending_text_flush_interval.setInterval(max(100,
-                                                 (time.time()-t)*1000))
+                                                          (time.time() - t) * 1000))
 
     def _format_as_columns(self, items, separator='  '):
         """ Transform a list of strings into a single string with columns.
@@ -1661,10 +1666,10 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         document = self._control.document()
         position -= 1
         while position >= self._prompt_pos and \
-                  not is_letter_or_number(document.characterAt(position)):
+                not is_letter_or_number(document.characterAt(position)):
             position -= 1
         while position >= self._prompt_pos and \
-                  is_letter_or_number(document.characterAt(position)):
+                is_letter_or_number(document.characterAt(position)):
             position -= 1
         cursor = self._control.textCursor()
         cursor.setPosition(position + 1)
@@ -1678,10 +1683,10 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         document = self._control.document()
         end = self._get_end_cursor().position()
         while position < end and \
-                  not is_letter_or_number(document.characterAt(position)):
+                not is_letter_or_number(document.characterAt(position)):
             position += 1
         while position < end and \
-                  is_letter_or_number(document.characterAt(position)):
+                is_letter_or_number(document.characterAt(position)):
             position += 1
         cursor = self._control.textCursor()
         cursor.setPosition(position)
@@ -1754,7 +1759,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             self._pending_insert_text.append(text)
             if buffer_size > 0:
                 self._pending_insert_text = self._get_last_lines_from_list(
-                                        self._pending_insert_text, buffer_size)
+                    self._pending_insert_text, buffer_size)
             return
 
         if self._executing and not self._pending_text_flush_interval.isActive():
@@ -1776,7 +1781,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                         cursor.select(QtGui.QTextCursor.Document)
                         cursor.removeSelectedText()
 
-                    # Simulate a form feed by scrolling just past the last line.
+                    # Simulate a form feed by scrolling just past the last
+                    # line.
                     elif act.action == 'scroll' and act.unit == 'page':
                         cursor.insertText('\n')
                         cursor.endEditBlock()
@@ -1815,7 +1821,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                         old_text = selection[len(substring):]
                         cursor.insertText(substring + old_text, format)
                         cursor.movePosition(cursor.PreviousCharacter,
-                               cursor.KeepAnchor, len(old_text))
+                                            cursor.KeepAnchor, len(old_text))
         else:
             cursor.insertText(text)
         cursor.endEditBlock()
@@ -1872,7 +1878,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     def _keyboard_quit(self):
         """ Cancels the current editing task ala Ctrl-G in Emacs.
         """
-        if self._temp_buffer_filled :
+        if self._temp_buffer_filled:
             self._cancel_completion()
             self._clear_temporary_buffer()
         else:
@@ -1986,7 +1992,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         input string with the trailing newline stripped.
         """
         if self._reading:
-            raise RuntimeError('Cannot read a line. Widget is already reading.')
+            raise RuntimeError(
+                'Cannot read a line. Widget is already reading.')
 
         if not callback and not self.isVisible():
             # If the user cannot see the widget, this function cannot return.
@@ -2057,7 +2064,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             If set, a new line will be written before showing the prompt if
             there is not already a newline at the end of the buffer.
         """
-        # Save the current end position to support _append*(before_prompt=True).
+        # Save the current end position to support
+        # _append*(before_prompt=True).
         self._flush_pending_stream()
         cursor = self._get_end_cursor()
         self._append_before_prompt_pos = cursor.position()
@@ -2089,7 +2097,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 
-    #------ Signal handlers ----------------------------------------------------
+    #------ Signal handlers --------------------------------------------------
 
     def _adjust_scrollbars(self):
         """ Expands the vertical scrollbar beyond the range set by Qt.

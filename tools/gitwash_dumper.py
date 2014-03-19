@@ -66,11 +66,11 @@ def filename_search_replace(sr_pairs, filename, backup=False):
         open(filename + '.bak', 'wt').write(in_txt)
     return True
 
-        
+
 def copy_replace(replace_pairs,
                  out_path,
                  repo_url,
-                 repo_branch = 'master',
+                 repo_branch='master',
                  cp_globs=('*',),
                  rep_globs=('*',),
                  renames = ()):
@@ -93,7 +93,7 @@ def copy_replace(replace_pairs,
                 os.rename(fname, new_fname)
                 break
 
-            
+
 USAGE = ''' <output_directory> <project_name>
 
 If not set with options, the repository name is the same as the <project
@@ -119,7 +119,7 @@ if __name__ == '__main__':
                       metavar="MAIN_GH_USER")
     parser.add_option("--gitwash-url", dest="gitwash_url",
                       help="URL to gitwash repository - default %s"
-                      % GITWASH_CENTRAL, 
+                      % GITWASH_CENTRAL,
                       default=GITWASH_CENTRAL,
                       metavar="GITWASH_URL")
     parser.add_option("--gitwash-branch", dest="gitwash_branch",

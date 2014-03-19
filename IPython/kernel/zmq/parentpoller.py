@@ -16,6 +16,7 @@ from IPython.utils.warn import warn
 
 
 class ParentPollerUnix(Thread):
+
     """ A Unix-specific daemon thread that terminates the program immediately
     when the parent process no longer exists.
     """
@@ -39,6 +40,7 @@ class ParentPollerUnix(Thread):
 
 
 class ParentPollerWindows(Thread):
+
     """ A Windows-specific daemon thread that listens for a special event that
     signals an interrupt and, optionally, terminates the program immediately
     when the parent process no longer exists.
@@ -79,9 +81,9 @@ class ParentPollerWindows(Thread):
         # handle by new processes.
         # FIXME: We can clean up this mess by requiring pywin32 for IPython.
         class SECURITY_ATTRIBUTES(ctypes.Structure):
-            _fields_ = [ ("nLength", ctypes.c_int),
-                         ("lpSecurityDescriptor", ctypes.c_void_p),
-                         ("bInheritHandle", ctypes.c_int) ]
+            _fields_ = [("nLength", ctypes.c_int),
+                        ("lpSecurityDescriptor", ctypes.c_void_p),
+                        ("bInheritHandle", ctypes.c_int)]
         sa = SECURITY_ATTRIBUTES()
         sa_p = ctypes.pointer(sa)
         sa.nLength = ctypes.sizeof(SECURITY_ATTRIBUTES)
@@ -90,8 +92,8 @@ class ParentPollerWindows(Thread):
 
         return ctypes.windll.kernel32.CreateEventA(
             sa_p,  # lpEventAttributes
-            False, # bManualReset
-            False, # bInitialState
+            False,  # bManualReset
+            False,  # bInitialState
             '')    # lpName
 
     @staticmethod

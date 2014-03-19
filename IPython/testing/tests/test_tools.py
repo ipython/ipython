@@ -28,30 +28,31 @@ from IPython.testing import tools as tt
 # Tests
 #-----------------------------------------------------------------------------
 
+
 @dec.skip_win32
 def test_full_path_posix():
     spath = '/foo/bar.py'
-    result = tt.full_path(spath,['a.txt','b.txt'])
+    result = tt.full_path(spath, ['a.txt', 'b.txt'])
     nt.assert_equal(result, ['/foo/a.txt', '/foo/b.txt'])
     spath = '/foo'
-    result = tt.full_path(spath,['a.txt','b.txt'])
+    result = tt.full_path(spath, ['a.txt', 'b.txt'])
     nt.assert_equal(result, ['/a.txt', '/b.txt'])
-    result = tt.full_path(spath,'a.txt')
+    result = tt.full_path(spath, 'a.txt')
     nt.assert_equal(result, ['/a.txt'])
 
 
 @dec.skip_if_not_win32
 def test_full_path_win32():
     spath = 'c:\\foo\\bar.py'
-    result = tt.full_path(spath,['a.txt','b.txt'])
+    result = tt.full_path(spath, ['a.txt', 'b.txt'])
     nt.assert_equal(result, ['c:\\foo\\a.txt', 'c:\\foo\\b.txt'])
     spath = 'c:\\foo'
-    result = tt.full_path(spath,['a.txt','b.txt'])
+    result = tt.full_path(spath, ['a.txt', 'b.txt'])
     nt.assert_equal(result, ['c:\\a.txt', 'c:\\b.txt'])
-    result = tt.full_path(spath,'a.txt')
+    result = tt.full_path(spath, 'a.txt')
     nt.assert_equal(result, ['c:\\a.txt'])
 
-    
+
 def test_parser():
     err = ("FAILED (errors=1)", 1, 0)
     fail = ("FAILED (failures=1)", 0, 1)
@@ -71,24 +72,27 @@ def test_temp_pyfile():
         src2 = fh2.read()
     nt.assert_equal(src2, src)
 
+
 class TestAssertPrints(unittest.TestCase):
+
     def test_passing(self):
         with tt.AssertPrints("abc"):
             print("abcd")
             print("def")
             print(b"ghi")
-    
+
     def test_failing(self):
         def func():
             with tt.AssertPrints("abc"):
                 print("acd")
                 print("def")
                 print(b"ghi")
-        
+
         self.assertRaises(AssertionError, func)
 
 
 class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
+
     def test_main_path(self):
         """Test with only stdout results.
         """

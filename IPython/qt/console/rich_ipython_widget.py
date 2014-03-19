@@ -21,6 +21,7 @@ from .ipython_widget import IPythonWidget
 
 
 class RichIPythonWidget(IPythonWidget):
+
     """ An IPythonWidget that supports rich text, including lists, images, and
         tables. Note that raw performance will be reduced compared to the plain
         text version.
@@ -34,9 +35,9 @@ class RichIPythonWidget(IPythonWidget):
     # displayed a warning about being unable to convert a png to svg.
     _svg_warning_displayed = False
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'object' interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def __init__(self, *args, **kw):
         """ Create a RichIPythonWidget.
@@ -53,14 +54,13 @@ class RichIPythonWidget(IPythonWidget):
         # Do we support jpg ?
         # it seems that sometime jpg support is a plugin of QT, so try to assume
         # it is not always supported.
-        _supported_format = map(str, QtGui.QImageReader.supportedImageFormats())
+        _supported_format = map(
+            str, QtGui.QImageReader.supportedImageFormats())
         self._jpg_supported = 'jpeg' in _supported_format
 
-
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'ConsoleWidget' public interface overides
-    #---------------------------------------------------------------------------
-
+    #-------------------------------------------------------------------------
     def export_html(self):
         """ Shows a dialog to export HTML/XML in various formats.
 
@@ -70,11 +70,9 @@ class RichIPythonWidget(IPythonWidget):
         self._svg_warning_displayed = False
         super(RichIPythonWidget, self).export_html()
 
-
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
-    #---------------------------------------------------------------------------
-
+    #-------------------------------------------------------------------------
     def _context_menu_make(self, pos):
         """ Reimplemented to return a custom context menu for images.
         """
@@ -97,9 +95,9 @@ class RichIPythonWidget(IPythonWidget):
             menu = super(RichIPythonWidget, self)._context_menu_make(pos)
         return menu
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def _pre_image_append(self, msg, prompt_number):
         """ Append the Out[] prompt  and make the output nicer
 
@@ -125,12 +123,14 @@ class RichIPythonWidget(IPythonWidget):
             elif 'image/png' in data:
                 self._pre_image_append(msg, prompt_number)
                 png = decodestring(data['image/png'].encode('ascii'))
-                self._append_png(png, True, metadata=metadata.get('image/png', None))
+                self._append_png(
+                    png, True, metadata=metadata.get('image/png', None))
                 self._append_html(self.output_sep2, True)
             elif 'image/jpeg' in data and self._jpg_supported:
                 self._pre_image_append(msg, prompt_number)
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
-                self._append_jpg(jpg, True, metadata=metadata.get('image/jpeg', None))
+                self._append_jpg(
+                    jpg, True, metadata=metadata.get('image/jpeg', None))
                 self._append_html(self.output_sep2, True)
             else:
                 # Default back to the plain text representation.
@@ -154,27 +154,31 @@ class RichIPythonWidget(IPythonWidget):
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
                 png = decodestring(data['image/png'].encode('ascii'))
-                self._append_png(png, True, metadata=metadata.get('image/png', None))
+                self._append_png(
+                    png, True, metadata=metadata.get('image/png', None))
             elif 'image/jpeg' in data and self._jpg_supported:
                 self.log.debug("display: %s", msg.get('content', ''))
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
-                self._append_jpg(jpg, True, metadata=metadata.get('image/jpeg', None))
+                self._append_jpg(
+                    jpg, True, metadata=metadata.get('image/jpeg', None))
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # 'RichIPythonWidget' protected interface
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     def _append_jpg(self, jpg, before_prompt=False, metadata=None):
         """ Append raw JPG data to the widget."""
-        self._append_custom(self._insert_jpg, jpg, before_prompt, metadata=metadata)
+        self._append_custom(
+            self._insert_jpg, jpg, before_prompt, metadata=metadata)
 
     def _append_png(self, png, before_prompt=False, metadata=None):
         """ Append raw PNG data to the widget.
         """
-        self._append_custom(self._insert_png, png, before_prompt, metadata=metadata)
+        self._append_custom(
+            self._insert_png, png, before_prompt, metadata=metadata)
 
     def _append_svg(self, svg, before_prompt=False):
         """ Append raw SVG data to the widget.
@@ -207,7 +211,7 @@ class RichIPythonWidget(IPythonWidget):
                                   QtCore.QUrl(name))
         return image
 
-    def _get_image_tag(self, match, path = None, format = "png"):
+    def _get_image_tag(self, match, path=None, format="png"):
         """ Return (X)HTML mark-up for the image-tag given by match.
 
         Parameters
@@ -224,7 +228,7 @@ class RichIPythonWidget(IPythonWidget):
         format : "png"|"svg"|"jpg", optional [default "png"]
             Format for returned or referenced images.
         """
-        if format in ("png","jpg"):
+        if format in ("png", "jpg"):
             try:
                 image = self._get_image(match.group("name"))
             except KeyError:
@@ -237,7 +241,7 @@ class RichIPythonWidget(IPythonWidget):
                 if image.save("%s/qt_img%s.%s" % (path, match.group("name"), format),
                               "PNG"):
                     return '<img src="%s/qt_img%s.%s">' % (relpath,
-                                                            match.group("name"),format)
+                                                           match.group("name"), format)
                 else:
                     return "<b>Couldn't save image!</b>"
             else:
@@ -247,7 +251,7 @@ class RichIPythonWidget(IPythonWidget):
                 image.save(buffer_, format.upper())
                 buffer_.close()
                 return '<img src="data:image/%s;base64,\n%s\n" />' % (
-                    format,re.sub(r'(.{60})',r'\1\n',str(ba.toBase64())))
+                    format, re.sub(r'(.{60})', r'\1\n', str(ba.toBase64())))
 
         elif format == "svg":
             try:
@@ -255,11 +259,11 @@ class RichIPythonWidget(IPythonWidget):
             except KeyError:
                 if not self._svg_warning_displayed:
                     QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
-                        'Cannot convert PNG images to SVG, export with PNG figures instead. '
-                        'If you want to export matplotlib figures as SVG, add '
-                        'to your ipython config:\n\n'
-                        '\tc.InlineBackend.figure_format = \'svg\'\n\n'
-                        'And regenerate the figures.',
+                                              'Cannot convert PNG images to SVG, export with PNG figures instead. '
+                                              'If you want to export matplotlib figures as SVG, add '
+                                              'to your ipython config:\n\n'
+                                              '\tc.InlineBackend.figure_format = \'svg\'\n\n'
+                                              'And regenerate the figures.',
                                               QtGui.QMessageBox.Ok)
                     self._svg_warning_displayed = True
                 return ("<b>Cannot convert  PNG images to SVG.</b>  "
@@ -301,13 +305,16 @@ class RichIPythonWidget(IPythonWidget):
             image = QtGui.QImage()
             image.loadFromData(img, fmt.upper())
             if width and height:
-                image = image.scaled(width, height, transformMode=QtCore.Qt.SmoothTransformation)
+                image = image.scaled(
+                    width, height, transformMode=QtCore.Qt.SmoothTransformation)
             elif width and not height:
-                image = image.scaledToWidth(width, transformMode=QtCore.Qt.SmoothTransformation)
+                image = image.scaledToWidth(
+                    width, transformMode=QtCore.Qt.SmoothTransformation)
             elif height and not width:
-                image = image.scaledToHeight(height, transformMode=QtCore.Qt.SmoothTransformation)
+                image = image.scaledToHeight(
+                    height, transformMode=QtCore.Qt.SmoothTransformation)
         except ValueError:
-            self._insert_plain_text(cursor, 'Received invalid %s data.'%fmt)
+            self._insert_plain_text(cursor, 'Received invalid %s data.' % fmt)
         else:
             format = self._add_image(image)
             cursor.insertBlock()

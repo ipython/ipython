@@ -44,6 +44,7 @@ current_nbformat = nbformat
 current_nbformat_minor = nbformat_minor
 current_nbformat_module = _v_latest.__name__
 
+
 def docstring_nbformat_mod(func):
     """Decorator for docstrings referring to classes/functions accessed through
     nbformat.current.
@@ -62,9 +63,9 @@ def parse_py(s, **kwargs):
     """Parse a string into a (nbformat, string) tuple."""
     nbf = current_nbformat
     nbm = current_nbformat_minor
-    
+
     pattern = r'# <nbformat>(?P<nbformat>\d+[\.\d+]*)</nbformat>'
-    m = re.search(pattern,s)
+    m = re.search(pattern, s)
     if m is not None:
         digits = m.group('nbformat').split('.')
         nbf = int(digits[0])
@@ -196,18 +197,18 @@ def write(nb, fp, format, **kwargs):
     """
     return fp.write(writes(nb, format, **kwargs))
 
+
 def _convert_to_metadata():
     """Convert to a notebook having notebook metadata."""
     import glob
     for fname in glob.glob('*.ipynb'):
-        print('Converting file:',fname)
-        with open(fname,'r') as f:
-            nb = read(f,u'json')
+        print('Converting file:', fname)
+        with open(fname, 'r') as f:
+            nb = read(f, u'json')
         md = new_metadata()
         if u'name' in nb:
             md.name = nb.name
-            del nb[u'name']            
+            del nb[u'name']
         nb.metadata = md
-        with open(fname,'w') as f:
+        with open(fname, 'w') as f:
             write(nb, f, u'json')
-

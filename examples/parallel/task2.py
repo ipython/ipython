@@ -19,7 +19,7 @@ for i in range(6):
     print("Queue status (vebose=False)")
     print(v.queue_status(verbose=False))
     flush()
-    
+
 for i in range(24):
     v.apply(time.sleep, 1)
 
@@ -47,4 +47,3 @@ for i in range(6):
     print("Queue status (vebose=True)")
     print(v.queue_status(verbose=True))
     flush()
-

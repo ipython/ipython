@@ -64,21 +64,22 @@ def split_user_input(line, pattern=None):
     if not match:
         # print "match failed for line '%s'" % line
         try:
-            ifun, the_rest = line.split(None,1)
+            ifun, the_rest = line.split(None, 1)
         except ValueError:
             # print "split failed for line '%s'" % line
             ifun, the_rest = line, u''
-        pre = re.match('^(\s*)(.*)',line).groups()[0]
+        pre = re.match('^(\s*)(.*)', line).groups()[0]
         esc = ""
     else:
         pre, esc, ifun, the_rest = match.groups()
 
-    #print 'line:<%s>' % line # dbg
-    #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
+    # print 'line:<%s>' % line # dbg
+    # print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
     return pre, esc or '', ifun.strip(), the_rest.lstrip()
 
 
 class LineInfo(object):
+
     """A single line of input and associated info.
 
     Includes the following as properties:
@@ -107,14 +108,15 @@ class LineInfo(object):
     the_rest
       Everything else on the line.
     """
+
     def __init__(self, line, continue_prompt=False):
-        self.line            = line
+        self.line = line
         self.continue_prompt = continue_prompt
         self.pre, self.esc, self.ifun, self.the_rest = split_user_input(line)
 
-        self.pre_char       = self.pre.strip()
+        self.pre_char = self.pre.strip()
         if self.pre_char:
-            self.pre_whitespace = '' # No whitespace allowd before esc chars
+            self.pre_whitespace = ''  # No whitespace allowd before esc chars
         else:
             self.pre_whitespace = self.pre
 
@@ -134,4 +136,4 @@ class LineInfo(object):
         return ip._ofind(self.ifun)
 
     def __str__(self):
-        return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)
+        return "LineInfo [%s|%s|%s|%s]" % (self.pre, self.esc, self.ifun, self.the_rest)

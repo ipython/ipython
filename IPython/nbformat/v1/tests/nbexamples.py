@@ -4,7 +4,6 @@ from ..nbbase import (
 )
 
 
-
 nb0 = new_notebook()
 
 nb0.cells.append(new_text_cell(
@@ -26,4 +25,3 @@ nb0.cells.append(new_code_cell(
     code='print a',
     prompt_number=3
 ))
-

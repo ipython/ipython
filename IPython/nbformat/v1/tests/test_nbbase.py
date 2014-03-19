@@ -5,11 +5,12 @@ from ..nbbase import (
     new_code_cell, new_text_cell, new_notebook
 )
 
+
 class TestCell(TestCase):
 
     def test_empty_code_cell(self):
         cc = new_code_cell()
-        self.assertEqual(cc.cell_type,'code')
+        self.assertEqual(cc.cell_type, 'code')
         self.assertEqual('code' not in cc, True)
         self.assertEqual('prompt_number' not in cc, True)
 
@@ -35,7 +36,6 @@ class TestNotebook(TestCase):
         self.assertEqual(nb.cells, [])
 
     def test_notebooke(self):
-        cells = [new_code_cell(),new_text_cell()]
+        cells = [new_code_cell(), new_text_cell()]
         nb = new_notebook(cells=cells)
-        self.assertEqual(nb.cells,cells)
-
+        self.assertEqual(nb.cells, cells)

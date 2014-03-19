@@ -42,7 +42,9 @@ from .managerabc import (
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
+
 class KernelManager(LoggingConfigurable, ConnectionFileMixin):
+
     """Manages a single kernel in a subprocess on this host.
 
     This version starts kernels with Popen.
@@ -50,17 +52,21 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
 
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context)
+
     def _context_default(self):
         return zmq.Context.instance()
 
     # The Session to use for communication with the kernel.
     session = Instance(Session)
+
     def _session_default(self):
         return Session(parent=self)
 
     # the class to create with our `client` method
-    client_class = DottedObjectName('IPython.kernel.blocking.BlockingKernelClient')
+    client_class = DottedObjectName(
+        'IPython.kernel.blocking.BlockingKernelClient')
     client_factory = Type()
+
     def _client_class_changed(self, name, old, new):
         self.client_factory = import_item(str(new))
 
@@ -69,7 +75,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     kernel = Any()
 
     kernel_cmd = List(Unicode, config=True,
-        help="""The Popen Command to launch the kernel.
+                      help="""The Popen Command to launch the kernel.
         Override this if you have a custom kernel.
         If kernel_cmd is specified in a configuration file,
         IPython does not pass any arguments to the kernel,
@@ -78,7 +84,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         this means that the kernel does not receive the
         option --debug if it given on the IPython command line.
         """
-    )
+                      )
 
     def _kernel_cmd_changed(self, name, old, new):
         self.ipython_kernel = False
@@ -92,8 +98,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     _restarter = Any()
 
     autorestart = Bool(False, config=True,
-        help="""Should we autorestart the kernel if it dies."""
-    )
+                       help="""Should we autorestart the kernel if it dies."""
+                       )
 
     def __del__(self):
         self._close_control_socket()
@@ -157,13 +163,14 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             )
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
-        
+
         pat = re.compile(r'\{([A-Za-z0-9_]+)\}')
+
         def from_ns(match):
             """Get the key out of ns if it's there, otherwise no change."""
             return ns.get(match.group(1), match.group())
-        
-        return [ pat.sub(from_ns, arg) for arg in cmd ]
+
+        return [pat.sub(from_ns, arg) for arg in cmd]
 
     def _launch_kernel(self, kernel_cmd, **kw):
         """actually launch the kernel
@@ -201,7 +208,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
                                "configured properly. "
-                               "Currently valid addresses are: %s" % local_ips()
+                               "Currently valid addresses are: %s" % local_ips(
+                               )
                                )
 
         # write connection file / get default ports
@@ -213,8 +221,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         kernel_cmd = self.format_kernel_cmd(**kw)
         # launch the kernel subprocess
         self.kernel = self._launch_kernel(kernel_cmd,
-                                    ipython_kernel=self.ipython_kernel,
-                                    **kw)
+                                          ipython_kernel=self.ipython_kernel,
+                                          **kw)
         self.start_restarter()
         self._connect_control_socket()
 
@@ -269,7 +277,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             self.cleanup_ipc_files()
         else:
             self.cleanup_ipc_files()
-        
+
         self._close_control_socket()
 
     def restart_kernel(self, now=False, **kw):
@@ -356,7 +364,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             else:
                 self.kernel.send_signal(signal.SIGINT)
         else:
-            raise RuntimeError("Cannot interrupt kernel. No kernel is running!")
+            raise RuntimeError(
+                "Cannot interrupt kernel. No kernel is running!")
 
     def signal_kernel(self, signum):
         """Sends a signal to the kernel.
@@ -386,4 +395,3 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
 #-----------------------------------------------------------------------------
 
 KernelManagerABC.register(KernelManager)
-

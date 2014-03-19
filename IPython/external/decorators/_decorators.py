@@ -17,7 +17,7 @@ import warnings
 
 # IPython changes: make this work if numpy not available
 # Original code:
-#from numpy.testing.utils import \
+# from numpy.testing.utils import \
 #        WarningManager, WarningMessage
 # Our version:
 from ._numpy_testing_utils import WarningManager
@@ -27,6 +27,7 @@ except:
     pass
 
 # End IPython changes
+
 
 def slow(t):
     """
@@ -63,6 +64,7 @@ def slow(t):
     t.slow = True
     return t
 
+
 def setastest(tf=True):
     """
     Signals to nose that this function is or is not a test.
@@ -95,6 +97,7 @@ def setastest(tf=True):
         t.__test__ = tf
         return t
     return set_test
+
 
 def skipif(skip_condition, msg=None):
     """
@@ -132,32 +135,32 @@ def skipif(skip_condition, msg=None):
 
         # Allow for both boolean or callable skip conditions.
         if callable(skip_condition):
-            skip_val = lambda : skip_condition()
+            skip_val = lambda: skip_condition()
         else:
-            skip_val = lambda : skip_condition
+            skip_val = lambda: skip_condition
 
-        def get_msg(func,msg=None):
+        def get_msg(func, msg=None):
             """Skip message with information about function being skipped."""
             if msg is None:
                 out = 'Test skipped due to test condition'
             else:
-                out = '\n'+msg
+                out = '\n' + msg
 
-            return "Skipping test: %s%s" % (func.__name__,out)
+            return "Skipping test: %s%s" % (func.__name__, out)
 
         # We need to define *two* skippers because Python doesn't allow both
         # return with value and yield inside the same function.
         def skipper_func(*args, **kwargs):
             """Skipper for normal test functions."""
             if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
+                raise nose.SkipTest(get_msg(f, msg))
             else:
                 return f(*args, **kwargs)
 
         def skipper_gen(*args, **kwargs):
             """Skipper for test generators."""
             if skip_val():
-                raise nose.SkipTest(get_msg(f,msg))
+                raise nose.SkipTest(get_msg(f, msg))
             else:
                 for x in f(*args, **kwargs):
                     yield x
@@ -171,6 +174,7 @@ def skipif(skip_condition, msg=None):
         return nose.tools.make_decorator(f)(skipper)
 
     return skip_decorator
+
 
 def knownfailureif(fail_condition, msg=None):
     """
@@ -207,14 +211,15 @@ def knownfailureif(fail_condition, msg=None):
 
     # Allow for both boolean or callable known failure conditions.
     if callable(fail_condition):
-        fail_val = lambda : fail_condition()
+        fail_val = lambda: fail_condition()
     else:
-        fail_val = lambda : fail_condition
+        fail_val = lambda: fail_condition
 
     def knownfail_decorator(f):
         # Local import to avoid a hard nose dependency and only incur the
         # import time overhead at actual test-time.
         import nose
+
         def knownfailer(*args, **kwargs):
             if fail_val():
                 raise KnownFailureTest(msg)
@@ -223,6 +228,7 @@ def knownfailureif(fail_condition, msg=None):
         return nose.tools.make_decorator(f)(knownfailer)
 
     return knownfail_decorator
+
 
 def deprecated(conditional=True):
     """
@@ -263,10 +269,10 @@ def deprecated(conditional=True):
                 f(*args, **kwargs)
                 if not len(l) > 0:
                     raise AssertionError("No warning raised when calling %s"
-                            % f.__name__)
+                                         % f.__name__)
                 if not l[0].category is DeprecationWarning:
-                    raise AssertionError("First warning for %s is not a " \
-                            "DeprecationWarning( is %s)" % (f.__name__, l[0]))
+                    raise AssertionError("First warning for %s is not a "
+                                         "DeprecationWarning( is %s)" % (f.__name__, l[0]))
             finally:
                 ctx.__exit__()
 

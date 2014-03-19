@@ -49,6 +49,7 @@ class ProfileDirError(Exception):
 #-----------------------------------------------------------------------------
 
 class ProfileDir(LoggingConfigurable):
+
     """An object to manage the profile directory and its resources.
 
     The profile directory is used by all IPython applications, to manage
@@ -70,11 +71,11 @@ class ProfileDir(LoggingConfigurable):
     static_dir = Unicode(u'')
 
     location = Unicode(u'', config=True,
-        help="""Set the profile location directly. This overrides the logic used by the
+                       help="""Set the profile location directly. This overrides the logic used by the
         `profile` option.""",
-        )
+                       )
 
-    _location_isset = Bool(False) # flag for detecting multiply set location
+    _location_isset = Bool(False)  # flag for detecting multiply set location
 
     def _location_changed(self, name, old, new):
         if self._location_isset:
@@ -146,10 +147,12 @@ class ProfileDir(LoggingConfigurable):
         self._mkdir(self.startup_dir)
 
         readme = os.path.join(self.startup_dir, 'README')
-        src = os.path.join(get_ipython_package_dir(), u'config', u'profile', u'README_STARTUP')
+        src = os.path.join(
+            get_ipython_package_dir(), u'config', u'profile', u'README_STARTUP')
 
         if not os.path.exists(src):
-            self.log.warn("Could not copy README_STARTUP to startup dir. Source file %s does not exist.", src)
+            self.log.warn(
+                "Could not copy README_STARTUP to startup dir. Source file %s does not exist.", src)
 
         if os.path.exists(src) and not os.path.exists(readme):
             shutil.copy(src, readme)
@@ -178,7 +181,8 @@ class ProfileDir(LoggingConfigurable):
             src = os.path.join(DEFAULT_STATIC_FILES_PATH, 'custom', fname)
             dest = os.path.join(custom, fname)
             if not os.path.exists(src):
-                self.log.warn("Could not copy default file to static dir. Source file %s does not exist.", src)
+                self.log.warn(
+                    "Could not copy default file to static dir. Source file %s does not exist.", src)
                 continue
             if not os.path.exists(dest):
                 shutil.copy(src, dest)
@@ -201,7 +205,8 @@ class ProfileDir(LoggingConfigurable):
         if os.path.isfile(dst) and not overwrite:
             return False
         if path is None:
-            path = os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
+            path = os.path.join(
+                get_ipython_package_dir(), u'config', u'profile', u'default')
         src = os.path.join(path, config_file)
         shutil.copy(src, dst)
         return True
@@ -261,7 +266,8 @@ class ProfileDir(LoggingConfigurable):
             if os.path.isdir(profile_dir):
                 return cls(location=profile_dir, config=config)
         else:
-            raise ProfileDirError('Profile directory not found in paths: %s' % dirname)
+            raise ProfileDirError(
+                'Profile directory not found in paths: %s' % dirname)
 
     @classmethod
     def find_profile_dir(cls, profile_dir, config=None):
@@ -277,5 +283,6 @@ class ProfileDir(LoggingConfigurable):
         """
         profile_dir = expand_path(profile_dir)
         if not os.path.isdir(profile_dir):
-            raise ProfileDirError('Profile directory not found: %s' % profile_dir)
+            raise ProfileDirError(
+                'Profile directory not found: %s' % profile_dir)
         return cls(location=profile_dir, config=config)

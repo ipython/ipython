@@ -35,17 +35,20 @@ from gh_api import (
     get_milestone_id,
 )
 
+
 def find_rejects(root='.'):
     for dirname, dirs, files in os.walk(root):
         for fname in files:
             if fname.endswith('.rej'):
                 yield os.path.join(dirname, fname)
 
+
 def get_current_branch():
     branches = check_output(['git', 'branch'])
     for branch in branches.splitlines():
         if branch.startswith('*'):
             return branch[1:].strip()
+
 
 def backport_pr(branch, num, project='ipython/ipython'):
     current_branch = get_current_branch()
@@ -68,11 +71,12 @@ def backport_pr(branch, num, project='ipython/ipython'):
 
     msg = "Backport PR #%i: %s" % (num, title) + '\n\n' + description
     check = Popen(['git', 'apply', '--check', '--verbose'], stdin=PIPE)
-    a,b = check.communicate(patch)
+    a, b = check.communicate(patch)
 
     if check.returncode:
         print("patch did not apply, saving to {fname}".format(**locals()))
-        print("edit {fname} until `cat {fname} | git apply --check` succeeds".format(**locals()))
+        print(
+            "edit {fname} until `cat {fname} | git apply --check` succeeds".format(**locals()))
         print("then run tools/backport_pr.py {num} again".format(**locals()))
         if not os.path.exists(fname):
             with open(fname, 'wb') as f:
@@ -80,9 +84,9 @@ def backport_pr(branch, num, project='ipython/ipython'):
         return 1
 
     p = Popen(['git', 'apply'], stdin=PIPE)
-    a,b = p.communicate(patch)
+    a, b = p.communicate(patch)
 
-    filenames = [ f['filename'] for f in files ]
+    filenames = [f['filename'] for f in files]
 
     check_call(['git', 'add'] + filenames)
 
@@ -100,13 +104,16 @@ def backport_pr(branch, num, project='ipython/ipython'):
 
 backport_re = re.compile(r"[Bb]ackport.*?(\d+)")
 
+
 def already_backported(branch, since_tag=None):
     """return set of PRs that have been backported already"""
     if since_tag is None:
-        since_tag = check_output(['git','describe', branch, '--abbrev=0']).decode('utf8').strip()
+        since_tag = check_output(
+            ['git', 'describe', branch, '--abbrev=0']).decode('utf8').strip()
     cmd = ['git', 'log', '%s..%s' % (since_tag, branch), '--oneline']
     lines = check_output(cmd).decode('utf8')
     return set(int(num) for num in backport_re.findall(lines))
+
 
 def should_backport(labels=None, milestone=None):
     """return set of PRs marked for backport"""
@@ -116,25 +123,25 @@ def should_backport(labels=None, milestone=None):
         raise ValueError("Specify only one of labels or milestone.")
     if labels is not None:
         issues = get_issues_list("ipython/ipython",
-                labels=labels,
-                state='closed',
-                auth=True,
-        )
+                                 labels=labels,
+                                 state='closed',
+                                 auth=True,
+                                 )
     else:
         milestone_id = get_milestone_id("ipython/ipython", milestone,
-                auth=True)
+                                        auth=True)
         issues = get_issues_list("ipython/ipython",
-                milestone=milestone_id,
-                state='closed',
-                auth=True,
-        )
+                                 milestone=milestone_id,
+                                 state='closed',
+                                 auth=True,
+                                 )
 
     should_backport = set()
     for issue in issues:
         if not is_pull_request(issue):
             continue
         pr = get_pull_request("ipython/ipython", issue['number'],
-                auth=True)
+                              auth=True)
         if not pr['merged']:
             print ("Marked PR closed without merge: %i" % pr['number'])
             continue

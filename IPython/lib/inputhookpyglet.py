@@ -34,7 +34,7 @@ if os.name == 'posix':
     import select
 
     def stdin_ready():
-        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
+        infds, outfds, erfds = select.select([sys.stdin], [], [], 0)
         if infds:
             return True
         else:
@@ -64,6 +64,7 @@ else:
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+
 
 def inputhook_pyglet():
     """Run the pyglet event loop by processing pending events only.

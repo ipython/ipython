@@ -20,8 +20,9 @@ from IPython.core.getipython import get_ipython
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class TestNotary(TestsBase):
-    
+
     def setUp(self):
         self.notary = sign.NotebookNotary(
             secret=b'secret',
@@ -29,7 +30,7 @@ class TestNotary(TestsBase):
         )
         with self.fopen(u'test3.ipynb', u'r') as f:
             self.nb = read(f, u'json')
-    
+
     def test_algorithms(self):
         last_sig = ''
         for algo in sign.algorithms:
@@ -37,28 +38,30 @@ class TestNotary(TestsBase):
             self.notary.sign(self.nb)
             sig = self.nb.metadata.signature
             print(sig)
-            self.assertEqual(sig[:len(self.notary.algorithm)+1], '%s:' % self.notary.algorithm)
+            self.assertEqual(
+                sig[:len(self.notary.algorithm) + 1], '%s:' % self.notary.algorithm)
             self.assertNotEqual(last_sig, sig)
             last_sig = sig
-    
+
     def test_sign_same(self):
         """Multiple signatures of the same notebook are the same"""
         sig1 = self.notary.compute_signature(self.nb)
         sig2 = self.notary.compute_signature(self.nb)
         self.assertEqual(sig1, sig2)
-    
+
     def test_change_secret(self):
         """Changing the secret changes the signature"""
         sig1 = self.notary.compute_signature(self.nb)
         self.notary.secret = b'different'
         sig2 = self.notary.compute_signature(self.nb)
         self.assertNotEqual(sig1, sig2)
-    
+
     def test_sign(self):
         self.notary.sign(self.nb)
         sig = self.nb.metadata.signature
-        self.assertEqual(sig[:len(self.notary.algorithm)+1], '%s:' % self.notary.algorithm)
-    
+        self.assertEqual(
+            sig[:len(self.notary.algorithm) + 1], '%s:' % self.notary.algorithm)
+
     def test_check_signature(self):
         nb = self.nb
         md = nb.metadata
@@ -78,7 +81,7 @@ class TestNotary(TestsBase):
         # check correctly signed notebook
         notary.sign(nb)
         self.assertTrue(check_signature(nb))
-    
+
     def test_mark_cells_untrusted(self):
         cells = self.nb.worksheets[0].cells
         self.notary.mark_cells(self.nb, False)
@@ -88,7 +91,7 @@ class TestNotary(TestsBase):
                 self.assertFalse(cell.trusted)
             else:
                 self.assertNotIn('trusted', cell)
-    
+
     def test_mark_cells_trusted(self):
         cells = self.nb.worksheets[0].cells
         self.notary.mark_cells(self.nb, True)
@@ -98,7 +101,7 @@ class TestNotary(TestsBase):
                 self.assertTrue(cell.trusted)
             else:
                 self.assertNotIn('trusted', cell)
-    
+
     def test_check_cells(self):
         nb = self.nb
         self.notary.mark_cells(nb, True)
@@ -109,7 +112,7 @@ class TestNotary(TestsBase):
         self.assertFalse(self.notary.check_cells(nb))
         for cell in nb.worksheets[0].cells:
             self.assertNotIn('trusted', cell)
-    
+
     def test_trust_no_output(self):
         nb = self.nb
         self.notary.mark_cells(nb, False)
@@ -117,4 +120,3 @@ class TestNotary(TestsBase):
             if cell.cell_type == 'code':
                 cell.outputs = []
         self.assertTrue(self.notary.check_cells(nb))
-

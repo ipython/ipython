@@ -40,7 +40,10 @@ from IPython.utils.text import get_text_list
 #-----------------------------------------------------------------------------
 
 # Used for exception handling in magic_edit
-class MacroToEdit(ValueError): pass
+
+
+class MacroToEdit(ValueError):
+    pass
 
 ipython_input_pat = re.compile(r"<ipython\-input\-(\d+)-[a-z\d]+>$")
 
@@ -109,11 +112,11 @@ def extract_symbols(code, symbols):
     code = code.split('\n')
 
     symbols_lines = {}
-    
-    # we already know the start_lineno of each symbol (marks). 
-    # To find each end_lineno, we traverse in reverse order until each 
+
+    # we already know the start_lineno of each symbol (marks).
+    # To find each end_lineno, we traverse in reverse order until each
     # non-blank line
-    end = len(code)  
+    end = len(code)
     for name, start in reversed(marks):
         while not code[end - 1].strip():
             end -= 1
@@ -123,7 +126,7 @@ def extract_symbols(code, symbols):
 
     # Now symbols_lines is a map
     # {'symbol_name': (start_lineno, end_lineno), ...}
-    
+
     # fill a list with chunks of codes for each requested symbol
     blocks = []
     not_found = []
@@ -138,13 +141,16 @@ def extract_symbols(code, symbols):
 
 
 class InteractivelyDefined(Exception):
+
     """Exception for interactively defined variable in magic_edit"""
+
     def __init__(self, index):
         self.index = index
 
 
 @magics_class
 class CodeMagics(Magics):
+
     """Magics related to code management (loading, saving, editing, ...)."""
 
     @line_magic
@@ -160,7 +166,7 @@ class CodeMagics(Magics):
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed as the
           command line is used instead.
-          
+
           -f: force overwrite.  If file exists, %save will prompt for overwrite
           unless -f is given.
 
@@ -175,7 +181,7 @@ class CodeMagics(Magics):
         If `-r` option is used, the default extension is `.ipy`.
         """
 
-        opts,args = self.parse_options(parameter_s,'fra',mode='list')
+        opts, args = self.parse_options(parameter_s, 'fra', mode='list')
         if not args:
             raise UsageError('Missing filename.')
         raw = 'r' in opts
@@ -184,20 +190,22 @@ class CodeMagics(Magics):
         mode = 'a' if append else 'w'
         ext = u'.ipy' if raw else u'.py'
         fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
-        if not fname.endswith((u'.py',u'.ipy')):
+        if not fname.endswith((u'.py', u'.ipy')):
             fname += ext
         file_exists = os.path.isfile(fname)
         if file_exists and not force and not append:
             try:
-                overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
+                overwrite = self.shell.ask_yes_no(
+                    'File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
-                print("File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s))
+                print("File `%s` exists. Use `%%save -f %s` to force overwrite" %
+                      (fname, parameter_s))
                 return
-            if not overwrite :
+            if not overwrite:
                 print('Operation cancelled.')
                 return
         try:
-            cmds = self.shell.find_user_code(codefrom,raw)
+            cmds = self.shell.find_user_code(codefrom, raw)
         except (TypeError, ValueError) as e:
             print(e.args[0])
             return
@@ -237,18 +245,18 @@ class CodeMagics(Magics):
 
         # Deferred import
         try:
-            from urllib.request import urlopen # Py 3
+            from urllib.request import urlopen  # Py 3
         except ImportError:
             from urllib2 import urlopen
         import json
         post_data = json.dumps({
-          "description": opts.get('d', "Pasted from IPython"),
-          "public": True,
-          "files": {
-            "file1.py": {
-              "content": code
+            "description": opts.get('d', "Pasted from IPython"),
+            "public": True,
+            "files": {
+                "file1.py": {
+                    "content": code
+                }
             }
-          }
         }).encode('utf-8')
 
         response = urlopen("https://api.github.com/gists", post_data)
@@ -298,7 +306,7 @@ class CodeMagics(Magics):
         %load -r 10-20,30,40: foo.py
         %load -s MyClass,wonder_function myscript.py
         """
-        opts,args = self.parse_options(arg_s,'ys:r:')
+        opts, args = self.parse_options(arg_s, 'ys:r:')
 
         if not args:
             raise UsageError('Missing filename, URL, input history range, '
@@ -319,7 +327,7 @@ class CodeMagics(Magics):
             elif len(not_found) > 1:
                 warn('The symbols %s were not found' % get_text_list(not_found,
                                                                      wrap_item_with='`')
-                )
+                     )
 
             contents = '\n'.join(blocks)
 
@@ -336,13 +344,13 @@ class CodeMagics(Magics):
         # so in average, more than 5000 lines
         if l > 200000 and 'y' not in opts:
             try:
-                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
-                " (%d characters). Continue (y/[N]) ?" % l), default='n' )
+                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"
+                                             " (%d characters). Continue (y/[N]) ?" % l), default='n')
             except StdinNotImplementedError:
-                #asume yes if raw input not implemented
+                # asume yes if raw input not implemented
                 ans = True
 
-            if ans is False :
+            if ans is False:
                 print('Operation cancelled.')
                 return
 
@@ -371,10 +379,11 @@ class CodeMagics(Magics):
         opts_raw = 'r' in opts
 
         # custom exceptions
-        class DataIsObject(Exception): pass
+        class DataIsObject(Exception):
+            pass
 
         # Default line number value
-        lineno = opts.get('n',None)
+        lineno = opts.get('n', None)
 
         if opts_prev:
             args = '_%s' % last_call[0]
@@ -399,12 +408,12 @@ class CodeMagics(Magics):
                     # Load the parameter given as a variable. If not a string,
                     # process it as an object instead (below)
 
-                    #print '*** args',args,'type',type(args)  # dbg
+                    # print '*** args',args,'type',type(args)  # dbg
                     data = eval(args, shell.user_ns)
                     if not isinstance(data, string_types):
                         raise DataIsObject
 
-                except (NameError,SyntaxError):
+                except (NameError, SyntaxError):
                     # given argument is not a variable, try as a filename
                     filename = make_filename(args)
                     if filename is None:
@@ -422,26 +431,27 @@ class CodeMagics(Magics):
                     filename = find_file(data)
                     if filename:
                         if 'fakemodule' in filename.lower() and \
-                            inspect.isclass(data):
+                                inspect.isclass(data):
                             # class created by %edit? Try to find source
                             # by looking for method definitions instead, the
                             # __module__ in those classes is FakeModule.
-                            attrs = [getattr(data, aname) for aname in dir(data)]
+                            attrs = [getattr(data, aname)
+                                     for aname in dir(data)]
                             for attr in attrs:
                                 if not inspect.ismethod(attr):
                                     continue
                                 filename = find_file(attr)
                                 if filename and \
-                                  'fakemodule' not in filename.lower():
+                                        'fakemodule' not in filename.lower():
                                     # change the attribute to be the edit
                                     # target instead
                                     data = attr
                                     break
-                        
+
                         m = ipython_input_pat.match(os.path.basename(filename))
                         if m:
                             raise InteractivelyDefined(int(m.groups()[0]))
-                        
+
                         datafile = 1
                     if filename is None:
                         filename = make_filename(args)
@@ -449,7 +459,7 @@ class CodeMagics(Magics):
                         if filename is not None:
                             # only warn about this if we get a real name
                             warn('Could not find file where `%s` is defined.\n'
-                             'Opening a file named `%s`' % (args, filename))
+                                 'Opening a file named `%s`' % (args, filename))
                     # Now, make sure we can actually read the source (if it was
                     # in a temp file it's gone by now).
                     if datafile:
@@ -465,7 +475,7 @@ class CodeMagics(Magics):
 
         if use_temp:
             filename = shell.mktempfile(data)
-            print('IPython will make a temporary file named:',filename)
+            print('IPython will make a temporary file named:', filename)
 
         # use last_call to remember the state of the previous call, but don't
         # let it be clobbered by successive '-p' calls.
@@ -476,10 +486,9 @@ class CodeMagics(Magics):
         except:
             pass
 
-
         return filename, lineno, use_temp
 
-    def _edit_macro(self,mname,macro):
+    def _edit_macro(self, mname, macro):
         """open an editor with the macro data in a file"""
         filename = self.shell.mktempfile(macro.value)
         self.shell.hooks.editor(filename)
@@ -491,7 +500,7 @@ class CodeMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def edit(self, parameter_s='',last_call=['','']):
+    def edit(self, parameter_s='', last_call=['', '']):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -634,19 +643,19 @@ class CodeMagics(Magics):
         starting example for further modifications.  That file also has
         general instructions on how to set a new hook for use once you've
         defined it."""
-        opts,args = self.parse_options(parameter_s,'prxn:')
+        opts, args = self.parse_options(parameter_s, 'prxn:')
 
         try:
-            filename, lineno, is_temp = self._find_edit_target(self.shell, 
-                                                       args, opts, last_call)
+            filename, lineno, is_temp = self._find_edit_target(self.shell,
+                                                               args, opts, last_call)
         except MacroToEdit as e:
             self._edit_macro(args, e.args[0])
             return
         except InteractivelyDefined as e:
             print("Editing In[%i]" % e.index)
             args = str(e.index)
-            filename, lineno, is_temp = self._find_edit_target(self.shell, 
-                                                       args, opts, last_call)
+            filename, lineno, is_temp = self._find_edit_target(self.shell,
+                                                               args, opts, last_call)
         if filename is None:
             # nothing was found, warnings have already been issued,
             # just give up.
@@ -659,7 +668,7 @@ class CodeMagics(Magics):
             # Quote filenames that may have spaces in them
             if ' ' in filename:
                 filename = "'%s'" % filename
-            self.shell.hooks.editor(filename,lineno)
+            self.shell.hooks.editor(filename, lineno)
         except TryNext:
             warn('Could not open editor')
             return

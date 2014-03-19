@@ -29,6 +29,7 @@ from .nbbase import (
 
 _encoding_declaration_re = re.compile(r"^#.*coding[:=]\s*([-\w.]+)")
 
+
 class PyReaderError(Exception):
     pass
 
@@ -36,7 +37,7 @@ class PyReaderError(Exception):
 class PyReader(NotebookReader):
 
     def reads(self, s, **kwargs):
-        return self.to_notebook(s,**kwargs)
+        return self.to_notebook(s, **kwargs)
 
     def to_notebook(self, s, **kwargs):
         lines = s.splitlines()
@@ -81,7 +82,7 @@ class PyReader(NotebookReader):
                 if cell is not None:
                     cells.append(cell)
                     cell_lines = []
-                m = re.match(r'# <headingcell level=(?P<level>\d)>',line)
+                m = re.match(r'# <headingcell level=(?P<level>\d)>', line)
                 if m is not None:
                     state = u'headingcell'
                     kwargs = {}
@@ -109,20 +110,20 @@ class PyReader(NotebookReader):
         elif state == u'htmlcell':
             text = self._remove_comments(lines)
             if text:
-                return new_text_cell(u'html',source=text)
+                return new_text_cell(u'html', source=text)
         elif state == u'markdowncell':
             text = self._remove_comments(lines)
             if text:
-                return new_text_cell(u'markdown',source=text)
+                return new_text_cell(u'markdown', source=text)
         elif state == u'rawcell':
             text = self._remove_comments(lines)
             if text:
-                return new_text_cell(u'raw',source=text)
+                return new_text_cell(u'raw', source=text)
         elif state == u'headingcell':
             text = self._remove_comments(lines)
-            level = kwargs.get('level',1)
+            level = kwargs.get('level', 1)
             if text:
-                return new_heading_cell(source=text,level=level)
+                return new_heading_cell(source=text, level=level)
 
     def _remove_comments(self, lines):
         new_lines = []
@@ -142,9 +143,9 @@ class PyReader(NotebookReader):
         import ast
         source = '\n'.join(lines)
         code = ast.parse(source)
-        starts = [x.lineno-1 for x in code.body]
-        for i in range(len(starts)-1):
-            yield '\n'.join(lines[starts[i]:starts[i+1]]).strip('\n')
+        starts = [x.lineno - 1 for x in code.body]
+        for i in range(len(starts) - 1):
+            yield '\n'.join(lines[starts[i]:starts[i + 1]]).strip('\n')
         yield '\n'.join(lines[starts[-1]:]).strip('\n')
 
 
@@ -161,33 +162,38 @@ class PyWriter(NotebookWriter):
                 if cell.cell_type == u'code':
                     input = cell.get(u'input')
                     if input is not None:
-                        lines.extend([u'# <codecell>',u''])
+                        lines.extend([u'# <codecell>', u''])
                         lines.extend(input.splitlines())
                         lines.append(u'')
                 elif cell.cell_type == u'html':
                     input = cell.get(u'source')
                     if input is not None:
-                        lines.extend([u'# <htmlcell>',u''])
-                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.extend([u'# <htmlcell>', u''])
+                        lines.extend(
+                            [u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
                 elif cell.cell_type == u'markdown':
                     input = cell.get(u'source')
                     if input is not None:
-                        lines.extend([u'# <markdowncell>',u''])
-                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.extend([u'# <markdowncell>', u''])
+                        lines.extend(
+                            [u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
                 elif cell.cell_type == u'raw':
                     input = cell.get(u'source')
                     if input is not None:
-                        lines.extend([u'# <rawcell>',u''])
-                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.extend([u'# <rawcell>', u''])
+                        lines.extend(
+                            [u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
                 elif cell.cell_type == u'heading':
                     input = cell.get(u'source')
-                    level = cell.get(u'level',1)
+                    level = cell.get(u'level', 1)
                     if input is not None:
-                        lines.extend([u'# <headingcell level=%s>' % level,u''])
-                        lines.extend([u'# ' + line for line in input.splitlines()])
+                        lines.extend(
+                            [u'# <headingcell level=%s>' % level, u''])
+                        lines.extend(
+                            [u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
         lines.append('')
         return u'\n'.join(lines)
@@ -201,4 +207,3 @@ read = _reader.read
 to_notebook = _reader.to_notebook
 write = _writer.write
 writes = _writer.writes
-

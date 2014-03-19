@@ -14,20 +14,25 @@ from .kernel_mixins import (
     QtKernelClientMixin
 )
 
+
 class QtShellChannel(QtShellChannelMixin, ShellChannel):
     pass
+
 
 class QtIOPubChannel(QtIOPubChannelMixin, IOPubChannel):
     pass
 
+
 class QtStdInChannel(QtStdInChannelMixin, StdInChannel):
     pass
+
 
 class QtHBChannel(QtHBChannelMixin, HBChannel):
     pass
 
 
 class QtKernelClient(QtKernelClientMixin, KernelClient):
+
     """ A KernelClient that provides signals and slots.
     """
 

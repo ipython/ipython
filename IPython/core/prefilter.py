@@ -79,9 +79,9 @@ def is_shadowed(identifier, ip):
     the alias and magic namespaces?  Note that an identifier is different
     than ifun, because it can not contain a '.' character."""
     # This is much safer than calling ofind, which can change state
-    return (identifier in ip.user_ns \
-            or identifier in ip.user_global_ns \
-            or identifier in ip.ns_table['builtin']\
+    return (identifier in ip.user_ns
+            or identifier in ip.user_global_ns
+            or identifier in ip.ns_table['builtin']
             or iskeyword(identifier))
 
 
@@ -91,6 +91,7 @@ def is_shadowed(identifier, ip):
 
 
 class PrefilterManager(Configurable):
+
     """Main prefilter component.
 
     The IPython prefilter is run on all user input before it is run.  The
@@ -344,8 +345,8 @@ class PrefilterManager(Configurable):
         # communicate downstream which line is first and which are continuation
         # ones.
         if len(llines) > 1:
-            out = '\n'.join([self.prefilter_line(line, lnum>0)
-                             for lnum, line in enumerate(llines) ])
+            out = '\n'.join([self.prefilter_line(line, lnum > 0)
+                             for lnum, line in enumerate(llines)])
         else:
             out = self.prefilter_line(llines[0], continue_prompt)
 
@@ -357,6 +358,7 @@ class PrefilterManager(Configurable):
 
 
 class PrefilterTransformer(Configurable):
+
     """Transform a line of user input."""
 
     priority = Integer(100, config=True)
@@ -387,6 +389,7 @@ class PrefilterTransformer(Configurable):
 
 
 class PrefilterChecker(Configurable):
+
     """Inspect an input line and return a handler for that line."""
 
     priority = Integer(100, config=True)
@@ -483,7 +486,7 @@ class AutoMagicChecker(PrefilterChecker):
         if line_info.continue_prompt and not self.prefilter_manager.multi_line_specials:
             return None
 
-        head = line_info.ifun.split('.',1)[0]
+        head = line_info.ifun.split('.', 1)[0]
         if is_shadowed(head, self.shell):
             return None
 
@@ -510,22 +513,23 @@ class AutocallChecker(PrefilterChecker):
     priority = Integer(1000, config=True)
 
     function_name_regexp = CRegExp(re_fun_name, config=True,
-        help="RegExp to identify potential function names.")
+                                   help="RegExp to identify potential function names.")
     exclude_regexp = CRegExp(re_exclude_auto, config=True,
-        help="RegExp to exclude strings with this start from autocalling.")
+                             help="RegExp to exclude strings with this start from autocalling.")
 
     def check(self, line_info):
         "Check if the initial word/function is callable and autocall is on."
         if not self.shell.autocall:
             return None
 
-        oinfo = line_info.ofind(self.shell) # This can mutate state via getattr
+        # This can mutate state via getattr
+        oinfo = line_info.ofind(self.shell)
         if not oinfo['found']:
             return None
 
         if callable(oinfo['obj']) \
-               and (not self.exclude_regexp.match(line_info.the_rest)) \
-               and self.function_name_regexp.match(line_info.ifun):
+                and (not self.exclude_regexp.match(line_info.the_rest)) \
+                and self.function_name_regexp.match(line_info.ifun):
             return self.prefilter_manager.get_handler_by_name('auto')
         else:
             return None
@@ -566,9 +570,9 @@ class PrefilterHandler(Configurable):
         continue_prompt = line_info.continue_prompt
 
         if (continue_prompt and
-            self.shell.autoindent and
-            line.isspace() and
-            0 < abs(len(line) - self.shell.indent_current_nsp) <= 2):
+                self.shell.autoindent and
+                line.isspace() and
+                0 < abs(len(line) - self.shell.indent_current_nsp) <= 2):
             line = ''
 
         return line
@@ -594,10 +598,10 @@ class MagicHandler(PrefilterHandler):
 
     def handle(self, line_info):
         """Execute magic functions."""
-        ifun    = line_info.ifun
+        ifun = line_info.ifun
         the_rest = line_info.the_rest
         cmd = '%sget_ipython().magic(%r)' % (line_info.pre_whitespace,
-                                                    (ifun + " " + the_rest))
+                                             (ifun + " " + the_rest))
         return cmd
 
 
@@ -608,14 +612,14 @@ class AutoHandler(PrefilterHandler):
 
     def handle(self, line_info):
         """Handle lines which can be auto-executed, quoting if requested."""
-        line    = line_info.line
-        ifun    = line_info.ifun
+        line = line_info.line
+        ifun = line_info.ifun
         the_rest = line_info.the_rest
-        pre     = line_info.pre
-        esc     = line_info.esc
+        pre = line_info.pre
+        esc = line_info.esc
         continue_prompt = line_info.continue_prompt
         obj = line_info.ofind(self.shell)['obj']
-        #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
+        # print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
 
         # This should only be active for single-line input!
         if continue_prompt:
@@ -633,14 +637,14 @@ class AutoHandler(PrefilterHandler):
 
         if esc == ESC_QUOTE:
             # Auto-quote splitting on whitespace
-            newcmd = '%s("%s")' % (ifun,'", "'.join(the_rest.split()) )
+            newcmd = '%s("%s")' % (ifun, '", "'.join(the_rest.split()))
         elif esc == ESC_QUOTE2:
             # Auto-quote whole string
-            newcmd = '%s("%s")' % (ifun,the_rest)
+            newcmd = '%s("%s")' % (ifun, the_rest)
         elif esc == ESC_PAREN:
-            newcmd = '%s(%s)' % (ifun,",".join(the_rest.split()))
+            newcmd = '%s(%s)' % (ifun, ",".join(the_rest.split()))
         else:
-            # Auto-paren.       
+            # Auto-paren.
             if force_auto:
                 # Don't rewrite if it is already a call.
                 do_rewrite = not the_rest.startswith('(')
@@ -659,13 +663,14 @@ class AutoHandler(PrefilterHandler):
             # Figure out the rewritten command
             if do_rewrite:
                 if the_rest.endswith(';'):
-                    newcmd = '%s(%s);' % (ifun.rstrip(),the_rest[:-1])
+                    newcmd = '%s(%s);' % (ifun.rstrip(), the_rest[:-1])
                 else:
-                    newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)                
+                    newcmd = '%s(%s)' % (ifun.rstrip(), the_rest)
             else:
-                normal_handler = self.prefilter_manager.get_handler_by_name('normal')
+                normal_handler = self.prefilter_manager.get_handler_by_name(
+                    'normal')
                 return normal_handler.handle(line_info)
-        
+
         # Display the rewritten call
         if auto_rewrite:
             self.shell.auto_rewrite_input(newcmd)

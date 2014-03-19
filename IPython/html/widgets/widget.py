@@ -23,10 +23,13 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
 class CallbackDispatcher(LoggingConfigurable):
+
     """A structure for registering and running callbacks"""
     callbacks = List()
-    
+
     def __call__(self, *args, **kwargs):
         """Call all of the registered callbacks."""
         value = None
@@ -36,7 +39,8 @@ class CallbackDispatcher(LoggingConfigurable):
             except Exception as e:
                 ip = get_ipython()
                 if ip is None:
-                    self.log.warn("Exception in callback %s: %s", callback, e, exc_info=True)
+                    self.log.warn(
+                        "Exception in callback %s: %s", callback, e, exc_info=True)
                 else:
                     ip.showtraceback()
             else:
@@ -52,25 +56,29 @@ class CallbackDispatcher(LoggingConfigurable):
             Method to be registered or unregistered.
         remove=False: bool
             Whether to unregister the callback."""
-        
+
         # (Un)Register the callback.
         if remove and callback in self.callbacks:
             self.callbacks.remove(callback)
         elif not remove and callback not in self.callbacks:
             self.callbacks.append(callback)
 
+
 def _show_traceback(method):
     """decorator for showing tracebacks in IPython"""
+
     def m(self, *args, **kwargs):
         try:
             return(method(self, *args, **kwargs))
         except Exception as e:
             ip = get_ipython()
             if ip is None:
-                self.log.warn("Exception in widget method %s: %s", method, e, exc_info=True)
+                self.log.warn(
+                    "Exception in widget method %s: %s", method, e, exc_info=True)
             else:
                 ip.showtraceback()
     return m
+
 
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
@@ -101,19 +109,20 @@ class Widget(LoggingConfigurable):
     _view_name = Unicode(help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
     _comm = Instance('IPython.kernel.comm.Comm')
-    
+
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
-    
+
     keys = List()
+
     def _keys_default(self):
         return [name for name in self.traits(sync=True)]
-    
+
     _property_lock = Tuple((None, None))
-    
+
     _display_callbacks = Instance(CallbackDispatcher, ())
     _msg_callbacks = Instance(CallbackDispatcher, ())
-    
+
     #-------------------------------------------------------------------------
     # (Con/de)structor
     #-------------------------------------------------------------------------
@@ -147,7 +156,7 @@ class Widget(LoggingConfigurable):
             # first update
             self.send_state()
         return self._comm
-    
+
     @property
     def model_id(self):
         """Gets the model id of this widget.
@@ -182,8 +191,8 @@ class Widget(LoggingConfigurable):
             A single property's name to sync with the front-end.
         """
         self._send({
-            "method" : "update",
-            "state"  : self.get_state()
+            "method": "update",
+            "state": self.get_state()
         })
 
     def get_state(self, key=None):
@@ -195,7 +204,7 @@ class Widget(LoggingConfigurable):
             A single property's name to get.
         """
         keys = self.keys if key is None else [key]
-        return {k: self._pack_widgets(getattr(self, k)) for k in keys} 
+        return {k: self._pack_widgets(getattr(self, k)) for k in keys}
 
     def send(self, content):
         """Sends a custom msg to the widget model in the front-end.
@@ -214,9 +223,9 @@ class Widget(LoggingConfigurable):
         ----------
         callback: callable
             callback will be passed two arguments when a message arrives::
-            
+
                 callback(widget, content)
-            
+
         remove: bool
             True if the callback should be unregistered."""
         self._msg_callbacks.register_callback(callback, remove=remove)
@@ -228,9 +237,9 @@ class Widget(LoggingConfigurable):
         ----------
         callback: method handler
             Must have a signature of::
-            
+
                 callback(widget, **kwargs)
-            
+
             kwargs from display are passed through without modification.
         remove: bool
             True if the callback should be unregistered."""
@@ -255,8 +264,8 @@ class Widget(LoggingConfigurable):
     def _should_send_property(self, key, value):
         """Check the property lock (property_lock)"""
         return key != self._property_lock[0] or \
-        value != self._property_lock[1]
-    
+            value != self._property_lock[1]
+
     # Event handlers
     @_show_traceback
     def _handle_msg(self, msg):
@@ -264,12 +273,13 @@ class Widget(LoggingConfigurable):
         data = msg['content']['data']
         method = data['method']
         if not method in ['backbone', 'custom']:
-            self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
+            self.log.error(
+                'Unknown front-end to back-end widget msg with method "%s"' % method)
 
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
         if method == 'backbone' and 'sync_data' in data:
             sync_data = data['sync_data']
-            self._handle_receive_state(sync_data) # handles all methods
+            self._handle_receive_state(sync_data)  # handles all methods
 
         # Handle a custom msg from the front-end
         elif method == 'custom':
@@ -311,7 +321,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, Widget):
             return x.model_id
         else:
-            return x # Value must be JSON-able
+            return x  # Value must be JSON-able
 
     def _unpack_widgets(self, x):
         """Recursively converts all model id strings to widget instances.
@@ -341,7 +351,7 @@ class Widget(LoggingConfigurable):
 
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
-    _css = Dict(sync=True) # Internal CSS property dict
+    _css = Dict(sync=True)  # Internal CSS property dict
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.
@@ -387,12 +397,12 @@ class DOMWidget(Widget):
         if not selector in self._css:
             self._css[selector] = {}
         my_css = self._css[selector]
-        
+
         if value is None:
             css_dict = dict_or_key
         else:
             css_dict = {dict_or_key: value}
-        
+
         for (key, value) in css_dict.items():
             if not (key in my_css and value == my_css[key]):
                 my_css[key] = value
@@ -414,9 +424,9 @@ class DOMWidget(Widget):
             class_list = ' '.join(class_list)
 
         self.send({
-            "msg_type"   : "add_class",
-            "class_list" : class_list,
-            "selector"   : selector
+            "msg_type": "add_class",
+            "class_list": class_list,
+            "selector": selector
         })
 
     def remove_class(self, class_names, selector=""):
@@ -435,7 +445,7 @@ class DOMWidget(Widget):
             class_list = ' '.join(class_list)
 
         self.send({
-            "msg_type"   : "remove_class",
-            "class_list" : class_list,
-            "selector"   : selector,
+            "msg_type": "remove_class",
+            "class_list": class_list,
+            "selector": selector,
         })

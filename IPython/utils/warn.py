@@ -23,7 +23,8 @@ from IPython.utils import io
 # Code
 #-----------------------------------------------------------------------------
 
-def warn(msg,level=2,exit_val=1):
+
+def warn(msg, level=2, exit_val=1):
     """Standard warning printer. Gives formatting consistency.
 
     Output is sent to io.stderr (sys.stderr by default).
@@ -40,28 +41,27 @@ def warn(msg,level=2,exit_val=1):
     -exit_val (1): exit value returned by sys.exit() for a level 4
     warning. Ignored for all other levels."""
 
-    if level>0:
-        header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
+    if level > 0:
+        header = ['', '', 'WARNING: ', 'ERROR: ', 'FATAL ERROR: ']
         print(header[level], msg, sep='', file=io.stderr)
         if level == 4:
             print('Exiting.\n', file=io.stderr)
             sys.exit(exit_val)
 
-            
+
 def info(msg):
     """Equivalent to warn(msg,level=1)."""
 
-    warn(msg,level=1)
+    warn(msg, level=1)
 
-    
+
 def error(msg):
     """Equivalent to warn(msg,level=3)."""
 
-    warn(msg,level=3)
+    warn(msg, level=3)
 
-    
-def fatal(msg,exit_val=1):
+
+def fatal(msg, exit_val=1):
     """Equivalent to warn(msg,exit_val=exit_val,level=4)."""
 
-    warn(msg,exit_val=exit_val,level=4)
-
+    warn(msg, exit_val=exit_val, level=4)

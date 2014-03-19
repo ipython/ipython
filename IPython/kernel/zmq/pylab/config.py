@@ -23,6 +23,7 @@ from IPython.utils.warn import warn
 # Configurable for inline backend options
 #-----------------------------------------------------------------------------
 
+
 def pil_available():
     """Test if PIL/Pillow is available"""
     out = False
@@ -34,10 +35,14 @@ def pil_available():
     return out
 
 # inherit from InlineBackendConfig for deprecation purposes
+
+
 class InlineBackendConfig(SingletonConfigurable):
     pass
 
+
 class InlineBackend(InlineBackendConfig):
+
     """An object to store configuration of the inline backend."""
 
     def _config_changed(self, name, old, new):
@@ -49,31 +54,33 @@ class InlineBackend(InlineBackendConfig):
     # The typical default figure size is too large for inline use,
     # so we shrink the figure size to 6x4, and tweak fonts to
     # make that fit.
-    rc = Dict({'figure.figsize': (6.0,4.0),
-        # play nicely with white background in the Qt and notebook frontend
-        'figure.facecolor': (1,1,1,0),
-        'figure.edgecolor': (1,1,1,0),
-        # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
-        'font.size': 10,
-        # 72 dpi matches SVG/qtconsole
-        # this only affects PNG export, as SVG has no dpi setting
-        'savefig.dpi': 72,
-        # 10pt still needs a little more room on the xlabel:
-        'figure.subplot.bottom' : .125
-        }, config=True,
-        help="""Subset of matplotlib rcParams that should be different for the
+    rc = Dict({'figure.figsize': (6.0, 4.0),
+               # play nicely with white background in the Qt and notebook
+               # frontend
+               'figure.facecolor': (1, 1, 1, 0),
+               'figure.edgecolor': (1, 1, 1, 0),
+               # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
+               'font.size': 10,
+               # 72 dpi matches SVG/qtconsole
+               # this only affects PNG export, as SVG has no dpi setting
+               'savefig.dpi': 72,
+               # 10pt still needs a little more room on the xlabel:
+               'figure.subplot.bottom': .125
+               }, config=True,
+              help="""Subset of matplotlib rcParams that should be different for the
         inline backend."""
-    )
+              )
 
     figure_formats = Set({'png'}, config=True,
-                          help="""A set of figure formats to enable: 'png', 
+                         help="""A set of figure formats to enable: 'png', 
                           'retina', 'jpeg', 'svg', 'pdf'.""")
 
     def _update_figure_formatters(self):
         if self.shell is not None:
             from IPython.core.pylabtools import select_figure_formats
-            select_figure_formats(self.shell, self.figure_formats, **self.print_figure_kwargs)
-    
+            select_figure_formats(
+                self.shell, self.figure_formats, **self.print_figure_kwargs)
+
     def _figure_formats_changed(self, name, old, new):
         if 'jpg' in new or 'jpeg' in new:
             if not pil_available():
@@ -87,16 +94,16 @@ class InlineBackend(InlineBackendConfig):
         if new:
             self.figure_formats = {new}
 
-    print_figure_kwargs = Dict({'bbox_inches' : 'tight'}, config=True,
-        help="""Extra kwargs to be passed to fig.canvas.print_figure.
+    print_figure_kwargs = Dict({'bbox_inches': 'tight'}, config=True,
+                               help="""Extra kwargs to be passed to fig.canvas.print_figure.
         
         Logical examples include: bbox_inches, quality (for jpeg figures), etc.
         """
-    )
+                               )
     _print_figure_kwargs_changed = _update_figure_formatters
-    
+
     close_figures = Bool(True, config=True,
-        help="""Close all figures at the end of each cell.
+                         help="""Close all figures at the end of each cell.
         
         When True, ensures that each cell starts with no active figures, but it
         also means that one must keep track of references in order to edit or
@@ -111,7 +118,5 @@ class InlineBackend(InlineBackendConfig):
         other matplotlib backends, but figure barriers between cells must
         be explicit.
         """)
-    
+
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-
-

@@ -12,10 +12,12 @@ import sys
 
 from subprocess import Popen
 
+
 def cleanup(controller, engines):
     """Cleanup routine to shut down all subprocesses we opened."""
-    import signal, time
-    
+    import signal
+    import time
+
     print('Starting cleanup')
     print('Stopping engines...')
     for e in engines:
@@ -38,7 +40,7 @@ if __name__ == '__main__':
     # "Submit jobs"
     eng = []
     for i in range(4):
-        eng.append(Popen(['python', 'job_wrapper.py','x=%s' % i]))
+        eng.append(Popen(['python', 'job_wrapper.py', 'x=%s' % i]))
 
     # Ensure that all subpro
-    atexit.register(lambda : cleanup(cont, eng))
+    atexit.register(lambda: cleanup(cont, eng))

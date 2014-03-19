@@ -45,5 +45,3 @@ def complete_object(obj, prev_completions):
     own_attrs + prev_completions.
     """
     raise TryNext
-
-

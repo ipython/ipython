@@ -27,10 +27,14 @@ from IPython.utils.traitlets import Instance
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class __BuiltinUndefined(object): pass
+
+class __BuiltinUndefined(object):
+    pass
 BuiltinUndefined = __BuiltinUndefined()
 
-class __HideBuiltin(object): pass
+
+class __HideBuiltin(object):
+    pass
 HideBuiltin = __HideBuiltin()
 
 
@@ -57,7 +61,7 @@ class BuiltinTrap(Configurable):
             if self.shell.deep_reload:
                 self.auto_builtins['reload'] = deepreload.reload
             else:
-                self.auto_builtins['dreload']= deepreload.reload
+                self.auto_builtins['dreload'] = deepreload.reload
         except ImportError:
             pass
 
@@ -80,7 +84,7 @@ class BuiltinTrap(Configurable):
         bdict = builtin_mod.__dict__
         orig = bdict.get(key, BuiltinUndefined)
         if value is HideBuiltin:
-            if orig is not BuiltinUndefined: #same as 'key in bdict'
+            if orig is not BuiltinUndefined:  # same as 'key in bdict'
                 self._orig_builtins[key] = orig
                 del bdict[key]
         else:

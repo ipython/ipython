@@ -20,13 +20,16 @@ from IPython.utils.traitlets import Unicode, Bool
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
 class ButtonWidget(DOMWidget):
     _view_name = Unicode('ButtonView', sync=True)
 
     # Keys
-    description = Unicode('', help="Description of the button (label).", sync=True)
+    description = Unicode(
+        '', help="Description of the button (label).", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
-    
+
     def __init__(self, **kwargs):
         """Constructor"""
         super(ButtonWidget, self).__init__(**kwargs)

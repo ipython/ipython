@@ -23,8 +23,8 @@ from IPython.utils.traitlets import (
 from IPython.utils.warn import error
 
 from IPython.consoleapp import (
-        IPythonConsoleApp, app_aliases, app_flags, aliases, flags
-    )
+    IPythonConsoleApp, app_aliases, app_flags, aliases, flags
+)
 
 from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
 
@@ -96,7 +96,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     aliases = Dict(aliases)
     frontend_aliases = Any(frontend_aliases)
     frontend_flags = Any(frontend_flags)
-    
+
     subcommands = Dict()
 
     def parse_command_line(self, argv=None):
@@ -108,11 +108,11 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(parent=self,
-                        display_banner=False, profile_dir=self.profile_dir,
-                        ipython_dir=self.ipython_dir,
-                        manager=self.kernel_manager,
-                        client=self.kernel_client,
-        )
+                                                          display_banner=False, profile_dir=self.profile_dir,
+                                                          ipython_dir=self.ipython_dir,
+                                                          manager=self.kernel_manager,
+                                                          client=self.kernel_client,
+                                                          )
 
     def init_gui_pylab(self):
         # no-op, because we don't want to import matplotlib in the frontend.
@@ -123,7 +123,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
             if self.kernel_manager:
                 # interrupt already gets passed to subprocess by signal handler.
                 # Only if we prevent that should we need to explicitly call
-                # interrupt_kernel, until which time, this would result in a 
+                # interrupt_kernel, until which time, this would result in a
                 # double-interrupt:
                 # self.kernel_manager.interrupt_kernel()
                 pass
@@ -134,7 +134,6 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
             # raise the KeyboardInterrupt if we aren't waiting for execution,
             # so that the interact loop advances, and prompt is redrawn, etc.
             raise KeyboardInterrupt
-            
 
     def init_code(self):
         # no-op in the frontend, code gets run in the backend
@@ -146,4 +145,3 @@ launch_new_instance = ZMQTerminalIPythonApp.launch_instance
 
 if __name__ == '__main__':
     launch_new_instance()
-

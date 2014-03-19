@@ -33,7 +33,9 @@ from .encoding import DEFAULT_ENCODING
 # Function definitions
 #-----------------------------------------------------------------------------
 
+
 class AvoidUNCPath(object):
+
     """A context manager to protect command execution from UNC paths.
 
     In the Win32 API, commands can't be invoked with the cwd being a UNC path.
@@ -53,6 +55,7 @@ class AvoidUNCPath(object):
                 cmd = '"pushd %s &&"%s' % (path, cmd)
             os.system(cmd)
     """
+
     def __enter__(self):
         self.path = py3compat.getcwd()
         self.is_unc_path = self.path.startswith(r"\\")
@@ -75,7 +78,8 @@ def _find_cmd(cmd):
     try:
         from win32api import SearchPath
     except ImportError:
-        raise ImportError('you need to have pywin32 installed for this to work')
+        raise ImportError(
+            'you need to have pywin32 installed for this to work')
     else:
         PATH = os.environ['PATH']
         extensions = ['.exe', '.com', '.bat', '.py']
@@ -131,6 +135,7 @@ def system(cmd):
             cmd = '"pushd %s &&"%s' % (path, cmd)
         return process_handler(cmd, _system_body)
 
+
 def getoutput(cmd):
     """Return standard output of executing cmd in a shell.
 
@@ -162,25 +167,28 @@ try:
     LocalFree = ctypes.windll.kernel32.LocalFree
     LocalFree.res_type = HLOCAL
     LocalFree.arg_types = [HLOCAL]
-    
+
     def arg_split(commandline, posix=False, strict=True):
         """Split a command line's arguments in a shell-like manner.
 
         This is a special version for windows that use a ctypes call to CommandLineToArgvW
         to do the argv splitting. The posix paramter is ignored.
-        
+
         If strict=False, process_common.arg_split(...strict=False) is used instead.
         """
-        #CommandLineToArgvW returns path to executable if called with empty string.
+        # CommandLineToArgvW returns path to executable if called with empty
+        # string.
         if commandline.strip() == "":
             return []
         if not strict:
             # not really a cl-arg, fallback on _process_common
             return py_arg_split(commandline, posix=posix, strict=strict)
         argvn = c_int()
-        result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
+        result_pointer = CommandLineToArgvW(
+            py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
         result_array_type = LPCWSTR * argvn.value
-        result = [arg for arg in result_array_type.from_address(ctypes.addressof(result_pointer.contents))]
+        result = [arg for arg in result_array_type.from_address(
+            ctypes.addressof(result_pointer.contents))]
         retval = LocalFree(result_pointer)
         return result
 except AttributeError:

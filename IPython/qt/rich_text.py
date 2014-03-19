@@ -30,7 +30,9 @@ IMG_RE = re.compile(r'<img src="(?P<name>[\d]+)" />')
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class HtmlExporter(object):
+
     """ A stateful HTML exporter for a Q(Plain)TextEdit.
 
     This class is designed for convenient user interaction.
@@ -63,7 +65,7 @@ class HtmlExporter(object):
         dialog.setNameFilters(filters)
         if self.filename:
             dialog.selectFile(self.filename)
-            root,ext = os.path.splitext(self.filename)
+            root, ext = os.path.splitext(self.filename)
             if ext.lower() in ('.xml', '.xhtml'):
                 dialog.selectNameFilter(filters[-1])
 
@@ -115,7 +117,7 @@ class HtmlExporter(object):
             except Exception as e:
                 msg = "Error exporting HTML to %s\n" % self.filename + str(e)
                 reply = QtGui.QMessageBox.warning(parent, 'Error', msg,
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                                                  QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
 
         return None
 
@@ -123,7 +125,8 @@ class HtmlExporter(object):
 # Functions
 #-----------------------------------------------------------------------------
 
-def export_html(html, filename, image_tag = None, inline = True):
+
+def export_html(html, filename, image_tag=None, inline=True):
     """ Export the contents of the ConsoleWidget as HTML.
 
     Parameters
@@ -148,14 +151,14 @@ def export_html(html, filename, image_tag = None, inline = True):
     if inline:
         path = None
     else:
-        root,ext = os.path.splitext(filename)
+        root, ext = os.path.splitext(filename)
         path = root + "_files"
         if os.path.isfile(path):
             raise OSError("%s exists, but is not a directory." % path)
 
     with io.open(filename, 'w', encoding='utf-8') as f:
         html = fix_html(html)
-        f.write(IMG_RE.sub(lambda x: image_tag(x, path = path, format = "png"),
+        f.write(IMG_RE.sub(lambda x: image_tag(x, path=path, format="png"),
                            html))
 
 
@@ -181,15 +184,15 @@ def export_xhtml(html, filename, image_tag=None):
         # valid XML.
         offset = html.find("<html>")
         assert offset > -1, 'Invalid HTML string: no <html> tag.'
-        html = (u'<html xmlns="http://www.w3.org/1999/xhtml">\n'+
-                html[offset+6:])
+        html = (u'<html xmlns="http://www.w3.org/1999/xhtml">\n' +
+                html[offset + 6:])
 
         html = fix_html(html)
-        f.write(IMG_RE.sub(lambda x: image_tag(x, path = None, format = "svg"),
+        f.write(IMG_RE.sub(lambda x: image_tag(x, path=None, format="svg"),
                            html))
 
 
-def default_image_tag(match, path = None, format = "png"):
+def default_image_tag(match, path=None, format="png"):
     """ Return (X)HTML mark-up for the image-tag given by match.
 
     This default implementation merely removes the image, and exists mostly
@@ -227,10 +230,10 @@ def fix_html(html):
     # C.f. http://www.w3.org/International/O-charset for details.
     offset = html.find('<head>')
     if offset > -1:
-        html = (html[:offset+6]+
-                '\n<meta http-equiv="Content-Type" '+
-                'content="text/html; charset=utf-8" />\n'+
-                html[offset+6:])
+        html = (html[:offset + 6] +
+                '\n<meta http-equiv="Content-Type" ' +
+                'content="text/html; charset=utf-8" />\n' +
+                html[offset + 6:])
 
     # Replace empty paragraphs tags with line breaks.
     html = re.sub(EMPTY_P_RE, '<br/>', html)

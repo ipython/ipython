@@ -31,6 +31,7 @@ from .asyncresult import AsyncMapResult
 # Functions and Decorators
 #-----------------------------------------------------------------------------
 
+
 @skip_doctest
 def remote(view, block=None, **flags):
     """Turn a function into a remote function.
@@ -45,6 +46,7 @@ def remote(view, block=None, **flags):
     def remote_function(f):
         return RemoteFunction(view, f, block=block, **flags)
     return remote_function
+
 
 @skip_doctest
 def parallel(view, dist='b', block=None, ordered=True, **flags):
@@ -61,12 +63,13 @@ def parallel(view, dist='b', block=None, ordered=True, **flags):
         return ParallelFunction(view, f, dist=dist, block=block, ordered=ordered, **flags)
     return parallel_function
 
+
 def getname(f):
     """Get the name of an object.
-    
+
     For use in case of callables that are not functions, and
     thus may not have __name__ defined.
-    
+
     Order: f.__name__ >  f.name > str(f)
     """
     try:
@@ -77,13 +80,14 @@ def getname(f):
         return f.name
     except:
         pass
-    
+
     return str(f)
+
 
 @decorator
 def sync_view_results(f, self, *args, **kwargs):
     """sync relevant results from self.client to our results attribute.
-    
+
     This is a clone of view.sync_results, but for remote functions
     """
     view = self.view
@@ -96,12 +100,14 @@ def sync_view_results(f, self, *args, **kwargs):
         view._in_sync_results = False
         view._sync_results()
     return ret
-    
+
 #--------------------------------------------------------------------------
 # Classes
 #--------------------------------------------------------------------------
 
+
 class RemoteFunction(object):
+
     """Turn an existing function into a remote function.
 
     Parameters
@@ -118,16 +124,16 @@ class RemoteFunction(object):
     **flags : remaining kwargs are passed to View.temp_flags
     """
 
-    view = None # the remote connection
-    func = None # the wrapped function
-    block = None # whether to block
-    flags = None # dict of extra kwargs for temp_flags
+    view = None  # the remote connection
+    func = None  # the wrapped function
+    block = None  # whether to block
+    flags = None  # dict of extra kwargs for temp_flags
 
     def __init__(self, view, f, block=None, **flags):
         self.view = view
         self.func = f
-        self.block=block
-        self.flags=flags
+        self.block = block
+        self.flags = flags
 
     def __call__(self, *args, **kwargs):
         block = self.view.block if self.block is None else self.block
@@ -136,6 +142,7 @@ class RemoteFunction(object):
 
 
 class ParallelFunction(RemoteFunction):
+
     """Class for mapping a function to sequences.
 
     This will distribute the sequences according the a mapper, and call
@@ -180,11 +187,11 @@ class ParallelFunction(RemoteFunction):
 
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
-    
+
     @sync_view_results
     def __call__(self, *sequences):
         client = self.view.client
-        
+
         lens = []
         maxlen = minlen = -1
         for i, seq in enumerate(sequences):
@@ -202,22 +209,24 @@ class ParallelFunction(RemoteFunction):
             if minlen == -1 or n < minlen:
                 minlen = n
             lens.append(n)
-        
+
         # check that the length of sequences match
         if not self._mapping and minlen != maxlen:
             msg = 'all sequences must have equal length, but have %s' % lens
             raise ValueError(msg)
-        
+
         balanced = 'Balanced' in self.view.__class__.__name__
         if balanced:
             if self.chunksize:
-                nparts = maxlen // self.chunksize + int(maxlen % self.chunksize > 0)
+                nparts = maxlen // self.chunksize + \
+                    int(maxlen % self.chunksize > 0)
             else:
                 nparts = maxlen
-            targets = [None]*nparts
+            targets = [None] * nparts
         else:
             if self.chunksize:
-                warnings.warn("`chunksize` is ignored unless load balancing", UserWarning)
+                warnings.warn(
+                    "`chunksize` is ignored unless load balancing", UserWarning)
             # multiplexed:
             targets = self.view.targets
             # 'all' is lazily evaluated at execution time, which is now:
@@ -245,7 +254,7 @@ class ParallelFunction(RemoteFunction):
                     f = map
                 args = [self.func] + args
             else:
-                f=self.func
+                f = self.func
 
             view = self.view if balanced else client[t]
             with view.temp_flags(block=False, **self.flags):
@@ -254,9 +263,9 @@ class ParallelFunction(RemoteFunction):
             msg_ids.extend(ar.msg_ids)
 
         r = AsyncMapResult(self.view.client, msg_ids, self.mapObject,
-                            fname=getname(self.func),
-                            ordered=self.ordered
-                        )
+                           fname=getname(self.func),
+                           ordered=self.ordered
+                           )
 
         if self.block:
             try:
@@ -270,7 +279,7 @@ class ParallelFunction(RemoteFunction):
         """call a function on each element of one or more sequence(s) remotely.
         This should behave very much like the builtin map, but return an AsyncMapResult
         if self.block is False.
-        
+
         That means it can take generators (will be cast to lists locally),
         and mismatched sequence lengths will be padded with None.
         """

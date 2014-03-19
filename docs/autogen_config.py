@@ -4,6 +4,7 @@ from IPython.terminal.ipapp import TerminalIPythonApp
 from IPython.kernel.zmq.kernelapp import IPKernelApp
 from IPython.html.notebookapp import NotebookApp
 
+
 def document_config_options(classes):
     lines = []
     for cls in classes:
@@ -26,10 +27,10 @@ def document_config_options(classes):
                 dv = trait.get_default_value()
                 dvr = repr(dv)
             except Exception:
-                dvr = dv = None # ignore defaults we can't construct
+                dvr = dv = None  # ignore defaults we can't construct
             if (dv is not None) and (dvr is not None):
                 if len(dvr) > 64:
-                    dvr = dvr[:61]+'...'
+                    dvr = dvr[:61] + '...'
                 # Double up backslashes, so they get to the rendered docs
                 dvr = dvr.replace('\\n', '\\\\n')
                 lines.append('    Default: ' + dvr)
@@ -47,6 +48,7 @@ def document_config_options(classes):
 
 kernel_classes = IPKernelApp().classes
 
+
 def write_doc(filename, title, classes, preamble=None):
     configdoc = document_config_options(classes)
     with open('source/config/options/%s.rst' % filename, 'w') as f:
@@ -58,7 +60,8 @@ def write_doc(filename, title, classes, preamble=None):
         f.write(configdoc)
 
 if __name__ == '__main__':
-    write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp().classes)
+    write_doc('terminal', 'Terminal IPython options',
+              TerminalIPythonApp().classes)
     write_doc('kernel', 'IPython kernel options', kernel_classes,
               preamble="These options can be used in :file:`ipython_notebook_config.py` "
               "or in :file:`ipython_qtconsole_config.py`")

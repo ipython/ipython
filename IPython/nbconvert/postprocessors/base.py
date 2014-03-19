@@ -2,11 +2,11 @@
 Basic post processor
 """
 #-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
+# Copyright (c) 2013, the IPython Development Team.
 #
-#Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the Modified BSD License.
 #
-#The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -26,7 +26,6 @@ class PostProcessorBase(NbConvertBase):
         See def postprocess() ...
         """
         self.postprocess(input)
-
 
     def postprocess(self, input):
         """

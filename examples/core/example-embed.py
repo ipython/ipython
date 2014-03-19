@@ -42,8 +42,8 @@ from IPython.terminal.embed import InteractiveShellEmbed
 # IPython at the system command line. Any parameters you want to define for
 # configuration can thus be specified here.
 ipshell = InteractiveShellEmbed(config=cfg,
-                       banner1 = 'Dropping into IPython',
-                       exit_msg = 'Leaving Interpreter, back to program.')
+                                banner1='Dropping into IPython',
+                                exit_msg='Leaving Interpreter, back to program.')
 
 # Make a second instance, you can have as many as you want.
 cfg2 = cfg.copy()
@@ -54,7 +54,7 @@ if not nested:
     prompt_config.in2_template = '   .\\D.: '
     prompt_config.out_template = 'Out<\\#>: '
 ipshell2 = InteractiveShellEmbed(config=cfg,
-                        banner1 = 'Second IPython instance.')
+                                 banner1='Second IPython instance.')
 
 print('\nHello. This is printed from the main controller program.\n')
 
@@ -99,16 +99,18 @@ print('\nBack in caller program, moving along...\n')
 ipshell.banner = 'Entering interpreter - New Banner'
 ipshell.exit_msg = 'Leaving interpreter - New exit_msg'
 
+
 def foo(m):
     s = 'spam'
     ipshell('***In foo(). Try %whos, or print s or m:')
-    print('foo says m = ',m)
+    print('foo says m = ', m)
+
 
 def bar(n):
     s = 'eggs'
     ipshell('***In bar(). Try %whos, or print s or n:')
-    print('bar says n = ',n)
-    
+    print('bar says n = ', n)
+
 # Some calls to the above functions which will trigger IPython:
 print('Main program calling foo("eggs")\n')
 foo('eggs')

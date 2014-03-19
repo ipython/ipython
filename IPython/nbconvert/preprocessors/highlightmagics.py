@@ -30,6 +30,7 @@ from IPython.utils.traitlets import Dict
 
 
 class HighlightMagicsPreprocessor(Preprocessor):
+
     """
     Detects and tags code cells that use a different languages than Python.
     """
@@ -52,8 +53,8 @@ class HighlightMagicsPreprocessor(Preprocessor):
     languages = Dict(
         config=True,
         help=("Syntax highlighting for magic's extension languages. "
-         "Each item associates a language magic extension such as %%R, "
-         "with a pygments lexer such as r."))
+              "Each item associates a language magic extension such as %%R, "
+              "with a pygments lexer such as r."))
 
     def __init__(self, config=None, **kw):
         """Public constructor"""

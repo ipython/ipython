@@ -51,9 +51,10 @@ PyCF_MASK = functools.reduce(operator.or_,
 # Local utilities
 #-----------------------------------------------------------------------------
 
+
 def code_name(code, number=0):
     """ Compute a (probably) unique name for code for caching.
-    
+
     This now expects code to be unicode.
     """
     hash_digest = hashlib.md5(code.encode("utf-8")).hexdigest()
@@ -66,13 +67,15 @@ def code_name(code, number=0):
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class CachingCompiler(codeop.Compile):
+
     """A compiler that caches code compiled from interactive statements.
     """
 
     def __init__(self):
         codeop.Compile.__init__(self)
-        
+
         # This is ugly, but it must be done this way to allow multiple
         # simultaneous ipython instances to coexist.  Since Python itself
         # directly accesses the data structures in the linecache module, and
@@ -91,14 +94,14 @@ class CachingCompiler(codeop.Compile):
         # stdlib that call it outside our control go through our codepath
         # (otherwise we'd lose our tracebacks).
         linecache.checkcache = check_linecache_ipython
-        
+
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
         """Parse code to an AST with the current compiler flags active.
-        
+
         Arguments are exactly the same as ast.parse (in the standard library),
         and are passed to the built-in compile function."""
         return compile(source, filename, symbol, self.flags | PyCF_ONLY_AST, 1)
-    
+
     def reset_compiler_flags(self):
         """Reset compiler flags to default state."""
         # This value is copied from codeop.Compile.__init__, so if that ever
@@ -110,10 +113,10 @@ class CachingCompiler(codeop.Compile):
         """Flags currently active in the compilation process.
         """
         return self.flags
-        
+
     def cache(self, code, number=0):
         """Make a name for a block of code, and cache the code.
-        
+
         Parameters
         ----------
         code : str
@@ -121,7 +124,7 @@ class CachingCompiler(codeop.Compile):
         number : int
           A number which forms part of the code's name. Used for the execution
           counter.
-          
+
         Returns
         -------
         The name of the cached code (as a string). Pass this as the filename
@@ -129,10 +132,11 @@ class CachingCompiler(codeop.Compile):
         """
         name = code_name(code, number)
         entry = (len(code), time.time(),
-                 [line+'\n' for line in code.splitlines()], name)
+                 [line + '\n' for line in code.splitlines()], name)
         linecache.cache[name] = entry
         linecache._ipython_cache[name] = entry
         return name
+
 
 def check_linecache_ipython(*args):
     """Call linecache.checkcache() safely protecting our cached values.

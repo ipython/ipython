@@ -14,19 +14,22 @@ events and the arguments which will be passed to them.
 """
 from __future__ import print_function
 
+
 class EventManager(object):
+
     """Manage a collection of events and a sequence of callbacks for each.
-    
+
     This is attached to :class:`~IPython.core.interactiveshell.InteractiveShell`
     instances as an ``events`` attribute.
-    
+
     .. note::
 
        This API is experimental in IPython 2.0, and may be revised in future versions.
     """
+
     def __init__(self, shell, available_events):
         """Initialise the :class:`CallbackManager`.
-        
+
         Parameters
         ----------
         shell
@@ -35,11 +38,11 @@ class EventManager(object):
           An iterable of names for callback events.
         """
         self.shell = shell
-        self.callbacks = {n:[] for n in available_events}
-    
+        self.callbacks = {n: [] for n in available_events}
+
     def register(self, event, function):
         """Register a new event callback
-        
+
         Parameters
         ----------
         event : str
@@ -47,7 +50,7 @@ class EventManager(object):
         function : callable
           A function to be called on the given event. It should take the same
           parameters as the appropriate callback prototype.
-        
+
         Raises
         ------
         TypeError
@@ -58,22 +61,22 @@ class EventManager(object):
         if not callable(function):
             raise TypeError('Need a callable, got %r' % function)
         self.callbacks[event].append(function)
-    
+
     def unregister(self, event, function):
         """Remove a callback from the given event."""
         self.callbacks[event].remove(function)
-    
+
     def reset(self, event):
         """Clear all callbacks for the given event."""
         self.callbacks[event] = []
-    
+
     def reset_all(self):
         """Clear all callbacks for all events."""
-        self.callbacks = {n:[] for n in self.callbacks}
-    
+        self.callbacks = {n: [] for n in self.callbacks}
+
     def trigger(self, event, *args, **kwargs):
         """Call callbacks for ``event``.
-        
+
         Any additional arguments are passed to all callbacks registered for this
         event. Exceptions raised by callbacks are caught, and a message printed.
         """
@@ -87,50 +90,56 @@ class EventManager(object):
 # event_name -> prototype mapping
 available_events = {}
 
+
 def _define_event(callback_proto):
     available_events[callback_proto.__name__] = callback_proto
     return callback_proto
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 # Callback prototypes
 #
 # No-op functions which describe the names of available events and the
 # signatures of callbacks for those events.
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+
 
 @_define_event
 def pre_execute():
     """Fires before code is executed in response to user/frontend action.
-    
+
     This includes comm and widget messages and silent execution, as well as user
     code cells."""
     pass
+
 
 @_define_event
 def pre_run_cell():
     """Fires before user-entered code runs."""
     pass
 
+
 @_define_event
 def post_execute():
     """Fires after code is executed in response to user/frontend action.
-    
+
     This includes comm and widget messages and silent execution, as well as user
     code cells."""
     pass
+
 
 @_define_event
 def post_run_cell():
     """Fires after user-entered code runs."""
     pass
 
+
 @_define_event
 def shell_initialized(ip):
     """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
-    
+
     This is before extensions and startup scripts are loaded, so it can only be
     set by subclassing.
-    
+
     Parameters
     ----------
     ip : :class:`~IPython.core.interactiveshell.InteractiveShell`

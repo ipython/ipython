@@ -32,6 +32,7 @@ else:
 #-----------------------------------------------------------------------------
 
 class Testfiles(TestsBase):
+
     """Contains test functions for files.py"""
 
     def test_basic_output(self):
@@ -71,7 +72,6 @@ class Testfiles(TestsBase):
                 output = f.read()
                 self.assertEqual(output, u'y')
 
-
     def test_extract(self):
         """Can FilesWriter write extracted figures correctly?"""
 
@@ -97,7 +97,6 @@ class Testfiles(TestsBase):
                 output = f.read()
                 self.assertEqual(output, 'b')
 
-
     def test_builddir(self):
         """Can FilesWriter write to a build dir correctly?"""
 
@@ -120,12 +119,12 @@ class Testfiles(TestsBase):
                 self.assertEqual(output, u'y')
 
             # Check the output of the extracted file
-            extracted_file_dest = os.path.join(writer.build_directory, 'z_files', 'a')
+            extracted_file_dest = os.path.join(
+                writer.build_directory, 'z_files', 'a')
             assert os.path.isfile(extracted_file_dest)
             with open(extracted_file_dest, 'r') as f:
                 output = f.read()
                 self.assertEqual(output, 'b')
-
 
     def test_links(self):
         """Can the FilesWriter handle linked files correctly?"""

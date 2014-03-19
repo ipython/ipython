@@ -16,32 +16,33 @@ ip = get_ipython()
 
 
 class PromptTests(unittest.TestCase):
+
     def setUp(self):
         self.pm = PromptManager(shell=ip, config=ip.config)
-    
+
     def test_multiline_prompt(self):
         self.pm.in_template = "[In]\n>>>"
         self.pm.render('in')
         self.assertEqual(self.pm.width, 3)
         self.assertEqual(self.pm.txtwidth, 3)
-        
+
         self.pm.in_template = '[In]\n'
         self.pm.render('in')
         self.assertEqual(self.pm.width, 0)
         self.assertEqual(self.pm.txtwidth, 0)
-    
+
     def test_translate_abbreviations(self):
         def do_translate(template):
             self.pm.in_template = template
             return self.pm.templates['in']
-        
+
         pairs = [(r'%n>', '{color.number}{count}{color.prompt}>'),
                  (r'\T', '{time}'),
                  (r'\n', '\n')
-                ]
-    
+                 ]
+
         tt.check_pairs(do_translate, pairs)
-    
+
     def test_user_ns(self):
         self.pm.color_scheme = 'NoColor'
         ip.ex("foo='bar'")
@@ -63,8 +64,9 @@ class PromptTests(unittest.TestCase):
 
     def test_render(self):
         self.pm.in_template = r'\#>'
-        self.assertEqual(self.pm.render('in',color=False), '%d>' % ip.execution_count)
-    
+        self.assertEqual(
+            self.pm.render('in', color=False), '%d>' % ip.execution_count)
+
     @dec.onlyif_unicode_paths
     def test_render_unicode_cwd(self):
         save = py3compat.getcwd()
@@ -72,33 +74,34 @@ class PromptTests(unittest.TestCase):
             os.chdir(td)
             self.pm.in_template = r'\w [\#]'
             p = self.pm.render('in', color=False)
-            self.assertEqual(p, u"%s [%i]" % (py3compat.getcwd(), ip.execution_count))
+            self.assertEqual(p, u"%s [%i]" %
+                             (py3compat.getcwd(), ip.execution_count))
         os.chdir(save)
-    
+
     def test_lazy_eval_unicode(self):
         u = u'ünicødé'
-        lz = LazyEvaluate(lambda : u)
+        lz = LazyEvaluate(lambda: u)
         # str(lz) would fail
         self.assertEqual(unicode_type(lz), u)
         self.assertEqual(format(lz), u)
-    
+
     def test_lazy_eval_nonascii_bytes(self):
         u = u'ünicødé'
         b = u.encode('utf8')
-        lz = LazyEvaluate(lambda : b)
+        lz = LazyEvaluate(lambda: b)
         # unicode(lz) would fail
         self.assertEqual(str(lz), str(b))
         self.assertEqual(format(lz), str(b))
-    
+
     def test_lazy_eval_float(self):
         f = 0.503
-        lz = LazyEvaluate(lambda : f)
-        
+        lz = LazyEvaluate(lambda: f)
+
         self.assertEqual(str(lz), str(f))
         self.assertEqual(unicode_type(lz), unicode_type(f))
         self.assertEqual(format(lz), str(f))
         self.assertEqual(format(lz, '.1'), '0.5')
-    
+
     @dec.skip_win32
     def test_cwd_x(self):
         self.pm.in_template = r"\X0"
@@ -109,4 +112,3 @@ class PromptTests(unittest.TestCase):
             self.assertEqual(p, '~')
         finally:
             os.chdir(save)
-    

@@ -33,7 +33,7 @@ class LogoutHandler(IPythonHandler):
             message = {'warning': 'Cannot log out.  Notebook authentication '
                        'is disabled.'}
         self.write(self.render_template('logout.html',
-                    message=message))
+                                        message=message))
 
 
 #-----------------------------------------------------------------------------

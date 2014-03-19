@@ -43,7 +43,7 @@ __license__ = 'Modified BSD License'
 try:
     from urllib import unquote
     from itertools import izip
-except ImportError: # Python 3
+except ImportError:  # Python 3
     from urllib.parse import unquote
     izip = zip
 
@@ -120,6 +120,7 @@ def set_pointer(doc, pointer, value):
 
 
 class JsonPointer(object):
+
     """ A JSON Pointer that can reference parts of an JSON document """
 
     def __init__(self, pointer):
@@ -131,8 +132,6 @@ class JsonPointer(object):
         parts = [part.replace('~1', '/') for part in parts]
         parts = [part.replace('~0', '~') for part in parts]
         self.parts = parts
-
-
 
     def resolve(self, doc, default=_nothing):
         """Resolves the pointer against doc and returns the referenced object"""
@@ -149,9 +148,7 @@ class JsonPointer(object):
 
         return doc
 
-
     get = resolve
-
 
     def set(self, doc, value, path=None):
         """ Sets a field of doc to value
@@ -164,7 +161,6 @@ class JsonPointer(object):
         if path:
             fullpath += path.split('/')
 
-
         for part, nextpart in pairwise(fullpath):
             try:
                 doc = self.walk(doc, part)
@@ -173,7 +169,6 @@ class JsonPointer(object):
                 doc = self._set_value(doc, part, step_val)
 
         self._set_value(doc, fullpath[-1], value)
-
 
     @staticmethod
     def _set_value(doc, part, value):
@@ -194,7 +189,6 @@ class JsonPointer(object):
 
         return doc[part]
 
-
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
@@ -210,14 +204,12 @@ class JsonPointer(object):
 
         raise JsonPointerException("'%s' not found in %s" % (part, doc))
 
-
     @staticmethod
     def _try_parse(val, cls=int):
         try:
             return [cls(val)]
         except:
             return []
-
 
 
 def pairwise(iterable):

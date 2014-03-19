@@ -47,102 +47,103 @@ relations like 1<2 & 4>5.</p>
 * Three \cite{ivanov}.
 """,
 
-# No citations
-r"""The quick brown fox jumps over the lazy dog.""": 
-r"""The quick brown fox jumps over the lazy dog.""",
+           # No citations
+           r"""The quick brown fox jumps over the lazy dog.""":
+           r"""The quick brown fox jumps over the lazy dog.""",
 
-# Simple inline
-r"""Foo <cite data-cite=asdf>Text</cite> bar""":
-r"""Foo \cite{asdf} bar""",
+           # Simple inline
+           r"""Foo <cite data-cite=asdf>Text</cite> bar""":
+           r"""Foo \cite{asdf} bar""",
 
-# Multiline
-r"""<cite data-cite=ewqr>Text
+           # Multiline
+           r"""<cite data-cite=ewqr>Text
 </cite>Foo""":
-r"""\cite{ewqr}Foo""",
+           r"""\cite{ewqr}Foo""",
 
-# Nested tags
-r"""<div><div data-cite=Foo><div>Text</div></div></div> Bar""":
-r"""<div>\cite{Foo}</div> Bar""",
+           # Nested tags
+           r"""<div><div data-cite=Foo><div>Text</div></div></div> Bar""":
+           r"""<div>\cite{Foo}</div> Bar""",
 
-# Including Maths
-r"""Foo $3*2*1$ <div data-cite=Foo>Text</div> Bar""":
-r"""Foo $3*2*1$ \cite{Foo} Bar""",
+           # Including Maths
+           r"""Foo $3*2*1$ <div data-cite=Foo>Text</div> Bar""":
+           r"""Foo $3*2*1$ \cite{Foo} Bar""",
 
-# Missing end tag
-r"""<cite data-cite=asdf>Test Foo""":
-r"""\cite{asdf}""",
+           # Missing end tag
+           r"""<cite data-cite=asdf>Test Foo""":
+           r"""\cite{asdf}""",
 
-r"""<cite data-cite=asdf><cite>Test Foo""":
-r"""\cite{asdf}""",
+           r"""<cite data-cite=asdf><cite>Test Foo""":
+           r"""\cite{asdf}""",
 
-r"""<cite data-cite=asdf><cite>Test</cite> Foo""":
-r"""\cite{asdf}""",
+           r"""<cite data-cite=asdf><cite>Test</cite> Foo""":
+           r"""\cite{asdf}""",
 
-# Multiple arguments
-r"""<cite width=qwer data-cite=asdf>Test</cite> Foo""":
-r"""\cite{asdf} Foo""",
+           # Multiple arguments
+           r"""<cite width=qwer data-cite=asdf>Test</cite> Foo""":
+           r"""\cite{asdf} Foo""",
 
-# Wrong capitalization
-r"""<CITE data-cite=asdf>Test</cite> Foo""":
-r"""\cite{asdf} Foo""",
+           # Wrong capitalization
+           r"""<CITE data-cite=asdf>Test</cite> Foo""":
+           r"""\cite{asdf} Foo""",
 
-r"""<cite DATA-CITE=asdf>Test</cite> Foo""":
-r"""\cite{asdf} Foo""",
+           r"""<cite DATA-CITE=asdf>Test</cite> Foo""":
+           r"""\cite{asdf} Foo""",
 
-# Wrong end tag
-r"""<asd data-cite=wer> ksjfs </asdf> sdf ds """:
-r"""\cite{wer}""",
+           # Wrong end tag
+           r"""<asd data-cite=wer> ksjfs </asdf> sdf ds """:
+           r"""\cite{wer}""",
 
-r"""<asd data-cite=wer>""":
-r"""\cite{wer}""",
+           r"""<asd data-cite=wer>""":
+           r"""\cite{wer}""",
 
-# Invalid tag names
-r"""<frog> <foo data-cite=wer></foo>""":
-r"""<frog> \cite{wer}""",
+           # Invalid tag names
+           r"""<frog> <foo data-cite=wer></foo>""":
+           r"""<frog> \cite{wer}""",
 
-# Non-nested tags
-r"""<strong> <h1> <cite data-cite=asdf></cite>Test</strong> Foo </h1>""":
-r"""<strong> <h1> \cite{asdf}Test</strong> Foo </h1>""",
+           # Non-nested tags
+           r"""<strong> <h1> <cite data-cite=asdf></cite>Test</strong> Foo </h1>""":
+           r"""<strong> <h1> \cite{asdf}Test</strong> Foo </h1>""",
 
-# LXML errors
-r"""Foo
+           # LXML errors
+           r"""Foo
 \begin{eqnarray}
 1 & <cite data-cite=bar>bar1</cite> \\
 3 & 4 \\
 \end{eqnarray}""":
-r"""Foo
+           r"""Foo
 \begin{eqnarray}
 1 & \cite{bar} \\
 3 & 4 \\
 \end{eqnarray}""",
 
-r"""
+           r"""
 1<2 is true, but 3>4 is false.
 
 $1<2$ is true, but $3>4$ is false.
 
 1<2 it is even worse if it is alone in a line.""":
-r"""
+           r"""
 1<2 is true, but 3>4 is false.
 
 $1<2$ is true, but $3>4$ is false.
 
 1<2 it is even worse if it is alone in a line.""",
 
-r"""
+           r"""
 1 < 2 is true, but 3 > 4 is false
 
 $1 < 2$ is true, but $3 > 4$ is false
 
 1 < 2 it is even worse if it is alone in a line.
 """:
-r"""
+           r"""
 1 < 2 is true, but 3 > 4 is false
 
 $1 < 2$ is true, but $3 > 4$ is false
 
 1 < 2 it is even worse if it is alone in a line.
 """}
+
 
 def test_citation2latex():
     """Are citations parsed properly?"""

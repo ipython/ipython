@@ -13,6 +13,7 @@ try:
 except ImportError:
     from Tkinter import *  # Python 2
 
+
 class MyApp:
 
     def __init__(self, root):
@@ -30,6 +31,7 @@ root = Tk()
 app = MyApp(root)
 
 try:
-    from IPython.lib.inputhook import enable_tk; enable_tk(root)
+    from IPython.lib.inputhook import enable_tk
+    enable_tk(root)
 except ImportError:
     root.mainloop()

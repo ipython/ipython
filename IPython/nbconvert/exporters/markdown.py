@@ -20,11 +20,13 @@ from .templateexporter import TemplateExporter
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class MarkdownExporter(TemplateExporter):
+
     """
     Exports to a markdown document (.md)
     """
-    
+
     def _file_extension_default(self):
         return 'md'
 
@@ -32,12 +34,12 @@ class MarkdownExporter(TemplateExporter):
         return 'markdown'
 
     output_mimetype = 'text/markdown'
-    
+
     def _raw_mimetypes_default(self):
         return ['text/markdown', 'text/html', '']
 
     @property
     def default_config(self):
-        c = Config({'ExtractOutputPreprocessor':{'enabled':True}})
-        c.merge(super(MarkdownExporter,self).default_config)
+        c = Config({'ExtractOutputPreprocessor': {'enabled': True}})
+        c.merge(super(MarkdownExporter, self).default_config)
         return c

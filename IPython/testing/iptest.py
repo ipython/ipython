@@ -64,7 +64,7 @@ pjoin = path.join
 # Twisted generates annoying warnings with Python 2.6, as will do other code
 # that imports 'sets' as of today
 warnings.filterwarnings('ignore', 'the sets module is deprecated',
-                        DeprecationWarning )
+                        DeprecationWarning)
 
 # This one also comes from Twisted
 warnings.filterwarnings('ignore', 'the sha module is deprecated',
@@ -74,9 +74,11 @@ warnings.filterwarnings('ignore', 'the sha module is deprecated',
 warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
                         UserWarning)
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 # Monkeypatch Xunit to count known failures as skipped.
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+
+
 def monkeypatch_xunit():
     try:
         knownfailureif(True)(lambda: None)()
@@ -94,8 +96,11 @@ def monkeypatch_xunit():
 #-----------------------------------------------------------------------------
 # Check which dependencies are installed and greater than minimum version.
 #-----------------------------------------------------------------------------
+
+
 def extract_version(mod):
     return mod.__version__
+
 
 def test_for(item, min_version=None, callback=extract_version):
     """Test to see if item is importable, and optionally check against a minimum
@@ -144,15 +149,16 @@ have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
 have['oct2py'] = test_for('oct2py')
-have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
+have['tornado'] = test_for('tornado.version_info', (3, 1, 0), callback=None)
 have['jinja2'] = test_for('jinja2')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['casperjs'] = is_cmd_found('casperjs')
 
-min_zmq = (2,1,11)
+min_zmq = (2, 1, 11)
 
-have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x())
+have['zmq'] = test_for(
+    'zmq.pyzmq_version_info', min_zmq, callback=lambda x: x())
 
 #-----------------------------------------------------------------------------
 # Test suite definitions
@@ -161,30 +167,33 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 test_group_names = ['parallel', 'kernel', 'kernel.inprocess', 'config', 'core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
                     'nbformat', 'qt', 'html', 'nbconvert'
-                   ]
+                    ]
+
 
 class TestSection(object):
+
     def __init__(self, name, includes):
         self.name = name
         self.includes = includes
         self.excludes = []
         self.dependencies = []
         self.enabled = True
-    
+
     def exclude(self, module):
         if not module.startswith('IPython'):
             module = self.includes[0] + "." + module
         self.excludes.append(module.replace('.', os.sep))
-    
+
     def requires(self, *packages):
         self.dependencies.extend(packages)
-    
+
     @property
     def will_run(self):
         return self.enabled and all(have[p] for p in self.dependencies)
 
 # Name -> (include, exclude, dependencies_met)
-test_sections = {n:TestSection(n, ['IPython.%s' % n]) for n in test_group_names}
+test_sections = {n: TestSection(n, ['IPython.%s' % n])
+                 for n in test_group_names}
 
 # Exclusions and dependencies
 # ---------------------------
@@ -260,7 +269,7 @@ if not have['rpy2'] or not have['numpy']:
 sec.exclude('autoreload')
 sec.exclude('tests.test_autoreload')
 test_sections['autoreload'] = TestSection('autoreload',
-        ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'])
+                                          ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'])
 test_group_names.append('autoreload')
 
 # qt:
@@ -299,6 +308,7 @@ if not have['tornado']:
 # Functions and classes
 #-----------------------------------------------------------------------------
 
+
 def check_exclusions_exist():
     from IPython.utils.path import get_ipython_package_dir
     from IPython.utils.warn import warn
@@ -311,11 +321,12 @@ def check_exclusions_exist():
 
 
 class ExclusionPlugin(Plugin):
+
     """A nose plugin to effect our exclusions of files and directories.
     """
     name = 'exclusions'
     score = 3000  # Should come before any other plugins
-    
+
     def __init__(self, exclude_patterns=None):
         """
         Parameters
@@ -330,12 +341,12 @@ class ExclusionPlugin(Plugin):
 
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
-    
+
     def configure(self, options, config):
         Plugin.configure(self, options, config)
         # Override nose trying to disable plugin.
         self.enabled = True
-        
+
     def wantFile(self, filename):
         """Return whether the given filename should be scanned for tests.
         """
@@ -354,6 +365,7 @@ class ExclusionPlugin(Plugin):
 class StreamCapturer(Thread):
     daemon = True  # Don't hang if main thread crashes
     started = False
+
     def __init__(self):
         super(StreamCapturer, self).__init__()
         self.streams = []
@@ -370,7 +382,7 @@ class StreamCapturer(Thread):
 
             with self.buffer_lock:
                 self.buffer.write(chunk)
-    
+
         os.close(self.readfd)
         os.close(self.writefd)
 
@@ -393,11 +405,14 @@ class StreamCapturer(Thread):
             return
 
         self.stop.set()
-        os.write(self.writefd, b'wake up')  # Ensure we're not locked in a read()
+        # Ensure we're not locked in a read()
+        os.write(self.writefd, b'wake up')
         self.join()
 
+
 class SubprocessStreamCapturePlugin(Plugin):
-    name='subprocstreams'
+    name = 'subprocstreams'
+
     def __init__(self):
         Plugin.__init__(self)
         self.stream_capturer = StreamCapturer()
@@ -414,17 +429,17 @@ class SubprocessStreamCapturePlugin(Plugin):
             return os.open(os.devnull, os.O_WRONLY)
         else:
             return sys.__stdout__.fileno()
-    
+
     def configure(self, options, config):
         Plugin.configure(self, options, config)
         # Override nose trying to disable plugin.
         if self.destination == 'capture':
             self.enabled = True
-    
+
     def startTest(self, test):
         # Reset log capture
         self.stream_capturer.reset_buffer()
-    
+
     def formatFailure(self, test, err):
         # Show output
         ec, ev, tb = err
@@ -432,14 +447,14 @@ class SubprocessStreamCapturePlugin(Plugin):
         if captured.strip():
             ev = safe_str(ev)
             out = [ev, '>> begin captured subprocess output <<',
-                    captured,
-                    '>> end captured subprocess output <<']
+                   captured,
+                   '>> end captured subprocess output <<']
             return ec, '\n'.join(out), tb
 
         return err
-    
+
     formatError = formatFailure
-    
+
     def finalize(self, result):
         self.stream_capturer.halt()
 
@@ -456,8 +471,8 @@ def run_iptest():
         monkeypatch_xunit()
 
     warnings.filterwarnings('ignore',
-        'This will be removed soon.  Use IPython.testing.util instead')
-    
+                            'This will be removed soon.  Use IPython.testing.util instead')
+
     arg1 = sys.argv[1]
     if arg1 in test_sections:
         section = test_sections[arg1]
@@ -467,21 +482,20 @@ def run_iptest():
         sys.argv[1:2] = section.includes
     else:
         section = TestSection(arg1, includes=[arg1])
-        
 
-    argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
+    argv = sys.argv + ['--detailed-errors',  # extra info in tracebacks
 
-                        '--with-ipdoctest',
-                        '--ipdoctest-tests','--ipdoctest-extension=txt',
+                       '--with-ipdoctest',
+                       '--ipdoctest-tests', '--ipdoctest-extension=txt',
 
-                        # We add --exe because of setuptools' imbecility (it
-                        # blindly does chmod +x on ALL files).  Nose does the
-                        # right thing and it tries to avoid executables,
-                        # setuptools unfortunately forces our hand here.  This
-                        # has been discussed on the distutils list and the
-                        # setuptools devs refuse to fix this problem!
-                        '--exe',
-                        ]
+                       # We add --exe because of setuptools' imbecility (it
+                       # blindly does chmod +x on ALL files).  Nose does the
+                       # right thing and it tries to avoid executables,
+                       # setuptools unfortunately forces our hand here.  This
+                       # has been discussed on the distutils list and the
+                       # setuptools devs refuse to fix this problem!
+                       '--exe',
+                       ]
     if '-a' not in argv and '-A' not in argv:
         argv = argv + ['-a', '!crash']
 
@@ -499,12 +513,12 @@ def run_iptest():
     # use our plugin for doctesting.  It will remove the standard doctest plugin
     # if it finds it enabled
     plugins = [ExclusionPlugin(section.excludes), IPythonDoctest(), KnownFailure(),
-               SubprocessStreamCapturePlugin() ]
-    
+               SubprocessStreamCapturePlugin()]
+
     # Use working directory set by parent process (see iptestcontroller)
     if 'IPTEST_WORKING_DIR' in os.environ:
         os.chdir(os.environ['IPTEST_WORKING_DIR'])
-    
+
     # We need a global ipython running in this process, but the special
     # in-process group spawns its own IPython kernels, so for *that* group we
     # must avoid also opening the global one (otherwise there's a conflict of
@@ -521,4 +535,3 @@ def run_iptest():
 
 if __name__ == '__main__':
     run_iptest()
-

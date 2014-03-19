@@ -34,10 +34,12 @@ from IPython.utils.warn import warn, error
 # Magics class implementation
 #-----------------------------------------------------------------------------
 
+
 class MagicsDisplay(object):
+
     def __init__(self, magics_manager):
         self.magics_manager = magics_manager
-    
+
     def _lsmagic(self):
         """The main implementation of the %lsmagic"""
         mesc = magic_escapes['line']
@@ -45,23 +47,23 @@ class MagicsDisplay(object):
         mman = self.magics_manager
         magics = mman.lsmagic()
         out = ['Available line magics:',
-               mesc + ('  '+mesc).join(sorted(magics['line'])),
+               mesc + ('  ' + mesc).join(sorted(magics['line'])),
                '',
                'Available cell magics:',
-               cesc + ('  '+cesc).join(sorted(magics['cell'])),
+               cesc + ('  ' + cesc).join(sorted(magics['cell'])),
                '',
                mman.auto_status()]
         return '\n'.join(out)
 
     def _repr_pretty_(self, p, cycle):
         p.text(self._lsmagic())
-    
+
     def __str__(self):
         return self._lsmagic()
-    
+
     def _jsonable(self):
         """turn magics dict into jsonable dict of the same structure
-        
+
         replaces object instances with their class names as strings
         """
         magic_dict = {}
@@ -75,16 +77,17 @@ class MagicsDisplay(object):
                     classname = obj.__self__.__class__.__name__
                 except AttributeError:
                     classname = 'Other'
-                
+
                 d[name] = classname
         return magic_dict
-        
+
     def _repr_json_(self):
         return json.dumps(self._jsonable())
 
 
 @magics_class
 class BasicMagics(Magics):
+
     """Magics that provide central IPython functionality.
 
     These are various magics that don't fit into specific categories but that
@@ -270,12 +273,12 @@ For a list of the available magic functions, use %lsmagic. For a description
 of any of them, type %magic_name?, e.g. '%cd?'.
 
 Currently the magic system has the following functions:""",
-       magic_docs,
-       "Summary of magic functions (from %slsmagic):" % magic_escapes['line'],
-       str(self.lsmagic()),
-       ]
+               magic_docs,
+               "Summary of magic functions (from %slsmagic):" % magic_escapes[
+                   'line'],
+               str(self.lsmagic()),
+               ]
         page.page('\n'.join(out))
-
 
     @line_magic
     def page(self, parameter_s=''):
@@ -298,7 +301,7 @@ Currently the magic system has the following functions:""",
         oname = args and args or '_'
         info = self.shell._ofind(oname)
         if info['found']:
-            txt = (raw and str or pformat)( info['obj'] )
+            txt = (raw and str or pformat)(info['obj'])
             page.page(txt)
         else:
             print('Object `%s` not found' % oname)
@@ -312,12 +315,14 @@ Currently the magic system has the following functions:""",
         prun : run code using the Python profiler
                (:meth:`~IPython.core.magics.execution.ExecutionMagics.prun`)
         """
-        warn("%profile is now deprecated. Please use get_ipython().profile instead.")
+        warn(
+            "%profile is now deprecated. Please use get_ipython().profile instead.")
         from IPython.core.application import BaseIPythonApplication
         if BaseIPythonApplication.initialized():
             print(BaseIPythonApplication.instance().profile)
         else:
-            error("profile is an application-level value, but you don't appear to be in an IPython application")
+            error(
+                "profile is an application-level value, but you don't appear to be in an IPython application")
 
     @line_magic
     def pprint(self, parameter_s=''):
@@ -325,7 +330,7 @@ Currently the magic system has the following functions:""",
         ptformatter = self.shell.display_formatter.formatters['text/plain']
         ptformatter.pprint = bool(1 - ptformatter.pprint)
         print('Pretty printing has been turned',
-              ['OFF','ON'][ptformatter.pprint])
+              ['OFF', 'ON'][ptformatter.pprint])
 
     @line_magic
     def colors(self, parameter_s=''):
@@ -344,7 +349,6 @@ Currently the magic system has the following functions:""",
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
                  (name, sys.exc_info()[1]))
-
 
         new_scheme = parameter_s.strip()
         if not new_scheme:
@@ -381,11 +385,11 @@ Defaulting color scheme to 'NoColor'"""
             color_switch_err('prompt')
         else:
             shell.colors = \
-                   shell.prompt_manager.color_scheme_table.active_scheme_name
+                shell.prompt_manager.color_scheme_table.active_scheme_name
         # Set exception colors
         try:
-            shell.InteractiveTB.set_colors(scheme = new_scheme)
-            shell.SyntaxTB.set_colors(scheme = new_scheme)
+            shell.InteractiveTB.set_colors(scheme=new_scheme)
+            shell.SyntaxTB.set_colors(scheme=new_scheme)
         except:
             color_switch_err('exception')
 
@@ -408,18 +412,18 @@ Defaulting color scheme to 'NoColor'"""
 
         def xmode_switch_err(name):
             warn('Error changing %s exception modes.\n%s' %
-                 (name,sys.exc_info()[1]))
+                 (name, sys.exc_info()[1]))
 
         shell = self.shell
         new_mode = parameter_s.strip().capitalize()
         try:
             shell.InteractiveTB.set_mode(mode=new_mode)
-            print('Exception reporting mode:',shell.InteractiveTB.mode)
+            print('Exception reporting mode:', shell.InteractiveTB.mode)
         except:
             xmode_switch_err('user')
 
     @line_magic
-    def quickref(self,arg):
+    def quickref(self, arg):
         """ Show a quick reference sheet """
         from IPython.core.usage import quick_reference
         qr = quick_reference + self._magic_docs(brief=True)
@@ -459,19 +463,20 @@ Defaulting color scheme to 'NoColor'"""
         ptformatter = disp_formatter.formatters['text/plain']
         # dstore is a data store kept in the instance metadata bag to track any
         # changes we make, so we can undo them later.
-        dstore = meta.setdefault('doctest_mode',Struct())
+        dstore = meta.setdefault('doctest_mode', Struct())
         save_dstore = dstore.setdefault
 
         # save a few values we'll need to recover later
-        mode = save_dstore('mode',False)
-        save_dstore('rc_pprint',ptformatter.pprint)
-        save_dstore('xmode',shell.InteractiveTB.mode)
-        save_dstore('rc_separate_out',shell.separate_out)
-        save_dstore('rc_separate_out2',shell.separate_out2)
-        save_dstore('rc_prompts_pad_left',pm.justify)
-        save_dstore('rc_separate_in',shell.separate_in)
-        save_dstore('rc_active_types',disp_formatter.active_types)
-        save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
+        mode = save_dstore('mode', False)
+        save_dstore('rc_pprint', ptformatter.pprint)
+        save_dstore('xmode', shell.InteractiveTB.mode)
+        save_dstore('rc_separate_out', shell.separate_out)
+        save_dstore('rc_separate_out2', shell.separate_out2)
+        save_dstore('rc_prompts_pad_left', pm.justify)
+        save_dstore('rc_separate_in', shell.separate_in)
+        save_dstore('rc_active_types', disp_formatter.active_types)
+        save_dstore(
+            'prompt_templates', (pm.in_template, pm.in2_template, pm.out_template))
 
         if mode == False:
             # turn on
@@ -507,8 +512,8 @@ Defaulting color scheme to 'NoColor'"""
             shell.magic('xmode ' + dstore.xmode)
 
         # Store new mode and inform
-        dstore.mode = bool(1-int(mode))
-        mode_label = ['OFF','ON'][dstore.mode]
+        dstore.mode = bool(1 - int(mode))
+        mode_label = ['OFF', 'ON'][dstore.mode]
         print('Doctest mode is:', mode_label)
 
     @line_magic
@@ -537,7 +542,8 @@ Defaulting color scheme to 'NoColor'"""
         we have already handled that.
         """
         opts, arg = self.parse_options(parameter_s, '')
-        if arg=='': arg = None
+        if arg == '':
+            arg = None
         try:
             return self.shell.enable_gui(arg)
         except Exception as e:
@@ -634,11 +640,12 @@ Defaulting color scheme to 'NoColor'"""
                 cells.append(current.new_code_cell(prompt_number=prompt_number,
                                                    input=input))
             worksheet = current.new_worksheet(cells=cells)
-            nb = current.new_notebook(name=name,worksheets=[worksheet])
+            nb = current.new_notebook(name=name, worksheets=[worksheet])
             with io.open(fname, 'w', encoding='utf-8') as f:
-                current.write(nb, f, format);
+                current.write(nb, f, format)
         elif args.format is not None:
-            old_fname, old_name, old_format = current.parse_filename(args.filename)
+            old_fname, old_name, old_format = current.parse_filename(
+                args.filename)
             new_format = args.format
             if new_format == u'xml':
                 raise ValueError('Notebooks cannot be written as xml.')

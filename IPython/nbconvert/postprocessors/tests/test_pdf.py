@@ -39,13 +39,12 @@ Hello World!
 #-----------------------------------------------------------------------------
 
 class TestPDF(TestsBase):
-    """Contains test functions for pdf.py"""
 
+    """Contains test functions for pdf.py"""
 
     def test_constructor(self):
         """Can a PDFPostProcessor be constructed?"""
         PDFPostProcessor()
-
 
     @dec.onlyif_cmds_exist('pdflatex')
     def test_pdf(self):
@@ -63,7 +62,7 @@ class TestPDF(TestsBase):
 
             # Check that the PDF was created.
             assert os.path.isfile('a.pdf')
-            
+
             # Make sure that temp files are cleaned up
             for ext in processor.temp_file_exts:
-                assert not os.path.isfile('a'+ext)
+                assert not os.path.isfile('a' + ext)

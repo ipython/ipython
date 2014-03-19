@@ -58,6 +58,7 @@ aliases = {}
 aliases.update(base_aliases)
 aliases.update(dict(url='LogWatcher.url', topics='LogWatcher.topics'))
 
+
 class IPLoggerApp(BaseParallelApplication):
 
     name = u'iplogger'
@@ -69,15 +70,14 @@ class IPLoggerApp(BaseParallelApplication):
     def initialize(self, argv=None):
         super(IPLoggerApp, self).initialize(argv)
         self.init_watcher()
-    
+
     def init_watcher(self):
         try:
             self.watcher = LogWatcher(parent=self, log=self.log)
         except:
             self.log.error("Couldn't start the LogWatcher", exc_info=True)
             self.exit(1)
-        self.log.info("Listening for log messages on %r"%self.watcher.url)
-        
+        self.log.info("Listening for log messages on %r" % self.watcher.url)
 
     def start(self):
         self.watcher.start()
@@ -92,4 +92,3 @@ launch_new_instance = IPLoggerApp.launch_instance
 
 if __name__ == '__main__':
     launch_new_instance()
-

@@ -3,11 +3,11 @@ Contains debug writer.
 """
 from __future__ import print_function
 #-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
+# Copyright (c) 2013, the IPython Development Team.
 #
-#Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the Modified BSD License.
 #
-#The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -21,11 +21,12 @@ from pprint import pprint
 # Classes
 #-----------------------------------------------------------------------------
 
+
 class DebugWriter(WriterBase):
+
     """Consumes output from nbconvert export...() methods and writes usefull
     debugging information to the stdout.  The information includes a list of
     resources that were extracted from the notebook(s) during export."""
-
 
     def write(self, output, resources, notebook_name='notebook', **kw):
         """

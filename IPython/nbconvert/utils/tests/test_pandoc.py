@@ -20,7 +20,10 @@ from .. import pandoc
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
+
+
 class TestPandoc(TestsBase):
+
     """Collection of Pandoc tests"""
 
     def __init__(self, *args, **kwargs):
@@ -47,11 +50,11 @@ class TestPandoc(TestsBase):
             pandoc.check_pandoc_version()
             pandoc.pandoc("", "markdown", "html")
         self.assertEqual(w, [])
-        
+
     @dec.onlyif_cmds_exist('pandoc')
     def test_minimal_version(self):
         original_minversion = pandoc._minimal_version
-        
+
         pandoc._minimal_version = "120.0"
         with warnings.catch_warnings(record=True) as w:
             assert not pandoc.check_pandoc_version()

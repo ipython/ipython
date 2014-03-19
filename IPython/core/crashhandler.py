@@ -72,6 +72,7 @@ Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
 
 
 class CrashHandler(object):
+
     """Customizable crash handlers for IPython applications.
 
     Instances of this class provide a :meth:`__call__` method which can be
@@ -81,7 +82,7 @@ class CrashHandler(object):
     """
 
     message_template = _default_message_template
-    section_sep = '\n\n'+'*'*75+'\n\n'
+    section_sep = '\n\n' + '*' * 75 + '\n\n'
 
     def __init__(self, app, contact_name=None, contact_email=None,
                  bug_tracker=None, show_crash_traceback=True, call_pdb=False):
@@ -115,35 +116,34 @@ class CrashHandler(object):
         self.crash_report_fname = "Crash_report_%s.txt" % app.name
         self.app = app
         self.call_pdb = call_pdb
-        #self.call_pdb = True # dbg
+        # self.call_pdb = True # dbg
         self.show_crash_traceback = show_crash_traceback
-        self.info = dict(app_name = app.name,
-                    contact_name = contact_name,
-                    contact_email = contact_email,
-                    bug_tracker = bug_tracker,
-                    crash_report_fname = self.crash_report_fname)
-
+        self.info = dict(app_name=app.name,
+                         contact_name=contact_name,
+                         contact_email=contact_email,
+                         bug_tracker=bug_tracker,
+                         crash_report_fname=self.crash_report_fname)
 
     def __call__(self, etype, evalue, etb):
         """Handle an exception, call for compatible with sys.excepthook"""
-        
+
         # do not allow the crash handler to be called twice without reinstalling it
         # this prevents unlikely errors in the crash handling from entering an
         # infinite loop.
         sys.excepthook = sys.__excepthook__
-        
+
         # Report tracebacks shouldn't use color in general (safer for users)
         color_scheme = 'NoColor'
 
         # Use this ONLY for developer debugging (keep commented out for release)
-        #color_scheme = 'Linux'   # dbg
+        # color_scheme = 'Linux'   # dbg
         try:
             rptdir = self.app.ipython_dir
         except:
             rptdir = getcwd()
         if rptdir is None or not os.path.isdir(rptdir):
             rptdir = getcwd()
-        report_name = os.path.join(rptdir,self.crash_report_fname)
+        report_name = os.path.join(rptdir, self.crash_report_fname)
         # write the report filename into the instance dict so it can get
         # properly expanded out in the user message template
         self.crash_report_fname = report_name
@@ -154,10 +154,10 @@ class CrashHandler(object):
             call_pdb=self.call_pdb,
         )
         if self.call_pdb:
-            TBhandler(etype,evalue,etb)
+            TBhandler(etype, evalue, etb)
             return
         else:
-            traceback = TBhandler.text(etype,evalue,etb,context=31)
+            traceback = TBhandler.text(etype, evalue, etb, context=31)
 
         # print traceback to screen
         if self.show_crash_traceback:
@@ -165,13 +165,13 @@ class CrashHandler(object):
 
         # and generate a complete report on disk
         try:
-            report = open(report_name,'w')
+            report = open(report_name, 'w')
         except:
             print('Could not create crash report on disk.', file=sys.stderr)
             return
 
         # Inform user on stderr of what happened
-        print('\n'+'*'*70+'\n', file=sys.stderr)
+        print('\n' + '*' * 70 + '\n', file=sys.stderr)
         print(self.message_template.format(**self.info), file=sys.stderr)
 
         # Construct report on disk
@@ -179,12 +179,12 @@ class CrashHandler(object):
         report.close()
         input("Hit <Enter> to quit (your terminal may close):")
 
-    def make_report(self,traceback):
+    def make_report(self, traceback):
         """Return a string containing a crash report."""
 
         sec_sep = self.section_sep
 
-        report = ['*'*75+'\n\n'+'IPython post-mortem report\n\n']
+        report = ['*' * 75 + '\n\n' + 'IPython post-mortem report\n\n']
         rpt_add = report.append
         rpt_add(sys_info())
 
@@ -196,7 +196,7 @@ class CrashHandler(object):
             rpt_add(config)
         except:
             pass
-        rpt_add(sec_sep+'Crash traceback:\n\n' + traceback)
+        rpt_add(sec_sep + 'Crash traceback:\n\n' + traceback)
 
         return ''.join(report)
 
@@ -204,7 +204,7 @@ class CrashHandler(object):
 def crash_handler_lite(etype, evalue, tb):
     """a light excepthook, adding a small message to the usual traceback"""
     traceback.print_exception(etype, evalue, tb)
-    
+
     from IPython.core.interactiveshell import InteractiveShell
     if InteractiveShell.initialized():
         # we are in a Shell environment, give %magic example
@@ -212,5 +212,5 @@ def crash_handler_lite(etype, evalue, tb):
     else:
         # we are not in a shell, show generic config
         config = "c."
-    print(_lite_message_template.format(email=author_email, config=config), file=sys.stderr)
-
+    print(_lite_message_template.format(
+        email=author_email, config=config), file=sys.stderr)

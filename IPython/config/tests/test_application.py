@@ -39,6 +39,7 @@ from IPython.utils.traitlets import (
 # Code
 #-----------------------------------------------------------------------------
 
+
 class Foo(Configurable):
 
     i = Integer(0, config=True, help="The integer i.")
@@ -59,22 +60,23 @@ class MyApp(Application):
                    help="Is the app running?")
     classes = List([Bar, Foo])
     config_file = Unicode(u'', config=True,
-                   help="Load this config file")
+                          help="Load this config file")
 
     aliases = Dict({
-                    'i' : 'Foo.i',
-                    'j' : 'Foo.j',
-                    'name' : 'Foo.name',
-                    'enabled' : 'Bar.enabled',
-                    'log-level' : 'Application.log_level',
-                })
-    
-    flags = Dict(dict(enable=({'Bar': {'enabled' : True}}, "Set Bar.enabled to True"),
-                  disable=({'Bar': {'enabled' : False}}, "Set Bar.enabled to False"),
-                  crit=({'Application' : {'log_level' : logging.CRITICAL}},
-                        "set level=CRITICAL"),
-            ))
-    
+        'i': 'Foo.i',
+        'j': 'Foo.j',
+        'name': 'Foo.name',
+        'enabled': 'Bar.enabled',
+        'log-level': 'Application.log_level',
+    })
+
+    flags = Dict(dict(enable=({'Bar': {'enabled': True}}, "Set Bar.enabled to True"),
+                      disable=(
+                          {'Bar': {'enabled': False}}, "Set Bar.enabled to False"),
+                      crit=({'Application': {'log_level': logging.CRITICAL}},
+                            "set level=CRITICAL"),
+                      ))
+
     def init_foo(self):
         self.foo = Foo(parent=self)
 
@@ -98,21 +100,23 @@ class TestApplication(TestCase):
         app = MyApp()
         self.assertEqual(app.name, u'myapp')
         self.assertEqual(app.running, False)
-        self.assertEqual(app.classes, [MyApp,Bar,Foo])
+        self.assertEqual(app.classes, [MyApp, Bar, Foo])
         self.assertEqual(app.config_file, u'')
 
     def test_config(self):
         app = MyApp()
-        app.parse_command_line(["--i=10","--Foo.j=10","--enabled=False","--log-level=50"])
+        app.parse_command_line(
+            ["--i=10", "--Foo.j=10", "--enabled=False", "--log-level=50"])
         config = app.config
         self.assertEqual(config.Foo.i, 10)
         self.assertEqual(config.Foo.j, 10)
         self.assertEqual(config.Bar.enabled, False)
-        self.assertEqual(config.MyApp.log_level,50)
+        self.assertEqual(config.MyApp.log_level, 50)
 
     def test_config_propagation(self):
         app = MyApp()
-        app.parse_command_line(["--i=10","--Foo.j=10","--enabled=False","--log-level=50"])
+        app.parse_command_line(
+            ["--i=10", "--Foo.j=10", "--enabled=False", "--log-level=50"])
         app.init_foo()
         app.init_bar()
         self.assertEqual(app.foo.i, 10)
@@ -127,7 +131,7 @@ class TestApplication(TestCase):
         app.parse_command_line(["--enable"])
         app.init_bar()
         self.assertEqual(app.bar.enabled, True)
-    
+
     def test_aliases(self):
         app = MyApp()
         app.parse_command_line(["--i=5", "--j=10"])
@@ -135,7 +139,7 @@ class TestApplication(TestCase):
         self.assertEqual(app.foo.i, 5)
         app.init_foo()
         self.assertEqual(app.foo.j, 10)
-    
+
     def test_flag_clobber(self):
         """test that setting flags doesn't clobber existing settings"""
         app = MyApp()
@@ -147,7 +151,7 @@ class TestApplication(TestCase):
         app.init_bar()
         self.assertEqual(app.bar.enabled, True)
         self.assertEqual(app.bar.b, 10)
-    
+
     def test_flatten_flags(self):
         cfg = Config()
         cfg.MyApp.log_level = logging.WARN
@@ -159,7 +163,7 @@ class TestApplication(TestCase):
         self.assertEqual(app.log_level, logging.CRITICAL)
         # this would be app.config.Application.log_level if it failed:
         self.assertEqual(app.config.MyApp.log_level, logging.CRITICAL)
-    
+
     def test_flatten_aliases(self):
         cfg = Config()
         cfg.MyApp.log_level = logging.WARN
@@ -171,7 +175,7 @@ class TestApplication(TestCase):
         self.assertEqual(app.log_level, logging.CRITICAL)
         # this would be app.config.Application.log_level if it failed:
         self.assertEqual(app.config.MyApp.log_level, "CRITICAL")
-    
+
     def test_extra_args(self):
         app = MyApp()
         app.parse_command_line(["--Bar.b=5", 'extra', "--disable", 'args'])
@@ -180,14 +184,13 @@ class TestApplication(TestCase):
         self.assertEqual(app.bar.b, 5)
         self.assertEqual(app.extra_args, ['extra', 'args'])
         app = MyApp()
-        app.parse_command_line(["--Bar.b=5", '--', 'extra', "--disable", 'args'])
+        app.parse_command_line(
+            ["--Bar.b=5", '--', 'extra', "--disable", 'args'])
         app.init_bar()
         self.assertEqual(app.bar.enabled, True)
         self.assertEqual(app.bar.b, 5)
         self.assertEqual(app.extra_args, ['extra', '--disable', 'args'])
-    
+
     def test_unicode_argv(self):
         app = MyApp()
         app.parse_command_line(['ünîcødé'])
-        
-

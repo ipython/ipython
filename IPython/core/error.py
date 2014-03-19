@@ -27,25 +27,31 @@ Notes
 # Exception classes
 #-----------------------------------------------------------------------------
 
+
 class IPythonCoreError(Exception):
     pass
 
 
 class TryNext(IPythonCoreError):
+
     """Try next hook exception.
 
     Raise this in your hook function to indicate that the next hook handler
     should be used to handle the operation.
     """
 
+
 class UsageError(IPythonCoreError):
+
     """Error in magic function arguments, etc.
 
     Something that probably won't warrant a full traceback, but should
     nevertheless interrupt a macro / batch file.
     """
 
+
 class StdinNotImplementedError(IPythonCoreError, NotImplementedError):
+
     """raw_input was requested in a context where it is not supported
 
     For use in IPython kernels, where only some frontends may support

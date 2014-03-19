@@ -35,7 +35,9 @@ License: MIT open source license.
 from __future__ import print_function
 
 from IPython.external.path import path as Path
-import os,stat,time
+import os
+import stat
+import time
 import collections
 try:
     import cPickle as pickle
@@ -43,14 +45,18 @@ except ImportError:
     import pickle
 import glob
 
+
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
 
 _sentinel = object()
 
+
 class PickleShareDB(collections.MutableMapping):
+
     """ The main 'connection' object for PickleShare database """
-    def __init__(self,root):
+
+    def __init__(self, root):
         """ Return a db object that will manage the specied directory"""
         self.root = Path(root).expanduser().abspath()
         if not self.root.isdir():
@@ -58,8 +64,7 @@ class PickleShareDB(collections.MutableMapping):
         # cache has { 'key' : (obj, orig_mod_time) }
         self.cache = {}
 
-
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         """ db['key'] reading """
         fil = self.root / key
         try:
@@ -76,10 +81,10 @@ class PickleShareDB(collections.MutableMapping):
         except:
             raise KeyError(key)
 
-        self.cache[fil] = (obj,mtime)
+        self.cache[fil] = (obj, mtime)
         return obj
 
-    def __setitem__(self,key,value):
+    def __setitem__(self, key, value):
         """ db['key'] = 5 """
         fil = self.root / key
         parent = fil.parent
@@ -90,7 +95,7 @@ class PickleShareDB(collections.MutableMapping):
         with fil.open('wb') as f:
             pickled = pickle.dump(value, f, protocol=2)
         try:
-            self.cache[fil] = (value,fil.mtime)
+            self.cache[fil] = (value, fil.mtime)
         except OSError as e:
             if e.errno != 2:
                 raise
@@ -102,18 +107,16 @@ class PickleShareDB(collections.MutableMapping):
             hroot.makedirs()
         hfile = hroot / gethashfile(key)
         d = self.get(hfile, {})
-        d.update( {key : value})
+        d.update({key: value})
         self[hfile] = d
 
-
-
-    def hget(self, hashroot, key, default = _sentinel, fast_only = True):
+    def hget(self, hashroot, key, default=_sentinel, fast_only=True):
         """ hashed get """
         hroot = self.root / hashroot
         hfile = hroot / gethashfile(key)
 
-        d = self.get(hfile, _sentinel )
-        #print "got dict",d,"from",hfile
+        d = self.get(hfile, _sentinel)
+        # print "got dict",d,"from",hfile
         if d is _sentinel:
             if fast_only:
                 if default is _sentinel:
@@ -142,7 +145,7 @@ class PickleShareDB(collections.MutableMapping):
             try:
                 all.update(self[f])
             except KeyError:
-                print("Corrupt",f,"deleted - hset is not threadsafe!")
+                print("Corrupt", f, "deleted - hset is not threadsafe!")
                 del self[f]
 
             self.uncache(f)
@@ -170,12 +173,10 @@ class PickleShareDB(collections.MutableMapping):
                 continue
             p.remove()
 
-
-
-    def __delitem__(self,key):
+    def __delitem__(self, key):
         """ del db["key"] """
         fil = self.root / key
-        self.cache.pop(fil,None)
+        self.cache.pop(fil, None)
         try:
             fil.remove()
         except OSError:
@@ -185,15 +186,15 @@ class PickleShareDB(collections.MutableMapping):
 
     def _normalized(self, p):
         """ Make a key suitable for user's eyes """
-        return str(self.root.relpathto(p)).replace('\\','/')
+        return str(self.root.relpathto(p)).replace('\\', '/')
 
-    def keys(self, globpat = None):
+    def keys(self, globpat=None):
         """ All keys in DB, or all keys matching a glob"""
 
         if globpat is None:
             files = self.root.walkfiles()
         else:
-            files = [Path(p) for p in glob.glob(self.root/globpat)]
+            files = [Path(p) for p in glob.glob(self.root / globpat)]
         return [self._normalized(p) for p in files if p.isfile()]
 
     def __iter__(self):
@@ -202,7 +203,7 @@ class PickleShareDB(collections.MutableMapping):
     def __len__(self):
         return len(self.keys())
 
-    def uncache(self,*items):
+    def uncache(self, *items):
         """ Removes all, or specified items from cache
 
         Use this after reading a large amount of large objects
@@ -213,9 +214,9 @@ class PickleShareDB(collections.MutableMapping):
         if not items:
             self.cache = {}
         for it in items:
-            self.cache.pop(it,None)
+            self.cache.pop(it, None)
 
-    def waitget(self,key, maxwaittime = 60 ):
+    def waitget(self, key, maxwaittime=60):
         """ Wait (poll) for a key to get a value
 
         Will wait for `maxwaittime` seconds before raising a KeyError.
@@ -243,11 +244,11 @@ class PickleShareDB(collections.MutableMapping):
                 raise KeyError(key)
 
             time.sleep(wtimes[tries])
-            waited+=wtimes[tries]
-            if tries < len(wtimes) -1:
-                tries+=1
+            waited += wtimes[tries]
+            if tries < len(wtimes) - 1:
+                tries += 1
 
-    def getlink(self,folder):
+    def getlink(self, folder):
         """ Get a convenient link for accessing items  """
         return PickleShareLink(self, folder)
 
@@ -255,8 +256,8 @@ class PickleShareDB(collections.MutableMapping):
         return "PickleShareDB('%s')" % self.root
 
 
-
 class PickleShareLink:
+
     """ A shortdand for accessing nested PickleShare data conveniently.
 
     Created through PickleShareDB.getlink(), example::
@@ -266,19 +267,23 @@ class PickleShareLink:
         lnk.bar = lnk.foo + 5
 
     """
-    def __init__(self, db, keydir ):
+
+    def __init__(self, db, keydir):
         self.__dict__.update(locals())
 
-    def __getattr__(self,key):
-        return self.__dict__['db'][self.__dict__['keydir']+'/' + key]
-    def __setattr__(self,key,val):
-        self.db[self.keydir+'/' + key] = val
+    def __getattr__(self, key):
+        return self.__dict__['db'][self.__dict__['keydir'] + '/' + key]
+
+    def __setattr__(self, key, val):
+        self.db[self.keydir + '/' + key] = val
+
     def __repr__(self):
         db = self.__dict__['db']
-        keys = db.keys( self.__dict__['keydir'] +"/*")
+        keys = db.keys(self.__dict__['keydir'] + "/*")
         return "<PickleShareLink '%s': %s>" % (
             self.__dict__['keydir'],
             ";".join([Path(k).basename() for k in keys]))
+
 
 def main():
     import textwrap
@@ -300,7 +305,8 @@ def main():
     cmd = sys.argv[1]
     args = sys.argv[2:]
     if cmd == 'dump':
-        if not args: args= ['.']
+        if not args:
+            args = ['.']
         db = DB(args[0])
         import pprint
         pprint.pprint(db.items())
@@ -309,7 +315,7 @@ def main():
         db = DB(args[0])
         data = eval(cont)
         db.clear()
-        for k,v in db.items():
+        for k, v in db.items():
             db[k] = v
     elif cmd == 'testwait':
         db = DB(args[0])
@@ -319,7 +325,5 @@ def main():
         test()
         stress()
 
-if __name__== "__main__":
+if __name__ == "__main__":
     main()
-
-

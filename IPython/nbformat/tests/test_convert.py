@@ -22,6 +22,7 @@ from ..current import current_nbformat
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+
 class TestConvert(TestsBase):
 
     def test_downgrade(self):
@@ -36,7 +37,6 @@ class TestConvert(TestsBase):
         (major, minor) = get_version(nb)
         self.assertEqual(major, 2)
 
-
     def test_upgrade(self):
         """Do notebook upgrades work?"""
 
@@ -48,7 +48,6 @@ class TestConvert(TestsBase):
         # Check if upgrade was successful.
         (major, minor) = get_version(nb)
         self.assertEqual(major, 3)
-
 
     def test_open_current(self):
         """Can an old notebook be opened and converted to the current version 

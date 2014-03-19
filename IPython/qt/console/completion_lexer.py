@@ -3,14 +3,15 @@ from pygments.token import Token, is_token_subtype
 
 
 class CompletionLexer(object):
+
     """ Uses Pygments and some auxillary information to lex code snippets for
         symbol contexts.
     """
 
     # Maps Lexer names to a list of possible name separators
-    separator_map = { 'C' : [ '.', '->' ],
-                      'C++' : [ '.', '->', '::' ],
-                      'Python' : [ '.' ] }
+    separator_map = {'C': ['.', '->'],
+                     'C++': ['.', '->', '::'],
+                     'Python': ['.']}
 
     def __init__(self, lexer):
         """ Create a CompletionLexer using the specified Pygments lexer.
@@ -71,4 +72,3 @@ class CompletionLexer(object):
             self._name_separators = list(name_separators)
 
     lexer = property(get_lexer, set_lexer)
-

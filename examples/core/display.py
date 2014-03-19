@@ -7,6 +7,7 @@ from IPython.core.display import (
     display_svg, display_json, display_png
 )
 
+
 class Circle(object):
 
     def __init__(self, radius):

@@ -8,11 +8,12 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as dec
 from IPython.utils import py3compat
 
+
 @dec.onlyif_unicode_paths
 def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
     wd = tempfile.mkdtemp(suffix=u"€")
-    
+
     old_wd = py3compat.getcwd()
     os.chdir(wd)
     #raise Exception(repr(py3compat.getcwd()))
@@ -25,15 +26,16 @@ def test_unicode_cwd():
     finally:
         os.chdir(old_wd)
 
+
 @dec.onlyif_unicode_paths
 def test_unicode_ipdir():
     """Check that IPython starts with non-ascii characters in the IP dir."""
     ipdir = tempfile.mkdtemp(suffix=u"€")
-    
+
     # Create the config file, so it tries to load it.
     with open(os.path.join(ipdir, 'ipython_config.py'), "w") as f:
         pass
-    
+
     old_ipdir1 = os.environ.pop("IPYTHONDIR", None)
     old_ipdir2 = os.environ.pop("IPYTHON_DIR", None)
     os.environ["IPYTHONDIR"] = py3compat.unicode_to_str(ipdir, "utf-8")

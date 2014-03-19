@@ -22,6 +22,7 @@ import os
 from IPython.utils import py3compat
 from ._process_common import arg_split
 
+
 def _find_cmd(cmd):
     """Find the full path to a command using which."""
     paths = System.Environment.GetEnvironmentVariable("PATH").Split(os.pathsep)
@@ -30,6 +31,7 @@ def _find_cmd(cmd):
         if System.IO.File.Exists(filename):
             return py3compat.bytes_to_str(filename)
     raise OSError("command %r not found" % cmd)
+
 
 def system(cmd):
     """
@@ -43,6 +45,7 @@ def system(cmd):
     psi.UseShellExecute = False
     # Start up process:
     reg = System.Diagnostics.Process.Start(psi)
+
 
 def getoutput(cmd):
     """

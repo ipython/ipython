@@ -9,6 +9,8 @@ import warnings
 
 # The following two classes are copied from python 2.6 warnings module (context
 # manager)
+
+
 class WarningMessage(object):
 
     """
@@ -25,7 +27,7 @@ class WarningMessage(object):
                         "line")
 
     def __init__(self, message, category, filename, lineno, file=None,
-                    line=None):
+                 line=None):
         local_values = locals()
         for attr in self._WARNING_DETAILS:
             setattr(self, attr, local_values[attr])
@@ -36,10 +38,12 @@ class WarningMessage(object):
 
     def __str__(self):
         return ("{message : %r, category : %r, filename : %r, lineno : %s, "
-                    "line : %r}" % (self.message, self._category_name,
-                                    self.filename, self.lineno, self.line))
+                "line : %r}" % (self.message, self._category_name,
+                                self.filename, self.lineno, self.line))
+
 
 class WarningManager:
+
     """
     A context manager that copies and restores the warnings filter upon
     exiting the context.
@@ -61,6 +65,7 @@ class WarningManager:
     It is copied so it can be used in NumPy with older Python versions.
 
     """
+
     def __init__(self, record=False, module=None):
         self._record = record
         if module is None:
@@ -78,6 +83,7 @@ class WarningManager:
         self._showwarning = self._module.showwarning
         if self._record:
             log = []
+
             def showwarning(*args, **kwargs):
                 log.append(WarningMessage(*args, **kwargs))
             self._module.showwarning = showwarning
@@ -91,10 +97,11 @@ class WarningManager:
         self._module.filters = self._filters
         self._module.showwarning = self._showwarning
 
+
 def assert_warns(warning_class, func, *args, **kw):
     """Fail unless a warning of class warning_class is thrown by callable when
     invoked with arguments args and keyword arguments kwargs.
-    
+
     If a different type of warning is thrown, it will not be caught, and the
     test case will be deemed to have suffered an error.
     """
@@ -108,9 +115,9 @@ def assert_warns(warning_class, func, *args, **kw):
         func(*args, **kw)
         if not len(l) > 0:
             raise AssertionError("No warning raised when calling %s"
-                    % func.__name__)
+                                 % func.__name__)
         if not l[0].category is warning_class:
-            raise AssertionError("First warning for %s is not a " \
-                    "%s( is %s)" % (func.__name__, warning_class, l[0]))
+            raise AssertionError("First warning for %s is not a "
+                                 "%s( is %s)" % (func.__name__, warning_class, l[0]))
     finally:
         ctx.__exit__()
