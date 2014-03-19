@@ -281,8 +281,8 @@ var IPython = (function (IPython) {
     };
 
     RawCell.options_default = {
-        placeholder : "Write raw LaTeX or other formats here, for use with nbconvert.\n" +
-            "It will not be rendered in the notebook.\n" + 
+        placeholder : "Write raw LaTeX or other formats here, for use with nbconvert. " +
+            "It will not be rendered in the notebook. " + 
             "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
     };
 
@@ -294,7 +294,10 @@ var IPython = (function (IPython) {
         var that = this;
         this.element.focusout(function() {
             that.auto_highlight();
+            that.render();
         });
+
+        this.code_mirror.on('focus', function() { that.unrender(); });
     };
 
     /**
@@ -307,13 +310,14 @@ var IPython = (function (IPython) {
 
     /** @method render **/
     RawCell.prototype.render = function () {
-        // Make sure that this cell type can never be rendered
-        if (this.rendered) {
-            this.unrender();
+        var cont = IPython.TextCell.prototype.render.apply(this);
+        if (cont){
+            var text = this.get_text();
+            if (text === "") { text = this.placeholder; }
+            this.set_text(text);
+            this.element.removeClass('rendered');
         }
-        var text = this.get_text();
-        if (text === "") { text = this.placeholder; }
-        this.set_text(text);
+        return cont;
     };
 
 
