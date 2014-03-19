@@ -1511,7 +1511,7 @@ ul#help_menu li a{overflow:hidden;padding-right:2.2em}ul#help_menu li a i{margin
 div#pager_splitter{height:8px}
 #pager-container{position:relative;padding:15px 0}
 div#pager{font-size:14px;line-height:20px;overflow:auto;display:none}div#pager pre{font-size:13px;line-height:1.21429em;color:#000;background-color:#f7f7f7;padding:.4em}
-.shortcut_key{display:inline-block;width:15ex;text-align:right;font-family:monospace}
+.shortcut_key{display:inline-block;width:16ex;text-align:right;font-family:monospace}
 .shortcut_descr{display:inline-block}
 span#save_widget{padding:0 5px;margin-top:12px}
 span#checkpoint_status,span#autosave_status{font-size:small}
