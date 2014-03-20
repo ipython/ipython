@@ -1303,7 +1303,7 @@ span#login_widget{float:right}
 .navbar-nobg{background-color:transparent;background-image:none}
 #header>span{margin-top:10px}
 .modal-body{max-height:500px}
-.center-nav{display:inline-block;margin-bottom:-4px}
+@media (min-width:768px){.modal{width:700px;margin-left:-350px}}.center-nav{display:inline-block;margin-bottom:-4px}
 .alternate_upload{background-color:none;display:inline}
 .alternate_upload.form{padding:0;margin:0}
 .alternate_upload input.fileinput{background-color:#f00;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;height:26px}
