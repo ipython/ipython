@@ -26,6 +26,7 @@ from __future__ import print_function
 import sys
 
 from IPython.core.formatters import _safe_get_formatter_method
+from IPython.core import inputsplitter
 from IPython.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod
@@ -100,12 +101,10 @@ class DisplayHook(Configurable):
         # do not print output if input ends in ';'
         try:
             cell = self.shell.history_manager.input_hist_parsed[self.prompt_count]
-            if cell.rstrip().endswith(';'):
-                return True
+            return inputsplitter.remove_comments(cell).rstrip().endswith(';')
         except IndexError:
             # some uses of ipshellembed may fail here
-            pass
-        return False
+            return False
 
     def start_displayhook(self):
         """Start the displayhook, initializing resources."""
