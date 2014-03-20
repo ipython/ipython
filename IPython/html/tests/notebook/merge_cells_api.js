@@ -22,14 +22,14 @@ casper.notebook_test(function() {
     });
         
     // merge_cell_above()
-    set_cell_text();
+    set_cells_text();
     var output_above = this.evaluate(function () {
         IPython.notebook.merge_cell_above();
         return IPython.notebook.get_selected_cell();
     });
         
     // merge_cell_below()
-    set_cell_text();
+    set_cells_text();
     var output_below = this.evaluate(function() {
         IPython.notebook.select(0);
         IPython.notebook.merge_cell_below();
