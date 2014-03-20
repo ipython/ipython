@@ -50,27 +50,45 @@ class TestController(object):
     process = None
     #: str, process stdout+stderr
     stdout = None
-    #: bool, whether to capture process stdout & stderr
-    buffer_output = False
 
     def __init__(self):
         self.cmd = []
         self.env = {}
         self.dirs = []
 
-    def launch(self):
+    def setup(self):
+        """Create temporary directories etc.
+        
+        This is only called when we know the test group will be run. Things
+        created here may be cleaned up by self.cleanup().
+        """
+        pass
+
+    def launch(self, buffer_output=False):
         # print('*** ENV:', self.env)  # dbg
         # print('*** CMD:', self.cmd)  # dbg
         env = os.environ.copy()
         env.update(self.env)
-        output = subprocess.PIPE if self.buffer_output else None
-        stdout = subprocess.STDOUT if self.buffer_output else None
+        output = subprocess.PIPE if buffer_output else None
+        stdout = subprocess.STDOUT if buffer_output else None
         self.process = subprocess.Popen(self.cmd, stdout=output,
                 stderr=stdout, env=env)
 
     def wait(self):
         self.stdout, _ = self.process.communicate()
         return self.process.returncode
+
+    def print_extra_info(self):
+        """Print extra information about this test run.
+        
+        If we're running in parallel and showing the concise view, this is only
+        called if the test group fails. Otherwise, it's called before the test
+        group is started.
+        
+        The base implementation does nothing, but it can be overridden by
+        subclasses.
+        """
+        return
 
     def cleanup_process(self):
         """Cleanup on exit by killing any leftover processes."""
@@ -116,6 +134,8 @@ class PyTestController(TestController):
         # pycmd is put into cmd[2] in PyTestController.launch()
         self.cmd = [sys.executable, '-c', None, section]
         self.pycmd = "from IPython.testing.iptest import run_iptest; run_iptest()"
+
+    def setup(self):
         ipydir = TemporaryDirectory()
         self.dirs.append(ipydir)
         self.env['IPYTHONDIR'] = ipydir.name
@@ -155,9 +175,9 @@ class PyTestController(TestController):
         self.env['COVERAGE_PROCESS_START'] = config_file
         self.pycmd = "import coverage; coverage.process_startup(); " + self.pycmd
 
-    def launch(self):
+    def launch(self, buffer_output=False):
         self.cmd[2] = self.pycmd
-        super(PyTestController, self).launch()
+        super(PyTestController, self).launch(buffer_output=buffer_output)
 
 js_prefix = 'js/'
 
@@ -177,25 +197,25 @@ class JSController(TestController):
         """Create new test runner."""
         TestController.__init__(self)
         self.section = section
-
-
-    def launch(self):
-        self.ipydir = TemporaryDirectory()
-        self.nbdir = TemporaryDirectory()
-        print("Running %s tests in directory: %r" % (self.section, self.nbdir.name))
-        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
-        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
-        self.dirs.append(self.ipydir)
-        self.dirs.append(self.nbdir)
-        
-        # start the ipython notebook, so we get the port number
-        self._init_server()
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
         test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
-        port = '--port=' + str(self.server_port)
-        self.cmd = ['casperjs', 'test', port, includes, test_cases]
-        super(JSController, self).launch()
+        self.cmd = ['casperjs', 'test', includes, test_cases]
+
+    def setup(self):
+        self.ipydir = TemporaryDirectory()
+        self.nbdir = TemporaryDirectory()
+        self.dirs.append(self.ipydir)
+        self.dirs.append(self.nbdir)
+        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
+        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
+        
+        # start the ipython notebook, so we get the port number
+        self._init_server()
+        self.cmd.append('--port=%s' % self.server_port)
+
+    def print_extra_info(self):
+        print("Running tests with notebook directory %r" % self.nbdir.name)
 
     @property
     def will_run(self):
@@ -275,10 +295,27 @@ def configure_py_controllers(controllers, xunit=False, coverage=False,
         controller.env['IPTEST_SUBPROC_STREAMS'] = subproc_streams
         controller.cmd.extend(extra_args)
 
-def do_run(controller):
+def do_run(controller, buffer_output=True):
+    """Setup and run a test controller.
+    
+    If buffer_output is True, no output is displayed, to avoid it appearing
+    interleaved. In this case, the caller is responsible for displaying test
+    output on failure.
+    
+    Returns
+    -------
+    controller : TestController
+      The same controller as passed in, as a convenience for using map() type
+      APIs.
+    exitcode : int
+      The exit code of the test subprocess. Non-zero indicates failure.
+    """
     try:
         try:
-            controller.launch()
+            controller.setup()
+            if not buffer_output:
+                controller.print_extra_info()
+            controller.launch(buffer_output=buffer_output)
         except Exception:
             import traceback
             traceback.print_exc()
@@ -365,10 +402,6 @@ def run_iptestall(options):
     extra_args : list
       Extra arguments to pass to the test subprocesses, e.g. '-v'
     """
-    if options.fast != 1:
-        # If running in parallel, capture output so it doesn't get interleaved
-        TestController.buffer_output = True
-
     to_run, not_run = prepare_controllers(options)
 
     def justify(ltext, rtext, width=70, fill='-'):
@@ -384,9 +417,9 @@ def run_iptestall(options):
     if options.fast == 1:
         # This actually means sequential, i.e. with 1 job
         for controller in to_run:
-            print('IPython test group:', controller.section)
+            print('Test group:', controller.section)
             sys.stdout.flush()  # Show in correct order when output is piped
-            controller, res = do_run(controller)
+            controller, res = do_run(controller, buffer_output=False)
             if res:
                 failed.append(controller)
                 if res == -signal.SIGINT:
@@ -400,8 +433,9 @@ def run_iptestall(options):
             pool = multiprocessing.pool.ThreadPool(options.fast)
             for (controller, res) in pool.imap_unordered(do_run, to_run):
                 res_string = 'OK' if res == 0 else 'FAILED'
-                print(justify('IPython test group: ' + controller.section, res_string))
+                print(justify('Test group: ' + controller.section, res_string))
                 if res:
+                    controller.print_extra_info()
                     print(bytes_to_str(controller.stdout))
                     failed.append(controller)
                     if res == -signal.SIGINT:
@@ -411,7 +445,7 @@ def run_iptestall(options):
             return
 
     for controller in not_run:
-        print(justify('IPython test group: ' + controller.section, 'NOT RUN'))
+        print(justify('Test group: ' + controller.section, 'NOT RUN'))
 
     t_end = time.time()
     t_tests = t_end - t_start
@@ -485,7 +519,8 @@ argparser.add_argument('testgroups', nargs='*',
 argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
-                    help='Run test sections in parallel.')
+                    help='Run test sections in parallel. This starts as many '
+                    'processes as you have cores, or you can specify a number.')
 argparser.add_argument('--xunit', action='store_true',
                     help='Produce Xunit XML results')
 argparser.add_argument('--coverage', nargs='?', const=True, default=False,

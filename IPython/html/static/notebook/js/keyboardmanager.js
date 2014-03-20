@@ -141,7 +141,7 @@ var IPython = (function (IPython) {
                 }
             }
         },
-        'alt--' : {
+        'ctrl-shift--' : {
             help    : 'split cell',
             help_index : 'ea',
             handler : function (event) {
@@ -149,7 +149,7 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'alt-subtract' : {
+        'ctrl-shift-subtract' : {
             help    : '',
             help_index : 'eb',
             handler : function (event) {
