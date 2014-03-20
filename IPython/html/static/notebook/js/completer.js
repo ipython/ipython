@@ -250,7 +250,16 @@ var IPython = (function (IPython) {
         });
         this.sel.blur($.proxy(this.close, this));
         this.sel.keydown(function (event) {
-            that.keydown(event);
+            // Ignore tab key since it causes the completer to reshow on some 
+            // machines and not with others.  This strange behavior is due to
+            // the fact that we are tricking the notebook into thinking that it
+            // is in edit mode when it's really not.
+            if (IPython.keyboard.event_to_shortcut(event)=='tab') {
+                event.stopPropagation();
+                event.preventDefault();
+            } else {
+                that.keydown(event);
+            }
         });
         this.sel.keypress(function (event) {
             that.keypress(event);
