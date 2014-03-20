@@ -18,6 +18,11 @@ var IPython = (function (IPython) {
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
         // toggles display of keyboard shortcut dialog
         var that = this;
+        if ( this.force_rebuild ) {
+            this.shortcut_dialog.remove();
+            delete(this.shortcut_dialog);
+            this.force_rebuild = false;
+        }
         if ( this.shortcut_dialog ){
             // if dialog is already shown, close it
             $(this.shortcut_dialog).modal("toggle");
@@ -38,7 +43,7 @@ var IPython = (function (IPython) {
             'allows you to type code/text into a cell and is indicated by a green cell '+
             'border. <b>Command mode</b> binds the keyboard to notebook level actions '+
             'and is indicated by a grey cell border.'
-        )
+        );
         element.append(doc);
 
         // Command mode
@@ -57,73 +62,63 @@ var IPython = (function (IPython) {
                 Close : {}
             }
         });
+        
+        $([IPython.events]).on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
     };
 
     QuickHelp.prototype.build_command_help = function () {
         var command_shortcuts = IPython.keyboard_manager.command_shortcuts.help();
-        var help, shortcut;
-        var i, half, n;
+        return build_div('<h4>Command Mode (press <code>Esc</code> to enable)</h4>', command_shortcuts);
+    };
 
-        // Command mode
-        var cmd_div = $('<div/>').append($('<h4>Command Mode (press <code>esc</code> to enable)</h4>'));
-        var cmd_sub_div = $('<div/>').addClass('hbox');
-        var cmd_col1 = $('<div/>').addClass('box-flex0');
-        var cmd_col2 = $('<div/>').addClass('box-flex0');
-        n = command_shortcuts.length;
-        half = ~~(n/2);  // Truncate :)
-        for (i=0; i<half; i++) {
-            help = command_shortcuts[i]['help'];
-            shortcut = command_shortcuts[i]['shortcut'];
-            cmd_col1.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').text(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
-            );
-        };
-        for (i=half; i<n; i++) {
-            help = command_shortcuts[i]['help'];
-            shortcut = command_shortcuts[i]['shortcut'];
-            cmd_col2.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').text(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
-            );
-        };
-        cmd_sub_div.append(cmd_col1).append(cmd_col2);
-        cmd_div.append(cmd_sub_div);
-        return cmd_div;
-    }
+    var special_case = { pageup: "PageUp", pagedown: "Page Down", 'minus': '-' };
+    var prettify = function (s) {
+        s = s.replace(/-$/, 'minus'); // catch shortcuts using '-' key
+        var keys = s.split('-');
+        var k, i;
+        for (i in keys) {
+            k = keys[i];
+            if ( k.length == 1 ) {
+                keys[i] = "<code><strong>" + k + "</strong></code>";
+                continue; // leave individual keys lower-cased
+            }
+            keys[i] = ( special_case[k] ? special_case[k] : k.charAt(0).toUpperCase() + k.slice(1) );
+            keys[i] = "<code><strong>" + keys[i] + "</strong></code>";
+        }
+        return keys.join('-');
+
+
+    };
 
     QuickHelp.prototype.build_edit_help = function () {
         var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
-        var help, shortcut;
-        var i, half, n;
-
         // Edit mode
-        var edit_div = $('<div/>').append($('<h4>Edit Mode (press <code>enter</code> to enable)</h4>'));
-        var edit_sub_div = $('<div/>').addClass('hbox');
-        var edit_col1 = $('<div/>').addClass('box-flex0');
-        var edit_col2 = $('<div/>').addClass('box-flex0');
-        n = edit_shortcuts.length;
+        return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', edit_shortcuts);
+    };
+
+    var build_one = function (s) {
+        var help = s.help;
+        var shortcut = prettify(s.shortcut);
+        return $('<div>').addClass('quickhelp').
+            append($('<span/>').addClass('shortcut_key').append($(shortcut))).
+            append($('<span/>').addClass('shortcut_descr').text(' : ' + help));
+
+    };
+
+    var build_div = function (title, shortcuts) {
+        var i, half, n;
+        var div = $('<div/>').append($(title));
+        var sub_div = $('<div/>').addClass('hbox');
+        var col1 = $('<div/>').addClass('box-flex0');
+        var col2 = $('<div/>').addClass('box-flex0');
+        n = shortcuts.length;
         half = ~~(n/2);  // Truncate :)
-        for (i=0; i<half; i++) {
-            help = edit_shortcuts[i]['help'];
-            shortcut = edit_shortcuts[i]['shortcut'];
-            edit_col1.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').text(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
-            );
-        };
-        for (i=half; i<n; i++) {
-            help = edit_shortcuts[i]['help'];
-            shortcut = edit_shortcuts[i]['shortcut'];
-            edit_col2.append($('<div>').addClass('quickhelp').
-                append($('<span/>').addClass('shortcut_key').text(shortcut)).
-                append($('<span/>').addClass('shortcut_descr').text(' : ' + help))
-            );
-        };
-        edit_sub_div.append(edit_col1).append(edit_col2);
-        edit_div.append(edit_sub_div);
-        return edit_div;
-    }
+        for (i=0; i<half; i++) { col1.append( build_one(shortcuts[i]) ); }
+        for (i=half; i<n; i++) { col2.append( build_one(shortcuts[i]) ); }
+        sub_div.append(col1).append(col2);
+        div.append(sub_div);
+        return div;
+    };
 
     // Set module variables
     IPython.QuickHelp = QuickHelp;

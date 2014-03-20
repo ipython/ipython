@@ -22,7 +22,7 @@ casper.notebook_test(function () {
         var cell = IPython.notebook.get_cell(0);
         cell.set_text('a=11; print(a)');
         cell.clear_output();
-        IPython.keyboard.trigger_keydown('shift+enter');
+        IPython.keyboard.trigger_keydown('shift-enter');
     });
 
     this.wait_for_output(0);
@@ -41,7 +41,7 @@ casper.notebook_test(function () {
         var cell = IPython.notebook.get_cell(0);
         cell.set_text('a=12; print(a)');
         cell.clear_output();
-        IPython.keyboard.trigger_keydown('ctrl+enter');
+        IPython.keyboard.trigger_keydown('ctrl-enter');
     });
 
     this.wait_for_output(0);

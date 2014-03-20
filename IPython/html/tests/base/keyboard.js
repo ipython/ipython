@@ -1,13 +1,13 @@
 
 
 var normalized_shortcuts = [
-    'ctrl+shift+m',
-    'alt+meta+p',
+    'ctrl-shift-m',
+    'alt-meta-p',
 ];
 
 var to_normalize = [
-    ['shift+%', 'shift+5'],
-    ['ShiFT+MeTa+CtRl+AlT+m', 'alt+ctrl+meta+shift+m'],
+    ['shift-%', 'shift-5'],
+    ['ShiFT-MeTa-CtRl-AlT-m', 'alt-ctrl-meta-shift-m'],
 ];
 
 var unshifted = "` 1 2 3 4 5 6 7 8 9 0 - = q w e r t y u i o p [ ] \\ a s d f g h j k l ; ' z x c v b n m , . /";
@@ -33,7 +33,7 @@ casper.notebook_test(function () {
             }, item);
             this.test.assertEquals(result, item[1], 'Normalize shortcut: '+item[0]);
         });
-    })
+    });
 
     this.then(function () {
         this.each(normalized_shortcuts, function (self, item) {

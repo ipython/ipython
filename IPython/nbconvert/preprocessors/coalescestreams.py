@@ -11,9 +11,13 @@ addition to the coalesce_streams pre-proccessor.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+import re
+
+#-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
-
 def cell_preprocessor(function):
     """
     Wrap a function to be executed on all cells of a notebook
@@ -67,6 +71,10 @@ def coalesce_streams(cell, resources, index):
             last.stream == output.stream
         ):
             last.text += output.text
+
+            # Respect \r characters.
+            cr_pat = re.compile(r'.*\r(?=[^\n])')
+            last.text = cr_pat.sub('', last.text)
         else:
             new_outputs.append(output)
             last = output
