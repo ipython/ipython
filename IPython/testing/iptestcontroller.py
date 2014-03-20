@@ -215,7 +215,10 @@ class JSController(TestController):
         self._init_server()
         if self.server_port:
             self.cmd.append("--port=%i" % self.server_port)
-
+        else:
+            # don't launch tests if the server didn't start
+            self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
+    
     def print_extra_info(self):
         print("Running tests with notebook directory %r" % self.nbdir.name)
 
