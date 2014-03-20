@@ -54,7 +54,7 @@ IPython.keyboard = (function (IPython) {
     var browser = IPython.utils.browser[0];
     var platform = IPython.utils.platform;
     
-    if (browser === 'Firefox' || browser === 'Opera') {
+    if (browser === 'Firefox' || browser === 'Opera' || browser === 'Netscape') {
         $.extend(_keycodes, _mozilla_keycodes);
     } else if (browser === 'Safari' || browser === 'Chrome' || browser === 'MSIE') {
         $.extend(_keycodes, _ie_keycodes);
