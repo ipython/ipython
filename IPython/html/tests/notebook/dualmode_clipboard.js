@@ -47,8 +47,8 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_cell_text(5), c, 'Verify that cell 5 has the copied contents.');
         this.test.assertEquals(this.get_cells_length(), num_cells+2,  'Verify a the cell was added.');
         this.select_cell(0);
-        this.trigger_keydown('shift+v'); // Paste
-        this.validate_notebook_state('shift+v', 'command', 0);
+        this.trigger_keydown('shift-v'); // Paste
+        this.validate_notebook_state('shift-v', 'command', 0);
         this.test.assertEquals(this.get_cell_text(0), c, 'Verify that cell 0 has the copied contents.');
         this.test.assertEquals(this.get_cells_length(), num_cells+3,  'Verify a the cell was added.');
     });
