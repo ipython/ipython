@@ -53,7 +53,7 @@ var IPython = (function (IPython) {
     };
 
     if (platform === 'MacOS') {
-        default_common_shortcuts['cmd+s'] =
+        default_common_shortcuts['cmd-s'] =
             {
                 help    : 'save notebook',
                 help_index : 'fb',
@@ -156,17 +156,17 @@ var IPython = (function (IPython) {
     };
 
     if (platform === 'MacOS') {
-        default_edit_shortcuts['cmd+/'] =
+        default_edit_shortcuts['cmd-/'] =
             {
                 help    : 'toggle comment',
                 help_index : 'ee'
             };
-        default_edit_shortcuts['cmd+]'] =
+        default_edit_shortcuts['cmd-]'] =
             {
                 help    : 'indent',
                 help_index : 'ef'
             };
-        default_edit_shortcuts['cmd+['] =
+        default_edit_shortcuts['cmd-['] =
             {
                 help    : 'dedent',
                 help_index : 'eg'
