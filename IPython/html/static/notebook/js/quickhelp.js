@@ -73,7 +73,7 @@ var IPython = (function (IPython) {
 
     var special_case = { pageup: "PageUp", pagedown: "Page Down", 'minus': '-' };
     var prettify = function (s) {
-        s = s.replace('--', '-'); // catch shortcuts using '-' key
+        s = s.replace(/-$/, 'minus'); // catch shortcuts using '-' key
         var keys = s.split('-');
         var k, i;
         for (i in keys) {
