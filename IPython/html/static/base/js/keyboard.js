@@ -43,12 +43,12 @@ IPython.keyboard = (function (IPython) {
     
     // These apply to Firefox and Opera
     var _mozilla_keycodes = {
-        '; :': 59, '= +': 61, '- _': 173, 'meta': 224
+        '; :': 59, '= +': 61, '- _': 173, 'minus': 173, 'meta': 224
     };
     
     // This apply to Webkit and IE
     var _ie_keycodes = {
-        '; :': 186, '= +': 187, '- _': 189, 
+        '; :': 186, '= +': 187, '- _': 189, 'minus': 189 
     };
     
     var browser = IPython.utils.browser[0];
@@ -88,14 +88,13 @@ IPython.keyboard = (function (IPython) {
         // 3. Sort '-' separated modifiers into the order alt-ctrl-meta-shift
         // 4. Normalize keys
         shortcut = shortcut.toLowerCase().replace('cmd', 'meta');
-        shortcut = shortcut.replace('--', '-');  // catch shortcuts using '-' key
+        shortcut = shortcut.replace(/-$/, 'minus');  // catch shortcuts using '-' key
         var values = shortcut.split("-");
         if (values.length === 1) {
             return normalize_key(values[0]);
         } else {
             var modifiers = values.slice(0,-1);
             var key = normalize_key(values[values.length-1]);
-            key = key || '-'; // '-' will make the key undefined, since we split on it
             modifiers.sort();
             return modifiers.join('-') + '-' + key;
         }

@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
         return build_div('<h4>Command Mode (press <code>Esc</code> to enable)</h4>', command_shortcuts);
     };
 
-    var special_case = { pageup: "PageUp", pagedown: "Page Down", '': '-' };
+    var special_case = { pageup: "PageUp", pagedown: "Page Down", 'minus': '-' };
     var prettify = function (s) {
         s = s.replace('--', '-'); // catch shortcuts using '-' key
         var keys = s.split('-');
