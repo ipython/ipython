@@ -519,7 +519,8 @@ argparser.add_argument('testgroups', nargs='*',
 argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
-                    help='Run test sections in parallel.')
+                    help='Run test sections in parallel. This starts as many '
+                    'processes as you have cores, or you can specify a number.')
 argparser.add_argument('--xunit', action='store_true',
                     help='Produce Xunit XML results')
 argparser.add_argument('--coverage', nargs='?', const=True, default=False,
