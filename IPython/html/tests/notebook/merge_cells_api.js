@@ -25,7 +25,7 @@ casper.notebook_test(function() {
     set_cells_text();
     var output_above = this.evaluate(function () {
         IPython.notebook.merge_cell_above();
-        return IPython.notebook.get_selected_cell();
+        return IPython.notebook.get_selected_cell().get_text();
     });
         
     // merge_cell_below()
@@ -33,7 +33,7 @@ casper.notebook_test(function() {
     var output_below = this.evaluate(function() {
         IPython.notebook.select(0);
         IPython.notebook.merge_cell_below();
-        return IPython.notebook.get_selected_cell();    
+        return IPython.notebook.get_selected_cell().get_text();
     });
     
     this.test.assertEquals(output_above, 'a = 5\nprint(a)',
