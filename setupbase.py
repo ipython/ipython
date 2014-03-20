@@ -29,6 +29,7 @@ from distutils.command.build_scripts import build_scripts
 from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
 from distutils.cmd import Command
+from fnmatch import fnmatch
 from glob import glob
 from subprocess import call
 
@@ -127,22 +128,25 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     
-    # exclude components from the walk,
+    # exclude components and less from the walk;
     # we will build the components separately
-    excludes = ['components']
-    
-    # add 'static/' prefix to exclusions, and tuplify for use in startswith
-    excludes = tuple([pjoin('static', ex) for ex in excludes])
+    excludes = [
+        pjoin('static', 'components'),
+        pjoin('static', '*', 'less'),
+    ]
     
     # walk notebook resources:
     cwd = os.getcwd()
     os.chdir(os.path.join('IPython', 'html'))
     static_data = []
     for parent, dirs, files in os.walk('static'):
-        if parent.startswith(excludes):
+        if any(fnmatch(parent, pat) for pat in excludes):
+            # prevent descending into subdirs
+            dirs[:] = []
             continue
         for f in files:
             static_data.append(pjoin(parent, f))
+    
     components = pjoin("static", "components")
     # select the components we actually need to install
     # (there are lots of resources we bundle for sdist-reasons that we don't actually use)
