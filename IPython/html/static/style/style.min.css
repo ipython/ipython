@@ -1303,7 +1303,7 @@ span#login_widget{float:right}
 .navbar-nobg{background-color:transparent;background-image:none}
 #header>span{margin-top:10px}
 .modal-body{max-height:500px}
-.center-nav{display:inline-block;margin-bottom:-4px}
+@media (min-width:768px){.modal{width:700px;margin-left:-350px}}.center-nav{display:inline-block;margin-bottom:-4px}
 .alternate_upload{background-color:none;display:inline}
 .alternate_upload.form{padding:0;margin:0}
 .alternate_upload input.fileinput{background-color:#f00;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;height:26px}
@@ -1516,8 +1516,9 @@ ul#help_menu li a{overflow:hidden;padding-right:2.2em}ul#help_menu li a i{margin
 div#pager_splitter{height:8px}
 #pager-container{position:relative;padding:15px 0}
 div#pager{font-size:14px;line-height:20px;overflow:auto;display:none}div#pager pre{font-size:13px;line-height:1.21429em;color:#000;background-color:#f7f7f7;padding:.4em}
-.shortcut_key{display:inline-block;width:16ex;text-align:right;font-family:monospace}
-.shortcut_descr{display:inline-block}
+.quickhelp{display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch}
+.shortcut_key{display:inline-block;width:20ex;text-align:right;font-family:monospace}
+.shortcut_descr{display:inline-block;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
 span#save_widget{padding:0 5px;margin-top:12px}
 span#checkpoint_status,span#autosave_status{font-size:small}
 @media (max-width:767px){span#save_widget{font-size:small} span#checkpoint_status,span#autosave_status{font-size:x-small}}@media (max-width:767px){span#checkpoint_status,span#autosave_status{display:none}}@media (min-width:768px) and (max-width:979px){span#checkpoint_status{display:none} span#autosave_status{font-size:x-small}}.toolbar{padding:0 10px;margin-top:-5px}.toolbar select,.toolbar label{width:auto;height:26px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:.3em;margin-right:.3em;padding:0;padding-top:3px}
