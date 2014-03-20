@@ -37,12 +37,14 @@ casper.notebook_test(function () {
         this.validate_notebook_state('click cell 3', 'edit', 3);
         this.trigger_keydown('down');
         this.validate_notebook_state('down at end of notebook', 'edit', 3);
+        // cursor
         this.trigger_keydown('up');
         this.validate_notebook_state('up', 'edit', 2);
         this.click_cell_editor(0);
         this.validate_notebook_state('click 0', 'edit', 0);
         this.trigger_keydown('up');
         this.validate_notebook_state('up at top of notebook', 'edit', 0);
+        // cursor
         this.trigger_keydown('down');
         this.validate_notebook_state('down', 'edit', 1);
     });
