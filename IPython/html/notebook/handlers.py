@@ -69,8 +69,8 @@ class NotebookRedirectHandler(IPythonHandler):
                 # so it should work until both are cleaned up.
                 parts = path.split('/')
                 files_path = os.path.join(nbm.notebook_dir, *parts)
-                self.log.warn("filespath: %s", files_path)
                 if not os.path.exists(files_path):
+                    self.log.warn("Deprecated files/ URL: %s", path)
                     path = path.replace('/files/', '/', 1)
             
             url = url_path_join(self.base_url, 'files', path)
