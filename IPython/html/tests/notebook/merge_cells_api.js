@@ -3,40 +3,41 @@
 //
 casper.notebook_test(function() {
     var that = this;
-    var output = this.evaluate(function () {
-        // Fill in test data.
-        IPython.notebook.command_mode();
-        var set_cell_text = function () {
+    var set_cells_text =  function () {
+        that.evaluate(function() {
             var cell_one = IPython.notebook.get_selected_cell();
             cell_one.set_text('a = 5');
-            
-            var element = $(document);
-            var event = IPython.keyboard.shortcut_to_event('b', 'keydown');
-            element.trigger(event);
+        });
 
+        that.trigger_keydown('b');
+
+        that.evaluate(function() {
             var cell_two = IPython.notebook.get_selected_cell();
             cell_two.set_text('print(a)');
-        };
+        });
+    };
+
+    this.evaluate(function () {
+        IPython.notebook.command_mode();
+    });
         
-        // merge_cell_above()
-        set_cell_text();
+    // merge_cell_above()
+    set_cell_text();
+    var output_above = this.evaluate(function () {
         IPython.notebook.merge_cell_above();
-        var merged_above = IPython.notebook.get_selected_cell();
+        return IPython.notebook.get_selected_cell();
+    });
         
-        // merge_cell_below()
-        set_cell_text();
+    // merge_cell_below()
+    set_cell_text();
+    var output_below = this.evaluate(function() {
         IPython.notebook.select(0);
         IPython.notebook.merge_cell_below();
-        var merged_below = IPython.notebook.get_selected_cell();
-        
-        return {
-            above: merged_above.get_text(),
-            below: merged_below.get_text()
-        };
+        return IPython.notebook.get_selected_cell();    
     });
     
-    this.test.assertEquals(output.above, 'a = 5\nprint(a)',
+    this.test.assertEquals(output_above, 'a = 5\nprint(a)',
                            'Successful merge_cell_above().');
-    this.test.assertEquals(output.below, 'a = 5\nprint(a)',
+    this.test.assertEquals(output_below, 'a = 5\nprint(a)',
                            'Successful merge_cell_below().');
 });
