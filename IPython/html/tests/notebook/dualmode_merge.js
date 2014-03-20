@@ -9,7 +9,7 @@ casper.notebook_test(function () {
         this.set_cell_text(0, 'abcd');
         this.set_cell_editor_cursor(0, 0, 2);
         this.test.assertEquals(this.get_cell_text(0), 'abcd', 'Verify that cell 0 has the new contents.');
-        this.trigger_keydown('ctrl-shift-minus'); // Split
+        this.trigger_keydown('ctrl-shift-subtract'); // Split
         this.test.assertEquals(this.get_cell_text(0), 'ab', 'split; Verify that cell 0 has the first half.');
         this.test.assertEquals(this.get_cell_text(1), 'cd', 'split; Verify that cell 1 has the second half.');
         this.validate_notebook_state('split', 'edit', 1);
