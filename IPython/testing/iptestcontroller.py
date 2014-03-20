@@ -417,7 +417,7 @@ def run_iptestall(options):
     if options.fast == 1:
         # This actually means sequential, i.e. with 1 job
         for controller in to_run:
-            print('IPython test group:', controller.section)
+            print('Test group:', controller.section)
             sys.stdout.flush()  # Show in correct order when output is piped
             controller, res = do_run(controller, buffer_output=False)
             if res:
@@ -445,7 +445,7 @@ def run_iptestall(options):
             return
 
     for controller in not_run:
-        print(justify('IPython test group: ' + controller.section, 'NOT RUN'))
+        print(justify('Test group: ' + controller.section, 'NOT RUN'))
 
     t_end = time.time()
     t_tests = t_end - t_start
