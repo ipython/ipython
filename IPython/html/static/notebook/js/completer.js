@@ -233,10 +233,17 @@ var IPython = (function (IPython) {
             this.sel.dblclick(function () {
                 that.pick();
             });
+            this.sel.focus(function () {
+                that.editor.focus();
+            });
             this._handle_keydown = function (cm, event) {
                 that.keydown(event);
             };
             this.editor.on('keydown', this._handle_keydown);
+            this._handle_keypress = function (cm, event) {
+                that.keypress(event);
+            };
+            this.editor.on('keypress', this._handle_keypress);
         }
         this.sel.attr('size', Math.min(10, this.raw_result.length));
 
@@ -282,6 +289,10 @@ var IPython = (function (IPython) {
             this.editor.off('keydown', this._handle_keydown);
             this._handle_keydown = undefined;
         }
+        if (this._handle_keypress) {
+            this.editor.off('keypress', this._handle_keypress);
+            this._handle_keypress = undefined;
+        }
         this.visible = false;
     };
 
@@ -291,20 +302,16 @@ var IPython = (function (IPython) {
     };
 
     Completer.prototype.keydown = function (event) {
-        console.log(event);
         var code = event.keyCode;
         var that = this;
-        if (!this.visible) return;
 
         // Enter
         if (code == keycodes.enter) {
-            event.stopPropagation();
-            event.codemirrorIgnore = true;
+            CodeMirror.e_stop(event);
             this.pick();
         // Escape or backspace
         } else if (code == keycodes.esc || code == keycodes.backspace) {
-            event.stopPropagation();
-            event.codemirrorIgnore = true;
+            CodeMirror.e_stop(event);
             this.close();
         } else if (code == keycodes.tab) {
             //all the fastforwarding operation,
@@ -316,8 +323,8 @@ var IPython = (function (IPython) {
                 this.insert(sh);
             }
             this.close();
-            event.codemirrorIgnore = true;
-            event.stopPropagation();
+            // event.codemirrorIgnore = true;
+            // event.stopPropagation();
             //reinvoke self
             setTimeout(function () {
                 that.carry_on_completion();
@@ -325,8 +332,7 @@ var IPython = (function (IPython) {
         } else if (code == keycodes.up || code == keycodes.down) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
-            event.stopPropagation();
-            event.codemirrorIgnore = true;
+            CodeMirror.e_stop(event);
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;
@@ -337,11 +343,44 @@ var IPython = (function (IPython) {
                 index++;
             }
             index = Math.min(Math.max(index, 0), options.length-1);
-            console.log('compl set index', index);
             this.sel[0].selectedIndex = index;
+        } else if (code == keycodes.left || code == keycodes.right) {
+            this.close();
         }
     };
 
+    Completer.prototype.keypress = function (event) {
+        // FIXME: This is a band-aid.
+        // on keypress, trigger insertion of a single character.
+        // This simulates the old behavior of completion as you type,
+        // before events were disconnected and CodeMirror stopped
+        // receiving events while the completer is focused.
+        
+        var that = this;
+        var code = event.keyCode;
+        
+        // don't handle keypress if it's not a character (arrows on FF)
+        // or ENTER/TAB
+        if (event.charCode === 0 ||
+            code == keycodes.tab ||
+            code == keycodes.enter
+        ) return;
+        
+        var cur = this.editor.getCursor();
+        var completion = {
+            str: String.fromCharCode(event.which),
+            type: "introspection",
+            from: cur,
+            to: cur,
+        };
+        // this.insert(completion);
+        
+        this.close();
+        this.editor.focus();
+        setTimeout(function () {
+            that.carry_on_completion();
+        }, 50);
+    };
     IPython.Completer = Completer;
 
     return IPython;
