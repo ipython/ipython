@@ -128,15 +128,6 @@ IPython.keyboard = (function (IPython) {
         return shortcut;
     };
 
-    var trigger_keydown = function (shortcut, element) {
-        // Trigger shortcut keydown on an element
-        element = element || document;
-        element = $(element);
-        var event = shortcut_to_event(shortcut, 'keydown');
-        element.trigger(event);
-    }
-
-
     // Shortcut manager class
 
     var ShortcutManager = function (delay) {
