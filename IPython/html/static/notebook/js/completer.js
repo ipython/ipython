@@ -221,6 +221,7 @@ var IPython = (function (IPython) {
         // Currently webkit doesn't use the size attr correctly. See:
         // https://code.google.com/p/chromium/issues/detail?id=4579
         this.sel = $('<select style="width: auto"/>')
+            .attr('tabindex', -1)
             .attr('multiple', 'true')
             .attr('size', Math.min(10, this.raw_result.length));
         this.complete.append(this.sel);
@@ -248,36 +249,16 @@ var IPython = (function (IPython) {
         this.sel.dblclick(function () {
             that.pick();
         });
-        this.sel.blur($.proxy(this.close, this));
-        this.sel.keydown(function (event) {
-            // Ignore tab key since it causes the completer to reshow on some 
-            // machines and not with others.  This strange behavior is due to
-            // the fact that we are tricking the notebook into thinking that it
-            // is in edit mode when it's really not.
-            if (IPython.keyboard.event_to_shortcut(event)=='tab') {
-                event.stopPropagation();
-                event.preventDefault();
-            } else {
-                that.keydown(event);
-            }
+        this.editor.on('keydown', function (event) {
+            that.keydown(event);
         });
-        this.sel.keypress(function (event) {
+        this.editor.on('keypress', function (event) {
             that.keypress(event);
         });
 
         this.build_gui_list(this.raw_result);
 
         this.sel.focus();
-        // Since the completer can and will gain focus and it isn't a component
-        // of the codemirror instance, we need to manually "fake" codemirror as
-        // still being focused.  This is accomplished by calling edit_mode on 
-        // the cell when the completer gains focus, and command mode when the
-        // completer loses focus.  If the completer was an actual, true extension
-        // of codemirror, we wouldn't have to play this game since codemirror 
-        // wouldn't blur when the completer was shown.
-        this.cell.edit_mode();
-        $([IPython.events]).trigger('edit_mode.Notebook');
-        IPython.keyboard_manager.disable();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function () {
             if (!this.done) this.sel.focus();
@@ -301,16 +282,6 @@ var IPython = (function (IPython) {
     Completer.prototype.close = function () {
         this.done = true;
         $('#complete').remove();
-        // Since the completer can and will gain focus and it isn't a component
-        // of the codemirror instance, we need to manually "fake" codemirror as
-        // still being focused.  This is accomplished by calling edit_mode on 
-        // the cell when the completer gains focus, and command mode when the
-        // completer loses focus.  If the completer was an actual, true extension
-        // of codemirror, we wouldn't have to play this game since codemirror 
-        // wouldn't blur when the completer was shown.
-        this.cell.command_mode();
-        $([IPython.events]).trigger('command_mode.Notebook');
-        IPython.keyboard_manager.enable();
     };
 
     Completer.prototype.pick = function () {
