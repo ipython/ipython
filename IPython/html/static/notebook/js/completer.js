@@ -317,8 +317,6 @@ var IPython = (function (IPython) {
                 this.insert(sh);
             }
             this.close();
-            // event.codemirrorIgnore = true;
-            // event.stopPropagation();
             //reinvoke self
             setTimeout(function () {
                 that.carry_on_completion();
