@@ -35,16 +35,21 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.model.on('change:_titles', function(model, value, options) {
                 this.update_titles(value);
             }, this);
+            this.model.on('displayed', function() {
+                this.update_titles();
+            }, this);
         },
 
         update_titles: function(titles) {
             // Set tab titles
+            if (!titles) {
+                titles = this.model.get('_titles');
+            }
+
             var that = this;
-            console.log('update titles');
             _.each(titles, function(title, page_index) {
                 var accordian = that.containers[page_index];
                 if (accordian !== undefined) {
-                    console.log('setting child title');
                     accordian
                         .find('.accordion-heading')
                         .find('.accordion-toggle')
@@ -56,9 +61,7 @@ define(["widgets/js/widget"], function(WidgetManager){
         update_selected_index: function(old_index, new_index, options) {
             // Only update the selection if the selection wasn't triggered
             // by the front-end.  It must be triggered by the back-end.
-            console.log('try update selected_index');
             if (options === undefined || options.updated_view != this) {
-                console.log('update selected_index');
                 this.containers[old_index].find('.accordion-body').collapse('hide');
                 if (0 <= new_index && new_index < this.containers.length) {
                     this.containers[new_index].find('.accordion-body').collapse('show');
@@ -75,7 +78,6 @@ define(["widgets/js/widget"], function(WidgetManager){
         },
 
         remove_child_model: function(model) {
-            console.log('rm child');
             // Called when a child is removed from children list.
             var accordion_group = this.model_containers[model.id];
             this.containers.splice(accordion_group.container_index, 1);
@@ -85,7 +87,6 @@ define(["widgets/js/widget"], function(WidgetManager){
         },
 
         add_child_model: function(model) {
-            console.log('add child');
             // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
@@ -123,12 +124,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             accordion_inner.append(view.$el);
 
             this.update();
-
-            // // Stupid workaround to close the bootstrap accordion tabs which
-            // // open by default even though they don't have the `in` class
-            // // attached to them.  For some reason a delay is required.  
-            // // TODO: Better fix.
-            // setTimeout(function(){ that.update(); }, 500);
+            this.update_titles();
         },
     });
     WidgetManager.register_widget_view('AccordionView', AccordionView);
