@@ -19,7 +19,7 @@ import io
 import os
 import time
 
-from IPython.utils.py3compat import str_to_unicode
+from IPython.utils.py3compat import safe_unicode
 
 #****************************************************************************
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
@@ -194,12 +194,12 @@ which already exists. But you must first start the logging process with
             write = self.logfile.write
             if kind=='input':
                 if self.timestamp:
-                    write(str_to_unicode(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
-                                        time.localtime())))
-                write(data)
+                    write(safe_unicode(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
+                                       time.localtime())))
+                write(safe_unicode(data))
             elif kind=='output' and self.log_output:
                 odata = u'\n'.join([u'#[Out]# %s' % s
-                                   for s in data.splitlines()])
+                                   for s in safe_unicode(data).splitlines()])
                 write(u'%s\n' % odata)
             self.logfile.flush()
 
