@@ -285,14 +285,8 @@ var IPython = (function (IPython) {
     Completer.prototype.close = function () {
         this.done = true;
         $('#complete').remove();
-        if (this._handle_keydown) {
-            this.editor.off('keydown', this._handle_keydown);
-            this._handle_keydown = undefined;
-        }
-        if (this._handle_keypress) {
-            this.editor.off('keypress', this._handle_keypress);
-            this._handle_keypress = undefined;
-        }
+        this.editor.off('keydown', this._handle_keydown);
+        this.editor.off('keypress', this._handle_keypress);
         this.visible = false;
     };
 
