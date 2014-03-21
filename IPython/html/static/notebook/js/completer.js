@@ -373,7 +373,6 @@ var IPython = (function (IPython) {
             from: cur,
             to: cur,
         };
-        // this.insert(completion);
         
         this.close();
         this.editor.focus();
