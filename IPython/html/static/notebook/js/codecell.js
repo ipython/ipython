@@ -566,8 +566,11 @@ var IPython = (function (IPython) {
         var cont = IPython.Cell.prototype.unselect.apply(this);
         if (cont) {
             // When a code cell is usnelected, make sure that the corresponding
-            // tooltip to that cell is closed.
+            // tooltip and completer to that cell is closed.
             IPython.tooltip.remove_and_cancel_tooltip(true);
+            if (this.completer !== null) {
+                this.completer.close();
+            }
         }
         return cont;
     };
