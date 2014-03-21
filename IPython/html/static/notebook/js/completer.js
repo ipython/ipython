@@ -221,7 +221,7 @@ var IPython = (function (IPython) {
 
             // Currently webkit doesn't use the size attr correctly. See:
             // https://code.google.com/p/chromium/issues/detail?id=4579
-            this.sel = $('<select style="width: auto"/>')
+            this.sel = $('<select/>')
                 .attr('tabindex', -1)
                 .attr('multiple', 'true');
             this.complete.append(this.sel);
