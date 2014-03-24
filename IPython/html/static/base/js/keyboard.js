@@ -183,7 +183,7 @@ IPython.keyboard = (function (IPython) {
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             $([IPython.events]).trigger('rebuild.QuickHelp');
-    }
+        }
     };
 
     ShortcutManager.prototype.add_shortcuts = function (data) {
@@ -201,7 +201,7 @@ IPython.keyboard = (function (IPython) {
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             $([IPython.events]).trigger('rebuild.QuickHelp');
-    }
+        }
     };
 
     ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
