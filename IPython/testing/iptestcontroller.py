@@ -127,13 +127,14 @@ class PyTestController(TestController):
     #: str, Python command to execute in subprocess
     pycmd = None
 
-    def __init__(self, section):
+    def __init__(self, section, options):
         """Create new test runner."""
         TestController.__init__(self)
         self.section = section
         # pycmd is put into cmd[2] in PyTestController.launch()
         self.cmd = [sys.executable, '-c', None, section]
         self.pycmd = "from IPython.testing.iptest import run_iptest; run_iptest()"
+        self.options = options
 
     def setup(self):
         ipydir = TemporaryDirectory()
@@ -144,6 +145,14 @@ class PyTestController(TestController):
         self.env['IPTEST_WORKING_DIR'] = workingdir.name
         # This means we won't get odd effects from our own matplotlib config
         self.env['MPLCONFIGDIR'] = workingdir.name
+
+        # From options:
+        if self.options.xunit:
+            self.add_xunit()
+        if self.options.coverage:
+            self.add_coverage()
+        self.env['IPTEST_SUBPROC_STREAMS'] = self.options.subproc_streams
+        self.cmd.extend(self.options.extra_args)
 
     @property
     def will_run(self):
@@ -273,27 +282,12 @@ def prepare_controllers(options):
             test_sections['parallel'].enabled = False
 
     c_js = [JSController(name) for name in js_testgroups]
-    c_py = [PyTestController(name) for name in py_testgroups]
-
-    configure_py_controllers(c_py, xunit=options.xunit,
-            coverage=options.coverage, subproc_streams=options.subproc_streams,
-            extra_args=options.extra_args)
+    c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
     not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
-
-def configure_py_controllers(controllers, xunit=False, coverage=False,
-                             subproc_streams='capture', extra_args=()):
-    """Apply options for a collection of TestController objects."""
-    for controller in controllers:
-        if xunit:
-            controller.add_xunit()
-        if coverage:
-            controller.add_coverage()
-        controller.env['IPTEST_SUBPROC_STREAMS'] = subproc_streams
-        controller.cmd.extend(extra_args)
 
 def do_run(controller, buffer_output=True):
     """Setup and run a test controller.
