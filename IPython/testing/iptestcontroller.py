@@ -273,13 +273,13 @@ class JSController(TestController):
         self.server_port = info['port']
 
     def cleanup(self):
-        self.stream_capturer.halt()
         try:
             self.server.terminate()
         except OSError:
             # already dead
             pass
         self.server.wait()
+        self.stream_capturer.halt()
         TestController.cleanup(self)
 
 
