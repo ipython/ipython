@@ -10,12 +10,18 @@ div.input {
     .hbox();
 }
 
+@media (max-width: 480px) {
+    // move prompts above code on small screens
+    div.input {
+        .vbox();
+    }
+}
+
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_prompt {
     color: navy;
     border-top: 1px solid transparent;
 }
-
 
 // The styles related to div.highlight are for nbconvert HTML output only. This works
 // because the .highlight div isn't present in the live notebook. We could put this into
