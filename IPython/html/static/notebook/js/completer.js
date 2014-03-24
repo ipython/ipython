@@ -73,7 +73,6 @@ var IPython = (function (IPython) {
 
 
     var Completer = function (cell) {
-        this._visible = false;
         this.cell = cell;
         this.editor = cell.code_mirror;
         var that = this;
@@ -85,15 +84,9 @@ var IPython = (function (IPython) {
         });
     };
 
-    Completer.prototype.is_visible = function () {
-        // Return whether or not the completer is visible.
-        return this._visible;
-    };
-
     Completer.prototype.startCompletion = function () {
         // call for a 'first' completion, that will set the editor and do some
-        // special behaviour like autopicking if only one completion availlable
-        //
+        // special behavior like autopicking if only one completion available.
         if (this.editor.somethingSelected()) return;
         this.done = false;
         // use to get focus back on opera
@@ -221,17 +214,37 @@ var IPython = (function (IPython) {
             }
         }
 
-        this.complete = $('<div/>').addClass('completions');
-        this.complete.attr('id', 'complete');
+        if (!this.visible) {
+            this.complete = $('<div/>').addClass('completions');
+            this.complete.attr('id', 'complete');
 
-        // Currently webkit doesn't use the size attr correctly. See:
-        // https://code.google.com/p/chromium/issues/detail?id=4579
-        this.sel = $('<select style="width: auto"/>')
-            .attr('multiple', 'true')
-            .attr('size', Math.min(10, this.raw_result.length));
-        this.complete.append(this.sel);
-        this._visible = true;
-        $('body').append(this.complete);
+            // Currently webkit doesn't use the size attr correctly. See:
+            // https://code.google.com/p/chromium/issues/detail?id=4579
+            this.sel = $('<select/>')
+                .attr('tabindex', -1)
+                .attr('multiple', 'true');
+            this.complete.append(this.sel);
+            this.visible = true;
+            $('body').append(this.complete);
+
+            //build the container
+            var that = this;
+            this.sel.dblclick(function () {
+                that.pick();
+            });
+            this.sel.focus(function () {
+                that.editor.focus();
+            });
+            this._handle_keydown = function (cm, event) {
+                that.keydown(event);
+            };
+            this.editor.on('keydown', this._handle_keydown);
+            this._handle_keypress = function (cm, event) {
+                that.keypress(event);
+            };
+            this.editor.on('keypress', this._handle_keypress);
+        }
+        this.sel.attr('size', Math.min(10, this.raw_result.length));
 
         // After everything is on the page, compute the postion.
         // We put it above the code if it is too close to the bottom of the page.
@@ -249,28 +262,9 @@ var IPython = (function (IPython) {
         this.complete.css('left', left + 'px');
         this.complete.css('top', top + 'px');
 
-
-        //build the container
-        var that = this;
-        this.sel.dblclick(function () {
-            that.pick();
-        });
-        this.sel.blur(this.close);
-        this.sel.keydown(function (event) {
-            that.keydown(event);
-        });
-        this.sel.keypress(function (event) {
-            that.keypress(event);
-        });
-
+        // Clear and fill the list.
+        this.sel.text('');
         this.build_gui_list(this.raw_result);
-
-        this.sel.focus();
-        IPython.keyboard_manager.disable();
-        // Opera sometimes ignores focusing a freshly created node
-        if (window.opera) setTimeout(function () {
-            if (!this.done) this.sel.focus();
-        }, 100);
         return true;
     };
 
@@ -288,20 +282,16 @@ var IPython = (function (IPython) {
     };
 
     Completer.prototype.close = function () {
-        this._visible = false;
-        if (this.done) return;
         this.done = true;
-        $('.completions').remove();
-        IPython.keyboard_manager.enable();
+        $('#complete').remove();
+        this.editor.off('keydown', this._handle_keydown);
+        this.editor.off('keypress', this._handle_keypress);
+        this.visible = false;
     };
 
     Completer.prototype.pick = function () {
         this.insert(this.raw_result[this.sel[0].selectedIndex]);
         this.close();
-        var that = this;
-        setTimeout(function () {
-            that.editor.focus();
-        }, 50);
     };
 
     Completer.prototype.keydown = function (event) {
@@ -312,16 +302,10 @@ var IPython = (function (IPython) {
         if (code == keycodes.enter) {
             CodeMirror.e_stop(event);
             this.pick();
-        }
         // Escape or backspace
-        else if (code == keycodes.esc) {
+        } else if (code == keycodes.esc || code == keycodes.backspace) {
             CodeMirror.e_stop(event);
             this.close();
-            this.editor.focus();
-
-        } else if (code == keycodes.backspace) {
-            this.close();
-            this.editor.focus();
         } else if (code == keycodes.tab) {
             //all the fastforwarding operation,
             //Check that shared start is not null which can append with prefixed completion
@@ -332,8 +316,6 @@ var IPython = (function (IPython) {
                 this.insert(sh);
             }
             this.close();
-            CodeMirror.e_stop(event);
-            this.editor.focus();
             //reinvoke self
             setTimeout(function () {
                 that.carry_on_completion();
@@ -341,10 +323,23 @@ var IPython = (function (IPython) {
         } else if (code == keycodes.up || code == keycodes.down) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
-            event.stopPropagation();
+            CodeMirror.e_stop(event);
+
+            var options = this.sel.find('option');
+            var index = this.sel[0].selectedIndex;
+            if (code == keycodes.up) {
+                index--;
+            }
+            if (code == keycodes.down) {
+                index++;
+            }
+            index = Math.min(Math.max(index, 0), options.length-1);
+            this.sel[0].selectedIndex = index;
+        } else if (code == keycodes.left || code == keycodes.right) {
+            this.close();
         }
     };
-    
+
     Completer.prototype.keypress = function (event) {
         // FIXME: This is a band-aid.
         // on keypress, trigger insertion of a single character.
@@ -358,18 +353,9 @@ var IPython = (function (IPython) {
         // don't handle keypress if it's not a character (arrows on FF)
         // or ENTER/TAB
         if (event.charCode === 0 ||
-            code == keycodes.enter ||
-            code == keycodes.tab
+            code == keycodes.tab ||
+            code == keycodes.enter
         ) return;
-        
-        var cur = this.editor.getCursor();
-        var completion = {
-            str: String.fromCharCode(event.which),
-            type: "introspection",
-            from: cur,
-            to: cur,
-        };
-        this.insert(completion);
         
         this.close();
         this.editor.focus();
@@ -377,7 +363,6 @@ var IPython = (function (IPython) {
             that.carry_on_completion();
         }, 50);
     };
-
     IPython.Completer = Completer;
 
     return IPython;

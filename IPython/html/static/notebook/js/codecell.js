@@ -358,21 +358,6 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    /**
-     * Determine whether or not the unfocus event should be aknowledged.
-     *
-     * @method should_cancel_blur
-     *
-     * @return results {bool} Whether or not to ignore the cell's blur event.
-     **/
-    CodeCell.prototype.should_cancel_blur = function () {
-        // Cancel this unfocus event if the base wants to cancel or the cell 
-        // completer is open or the tooltip is open.
-        return IPython.Cell.prototype.should_cancel_blur.apply(this) ||
-            (this.completer && this.completer.is_visible()) ||
-            (IPython.tooltip && IPython.tooltip.is_visible());
-    };
-
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};
         var nlines = this.code_mirror.lineCount();
@@ -508,6 +493,23 @@ var IPython = (function (IPython) {
         return data;
     };
 
+    /**
+     * handle cell level logic when a cell is unselected
+     * @method unselect
+     * @return is the action being taken
+     */
+    CodeCell.prototype.unselect = function () {
+        var cont = IPython.Cell.prototype.unselect.apply(this);
+        if (cont) {
+            // When a code cell is usnelected, make sure that the corresponding
+            // tooltip and completer to that cell is closed.
+            IPython.tooltip.remove_and_cancel_tooltip(true);
+            if (this.completer !== null) {
+                this.completer.close();
+            }
+        }
+        return cont;
+    };
 
     IPython.CodeCell = CodeCell;
 
