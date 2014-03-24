@@ -147,10 +147,7 @@ var IPython = (function (IPython) {
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                // Check if this unfocus event is legit.
-                if (!that.should_cancel_blur()) {
-                    $([IPython.events]).trigger('command_mode.Cell', {cell: that});
-                }
+                $([IPython.events]).trigger('command_mode.Cell', {cell: that});
             });
         }
     };
@@ -331,18 +328,7 @@ var IPython = (function (IPython) {
             return false;
         }
     };
-
-    /**
-     * Determine whether or not the unfocus event should be aknowledged.
-     *
-     * @method should_cancel_blur
-     *
-     * @return results {bool} Whether or not to ignore the cell's blur event.
-     **/
-    Cell.prototype.should_cancel_blur = function () {
-        return false;
-    };
-
+    
     /**
      * Focus the cell in the DOM sense
      * @method focus_cell
