@@ -215,7 +215,6 @@ var IPython = (function (IPython) {
         }
 
         if (!this.visible) {
-            console.log('add div');
             this.complete = $('<div/>').addClass('completions');
             this.complete.attr('id', 'complete');
 
@@ -357,14 +356,6 @@ var IPython = (function (IPython) {
             code == keycodes.tab ||
             code == keycodes.enter
         ) return;
-        
-        var cur = this.editor.getCursor();
-        var completion = {
-            str: String.fromCharCode(event.which),
-            type: "introspection",
-            from: cur,
-            to: cur,
-        };
         
         this.close();
         this.editor.focus();
