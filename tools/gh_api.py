@@ -142,7 +142,7 @@ def get_pulls_list(project, auth=False, **params):
         headers = make_auth_header()
     else:
         headers = None
-    pages = get_paged_request(url, headers=headers, params=params)
+    pages = get_paged_request(url, headers=headers, **params)
     return pages
 
 def get_issues_list(project, auth=False, **params):
