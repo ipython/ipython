@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 """Simple tools to query github.com and gather stats about issues.
+
+To generate a report for IPython 2.0, run:
+
+    python github_stats.py --milestone 2.0 --since-tag rel-1.0.0
 """
 #-----------------------------------------------------------------------------
 # Imports
@@ -7,14 +11,18 @@
 
 from __future__ import print_function
 
+import codecs
 import json
 import re
 import sys
 
+from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from subprocess import check_output
-from gh_api import get_paged_request, make_auth_header, get_pull_request, is_pull_request
-
+from gh_api import (
+    get_paged_request, make_auth_header, get_pull_request, is_pull_request,
+    get_milestone_id, get_issues_list,
+)
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -26,12 +34,6 @@ PER_PAGE = 100
 # Functions
 #-----------------------------------------------------------------------------
 
-def get_issues(project="ipython/ipython", state="closed", pulls=False):
-    """Get a list of the issues from the Github API."""
-    which = 'pulls' if pulls else 'issues'
-    url = "https://api.github.com/repos/%s/%s?state=%s&per_page=%i" % (project, which, state, PER_PAGE)
-    return get_paged_request(url, headers=make_auth_header())
-
 def round_hour(dt):
     return dt.replace(minute=0,second=0,microsecond=0)
 
@@ -41,7 +43,6 @@ def _parse_datetime(s):
         return datetime.strptime(s, ISO8601)
     else:
         return datetime.fromtimestamp(0)
-
 
 def issues2dict(issues):
     """Convert a list of issues to a dict, keyed by issue number."""
@@ -61,7 +62,6 @@ def split_pulls(all_issues, project="ipython/ipython"):
         else:
             issues.append(i)
     return issues, pulls
-
 
 
 def issues_closed_since(period=timedelta(days=365), project="ipython/ipython", pulls=False):
@@ -114,23 +114,31 @@ def report(issues, show_urls=False):
 
 if __name__ == "__main__":
     # deal with unicode
-    import codecs
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     
     # Whether to add reST urls for all issues in printout.
     show_urls = True
-
-    # By default, search one month back
-    tag = None
-    if len(sys.argv) > 1:
-        try:
-            days = int(sys.argv[1])
-        except:
-            tag = sys.argv[1]
-    else:
-        tag = check_output(['git', 'describe', '--abbrev=0']).strip()
     
-    if tag:
+    parser = ArgumentParser()
+    parser.add_argument('--since-tag', type=str,
+        help="The git tag to use for the starting point (typically the last major release)."
+    )
+    parser.add_argument('--milestone', type=str,
+        help="The GitHub milestone to use for filtering issues [optional]."
+    )
+    parser.add_argument('--days', type=int,
+        help="The number of days of data to summarize (use this or --since-tag)."
+    )
+    
+    opts = parser.parse_args()
+    tag = opts.since_tag
+    
+    # set `since` from days or git tag
+    if opts.days:
+        since = datetime.utcnow() - timedelta(days=opts.days)
+    else:
+        if not tag:
+            tag = check_output(['git', 'describe', '--abbrev=0']).strip()
         cmd = ['git', 'log', '-1', '--format=%ai', tag]
         tagday, tz = check_output(cmd).strip().rsplit(' ', 1)
         since = datetime.strptime(tagday, "%Y-%m-%d %H:%M:%S")
@@ -141,16 +149,23 @@ if __name__ == "__main__":
             since += td
         else:
             since -= td
-    else:
-        since = datetime.utcnow() - timedelta(days=days)
     
     since = round_hour(since)
+    
+    milestone = opts.milestone
 
-    print("fetching GitHub stats since %s (tag: %s)" % (since, tag), file=sys.stderr)
-    # turn off to play interactively without redownloading, use %run -i
-    if 1:
+    print("fetching GitHub stats since %s (tag: %s, milestone: %s)" % (since, tag, milestone), file=sys.stderr)
+    if milestone:
+        milestone_id = get_milestone_id("ipython/ipython", milestone,
+                auth=True)
+        issues = get_issues_list("ipython/ipython",
+                milestone=milestone_id,
+                state='closed',
+                auth=True,
+        )
+    else:
         issues = issues_closed_since(since, pulls=False)
-        pulls = issues_closed_since(since, pulls=True)
+    pulls = issues_closed_since(since, pulls=True)
     
     # For regular reports, it's nice to show them in reverse chronological order
     issues = sorted_by_field(issues, reverse=True)
