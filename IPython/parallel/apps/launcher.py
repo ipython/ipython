@@ -593,7 +593,7 @@ class SSHLauncher(LocalProcessLauncher):
     
     def _send_file(self, local, remote):
         """send a single file"""
-        remote = "%s:%s" % (self.location, remote)
+        full_remote = "%s:%s" % (self.location, remote)
         for i in range(10):
             if not os.path.exists(local):
                 self.log.debug("waiting for %s" % local)
@@ -605,8 +605,8 @@ class SSHLauncher(LocalProcessLauncher):
         check_output(self.ssh_cmd + self.ssh_args + \
             [self.location, 'mkdir', '-p', '--', remote_dir]
         )
-        self.log.info("sending %s to %s", local, remote)
-        check_output(self.scp_cmd + [local, remote])
+        self.log.info("sending %s to %s", local, full_remote)
+        check_output(self.scp_cmd + [local, full_remote])
     
     def send_files(self):
         """send our files (called before start)"""

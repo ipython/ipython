@@ -19,8 +19,8 @@ test suite.
 from __future__ import print_function
 
 import argparse
+import json
 import multiprocessing.pool
-from multiprocessing import Process, Queue
 import os
 import shutil
 import signal
@@ -28,7 +28,7 @@ import sys
 import subprocess
 import time
 
-from .iptest import have, test_group_names as py_test_group_names, test_sections
+from .iptest import have, test_group_names as py_test_group_names, test_sections, StreamCapturer
 from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
@@ -127,13 +127,14 @@ class PyTestController(TestController):
     #: str, Python command to execute in subprocess
     pycmd = None
 
-    def __init__(self, section):
+    def __init__(self, section, options):
         """Create new test runner."""
         TestController.__init__(self)
         self.section = section
         # pycmd is put into cmd[2] in PyTestController.launch()
         self.cmd = [sys.executable, '-c', None, section]
         self.pycmd = "from IPython.testing.iptest import run_iptest; run_iptest()"
+        self.options = options
 
     def setup(self):
         ipydir = TemporaryDirectory()
@@ -144,6 +145,14 @@ class PyTestController(TestController):
         self.env['IPTEST_WORKING_DIR'] = workingdir.name
         # This means we won't get odd effects from our own matplotlib config
         self.env['MPLCONFIGDIR'] = workingdir.name
+
+        # From options:
+        if self.options.xunit:
+            self.add_xunit()
+        if self.options.coverage:
+            self.add_coverage()
+        self.env['IPTEST_SUBPROC_STREAMS'] = self.options.subproc_streams
+        self.cmd.extend(self.options.extra_args)
 
     @property
     def will_run(self):
@@ -211,48 +220,77 @@ class JSController(TestController):
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
         
         # start the ipython notebook, so we get the port number
+        self.server_port = 0
         self._init_server()
-        self.cmd.append('--port=%s' % self.server_port)
-
+        if self.server_port:
+            self.cmd.append("--port=%i" % self.server_port)
+        else:
+            # don't launch tests if the server didn't start
+            self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
+    
     def print_extra_info(self):
         print("Running tests with notebook directory %r" % self.nbdir.name)
 
     @property
     def will_run(self):
-        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs'])
+        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3'])
 
     def _init_server(self):
         "Start the notebook server in a separate process"
-        self.queue = q = Queue()
-        self.server = Process(target=run_webapp, args=(q, self.ipydir.name, self.nbdir.name))
-        self.server.start()
-        self.server_port = q.get()
+        self.server_command = command = [sys.executable,
+            '-m', 'IPython.html',
+            '--no-browser',
+            '--ipython-dir', self.ipydir.name,
+            '--notebook-dir', self.nbdir.name,
+        ]
+        # ipc doesn't work on Windows, and darwin has crazy-long temp paths,
+        # which run afoul of ipc's maximum path length.
+        if sys.platform.startswith('linux'):
+            command.append('--KernelManager.transport=ipc')
+        self.stream_capturer = c = StreamCapturer()
+        c.start()
+        self.server = subprocess.Popen(command, stdout=c.writefd, stderr=subprocess.STDOUT)
+        self.server_info_file = os.path.join(self.ipydir.name,
+            'profile_default', 'security', 'nbserver-%i.json' % self.server.pid
+        )
+        self._wait_for_server()
+    
+    def _wait_for_server(self):
+        """Wait 30 seconds for the notebook server to start"""
+        for i in range(300):
+            if self.server.poll() is not None:
+                return self._failed_to_start()
+            if os.path.exists(self.server_info_file):
+                self._load_server_info()
+                return
+            time.sleep(0.1)
+        print("Notebook server-info file never arrived: %s" % self.server_info_file,
+            file=sys.stderr
+        )
+    
+    def _failed_to_start(self):
+        """Notebook server exited prematurely"""
+        captured = self.stream_capturer.get_buffer().decode('utf-8', 'replace')
+        print("Notebook failed to start: ", file=sys.stderr)
+        print(self.server_command)
+        print(captured, file=sys.stderr)
+    
+    def _load_server_info(self):
+        """Notebook server started, load connection info from JSON"""
+        with open(self.server_info_file) as f:
+            info = json.load(f)
+        self.server_port = info['port']
 
     def cleanup(self):
-        self.server.terminate()
-        self.server.join()
+        try:
+            self.server.terminate()
+        except OSError:
+            # already dead
+            pass
+        self.server.wait()
+        self.stream_capturer.halt()
         TestController.cleanup(self)
 
-def run_webapp(q, ipydir, nbdir, loglevel=0):
-    """start the IPython Notebook, and pass port back to the queue"""
-    import os
-    import IPython.html.notebookapp as nbapp
-    import sys
-    sys.stderr = open(os.devnull, 'w')
-    server = nbapp.NotebookApp()
-    args = ['--no-browser']
-    args.extend(['--ipython-dir', ipydir,
-                 '--notebook-dir', nbdir,
-                 '--log-level', str(loglevel),
-    ])
-    # ipc doesn't work on Windows, and darwin has crazy-long temp paths,
-    # which run afoul of ipc's maximum path length.
-    if sys.platform.startswith('linux'):
-        args.append('--KernelManager.transport=ipc')
-    server.initialize(args)
-    # communicate the port number to the parent process
-    q.put(server.port)
-    server.start()
 
 def prepare_controllers(options):
     """Returns two lists of TestController instances, those to run, and those
@@ -273,27 +311,12 @@ def prepare_controllers(options):
             test_sections['parallel'].enabled = False
 
     c_js = [JSController(name) for name in js_testgroups]
-    c_py = [PyTestController(name) for name in py_testgroups]
-
-    configure_py_controllers(c_py, xunit=options.xunit,
-            coverage=options.coverage, subproc_streams=options.subproc_streams,
-            extra_args=options.extra_args)
+    c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
     not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
-
-def configure_py_controllers(controllers, xunit=False, coverage=False,
-                             subproc_streams='capture', extra_args=()):
-    """Apply options for a collection of TestController objects."""
-    for controller in controllers:
-        if xunit:
-            controller.add_xunit()
-        if coverage:
-            controller.add_coverage()
-        controller.env['IPTEST_SUBPROC_STREAMS'] = subproc_streams
-        controller.cmd.extend(extra_args)
 
 def do_run(controller, buffer_output=True):
     """Setup and run a test controller.
