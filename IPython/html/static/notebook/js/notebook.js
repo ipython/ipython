@@ -59,7 +59,7 @@ var IPython = (function (IPython) {
         this.create_elements();
         this.bind_events();
         this.save_notebook = function() { // don't allow save until notebook_loaded
-            this.save_notebook_error(null, null, "Notebook was not fully loaded.");
+            this.save_notebook_error(null, null, "Load failed, save is disabled");
         };
     };
 
