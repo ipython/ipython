@@ -131,17 +131,13 @@ var IPython = (function (IPython) {
     Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
-        var empty = function () {};
-        cell.kernel.execute(
-        that.name + '?', {
-            'execute_reply': empty,
-            'output': empty,
-            'clear_output': empty,
-            'cell': cell
-        }, {
-            'silent': false,
-            'store_history': true
-        });
+        var callbacks = {'shell' : {
+                'payload' : {
+                    'page' : $.proxy(cell._open_with_pager, cell)
+                }
+            }
+        };
+        cell.kernel.execute(that.name + '?', callbacks, {'silent': false, 'store_history': true});
         this.remove_and_cancel_tooltip();
     };
 
