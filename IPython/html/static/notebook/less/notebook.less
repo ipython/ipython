@@ -7,6 +7,14 @@ body.notebook_app {
     overflow: hidden;
 }
 
+@media (max-width: 767px) {
+    // remove bootstrap-responsive's body padding on small screens
+    body.notebook_app {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+}
+
 span#notebook_name {
     height: 1em;
     line-height: 1em;
