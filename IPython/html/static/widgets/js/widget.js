@@ -83,6 +83,7 @@ function(WidgetManager, _, Backbone){
                     break;
                 case 'display':
                     this.widget_manager.display_view(msg, this);
+                    this.trigger('displayed');
                     break;
             }
         },

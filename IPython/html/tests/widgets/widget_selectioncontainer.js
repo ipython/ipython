@@ -104,5 +104,10 @@ casper.notebook_test(function () {
     this.execute_cell_then(index, function(index){
         this.test.assertEquals(this.get_output_cell(index).text, '1\n', // 0 based
             'selected_index property updated with tab change.');
+
+        var is_collapsed = this.evaluate(function(s){
+             return $(s + ' div.accordion-group:nth-child(2) a').hasClass('collapsed'); // 1 based
+        }, {s: multicontainer2_query});
+        this.test.assertEquals(is_collapsed, false, 'Was tab actually opened?');
     });
 });

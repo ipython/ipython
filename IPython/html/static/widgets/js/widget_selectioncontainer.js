@@ -29,40 +29,44 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.model.on('change:_children', function(model, value, options) {
                 this.update_children(model.previous('_children'), value);
             }, this);
+            this.model.on('change:selected_index', function(model, value, options) {
+                this.update_selected_index(model.previous('selected_index'), value, options);
+            }, this);
+            this.model.on('change:_titles', function(model, value, options) {
+                this.update_titles(value);
+            }, this);
+            this.model.on('displayed', function() {
+                this.update_titles();
+            }, this);
         },
-        
-        update: function(options) {
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
-            if (options === undefined || options.updated_view != this) {
-                // Set tab titles
-                var titles = this.model.get('_titles');
-                var that = this;
-                _.each(titles, function(title, page_index) {
-                    var accordian = that.containers[page_index];
-                    if (accordian !== undefined) {
-                        accordian
-                            .find('.accordion-heading')
-                            .find('.accordion-toggle')
-                            .text(title);
-                    }
-                });
 
-                // Set selected page
-                var selected_index = this.model.get("selected_index");
-                if (0 <= selected_index && selected_index < this.containers.length) {
-                    _.each(this.containers, function(container, index) {
-                        if (index==selected_index) {
-                            container.find('.accordion-body').collapse('show');    
-                        } else {
-                            container.find('.accordion-body').collapse('hide');    
-                        }
-                    });
+        update_titles: function(titles) {
+            // Set tab titles
+            if (!titles) {
+                titles = this.model.get('_titles');
+            }
+
+            var that = this;
+            _.each(titles, function(title, page_index) {
+                var accordian = that.containers[page_index];
+                if (accordian !== undefined) {
+                    accordian
+                        .find('.accordion-heading')
+                        .find('.accordion-toggle')
+                        .text(title);
+                }
+            });
+        },
+
+        update_selected_index: function(old_index, new_index, options) {
+            // Only update the selection if the selection wasn't triggered
+            // by the front-end.  It must be triggered by the back-end.
+            if (options === undefined || options.updated_view != this) {
+                this.containers[old_index].find('.accordion-body').collapse('hide');
+                if (0 <= new_index && new_index < this.containers.length) {
+                    this.containers[new_index].find('.accordion-body').collapse('show');
                 }
             }
-            return AccordionView.__super__.update.apply(this);
         },
         
         update_children: function(old_list, new_list) {
@@ -103,7 +107,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             
                     // Calling model.set will trigger all of the other views of the 
                     // model to update.
-                    that.model.set("selected_index", index, {updated_view: this});
+                    that.model.set("selected_index", index, {updated_view: that});
                     that.touch();
                  })
                 .text('Page ' + index)
@@ -120,12 +124,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             accordion_inner.append(view.$el);
 
             this.update();
-
-            // Stupid workaround to close the bootstrap accordion tabs which
-            // open by default even though they don't have the `in` class
-            // attached to them.  For some reason a delay is required.  
-            // TODO: Better fix.
-            setTimeout(function(){ that.update(); }, 500);
+            this.update_titles();
         },
     });
     WidgetManager.register_widget_view('AccordionView', AccordionView);
