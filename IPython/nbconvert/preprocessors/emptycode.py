@@ -15,5 +15,5 @@ class EmptyCodePreprocessor(Preprocessor):
         for worksheet in nb.worksheets:
             # Rewrite the list of cells, excluding any empty code cells.
             worksheet.cells = [c for c in worksheet.cells if \
-                not (c.cell_type == u'code' and len(c.input.strip()) == 0)]
+                not (c.cell_type == u'code' and not c.input.strip())]
         return nb, resources
