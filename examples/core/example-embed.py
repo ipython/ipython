@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """An example of how to embed an IPython shell into a running program.
 
 Please see the documentation in the IPython.Shell module for more details.
@@ -13,7 +12,7 @@ from __future__ import print_function
 
 # The basics to get you going:
 
-# IPython sets the __IPYTHON__ variable so you can know if you have nested
+# IPython injects get_ipython into builtins, so you can know if you have nested
 # copies running.
 
 # Try running this code both at the command line and from inside IPython (with

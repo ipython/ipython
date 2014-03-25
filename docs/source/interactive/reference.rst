@@ -26,19 +26,6 @@ files for each profile, and the files look like :file:`ipython_config.py` or
 which defaults to :file:`$HOME/.ipython`. For Windows users, :envvar:`HOME`
 resolves to :file:`C:\\Users\\{YourUserName}` in most instances.
 
-
-Eventloop integration
----------------------
-
-Previously IPython had command line options for controlling GUI event loop
-integration (-gthread, -qthread, -q4thread, -wthread, -pylab). As of IPython
-version 0.11, these have been removed. Please see the new ``%gui``
-magic command or :ref:`this section <gui_support>` for details on the new
-interface, or specify the gui at the commandline::
-
-    $ ipython --gui=qt
-
-
 Command-line Options
 --------------------
 
@@ -131,11 +118,9 @@ Note that cell magics *always* require an explicit ``%%`` prefix, automagic
 calling only works for line magics.
       
 The automagic system has the lowest possible precedence in name searches, so
-defining an identifier with the same name as an existing magic function will
-shadow it for automagic use. You can still access the shadowed magic function
-by explicitly using the ``%`` character at the beginning of the line.
-
-An example (with automagic on) should clarify all this:
+you can freely use variables with the same names as magic commands. If a magic
+command is 'shadowed' by a variable, you will need the explicit ``%`` prefix to
+use it:
 
 .. sourcecode:: ipython
 
@@ -378,25 +363,16 @@ Search command history
 IPython provides two ways for searching through previous input and thus
 reduce the need for repetitive typing:
 
-   1. Start typing, and then use Ctrl-p (previous,up) and Ctrl-n
-      (next,down) to search through only the history items that match
-      what you've typed so far. If you use Ctrl-p/Ctrl-n at a blank
-      prompt, they just behave like normal arrow keys.
-   2. Hit Ctrl-r: opens a search prompt. Begin typing and the system
+   1. Start typing, and then use the up and down arrow keys (or :kbd:`Ctrl-p`
+      and :kbd:`Ctrl-n`) to search through only the history items that match
+      what you've typed so far.
+   2. Hit :kbd:`Ctrl-r`: to open a search prompt. Begin typing and the system
       searches your history for lines that contain what you've typed so
       far, completing as much as it can.
 
-
-Persistent command history across sessions
-++++++++++++++++++++++++++++++++++++++++++
-
 IPython will save your input history when it leaves and reload it next
 time you restart it. By default, the history file is named
-$IPYTHONDIR/profile_<name>/history.sqlite. This allows you to keep
-separate histories related to various tasks: commands related to
-numerical work will not be clobbered by a system shell history, for
-example.
-
+:file:`.ipython/profile_{name}/history.sqlite`.
 
 Autoindent
 ++++++++++
@@ -405,7 +381,7 @@ IPython can recognize lines ending in ':' and indent the next line,
 while also un-indenting automatically after 'raise' or 'return'.
 
 This feature uses the readline library, so it will honor your
-:file:`~/.inputrc` configuration (or whatever file your INPUTRC variable points
+:file:`~/.inputrc` configuration (or whatever file your :envvar:`INPUTRC` environment variable points
 to). Adding the following lines to your :file:`.inputrc` file can make
 indenting/unindenting more convenient (M-i indents, M-u unindents)::
 
@@ -441,20 +417,15 @@ Customizing readline behavior
 
 All these features are based on the GNU readline library, which has an
 extremely customizable interface. Normally, readline is configured via a
-file which defines the behavior of the library; the details of the
-syntax for this can be found in the readline documentation available
-with your system or on the Internet. IPython doesn't read this file (if
-it exists) directly, but it does support passing to readline valid
-options via a simple interface. In brief, you can customize readline by
-setting the following options in your configuration file (note
-that these options can not be specified at the command line):
+:file:`.inputrc` file. IPython respects this, and you can also customise readline
+by setting the following :doc:`configuration </config/intro>` options:
 
-    * **readline_parse_and_bind**: this holds a list of strings to be executed
+    * ``InteractiveShell.readline_parse_and_bind``: this holds a list of strings to be executed
       via a readline.parse_and_bind() command. The syntax for valid commands
       of this kind can be found by reading the documentation for the GNU
       readline library, as these commands are of the kind which readline
       accepts in its configuration file.
-    * **readline_remove_delims**: a string of characters to be removed
+    * ``InteractiveShell.readline_remove_delims``: a string of characters to be removed
       from the default word-delimiters list used by readline, so that
       completions may be performed on strings which contain them. Do not
       change the default value unless you know what you're doing.
@@ -595,7 +566,7 @@ detailed tracebacks. Furthermore, both normal and verbose tracebacks can
 be colored (if your terminal supports it) which makes them much easier
 to parse visually.
 
-See the magic xmode and colors functions for details (just type %magic).
+See the magic xmode and colors functions for details.
 
 These features are basically a terminal version of Ka-Ping Yee's cgitb
 module, now part of the standard Python library.
@@ -612,7 +583,7 @@ retrieved as variables (besides the usual arrow key recall), in
 addition to the %rep magic command that brings a history entry
 up for editing on the next  command line.
 
-The following GLOBAL variables always exist (so don't overwrite them!):
+The following variables always exist:
 
 * _i, _ii, _iii: store previous, next previous and next-next previous inputs.
 * In, _ih : a list of all inputs; _ih[n] is the input from line n. If you
@@ -622,14 +593,13 @@ The following GLOBAL variables always exist (so don't overwrite them!):
 Additionally, global variables named _i<n> are dynamically created (<n>
 being the prompt counter), so ``_i<n> == _ih[<n>] == In[<n>]``.
 
-For example, what you typed at prompt 14 is available as _i14, _ih[14]
-and In[14].
+For example, what you typed at prompt 14 is available as ``_i14``, ``_ih[14]``
+and ``In[14]``.
 
 This allows you to easily cut and paste multi line interactive prompts
 by printing them out: they print like a clean string, without prompt
 characters. You can also manipulate them like regular variables (they
-are strings), modify or exec them (typing ``exec _i9`` will re-execute the
-contents of input prompt 9.
+are strings), modify or exec them.
 
 You can also re-execute multiple lines of input easily by using the
 magic %rerun or %macro functions. The macro system also allows you to re-execute
@@ -655,9 +625,9 @@ result (NOT assignments, for example) are cached. If you are familiar
 with Mathematica, IPython's _ variables behave exactly like
 Mathematica's % variables.
 
-The following GLOBAL variables always exist (so don't overwrite them!):
+The following variables always exist:
 
-    * [_] (a single underscore) : stores previous output, like Python's
+    * [_] (a single underscore): stores previous output, like Python's
       default interpreter.
     * [__] (two underscores): next previous.
     * [___] (three underscores): next-next previous.
@@ -665,22 +635,21 @@ The following GLOBAL variables always exist (so don't overwrite them!):
 Additionally, global variables named _<n> are dynamically created (<n>
 being the prompt counter), such that the result of output <n> is always
 available as _<n> (don't use the angle brackets, just the number, e.g.
-_21).
+``_21``).
 
 These variables are also stored in a global dictionary (not a
 list, since it only has entries for lines which returned a result)
 available under the names _oh and Out (similar to _ih and In). So the
-output from line 12 can be obtained as _12, Out[12] or _oh[12]. If you
+output from line 12 can be obtained as ``_12``, ``Out[12]`` or ``_oh[12]``. If you
 accidentally overwrite the Out variable you can recover it by typing
-'Out=_oh' at the prompt.
+``Out=_oh`` at the prompt.
 
 This system obviously can potentially put heavy memory demands on your
 system, since it prevents Python's garbage collector from removing any
 previously computed results. You can control how many results are kept
-in memory with the option (at the command line or in your configuration
-file) cache_size. If you set it to 0, the whole system is completely
-disabled and the prompts revert to the classic '>>>' of normal Python.
-
+in memory with the configuration option ``InteractiveShell.cache_size``.
+If you set it to 0, output caching is disabled. You can also use the ``%reset``
+and ``%xdel`` magics to clear large items from memory.
 
 Directory history
 -----------------
@@ -697,15 +666,16 @@ Automatic parentheses and quotes
 These features were adapted from Nathan Gray's LazyPython. They are
 meant to allow less typing for common situations.
 
-
-Automatic parentheses
-+++++++++++++++++++++
-
 Callable objects (i.e. functions, methods, etc) can be invoked like this
 (notice the commas between the arguments)::
 
     In [1]: callable_ob arg1, arg2, arg3
     ------> callable_ob(arg1, arg2, arg3)
+
+.. note::
+   This feature is disabled by default. To enable it, use the ``%autocall``
+   magic command. The commands below with special prefixes will always work,
+   however.
 
 You can force automatic parentheses by using '/' as the first character
 of a line. For example::
@@ -730,17 +700,10 @@ but this will work::
     Out[5]: [(1, 4), (2, 5), (3, 6)]
 
 IPython tells you that it has altered your command line by displaying
-the new command line preceded by ->. e.g.::
+the new command line preceded by ``--->``.
 
-    In [6]: callable list 
-    ------> callable(list)
-
-
-Automatic quoting
-+++++++++++++++++
-
-You can force automatic quoting of a function's arguments by using ','
-or ';' as the first character of a line. For example::
+You can force automatic quoting of a function's arguments by using ``,``
+or ``;`` as the first character of a line. For example::
 
     In [1]: ,my_function /home/me  # becomes my_function("/home/me")
 
@@ -770,7 +733,7 @@ environment anytime you start Python::
     raise SystemExit
 
 The ``raise SystemExit`` is needed to exit Python when
-it finishes, otherwise you'll be back at the normal Python '>>>'
+it finishes, otherwise you'll be back at the normal Python ``>>>``
 prompt.
 
 This is probably useful to developers who manage multiple Python
@@ -788,12 +751,12 @@ You can start a regular IPython session with
 .. sourcecode:: python
 
     import IPython
-    IPython.start_ipython()
+    IPython.start_ipython(argv=[])
 
 at any point in your program.  This will load IPython configuration,
 startup files, and everything, just as if it were a normal IPython session.
-In addition to this,
-it is possible to embed an IPython instance inside your own Python programs.
+
+It is also possible to embed an IPython shell in a namespace in your Python code.
 This allows you to evaluate dynamically the state of your code,
 operate with your variables, analyze them, etc. Note however that
 any changes you make to values while in the shell do not propagate back
@@ -826,13 +789,10 @@ your Python programs for this to work (detailed examples follow later)::
 
     embed() # this call anywhere in your program will start IPython
 
-.. note::
-
-    As of 0.13, you can embed an IPython *kernel*, for use with qtconsole,
-    etc. via ``IPython.embed_kernel()`` instead of ``IPython.embed()``.
-    It should function just the same as regular embed, but you connect
-    an external frontend rather than IPython starting up in the local
-    terminal.
+You can also embed an IPython *kernel*, for use with qtconsole, etc. via
+``IPython.embed_kernel()``. This should function work the same way, but you can
+connect an external frontend (``ipython qtconsole`` or ``ipython console``),
+rather than interacting with it in the terminal.
 
 You can run embedded instances even in code which is itself being run at
 the IPython interactive prompt with '%run <filename>'. Since it's easy
@@ -872,45 +832,31 @@ pdb, the Python debugger, is a powerful interactive debugger which
 allows you to step through code, set breakpoints, watch variables,
 etc.  IPython makes it very easy to start any script under the control
 of pdb, regardless of whether you have wrapped it into a 'main()'
-function or not. For this, simply type '%run -d myscript' at an
-IPython prompt. See the %run command's documentation (via '%run?' or
-in Sec. magic_ for more details, including how to control where pdb
-will stop execution first.
+function or not. For this, simply type ``%run -d myscript`` at an
+IPython prompt. See the %run command's documentation for more details, including
+how to control where pdb will stop execution first.
 
-For more information on the use of the pdb debugger, read the included
-pdb.doc file (part of the standard Python distribution). On a stock
-Linux system it is located at /usr/lib/python2.3/pdb.doc, but the
-easiest way to read it is by using the help() function of the pdb module
-as follows (in an IPython prompt)::
-
-    In [1]: import pdb
-    In [2]: pdb.help()
-
-This will load the pdb.doc document in a file viewer for you automatically.
+For more information on the use of the pdb debugger, see :ref:`debugger-commands`
+in the Python documentation.
 
 
-Automatic invocation of pdb on exceptions
------------------------------------------
+Post-mortem debugging
+---------------------
 
-IPython, if started with the ``--pdb`` option (or if the option is set in
-your config file) can call the Python pdb debugger every time your code
-triggers an uncaught exception. This feature
-can also be toggled at any time with the %pdb magic command. This can be
+Going into a debugger when an exception occurs can be
 extremely useful in order to find the origin of subtle bugs, because pdb
 opens up at the point in your code which triggered the exception, and
 while your program is at this point 'dead', all the data is still
 available and you can walk up and down the stack frame and understand
 the origin of the problem.
 
-Furthermore, you can use these debugging facilities both with the
-embedded IPython mode and without IPython at all. For an embedded shell
-(see sec. Embedding_), simply call the constructor with
-``--pdb`` in the argument string and pdb will automatically be called if an
-uncaught exception is triggered by your code.
+You can use the ``%debug`` magic after an exception has occurred to start
+post-mortem debugging. IPython can also call debugger every time your code
+triggers an uncaught exception. This feature can be toggled with the %pdb magic
+command, or you can start IPython with the ``--pdb`` option.
 
-For stand-alone use of the feature in your programs which do not use
-IPython at all, put the following lines toward the top of your 'main'
-routine::
+For a post-mortem debugger in your programs outside IPython,
+put the following lines toward the top of your 'main' routine::
 
     import sys
     from IPython.core import ultratb
@@ -925,25 +871,10 @@ options which can be set in IPython with ``--colors`` and ``--xmode``.
 This will give any of your programs detailed, colored tracebacks with
 automatic invocation of pdb.
 
-
-Extensions for syntax processing
-================================
-
-This isn't for the faint of heart, because the potential for breaking
-things is quite high. But it can be a very powerful and useful feature.
-In a nutshell, you can redefine the way IPython processes the user input
-line to accept new, special extensions to the syntax without needing to
-change any of IPython's own code.
-
-In the IPython/extensions directory you will find some examples
-supplied, which we will briefly describe now. These can be used 'as is'
-(and both provide very useful functionality), or you can use them as a
-starting point for writing your own extensions.
-
 .. _pasting_with_prompts:
 
 Pasting of code starting with Python or IPython prompts
--------------------------------------------------------
+=======================================================
 
 IPython is smart enough to filter out input prompts, be they plain Python ones
 (``>>>`` and ``...``) or IPython ones (``In [N]:`` and ``...:``).  You can
@@ -1011,6 +942,11 @@ Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
 
     %gui wx
+
+You can also start IPython with an event loop set up using the :option:`--gui`
+flag::
+
+    $ ipython --gui=qt
 
 For information on IPython's matplotlib_ integration (and the ``matplotlib``
 mode) see :ref:`this section <matplotlib_support>`.
@@ -1135,29 +1071,23 @@ demo::
     mydemo = Demo('myscript.py')
 
 This creates the mydemo object, whose blocks you run one at a time by
-simply calling the object with no arguments. If you have autocall active
-in IPython (the default), all you need to do is type::
+simply calling the object with no arguments. Then call it to run each step
+of the demo::
 
-    mydemo 
+    mydemo()
 
-and IPython will call it, executing each block. Demo objects can be
+Demo objects can be
 restarted, you can move forward or back skipping blocks, re-execute the
-last block, etc. Simply use the Tab key on a demo object to see its
-methods, and call '?' on them to see their docstrings for more usage
-details. In addition, the demo module itself contains a comprehensive
-docstring, which you can access via::
+last block, etc. See the :mod:`IPython.lib.demo` module and the
+:class:`~IPython.lib.demo.Demo` class for details.
 
-    from IPython.lib import demo
-
-    demo?
-
-Limitations: It is important to note that these demos are limited to
+Limitations: These demos are limited to
 fairly simple uses. In particular, you cannot break up sections within
 indented code (loops, if statements, function definitions, etc.)
 Supporting something like this would basically require tracking the
 internal execution state of the Python interpreter, so only top-level
 divisions are allowed. If you want to be able to open an IPython
 instance at an arbitrary point in a program, you can use IPython's
-embedding facilities, see :func:`IPython.embed` for details.
+:ref:`embedding facilities <Embedding>`.
 
 .. include:: ../links.txt
