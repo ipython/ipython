@@ -58,6 +58,9 @@ var IPython = (function (IPython) {
         this.style();
         this.create_elements();
         this.bind_events();
+        this.save_notebook = function() { // don't allow save until notebook_loaded
+            this.save_notebook_error(null, null, "Load failed, save is disabled");
+        };
     };
 
     /**
@@ -1723,7 +1726,8 @@ var IPython = (function (IPython) {
     };
     
     /**
-     * Save this notebook on the server.
+     * Save this notebook on the server. This becomes a notebook instance's
+     * .save_notebook method *after* the entire notebook has been loaded.
      * 
      * @method save_notebook
      */
@@ -2100,7 +2104,9 @@ var IPython = (function (IPython) {
             IPython.CellToolbar.global_show();
             IPython.CellToolbar.activate_preset(this.metadata.celltoolbar);
         }
-        
+
+        // now that we're fully loaded, it is safe to restore save functionality
+        delete(this.save_notebook);
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
 
