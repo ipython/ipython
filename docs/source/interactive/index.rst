@@ -10,9 +10,7 @@ Using IPython for interactive work
    reference
    shell
    qtconsole
-   notebook
-   cm_keyboard
-   nbconvert
-   public_server
 
+.. seealso::
 
+    :doc:`/notebook/index`
