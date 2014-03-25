@@ -541,6 +541,10 @@ var IPython = (function (IPython) {
         var container = element;
         container.show = function(){console.log('Warning "container.show()" is deprecated.')};
         // end backward compat
+
+        // Fix for ipython/issues/5293, make sure `element` is the area which
+        // output can be inserted into at the time of JS execution.
+        element = toinsert;
         try {
             eval(js);
         } catch(err) {
