@@ -1,9 +1,5 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 //============================================================================
 // QuickHelp button
@@ -14,6 +10,34 @@ var IPython = (function (IPython) {
 
     var QuickHelp = function (selector) {
     };
+
+	var cm_shortcuts = [
+      { shortcut:"Insert",   help:"toggle overwrite"  },
+      { shortcut:"Tab",   help:"code completion" },
+      { shortcut:"Shift-Tab",   help:"help introspection" },
+      { shortcut:"Cmd-]",   help:"indent"  },
+      { shortcut:"Cmd-[",   help:"dedent"  },
+      { shortcut:"Cmd-A",   help:"select all"  },
+      { shortcut:"Cmd-D",   help:"delete line"  },
+      { shortcut:"Cmd-Z",   help:"undo"  },
+      { shortcut:"Cmd-Shift-Z",   help:"redo"  },
+      { shortcut:"Cmd-Y",   help:"redo"  },
+      { shortcut:"Cmd-Up",   help:"go to cell start"  },
+      { shortcut:"Cmd-End",   help:"go to cell start"  },
+      { shortcut:"PageUp",   help:"go to cell start"  },
+      { shortcut:"---",   help:"go to cell end"  },
+      { shortcut:"Cmd-Down",   help:"go to cell end"  },
+      { shortcut:"PageDown",   help:"go to cell end"  },
+      { shortcut:"Alt-Left",   help:"go one word left"  },
+      { shortcut:"Alt-Right",   help:"go one word right"  },
+      { shortcut:"Cmd-Left",   help:"go to line start"  },
+      { shortcut:"Home",   help:"go to line start"  },
+      { shortcut:"Cmd-Right",   help:"go to line end"  },
+      { shortcut:"End",   help:"go to line end"  },
+      { shortcut:"Alt-Backspace",   help:"del word before"  },
+
+ ]
+
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
         // toggles display of keyboard shortcut dialog
@@ -53,6 +77,10 @@ var IPython = (function (IPython) {
         // Edit mode
         var edit_div = this.build_edit_help();
         element.append(edit_div);
+
+	// CodeMirror shortcuts
+	var cm_div = build_div('', cm_shortcuts);
+        element.append(cm_div);
 
         this.shortcut_dialog = IPython.dialog.modal({
             title : "Keyboard shortcuts",
