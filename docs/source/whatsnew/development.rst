@@ -191,6 +191,13 @@ Dashboard "Running" Tab
 The dashboard now has a "Running" tab which shows all of the running
 notebooks.
 
+Interactive Notebook Tour
+-------------------------
+
+Familiarize yourself with the updated notebook user interface, including an
+explanation of Edit and Command modes, by going through the short guided tour
+which can be started from the Help menu.
+
 Other changes
 -------------
 
