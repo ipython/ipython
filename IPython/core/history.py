@@ -261,25 +261,34 @@ class HistoryAccessor(Configurable):
         ----------
 
         session : int
-            Session number to retrieve. The current session is 0, and negative
-            numbers count back from current session, so -1 is previous session.
+            Session number to retrieve.
 
         Returns
         -------
-
-        (session_id [int], start [datetime], end [datetime], num_cmds [int],
-        remark [unicode])
-
-        Sessions that are running or did not exit cleanly will have `end=None`
-        and `num_cmds=None`.
-
+        
+        session_id : int
+           Session ID number
+         start : datetime
+           Timestamp for the start of the session.
+         end : datetime
+           Timestamp for the end of the session, or None if IPython crashed.
+         num_cmds : int
+           Number of commands run, or None if IPython crashed.
+         remark : unicode
+           A manually set description.
         """
-
-        if session <= 0:
-            session += self.session_number
-
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
+
+    @catch_corrupt_db
+    def get_last_session_id(self):
+        """Get the last session ID currently in the database.
+        
+        Within IPython, this should be the same as the value stored in
+        :attr:`HistoryManager.session_number`.
+        """
+        for record in self.get_tail(n=1, include_latest=True):
+            return record[0]
 
     @catch_corrupt_db
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
@@ -535,6 +544,35 @@ class HistoryManager(HistoryAccessor):
     # ------------------------------
     # Methods for retrieving history
     # ------------------------------
+    def get_session_info(self, session=0):
+        """get info about a session
+
+        Parameters
+        ----------
+
+        session : int
+            Session number to retrieve. The current session is 0, and negative
+            numbers count back from current session, so -1 is previous session.
+
+        Returns
+        -------
+        
+        session_id : int
+           Session ID number
+         start : datetime
+           Timestamp for the start of the session.
+         end : datetime
+           Timestamp for the end of the session, or None if IPython crashed.
+         num_cmds : int
+           Number of commands run, or None if IPython crashed.
+         remark : unicode
+           A manually set description.
+        """
+        if session <= 0:
+            session += self.session_number
+
+        return super(HistoryManager, self).get_session_info(session=session)
+
     def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
         get_range, and takes similar parameters."""
