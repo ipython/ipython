@@ -1,5 +1,5 @@
 include README.rst
-include COPYING.txt
+include COPYING.rst
 include setupbase.py
 include setupegg.py
 
