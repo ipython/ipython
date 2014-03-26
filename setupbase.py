@@ -161,6 +161,7 @@ def find_package_data():
         pjoin(components, "jquery", "jquery.min.js"),
         pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
         pjoin(components, "jquery-ui", "themes", "smoothness", "jquery-ui.min.css"),
+        pjoin(components, "jquery-ui", "themes", "smoothness", "images", "ui-bg_glass_75_e6e6e6_1x400.png"),
         pjoin(components, "marked", "lib", "marked.js"),
         pjoin(components, "requirejs", "require.js"),
         pjoin(components, "underscore", "underscore-min.js"),
