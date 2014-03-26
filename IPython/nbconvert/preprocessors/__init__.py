@@ -2,6 +2,7 @@
 from .base import Preprocessor
 from .convertfigures import ConvertFiguresPreprocessor
 from .svg2pdf import SVG2PDFPreprocessor
+from .emptycode import EmptyCodePreprocessor
 from .extractoutput import ExtractOutputPreprocessor
 from .revealhelp import RevealHelpPreprocessor
 from .latex import LatexPreprocessor
