@@ -8,7 +8,7 @@
 {% endblock output_prompt %}
 
 {% block input %}
-{%- if not cell.input.isspace() -%}
+{%- if cell.input.strip() -%}
 .. code:: python
 
 {{ cell.input | indent}}
