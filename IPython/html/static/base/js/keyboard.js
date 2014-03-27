@@ -252,7 +252,7 @@ IPython.keyboard = (function (IPython) {
     ShortcutManager.prototype.handles = function (event) {
         var shortcut = event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
-        return !( data === undefined )
+        return !( data === undefined || data.handler === undefined )
     }
 
     return {
