@@ -285,9 +285,7 @@ install_requires = []
 if sys.platform == 'darwin':
     if any(arg.startswith('bdist') for arg in sys.argv) or not setupext.check_for_readline():
         install_requires.append('gnureadline')
-elif sys.platform.startswith('win'):
-    # Pyreadline has unicode and Python 3 fixes in 2.0
-    install_requires.append('pyreadline>=2.0')
+
 
 if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
