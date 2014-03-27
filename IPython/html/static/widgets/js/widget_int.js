@@ -214,7 +214,10 @@ define(["widgets/js/widget"], function(WidgetManager){
             // Try to parse value as a int.
             var numericalValue = 0;
             if (e.target.value !== '') {
-                numericalValue = this._parse_value(e.target.value);
+                var trimmed = e.target.value.trim();
+                if (!(['-', '-.', '.', '+.', '+'].indexOf(trimmed) >= 0)) {
+                    numericalValue = this._parse_value(e.target.value);    
+                }                
             }
             
             // If parse failed, reset value to value stored in model.
