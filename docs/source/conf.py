@@ -95,8 +95,7 @@ numpydoc_class_members_toctree = False
 # other places throughout the built documents.
 #
 # The full version, including alpha/beta/rc tags.
-codename = iprelease['codename']
-release = "%s: %s" % (iprelease['version'], codename)
+release = "%s" % iprelease['version']
 # Just the X.Y.Z part, no '-dev'
 version = iprelease['version'].split('-', 1)[0]
 
