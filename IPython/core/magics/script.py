@@ -97,6 +97,7 @@ class ScriptMagics(Magics):
             'perl',
             'ruby',
             'python',
+            'python2',
             'python3',
             'pypy',
         ]
