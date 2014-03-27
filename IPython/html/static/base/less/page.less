@@ -78,13 +78,20 @@ span#login_widget {
   margin-top: 10px;
 }
 
-.modal-body {
-  max-height: 500px;
+// class for stretching dialogs to fill the screen
+.modal_stretch {
+    .vbox();
+    height: 80%;
+    .modal-body {
+        max-height: none;
+        flex: 1;
+    }
 }
 
 @media (min-width: 768px) {
-  .modal {
-      width: 700px;
-      margin-left: -350px;
-  }
+    .modal {
+        width: 700px;
+        margin-left: -350px;
+    }
 }
+
