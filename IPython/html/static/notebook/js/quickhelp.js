@@ -15,36 +15,61 @@ var IPython = (function (IPython) {
     var cmd_ctrl = 'Ctrl';
 
     if (platform === 'MacOS') {
+        // Mac OS X specific
         cmd_ctrl = 'Cmd';
+        var platform_specific = [
+            { shortcut: "Cmd-Up",     help:"go to cell start"  },
+            { shortcut: "Cmd-End",    help:"go to cell start"  },
+            { shortcut: "PageUp",     help:"go to cell start"  },
+            { shortcut: "Cmd-Down",   help:"go to cell end"  },
+            { shortcut: "PageDown",   help:"go to cell end"  },
+            { shortcut: "Alt-Left",   help:"go one word left"  },
+            { shortcut: "Alt-Right",  help:"go one word right"  },
+            { shortcut: "Cmd-Left",   help:"go to line start"  },
+            { shortcut: "Home",       help:"go to line start"  },
+            { shortcut: "Cmd-Right",  help:"go to line end"  },
+            { shortcut:"End",         help:"go to line end"  },
+            { shortcut:"Alt-Backspace",        help:"del word before"  },
+            { shortcut:"Ctrl-Alt-Backspace",   help:"del word after"  },
+            { shortcut:"Alt-Delete",           help:"del word after"  },
+        ]
+    } else {
+        // PC specific
+        var platform_specific = [
+            { shortcut: "Ctrl-Home",  help:"go to cell start"  },
+            { shortcut: "Alt-Up",     help:"go to cell start"  },
+            { shortcut: "PageUp",     help:"go to cell start"  },
+            { shortcut: "Ctrl-End",   help:"go to cell end"  },
+            { shortcut: "Ctrl-Down",  help:"go to cell end"  },
+            { shortcut: "PageDown",   help:"go to cell end"  },
+            { shortcut: "Ctrl-Left",  help:"go one word left"  },
+            { shortcut: "Ctrl-Right", help:"go one word right"  },
+            { shortcut: "Alt-Right",  help:"go to cell end"  },
+            { shortcut: "Alt-Left",   help:"go to line start"  },
+            { shortcut: "Home",       help:"go to line start"  },
+            { shortcut: "Alt-Right",  help:"go to line end"  },
+            { shortcut: "End",        help:"go to line end"  },
+            { shortcut: "Ctrl-Backspace", help:"del word before"  },
+            { shortcut: "Ctrl-Delete",    help:"del word after"  },
+        ]
     }
 
-	var cm_shortcuts = [
-      { shortcut:"Insert",   help:"toggle overwrite"  },
-      { shortcut:"Tab",   help:"code completion" },
-      { shortcut:"Shift-Tab",   help:"help introspection" },
-      { shortcut: cmd_ctrl + "-]",   help:"indent"  },
-      { shortcut: cmd_ctrl + "-[",   help:"dedent"  },
-      { shortcut: cmd_ctrl + "-A",   help:"select all"  },
-      { shortcut: cmd_ctrl + "-D",   help:"delete line"  },
-      { shortcut: cmd_ctrl + "-Z",   help:"undo"  },
-      { shortcut: cmd_ctrl + "-Shift-Z",   help:"redo"  },
-      { shortcut: cmd_ctrl + "-Y",   help:"redo"  },
-      { shortcut: cmd_ctrl + "-Up",   help:"go to cell start"  },
-      { shortcut: cmd_ctrl + "-End",   help:"go to cell start"  },
-      { shortcut:"PageUp",   help:"go to cell start"  },
-      { shortcut:"---",   help:"go to cell end"  },
-      { shortcut: cmd_ctrl + "-Down",   help:"go to cell end"  },
-      { shortcut:"PageDown",   help:"go to cell end"  },
-      { shortcut:"Alt-Left",   help:"go one word left"  },
-      { shortcut:"Alt-Right",   help:"go one word right"  },
-      { shortcut: cmd_ctrl + "-Left",   help:"go to line start"  },
-      { shortcut:"Home",   help:"go to line start"  },
-      { shortcut: cmd_ctrl + "-Right",   help:"go to line end"  },
-      { shortcut:"End",   help:"go to line end"  },
-      { shortcut:"Alt-Backspace",   help:"del word before"  },
+    var cm_shortcuts = [
+        { shortcut:"Insert",   help:"toggle overwrite"  },
+        { shortcut:"Tab",   help:"code completion" },
+        { shortcut:"Shift-Tab",   help:"help introspection" },
+        { shortcut: cmd_ctrl + "-]",   help:"indent"  },
+        { shortcut: cmd_ctrl + "-[",   help:"dedent"  },
+        { shortcut: cmd_ctrl + "-A",   help:"select all"  },
+        { shortcut: cmd_ctrl + "-D",   help:"delete line"  },
+        { shortcut: cmd_ctrl + "-Z",   help:"undo"  },
+        { shortcut: cmd_ctrl + "-Shift-Z",   help:"redo"  },
+        { shortcut: cmd_ctrl + "-Y",   help:"redo"  },
+    ].concat( platform_specific );
 
 
- ]
+
+      
 
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
