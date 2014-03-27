@@ -8,33 +8,41 @@
 var IPython = (function (IPython) {
     "use strict";
 
+    var platform = IPython.utils.platform;
+
     var QuickHelp = function (selector) {
     };
+    var cmd_ctrl = 'Ctrl';
+
+    if (platform === 'MacOS') {
+        cmd_ctrl = 'Cmd';
+    }
 
 	var cm_shortcuts = [
       { shortcut:"Insert",   help:"toggle overwrite"  },
       { shortcut:"Tab",   help:"code completion" },
       { shortcut:"Shift-Tab",   help:"help introspection" },
-      { shortcut:"Cmd-]",   help:"indent"  },
-      { shortcut:"Cmd-[",   help:"dedent"  },
-      { shortcut:"Cmd-A",   help:"select all"  },
-      { shortcut:"Cmd-D",   help:"delete line"  },
-      { shortcut:"Cmd-Z",   help:"undo"  },
-      { shortcut:"Cmd-Shift-Z",   help:"redo"  },
-      { shortcut:"Cmd-Y",   help:"redo"  },
-      { shortcut:"Cmd-Up",   help:"go to cell start"  },
-      { shortcut:"Cmd-End",   help:"go to cell start"  },
+      { shortcut: cmd_ctrl + "-]",   help:"indent"  },
+      { shortcut: cmd_ctrl + "-[",   help:"dedent"  },
+      { shortcut: cmd_ctrl + "-A",   help:"select all"  },
+      { shortcut: cmd_ctrl + "-D",   help:"delete line"  },
+      { shortcut: cmd_ctrl + "-Z",   help:"undo"  },
+      { shortcut: cmd_ctrl + "-Shift-Z",   help:"redo"  },
+      { shortcut: cmd_ctrl + "-Y",   help:"redo"  },
+      { shortcut: cmd_ctrl + "-Up",   help:"go to cell start"  },
+      { shortcut: cmd_ctrl + "-End",   help:"go to cell start"  },
       { shortcut:"PageUp",   help:"go to cell start"  },
       { shortcut:"---",   help:"go to cell end"  },
-      { shortcut:"Cmd-Down",   help:"go to cell end"  },
+      { shortcut: cmd_ctrl + "-Down",   help:"go to cell end"  },
       { shortcut:"PageDown",   help:"go to cell end"  },
       { shortcut:"Alt-Left",   help:"go one word left"  },
       { shortcut:"Alt-Right",   help:"go one word right"  },
-      { shortcut:"Cmd-Left",   help:"go to line start"  },
+      { shortcut: cmd_ctrl + "-Left",   help:"go to line start"  },
       { shortcut:"Home",   help:"go to line start"  },
-      { shortcut:"Cmd-Right",   help:"go to line end"  },
+      { shortcut: cmd_ctrl + "-Right",   help:"go to line end"  },
       { shortcut:"End",   help:"go to line end"  },
       { shortcut:"Alt-Backspace",   help:"del word before"  },
+
 
  ]
 
