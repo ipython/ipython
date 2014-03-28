@@ -62,11 +62,11 @@ var IPython = (function (IPython) {
         { shortcut:"Shift-Tab",   help:"tooltip" },
         { shortcut: cmd_ctrl + "-]",   help:"indent"  },
         { shortcut: cmd_ctrl + "-[",   help:"dedent"  },
-        { shortcut: cmd_ctrl + "-A",   help:"select all"  },
-        { shortcut: cmd_ctrl + "-D",   help:"delete line"  },
-        { shortcut: cmd_ctrl + "-Z",   help:"undo"  },
-        { shortcut: cmd_ctrl + "-Shift-Z",   help:"redo"  },
-        { shortcut: cmd_ctrl + "-Y",   help:"redo"  },
+        { shortcut: cmd_ctrl + "-a",   help:"select all"  },
+        { shortcut: cmd_ctrl + "-d",   help:"delete line"  },
+        { shortcut: cmd_ctrl + "-z",   help:"undo"  },
+        { shortcut: cmd_ctrl + "-Shift-z",   help:"redo"  },
+        { shortcut: cmd_ctrl + "-y",   help:"redo"  },
     ].concat( platform_specific );
 
 
