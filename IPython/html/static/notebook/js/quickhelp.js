@@ -13,12 +13,12 @@ var IPython = (function (IPython) {
     var QuickHelp = function (selector) {
     };
 
-    var cmd_ctrl = 'Ctrl';
+    var cmd_ctrl = 'Ctrl-';
     var platform_specific;
 
     if (platform === 'MacOS') {
         // Mac OS X specific
-        cmd_ctrl = 'Cmd';
+        cmd_ctrl = 'Cmd-';
         platform_specific = [
             { shortcut: "Cmd-Up",     help:"go to cell start"  },
             { shortcut: "Cmd-End",    help:"go to cell start"  },
@@ -60,13 +60,13 @@ var IPython = (function (IPython) {
         { shortcut:"Insert",   help:"toggle overwrite"  },
         { shortcut:"Tab",   help:"code completion or indent" },
         { shortcut:"Shift-Tab",   help:"tooltip" },
-        { shortcut: cmd_ctrl + "-]",   help:"indent"  },
-        { shortcut: cmd_ctrl + "-[",   help:"dedent"  },
-        { shortcut: cmd_ctrl + "-a",   help:"select all"  },
-        { shortcut: cmd_ctrl + "-d",   help:"delete line"  },
-        { shortcut: cmd_ctrl + "-z",   help:"undo"  },
-        { shortcut: cmd_ctrl + "-Shift-z",   help:"redo"  },
-        { shortcut: cmd_ctrl + "-y",   help:"redo"  },
+        { shortcut: cmd_ctrl + "]",   help:"indent"  },
+        { shortcut: cmd_ctrl + "[",   help:"dedent"  },
+        { shortcut: cmd_ctrl + "a",   help:"select all"  },
+        { shortcut: cmd_ctrl + "d",   help:"delete line"  },
+        { shortcut: cmd_ctrl + "z",   help:"undo"  },
+        { shortcut: cmd_ctrl + "Shift-z",   help:"redo"  },
+        { shortcut: cmd_ctrl + "y",   help:"redo"  },
     ].concat( platform_specific );
 
 
