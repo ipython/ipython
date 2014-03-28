@@ -632,8 +632,8 @@ var IPython = (function (IPython) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
-        if (handle_inserted !== undefined) {           
-            img.load(handle_inserted);
+        if (handle_inserted !== undefined) {      
+            img.on('load', handle_inserted);
         }
         set_width_height(img, md, 'image/png');
         this._dblclick_to_reset_size(img);
@@ -648,7 +648,7 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         if (handle_inserted !== undefined) {           
-            img.load(handle_inserted);
+            img.on('load', handle_inserted);
         }
         set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
@@ -771,7 +771,9 @@ var IPython = (function (IPython) {
                 this.clear_queued = false;
             }
             
-            // clear all, no need for logic
+            // clear all
+            // Remove onload event listeners on child img elements.
+            this.element.find('img').off('load');
             this.element.html("");
             this.outputs = [];
             this.trusted = true;
