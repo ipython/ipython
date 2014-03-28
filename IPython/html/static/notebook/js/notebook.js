@@ -1833,7 +1833,7 @@ var IPython = (function (IPython) {
                 " Selecting trust will immediately reload this notebook in a trusted state."
             ).append(
                 " For more information, see the "
-            ).append($("<a>").attr("href", "http://ipython.org/security.html")
+            ).append($("<a>").attr("href", "http://ipython.org/ipython-doc/2/notebook/security.html")
                 .text("IPython security documentation")
             ).append(".")
         );
