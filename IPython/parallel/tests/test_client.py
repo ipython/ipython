@@ -522,19 +522,23 @@ class TestClient(ClusterTestCase):
     def test_spin_thread(self):
         self.client.spin_thread(0.01)
         ar = self.client[-1].apply_async(lambda : 1)
-        time.sleep(0.1)
-        self.assertTrue(ar.wall_time < 0.1,
-            "spin should have kept wall_time < 0.1, but got %f" % ar.wall_time
-        )
+        md = self.client.metadata[ar.msg_ids[0]]
+        # 3s timeout, 100ms poll
+        for i in range(30):
+            time.sleep(0.1)
+            if md['received'] is not None:
+                break
+        self.assertIsInstance(md['received'], datetime)
     
     def test_stop_spin_thread(self):
         self.client.spin_thread(0.01)
         self.client.stop_spin_thread()
         ar = self.client[-1].apply_async(lambda : 1)
-        time.sleep(0.15)
-        self.assertTrue(ar.wall_time > 0.1,
-            "Shouldn't be spinning, but got wall_time=%f" % ar.wall_time
-        )
+        md = self.client.metadata[ar.msg_ids[0]]
+        # 500ms timeout, 100ms poll
+        for i in range(5):
+            time.sleep(0.1)
+            self.assertIsNone(md['received'], None)
     
     def test_activate(self):
         ip = get_ipython()
