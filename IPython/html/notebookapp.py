@@ -73,6 +73,7 @@ from .services.sessions.sessionmanager import SessionManager
 
 from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
+from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
@@ -554,10 +555,12 @@ class NotebookApp(BaseIPythonApplication):
             
             # Use config here, to ensure that it takes higher priority than
             # anything that comes from the profile.
+            c = Config()
             if os.path.isdir(f):
-                self.config.NotebookApp.notebook_dir = f
+                c.NotebookApp.notebook_dir = f
             elif os.path.isfile(f):
-                self.config.NotebookApp.file_to_run = f
+                c.NotebookApp.file_to_run = f
+            self.update_config(c)
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
