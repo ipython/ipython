@@ -293,14 +293,18 @@ var IPython = (function (IPython) {
         
         this.outputs.push(json);
         
-        // Only reset the height to automatic if the height is currently
-        // fixed (done by wait=True flag on clear_output).
-        if (needs_height_reset) {
-            this.element.height('');    
-        }
-
+        // We must release the animation fixed height in a timeout since Gecko
+        // (FireFox) doesn't render the image immediately as the data is 
+        // available.
         var that = this;
-        setTimeout(function(){that.element.trigger('resize');}, 100);
+        setTimeout(function(){
+            // Only reset the height to automatic if the height is currently
+            // fixed (done by wait=True flag on clear_output).
+            if (needs_height_reset) {
+                that.element.height('');    
+            }
+            that.element.trigger('resize');
+        }, 250);
     };
 
 
