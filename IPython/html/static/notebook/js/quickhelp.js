@@ -12,12 +12,14 @@ var IPython = (function (IPython) {
 
     var QuickHelp = function (selector) {
     };
+
     var cmd_ctrl = 'Ctrl';
+    var platform_specific;
 
     if (platform === 'MacOS') {
         // Mac OS X specific
         cmd_ctrl = 'Cmd';
-        var platform_specific = [
+        platform_specific = [
             { shortcut: "Cmd-Up",     help:"go to cell start"  },
             { shortcut: "Cmd-End",    help:"go to cell start"  },
             { shortcut: "PageUp",     help:"go to cell start"  },
@@ -29,13 +31,13 @@ var IPython = (function (IPython) {
             { shortcut: "Home",       help:"go to line start"  },
             { shortcut: "Cmd-Right",  help:"go to line end"  },
             { shortcut:"End",         help:"go to line end"  },
-            { shortcut:"Alt-Backspace",        help:"del word before"  },
-            { shortcut:"Ctrl-Alt-Backspace",   help:"del word after"  },
-            { shortcut:"Alt-Delete",           help:"del word after"  },
-        ]
+            { shortcut:"Alt-Backspace",      help:"del word before"  },
+            { shortcut:"Ctrl-Alt-Backspace", help:"del word after"  },
+            { shortcut:"Alt-Delete",         help:"del word after"  },
+        ];
     } else {
         // PC specific
-        var platform_specific = [
+        platform_specific = [
             { shortcut: "Ctrl-Home",  help:"go to cell start"  },
             { shortcut: "Alt-Up",     help:"go to cell start"  },
             { shortcut: "PageUp",     help:"go to cell start"  },
@@ -51,13 +53,13 @@ var IPython = (function (IPython) {
             { shortcut: "End",        help:"go to line end"  },
             { shortcut: "Ctrl-Backspace", help:"del word before"  },
             { shortcut: "Ctrl-Delete",    help:"del word after"  },
-        ]
+        ];
     }
 
     var cm_shortcuts = [
         { shortcut:"Insert",   help:"toggle overwrite"  },
-        { shortcut:"Tab",   help:"code completion" },
-        { shortcut:"Shift-Tab",   help:"help introspection" },
+        { shortcut:"Tab",   help:"code completion or indent" },
+        { shortcut:"Shift-Tab",   help:"tooltip" },
         { shortcut: cmd_ctrl + "-]",   help:"indent"  },
         { shortcut: cmd_ctrl + "-[",   help:"dedent"  },
         { shortcut: cmd_ctrl + "-A",   help:"select all"  },
@@ -108,12 +110,8 @@ var IPython = (function (IPython) {
         element.append(cmd_div);
 
         // Edit mode
-        var edit_div = this.build_edit_help();
+        var edit_div = this.build_edit_help(cm_shortcuts);
         element.append(edit_div);
-
-	// CodeMirror shortcuts
-	var cm_div = build_div('', cm_shortcuts);
-        element.append(cm_div);
 
         this.shortcut_dialog = IPython.dialog.modal({
             title : "Keyboard shortcuts",
@@ -151,10 +149,10 @@ var IPython = (function (IPython) {
 
     };
 
-    QuickHelp.prototype.build_edit_help = function () {
+    QuickHelp.prototype.build_edit_help = function (cm_shortcuts) {
         var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
-        // Edit mode
-        return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', edit_shortcuts);
+        jQuery.extend(cm_shortcuts, edit_shortcuts);
+        return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', cm_shortcuts);
     };
 
     var build_one = function (s) {
