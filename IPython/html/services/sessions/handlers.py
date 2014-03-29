@@ -42,7 +42,7 @@ class SessionRootHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self):
-        # Creates a new session 
+        # Creates a new session
         #(unless a session already exists for the named nb)
         sm = self.session_manager
         nbm = self.notebook_manager
@@ -62,7 +62,9 @@ class SessionRootHandler(IPythonHandler):
         if sm.session_exists(name=name, path=path):
             model = sm.get_session(name=name, path=path)
         else:
-            kernel_id = km.start_kernel(path=path)
+            # allow nbm to specify kernels cwd
+            kernel_path = nbm.get_kernel_path(name=name, path=path)
+            kernel_id = km.start_kernel(path=kernel_path)
             model = sm.create_session(name=name, path=path, kernel_id=kernel_id)
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))
