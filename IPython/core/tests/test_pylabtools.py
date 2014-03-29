@@ -58,7 +58,7 @@ def test_figure_to_svg():
     ax.plot([1,2,3])
     plt.draw()
     svg = pt.print_figure(fig, 'svg')[:100].lower()
-    nt.assert_in(b'doctype svg', svg)
+    nt.assert_in(u'doctype svg', svg)
 
 def _check_pil_jpeg_bytes():
     """Skip if PIL can't write JPEGs to BytesIO objects"""
