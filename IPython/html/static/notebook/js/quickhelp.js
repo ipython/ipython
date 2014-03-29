@@ -31,19 +31,17 @@ var IPython = (function (IPython) {
         // PC specific
         platform_specific = [
             { shortcut: "Ctrl-Home",  help:"go to cell start"  },
-            { shortcut: "Alt-Up",     help:"go to cell start"  },
+            { shortcut: "Ctrl-Up",     help:"go to cell start"  },
             { shortcut: "Ctrl-End",   help:"go to cell end"  },
             { shortcut: "Ctrl-Down",  help:"go to cell end"  },
             { shortcut: "Ctrl-Left",  help:"go one word left"  },
             { shortcut: "Ctrl-Right", help:"go one word right"  },
-            { shortcut: "Alt-Right",  help:"go to cell end"  },
             { shortcut: "Ctrl-Backspace", help:"del word before"  },
             { shortcut: "Ctrl-Delete",    help:"del word after"  },
         ];
     }
 
     var cm_shortcuts = [
-        { shortcut:"Insert",   help:"toggle overwrite"  },
         { shortcut:"Tab",   help:"code completion or indent" },
         { shortcut:"Shift-Tab",   help:"tooltip" },
         { shortcut: cmd_ctrl + "]",   help:"indent"  },
