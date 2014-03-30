@@ -2,6 +2,12 @@ div.text_cell {
     padding: 5px 5px 5px 0px;
     .hbox();
 }
+@media (max-width: 480px) {
+    // remove prompt indentation on small screens
+    div.text_cell > div.prompt {
+        display: none;
+    }
+}
 
 div.text_cell_render {
     /*font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/

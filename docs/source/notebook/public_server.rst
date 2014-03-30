@@ -19,8 +19,8 @@ a public interface <notebook_public_server>`.
 
 .. _notebook_security:
 
-Notebook security
------------------
+Securing a notebook server
+--------------------------
 
 You can protect your notebook server with a simple single password by
 setting the :attr:`NotebookApp.password` configurable. You can prepare a

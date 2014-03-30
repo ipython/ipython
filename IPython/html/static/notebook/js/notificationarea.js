@@ -188,8 +188,8 @@ var IPython = (function (IPython) {
         $([IPython.events]).on('notebook_saved.Notebook', function () {
             nnw.set_message("Notebook saved",2000);
         });
-        $([IPython.events]).on('notebook_save_failed.Notebook', function () {
-            nnw.set_message("Notebook save failed");
+        $([IPython.events]).on('notebook_save_failed.Notebook', function (evt, xhr, status, data) {
+            nnw.set_message(data || "Notebook save failed");
         });
         
         // Checkpoint events

@@ -128,15 +128,6 @@ IPython.keyboard = (function (IPython) {
         return shortcut;
     };
 
-    var trigger_keydown = function (shortcut, element) {
-        // Trigger shortcut keydown on an element
-        element = element || document;
-        element = $(element);
-        var event = shortcut_to_event(shortcut, 'keydown');
-        element.trigger(event);
-    };
-
-
     // Shortcut manager class
 
     var ShortcutManager = function (delay) {
@@ -252,7 +243,7 @@ IPython.keyboard = (function (IPython) {
     ShortcutManager.prototype.handles = function (event) {
         var shortcut = event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
-        return !( data === undefined )
+        return !( data === undefined || data.handler === undefined )
     }
 
     return {
@@ -262,8 +253,7 @@ IPython.keyboard = (function (IPython) {
         normalize_key : normalize_key,
         normalize_shortcut : normalize_shortcut,
         shortcut_to_event : shortcut_to_event,
-        event_to_shortcut : event_to_shortcut,
-        trigger_keydown : trigger_keydown
+        event_to_shortcut : event_to_shortcut
     };
 
 }(IPython));

@@ -10,12 +10,12 @@ casper.notebook_test(function () {
         for (i = 0; i < ncells; i++) {
             IPython.notebook.delete_cell();
         }
-        
-        // Simulate the "up arrow" and "down arrow" keys.
-        //
-        IPython.keyboard.trigger_keydown('up');
-        IPython.keyboard.trigger_keydown('down');
+            
         return true;
     });
+    
+    // Simulate the "up arrow" and "down arrow" keys.
+    this.trigger_keydown('up');
+    this.trigger_keydown('down');
     this.test.assertTrue(result, 'Up/down arrow okay in empty notebook.');
 });

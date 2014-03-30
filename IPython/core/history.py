@@ -29,6 +29,7 @@ import threading
 # Our own packages
 from IPython.config.configurable import Configurable
 from IPython.external.decorator import decorator
+from IPython.utils.decorators import undoc
 from IPython.utils.path import locate_profile
 from IPython.utils import py3compat
 from IPython.utils.traitlets import (
@@ -40,6 +41,7 @@ from IPython.utils.warn import warn
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+@undoc
 class DummyDB(object):
     """Dummy DB that will act as a black hole for history.
     
@@ -59,7 +61,7 @@ class DummyDB(object):
 
 @decorator
 def needs_sqlite(f, self, *a, **kw):
-    """return an empty list in the absence of sqlite"""
+    """Decorator: return an empty list in the absence of sqlite."""
     if sqlite3 is None or not self.enabled:
         return []
     else:
@@ -69,6 +71,7 @@ def needs_sqlite(f, self, *a, **kw):
 if sqlite3 is not None:
     DatabaseError = sqlite3.DatabaseError
 else:
+    @undoc
     class DatabaseError(Exception):
         "Dummy exception when sqlite could not be imported. Should never occur."
 
@@ -159,7 +162,7 @@ class HistoryAccessor(Configurable):
         hist_file : str
           Path to an SQLite history database stored by IPython. If specified,
           hist_file overrides profile.
-        config :
+        config : :class:`~IPython.config.loader.Config`
           Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
@@ -254,32 +257,41 @@ class HistoryAccessor(Configurable):
 
     @needs_sqlite
     @catch_corrupt_db
-    def get_session_info(self, session=0):
-        """get info about a session
+    def get_session_info(self, session):
+        """Get info about a session.
 
         Parameters
         ----------
 
         session : int
-            Session number to retrieve. The current session is 0, and negative
-            numbers count back from current session, so -1 is previous session.
+            Session number to retrieve.
 
         Returns
         -------
-
-        (session_id [int], start [datetime], end [datetime], num_cmds [int],
-        remark [unicode])
-
-        Sessions that are running or did not exit cleanly will have `end=None`
-        and `num_cmds=None`.
-
+        
+        session_id : int
+           Session ID number
+        start : datetime
+           Timestamp for the start of the session.
+        end : datetime
+           Timestamp for the end of the session, or None if IPython crashed.
+        num_cmds : int
+           Number of commands run, or None if IPython crashed.
+        remark : unicode
+           A manually set description.
         """
-
-        if session <= 0:
-            session += self.session_number
-
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
+
+    @catch_corrupt_db
+    def get_last_session_id(self):
+        """Get the last session ID currently in the database.
+        
+        Within IPython, this should be the same as the value stored in
+        :attr:`HistoryManager.session_number`.
+        """
+        for record in self.get_tail(n=1, include_latest=True):
+            return record[0]
 
     @catch_corrupt_db
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
@@ -374,9 +386,10 @@ class HistoryAccessor(Configurable):
 
         Returns
         -------
-        An iterator over the desired lines. Each line is a 3-tuple, either
-        (session, line, input) if output is False, or
-        (session, line, (input, output)) if output is True.
+        entries
+          An iterator over the desired lines. Each line is a 3-tuple, either
+          (session, line, input) if output is False, or
+          (session, line, (input, output)) if output is True.
         """
         if stop:
             lineclause = "line >= ? AND line < ?"
@@ -535,6 +548,35 @@ class HistoryManager(HistoryAccessor):
     # ------------------------------
     # Methods for retrieving history
     # ------------------------------
+    def get_session_info(self, session=0):
+        """Get info about a session.
+
+        Parameters
+        ----------
+
+        session : int
+            Session number to retrieve. The current session is 0, and negative
+            numbers count back from current session, so -1 is the previous session.
+
+        Returns
+        -------
+        
+        session_id : int
+           Session ID number
+        start : datetime
+           Timestamp for the start of the session.
+        end : datetime
+           Timestamp for the end of the session, or None if IPython crashed.
+        num_cmds : int
+           Number of commands run, or None if IPython crashed.
+        remark : unicode
+           A manually set description.
+        """
+        if session <= 0:
+            session += self.session_number
+
+        return super(HistoryManager, self).get_session_info(session=session)
+
     def _get_range_session(self, start=1, stop=None, raw=True, output=False):
         """Get input and output history from the current session. Called by
         get_range, and takes similar parameters."""
@@ -578,9 +620,10 @@ class HistoryManager(HistoryAccessor):
             
         Returns
         -------
-        An iterator over the desired lines. Each line is a 3-tuple, either
-        (session, line, input) if output is False, or
-        (session, line, (input, output)) if output is True.
+        entries
+          An iterator over the desired lines. Each line is a 3-tuple, either
+          (session, line, input) if output is False, or
+          (session, line, (input, output)) if output is True.
         """
         if session <= 0:
             session += self.session_number
@@ -594,7 +637,7 @@ class HistoryManager(HistoryAccessor):
     ## ----------------------------
     def store_inputs(self, line_num, source, source_raw=None):
         """Store source and raw input in history and create input cache
-        variables _i*.
+        variables ``_i*``.
 
         Parameters
         ----------
@@ -765,8 +808,8 @@ def extract_hist_ranges(ranges_str):
 
     Examples
     --------
-    list(extract_input_ranges("~8/5-~7/4 2"))
-    [(-8, 5, None), (-7, 1, 4), (0, 2, 3)]
+    >>> list(extract_hist_ranges("~8/5-~7/4 2"))
+    [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     """
     for range_str in ranges_str.split():
         rmatch = range_re.match(range_str)

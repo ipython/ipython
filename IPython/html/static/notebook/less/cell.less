@@ -33,6 +33,14 @@ div.prompt {
     line-height: @code_line_height;
 }
 
+@media (max-width: 480px) {
+    // prompts are in the main column on small screens,
+    // so text should be left-aligned
+    div.prompt {
+        text-align: left;
+    }
+}
+
 div.inner_cell {
     .vbox();
     .box-flex1();

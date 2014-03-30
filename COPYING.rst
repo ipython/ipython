@@ -3,12 +3,12 @@
 =============================
 
 IPython is licensed under the terms of the Modified BSD License (also known as
-New or Revised BSD), as follows:
+New or Revised or 3-Clause BSD), as follows:
 
-Copyright (c) 2008-2010, IPython Development Team
-Copyright (c) 2001-2007, Fernando Perez. <fernando.perez@colorado.edu>
-Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
-Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
+- Copyright (c) 2008-2014, IPython Development Team
+- Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
+- Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
+- Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
 
 All rights reserved.
 
@@ -50,15 +50,7 @@ details is kept in the documentation directory, in the file
 ``about/credits.txt``.
 
 The core team that coordinates development on GitHub can be found here:
-http://github.com/ipython.  As of late 2010, it consists of:
-
-* Brian E. Granger
-* Jonathan March
-* Evan Patterson
-* Fernando Perez
-* Min Ragan-Kelley
-* Robert Kern
-
+https://github.com/ipython/.
 
 Our Copyright Policy
 --------------------
@@ -73,13 +65,10 @@ changes/contributions they have specific copyright on, they should indicate
 their copyright in the commit message of the change, when they commit the
 change to one of the IPython repositories.
 
-With this in mind, the following banner should be used in any source code file
+With this in mind, the following banner should be used in any source code file 
 to indicate the copyright and license terms:
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2010, IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+::
+
+    # Copyright (c) IPython Development Team.
+    # Distributed under the terms of the Modified BSD License.

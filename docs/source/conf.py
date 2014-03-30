@@ -95,8 +95,7 @@ numpydoc_class_members_toctree = False
 # other places throughout the built documents.
 #
 # The full version, including alpha/beta/rc tags.
-codename = iprelease['codename']
-release = "%s: %s" % (iprelease['version'], codename)
+release = "%s" % iprelease['version']
 # Just the X.Y.Z part, no '-dev'
 version = iprelease['version'].split('-', 1)[0]
 
@@ -164,7 +163,10 @@ html_last_updated_fmt = '%b %d, %Y'
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 html_additional_pages = {
-                         'interactive/htmlnotebook': 'htmlnotebook.html',
+    'interactive/htmlnotebook': 'notebook_redirect.html',
+    'interactive/notebook': 'notebook_redirect.html',
+    'interactive/nbconvert': 'notebook_redirect.html',
+    'interactive/public_server': 'notebook_redirect.html',
 }
 
 # If false, no module index is generated.
