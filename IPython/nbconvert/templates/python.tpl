@@ -1,5 +1,9 @@
 {%- extends 'null.tpl' -%}
 
+{% block header %}
+# coding: utf-8
+{% endblock header %}
+
 {% block in_prompt %}
 # In[{{ cell.prompt_number if cell.prompt_number else ' ' }}]:
 {% endblock in_prompt %}
