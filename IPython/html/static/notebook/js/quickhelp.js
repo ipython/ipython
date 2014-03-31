@@ -62,6 +62,7 @@ var IPython = (function (IPython) {
                 Close : {}
             }
         });
+        this.shortcut_dialog.addClass("modal_stretch");
         
         $([IPython.events]).on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
     };
