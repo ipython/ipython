@@ -394,10 +394,6 @@ Ctrl-m .       restart kernel
 Ctrl-m h       show keyboard shortcuts
 ============  ==========================
 
-.. seealso::
-
-    :ref:`Some additional Codemirror keyboard shortcuts <cm_keyboard>`    
-
 
 
 Plotting

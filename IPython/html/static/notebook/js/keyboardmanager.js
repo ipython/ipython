@@ -157,49 +157,7 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'tab' : {
-            help    : 'indent or complete',
-            help_index : 'ec',
-        },
-        'shift-tab' : {
-            help    : 'tooltip',
-            help_index : 'ed',
-        },
     };
-
-    if (platform === 'MacOS') {
-        default_edit_shortcuts['cmd-/'] =
-            {
-                help    : 'toggle comment',
-                help_index : 'ee'
-            };
-        default_edit_shortcuts['cmd-]'] =
-            {
-                help    : 'indent',
-                help_index : 'ef'
-            };
-        default_edit_shortcuts['cmd-['] =
-            {
-                help    : 'dedent',
-                help_index : 'eg'
-            };
-    } else {
-        default_edit_shortcuts['ctrl-/'] =
-            {
-                help    : 'toggle comment',
-                help_index : 'ee'
-            };
-        default_edit_shortcuts['ctrl-]'] =
-            {
-                help    : 'indent',
-                help_index : 'ef'
-            };
-        default_edit_shortcuts['ctrl-['] =
-            {
-                help    : 'dedent',
-                help_index : 'eg'
-            };
-    }
 
     // Command mode defaults
 
