@@ -1,0 +1,6 @@
+# A simple IPython script that lists files in all subdirs
+
+from IPython.display import FileLinks, display
+dirs =!ls -d */
+for d in dirs:
+    display(FileLinks(d))

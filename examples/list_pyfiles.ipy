@@ -1,0 +1,6 @@
+# A simple IPython script that provides Notebook links to .py files in the cwd
+
+from IPython.display import FileLink, display
+files =!ls *.py
+for f in files:
+    display(FileLink(f))
