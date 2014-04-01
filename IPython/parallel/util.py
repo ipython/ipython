@@ -22,6 +22,7 @@ import re
 import stat
 import socket
 import sys
+import warnings
 from signal import signal, SIGINT, SIGABRT, SIGTERM
 try:
     from signal import SIGKILL
@@ -184,17 +185,41 @@ def split_url(url):
     assert len(lis) == 2, 'Invalid url: %r'%url
     addr,s_port = lis
     return proto,addr,s_port
-    
+
+
 def disambiguate_ip_address(ip, location=None):
-    """turn multi-ip interfaces '0.0.0.0' and '*' into connectable
-    ones, based on the location (default interpretation of location is localhost)."""
-    if ip in ('0.0.0.0', '*'):
-        if location is None or is_public_ip(location) or not public_ips():
-            # If location is unspecified or cannot be determined, assume local
+    """turn multi-ip interfaces '0.0.0.0' and '*' into a connectable address
+    
+    Explicit IP addresses are returned unmodified.
+    
+    Parameters
+    ----------
+    
+    ip : IP address
+        An IP address, or the special values 0.0.0.0, or *
+    location: IP address, optional
+        A public IP of the target machine.
+        If location is an IP of the current machine,
+        localhost will be returned,
+        otherwise location will be returned.
+    """
+    if ip in {'0.0.0.0', '*'}:
+        if not location:
+            # unspecified location, localhost is the only choice
             ip = localhost()
-        elif location:
-            return location
+        elif is_public_ip(location):
+            # location is a public IP on this machine, use localhost
+            ip = localhost()
+        elif not public_ips():
+            # this machine's public IPs cannot be determined,
+            # assume `location` is not this machine
+            warnings.warn("IPython could not determine public IPs", RuntimeWarning)
+            ip = location
+        else:
+            # location is not this machine, do not use loopback
+            ip = location
     return ip
+
 
 def disambiguate_url(url, location=None):
     """turn multi-ip interfaces '0.0.0.0' and '*' into connectable
