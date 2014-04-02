@@ -298,7 +298,7 @@ extremely useful.  The following extensions are provided:
 
 .. _cython: http://cython.org
 
-**Octave magics** (extension :ref:`octavemagic <extensions_octavemagic>`)
+**Octave magics** (extension ``octavemagic``)
     This extension provides several magics that support calling code written in
     the Octave_ language for numerical computing.  You can execute single-lines
     or whole blocks of Octave code, capture both output and figures inline
