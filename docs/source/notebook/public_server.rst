@@ -9,7 +9,7 @@ server-client structure.  This server uses a :ref:`two-process kernel
 architecture <ipythonzmq>` based on ZeroMQ_, as well as Tornado_ for serving
 HTTP requests. By default, a notebook server runs on http://127.0.0.1:8888/
 and is accessible only from `localhost`. This document describes how you can
-:ref:`secure a notebook server <notebook_security>` and how to :ref:`run it on
+:ref:`secure a notebook server <notebook_server_security>` and how to :ref:`run it on
 a public interface <notebook_public_server>`.
 
 .. _ZeroMQ: http://zeromq.org
@@ -17,7 +17,7 @@ a public interface <notebook_public_server>`.
 .. _Tornado: http://www.tornadoweb.org
 
 
-.. _notebook_security:
+.. _notebook_server_security:
 
 Securing a notebook server
 --------------------------

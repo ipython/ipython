@@ -102,7 +102,7 @@ compute the two digit counts for the digits in a single file. Then in a final
 step the counts from each engine will be added up. To perform this
 calculation, we will need two top-level functions from :file:`pidigits.py`:
 
-.. literalinclude:: ../../../examples/parallel/pi/pidigits.py
+.. literalinclude:: ../../../examples/Parallel Computing/pi/pidigits.py
    :language: python
    :lines: 47-62
 
