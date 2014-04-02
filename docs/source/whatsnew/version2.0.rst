@@ -7,8 +7,8 @@ Release 2.0.0
 
 April, 2014
 
-IPython 2.0 requires Python ≥ 2.7.2 or ≥ 3.2.1.
-It does not support Python 3.0, 3.1, 2.5, or 2.6.
+IPython 2.0 requires Python ≥ 2.7.2 or ≥ 3.3.0.
+It does not support Python 3.0, 3.1, 3.2, 2.5, or 2.6.
 
 The principal milestones of 2.0 are:
 
