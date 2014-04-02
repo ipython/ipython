@@ -3,6 +3,7 @@
 
 This only works for a local cluster, because the filenames are local paths.
 """
+from __future__ import division
 
 
 import os
@@ -14,8 +15,6 @@ from itertools import repeat
 from wordfreq import print_wordfreq, wordfreq
 
 from IPython.parallel import Client, Reference
-
-from __future__ import division 
 
 try: #python2
     from urllib import urlretrieve
