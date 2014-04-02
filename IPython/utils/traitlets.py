@@ -232,7 +232,7 @@ class link(object):
             for obj,attr in self.objects.keys():
                 if obj is not sending_obj or attr != sending_attr:
                     setattr(obj, attr, new)
-    
+
     def unlink(self):
         for key, callback in self.objects.items():
             (obj,attr) = key
@@ -1308,6 +1308,11 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
+    def instance_init(self, obj):
+        if isinstance(self._trait, Instance):
+            self._trait._resolve_classes()
+        super(Container, self).instance_init(obj)
+
 
 class List(Container):
     """An instance of a Python list."""
@@ -1369,7 +1374,7 @@ class List(Container):
             self.length_error(obj, value)
 
         return super(List, self).validate_elements(obj, value)
-    
+
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
         if value is None:
@@ -1378,7 +1383,7 @@ class List(Container):
         value = self.validate_elements(obj, value)
 
         return value
-        
+
 
 
 class Set(List):
