@@ -1,21 +1,8 @@
-"""Some generic utilities for dealing with classes, urls, and serialization.
+"""Some generic utilities for dealing with classes, urls, and serialization."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Min RK
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# Standard library imports.
 import logging
 import os
 import re
@@ -37,13 +24,11 @@ except:
     cPickle = None
     import pickle
 
-# System library imports
 import zmq
 from zmq.log import handlers
 
 from IPython.external.decorator import decorator
 
-# IPython imports
 from IPython.config.application import Application
 from IPython.utils.localinterfaces import localhost, is_public_ip, public_ips
 from IPython.utils.py3compat import string_types, iteritems, itervalues
