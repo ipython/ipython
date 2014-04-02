@@ -12,7 +12,9 @@ It does not support Python 3.0, 3.1, 2.5, or 2.6.
 
 The principal milestones of 2.0 are:
 
-- interactive widgets for the HTML notebook
+- interactive widgets for the notebook
+- directory navigation in the notebook dashboard
+- persistent URLs for notebooks
 - a new modal user interface in the notebook
 - a security model for notebooks
 
@@ -41,65 +43,62 @@ Directory navigation
     :align: center
 
 The IPython notebook dashboard allows navigation into subdirectories.
-URLs are persistent based on the notebook's path,
+URLs are persistent based on the notebook's path and name,
 so no more random UUID URLs.
 
 Serving local files no longer needs the ``files/`` prefix.
 Relative links across notebooks and other files should work just as if notebooks were regular HTML files.
 
-Notebook Widgets
-****************
+Interactive widgets
+*******************
 
 .. image:: /_images/2.0/widgets.png
     :width: 392px
     :alt: Interactive widgets
     :align: center
 
+IPython 2.0 adds :mod:`IPython.html.widgets`, for manipulating
+Python objects in the kernel with GUI controls in the notebook.
+IPython comes with a few built-in widgets for simple data types,
+and an API designed for developers to build more complex widgets.
+See the `widget docs`_ for more information.
 
-Available in the new :mod:`IPython.html.widgets` module, widgets provide an easy
-way for IPython notebook users to display GUI controls in the IPython notebook.
-IPython comes with bundle of built-in widgets and also the ability for users
-to define their own widgets.  A widget is displayed in the front-end using
-using a view.  For example, a FloatRangeWidget can be displayed using a
-FloatSliderView (which is the default if no view is specified when displaying
-the widget).  IPython also comes with a bundle of views and the ability for the
-user to define custom views.  One widget can be displayed multiple times, in on
-or more cells, using one or more views.  All views will automatically remain in
-sync with the widget which is accessible in the back-end.
+.. _widget docs: http://nbviewer.ipython.org/github/ipython/ipython/blob/2.x/examples/Interactive%20Widgets/Index.ipynb
 
-The widget layer provides an MVC-like architecture on top of the comm layer.
-It's useful for widgets that can be expressed via a list of properties.
-Widgets work by synchronizing IPython traitlet models in the back-end with
-backbone models in the front-end. The widget layer automatically handles
 
-* delta compression (only sending the state information that has changed)
-* wiring the message callbacks to the correct cells automatically
-* inter-view synchronization (handled by backbone)
-* message throttling (to avoid flooding the kernel)
-* parent/child relationships between views (which one can override to specify custom parent/child relationships)
-* ability to manipulate the widget view's DOM from python using CSS, $().addClass, and $().removeClass methods
+Modal user interface
+********************
 
-Interactive Notebook Tour
-*************************
+The notebook has added separate Edit and Command modes,
+allowing easier keyboard commands and making keyboard shortcut customization possible.
+See the new `User Interface notebook`_ for more information.
+
+.. _User Interface Notebook: http://nbviewer.ipython.org/github/ipython/ipython/blob/2.x/examples/Notebook/User%20Interface.ipynb
+
+
+You can familiarize yourself with the updated notebook user interface, including an
+explanation of Edit and Command modes, by going through the short guided tour
+which can be started from the Help menu.
 
 .. image:: /_images/2.0/user-interface.png
     :width: 392px
     :alt: Interface tour
     :align: center
 
-Familiarize yourself with the updated notebook user interface, including an
-explanation of Edit and Command modes, by going through the short guided tour
-which can be started from the Help menu.
 
-Signing Notebooks
-*****************
+Security
+********
 
-To prevent untrusted code from executing on users' behalf when notebooks open,
-we have added a signature to the notebook, stored in metadata.
+2.0 introduces a :ref:`security model <notebook_security>` for notebooks,
+to prevent untrusted code from executing on users' behalf when notebooks open.
+A quick summary of the model:
 
-For more information, see :ref:`signing_notebooks`.
+- Trust is determined by :ref:`signing notebooks<signing_notebooks>`.
+- Untrusted HTML output is sanitized.
+- Untrusted Javascript is never executed.
+- HTML and Javascript in Markdown are never trusted.
 
-Dashboard "Running" Tab
+Dashboard "Running" tab
 ***********************
 
 .. image:: /_images/2.0/running-crop.png
@@ -118,6 +117,15 @@ and 3.3.
 
 For notes on how to maintain this, see :doc:`/development/pycompat`.
 
+Selecting matplotlib figure formats
+-----------------------------------
+
+Deprecate single-format ``InlineBackend.figure_format``
+configurable in favor of ``InlineBackend.figure_formats``,
+which is a set, supporting multiple simultaneous figure formats (e.g. png, pdf).
+
+This is available at runtime with the new API function :func:`IPython.display.set_matplotlib_formats`.
+
 clear_output changes
 --------------------
 
@@ -128,7 +136,7 @@ clear_output changes
   user to double buffer the output.
 * The output div height is remembered when the ``wait=True`` flag is used.
 
-Extending Configurable Containers
+Extending configurable containers
 ---------------------------------
 
 Some configurable traits are containers (list, dict, set)
@@ -142,7 +150,7 @@ the initial value::
     c = get_config()
     c.InlineBackend.rc.update({ 'figure.figsize' : (6, 4) })
 
-changes to hidden namespace on startup
+Changes to hidden namespace on startup
 --------------------------------------
 
 Previously, all names declared in code run at startup
@@ -163,7 +171,7 @@ dill to extend serialization support in :mod:`IPython.parallel` (closures, etc.)
 Also adds :meth:`DirectView.use_dill` convenience method for enabling dill
 locally and on all engines with one call.
 
-New IPython Console Lexer
+New IPython console lexer
 -------------------------
 
 The IPython console lexer has been rewritten and now supports tracebacks
@@ -263,6 +271,9 @@ Other changes
 
 * A new callback system has been introduced. For details, see :doc:`/config/callbacks`.
 
+* jQuery and require.js are loaded from CDNs in the default HTML template,
+  so javascript is available in static HTML export (e.g. nbviewer).
+
 Backwards incompatible changes
 ------------------------------
 
@@ -306,10 +317,8 @@ Backwards incompatible changes
 
 * The Azure notebook manager was removed as it was no longer compatible with the notebook storage scheme
 
+* Simplifying configurable URLs
 
-Simplifying configurable URLs
-*****************************
-
-* base_project_url is renamed to base_url (base_project_url is kept as a deprecated alias, for now)
-* base_kernel_url configurable is removed (use base_url)
-* websocket_url configurable is removed (use base_url)
+  - base_project_url is renamed to base_url (base_project_url is kept as a deprecated alias, for now)
+  - base_kernel_url configurable is removed (use base_url)
+  - websocket_url configurable is removed (use base_url)
