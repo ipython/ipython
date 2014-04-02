@@ -109,9 +109,10 @@ today_fmt = '%B %d, %Y'
 # List of documents that shouldn't be included in the build.
 #unused_docs = []
 
-# List of directories, relative to source directories, that shouldn't be searched
-# for source files.
-exclude_dirs = ['attic']
+# Exclude these glob-style patterns when looking for source files. They are
+# relative to the source/ directory.
+exclude_patterns = ['whatsnew/pr']
+
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
