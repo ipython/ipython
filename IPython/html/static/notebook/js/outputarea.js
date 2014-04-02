@@ -26,8 +26,6 @@ var IPython = (function (IPython) {
      */
 
     var OutputArea = function (selector, prompt_area) {
-        console.log('hello world!');
-        this._img_index = 0;
         this.selector = selector;
         this.wrapper = $(selector);
         this.outputs = [];
@@ -273,47 +271,43 @@ var IPython = (function (IPython) {
     
     OutputArea.prototype.append_output = function (json) {
         this.expand();
+        
+        // validate output data types
+        json = this.validate_output(json);
+        // TODO: Why are we recieving these new line characters for no 
+        // reason?  They ruin everything.
+        if (json.output_type === 'stream' && !json.text.trim()) return;
+
         // Clear the output if clear is queued.
         var needs_height_reset = false;
         if (this.clear_queued) {
             this.clear_output(false);
             needs_height_reset = true;
         }
-        
-        // We must release the animation fixed height in a callback since Gecko
-        // (FireFox) doesn't render the image immediately as the data is 
-        // available.
-        var that = this;
-        var handle_appended = function ($el, img_index) {
-            // Only reset the height to automatic if the height is currently
-            // fixed (done by wait=True flag on clear_output).
-            if (img_index == that._img_index) {
-                if (needs_height_reset) {
-                    that.element.height('');
-                    console.log(that.element.height(), $el.height(), $el[0].scrollHeight);
-                }
-                that.element.trigger('resize');
-            }
-        };
 
-        // validate output data types
-        json = this.validate_output(json);
-        var is_empty = false;
         if (json.output_type === 'pyout') {
             this.append_pyout(json);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
-            // TODO: Why are we recieving these new line characters for no 
-            // reason?  They ruin everything.
-            is_empty = !json.text.trim(); 
         }
 
+        // We must release the animation fixed height in a callback since Gecko
+        // (FireFox) doesn't render the image immediately as the data is 
+        // available.
+        var that = this;
+        var handle_appended = function ($el) {
+            // Only reset the height to automatic if the height is currently
+            // fixed (done by wait=True flag on clear_output).
+            if (needs_height_reset) {
+                that.element.height('');
+            }
+            that.element.trigger('resize');
+        };
         if (json.output_type === 'display_data') {
             this.append_display_data(json, handle_appended);
-        } else if (!is_empty) {
-            console.log("This shouldn't happen", json);
+        } else {
             handle_appended();
         }
         
@@ -530,7 +524,7 @@ var IPython = (function (IPython) {
                 var md = json.metadata || {};
                 var toinsert = append.apply(this, [value, md, element, handle_inserted]);
                 // Since only the png and jpeg mime types call the inserted
-                // callback, if the mim type is something other we must call the 
+                // callback, if the mime type is something other we must call the 
                 // inserted callback only when the element is actually inserted
                 // into the DOM.  Use a timeout of 0 to do this.
                 if (['image/png', 'image/jpeg'].indexOf(type) < 0 && handle_inserted !== undefined) {
@@ -640,14 +634,9 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_png", type);
         var img = $("<img/>");
         if (handle_inserted !== undefined) {
-            this._img_index++;
-            var index = this._img_index;
-            img[0].onload = function(){
-                handle_inserted(img, index);
-            };
-            img[0].onerror = function() {
-                console.log('ERROR while rendering the image!');
-            }
+            img.on('load', function(){
+                handle_inserted(img);
+            });
         }
         img[0].src = 'data:image/png;base64,'+ png;
         set_width_height(img, md, 'image/png');
@@ -663,14 +652,9 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>");
         if (handle_inserted !== undefined) {
-            this._img_index++;
-            var index = this._img_index;
-            img[0].onload = function(){
-                handle_inserted(img, index);
-            };
-            img[0].onerror = function() {
-                console.log('ERROR while rendering the image!');
-            }
+            img.on('load', function(){
+                handle_inserted(img);
+            });
         }
         img[0].src = 'data:image/jpeg;base64,'+ jpeg;
         set_width_height(img, md, 'image/jpeg');
@@ -794,7 +778,10 @@ var IPython = (function (IPython) {
                 this.clear_queued = false;
             }
             
-            // clear all
+            // Clear all
+            // Remove load event handlers from img tags because we don't want
+            // them to fire if the image is never added to the page.
+            this.element.find('img').off('load');
             this.element.html("");
             this.outputs = [];
             this.trusted = true;
