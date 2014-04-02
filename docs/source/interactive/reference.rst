@@ -810,16 +810,16 @@ Please look at the docstrings in the :mod:`~IPython.frontend.terminal.embed`
 module for more details on the use of this system.
 
 The following sample file illustrating how to use the embedding
-functionality is provided in the examples directory as example-embed.py.
+functionality is provided in the examples directory as embed_class_long.py.
 It should be fairly self-explanatory:
 
-.. literalinclude:: ../../../examples/core/example-embed.py
+.. literalinclude:: ../../../examples/Embedding/embed_class_long.py
     :language: python
 
 Once you understand how the system functions, you can use the following
 code fragments in your programs which are ready for cut and paste:
 
-.. literalinclude:: ../../../examples/core/example-embed-short.py
+.. literalinclude:: ../../../examples/Embedding/embed_class_short.py
     :language: python
 
 Using the Python debugger (pdb)
@@ -1059,7 +1059,7 @@ want to continue, you simply execute the next block of the demo. The
 following listing shows the markup necessary for dividing a script into
 sections for execution as a demo:
 
-.. literalinclude:: ../../../examples/lib/example-demo.py
+.. literalinclude:: ../../../examples/IPython Kernel/example-demo.py
     :language: python
 
 In order to run a file as a demo, you must first make a Demo object out

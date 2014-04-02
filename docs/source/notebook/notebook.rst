@@ -453,7 +453,7 @@ on available options, use::
 
     :ref:`config_overview`, in particular :ref:`Profiles`.
     
-    :ref:`notebook_security`
+    :ref:`notebook_server_security`
 
     :ref:`notebook_public_server`
 
