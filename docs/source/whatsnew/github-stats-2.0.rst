@@ -558,7 +558,7 @@ Pull Requests (687):
 * :ghpull:`4492`: Configuration docs refresh
 * :ghpull:`4508`: Fix some uses of map() in Qt console completion code.
 * :ghpull:`4498`: Daemon StreamCapturer
-* :ghpull:`4499`: Skip clipboard test on *nix systems if headless.
+* :ghpull:`4499`: Skip clipboard test on unix systems if headless.
 * :ghpull:`4460`: Better clipboard handling, esp. with pywin32
 * :ghpull:`4496`: Pass nbformat object to write call to save .py script
 * :ghpull:`4466`: various pandoc latex fixes

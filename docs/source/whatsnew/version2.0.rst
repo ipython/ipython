@@ -166,9 +166,9 @@ There are two changes to this behavior:
 Using dill to expand serialization support
 ------------------------------------------
 
-adds :func:`~IPython.utils.pickleutil.use_dill` for allowing
+The new function :func:`~IPython.utils.pickleutil.use_dill` allows
 dill to extend serialization support in :mod:`IPython.parallel` (closures, etc.).
-Also adds :meth:`DirectView.use_dill` convenience method for enabling dill
+A :meth:`DirectView.use_dill` convenience method was also added, to enable dill
 locally and on all engines with one call.
 
 New IPython console lexer
@@ -204,7 +204,7 @@ Exceptions and Warnings
 ***********************
 
 Exceptions are no longer silenced when formatters fail.
-Instead, these are turned into FormatterWarnings.
+Instead, these are turned into a :class:`~IPython.core.formatters.FormatterWarning`.
 A FormatterWarning will also be issued if a formatter returns data of an invalid type
 (e.g. an integer for 'image/png').
 
@@ -219,8 +219,8 @@ Other changes
   completion, Shift-Tab could still be used to invoke tooltip when inside
   function signature and/or on selection.
 
-* ``object_info_request`` as been replaced by ``object_info`` for consistency in the javascript API.
-  ``object_info`` as a simpler interface to register callback that is incompatible with ``object_info_request``.
+* ``object_info_request`` has been replaced by ``object_info`` for consistency in the javascript API.
+  ``object_info`` is a simpler interface to register callback that is incompatible with ``object_info_request``.
 
 * Previous versions of IPython on Linux would use the XDG config directory,
   creating :file:`~/.config/ipython` by default. We have decided to go
@@ -240,7 +240,7 @@ Other changes
 
 * ``ipython history trim``: added ``--keep=<N>`` as an alias for the more verbose
   ``--HistoryTrim.keep=<N>``
-* new ``ipython history clear`` subcommand, which is the same as the newly supported
+* New ``ipython history clear`` subcommand, which is the same as the newly supported
   ``ipython history trim --keep=0``
 
 * You can now run notebooks in an interactive session via ``%run notebook.ipynb``.
@@ -280,9 +280,9 @@ Backwards incompatible changes
 * Python 2.6 and 3.2 are no longer supported: the minimum required
   Python versions are now 2.7 and 3.3.
 * The Transformer classes have been renamed to Preprocessor in nbconvert and
-  their `call` methods for them have been renamed to `preprocess`.
-* The `call` methods of nbconvert post-processsors have been renamed to
-  `postprocess`.
+  their ``call`` methods have been renamed to ``preprocess``.
+* The ``call`` methods of nbconvert post-processsors have been renamed to
+  ``postprocess``.
 
 * The module ``IPython.core.fakemodule`` has been removed.
 
@@ -315,7 +315,7 @@ Backwards incompatible changes
       raw = isp.source_raw
       transformed = isp.source_reset()
 
-* The Azure notebook manager was removed as it was no longer compatible with the notebook storage scheme
+* The Azure notebook manager was removed as it was no longer compatible with the notebook storage scheme.
 
 * Simplifying configurable URLs
 
