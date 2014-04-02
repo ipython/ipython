@@ -1,4 +1,5 @@
 Aaron Culich <aculich@gmail.com> Aaron Culich <aculich@eecs.berkeley.edu>
+Aron Ahmadia <aron@ahmadia.net> ahmadia <aron@ahmadia.net>
 Benjamin Ragan-Kelley <benjaminrk@gmail.com> <minrk@Mercury.local>
 Benjamin Ragan-Kelley <benjaminrk@gmail.com> Min RK
 Benjamin Ragan-Kelley <benjaminrk@gmail.com> MinRK <benjaminrk@gmail.com>
@@ -11,12 +12,19 @@ Brian E. Granger <ellisonbg@gmail.com> Brian Granger
 Brian E. Granger <ellisonbg@gmail.com> Brian Granger <>
 Brian E. Granger <ellisonbg@gmail.com> bgranger <>
 Brian E. Granger <ellisonbg@gmail.com> bgranger <bgranger@red>
+Christoph Gohlke <cgohlke@uci.edu> cgohlke <cgohlke@uci.edu>
+Cyrille Rossant <cyrille.rossant@gmail.com> rossant <rossant@github>
 Damián Avila <damianavila82@yahoo.com.ar> damianavila <damianavila82@yahoo.com.ar>
+Damián Avila <damianavila82@yahoo.com.ar> damianavila <damianavila@gmail.com>
 Darren Dale <dsdale24@gmail.com> darren.dale <>
 Darren Dale <dsdale24@gmail.com> Darren Dale <>
 Dav Clark <davclark@berkeley.edu> Dav Clark <>
+Dav Clark <davclark@berkeley.edu> Dav Clark <davclark@gmail.com>
+David Hirschfeld <david.hirschfeld@gazprom-mt.com> dhirschfeld <david.hirschfeld@gazprom-mt.com>
+David P. Sanders <dpsanders@gmail.com> David P. Sanders <dpsanders@ciencias.unam.mx>
 David Warde-Farley <wardefar@iro.umontreal.ca> David Warde-Farley <>
-Eugene Van den Bulke <eugene.van-den-bulke@gmail.com> Eugene Van den Bulke <eugene.vandenbulke@gmail.com>
+Doug Blank <dblank@cs.brynmawr.edu> Doug Blank <doug.blank@gmail.com>
+Eugene Van den Bulke <eugene.van-den-bulke@gmail.com> Eugene Van den Bulke <eugene.vandenbulke@gmail.com> 
 Evan Patterson <epatters@enthought.com> <epatters@EPattersons-MacBook-Pro.local>
 Evan Patterson <epatters@enthought.com> <epatters@evan-laptop.localdomain>
 Evan Patterson <epatters@enthought.com> <epatters@caltech.edu>
@@ -27,6 +35,7 @@ Ernie French <ernestfrench@gmail.com> Ernie French <ernie@gqpbj.com>
 Ernie French <ernestfrench@gmail.com> ernie french <ernestfrench@gmail.com>
 Ernie French <ernestfrench@gmail.com> ernop <ernestfrench@gmail.com>
 Fernando Perez <Fernando.Perez@berkeley.edu> <fperez.net@gmail.com>
+Fernando Perez <Fernando.Perez@berkeley.edu> Fernando Perez <fernando.perez@berkeley.edu>
 Fernando Perez <Fernando.Perez@berkeley.edu> fperez <>
 Fernando Perez <Fernando.Perez@berkeley.edu> fptest <>
 Fernando Perez <Fernando.Perez@berkeley.edu> fptest1 <>
@@ -34,17 +43,24 @@ Fernando Perez <Fernando.Perez@berkeley.edu> Fernando Perez <fernando.perez@berk
 Fernando Perez <fernando.perez@berkeley.edu> Fernando Perez <>
 Fernando Perez <fernando.perez@berkeley.edu> Fernando Perez <fperez@maqroll>
 Frank Murphy <fpmurphy@mtu.edu> Frank Murphy <fmurphy@arbor.net>
+Gabriel Becker <gmbecker@ucdavis.edu> gmbecker <gmbecker@ucdavis.edu>
 Gael Varoquaux <gael.varoquaux@normalesup.org> gael.varoquaux <>
 Gael Varoquaux <gael.varoquaux@normalesup.org> gvaroquaux <gvaroquaux@gvaroquaux-desktop>
 Gael Varoquaux <gael.varoquaux@normalesup.org> Gael Varoquaux <>
-jakobgager <jakob.gager@gmail.com> jakobgager <gager@ilsb.tuwien.ac.at>
-jakobgager <jakob.gager@gmail.com> jakobgager <jakobgager@hotmail.com>
+Ingolf Becker <ingolf.becker@googlemail.com> watercrossing <ingolf.becker@googlemail.com>
+Jake Vanderplas <jakevdp@gmail.com> Jake Vanderplas <vanderplas@astro.washington.edu>
+Jakob Gager <jakob.gager@gmail.com> jakobgager <jakob.gager@gmail.com>
+Jakob Gager <jakob.gager@gmail.com> jakobgager <gager@ilsb.tuwien.ac.at>
+Jakob Gager <jakob.gager@gmail.com> jakobgager <jakobgager@hotmail.com>
 Jason Grout <jason.grout@drake.edu> Jason Grout <jason-github@creativetrax.com>
 Jens Hedegaard Nielsen <jenshnielsen@gmail.com> Jens Hedegaard Nielsen <jhn@jhn-Znote.(none)>
 Jens Hedegaard Nielsen <jenshnielsen@gmail.com> Jens H Nielsen <jenshnielsen@gmail.com>
 Jens Hedegaard Nielsen <jenshnielsen@gmail.com> Jens H. Nielsen <jenshnielsen@gmail.com>
 Jez Ng <jezreel@gmail.com> Jez Ng <me@jezng.com>
 Jonathan Frederic <jdfreder@calpoly.edu> Jonathan Frederic <jonathan@LifebookMint.(none)>
+Jonathan Frederic <jdfreder@calpoly.edu> Jonathan Frederic <jon.freder@gmail.com>
+Jonathan Frederic <jdfreder@calpoly.edu> Jonathan Frederic <xh3xx.goose@gmail.com>
+Jonathan Frederic <jdfreder@calpoly.edu> jon <jon.freder@gmail.com>
 Jonathan March <jmarch@enthought.com> Jonathan March <JDM@MarchRay.net>
 Jonathan March <jmarch@enthought.com> jdmarch <JDM@marchRay.net>
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> Jörgen Stenarson <jorgen.stenarson@bostream.nu>
@@ -53,6 +69,8 @@ Jörgen Stenarson <jorgen.stenarson@kroywen.se> Jorgen Stenarson <>
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> jstenar <jorgen.stenarson@bostream.nu>
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> jstenar <>
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> JÃ¶rgen Stenarson <jorgen.stenarson@kroywen.se>
+Juergen Hasch <python@elbonia.de> juhasch <python@elbonia.de>
+Kyle Kelley <rgbkrk@gmail.com> Kyle Kelley <kyle.kelley@rackspace.com>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> <laurent.dufrechou@gmail.com>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> <laurent@Pep>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> laurent dufrechou <>
@@ -61,6 +79,8 @@ Laurent Dufréchou <laurent.dufrechou@gmail.com> Laurent Dufrechou <>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> laurent.dufrechou@gmail.com <>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> ldufrechou <ldufrechou@PEP>
 Luis Pedro Coelho <luis@luispedro.org> Luis Pedro Coelho <lpc@cmu.edu>
+Marc Molla <marcmolla@gmail.com> marcmolla <marcmolla@gmail.com>
+Martín Gaitán <gaitan@gmail.com> Martín Gaitán <gaitan@phasety.com>
 Matthias Bussonnier <bussonniermatthias@gmail.com> Matthias BUSSONNIER <bussonniermatthias@gmail.com>
 Matthias Bussonnier <bussonniermatthias@gmail.com> Bussonnier Matthias <bussonniermatthias@gmail.com>
 Matthias Bussonnier <bussonniermatthias@gmail.com> Matthias BUSSONNIER <bussonniermatthias@umr168-curn-1-24x-6561.curie.fr>
@@ -69,6 +89,8 @@ Michael Droettboom <mdboom@gmail.com> Michael Droettboom <mdroe@stsci.edu>
 Nicolas Rougier <Nicolas.Rougier@inria.fr> <Nicolas.rougier@inria.fr>
 Omar Andrés Zapata Mesa <andresete.chaos@gmail.com> Omar Andres Zapata Mesa <andresete.chaos@gmail.com>
 Omar Andrés Zapata Mesa <andresete.chaos@gmail.com> Omar Andres Zapata Mesa <omazapa@tuxhome>
+Pankaj Pandey <pankaj86@gmail.com> Pankaj Pandey <pankaj@enthought.com>
+Pascal Schetelat <pascal.schetelat@gmail.com> pascal-schetelat <pascal.schetelat@gmail.com>
 Paul Ivanov <pi@berkeley.edu> Paul Ivanov <pivanov314@gmail.com>
 Pauli Virtanen <pauli.virtanen@iki.fi> Pauli Virtanen <>
 Pauli Virtanen <pauli.virtanen@iki.fi> Pauli Virtanen <pav@iki.fi>
@@ -86,8 +108,11 @@ Satrajit Ghosh <satra@mit.edu> Satrajit Ghosh <satrajit.ghosh@gmail.com>
 smithj1 <smithj1@LMC-022896.local> smithj1 <smithj1@LMC-022896.swisscom.com>
 smithj1 <smithj1@LMC-022896.local> smithj1 <smithj1@lmc-022896.local>
 Steven Johnson <steven.johnson@drake.edu> stevenJohnson <steven.johnson@drake.edu>
-s8weber <s8weber@c4.usr.sh> s8weber <s8weber@c5.usr.sh>
+Steven Silvester <steven.silvester@ieee.org> blink1073 <steven.silvester@ieee.org>
+S. Weber <s8weber@c4.usr.sh> s8weber <s8weber@c5.usr.sh>
 Stefan van der Walt <stefan@sun.ac.za> Stefan van der Walt <bzr@mentat.za.net>
+Ted Drain <ted.drain@gmail.com> TD22057 <ted.drain@gmail.com>
+Théophile Studer <theo.studer@gmail.com> Théophile Studer <studer@users.noreply.github.com>
 Thomas Kluyver <takowl@gmail.com> Thomas <takowl@gmail.com>
 Thomas Spura <tomspur@fedoraproject.org> Thomas Spura <thomas.spura@gmail.com>
 Timo Paulssen <timonator@perpetuum-immobile.de> timo <timonator@perpetuum-immobile.de>
@@ -102,3 +127,4 @@ Ville M. Vainio <vivainio@gmail.com> Ville M. Vainio <vivainio@ville_vmw>
 Walter Doerwald <walter@livinglogic.de> walter.doerwald <>
 Walter Doerwald <walter@livinglogic.de> Walter Doerwald <>
 W. Trevor King <wking@tremily.us> W. Trevor King <wking@drexel.edu>
+Yoval P. <yoval@gmx.com> y-p <yoval@gmx.com>

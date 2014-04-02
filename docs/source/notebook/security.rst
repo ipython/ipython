@@ -1,3 +1,5 @@
+.. _notebook_security:
+
 Security in IPython notebooks
 =============================
 
