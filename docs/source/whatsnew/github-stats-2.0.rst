@@ -12,7 +12,7 @@ GitHub stats for 2013/08/09 - 2014/04/01 (since 1.0.0)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-The following 93 authors contributed 3864 commits.
+The following 94 authors contributed 3949 commits.
 
 * Aaron Meurer
 * Abhinav Upadhyay
@@ -81,6 +81,7 @@ The following 93 authors contributed 3864 commits.
 * Paul Moore
 * Pere Vilas
 * Peter Davis
+* Philippe Mallet-Ladeira
 * Preston Holmes
 * Puneeth Chaganti
 * Richard Everson
@@ -109,12 +110,15 @@ The following 93 authors contributed 3864 commits.
 * zah
 
 
-We closed a total of 1116 issues, 684 pull requests and 432 regular issues;
+We closed a total of 1121 issues, 687 pull requests and 434 regular issues;
 this is the full list (generated with the script 
 :file:`tools/github_stats.py`):
 
-Pull Requests (684):
+Pull Requests (687):
 
+* :ghpull:`5487`: remove weird unicode space in the new copyright header
+* :ghpull:`5476`: For 2.0: Fix links in Notebook Help Menu
+* :ghpull:`5337`: Examples reorganization
 * :ghpull:`5436`: CodeMirror shortcuts in QuickHelp
 * :ghpull:`5444`: Fix numeric verification for Int and Float text widgets.
 * :ghpull:`5449`: Stretch keyboard shortcut dialog
@@ -800,8 +804,10 @@ Pull Requests (684):
 * :ghpull:`3960`: Don't make sphinx a dependency for importing nbconvert
 * :ghpull:`3973`: logging.Formatter is not new-style in 2.6
 
-Issues (432):
+Issues (434):
 
+* :ghissue:`5476`: For 2.0: Fix links in Notebook Help Menu
+* :ghissue:`5337`: Examples reorganization
 * :ghissue:`5436`: CodeMirror shortcuts in QuickHelp
 * :ghissue:`5444`: Fix numeric verification for Int and Float text widgets.
 * :ghissue:`5443`: Int and Float Widgets don't allow negative signs
