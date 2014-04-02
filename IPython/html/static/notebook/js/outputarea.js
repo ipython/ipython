@@ -26,6 +26,8 @@ var IPython = (function (IPython) {
      */
 
     var OutputArea = function (selector, prompt_area) {
+        console.log('hello world!');
+        this._img_index = 0;
         this.selector = selector;
         this.wrapper = $(selector);
         this.outputs = [];
@@ -282,14 +284,16 @@ var IPython = (function (IPython) {
         // (FireFox) doesn't render the image immediately as the data is 
         // available.
         var that = this;
-        var handle_appended = function ($el) {
+        var handle_appended = function ($el, img_index) {
             // Only reset the height to automatic if the height is currently
             // fixed (done by wait=True flag on clear_output).
-            if (needs_height_reset) {
-                that.element.height('');
-                console.log(that.element.height(), $el.height());
+            if (img_index == that._img_index) {
+                if (needs_height_reset) {
+                    that.element.height('');
+                    console.log(that.element.height(), $el.height(), $el[0].scrollHeight);
+                }
+                that.element.trigger('resize');
             }
-            that.element.trigger('resize');
         };
 
         // validate output data types
@@ -309,6 +313,7 @@ var IPython = (function (IPython) {
         if (json.output_type === 'display_data') {
             this.append_display_data(json, handle_appended);
         } else if (!is_empty) {
+            console.log("This shouldn't happen", json);
             handle_appended();
         }
         
@@ -635,11 +640,16 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_png", type);
         var img = $("<img/>");
         if (handle_inserted !== undefined) {
+            this._img_index++;
+            var index = this._img_index;
             img[0].onload = function(){
-                handle_inserted(img);
+                handle_inserted(img, index);
             };
+            img[0].onerror = function() {
+                console.log('ERROR while rendering the image!');
+            }
         }
-        img[0].src = 'data:image/png;base64,'+png;
+        img[0].src = 'data:image/png;base64,'+ png;
         set_width_height(img, md, 'image/png');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -653,11 +663,16 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
         var img = $("<img/>");
         if (handle_inserted !== undefined) {
+            this._img_index++;
+            var index = this._img_index;
             img[0].onload = function(){
-                handle_inserted(img);
+                handle_inserted(img, index);
             };
+            img[0].onerror = function() {
+                console.log('ERROR while rendering the image!');
+            }
         }
-        img[0].src = 'data:image/jpeg;base64,'+jpeg;
+        img[0].src = 'data:image/jpeg;base64,'+ jpeg;
         set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -780,8 +795,6 @@ var IPython = (function (IPython) {
             }
             
             // clear all
-            // Remove onload event listeners on child img elements.
-            this.element.find('img').off('load');
             this.element.html("");
             this.outputs = [];
             this.trusted = true;
