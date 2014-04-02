@@ -20,6 +20,7 @@ from .importstring import import_item
 from .py3compat import string_types, iteritems
 
 from IPython.config import Application
+from IPython.utils.log import get_logger
 
 if py3compat.PY3:
     buffer = memoryview
@@ -276,25 +277,11 @@ def CannedBuffer(CannedBytes):
 # Functions
 #-------------------------------------------------------------------------------
 
-def _logger():
-    """get the logger for the current Application
-    
-    the root logger will be used if no Application is running
-    """
-    if Application.initialized():
-        logger = Application.instance().log
-    else:
-        logger = logging.getLogger()
-        if not logger.handlers:
-            logging.basicConfig()
-    
-    return logger
-
 def _import_mapping(mapping, original=None):
     """import any string-keys in a type mapping
     
     """
-    log = _logger()
+    log = get_logger()
     log.debug("Importing canning map")
     for key,value in list(mapping.items()):
         if isinstance(key, string_types):

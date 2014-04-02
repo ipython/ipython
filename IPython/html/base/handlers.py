@@ -1,21 +1,7 @@
-"""Base Tornado handlers for the notebook.
+"""Base Tornado handlers for the notebook."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import functools
 import json
