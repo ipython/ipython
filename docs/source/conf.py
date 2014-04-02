@@ -68,12 +68,12 @@ templates_path = ['_templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
-if iprelease['_version_extra']:
+if iprelease['_version_extra'] == 'dev':
     rst_prolog = """
     .. note::
 
         This documentation is for a development version of IPython. There may be
-        significant differences from the latest stable release (1.2.1).
+        significant differences from the latest stable release.
 
     """
 
@@ -82,7 +82,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'IPython'
-copyright = '2008, The IPython Development Team'
+copyright = 'The IPython Development Team'
 
 # ghissue config
 github_project_url = "https://github.com/ipython/ipython"
