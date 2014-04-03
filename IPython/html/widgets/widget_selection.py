@@ -59,6 +59,10 @@ class _SelectionWidget(DOMWidget):
             if isinstance(values, list):
                 # preserve list order with an OrderedDict
                 kwargs['values'] = OrderedDict((unicode_type(v), v) for v in values)
+            # python3.3 turned on hash randomization by default - this means that sometimes, randomly
+            # we try to set value before setting values, due to dictionary ordering.  To fix this, force
+            # the setting of self.values right now, before anything else runs
+            self.values = kwargs['values']
         DOMWidget.__init__(self, *args, **kwargs)
     
     def _values_changed(self, name, old, new):
