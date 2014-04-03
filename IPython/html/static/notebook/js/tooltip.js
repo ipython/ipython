@@ -10,7 +10,7 @@
 //
 // you can set the autocall time by setting `IPython.tooltip.time_before_tooltip` in ms
 //
-// you can configure the differents action of pressing tab several times in a row by
+// you can configure the differents action of pressing shift-tab several times in a row by
 // setting/appending different fonction in the array
 // IPython.tooltip.tabs_functions
 //
@@ -51,13 +51,13 @@ var IPython = (function (IPython) {
             // build the buttons menu on the upper right
             // expand the tooltip to see more
             var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
-            .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press tab 2 times)').click(function () {
+            .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press shift-tab twice)').click(function () {
                 that.expand();
             }).append(
             $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
 
             // open in pager
-            var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press tab 4 times)');
+            var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press shift-tab 4 times)');
             var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
             morelink.append(morespan);
             morelink.click(function () {
