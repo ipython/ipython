@@ -274,9 +274,6 @@ var IPython = (function (IPython) {
         
         // validate output data types
         json = this.validate_output(json);
-        // TODO: Why are we recieving these new line characters for no 
-        // reason?  They ruin everything.
-        if (json.output_type === 'stream' && !json.text.trim()) return;
 
         // Clear the output if clear is queued.
         var needs_height_reset = false;
