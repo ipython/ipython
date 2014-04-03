@@ -1584,7 +1584,16 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             cursor = self._control.textCursor()
             text = self._get_block_plain_text(cursor.block())
             return text[len(prompt):]
-
+    
+    def _get_input_buffer_cursor_pos(self):
+        """Return the cursor position within the input buffer."""
+        cursor = self._control.textCursor()
+        cursor.setPosition(self._prompt_pos, QtGui.QTextCursor.KeepAnchor)
+        input_buffer = cursor.selection().toPlainText()
+        
+        # Don't count continuation prompts
+        return len(input_buffer.replace('\n' + self._continuation_prompt, '\n'))
+    
     def _get_input_buffer_cursor_prompt(self):
         """ Returns the (plain text) prompt for line of the input buffer that
             contains the cursor, or None if there is no such line.

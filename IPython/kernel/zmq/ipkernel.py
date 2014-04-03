@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """An interactive kernel that talks to frontends over 0MQ."""
 
 # Copyright (c) IPython Development Team.
@@ -28,6 +27,7 @@ from IPython.core import release
 from IPython.utils import py3compat
 from IPython.utils.py3compat import builtin_mod, unicode_type, string_types
 from IPython.utils.jsonutil import json_clean
+from IPython.utils.tokenutil import token_at_cursor
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, List, Set, Integer, Unicode,
     Type, Bool,
@@ -243,6 +243,7 @@ class Kernel(Configurable):
         else:
             # ensure default_int_handler during handler call
             sig = signal(SIGINT, default_int_handler)
+            self.log.debug("%s: %s", msg_type, msg)
             try:
                 handler(stream, idents, msg)
             except Exception:
@@ -489,7 +490,11 @@ class Kernel(Configurable):
         self._publish_status(u'idle', parent)
 
     def complete_request(self, stream, ident, parent):
-        txt, matches = self._complete(parent)
+        content = parent['content']
+        code = content['code']
+        cursor_pos = content['cursor_pos']
+        
+        txt, matches = self.shell.complete('', code, cursor_pos)
         matches = {'matches' : matches,
                    'matched_text' : txt,
                    'status' : 'ok'}
@@ -500,13 +505,25 @@ class Kernel(Configurable):
 
     def object_info_request(self, stream, ident, parent):
         content = parent['content']
-        object_info = self.shell.object_inspect(content['oname'],
-                        detail_level = content.get('detail_level', 0)
-        )
+        
+        name = token_at_cursor(content['code'], content['cursor_pos'])
+        info = self.shell.object_inspect(name)
+        
+        reply_content = {'status' : 'ok'}
+        reply_content['data'] = data = {}
+        reply_content['metadata'] = {}
+        reply_content['name'] = name
+        reply_content['found'] = info['found']
+        if info['found']:
+            info_text = self.shell.object_inspect_text(
+                name,
+                detail_level=content.get('detail_level', 0),
+            )
+            reply_content['data']['text/plain'] = info_text
         # Before we send this object over, we scrub it for JSON usage
-        oinfo = json_clean(object_info)
+        reply_content = json_clean(reply_content)
         msg = self.session.send(stream, 'object_info_reply',
-                                oinfo, parent, ident)
+                                reply_content, parent, ident)
         self.log.debug("%s", msg)
 
     def history_request(self, stream, ident, parent):
@@ -821,19 +838,6 @@ class Kernel(Configurable):
             # EOF
             raise EOFError
         return value
-
-    def _complete(self, msg):
-        c = msg['content']
-        try:
-            cpos = int(c['cursor_pos'])
-        except:
-            # If we don't get something that we can convert to an integer, at
-            # least attempt the completion guessing the cursor is at the end of
-            # the text, if there's any, and otherwise of the line
-            cpos = len(c['text'])
-            if cpos==0:
-                cpos = len(c['line'])
-        return self.shell.complete(c['text'], c['line'], cpos)
 
     def _at_shutdown(self):
         """Actions taken at shutdown by the kernel, called by python's atexit.

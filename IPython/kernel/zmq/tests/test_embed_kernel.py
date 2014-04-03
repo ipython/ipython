@@ -128,7 +128,8 @@ def test_embed_kernel_basic():
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equal(content['string_form'], u'10')
+        text = content['data']['text/plain']
+        nt.assert_in('10', text)
 
 def test_embed_kernel_namespace():
     """IPython.embed_kernel() inherits calling namespace"""
@@ -148,14 +149,16 @@ def test_embed_kernel_namespace():
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equal(content['string_form'], u'5')
+        text = content['data']['text/plain']
+        nt.assert_in(u'5', text)
 
         # oinfo b (str)
         msg_id = client.object_info('b')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equal(content['string_form'], u'hi there')
+        text = content['data']['text/plain']
+        nt.assert_in(u'hi there', text)
 
         # oinfo c (undefined)
         msg_id = client.object_info('c')
@@ -184,7 +187,8 @@ def test_embed_kernel_reentrant():
             msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
             content = msg['content']
             nt.assert_true(content['found'])
-            nt.assert_equal(content['string_form'], unicode_type(i))
+            text = content['data']['text/plain']
+            nt.assert_in(unicode_type(i), text)
             
             # exit from embed_kernel
             client.execute("get_ipython().exit_now = True")

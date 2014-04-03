@@ -23,7 +23,7 @@ def generate_tokens(readline):
         # catch EOF error
         return
 
-def token_at_cursor(cell, column, line=0):
+def token_at_cursor(cell, cursor_pos=0):
     """Get the token at a given cursor
     
     Used for introspection.
@@ -33,15 +33,13 @@ def token_at_cursor(cell, column, line=0):
     
     cell : unicode
         A block of Python code
-    column : int
-        The column of the cursor offset, where the token should be found
-    line : int, optional
-        The line where the token should be found (optional if cell is a single line)
+    cursor_pos : int
+        The location of the cursor in the block where the token should be found
     """
     cell = cast_unicode_py2(cell)
     names = []
     tokens = []
-    current_line = 0
+    offset = 0
     for tup in generate_tokens(StringIO(cell).readline):
         
         tok = Token(*tup)
@@ -49,7 +47,7 @@ def token_at_cursor(cell, column, line=0):
         # token, text, start, end, line = tup
         start_col = tok.start[1]
         end_col = tok.end[1]
-        if line == current_line and start_col > column:
+        if offset + start_col > cursor_pos:
             # current token starts after the cursor,
             # don't consume it
             break
@@ -64,13 +62,13 @@ def token_at_cursor(cell, column, line=0):
                 # don't inspect the lhs of an assignment
                 names.pop(-1)
         
-        if line == current_line and end_col > column:
+        if offset + end_col > cursor_pos:
             # we found the cursor, stop reading
             break
         
         tokens.append(tok)
         if tok.token == tokenize2.NEWLINE:
-            current_line += 1
+            offset += len(tok.line)
     
     if names:
         return names[-1]

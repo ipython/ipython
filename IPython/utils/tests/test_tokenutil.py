@@ -6,11 +6,16 @@ import nose.tools as nt
 
 from IPython.utils.tokenutil import token_at_cursor
 
-def expect_token(expected, cell, column, line=0):
-    token = token_at_cursor(cell, column, line)
-    
-    lines = cell.splitlines()
-    line_with_cursor = '%s|%s' % (lines[line][:column], lines[line][column:])
+def expect_token(expected, cell, cursor_pos):
+    token = token_at_cursor(cell, cursor_pos)
+    offset = 0
+    for line in cell.splitlines():
+        if offset + len(line) >= cursor_pos:
+            break
+        else:
+            offset += len(line)
+    column = cursor_pos - offset
+    line_with_cursor = '%s|%s' % (line[:column], line[column:])
     line
     nt.assert_equal(token, expected,
         "Excpected %r, got %r in: %s" % (
@@ -34,11 +39,13 @@ def test_multiline():
         'b = hello("string", there)'
     ])
     expected = 'hello'
-    for i in range(4,9):
-        expect_token(expected, cell, i, 1)
+    start = cell.index(expected)
+    for i in range(start, start + len(expected)):
+        expect_token(expected, cell, i)
     expected = 'there'
-    for i in range(21,27):
-        expect_token(expected, cell, i, 1)
+    start = cell.index(expected)
+    for i in range(start, start + len(expected)):
+        expect_token(expected, cell, i)
 
 def test_attrs():
     cell = "foo(a=obj.attr.subattr)"

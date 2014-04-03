@@ -85,6 +85,17 @@ class RHeader(Reference):
     username = Unicode()
     version = Version('5.0')
 
+mime_pat = re.compile(r'\w+/\w+')
+
+class MimeBundle(Reference):
+    metadata = Dict()
+    data = Dict()
+    def _data_changed(self, name, old, new):
+        for k,v in iteritems(new):
+            assert mime_pat.match(k)
+            nt.assert_is_instance(v, string_types)
+
+# shell replies
 
 class ExecuteReply(Reference):
     execution_count = Integer()
@@ -109,31 +120,9 @@ class ExecuteReplyError(Reference):
     traceback = List(Unicode)
 
 
-class OInfoReply(Reference):
+class OInfoReply(MimeBundle):
     name = Unicode()
     found = Bool()
-    ismagic = Bool()
-    isalias = Bool()
-    namespace = Enum((u'builtin', u'magics', u'alias', u'Interactive'))
-    type_name = Unicode()
-    string_form = Unicode()
-    base_class = Unicode()
-    length = Integer()
-    file = Unicode()
-    definition = Unicode()
-    argspec = Dict()
-    init_definition = Unicode()
-    docstring = Unicode()
-    init_docstring = Unicode()
-    class_docstring = Unicode()
-    call_def = Unicode()
-    call_docstring = Unicode()
-    source = Unicode()
-    
-    def check(self, d):
-        super(OInfoReply, self).check(d)
-        if d['argspec'] is not None:
-            ArgSpec().check(d['argspec'])
 
 
 class ArgSpec(Reference):
@@ -173,25 +162,12 @@ class Stream(Reference):
     data = Unicode()
 
 
-mime_pat = re.compile(r'\w+/\w+')
-
-class DisplayData(Reference):
+class DisplayData(MimeBundle):
     source = Unicode()
-    metadata = Dict()
-    data = Dict()
-    def _data_changed(self, name, old, new):
-        for k,v in iteritems(new):
-            assert mime_pat.match(k)
-            nt.assert_is_instance(v, string_types)
 
 
-class ExecuteResult(Reference):
+class ExecuteResult(MimeBundle):
     execution_count = Integer()
-    data = Dict()
-    def _data_changed(self, name, old, new):
-        for k,v in iteritems(new):
-            assert mime_pat.match(k)
-            nt.assert_is_instance(v, string_types)
 
 
 references = {
@@ -334,8 +310,10 @@ def test_oinfo_found():
     validate_message(reply, 'object_info_reply', msg_id)
     content = reply['content']
     assert content['found']
-    argspec = content['argspec']
-    nt.assert_is(argspec, None)
+    nt.assert_equal(content['name'], 'a')
+    text = content['data']['text/plain']
+    nt.assert_in('Type:', text)
+    nt.assert_in('Docstring:', text)
 
 
 def test_oinfo_detail():
@@ -343,14 +321,15 @@ def test_oinfo_detail():
 
     msg_id, reply = execute(code='ip=get_ipython()')
     
-    msg_id = KC.object_info('ip.object_inspect', detail_level=2)
+    msg_id = KC.object_info('ip.object_inspect', cursor_pos=10, detail_level=1)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'object_info_reply', msg_id)
     content = reply['content']
     assert content['found']
-    argspec = content['argspec']
-    nt.assert_is_instance(argspec, dict, "expected non-empty argspec dict, got %r" % argspec)
-    nt.assert_equal(argspec['defaults'], [0])
+    nt.assert_equal(content['name'], 'ip.object_inspect')
+    text = content['data']['text/plain']
+    nt.assert_in('Definition:', text)
+    nt.assert_in('Source:', text)
 
 
 def test_oinfo_not_found():
@@ -368,7 +347,7 @@ def test_complete():
 
     msg_id, reply = execute(code="alpha = albert = 5")
     
-    msg_id = KC.complete('al', 'al', 2)
+    msg_id = KC.complete('al', 2)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'complete_reply', msg_id)
     matches = reply['content']['matches']

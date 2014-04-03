@@ -270,38 +270,38 @@ class ShellChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def complete(self, text, line, cursor_pos, block=None):
+    def complete(self, code, cursor_pos=0, block=None):
         """Tab complete text in the kernel's namespace.
 
         Parameters
         ----------
-        text : str
-            The text to complete.
-        line : str
-            The full line of text that is the surrounding context for the
-            text to complete.
-        cursor_pos : int
-            The position of the cursor in the line where the completion was
-            requested.
-        block : str, optional
-            The full block of code in which the completion is being requested.
+        code : str
+            The context in which completion is requested.
+            Can be anything between a variable name and an entire cell.
+        cursor_pos : int, optional
+            The position of the cursor in the block of code where the completion was requested.
 
         Returns
         -------
         The msg_id of the message sent.
         """
-        content = dict(text=text, line=line, block=block, cursor_pos=cursor_pos)
+        content = dict(code=code, cursor_pos=cursor_pos)
         msg = self.session.msg('complete_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def object_info(self, oname, detail_level=0):
+    def object_info(self, code, cursor_pos=0, detail_level=0):
         """Get metadata information about an object in the kernel's namespace.
+
+        It is up to the kernel to determine the appropriate object to inspect.
 
         Parameters
         ----------
-        oname : str
-            A string specifying the object name.
+        code : str
+            The context in which info is requested.
+            Can be anything between a variable name and an entire cell.
+        cursor_pos : int, optional
+            The position of the cursor in the block of code where the info was requested.
         detail_level : int, optional
             The level of detail for the introspection (0-2)
 
@@ -309,7 +309,9 @@ class ShellChannel(ZMQSocketChannel):
         -------
         The msg_id of the message sent.
         """
-        content = dict(oname=oname, detail_level=detail_level)
+        content = dict(code=code, cursor_pos=cursor_pos,
+            detail_level=detail_level,
+        )
         msg = self.session.msg('object_info_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']

@@ -1,13 +1,10 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 //============================================================================
 // Utilities
 //============================================================================
+
 IPython.namespace('IPython.utils');
 
 IPython.utils = (function (IPython) {
@@ -430,7 +427,7 @@ IPython.utils = (function (IPython) {
     var escape_html = function (text) {
         // escape text to HTML
         return $("<div/>").text(text).html();
-    }
+    };
 
 
     var get_body_data = function(key) {
@@ -439,8 +436,19 @@ IPython.utils = (function (IPython) {
         // until we are building an actual request
         return decodeURIComponent($('body').data(key));
     };
-
-
+    
+    var absolute_cursor_pos = function (cm, cursor) {
+        // get the absolute cursor position from CodeMirror's col, ch
+        if (!cursor) {
+            cursor = cm.getCursor();
+        }
+        var cursor_pos = cursor.ch;
+        for (var i = 0; i < cursor.line; i++) {
+            cursor_pos += cm.getLine(i).length + 1;
+        }
+        return cursor_pos;
+    };
+    
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
     var browser = (function() {
         if (typeof navigator === 'undefined') {
@@ -465,13 +473,13 @@ IPython.utils = (function (IPython) {
         if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
         if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
         if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
-        return OSName
+        return OSName;
     })();
 
     var is_or_has = function (a, b) {
         // Is b a child of a or a itself?
         return a.has(b).length !==0 || a.is(b);
-    }
+    };
 
     var is_focused = function (e) {
         // Is element e, or one of its children focused?
@@ -486,7 +494,7 @@ IPython.utils = (function (IPython) {
         } else {
             return false;
         }
-    }
+    };
     
     var log_ajax_error = function (jqXHR, status, error) {
         // log ajax failures with informative messages
@@ -499,7 +507,7 @@ IPython.utils = (function (IPython) {
         }
         console.log(msg);
     };
-
+    
     return {
         regex_split : regex_split,
         uuid : uuid,
@@ -515,6 +523,7 @@ IPython.utils = (function (IPython) {
         splitext : splitext,
         escape_html : escape_html,
         always_new : always_new,
+        absolute_cursor_pos : absolute_cursor_pos,
         browser : browser,
         platform: platform,
         is_or_has : is_or_has,

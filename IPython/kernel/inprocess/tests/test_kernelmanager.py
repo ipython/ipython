@@ -1,19 +1,10 @@
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2012  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Standard library imports
 import unittest
 
-# Local imports
 from IPython.kernel.inprocess.blocking import BlockingInProcessKernelClient
 from IPython.kernel.inprocess.manager import InProcessKernelManager
 
@@ -71,7 +62,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         kc = BlockingInProcessKernelClient(kernel=km.kernel)
         kc.start_channels()
         km.kernel.shell.push({'my_bar': 0, 'my_baz': 1})
-        kc.complete('my_ba', 'my_ba', 5)
+        kc.complete('my_ba', 5)
         msg = kc.get_shell_msg()
         self.assertEqual(msg['header']['msg_type'], 'complete_reply')
         self.assertEqual(sorted(msg['content']['matches']),
@@ -87,9 +78,12 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         km.kernel.shell.user_ns['foo'] = 1
         kc.object_info('foo')
         msg = kc.get_shell_msg()
-        self.assertEquals(msg['header']['msg_type'], 'object_info_reply')
-        self.assertEquals(msg['content']['name'], 'foo')
-        self.assertEquals(msg['content']['type_name'], 'int')
+        self.assertEqual(msg['header']['msg_type'], 'object_info_reply')
+        content = msg['content']
+        assert content['found']
+        self.assertEqual(content['name'], 'foo')
+        text = content['data']['text/plain']
+        self.assertIn('int', text)
 
     def test_history(self):
         """ Does requesting history from an in-process kernel work?

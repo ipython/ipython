@@ -1,6 +1,10 @@
-// function completer.
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
+
+// Completer
 //
-// completer should be a class that takes an cell instance
+// Completer is be a class that takes a cell instance.
+
 var IPython = (function (IPython) {
     // that will prevent us from misspelling
     "use strict";
@@ -145,11 +149,14 @@ var IPython = (function (IPython) {
         // we fork here and directly call finish completing if kernel is busy
         if (this.skip_kernel_completion) {
             this.finish_completing({
-                'matches': [],
+                matches: [],
                 matched_text: ""
             });
         } else {
-            this.cell.kernel.complete(line, cur.ch, $.proxy(this.finish_completing, this));
+            var cursor_pos = IPython.utils.absolute_cursor_pos(this.editor, cur);
+            this.cell.kernel.complete(this.editor.getValue(), cursor_pos,
+                $.proxy(this.finish_completing, this)
+            );
         }
     };
 

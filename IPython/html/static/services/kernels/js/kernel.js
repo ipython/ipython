@@ -263,7 +263,8 @@ var IPython = (function (IPython) {
     /**
      * Get info on an object
      *
-     * @param objname {string}
+     * @param code {string}
+     * @param cursor_pos {integer}
      * @param callback {function}
      * @method object_info
      *
@@ -271,20 +272,18 @@ var IPython = (function (IPython) {
      * The callback will be passed the complete `object_info_reply` message documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
      */
-    Kernel.prototype.object_info = function (objname, callback) {
+    Kernel.prototype.object_info = function (code, cursor_pos, callback) {
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
         }
         
-        if (typeof(objname) !== null && objname !== null) {
-            var content = {
-                oname : objname.toString(),
-                detail_level : 0,
-            };
-            return this.send_shell_message("object_info_request", content, callbacks);
-        }
-        return;
+        var content = {
+            code : code,
+            cursor_pos : cursor_pos,
+            detail_level : 0,
+        };
+        return this.send_shell_message("object_info_request", content, callbacks);
     };
 
     /**
@@ -360,21 +359,19 @@ var IPython = (function (IPython) {
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#complete)
      *
      * @method complete
-     * @param line {integer}
+     * @param code {string}
      * @param cursor_pos {integer}
      * @param callback {function}
      *
      */
-    Kernel.prototype.complete = function (line, cursor_pos, callback) {
+    Kernel.prototype.complete = function (code, cursor_pos, callback) {
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
         }
         var content = {
-            text : '',
-            line : line,
-            block : null,
-            cursor_pos : cursor_pos
+            code : code,
+            cursor_pos : cursor_pos,
         };
         return this.send_shell_message("complete_request", content, callbacks);
     };

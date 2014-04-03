@@ -327,24 +327,6 @@ class IPythonWidget(FrontendWidget):
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _complete(self):
-        """ Reimplemented to support IPython's improved completion machinery.
-        """
-        # We let the kernel split the input line, so we *always* send an empty
-        # text field. Readline-based frontends do get a real text field which
-        # they can use.
-        text = ''
-
-        # Send the completion request to the kernel
-        msg_id = self.kernel_client.shell_channel.complete(
-            text,                                    # text
-            self._get_input_buffer_cursor_line(),    # line
-            self._get_input_buffer_cursor_column(),  # cursor_pos
-            self.input_buffer)                       # block
-        pos = self._get_cursor().position()
-        info = self._CompletionRequest(msg_id, pos)
-        self._request_info['complete'] = info
-
     def _process_execute_error(self, msg):
         """ Reimplemented for IPython-style traceback formatting.
         """

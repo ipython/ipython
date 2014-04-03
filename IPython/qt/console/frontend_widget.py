@@ -727,17 +727,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Decide if it makes sense to show a call tip
         if not self.enable_calltips:
             return False
-        cursor = self._get_cursor()
-        cursor.movePosition(QtGui.QTextCursor.Left)
-        if cursor.document().characterAt(cursor.position()) != '(':
-            return False
-        context = self._get_context(cursor)
-        if not context:
-            return False
-
+        cursor_pos = self._get_input_buffer_cursor_pos()
+        code = self.input_buffer
         # Send the metadata request to the kernel
-        name = '.'.join(context)
-        msg_id = self.kernel_client.object_info(name)
+        msg_id = self.kernel_client.object_info(code, cursor_pos)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
@@ -749,10 +742,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if context:
             # Send the completion request to the kernel
             msg_id = self.kernel_client.complete(
-                '.'.join(context),                       # text
-                self._get_input_buffer_cursor_line(),    # line
-                self._get_input_buffer_cursor_column(),  # cursor_pos
-                self.input_buffer)                       # block
+                code=self.input_buffer,
+                cursor_pos=self._get_input_buffer_cursor_pos(),
+            )
             pos = self._get_cursor().position()
             info = self._CompletionRequest(msg_id, pos)
             self._request_info['complete'] = info
