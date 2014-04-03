@@ -282,35 +282,37 @@ var IPython = (function (IPython) {
         // (FireFox) doesn't render the image immediately as the data is 
         // available.
         var that = this;
-        var handle_appended = function () {
+        var handle_appended = function ($el) {
             // Only reset the height to automatic if the height is currently
             // fixed (done by wait=True flag on clear_output).
-            console.log('appended');
             if (needs_height_reset) {
-                that.element.height('');    
+                that.element.height('');
+                console.log(that.element.height(), $el.height());
             }
             that.element.trigger('resize');
         };
 
         // validate output data types
         json = this.validate_output(json);
-
+        var is_empty = false;
         if (json.output_type === 'pyout') {
             this.append_pyout(json);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
+            // TODO: Why are we recieving these new line characters for no 
+            // reason?  They ruin everything.
+            is_empty = !json.text.trim(); 
         }
 
         if (json.output_type === 'display_data') {
             this.append_display_data(json, handle_appended);
-        } else {
+        } else if (!is_empty) {
             handle_appended();
         }
         
         this.outputs.push(json);
-        
     };
 
 
@@ -526,7 +528,7 @@ var IPython = (function (IPython) {
                 // callback, if the mim type is something other we must call the 
                 // inserted callback only when the element is actually inserted
                 // into the DOM.  Use a timeout of 0 to do this.
-                if (['image/png', 'image/jpeg'].indexOf() < 0 && handle_inserted !== undefined) {
+                if (['image/png', 'image/jpeg'].indexOf(type) < 0 && handle_inserted !== undefined) {
                     setTimeout(handle_inserted, 0);
                 }
                 $([IPython.events]).trigger('output_appended.OutputArea', [type, value, md, toinsert]);
@@ -631,10 +633,13 @@ var IPython = (function (IPython) {
     var append_png = function (png, md, element, handle_inserted) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
-        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
-        if (handle_inserted !== undefined) {      
-            img.on('load', handle_inserted);
+        var img = $("<img/>");
+        if (handle_inserted !== undefined) {
+            img[0].onload = function(){
+                handle_inserted(img);
+            };
         }
+        img[0].src = 'data:image/png;base64,'+png;
         set_width_height(img, md, 'image/png');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -646,10 +651,13 @@ var IPython = (function (IPython) {
     var append_jpeg = function (jpeg, md, element, handle_inserted) {
         var type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
-        var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
-        if (handle_inserted !== undefined) {           
-            img.on('load', handle_inserted);
+        var img = $("<img/>");
+        if (handle_inserted !== undefined) {
+            img[0].onload = function(){
+                handle_inserted(img);
+            };
         }
+        img[0].src = 'data:image/jpeg;base64,'+jpeg;
         set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
