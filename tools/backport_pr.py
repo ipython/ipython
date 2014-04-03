@@ -26,7 +26,10 @@ import re
 import sys
 
 from subprocess import Popen, PIPE, check_call, check_output
-from urllib import urlopen
+try:
+    from urllib.request import urlopen
+except:
+    from urllib import urlopen    
 
 from gh_api import (
     get_issues_list,
@@ -45,8 +48,8 @@ def find_rejects(root='.'):
 def get_current_branch():
     branches = check_output(['git', 'branch'])
     for branch in branches.splitlines():
-        if branch.startswith('*'):
-            return branch[1:].strip()
+        if branch.startswith(b'*'):
+            return branch[1:].strip().decode('utf-8')
 
 def backport_pr(branch, num, project='ipython/ipython'):
     current_branch = get_current_branch()
