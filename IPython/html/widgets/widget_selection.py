@@ -62,8 +62,7 @@ class _SelectionWidget(DOMWidget):
             # python3.3 turned on hash randomization by default - this means that sometimes, randomly
             # we try to set value before setting values, due to dictionary ordering.  To fix this, force
             # the setting of self.values right now, before anything else runs
-            self.values = kwargs['values']
-            kwargs.pop('values')
+            self.values = kwargs.pop('values')
         DOMWidget.__init__(self, *args, **kwargs)
     
     def _values_changed(self, name, old, new):
