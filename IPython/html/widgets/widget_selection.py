@@ -63,6 +63,7 @@ class _SelectionWidget(DOMWidget):
             # we try to set value before setting values, due to dictionary ordering.  To fix this, force
             # the setting of self.values right now, before anything else runs
             self.values = kwargs['values']
+            kwargs.pop('values')
         DOMWidget.__init__(self, *args, **kwargs)
     
     def _values_changed(self, name, old, new):
