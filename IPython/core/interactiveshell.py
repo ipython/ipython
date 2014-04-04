@@ -57,6 +57,7 @@ from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.prompts import PromptManager
+from IPython.core.usage import default_banner
 from IPython.lib.latextools import LaTeXTool
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
@@ -233,6 +234,16 @@ class InteractiveShell(SingletonConfigurable):
         Enable magic commands to be called without the leading %.
         """
     )
+    
+    banner = Unicode('')
+    
+    banner1 = Unicode(default_banner, config=True,
+        help="""The part of the banner to be printed before the profile"""
+    )
+    banner2 = Unicode('', config=True,
+        help="""The part of the banner to be printed after the profile"""
+    )
+
     cache_size = Integer(1000, config=True, help=
         """
         Set the size of the output cache.  The default is 1000, you can
@@ -442,6 +453,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_profile_dir(profile_dir)
         self.init_instance_attrs()
         self.init_environment()
+        self.compute_banner()
         
         # Check if we're in a virtualenv, and set up sys.path.
         self.init_virtualenv()
@@ -772,6 +784,28 @@ class InteractiveShell(SingletonConfigurable):
         if self._orig_sys_modules_main_mod is not None:
             sys.modules[self._orig_sys_modules_main_name] = self._orig_sys_modules_main_mod
 
+    #-------------------------------------------------------------------------
+    # Things related to the banner
+    #-------------------------------------------------------------------------
+    
+    def _banner1_changed(self):
+        self.compute_banner()
+
+    def _banner2_changed(self):
+        self.compute_banner()
+    
+    def compute_banner(self):
+        self.banner = self.banner1
+        if self.profile and self.profile != 'default':
+            self.banner += '\nIPython profile: %s\n' % self.profile
+        if self.banner2:
+            self.banner += '\n' + self.banner2
+
+    def show_banner(self, banner=None):
+        if banner is None:
+            banner = self.banner
+        self.write(banner)
+    
     #-------------------------------------------------------------------------
     # Things related to hooks
     #-------------------------------------------------------------------------
