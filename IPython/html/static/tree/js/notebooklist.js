@@ -73,6 +73,7 @@ var IPython = (function (IPython) {
             var file_ext = name_and_ext[1];
             if (file_ext === '.ipynb') {
                 var item = that.new_notebook_item(0);
+                item.addClass('new-file');
                 that.add_name_input(f.name, item);
                 // Store the notebook item in the reader so we can use it later
                 // to know which item it belongs to.
@@ -99,8 +100,17 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    NotebookList.prototype.clear_list = function () {
-        this.element.children('.list_item').remove();
+    NotebookList.prototype.clear_list = function (remove_uploads) {
+        // Clears the navigation tree.
+        //
+        // Parameters
+        // remove_uploads: bool=False
+        //      Should upload prompts also be removed from the tree.
+        if (remove_uploads) {
+            this.element.children('.list_item').remove();
+        } else {
+            this.element.children('.list_item:not(.new-file)').remove();  
+        }
     };
 
     NotebookList.prototype.load_sessions = function(){
