@@ -570,19 +570,45 @@ var IPython = (function (IPython) {
     };
 
 
-    var append_svg = function (svg, md, element) {
+    var append_svg = function (svg_html, md, element) {
         var type = 'image/svg+xml';
         var toinsert = this.create_output_subarea(md, "output_svg", type);
-        toinsert.append(svg);
+
+        // Get the svg element from within the HTML.
+        var svg = $('<div />').html(svg_html).find('svg');
+        var svg_area = $('<div />');
+        var width = svg.attr('width');
+        var height = svg.attr('height');
+        svg
+            .width('100%')
+            .height('100%');
+        svg_area
+            .width(width)
+            .height(height);
+
+        // The jQuery resize handlers don't seem to work on the svg element.
+        // When the svg renders completely, measure it's size and set the parent
+        // div to that size.  Then set the svg to 100% the size of the parent
+        // div and make the parent div resizable.  
+        this._dblclick_to_reset_size(svg_area, true, false);
+
+        svg_area.append(svg);
+        toinsert.append(svg_area);
         element.append(toinsert);
+
         return toinsert;
     };
 
-
-    OutputArea.prototype._dblclick_to_reset_size = function (img) {
-        // wrap image after it's loaded on the page,
-        // otherwise the measured initial size will be incorrect
-        img.on("load", function (){
+    OutputArea.prototype._dblclick_to_reset_size = function (img, immediately, resize_parent) {
+        // Add a resize handler to an element
+        //
+        // img: jQuery element
+        // immediately: bool=False
+        //      Wait for the element to load before creating the handle.
+        // resize_parent: bool=True
+        //      Should the parent of the element be resized when the element is
+        //      reset (by double click).
+        var callback = function (){
             var h0 = img.height();
             var w0 = img.width();
             if (!(h0 && w0)) {
@@ -595,12 +621,20 @@ var IPython = (function (IPython) {
             });
             img.dblclick(function () {
                 // resize wrapper & image together for some reason:
-                img.parent().height(h0);
                 img.height(h0);
-                img.parent().width(w0);
                 img.width(w0);
+                if (resize_parent === undefined || resize_parent) {
+                    img.parent().height(h0);
+                    img.parent().width(w0);
+                }
             });
-        });
+        };
+
+        if (immediately) {
+            callback();
+        } else {
+            img.on("load", callback);
+        }
     };
     
     var set_width_height = function (img, md, mime) {
