@@ -41,6 +41,11 @@ class TestClient(ClusterTestCase):
         self.add_engines(2)
         self.assertEqual(len(self.client.ids), n+2)
     
+    def test_iter(self):
+        self.minimum_engines(4)
+        engine_ids = [ view.targets for view in self.client ]
+        self.assertEqual(engine_ids, self.client.ids)
+    
     def test_view_indexing(self):
         """test index access for views"""
         self.minimum_engines(4)
