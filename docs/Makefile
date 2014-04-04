@@ -40,6 +40,7 @@ clean_api:
 
 clean: clean_api
 	-rm -rf build/* dist/*
+	-cd $(SRCDIR)/config/options; cat generated | xargs -r rm -f
 	-rm -rf $(SRCDIR)/config/options/generated
 
 pdf: latex

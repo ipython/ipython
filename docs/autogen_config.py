@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from IPython.utils.text import indent, wrap_paragraphs
 
 from IPython.terminal.ipapp import TerminalIPythonApp
@@ -47,17 +49,25 @@ def document_config_options(classes):
 
 kernel_classes = IPKernelApp().classes
 
-def write_doc(filename, title, classes, preamble=None):
+def write_doc(name, title, classes, preamble=None):
     configdoc = document_config_options(classes)
-    with open('source/config/options/%s.rst' % filename, 'w') as f:
+    filename = '%s.rst' % name
+    with open('source/config/options/%s' % filename, 'w') as f:
         f.write(title + '\n')
         f.write(('=' * len(title)) + '\n')
         f.write('\n')
         if preamble is not None:
             f.write(preamble + '\n\n')
         f.write(configdoc)
+    with open('source/config/options/generated', 'a') as f:
+        f.write(filename + '\n')
+
 
 if __name__ == '__main__':
+    # create empty file
+    with open('source/config/options/generated', 'w'):
+        pass
+
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp().classes)
     write_doc('kernel', 'IPython kernel options', kernel_classes,
               preamble="These options can be used in :file:`ipython_notebook_config.py` "
@@ -76,5 +86,3 @@ if __name__ == '__main__':
         write_doc('qtconsole', 'IPython Qt console options', qtclasses,
                   preamble="Any of the :doc:`kernel` can also be used.")
 
-    with open('source/config/options/generated', 'w'):
-        pass
