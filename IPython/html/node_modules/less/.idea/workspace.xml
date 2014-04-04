@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CHANGELOG.md" afterPath="$PROJECT_DIR$/CHANGELOG.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/less/index.js" afterPath="$PROJECT_DIR$/lib/less/index.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
+    </list>
+    <ignored path="less.js.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <file path="/Dummy.txt" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384623004566" ignored="false" />
+    <file path="/functions.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379356464686" ignored="false" />
+    <file path="/merge.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367345312764" ignored="false" />
+    <file path="/merge.css" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367345371581" ignored="false" />
+    <file path="/parser.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384623574418" ignored="false" />
+    <file path="/rule.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374175620781" ignored="false" />
+    <file path="/a.dummy" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384704235894" ignored="false" />
+    <file path="/nth-function.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367351948429" ignored="false" />
+    <file path="/SelectorPath.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367352844032" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/templates/pages/doc.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367650256341" ignored="false" />
+    <file path="/doc.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367511155988" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/templates/pages/reference.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367650256341" ignored="false" />
+    <file path="/reference.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367511521223" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/templates/pages/synopsis.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367650256341" ignored="false" />
+    <file path="/synopsis.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367512577237" ignored="false" />
+    <file path="/CHANGELOG.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384707108757" ignored="false" />
+    <file path="/env.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378330486285" ignored="false" />
+    <file path="/less-test.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1375300238188" ignored="false" />
+    <file path="/common.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1377113623956" ignored="false" />
+    <file path="/lessc" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384706167285" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/templates/pages/index.rhtml" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382362199135" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/templates/pages/about.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1367650256341" ignored="false" />
+    <file path="/compression.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378056773801" ignored="false" />
+    <file path="/selector.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374087280500" ignored="false" />
+    <file path="/css-guards.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1372667548849" ignored="false" />
+    <file path="/ruleset.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379366254610" ignored="false" />
+    <file path="/no-js-errors.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1372668666786" ignored="false" />
+    <file path="/no-js-errors.txt" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1372671114701" ignored="false" />
+    <file path="/runner-no-js-errors.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1372671176132" ignored="false" />
+    <file path="/browser-test-prepare.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1377068774816" ignored="false" />
+    <file path="/lessc_helper.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384705418739" ignored="false" />
+    <file path="/alpha.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1373574350907" ignored="false" />
+    <file path="/to-css-visitor.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378658031292" ignored="false" />
+    <file path="/Makefile" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1375304491807" ignored="false" />
+    <file path="/visitor.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1373043545554" ignored="false" />
+    <file path="/directive.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379359102231" ignored="false" />
+    <file path="/media.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1375301701331" ignored="false" />
+    <file path="/comment.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1375301621807" ignored="false" />
+    <file path="/browser.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378034792983" ignored="false" />
+    <file path="/media.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379523525707" ignored="false" />
+    <file path="/media.css" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1373053829141" ignored="false" />
+    <file path="/package.json" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1375302882301" ignored="false" />
+    <file path="/tree.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378657399843" ignored="false" />
+    <file path="/anonymous.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379434364712" ignored="false" />
+    <file path="/assignment.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1373571953626" ignored="false" />
+    <file path="/call.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374356861450" ignored="false" />
+    <file path="/color.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379156478591" ignored="false" />
+    <file path="/dimension.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378056696377" ignored="false" />
+    <file path="/expression.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1373576744139" ignored="false" />
+    <file path="/element.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374125317693" ignored="false" />
+    <file path="/import.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379434336020" ignored="false" />
+    <file path="/keyword.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374125602299" ignored="false" />
+    <file path="/source-map-output.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384706268256" ignored="false" />
+    <file path="/basic.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379432631064" ignored="false" />
+    <file path="/basic.json" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374178313233" ignored="false" />
+    <file path="/.npmignore" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374328321137" ignored="false" />
+    <file path="/css-3.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374328763861" ignored="false" />
+    <file path="/mixins-args.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379520900857" ignored="false" />
+    <file path="/README.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374330838557" ignored="false" />
+    <file path="/CONTRIBUTING.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1374330872908" ignored="false" />
+    <file path="/.jshintrc" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378033719481" ignored="false" />
+    <file path="/quoted.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1381857163438" ignored="false" />
+    <file path="/index.html" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379432766230" ignored="false" />
+    <file path="/import-visitor.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379524434085" ignored="false" />
+    <file path="/value.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1376599932204" ignored="false" />
+    <file path="/strings.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379163271597" ignored="false" />
+    <file path="/browser-header.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1376601721278" ignored="false" />
+    <file path="/test-runner-main.htm" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1377108298892" ignored="false" />
+    <file path="/template.htm" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1377109474311" ignored="false" />
+    <file path="/runner-console-errors.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1377112419174" ignored="false" />
+    <file path="/test-error.txt" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1377195013482" ignored="false" />
+    <file path="/extend-visitor.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1381871630563" ignored="false" />
+    <file path="/extend-selector.css" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378043359906" ignored="false" />
+    <file path="/mixin.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379522541276" ignored="false" />
+    <file path="/Gruntfile.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378761925237" ignored="false" />
+    <file path="/less-benchmark.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378362092117" ignored="false" />
+    <file path="/.jshintignore" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378362199452" ignored="false" />
+    <file path="/*.regexp" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1378758302330" ignored="false" />
+    <file path="/functions.css" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379156751207" ignored="false" />
+    <file path="/mixins-guards.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379479142100" ignored="false" />
+    <file path="/color-func-invalid-color.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379356574472" ignored="false" />
+    <file path="/functions.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379479777370" ignored="false" />
+    <file path="/imported.css" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379432649832" ignored="false" />
+    <file path="/unit-function.txt" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379479902633" ignored="false" />
+    <file path="/runner-errors-options.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379480007230" ignored="false" />
+    <file path="/mixins-important.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379522756238" ignored="false" />
+    <file path="/import-once.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1380865674077" ignored="false" />
+    <file path="/import-once-test-c.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1379524800174" ignored="false" />
+    <file path="/import-test-f.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1380865710653" ignored="false" />
+    <file path="/extend-chaining.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1381864586893" ignored="false" />
+    <file path="/multiple-guards-on-css-selectors.txt" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382028478537" ignored="false" />
+    <file path="/extend.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382030485416" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/templates/pages/changes.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382343724645" ignored="false" />
+    <file path="/changes.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382343697611" ignored="false" />
+    <file path="/index.rhtml" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382348009192" ignored="false" />
+    <file path="$PROJECT_DIR$/../lesscss.org/public/less/main.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382348100818" ignored="false" />
+    <file path="/main.less" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382348099815" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/templates/index.hbs" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382366686104" ignored="false" />
+    <file path="/index.hbs" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382366638789" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/_gh_pages/index.html" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382871352768" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/_gh_pages/functions.html" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382871352768" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/_gh_pages/assets/css/docs.css" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382871352768" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/_gh_pages/about.html" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382871352768" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/_gh_pages/features.html" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382386851856" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/templates/functions.hbs" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382369093161" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/features/import-directives.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382374448421" ignored="false" />
+    <file path="/import-directives.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382374439007" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/features/variables.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382387949751" ignored="false" />
+    <file path="/variables.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382371763346" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/templates/includes/translations.hbs" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382376766702" ignored="false" />
+    <file path="/translations.hbs" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382376766702" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/translations.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382377201638" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/features/merge.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382388169396" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/features/Parent-Selectors.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382387070516" ignored="false" />
+    <file path="/Parent-Selectors.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382387070516" ignored="false" />
+    <file path="/merge.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382388140793" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/features/extend.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382878661928" ignored="false" />
+    <file path="/extend.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382878661928" ignored="false" />
+    <file path="$PROJECT_DIR$/../less-docs/content/features/less-extends.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382391289964" ignored="false" />
+    <file path="/less-extends.md" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1382391191974" ignored="false" />
+    <file path="/index.js" changelist="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" time="1384702831330" ignored="false" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="DaemonCodeAnalyzer">
+    <disable_hints />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="less.js" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="parser.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/less/parser.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="471" column="45" selection-start="17182" selection-end="17182" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="less-1.5.0.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/dist/less-1.5.0.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="14" column="2" selection-start="266" selection-end="266" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Gruntfile.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Gruntfile.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="30" column="13" selection-start="929" selection-end="929" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="source-map-output.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/less/source-map-output.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="100" column="19" selection-start="3873" selection-end="3873" vertical-scroll-proportion="-9.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="lessc" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/bin/lessc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="325" column="32" selection-start="9587" selection-end="9599" vertical-scroll-proportion="-4.44">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="lessc_helper.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/less/lessc_helper.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="46" column="43" selection-start="2655" selection-end="2655" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CHANGELOG.md" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/CHANGELOG.md">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="11" column="0" selection-start="548" selection-end="548" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="package.json" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/package.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="2" column="19" selection-start="39" selection-end="39" vertical-scroll-proportion="-1.3076923">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/lib/less/index.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="4" column="0" selection-start="91" selection-end="91" vertical-scroll-proportion="0.2125">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="false" />
+    </FindUsagesManager>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitLogSettings">
+    <option name="myDateState">
+      <MyDateState />
+    </option>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="changedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/test/less/css-3.less" />
+        <option value="$PROJECT_DIR$/test/css/css-3.css" />
+        <option value="$PROJECT_DIR$/test/css/extend-spaces.css" />
+        <option value="$PROJECT_DIR$/test/less/errors/multiple-guards-on-css-selectors.less" />
+        <option value="$PROJECT_DIR$/lib/less/tree/extend.js" />
+        <option value="$PROJECT_DIR$/lib/less/browser.js" />
+        <option value="$PROJECT_DIR$/test/less/errors/multiple-guards-on-css-selectors.txt" />
+        <option value="$PROJECT_DIR$/Gruntfile.js" />
+        <option value="$PROJECT_DIR$/bower.json" />
+        <option value="$PROJECT_DIR$/lib/less/parser.js" />
+        <option value="$PROJECT_DIR$/lib/less/lessc_helper.js" />
+        <option value="$PROJECT_DIR$/bin/lessc" />
+        <option value="$PROJECT_DIR$/lib/less/source-map-output.js" />
+        <option value="$PROJECT_DIR$/CHANGELOG.md" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/lib/less/index.js" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="54" />
+    <option name="y" value="-8" />
+    <option name="width" value="1320" />
+    <option name="height" value="784" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectReloadState">
+    <option name="STATE" value="0" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents ProjectPane="true" />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="lib" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="less.js" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="bin" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="options.lastSelected" value="JavaScript.Libraries" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/dist/less-1.5.1.min.js" />
+    <property name="FullScreen" value="false" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="GoToClass.includeJavaFiles" value="false" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\git\less.js\test\less\errors" />
+      <recent name="C:\git\less.js\test\less\import" />
+      <recent name="C:\git\less.js\test\browser" />
+      <recent name="C:\git\less.js\test\browser\css\console-errors" />
+      <recent name="C:\git\less.js\lib\less" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\git\less.js\test\browser\less\console-errors" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="DartUnitRunConfigurationType" factoryName="DartUnit">
+      <option name="VMOptions" />
+      <option name="arguments" />
+      <option name="filePath" />
+      <option name="scope" value="ALL" />
+      <option name="testName" />
+      <method />
+    </configuration>
+    <configuration default="true" type="NodeJSConfigurationType" factoryName="Node.js" working-dir="$PROJECT_DIR$">
+      <method />
+    </configuration>
+    <list size="0" />
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false" SSL_PROTOCOLS="all">
+    <option name="USER" value="" />
+    <option name="PASSWORD" value="" />
+    <option name="mySSHConnectionTimeout" value="30000" />
+    <option name="mySSHReadTimeout" value="30000" />
+    <option name="LAST_MERGED_REVISION" />
+    <option name="MERGE_DRY_RUN" value="false" />
+    <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
+    <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
+    <option name="IGNORE_SPACES_IN_MERGE" value="false" />
+    <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
+    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
+    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
+    <option name="IGNORE_EXTERNALS" value="false" />
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="50832ad7-0bb2-445d-8bdb-45c8a0f7f27b" name="Default" comment="" />
+      <created>1357400236487</created>
+      <updated>1357400236487</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="54" y="-8" width="1320" height="784" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.354067" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.26619828" sideWeight="0.64593303" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="true" />
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="CHECK_NEW_TODO" value="true" />
+    <option name="myTodoPanelSettings">
+      <value>
+        <are-packages-shown value="false" />
+        <are-modules-shown value="false" />
+        <flatten-packages value="false" />
+        <is-autoscroll-to-source value="false" />
+      </value>
+    </option>
+    <option name="PERFORM_UPDATE_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_COMMIT_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_EDIT_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_CHECKOUT_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_ADD_REMOVE_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_ROLLBACK_IN_BACKGROUND" value="false" />
+    <option name="CHECK_LOCALLY_CHANGED_CONFLICTS_IN_BACKGROUND" value="false" />
+    <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
+    <option name="SHOW_ONLY_CHANGED_IN_SELECTION_DIFF" value="true" />
+    <option name="CHECK_COMMIT_MESSAGE_SPELLING" value="true" />
+    <option name="DEFAULT_PATCH_EXTENSION" value="patch" />
+    <option name="SHORT_DIFF_HORIZONTALLY" value="true" />
+    <option name="SHORT_DIFF_EXTRA_LINES" value="2" />
+    <option name="SOFT_WRAPS_IN_SHORT_DIFF" value="true" />
+    <option name="INCLUDE_TEXT_INTO_PATCH" value="false" />
+    <option name="INCLUDE_TEXT_INTO_SHELF" value="false" />
+    <option name="SHOW_FILE_HISTORY_DETAILS" value="true" />
+    <option name="SHOW_VCS_ERROR_NOTIFICATIONS" value="true" />
+    <option name="SHOW_DIRTY_RECURSIVELY" value="false" />
+    <option name="LIMIT_HISTORY" value="true" />
+    <option name="MAXIMUM_HISTORY_ROWS" value="1000" />
+    <option name="UPDATE_FILTER_SCOPE_NAME" />
+    <option name="USE_COMMIT_MESSAGE_MARGIN" value="false" />
+    <option name="COMMIT_MESSAGE_MARGIN_SIZE" value="72" />
+    <option name="WRAP_WHEN_TYPING_REACHES_RIGHT_MARGIN" value="false" />
+    <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
+    <option name="LAST_COMMIT_MESSAGE" />
+    <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
+    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="REFORMAT_BEFORE_FILE_COMMIT" value="false" />
+    <option name="FILE_HISTORY_DIALOG_COMMENTS_SPLITTER_PROPORTION" value="0.8" />
+    <option name="FILE_HISTORY_DIALOG_SPLITTER_PROPORTION" value="0.5" />
+    <option name="ACTIVE_VCS_NAME" />
+    <option name="UPDATE_GROUP_BY_PACKAGES" value="false" />
+    <option name="UPDATE_GROUP_BY_CHANGELIST" value="false" />
+    <option name="UPDATE_FILTER_BY_SCOPE" value="false" />
+    <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
+    <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/test/less/errors/multiple-guards-on-css-selectors.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="4" column="0" selection-start="173" selection-end="173" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/less/functions.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="447" column="32" selection-start="16304" selection-end="16304" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/less-test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="234" column="39" selection-start="8082" selection-end="8082" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LICENSE">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dist/less-1.5.0.min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dist/less-1.5.0.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="2" selection-start="266" selection-end="266" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bower.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="10" selection-start="130" selection-end="130" vertical-scroll-proportion="0.35843372">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Gruntfile.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="30" column="13" selection-start="929" selection-end="929" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/less/lessc_helper.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="46" column="43" selection-start="2655" selection-end="2655" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/less/parser.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="471" column="45" selection-start="17182" selection-end="17182" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bin/lessc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="325" column="32" selection-start="9587" selection-end="9599" vertical-scroll-proportion="-4.44">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/less/source-map-output.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="100" column="19" selection-start="3873" selection-end="3873" vertical-scroll-proportion="-9.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CHANGELOG.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="0" selection-start="548" selection-end="548" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2" column="19" selection-start="39" selection-end="39" vertical-scroll-proportion="-1.3076923">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dist/less-1.5.1.min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/less/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="4" column="0" selection-start="91" selection-end="91" vertical-scroll-proportion="0.2125">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
+
