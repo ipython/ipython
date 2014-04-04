@@ -234,7 +234,7 @@ var IPython = (function (IPython) {
      *
      */
     CellToolbar.rebuild_all = function(){
-        for(var i in CellToolbar._instances){
+        for(var i=0; i < CellToolbar._instances.length; i++){
             CellToolbar._instances[i].rebuild();
         }
     };
@@ -252,8 +252,8 @@ var IPython = (function (IPython) {
         var callbacks = CellToolbar._callback_dict;
         var preset = CellToolbar._ui_controls_list;
         // Yes we iterate on the class variable, not the instance one.
-        for (var index in preset) {
-            var key = preset[index];
+        for (var i=0; i < preset.length; i++) {
+            var key = preset[i];
             var callback = callbacks[key];
             if (!callback) continue;
             
@@ -380,10 +380,10 @@ var IPython = (function (IPython) {
             var button_container = $(div);
             var lbl = $("<label/>").append($('<span/>').text(label));
             var select = $('<select/>').addClass('ui-widget ui-widget-content');
-            for(var itemn in list_list){
+            for(var i=0; i < list_list.length; i++){
                 var opt = $('<option/>')
-                    .attr('value', list_list[itemn][1])
-                    .text(list_list[itemn][0]);
+                    .attr('value', list_list[i][1])
+                    .text(list_list[i][0]);
                 select.append(opt);
             }
             select.val(getter(cell));
