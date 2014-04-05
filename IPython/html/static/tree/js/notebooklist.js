@@ -218,6 +218,7 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.add_link = function (path, nbname, item) {
+
         item.data('nbname', nbname);
         item.data('path', path);
         item.find(".item_name").text(nbname);
@@ -286,7 +287,7 @@ var IPython = (function (IPython) {
                 var that = $(this);
                 // We use the nbname and notebook_id from the parent notebook_item element's
                 // data because the outer scopes values change as we iterate through the loop.
-                var parent_item = that.parents('div.list_item');
+                var parent_item = that.parents('tr');
                 var nbname = parent_item.data('nbname');
                 var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
                 IPython.dialog.modal({

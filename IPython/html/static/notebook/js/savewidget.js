@@ -124,7 +124,7 @@ var IPython = (function (IPython) {
         var nbname = IPython.notebook.get_notebook_name();
         document.title = nbname;
     };
-    
+
     SaveWidget.prototype.update_address_bar = function(){
         var base_url = IPython.notebook.base_url;
         var nbname = IPython.notebook.notebook_name;

@@ -11,7 +11,7 @@
 
 var IPython = (function (IPython) {
     "use strict";
-    
+
     var utils = IPython.utils;
 
     var ClusterList = function (selector, options) {
@@ -64,7 +64,7 @@ var IPython = (function (IPython) {
         this.clear_list();
         var len = data.length;
         for (var i=0; i<len; i++) {
-            var element = $('<div/>');
+            var element = $('<tr/>');
             var item = new ClusterItem(element, this.options);
             item.update_state(data[i]);
             element.data('item', item);
@@ -82,7 +82,7 @@ var IPython = (function (IPython) {
     };
 
     ClusterItem.prototype.style = function () {
-        this.element.addClass('list_item').addClass("row-fluid");
+        this.element.addClass('').addClass("list_item");
     };
 
     ClusterItem.prototype.update_state = function (data) {
@@ -97,16 +97,16 @@ var IPython = (function (IPython) {
 
     ClusterItem.prototype.state_stopped = function () {
         var that = this;
-        var profile_col = $('<div/>').addClass('profile_col span4').text(this.data.profile);
-        var status_col = $('<div/>').addClass('status_col span3').text('stopped');
-        var engines_col = $('<div/>').addClass('engine_col span3');
+        var profile_col = $('<td/>').addClass('profile_col').text(this.data.profile);
+        var status_col = $('<td/>').addClass('status_col').text('stopped');
+        var engines_col = $('<td/>').addClass('engine_col');
         var input = $('<input/>').attr('type','number')
                 .attr('min',1)
                 .attr('size',3)
-                .addClass('engine_num_input');
+                .addClass('form-control input-sm col-sm-3 engine_num_input');
         engines_col.append(input);
-        var start_button = $('<button/>').addClass("btn btn-mini").text("Start");
-        var action_col = $('<div/>').addClass('action_col span2').append(
+        var start_button = $('<button/>').addClass("btn btn-xs").text("Start");
+        var action_col = $('<td/>').addClass('action_col span2').append(
             $("<span/>").addClass("item_buttons btn-group").append(
                 start_button
             )
@@ -148,11 +148,11 @@ var IPython = (function (IPython) {
 
     ClusterItem.prototype.state_running = function () {
         var that = this;
-        var profile_col = $('<div/>').addClass('profile_col span4').text(this.data.profile);
-        var status_col = $('<div/>').addClass('status_col span3').text('running');
-        var engines_col = $('<div/>').addClass('engines_col span3').text(this.data.n);
-        var stop_button = $('<button/>').addClass("btn btn-mini").text("Stop");
-        var action_col = $('<div/>').addClass('action_col span2').append(
+        var profile_col = $('<td/>').addClass('profile_col').text(this.data.profile);
+        var status_col = $('<td/>').addClass('status_col').text('running');
+        var engines_col = $('<td/>').addClass('engines_col').text(this.data.n);
+        var stop_button = $('<button/>').addClass("btn btn-xs").text("Stop");
+        var action_col = $('<td/>').addClass('action_col').append(
             $("<span/>").addClass("item_buttons btn-group").append(
                 stop_button
             )

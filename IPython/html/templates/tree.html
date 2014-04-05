@@ -53,7 +53,7 @@ data-notebook-path="{{notebook_path}}"
             </div>
         </div>
 
-        <table class="table-condensed table-bordered table-hover col-lg-12">
+        <table class="table-condensed table-bordered col-lg-12 ipython-table">
             <tbody id="notebook_list">
                 <tr><td>
                     <div>
@@ -76,39 +76,43 @@ data-notebook-path="{{notebook_path}}"
             </div>
             <div class="col-lg-4" class="clearfix">
                 <span id="running_buttons" class="pull-right">
-                    <button id="refresh_running_list" title="Refresh running list" class="btn-info btn-sm"><i class="icon-refresh"></i></button>
+                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-info btn-sm"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
-        <div id="running_list">
-            <div id="running_list_header" class="row list_header">
-                <div> There are no notebooks running. </div>
-            </div>
-        </div>
+        <table class="table-condensed table-bordered col-lg-12 ipython-table">
+            <tbody id="running_list">
+                    <div id="running_list_header">
+                        <div> There are no notebooks running. </div>
+                    </div>
+            </tbody>
+        </table>
     </div>
 
     <div id="clusters" class="tab-pane">
 
-        <div id="cluster_toolbar" class="row-fluid">
+        <div id="cluster_toolbar" class="row">
             <div class="col-lg-8">
                 <span id="cluster_list_info">IPython parallel computing clusters</span>
             </div>
             <div class="col-lg-4" class="clearfix">
                 <span id="cluster_buttons" class="pull-right">
-                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-sm"><i class="icon-refresh"></i></button>
+                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-info btn-sm"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
-        <div id="cluster_list">
-            <div id="cluster_list_header" class="row-fluid list_header">
-                <div class="profile_col col-lg-4">profile</div>
-                <div class="status_col span3">status</div>
-                <div class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</div>
-                <div class="action_col span2">action</div>
-            </div>
-        </div>
+        <table class="table-condensed table-bordered col-lg-12 ipython-table">
+            <tbody id="cluster_list">
+                <div id="cluster_list_header">
+                    <tr><th><div class="profile_col">profile</div></th>
+                    <th><div class="status_col">status</div></th>
+                    <th><div class="engines_col" title="Enter the number of engines to start or empty for default"># of engines</div></th>
+                    <th><div class="action_col">action</div></th></tr>
+                </div>
+            </tbody>
+        </table>
     </div>
 </div>
 </div>
