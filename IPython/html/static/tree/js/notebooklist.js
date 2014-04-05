@@ -11,7 +11,7 @@
 
 var IPython = (function (IPython) {
     "use strict";
-    
+
     var utils = IPython.utils;
 
     var NotebookList = function (selector, options, element_name) {
@@ -28,7 +28,7 @@ var IPython = (function (IPython) {
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
-        $([IPython.events]).on('sessions_loaded.Dashboard', 
+        $([IPython.events]).on('sessions_loaded.Dashboard',
             function(e, d) { that.sessions_loaded(d); });
     };
 
@@ -61,7 +61,7 @@ var IPython = (function (IPython) {
         var files;
         if(dropOrForm =='drop'){
             files = event.originalEvent.dataTransfer.files;
-        } else 
+        } else
         {
             files = event.originalEvent.target.files;
         }
@@ -92,7 +92,7 @@ var IPython = (function (IPython) {
             }
         }
         // Replace the file input form wth a clone of itself. This is required to
-        // reset the form. Otherwise, if you upload a file, delete it and try to 
+        // reset the form. Otherwise, if you upload a file, delete it and try to
         // upload it again, the changed event won't fire.
         var form = $('input.fileinput');
         form.replaceWith(form.clone(true));
@@ -178,19 +178,19 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook_item = function (index) {
-        var item = $('<div/>').addClass("list_item").addClass("row-fluid");
+        var item = $('<tr/>').addClass("list_item").addClass("");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
-        item.append($("<div/>").addClass("span12").append(
+        item.append($("<td/>").addClass("").append(
             $('<i/>').addClass('item_icon')
         ).append(
             $("<a/>").addClass("item_link").append(
                 $("<span/>").addClass("item_name")
             )
         ).append(
-            $('<div/>').addClass("item_buttons btn-group pull-right")
+            $('<td/>').addClass("item_buttons btn-group pull-right")
         ));
-        
+
         if (index === -1) {
             this.element.append(item);
         } else {
@@ -254,7 +254,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_shutdown_button = function (item, session) {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini btn-danger").
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-danger").
             click(function (e) {
                 var settings = {
                     processData : false,
@@ -280,7 +280,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini").
+        var delete_button = $("<button/>").text("Delete").addClass("btn btn-xs").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
@@ -326,7 +326,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
-            .addClass('btn btn-primary btn-mini upload_button')
+            .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
                 var nbname = item.find('.item_name > input').val();
                 if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {
@@ -364,7 +364,7 @@ var IPython = (function (IPython) {
                 return false;
             });
         var cancel_button = $('<button/>').text("Cancel")
-            .addClass("btn btn-mini")
+            .addClass("btn btn-xs")
             .click(function (e) {
                 console.log('cancel click');
                 item.remove();
