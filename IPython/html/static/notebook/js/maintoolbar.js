@@ -23,6 +23,19 @@ var IPython = (function (IPython) {
     MainToolBar.prototype = new IPython.ToolBar();
 
     MainToolBar.prototype.construct = function () {
+
+        this.add_buttons_group([
+                {
+                    id : 'save_b',
+                    label : 'Read mode',
+                    icon : 'icon-align-right',
+                    shortcut : '',
+                    callback : function () {
+                        IPython.notebook.read_mode_on();
+                    }
+                }
+            ]);
+
         this.add_buttons_group([
                 {
                     id : 'save_b',

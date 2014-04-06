@@ -995,6 +995,26 @@ var IPython = (function (IPython) {
         }
     };
 
+    // Read mode
+
+    /**
+     * Changes UI elements to look more readable
+     *
+     * @method read_mode_on
+     */
+    Notebook.prototype.read_mode_on = function () {
+        var that = this;
+
+        if(this.read_enabled){
+            $('.text_cell_render').removeClass('center');
+            $('.code_cell').removeClass('code_cell_readable center');
+            this.read_enabled=false;
+        }else{
+            $('.text_cell_render').addClass('center');
+            $('.code_cell').addClass('code_cell_readable center');
+            this.read_enabled = true;
+        }
+    };
 
     // Cut/Copy/Paste
 

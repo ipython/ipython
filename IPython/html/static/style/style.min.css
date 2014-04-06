@@ -7860,7 +7860,7 @@ div.inner_cell {
   box-flex: 1;
   /* Modern browsers */
   flex: 1;
-  margin-left: 20px;
+  margin-left: 25px;
 }
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
@@ -7916,7 +7916,8 @@ div.input_prompt {
   color: navy;
   border-top: 1px solid transparent;
   font-size: 10px;
-  margin-left: -70px;
+  margin-left: -65px;
+  width: 20px;
 }
 div.input_area > div.highlight {
   margin: 0.4em;
@@ -9476,8 +9477,8 @@ div.text_cell_render {
   padding: 0.5em 0.5em 0.5em 0.4em;
   color: #000000;
   width: 70%;
-  margin-left: auto;
-  margin-right: auto;
+  /*margin-left: auto;*/
+  /*margin-right: auto;*/
   max-width: 550px;
 }
 div.text_cell_render a.anchor-link:link {

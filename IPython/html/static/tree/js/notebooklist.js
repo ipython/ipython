@@ -257,6 +257,7 @@ var IPython = (function (IPython) {
         var that = this;
         var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-danger").
             click(function (e) {
+                shutdown_button.html("<i class='icon-spinner icon-spin'></i>")
                 var settings = {
                     processData : false,
                     cache : false,
