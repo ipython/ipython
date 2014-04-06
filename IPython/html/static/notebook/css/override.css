@@ -5,6 +5,8 @@ a hack to deal with our current css styles and no new styling should be added in
 #ipython-main-app {
    height: 100%;
    overflow-y:scroll;
+   border-right: 1px solid #e5e5e5;
+   border-left: 1px solid #e5e5e5;
 }
 
 .container{

@@ -7827,8 +7827,8 @@ div.inner_cell {
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
   /*border: 1px solid @light_border_color;*/
-  border-radius: 0px;
-  background: #f7f7f9;
+  /*.corner-all;*/
+  /*background: @cell_background;*/
 }
 /* This is needed so that empty prompt areas can collapse to zero height when there
    is no content in the output_subarea and the prompt. The main purpose of this is
@@ -7877,7 +7877,6 @@ div.input {
 div.input_prompt {
   color: navy;
   border-top: 1px solid transparent;
-  font-size: 10px;
 }
 div.input_area > div.highlight {
   margin: 0.4em;
@@ -9123,7 +9122,7 @@ div.ui-widget-content {
   outline: none;
 }
 pre.dialog {
-  background-color: #f7f7f9;
+  background-color: #f7f7f7;
   border: 1px solid #ddd;
   border-radius: 0px;
   padding: 0.4em;
@@ -9357,7 +9356,7 @@ div#pager pre {
   font-size: 13px;
   line-height: 1.21429em;
   color: #000000;
-  background-color: #f7f7f9;
+  background-color: #f7f7f7;
   padding: 0.4em;
 }
 .quickhelp {
@@ -9543,7 +9542,7 @@ span#autosave_status {
   -moz-animation: fadeIn 400ms;
   animation: fadeIn 400ms;
   vertical-align: middle;
-  background-color: #f7f7f9;
+  background-color: #f7f7f7;
   overflow: visible;
   border: #ababab 1px solid;
   outline: none;
@@ -9568,7 +9567,7 @@ span#autosave_status {
   -moz-border-radius: 0;
   border-radius: 0;
   font-size: 100%;
-  background-color: #f7f7f9;
+  background-color: #f7f7f7;
 }
 .pretooltiparrow {
   left: 0px;
@@ -9580,7 +9579,7 @@ span#autosave_status {
   position: absolute;
 }
 .pretooltiparrow:before {
-  background-color: #f7f7f9;
+  background-color: #f7f7f7;
   border: 1px #ababab solid;
   z-index: 11;
   content: "";

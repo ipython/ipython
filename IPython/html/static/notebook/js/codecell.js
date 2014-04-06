@@ -100,10 +100,10 @@ var IPython = (function (IPython) {
                 "Ctrl-/" : "toggleComment"
             },
             mode: 'ipython',
-            theme: 'ipython',
+            theme: 'xq-light',
             matchBrackets: true,
-             // don't auto-close strings because of CodeMirror #2385
-            autoCloseBrackets: "()[]{}"
+            autoCloseBrackets: "()[]{}",
+            lineWrapping:true
         }
     };
 
@@ -242,8 +242,8 @@ var IPython = (function (IPython) {
                 this.completer.startCompletion();
                 return true;
             }
-        } 
-        
+        }
+
         // keyboard event wasn't one of those unique to code cells, let's see
         // if it's one of the generic ones (i.e. check edit mode shortcuts)
         return IPython.Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
@@ -261,7 +261,7 @@ var IPython = (function (IPython) {
      */
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output();
-        
+
         // Clear widget area
         this.widget_subarea.html('');
         this.widget_subarea.height('');
@@ -274,7 +274,7 @@ var IPython = (function (IPython) {
             this.kernel.clear_callbacks_for_msg(this.last_msg_id);
         }
         var callbacks = this.get_callbacks();
-        
+
         var old_msg_id = this.last_msg_id;
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
         if (old_msg_id) {
@@ -282,7 +282,7 @@ var IPython = (function (IPython) {
         }
         CodeCell.msg_cells[this.last_msg_id] = this;
     };
-    
+
     /**
      * Construct the default callbacks for
      * @method get_callbacks
@@ -303,7 +303,7 @@ var IPython = (function (IPython) {
             input : $.proxy(this._handle_input_request, this)
         };
     };
-    
+
     CodeCell.prototype._open_with_pager = function (payload) {
         $([IPython.events]).trigger('open_with_text.Pager', payload);
     };
@@ -352,7 +352,7 @@ var IPython = (function (IPython) {
         // Always execute, even if we are already in the rendered state
         return cont;
     };
-    
+
     CodeCell.prototype.unrender = function () {
         // CodeCell is always rendered
         return false;
