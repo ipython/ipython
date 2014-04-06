@@ -27,3 +27,11 @@ a hack to deal with our current css styles and no new styling should be added in
 .open > .dropdown-menu{
 	left: 1px;
 }
+
+.ui-wrapper .ui-resizable-autohide{
+	width: 100%!important;
+}
+
+img{
+	margin: 0 auto !important;
+}

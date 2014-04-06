@@ -270,6 +270,14 @@ class="notebook_app"
          <span id="save_widget">
                 <h1 id="notebook_name"></h1>
         </span>
+        <div class="row">
+            <div id="kernel_indicator" class="col-sm-1">
+                <i id="kernel_indicator_icon"></i>
+            </div>
+            <div id="modal_indicator" class="col-sm-1">
+               <i id="modal_indicator_icon"></i>
+            </div>
+        </div>
         <div id="maintoolbar-container" class="btn-group-vertical"></div>
 
         <div id="cell-type-selector"></div>
@@ -281,14 +289,7 @@ class="notebook_app"
                     <span id="autosave_status"></span>
                 </div>
             </div>
-            <div class="row">
-                <div id="kernel_indicator" class="col-sm-1">
-                    <i id="kernel_indicator_icon"></i>
-                </div>
-                <div id="modal_indicator" class="col-sm-1">
-                   <i id="modal_indicator_icon"></i>
-                </div>
-            </div>
+
             <div id='tooltip' class='ipython_tooltip' style='display:none'></div>
         </div>
 

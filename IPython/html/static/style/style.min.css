@@ -7574,6 +7574,16 @@ span#login_widget {
   max-height: none;
   flex: 1;
 }
+.modal-header {
+  padding-top: 45px;
+  padding-bottom: 35px;
+}
+.modal-header .close {
+  margin-top: -35px;
+}
+.modal {
+  margin-top: 10%;
+}
 @media (min-width: 768px) {
   .modal {
     width: 700px;
@@ -7850,12 +7860,13 @@ div.inner_cell {
   box-flex: 1;
   /* Modern browsers */
   flex: 1;
+  margin-left: 20px;
 }
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
   /*border: 1px solid @light_border_color;*/
   border-radius: 0px;
-  background: #f7f7f9;
+  background: #f9f9f9;
 }
 /* This is needed so that empty prompt areas can collapse to zero height when there
    is no content in the output_subarea and the prompt. The main purpose of this is
@@ -7905,6 +7916,7 @@ div.input_prompt {
   color: navy;
   border-top: 1px solid transparent;
   font-size: 10px;
+  margin-left: -70px;
 }
 div.input_area > div.highlight {
   margin: 0.4em;
@@ -10077,7 +10089,7 @@ div.ui-widget-content {
   outline: none;
 }
 pre.dialog {
-  background-color: #f7f7f9;
+  background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 0px;
   padding: 0.4em;
@@ -10210,19 +10222,19 @@ p {
   color: #0000ff;
 }
 #maintoolbar-container {
-  margin-top: 0px;
+  margin-top: 5px;
 }
 #maintoolbar-container .tooltip-inner {
   width: 150px;
 }
 #maintoolbar {
-  max-width: 100px;
+  max-width: 200px;
 }
 #maintoolbar {
   position: fixed;
   top: 0px;
   right: 16.6666%;
-  margin-right: -100px;
+  margin-right: -200px;
   margin-top: 5px;
 }
 #menubar-container {
@@ -10267,6 +10279,7 @@ ul#help_menu li a i {
   min-height: 30px;
   font-size: 13px;
   margin-top: 10px;
+  margin-left: 3px;
 }
 .indicator_area {
   color: #0000ff;
@@ -10336,7 +10349,7 @@ div#pager pre {
   font-size: 13px;
   line-height: 1.21429em;
   color: #000000;
-  background-color: #f7f7f9;
+  background-color: #f9f9f9;
   padding: 0.4em;
 }
 .quickhelp {
@@ -10522,7 +10535,7 @@ span#autosave_status {
   -moz-animation: fadeIn 400ms;
   animation: fadeIn 400ms;
   vertical-align: middle;
-  background-color: #f7f7f9;
+  background-color: #f9f9f9;
   overflow: visible;
   border: #eeeeee 1px solid;
   outline: none;
@@ -10547,7 +10560,7 @@ span#autosave_status {
   -moz-border-radius: 0;
   border-radius: 0;
   font-size: 100%;
-  background-color: #f7f7f9;
+  background-color: #f9f9f9;
 }
 .pretooltiparrow {
   left: 0px;
@@ -10559,7 +10572,7 @@ span#autosave_status {
   position: absolute;
 }
 .pretooltiparrow:before {
-  background-color: #f7f7f9;
+  background-color: #f9f9f9;
   border: 1px #eeeeee solid;
   z-index: 11;
   content: "";
