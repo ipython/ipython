@@ -110,9 +110,6 @@ html {
 div.input_area {
   padding: 0.06em;
 }
-div.input_area>div.highlight>pre {
-  font-size: 80%;
-}
 div.code_cell {
   background-color: transparent;
 }
