@@ -1,23 +1,10 @@
-"""Module that allows latex output notebooks to be conditioned before
-they are converted.  Exposes a decorator (@cell_preprocessor) in
-addition to the coalesce_streams pre-proccessor.
-"""
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+"""Preprocessor for merging consecutive stream outputs for easier handling."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import re
 
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
 def cell_preprocessor(function):
     """
     Wrap a function to be executed on all cells of a notebook
@@ -34,7 +21,12 @@ def cell_preprocessor(function):
     """
     
     def wrappedfunc(nb, resources):
-        for worksheet in nb.worksheets :
+        from IPython.config import Application
+        if Application.initialized():
+            Application.instance().log.debug(
+                "Applying preprocessor: %s", function.__name__
+            )
+        for worksheet in nb.worksheets:
             for index, cell in enumerate(worksheet.cells):
                 worksheet.cells[index], resources = function(cell, resources, index)
         return nb, resources
