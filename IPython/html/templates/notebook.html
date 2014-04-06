@@ -37,16 +37,12 @@ class="notebook_app"
 
 <div class="container">
 
-<div id="menubar-container" class="col-lg-2">
+<div id="menubar-container">
     <div id="menubar">
-
-        <span id="save_widget">
-            <h3 id="notebook_name"></h3>
-        </span>
 
         <div id="menus" class="btn-group-vertical">
             <div class="btn-group">
-                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">File <span class="caret"></span></button>
+                <a href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">File <span class="caret"></span></a>
 
                 <ul id="file_menu" class="dropdown-menu">
                     <li id="new_notebook"
@@ -259,7 +255,7 @@ class="notebook_app"
     </div>
 </div>
 
-<div id="ipython-main-app" class="col-lg-8">
+<div id="ipython-main-app" class="col-lg-offset-2 col-lg-8">
     <div id="notebook_panel">
         <div id="notebook"></div>
         <div id="pager_splitter"></div>
@@ -271,7 +267,10 @@ class="notebook_app"
     </div>
 </div>
 
-<div id="maintoolbar" class="col-lg-2">
+<div id="maintoolbar" class="">
+    <span id="save_widget">
+            <h3 id="notebook_name"></h3>
+    </span>
     <span id="checkpoint_status"></span>
     <div class="row">
         <div class="col-sm-12">

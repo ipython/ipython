@@ -2,9 +2,11 @@
 This is only required when different pages style the same element differently. This is just
 a hack to deal with our current css styles and no new styling should be added in this file.*/
 
-#ipython-main-app {
-   height: 100%;
-   overflow-y:scroll;
+#ipython-main-app{
+	padding: 0px;
+}
+
+#notebook-container {
    border-right: 1px solid #e5e5e5;
    border-left: 1px solid #e5e5e5;
 }
@@ -26,3 +28,24 @@ a hack to deal with our current css styles and no new styling should be added in
     width: 150px;
 }
 
+#maintoolbar{
+	position: fixed;
+	top: 0px;
+	right: 0px;
+}
+
+#menubar-container{
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	margin-left: -1px;
+	margin-top: -1px;
+}
+
+#menubar-container .btn{
+	border-radius: 0px;
+}
+
+#maintoolbar .btn{
+	border-radius: 0px;
+}

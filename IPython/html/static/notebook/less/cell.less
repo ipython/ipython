@@ -1,15 +1,25 @@
+div.cell.selected:before{
+
+    border-left: 5px solid red;
+    border-right: 5px solid red;
+}
+
 div.cell {
-    border: 1px solid transparent;
+    /*border: 1px solid transparent;*/
     .vbox();
 
     &.selected {
-        .corner-all;
-        border : thin @border_color solid;
+        /*.corner-all;*/
+        border-left : 5px @border_color solid;
+        z-index: 100;
+        margin-right: -5px;
     }
 
     &.edit_mode {
-        .corner-all;
-        border : thin green solid;
+        /*.corner-all;*/
+        border-left : 5px green solid;
+        z-index: 100;
+        margin-right: -5px;
     }
 }
 
