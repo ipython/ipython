@@ -267,35 +267,36 @@ class="notebook_app"
         </div>
     </div>
     <div id="maintoolbar" class="pull-right">
+         <span id="save_widget">
+                <h1 id="notebook_name"></h1>
+        </span>
         <div id="maintoolbar-container" class="btn-group-vertical"></div>
+
+        <div id="cell-type-selector"></div>
+
+            <span id="checkpoint_status"></span>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div id="notification_area"></div>
+                    <span id="autosave_status"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div id="kernel_indicator" class="col-sm-1">
+                    <i id="kernel_indicator_icon"></i>
+                </div>
+                <div id="modal_indicator" class="col-sm-1">
+                   <i id="modal_indicator_icon"></i>
+                </div>
+            </div>
+            <div id='tooltip' class='ipython_tooltip' style='display:none'></div>
+        </div>
+
     </div>
 
 </div>
 
-<!--
-<div id="cell-type-selector"></div>
-     <span id="save_widget">
-            <h3 id="notebook_name"></h3>
-    </span>
-    <span id="checkpoint_status"></span>
-    <div class="row">
-        <div class="col-sm-12">
-            <div id="notification_area"></div>
-            <span id="autosave_status"></span>
-        </div>
-    </div>
-    <div class="row">
-        <div id="kernel_indicator" class="col-sm-1">
-            <i id="kernel_indicator_icon"></i>
-        </div>
-        <div id="modal_indicator" class="col-sm-1">
-           <i id="modal_indicator_icon"></i>
-        </div>
-    </div>
- -->
 
-<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
-</div>
 
 {% endblock %}
 
