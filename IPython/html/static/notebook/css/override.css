@@ -3,5 +3,24 @@ This is only required when different pages style the same element differently. T
 a hack to deal with our current css styles and no new styling should be added in this file.*/
 
 #ipython-main-app {
-    position: relative;
+   height: 100%;
+   overflow-y:scroll;
 }
+
+.container{
+	margin: 0px;
+	width: 100%;
+}
+
+.modal{
+	margin-top: 10%;
+}
+
+#pager_splitter{
+	display: none;
+}
+
+#maintoolbar-container .tooltip-inner {
+    width: 150px;
+}
+

@@ -49,10 +49,10 @@
   </div>
 </noscript>
 
-
-<div id="header" class="row col-lg-12">
+<!-- <div id="header" class="navbar navbar-static-top">
   <div class="navbar-inner navbar-nobg">
-    <div>
+    <div class="container">
+    <div id="ipython_notebook" class="nav brand pull-left"><a href="{{base_url}}tree/{{notebook_path}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
 
     {% block login_widget %}
 
@@ -66,14 +66,11 @@
 
     {% endblock %}
 
-    {% block header %}
-    {% endblock %}
-
     </div>
   </div>
 </div>
-
-<div id="site" class="pull-left">
+ -->
+<div id="site">
 {% block site %}
 {% endblock %}
 </div>

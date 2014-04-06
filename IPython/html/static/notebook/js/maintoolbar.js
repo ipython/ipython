@@ -20,7 +20,7 @@ var IPython = (function (IPython) {
         this.bind_events();
     };
 
-    MainToolBar.prototype = new IPython.ToolBar(); 
+    MainToolBar.prototype = new IPython.ToolBar();
 
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([
@@ -28,6 +28,7 @@ var IPython = (function (IPython) {
                     id : 'save_b',
                     label : 'Save and Checkpoint',
                     icon : 'icon-save',
+                    shortcut : 'Ctrl-s',
                     callback : function () {
                         IPython.notebook.save_checkpoint();
                         }
@@ -39,6 +40,7 @@ var IPython = (function (IPython) {
                     id : 'insert_below_b',
                     label : 'Insert Cell Below',
                     icon : 'icon-plus-sign',
+                    shortcut : 'Ctrl-m b',
                     callback : function () {
                         IPython.notebook.insert_cell_below('code');
                         IPython.notebook.select_next();
@@ -52,22 +54,29 @@ var IPython = (function (IPython) {
                     id : 'cut_b',
                     label : 'Cut Cell',
                     icon : 'icon-cut',
+                    shortcut : 'Ctrl-m x',
                     callback : function () {
                         IPython.notebook.cut_cell();
                         }
-                },
+                }
+            ],'cut_copy_paste');
+        this.add_buttons_group([
                 {
                     id : 'copy_b',
                     label : 'Copy Cell',
                     icon : 'icon-copy',
+                    shortcut : 'Ctrl-m c',
                     callback : function () {
                         IPython.notebook.copy_cell();
                         }
-                },
+                }
+            ],'cut_copy_paste');
+        this.add_buttons_group([
                 {
                     id : 'paste_b',
                     label : 'Paste Cell Below',
                     icon : 'icon-paste',
+                    shortcut : 'Ctrl-m v',
                     callback : function () {
                         IPython.notebook.paste_cell_below();
                         }
@@ -79,43 +88,54 @@ var IPython = (function (IPython) {
                     id : 'move_up_b',
                     label : 'Move Cell Up',
                     icon : 'icon-arrow-up',
+                    shortcut : 'Ctrl-m k',
                     callback : function () {
                         IPython.notebook.move_cell_up();
                         }
-                },
+                }
+            ],'move_up_down');
+        this.add_buttons_group([
                 {
                     id : 'move_down_b',
                     label : 'Move Cell Down',
                     icon : 'icon-arrow-down',
+                    shortcut : 'Ctrl-m j',
                     callback : function () {
                         IPython.notebook.move_cell_down();
                         }
                 }
             ],'move_up_down');
-        
+
 
         this.add_buttons_group([
                 {
                     id : 'run_b',
                     label : 'Run Cell',
                     icon : 'icon-play',
+                    shortcut : 'Shift-Enter',
                     callback : function () {
                         // emulate default shift-enter behavior
                         IPython.notebook.execute_cell_and_select_below();
                     }
-                },
+                }
+            ],'run_int');
+        this.add_buttons_group([
                 {
                     id : 'interrupt_b',
                     label : 'Interrupt',
                     icon : 'icon-stop',
+                    shortcut : 'Ctrl-m i',
                     callback : function () {
                         IPython.notebook.session.interrupt_kernel();
                         }
-                },
+                }
+            ],'run_int');
+        this.add_buttons_group([
                 {
                     id : 'repeat_b',
                     label : 'Restart Kernel',
                     icon : 'icon-repeat',
+                    shortcut : 'Ctrl-m .',
                     callback : function () {
                         IPython.notebook.restart_kernel();
                         }
@@ -124,10 +144,9 @@ var IPython = (function (IPython) {
     };
 
     MainToolBar.prototype.add_celltype_list = function () {
-        this.element
+        $('#cell-type-selector')
             .append($('<select/>')
                 .attr('id','cell_type')
-                // .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
                 .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
@@ -147,7 +166,8 @@ var IPython = (function (IPython) {
             // .addClass('ui-widget-content')
             .attr('id', 'ctb_select')
             .append($('<option/>').attr('value', '').text('None'));
-        this.element.append(label).append(select);
+        $('#cell-type-selector')
+            .append(select);
         select.change(function() {
                 var val = $(this).val()
                 if (val =='') {
@@ -175,8 +195,8 @@ var IPython = (function (IPython) {
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
-        
-        this.element.find('#cell_type').change(function () {
+
+        $('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
                 IPython.notebook.to_code();

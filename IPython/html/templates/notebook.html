@@ -31,28 +31,21 @@ class="notebook_app"
 {% endblock %}
 
 
-
-
-{% block header %}
-
-<span id="save_widget" class="nav pull-left">
-    <span id="notebook_name"></span>
-    <span id="checkpoint_status"></span>
-    <span id="autosave_status"></span>
-</span>
-
-{% endblock %}
-
-
 {% block site %}
-<div class="col-md-2 pull-left">
-    <div id="menubar-container">
+
+<div class="container">
+
+<div id="menubar-container" class="col-lg-2">
     <div id="menubar">
-    <div class="navbar">
-      <div class="navbar-inner">
-        <div>
-        <ul id="menus" class="nav">
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
+
+        <span id="save_widget">
+            <h3 id="notebook_name"></h3>
+        </span>
+
+        <div id="menus" class="btn-group-vertical">
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">File <span class="caret"></span></button>
+
                 <ul id="file_menu" class="dropdown-menu">
                     <li id="new_notebook"
                         title="Make a new notebook (Opens a new window)">
@@ -97,8 +90,9 @@ class="notebook_app"
                         title="Shutdown this notebook's kernel, and close this window">
                         <a href="#" >Close and halt</a></li>
                 </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
+            </div>
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Edit <span class="caret"></span></button>
                 <ul id="edit_menu" class="dropdown-menu">
                     <li id="cut_cell"><a href="#">Cut Cell</a></li>
                     <li id="copy_cell"><a href="#">Copy Cell</a></li>
@@ -117,8 +111,9 @@ class="notebook_app"
                     <li class="divider"></li>
                     <li id="edit_nb_metadata"><a href="#">Edit Notebook Metadata</a></li>
                 </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">View</a>
+            </div>
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">View <span class="caret"></span></button>
                 <ul id="view_menu" class="dropdown-menu">
                     <li id="toggle_header"
                         title="Show/Hide the IPython Notebook logo and notebook title (above menu bar)">
@@ -127,8 +122,9 @@ class="notebook_app"
                         title="Show/Hide the action icons (below menu bar)">
                         <a href="#">Toggle Toolbar</a></li>
                 </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Insert</a>
+            </div>
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Insert <span class="caret"></span></button>
                 <ul id="insert_menu" class="dropdown-menu">
                     <li id="insert_cell_above"
                         title="Insert an empty Code cell above the currently active cell">
@@ -137,8 +133,9 @@ class="notebook_app"
                         title="Insert an empty Code cell below the currently active cell">
                         <a href="#">Insert Cell Below</a></li>
                 </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Cell</a>
+            </div>
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Cell <span class="caret"></span></button>
                 <ul id="cell_menu" class="dropdown-menu">
                     <li id="run_cell" title="Run this cell, and move cursor to the next one">
                         <a href="#">Run</a></li>
@@ -208,8 +205,9 @@ class="notebook_app"
                         </ul>
                     </li>
                 </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Kernel</a>
+            </div>
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Kernel <span class="caret"></span></button>
                 <ul id="kernel_menu" class="dropdown-menu">
                     <li id="int_kernel"
                         title="Send KeyboardInterrupt (CTRL-C) to the Kernel">
@@ -218,8 +216,9 @@ class="notebook_app"
                         title="Restart the Kernel">
                         <a href="#">Restart</a></li>
                 </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
+            </div>
+            <div class="btn-group">
+                <button type="button" href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Help <span class="caret"></span></button>
                 <ul  id="help_menu" class="dropdown-menu">
                     <li id="notebook_tour" title="A quick tour of the notebook user interface"><a href="#">User Interface Tour</a></li>
                     <li id="keyboard_shortcuts" title="Opens a tooltip with all keyboard shortcuts"><a href="#">Keyboard Shortcuts</a></li>
@@ -253,43 +252,50 @@ class="notebook_app"
                     {% endfor %}
                     </li>
                 </ul>
-            </li>
-        </ul>
-        <div id="kernel_indicator" class="indicator_area pull-right">
-           <i id="kernel_indicator_icon"></i>
+            </div>
         </div>
-        <div id="modal_indicator" class="indicator_area pull-right">
-           <i id="modal_indicator_icon"></i>
-        </div>
-        <div id="notification_area"></div>
-        </div>
-      </div>
     </div>
-    </div>
-    <div id="maintoolbar" class="navbar">
-      <div class="toolbar-inner navbar-inner navbar-nobg">
-        <div id="maintoolbar-container"></div>
-      </div>
-    </div>
-    </div>
-
 </div>
 
-<div id="ipython-main-app" class="col-lg-8 col-lg-offset-1">
-
+<div id="ipython-main-app" class="col-lg-8">
     <div id="notebook_panel">
         <div id="notebook"></div>
         <div id="pager_splitter"></div>
         <div id="pager">
             <div id='pager_button_area'>
             </div>
-            <div id="pager-container"></div>
+            <div id="pager-container" class="container"></div>
+        </div>
+    </div>
+</div>
+
+<div id="maintoolbar" class="col-lg-2">
+    <span id="checkpoint_status"></span>
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="notification_area"></div>
+            <span id="autosave_status"></span>
+        </div>
+    </div>
+    <div class="row">
+        <div id="kernel_indicator" class="col-sm-1">
+            <i id="kernel_indicator_icon"></i>
+        </div>
+        <div id="modal_indicator" class="col-sm-1">
+           <i id="modal_indicator_icon"></i>
         </div>
     </div>
 
-</div>
-<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
 
+
+    <div class="row">
+        <div id="maintoolbar-container" class="btn-group-vertical"></div>
+    </div>
+    <div id="cell-type-selector"></div>
+</div>
+
+<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
+</div>
 
 {% endblock %}
 

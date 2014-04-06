@@ -69,17 +69,32 @@ var IPython = (function (IPython) {
             btn_group.attr('id',group_id);
         }
         for(var el in list) {
-            var button  = $('<button/>')
-                .addClass('btn')
+            var button  = $('<a/>')
+                .addClass('btn btn-primary')
                 .attr("title", list[el].label)
+                .attr("type", "button")
+                .data("toggle", "tooltip")
+                .data("placement", "right")
+                .attr("href", '#')
                 .append(
                     $("<i/>").addClass(list[el].icon)
                 );
+
+            if(list[el].shortcut){
+                button.attr("title", list[el].label + '<br/>(' + list[el].shortcut + ')')
+            }
             var id = list[el].id;
             if( id != undefined )
                 button.attr('id',id);
             var fun = list[el].callback;
-            button.click(fun);
+            button.tooltip({
+                html : true
+            })
+            button.click(function(e){
+                e.preventDefault()
+                fun()
+            });
+            // button.click(fun)
             btn_group.append(button);
         }
         $(this.selector).append(btn_group);
