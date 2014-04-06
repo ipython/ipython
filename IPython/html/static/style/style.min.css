@@ -7792,22 +7792,23 @@ div.cell {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  padding-left: 5px;
 }
 div.cell.selected {
   /*.corner-all;*/
   border-left: 5px #eeeeee solid;
   z-index: 100;
-  margin-right: -5px;
+  padding-left: 0px;
 }
 div.cell.edit_mode {
   /*.corner-all;*/
   border-left: 5px green solid;
   z-index: 100;
-  margin-right: -5px;
+  padding-left: 0px;
 }
 div.cell {
   width: 100%;
-  padding: 5px 5px 5px 0px;
+  padding: 5px 5px 5px 5px;
   /* This acts as a spacer between cells, that is outside the border */
   margin: 0px;
   outline: none;
@@ -9434,7 +9435,7 @@ div.text_cell_render img {
   display: block;
 }
 div.text_cell {
-  padding: 5px 5px 5px 0px;
+  padding: 5px 5px 5px 5px;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: horizontal;
@@ -10209,8 +10210,30 @@ p {
   color: #0000ff;
 }
 #maintoolbar-container {
+  margin-top: 0px;
+}
+#maintoolbar-container .tooltip-inner {
+  width: 150px;
+}
+#maintoolbar {
+  position: fixed;
+  top: 0px;
+  right: 16.6666%;
+  margin-right: -21px;
   margin-top: 5px;
-  margin-bottom: 5px;
+}
+#menubar-container {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  margin-left: -1px;
+  margin-top: -1px;
+}
+#menubar-container .btn {
+  border-radius: 0px;
+}
+#maintoolbar .btn {
+  border-radius: 0px;
 }
 #menubar .navbar-inner {
   /*min-height: 28px;*/
@@ -10376,8 +10399,8 @@ span#autosave_status {
   }
 }
 .toolbar {
-  padding: 0px 10px;
-  margin-top: -5px;
+  /*padding: 0px 10px;*/
+  /*margin-top: -5px;*/
 }
 .toolbar select,
 .toolbar label {

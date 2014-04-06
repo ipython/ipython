@@ -70,7 +70,7 @@ var IPython = (function (IPython) {
         }
         for(var el in list) {
             var button  = $('<a/>')
-                .addClass('btn btn-primary')
+                .addClass('btn btn-default')
                 .attr("title", list[el].label)
                 .attr("type", "button")
                 .data("toggle", "tooltip")
