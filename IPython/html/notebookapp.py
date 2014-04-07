@@ -708,7 +708,7 @@ class NotebookApp(BaseIPythonApplication):
         r,w,x = select.select([sys.stdin], [], [], 5)
         if r:
             line = sys.stdin.readline()
-            if line.lower().startswith('y'):
+            if line.lower().startswith('y') and 'n' not in line.lower():
                 self.log.critical("Shutdown confirmed")
                 ioloop.IOLoop.instance().stop()
                 return
