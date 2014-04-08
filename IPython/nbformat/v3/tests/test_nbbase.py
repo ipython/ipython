@@ -143,15 +143,15 @@ class TestMetadata(TestCase):
 
 class TestOutputs(TestCase):
     def test_binary_png(self):
-        out = new_output(output_png=b'\x89PNG\r\n\x1a\n')
+        out = new_output(output_png=b'\x89PNG\r\n\x1a\n', output_type='display_data')
 
     def test_b64b6tes_png(self):
-        out = new_output(output_png=b'iVBORw0KG')
+        out = new_output(output_png=b'iVBORw0KG', output_type='display_data')
     
     def test_binary_jpeg(self):
-        out = new_output(output_jpeg=b'\xff\xd8')
+        out = new_output(output_jpeg=b'\xff\xd8', output_type='display_data')
 
     def test_b64b6tes_jpeg(self):
-        out = new_output(output_jpeg=b'/9')
+        out = new_output(output_jpeg=b'/9', output_type='display_data')
         
 

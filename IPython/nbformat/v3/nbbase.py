@@ -4,22 +4,10 @@ The Python representation of a notebook is a nested structure of
 dictionary subclasses that support attribute access
 (IPython.utils.ipstruct.Struct). The functions in this module are merely
 helpers to build the structs in the right form.
-
-Authors:
-
-* Brian Granger
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import pprint
 import uuid
@@ -51,15 +39,14 @@ def from_dict(d):
         return d
 
 
-def new_output(output_type=None, output_text=None, output_png=None,
+def new_output(output_type, output_text=None, output_png=None,
     output_html=None, output_svg=None, output_latex=None, output_json=None,
     output_javascript=None, output_jpeg=None, prompt_number=None,
     ename=None, evalue=None, traceback=None, stream=None, metadata=None):
     """Create a new output, to go in the ``cell.outputs`` list of a code cell.
     """
     output = NotebookNode()
-    if output_type is not None:
-        output.output_type = unicode_type(output_type)
+    output.output_type = unicode_type(output_type)
 
     if metadata is None:
         metadata = {}

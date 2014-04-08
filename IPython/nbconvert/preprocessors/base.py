@@ -1,27 +1,11 @@
-"""
-Module that re-groups preprocessor that would be applied to ipynb files
-before going through the templating machinery.
+"""Base class for preprocessors"""
 
-It exposes a convenient class to inherit from to access configurability.
-"""
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from ..utils.base import NbConvertBase
 from IPython.utils.traitlets import Bool
 
-#-----------------------------------------------------------------------------
-# Classes and Functions
-#-----------------------------------------------------------------------------
 
 class Preprocessor(NbConvertBase):
     """ A configurable preprocessor
@@ -30,7 +14,7 @@ class Preprocessor(NbConvertBase):
     preprocessor.
 
     Any configurable traitlets this class exposed will be configurable in
-    profiles using c.SubClassName.atribute=value
+    profiles using c.SubClassName.attribute = value
 
     you can overwrite :meth:`preprocess_cell` to apply a transformation
     independently on each cell or :meth:`preprocess` if you prefer your own
@@ -59,6 +43,7 @@ class Preprocessor(NbConvertBase):
        
     def __call__(self, nb, resources):
         if self.enabled:
+            self.log.debug("Applying preprocessor: %s", self.__class__.__name__)
             return self.preprocess(nb,resources)
         else:
             return nb, resources
@@ -68,9 +53,10 @@ class Preprocessor(NbConvertBase):
         """
         Preprocessing to apply on each notebook.
         
-        You should return modified nb, resources.
+        Must return modified nb, resources.
+        
         If you wish to apply your preprocessing to each cell, you might want
-        to overwrite preprocess_cell method instead.
+        to override preprocess_cell method instead.
         
         Parameters
         ----------
@@ -80,20 +66,16 @@ class Preprocessor(NbConvertBase):
             Additional resources used in the conversion process.  Allows
             preprocessors to pass variables into the Jinja engine.
         """
-        self.log.debug("Applying preprocess: %s", self.__class__.__name__)
-        try :
-            for worksheet in nb.worksheets:
-                for index, cell in enumerate(worksheet.cells):
-                    worksheet.cells[index], resources = self.preprocess_cell(cell, resources, index)
-            return nb, resources
-        except NotImplementedError:
-            raise NotImplementedError('should be implemented by subclass')
+        for worksheet in nb.worksheets:
+            for index, cell in enumerate(worksheet.cells):
+                worksheet.cells[index], resources = self.preprocess_cell(cell, resources, index)
+        return nb, resources
 
 
     def preprocess_cell(self, cell, resources, index):
         """
-        Overwrite if you want to apply some preprocessing to each cell.  You 
-        should return modified cell and resource dictionary.
+        Override if you want to apply some preprocessing to each cell.
+        Must return modified cell and resource dictionary.
         
         Parameters
         ----------
