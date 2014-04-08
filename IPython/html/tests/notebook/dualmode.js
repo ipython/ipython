@@ -15,7 +15,8 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     this.then(function () {
-        this.validate_notebook_state('initial state', 'edit', 0);
+        this.click_cell_editor(1);
+        this.click_cell_editor(0);
         this.trigger_keydown('esc');
         this.validate_notebook_state('esc', 'command', 0);
         this.trigger_keydown('down');
