@@ -142,9 +142,11 @@ class CompleteReply(Reference):
 
 class KernelInfoReply(Reference):
     protocol_version = Version('5.0')
-    ipython_version = Version('2.0')
+    implementation = Unicode('ipython')
+    implementation_version = Version('2.1')
     language_version = Version('2.7')
-    language = Unicode()
+    language = Unicode('python')
+    banner = Unicode()
 
 
 # IOPub messages

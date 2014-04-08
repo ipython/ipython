@@ -572,7 +572,8 @@ class Kernel(Configurable):
     def kernel_info_request(self, stream, ident, parent):
         vinfo = {
             'protocol_version': protocol_version,
-            'ipython_version': ipython_version,
+            'implementation': 'ipython',
+            'implementation_version': ipython_version,
             'language_version': language_version,
             'language': 'python',
             'banner': self.shell.banner,
