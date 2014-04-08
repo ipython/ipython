@@ -32,25 +32,13 @@ Inheritance diagram:
 
 .. inheritance-diagram:: IPython.utils.traitlets
    :parts: 3
-
-Authors:
-
-* Brian Granger
-* Enthought, Inc.  Some of the code in this file comes from enthought.traits
-  and is licensed under the BSD license.  Also, many of the ideas also come
-  from enthought.traits even though our implementation is very different.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 #
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
+# also under the terms of the Modified BSD License.
 
 import contextlib
 import inspect
@@ -332,8 +320,8 @@ class TraitType(object):
             obj._trait_values[self.name] = newdv
             return
         # Complete the dynamic initialization.
-        obj._trait_dyn_inits[self.name] = cls.__dict__[meth_name]
-
+        obj._trait_dyn_inits[self.name] = meth_name
+    
     def __get__(self, obj, cls=None):
         """Get the value of the trait by self.name for the instance.
 
@@ -350,7 +338,8 @@ class TraitType(object):
             except KeyError:
                 # Check for a dynamic initializer.
                 if self.name in obj._trait_dyn_inits:
-                    value = obj._trait_dyn_inits[self.name](obj)
+                    method = getattr(obj, obj._trait_dyn_inits[self.name])
+                    value = method()
                     # FIXME: Do we really validate here?
                     value = self._validate(obj, value)
                     obj._trait_values[self.name] = value

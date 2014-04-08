@@ -1,26 +1,13 @@
 # encoding: utf-8
-"""
-Tests for IPython.utils.traitlets.
+"""Tests for IPython.utils.traitlets."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+# 
+# Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
+# also under the terms of the Modified BSD License.
 
-* Brian Granger
-* Enthought, Inc.  Some of the code in this file comes from enthought.traits
-  and is licensed under the BSD license.  Also, many of the ideas also come
-  from enthought.traits even though our implementation is very different.
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
+import pickle
 import re
 import sys
 from unittest import TestCase
@@ -1093,3 +1080,29 @@ class TestLink(TestCase):
         a.value = 4
         self.assertEqual(''.join(callback_count), 'ab')
         del callback_count[:]
+
+class Pickleable(HasTraits):
+    i = Int()
+    j = Int()
+    
+    def _i_default(self):
+        return 1
+    
+    def _i_changed(self, name, old, new):
+        self.j = new
+
+def test_pickle_hastraits():
+    c = Pickleable()
+    for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+        p = pickle.dumps(c, protocol)
+        c2 = pickle.loads(p)
+        nt.assert_equal(c2.i, c.i)
+        nt.assert_equal(c2.j, c.j)
+
+    c.i = 5
+    for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+        p = pickle.dumps(c, protocol)
+        c2 = pickle.loads(p)
+        nt.assert_equal(c2.i, c.i)
+        nt.assert_equal(c2.j, c.j)
+    
