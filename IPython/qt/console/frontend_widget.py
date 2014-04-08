@@ -698,8 +698,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # to spaces so that output looks as expected regardless of this
         # widget's tab width.
         text = text.expandtabs(8)
-
-        print([ord(c) for c in text])
         self._append_plain_text(text, before_prompt=True)
         self._control.moveCursor(QtGui.QTextCursor.End)
 
@@ -710,7 +708,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self.clear_output()
 
     def clear_output(self):
-        """Clear the output area."""
+        """Clears the current line of output."""
         cursor = self._control.textCursor()
         cursor.beginEditBlock()
         cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor)
