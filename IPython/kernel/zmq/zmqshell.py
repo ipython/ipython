@@ -32,6 +32,7 @@ from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
+from IPython.core.usage import default_gui_banner
 from IPython.display import display, Javascript
 from IPython.kernel.inprocess.socket import SocketABC
 from IPython.kernel import (
@@ -422,6 +423,9 @@ class ZMQInteractiveShell(InteractiveShell):
     data_pub_class = Type(ZMQDataPublisher)
     kernel = Any()
     parent_header = Any()
+    
+    def _banner1_default(self):
+        return default_gui_banner
 
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved

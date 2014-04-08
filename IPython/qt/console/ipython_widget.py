@@ -17,6 +17,7 @@ from textwrap import dedent
 from IPython.external.qt import QtCore, QtGui
 
 from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.release import version
 from IPython.core.inputtransformer import ipy_prompt
 from IPython.utils.traitlets import Bool, Unicode
 from .frontend_widget import FrontendWidget
@@ -107,6 +108,7 @@ class IPythonWidget(FrontendWidget):
     _payload_source_next_input = 'set_next_input'
     _payload_source_page = 'page'
     _retrying_history_request = False
+    _starting = False
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -253,30 +255,27 @@ class IPythonWidget(FrontendWidget):
             self._append_plain_text(u'\n', True)
 
     def _handle_kernel_info_reply(self, rep):
-        """ Handle kernel info replies.
-        """
+        """Handle kernel info replies."""
+        content = rep['content']
         if not self._guiref_loaded:
-            if rep['content'].get('language') == 'python':
+            if content.get('language') == 'python':
                 self._load_guiref_magic()
             self._guiref_loaded = True
+        
+        self.kernel_banner = content.get('banner', '')
+        if self._starting:
+            # finish handling started channels
+            self._starting = False
+            super(IPythonWidget, self)._started_channels()
 
     def _started_channels(self):
         """Reimplemented to make a history request and load %guiref."""
-        super(IPythonWidget, self)._started_channels()
-
+        self._starting = True
         # The reply will trigger %guiref load provided language=='python'
         self.kernel_client.kernel_info()
 
         self.kernel_client.shell_channel.history(hist_access_type='tail',
                                                   n=1000)
-    
-    def _started_kernel(self):
-        """Load %guiref when the kernel starts (if channels are also started).
-        
-        Principally triggered by kernel restart.
-        """
-        if self.kernel_client.shell_channel is not None:
-            self._load_guiref_magic()
     
     def _load_guiref_magic(self):
         """Load %guiref magic."""
@@ -568,5 +567,4 @@ class IPythonWidget(FrontendWidget):
     #------ Trait default initializers -----------------------------------------
 
     def _banner_default(self):
-        from IPython.core.usage import default_gui_banner
-        return default_gui_banner
+        return "IPython QtConsole {version}\n".format(version=version)

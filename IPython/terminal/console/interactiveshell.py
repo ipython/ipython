@@ -22,6 +22,7 @@ except ImportError:
     from Queue import Empty  # Py 2
 
 from IPython.core import page
+from IPython.core import release
 from IPython.utils.warn import warn, error
 from IPython.utils import io
 from IPython.utils.py3compat import string_types, input
@@ -37,6 +38,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     _executing = False
     _execution_state = Unicode('')
     _pending_clearoutput = False
+    kernel_banner = Unicode('')
     kernel_timeout = Float(60, config=True,
         help="""Timeout for giving up on a kernel (in seconds).
         
@@ -366,7 +368,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         while True:
             try:
                 self.interact(display_banner=display_banner)
-                #self.interact_with_readline()                
+                #self.interact_with_readline()
                 # XXX for testing of a readline-decoupled repl loop, call
                 # interact_with_readline above
                 break
@@ -374,6 +376,24 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # this should not be necessary, but KeyboardInterrupt
                 # handling seems rather unpredictable...
                 self.write("\nKeyboardInterrupt in interact()\n")
+    
+    def _banner1_default(self):
+        return "IPython Console {version}\n".format(version=release.version)
+    
+    def compute_banner(self):
+        super(ZMQTerminalInteractiveShell, self).compute_banner()
+        if self.client and not self.kernel_banner:
+            msg_id = self.client.kernel_info()
+            while True:
+                try:
+                    reply = self.client.get_shell_msg(timeout=1)
+                except Empty:
+                    break
+                else:
+                    if reply['parent_header'].get('msg_id') == msg_id:
+                        self.kernel_banner = reply['content'].get('banner', '')
+                        break
+        self.banner += self.kernel_banner
     
     def wait_for_kernel(self, timeout=None):
         """method to wait for a kernel to be ready"""
