@@ -36,6 +36,8 @@ var IPython = (function (IPython) {
         } else {
             menubar_height = $('div#menubar-container').outerHeight(true);
         }
+        header_height = 0;
+        menubar_height = 0;
         return h-header_height-menubar_height; // content height
     };
 

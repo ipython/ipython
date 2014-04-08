@@ -17,7 +17,7 @@ $(document).ready(function () {
     $('#new_notebook').button().click(function (e) {
         IPython.notebook_list.new_notebook()
     });
-    
+
     var opts = {
         base_url : IPython.utils.get_body_data("baseUrl"),
         notebook_path : IPython.utils.get_body_data("notebookPath"),
@@ -70,17 +70,17 @@ $(document).ready(function () {
     enable_autorefresh();
 
     IPython.page.show();
-    
+
     // bound the upload method to the on change of the file select list
     $("#alternate_upload").change(function (event){
         IPython.notebook_list.handleFilesUpload(event,'form');
     });
-    
+
     // set hash on tab click
     $("#tabs").find("a").click(function() {
         window.location.hash = $(this).attr("href");
     })
-    
+
     // load tab if url hash
     if (window.location.hash) {
         $("#tabs").find("a[href=" + window.location.hash + "]").click();

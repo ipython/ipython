@@ -30,10 +30,10 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.bind_events = function () {
         var that = this;
-        this.element.find('span#notebook_name').click(function () {
+        this.element.find('#notebook_name').click(function () {
             that.rename_notebook();
         });
-        this.element.find('span#notebook_name').hover(function () {
+        this.element.find('#notebook_name').hover(function () {
             $(this).addClass("ui-state-hover");
         }, function () {
             $(this).removeClass("ui-state-hover");
@@ -116,7 +116,7 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.update_notebook_name = function () {
         var nbname = IPython.notebook.get_notebook_name();
-        this.element.find('span#notebook_name').text(nbname);
+        this.element.find('#notebook_name').text(nbname);
     };
 
 
@@ -124,7 +124,7 @@ var IPython = (function (IPython) {
         var nbname = IPython.notebook.get_notebook_name();
         document.title = nbname;
     };
-    
+
     SaveWidget.prototype.update_address_bar = function(){
         var base_url = IPython.notebook.base_url;
         var nbname = IPython.notebook.notebook_name;
@@ -140,11 +140,11 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.set_save_status = function (msg) {
-        this.element.find('span#autosave_status').text(msg);
+        this.element.find('#autosave_status').text(msg);
     }
 
     SaveWidget.prototype.set_checkpoint_status = function (msg) {
-        this.element.find('span#checkpoint_status').text(msg);
+        this.element.find('#checkpoint_status').text(msg);
     }
 
     SaveWidget.prototype.set_last_checkpoint = function (checkpoint) {

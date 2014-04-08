@@ -1,21 +1,31 @@
-div.cell {
-    border: 1px solid transparent;
-    .vbox();
+div.cell.selected:before{
 
+    border-left: 5px solid red;
+    border-right: 5px solid red;
+}
+
+div.cell {
+    /*border: 1px solid transparent;*/
+    .vbox();
+    padding-left: 5px;
     &.selected {
-        .corner-all;
-        border : thin @border_color solid;
+        /*.corner-all;*/
+        border-left : 5px @border_color solid;
+        z-index: 100;
+        padding-left: 0px;
     }
-    
+
     &.edit_mode {
-        .corner-all;
-        border : thin green solid;
+        /*.corner-all;*/
+        border-left : 5px green solid;
+        z-index: 100;
+        padding-left: 0px;
     }
 }
 
 div.cell {
     width: 100%;
-    padding: 5px 5px 5px 0px;
+    padding: 5px 5px 5px 5px;
     /* This acts as a spacer between cells, that is outside the border */
     margin: 0px;
     outline: none;
@@ -29,7 +39,7 @@ div.prompt {
     margin: 0px;
     font-family: @monoFontFamily;
     text-align: right;
-    /* This has to match that of the the CodeMirror class line-height below */	
+    /* This has to match that of the the CodeMirror class line-height below */
     line-height: @code_line_height;
 }
 
@@ -44,11 +54,12 @@ div.prompt {
 div.inner_cell {
     .vbox();
     .box-flex1();
+    margin-left: 25px;
 }
 
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
-    border: 1px solid @light_border_color;
+    /*border: 1px solid @light_border_color;*/
     .corner-all;
     background: @cell_background;
 }

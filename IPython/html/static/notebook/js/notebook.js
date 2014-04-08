@@ -16,7 +16,7 @@ var IPython = (function (IPython) {
 
     /**
      * A notebook contains and manages cells.
-     * 
+     *
      * @class Notebook
      * @constructor
      * @param {String} selector A jQuery selector for the notebook's DOM element
@@ -65,7 +65,7 @@ var IPython = (function (IPython) {
 
     /**
      * Tweak the notebook's CSS style.
-     * 
+     *
      * @method style
      */
     Notebook.prototype.style = function () {
@@ -74,13 +74,13 @@ var IPython = (function (IPython) {
 
     /**
      * Create an HTML and CSS representation of the notebook.
-     * 
+     *
      * @method create_elements
      */
     Notebook.prototype.create_elements = function () {
         var that = this;
         this.element.attr('tabindex','-1');
-        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
+        this.container = $("<div/>").addClass("").attr("id", "notebook-container");
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
         // ii) to prevent the div from scrolling up when the last cell is being
@@ -96,7 +96,7 @@ var IPython = (function (IPython) {
 
     /**
      * Bind JavaScript events: key presses and custom IPython events.
-     * 
+     *
      * @method bind_events
      */
     Notebook.prototype.bind_events = function () {
@@ -166,7 +166,7 @@ var IPython = (function (IPython) {
             var time = (extrap !== undefined) ? ((extrap.duration !== undefined ) ? extrap.duration : 'fast') : 'fast';
             expand_time(time);
         });
-        
+
         // Firefox 22 broke $(window).on("beforeunload")
         // I'm not sure why or how.
         window.onbeforeunload = function (e) {
@@ -201,7 +201,7 @@ var IPython = (function (IPython) {
 
     /**
      * Set the dirty flag, and trigger the set_dirty.Notebook event
-     * 
+     *
      * @method set_dirty
      */
     Notebook.prototype.set_dirty = function (value) {
@@ -216,7 +216,7 @@ var IPython = (function (IPython) {
 
     /**
      * Scroll the top of the page to a given cell.
-     * 
+     *
      * @method scroll_to_cell
      * @param {Number} cell_number An index of the cell to view
      * @param {Number} time Animation time in milliseconds
@@ -234,7 +234,7 @@ var IPython = (function (IPython) {
 
     /**
      * Scroll to the bottom of the page.
-     * 
+     *
      * @method scroll_to_bottom
      */
     Notebook.prototype.scroll_to_bottom = function () {
@@ -243,7 +243,7 @@ var IPython = (function (IPython) {
 
     /**
      * Scroll to the top of the page.
-     * 
+     *
      * @method scroll_to_top
      */
     Notebook.prototype.scroll_to_top = function () {
@@ -263,7 +263,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get all cell elements in the notebook.
-     * 
+     *
      * @method get_cell_elements
      * @return {jQuery} A selector of all cell elements
      */
@@ -273,7 +273,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get a particular cell element.
-     * 
+     *
      * @method get_cell_element
      * @param {Number} index An index of a cell to select
      * @return {jQuery} A selector of the given cell.
@@ -289,7 +289,7 @@ var IPython = (function (IPython) {
 
     /**
      * Try to get a particular cell by msg_id.
-     * 
+     *
      * @method get_msg_cell
      * @param {String} msg_id A message UUID
      * @return {Cell} Cell or null if no cell was found.
@@ -300,7 +300,7 @@ var IPython = (function (IPython) {
 
     /**
      * Count the cells in this notebook.
-     * 
+     *
      * @method ncells
      * @return {Number} The number of cells in this notebook
      */
@@ -310,7 +310,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get all Cell objects in this notebook.
-     * 
+     *
      * @method get_cells
      * @return {Array} This notebook's Cell objects
      */
@@ -324,7 +324,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get a Cell object from this notebook.
-     * 
+     *
      * @method get_cell
      * @param {Number} index An index of a cell to retrieve
      * @return {Cell} A particular cell
@@ -340,7 +340,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get the cell below a given cell.
-     * 
+     *
      * @method get_next_cell
      * @param {Cell} cell The provided cell
      * @return {Cell} The next cell
@@ -356,7 +356,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get the cell above a given cell.
-     * 
+     *
      * @method get_prev_cell
      * @param {Cell} cell The provided cell
      * @return {Cell} The previous cell
@@ -371,10 +371,10 @@ var IPython = (function (IPython) {
         }
         return result;
     };
-    
+
     /**
      * Get the numeric index of a given cell.
-     * 
+     *
      * @method find_cell_index
      * @param {Cell} cell The provided cell
      * @return {Number} The cell's numeric index
@@ -391,7 +391,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get a given index , or the selected index if none is provided.
-     * 
+     *
      * @method index_or_selected
      * @param {Number} index A cell's index
      * @return {Number} The given index, or selected index if none is provided.
@@ -421,7 +421,7 @@ var IPython = (function (IPython) {
 
     /**
      * Check whether a cell index is valid.
-     * 
+     *
      * @method is_valid_cell_index
      * @param {Number} index A cell index
      * @return True if the index is valid, false otherwise
@@ -436,7 +436,7 @@ var IPython = (function (IPython) {
 
     /**
      * Get the index of the currently selected cell.
-     
+
      * @method get_selected_index
      * @return {Number} The selected cell's numeric index
      */
@@ -455,7 +455,7 @@ var IPython = (function (IPython) {
 
     /**
      * Programmatically select a cell.
-     * 
+     *
      * @method select
      * @param {Number} index A cell's index
      * @return {Notebook} This notebook
@@ -603,7 +603,7 @@ var IPython = (function (IPython) {
 
     /**
      * Move given (or selected) cell up and select it.
-     * 
+     *
      * @method move_cell_up
      * @param [index] {integer} cell index
      * @return {Notebook} This notebook
@@ -628,7 +628,7 @@ var IPython = (function (IPython) {
 
     /**
      * Move given (or selected) cell down and select it
-     * 
+     *
      * @method move_cell_down
      * @param [index] {integer} cell index
      * @return {Notebook} This notebook
@@ -655,7 +655,7 @@ var IPython = (function (IPython) {
 
     /**
      * Delete a cell from the notebook.
-     * 
+     *
      * @method delete_cell
      * @param [index] A cell's numeric index
      * @return {Notebook} This notebook
@@ -694,7 +694,7 @@ var IPython = (function (IPython) {
 
     /**
      * Restore the most recently deleted cell.
-     * 
+     *
      * @method undelete
      */
     Notebook.prototype.undelete_cell = function() {
@@ -863,7 +863,7 @@ var IPython = (function (IPython) {
 
     /**
      * Turn a cell into a code cell.
-     * 
+     *
      * @method to_code
      * @param {Number} [index] A cell's index
      */
@@ -891,7 +891,7 @@ var IPython = (function (IPython) {
 
     /**
      * Turn a cell into a Markdown cell.
-     * 
+     *
      * @method to_markdown
      * @param {Number} [index] A cell's index
      */
@@ -924,7 +924,7 @@ var IPython = (function (IPython) {
 
     /**
      * Turn a cell into a raw text cell.
-     * 
+     *
      * @method to_raw
      * @param {Number} [index] A cell's index
      */
@@ -955,7 +955,7 @@ var IPython = (function (IPython) {
 
     /**
      * Turn a cell into a heading cell.
-     * 
+     *
      * @method to_heading
      * @param {Number} [index] A cell's index
      * @param {Number} [level] A heading level (e.g., 1 becomes &lt;h1&gt;)
@@ -995,12 +995,32 @@ var IPython = (function (IPython) {
         }
     };
 
+    // Read mode
+
+    /**
+     * Changes UI elements to look more readable
+     *
+     * @method read_mode_on
+     */
+    Notebook.prototype.read_mode_on = function () {
+        var that = this;
+
+        if(this.read_enabled){
+            $('.text_cell_render').removeClass('center');
+            $('.code_cell').removeClass('code_cell_readable center');
+            this.read_enabled=false;
+        }else{
+            $('.text_cell_render').addClass('center');
+            $('.code_cell').addClass('code_cell_readable center');
+            this.read_enabled = true;
+        }
+    };
 
     // Cut/Copy/Paste
 
     /**
      * Enable UI elements for pasting cells.
-     * 
+     *
      * @method enable_paste
      */
     Notebook.prototype.enable_paste = function () {
@@ -1018,7 +1038,7 @@ var IPython = (function (IPython) {
 
     /**
      * Disable UI elements for pasting cells.
-     * 
+     *
      * @method disable_paste
      */
     Notebook.prototype.disable_paste = function () {
@@ -1032,7 +1052,7 @@ var IPython = (function (IPython) {
 
     /**
      * Cut a cell.
-     * 
+     *
      * @method cut_cell
      */
     Notebook.prototype.cut_cell = function () {
@@ -1042,7 +1062,7 @@ var IPython = (function (IPython) {
 
     /**
      * Copy a cell.
-     * 
+     *
      * @method copy_cell
      */
     Notebook.prototype.copy_cell = function () {
@@ -1053,7 +1073,7 @@ var IPython = (function (IPython) {
 
     /**
      * Replace the selected cell with a cell in the clipboard.
-     * 
+     *
      * @method paste_cell_replace
      */
     Notebook.prototype.paste_cell_replace = function () {
@@ -1069,7 +1089,7 @@ var IPython = (function (IPython) {
 
     /**
      * Paste a cell from the clipboard above the selected cell.
-     * 
+     *
      * @method paste_cell_above
      */
     Notebook.prototype.paste_cell_above = function () {
@@ -1083,7 +1103,7 @@ var IPython = (function (IPython) {
 
     /**
      * Paste a cell from the clipboard below the selected cell.
-     * 
+     *
      * @method paste_cell_below
      */
     Notebook.prototype.paste_cell_below = function () {
@@ -1099,7 +1119,7 @@ var IPython = (function (IPython) {
 
     /**
      * Split the selected cell into two, at the cursor.
-     * 
+     *
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
@@ -1128,7 +1148,7 @@ var IPython = (function (IPython) {
 
     /**
      * Combine the selected cell into the cell above it.
-     * 
+     *
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
@@ -1165,7 +1185,7 @@ var IPython = (function (IPython) {
 
     /**
      * Combine the selected cell into the cell below it.
-     * 
+     *
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
@@ -1205,7 +1225,7 @@ var IPython = (function (IPython) {
 
     /**
      * Hide a cell's output.
-     * 
+     *
      * @method collapse_output
      * @param {Number} index A cell's numeric index
      */
@@ -1220,7 +1240,7 @@ var IPython = (function (IPython) {
 
     /**
      * Hide each code cell's output area.
-     * 
+     *
      * @method collapse_all_output
      */
     Notebook.prototype.collapse_all_output = function () {
@@ -1235,7 +1255,7 @@ var IPython = (function (IPython) {
 
     /**
      * Show a cell's output.
-     * 
+     *
      * @method expand_output
      * @param {Number} index A cell's numeric index
      */
@@ -1250,7 +1270,7 @@ var IPython = (function (IPython) {
 
     /**
      * Expand each code cell's output area, and remove scrollbars.
-     * 
+     *
      * @method expand_all_output
      */
     Notebook.prototype.expand_all_output = function () {
@@ -1265,7 +1285,7 @@ var IPython = (function (IPython) {
 
     /**
      * Clear the selected CodeCell's output area.
-     * 
+     *
      * @method clear_output
      * @param {Number} index A cell's numeric index
      */
@@ -1280,7 +1300,7 @@ var IPython = (function (IPython) {
 
     /**
      * Clear each code cell's output area.
-     * 
+     *
      * @method clear_all_output
      */
     Notebook.prototype.clear_all_output = function () {
@@ -1294,7 +1314,7 @@ var IPython = (function (IPython) {
 
     /**
      * Scroll the selected CodeCell's output area.
-     * 
+     *
      * @method scroll_output
      * @param {Number} index A cell's numeric index
      */
@@ -1309,7 +1329,7 @@ var IPython = (function (IPython) {
 
     /**
      * Expand each code cell's output area, and add a scrollbar for long output.
-     * 
+     *
      * @method scroll_all_output
      */
     Notebook.prototype.scroll_all_output = function () {
@@ -1323,7 +1343,7 @@ var IPython = (function (IPython) {
     };
 
     /** Toggle whether a cell's output is collapsed or expanded.
-     * 
+     *
      * @method toggle_output
      * @param {Number} index A cell's numeric index
      */
@@ -1338,7 +1358,7 @@ var IPython = (function (IPython) {
 
     /**
      * Hide/show the output of all cells.
-     * 
+     *
      * @method toggle_all_output
      */
     Notebook.prototype.toggle_all_output = function () {
@@ -1353,7 +1373,7 @@ var IPython = (function (IPython) {
 
     /**
      * Toggle a scrollbar for long cell outputs.
-     * 
+     *
      * @method toggle_output_scroll
      * @param {Number} index A cell's numeric index
      */
@@ -1368,7 +1388,7 @@ var IPython = (function (IPython) {
 
     /**
      * Toggle the scrolling of long output on all cells.
-     * 
+     *
      * @method toggle_all_output_scrolling
      */
     Notebook.prototype.toggle_all_output_scroll = function () {
@@ -1385,7 +1405,7 @@ var IPython = (function (IPython) {
 
     /**
      * Toggle line numbers in the selected cell's input area.
-     * 
+     *
      * @method cell_toggle_line_numbers
      */
     Notebook.prototype.cell_toggle_line_numbers = function() {
@@ -1396,7 +1416,7 @@ var IPython = (function (IPython) {
 
     /**
      * Start a new session and set it on each code cell.
-     * 
+     *
      * @method start_session
      */
     Notebook.prototype.start_session = function () {
@@ -1406,7 +1426,7 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Once a session is started, link the code cells to the kernel and pass the 
+     * Once a session is started, link the code cells to the kernel and pass the
      * comm manager to the widget manager
      *
      */
@@ -1420,10 +1440,10 @@ var IPython = (function (IPython) {
             }
         }
     };
-    
+
     /**
      * Prompt the user to restart the IPython kernel.
-     * 
+     *
      * @method restart_kernel
      */
     Notebook.prototype.restart_kernel = function () {
@@ -1444,17 +1464,17 @@ var IPython = (function (IPython) {
             }
         });
     };
-    
+
     /**
      * Execute or render cell outputs and go into command mode.
-     * 
+     *
      * @method execute_cell
      */
     Notebook.prototype.execute_cell = function () {
         // mode = shift, ctrl, alt
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
-        
+
         cell.execute();
         this.command_mode();
         this.set_dirty(true);
@@ -1462,13 +1482,13 @@ var IPython = (function (IPython) {
 
     /**
      * Execute or render cell outputs and insert a new cell below.
-     * 
+     *
      * @method execute_cell_and_insert_below
      */
     Notebook.prototype.execute_cell_and_insert_below = function () {
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
-        
+
         cell.execute();
 
         // If we are at the end always insert a new cell and return
@@ -1491,14 +1511,14 @@ var IPython = (function (IPython) {
 
     /**
      * Execute or render cell outputs and select the next cell.
-     * 
+     *
      * @method execute_cell_and_select_below
      */
     Notebook.prototype.execute_cell_and_select_below = function () {
 
         var cell = this.get_selected_cell();
         var cell_index = this.find_cell_index(cell);
-        
+
         cell.execute();
 
         // If we are at the end always insert a new cell and return
@@ -1520,7 +1540,7 @@ var IPython = (function (IPython) {
 
     /**
      * Execute all cells below the selected cell.
-     * 
+     *
      * @method execute_cells_below
      */
     Notebook.prototype.execute_cells_below = function () {
@@ -1530,7 +1550,7 @@ var IPython = (function (IPython) {
 
     /**
      * Execute all cells above the selected cell.
-     * 
+     *
      * @method execute_cells_above
      */
     Notebook.prototype.execute_cells_above = function () {
@@ -1539,7 +1559,7 @@ var IPython = (function (IPython) {
 
     /**
      * Execute all cells.
-     * 
+     *
      * @method execute_all_cells
      */
     Notebook.prototype.execute_all_cells = function () {
@@ -1549,7 +1569,7 @@ var IPython = (function (IPython) {
 
     /**
      * Execute a contiguous range of cells.
-     * 
+     *
      * @method execute_cell_range
      * @param {Number} start Index of the first cell to execute (inclusive)
      * @param {Number} end Index of the last cell to execute (exclusive)
@@ -1566,7 +1586,7 @@ var IPython = (function (IPython) {
 
     /**
      * Getter method for this notebook's name.
-     * 
+     *
      * @method get_notebook_name
      * @return {String} This notebook's name (excluding file extension)
      */
@@ -1587,7 +1607,7 @@ var IPython = (function (IPython) {
 
     /**
      * Check that a notebook's name is valid.
-     * 
+     *
      * @method test_notebook_name
      * @param {String} nbname A name for this notebook
      * @return {Boolean} True if the name is valid, false if invalid
@@ -1603,9 +1623,9 @@ var IPython = (function (IPython) {
 
     /**
      * Load a notebook from JSON (.ipynb).
-     * 
+     *
      * This currently handles one worksheet: others are deleted.
-     * 
+     *
      * @method fromJSON
      * @param {Object} data JSON representation of a notebook
      */
@@ -1667,7 +1687,7 @@ var IPython = (function (IPython) {
 
     /**
      * Dump this notebook into a JSON-friendly object.
-     * 
+     *
      * @method toJSON
      * @return {Object} A JSON-friendly representation of this notebook.
      */
@@ -1700,7 +1720,7 @@ var IPython = (function (IPython) {
 
     /**
      * Start an autosave timer, for periodically saving the notebook.
-     * 
+     *
      * @method set_autosave_interval
      * @param {Integer} interval the autosave interval in milliseconds
      */
@@ -1710,7 +1730,7 @@ var IPython = (function (IPython) {
         if (this.autosave_timer) {
             clearInterval(this.autosave_timer);
         }
-        
+
         this.autosave_interval = this.minimum_autosave_interval = interval;
         if (interval) {
             this.autosave_timer = setInterval(function() {
@@ -1724,11 +1744,11 @@ var IPython = (function (IPython) {
             $([IPython.events]).trigger("autosave_disabled.Notebook");
         }
     };
-    
+
     /**
      * Save this notebook on the server. This becomes a notebook instance's
      * .save_notebook method *after* the entire notebook has been loaded.
-     * 
+     *
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function (extra_settings) {
@@ -1765,10 +1785,10 @@ var IPython = (function (IPython) {
         );
         $.ajax(url, settings);
     };
-    
+
     /**
      * Success callback for saving a notebook.
-     * 
+     *
      * @method save_notebook_success
      * @param {Integer} start the time when the save request started
      * @param {Object} data JSON representation of a notebook
@@ -1784,10 +1804,10 @@ var IPython = (function (IPython) {
             this._checkpoint_after_save = false;
         }
     };
-    
+
     /**
      * update the autosave interval based on how long the last save took
-     * 
+     *
      * @method _update_autosave_interval
      * @param {Integer} timestamp when the save request started
      */
@@ -1804,10 +1824,10 @@ var IPython = (function (IPython) {
             }
         }
     };
-    
+
     /**
      * Failure callback for saving a notebook.
-     * 
+     *
      * @method save_notebook_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
@@ -1966,7 +1986,7 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
 
-    
+
     Notebook.prototype.rename_success = function (json, status, xhr) {
         var name = this.notebook_name = json.name;
         var path = json.path;
@@ -2007,7 +2027,7 @@ var IPython = (function (IPython) {
 
     /**
      * Request a notebook's data from the server.
-     * 
+     *
      * @method load_notebook
      * @param {String} notebook_name and path A notebook to load
      */
@@ -2036,9 +2056,9 @@ var IPython = (function (IPython) {
 
     /**
      * Success callback for loading a notebook from the server.
-     * 
+     *
      * Load notebook data from the JSON response.
-     * 
+     *
      * @method load_notebook_success
      * @param {Object} data JSON representation of a notebook
      * @param {String} status Description of response status
@@ -2090,7 +2110,7 @@ var IPython = (function (IPython) {
             });
 
         }
-        
+
         // Create the session after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
         if (this.session === null) {
@@ -2098,7 +2118,7 @@ var IPython = (function (IPython) {
         }
         // load our checkpoint list
         this.list_checkpoints();
-        
+
         // load toolbar state
         if (this.metadata.celltoolbar) {
             IPython.CellToolbar.global_show();
@@ -2112,7 +2132,7 @@ var IPython = (function (IPython) {
 
     /**
      * Failure callback for loading a notebook from the server.
-     * 
+     *
      * @method load_notebook_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
@@ -2138,21 +2158,21 @@ var IPython = (function (IPython) {
     };
 
     /*********************  checkpoint-related  *********************/
-    
+
     /**
      * Save the notebook then immediately create a checkpoint.
-     * 
+     *
      * @method save_checkpoint
      */
     Notebook.prototype.save_checkpoint = function () {
         this._checkpoint_after_save = true;
         this.save_notebook();
     };
-    
+
     /**
      * Add a checkpoint for this notebook.
      * for use as a callback from checkpoint creation.
-     * 
+     *
      * @method add_checkpoint
      */
     Notebook.prototype.add_checkpoint = function (checkpoint) {
@@ -2170,10 +2190,10 @@ var IPython = (function (IPython) {
         }
         this.last_checkpoint = this.checkpoints[this.checkpoints.length - 1];
     };
-    
+
     /**
      * List checkpoints for this notebook.
-     * 
+     *
      * @method list_checkpoints
      */
     Notebook.prototype.list_checkpoints = function () {
@@ -2193,7 +2213,7 @@ var IPython = (function (IPython) {
 
     /**
      * Success callback for listing checkpoints.
-     * 
+     *
      * @method list_checkpoint_success
      * @param {Object} data JSON representation of a checkpoint
      * @param {String} status Description of response status
@@ -2212,7 +2232,7 @@ var IPython = (function (IPython) {
 
     /**
      * Failure callback for listing a checkpoint.
-     * 
+     *
      * @method list_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
@@ -2221,10 +2241,10 @@ var IPython = (function (IPython) {
     Notebook.prototype.list_checkpoints_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('list_checkpoints_failed.Notebook');
     };
-    
+
     /**
      * Create a checkpoint of this notebook on the server from the most recent save.
-     * 
+     *
      * @method create_checkpoint
      */
     Notebook.prototype.create_checkpoint = function () {
@@ -2244,7 +2264,7 @@ var IPython = (function (IPython) {
 
     /**
      * Success callback for creating a checkpoint.
-     * 
+     *
      * @method create_checkpoint_success
      * @param {Object} data JSON representation of a checkpoint
      * @param {String} status Description of response status
@@ -2258,7 +2278,7 @@ var IPython = (function (IPython) {
 
     /**
      * Failure callback for creating a checkpoint.
-     * 
+     *
      * @method create_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
@@ -2267,7 +2287,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.create_checkpoint_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('checkpoint_failed.Notebook');
     };
-    
+
     Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
         var that = this;
         checkpoint = checkpoint || this.last_checkpoint;
@@ -2291,7 +2311,7 @@ var IPython = (function (IPython) {
                 Date(checkpoint.last_modified)
             ).css("text-align", "center")
         );
-        
+
         IPython.dialog.modal({
             title : "Revert notebook to checkpoint",
             body : body,
@@ -2306,10 +2326,10 @@ var IPython = (function (IPython) {
                 }
         });
     };
-    
+
     /**
      * Restore the notebook to a checkpoint state.
-     * 
+     *
      * @method restore_checkpoint
      * @param {String} checkpoint ID
      */
@@ -2329,10 +2349,10 @@ var IPython = (function (IPython) {
             $.proxy(this.restore_checkpoint_error, this)
         );
     };
-    
+
     /**
      * Success callback for restoring a notebook to a checkpoint.
-     * 
+     *
      * @method restore_checkpoint_success
      * @param {Object} data (ignored, should be empty)
      * @param {String} status Description of response status
@@ -2345,7 +2365,7 @@ var IPython = (function (IPython) {
 
     /**
      * Failure callback for restoring a notebook to a checkpoint.
-     * 
+     *
      * @method restore_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
@@ -2354,10 +2374,10 @@ var IPython = (function (IPython) {
     Notebook.prototype.restore_checkpoint_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('checkpoint_restore_failed.Notebook');
     };
-    
+
     /**
      * Delete a notebook checkpoint.
-     * 
+     *
      * @method delete_checkpoint
      * @param {String} checkpoint ID
      */
@@ -2377,10 +2397,10 @@ var IPython = (function (IPython) {
             error: $.proxy(this.delete_notebook_error,this)
         });
     };
-    
+
     /**
      * Success callback for deleting a notebook checkpoint
-     * 
+     *
      * @method delete_checkpoint_success
      * @param {Object} data (ignored, should be empty)
      * @param {String} status Description of response status
@@ -2393,7 +2413,7 @@ var IPython = (function (IPython) {
 
     /**
      * Failure callback for deleting a notebook checkpoint.
-     * 
+     *
      * @method delete_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status

@@ -61,17 +61,17 @@ var IPython = (function (IPython) {
     OutputArea.prototype.style = function () {
         this.collapse_button.hide();
         this.prompt_overlay.hide();
-        
+
         this.wrapper.addClass('output_wrapper');
         this.element.addClass('output');
-        
+
         this.collapse_button.addClass("btn output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.text('. . .');
-        
+
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
-        
+
         this.collapse();
     };
 
@@ -93,7 +93,7 @@ var IPython = (function (IPython) {
         // line-height from http://stackoverflow.com/questions/1185151
         var fontSize = this.element.css('font-size');
         var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
-        
+
         return (this.element.height() > lines * lineHeight);
     };
 
@@ -166,7 +166,7 @@ var IPython = (function (IPython) {
 
     /**
      *
-     * Scroll OutputArea if height supperior than a threshold (in lines).
+     * Scroll OutputArea if height superior than a threshold (in lines).
      *
      * Threshold is a maximum number of lines. If unspecified, defaults to
      * OutputArea.minimum_scroll_threshold.
@@ -233,8 +233,8 @@ var IPython = (function (IPython) {
         }
         this.append_output(json);
     };
-    
-    
+
+
     OutputArea.prototype.rename_keys = function (data, key_map) {
         var remapped = {};
         for (var key in data) {
@@ -268,7 +268,7 @@ var IPython = (function (IPython) {
         });
         return json;
     };
-    
+
     OutputArea.prototype.append_output = function (json) {
         this.expand();
         // Clear the output if clear is queued.
@@ -277,7 +277,7 @@ var IPython = (function (IPython) {
             this.clear_output(false);
             needs_height_reset = true;
         }
-        
+
         // validate output data types
         json = this.validate_output(json);
 
@@ -290,13 +290,13 @@ var IPython = (function (IPython) {
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         }
-        
+
         this.outputs.push(json);
-        
+
         // Only reset the height to automatic if the height is currently
         // fixed (done by wait=True flag on clear_output).
         if (needs_height_reset) {
-            this.element.height('');    
+            this.element.height('');
         }
 
         var that = this;
@@ -376,7 +376,7 @@ var IPython = (function (IPython) {
             .append($('<div/>').text(err.toString()).addClass('js-error'))
             .append($('<div/>').text('See your browser Javascript console for more details.').addClass('js-error'));
     };
-    
+
     OutputArea.prototype._safe_append = function (toinsert) {
         // safely append an item to the document
         // this is an object created by user code,
@@ -493,7 +493,7 @@ var IPython = (function (IPython) {
         'image/png' : true,
         'image/jpeg' : true
     };
-    
+
     OutputArea.prototype.append_mime_type = function (json, element) {
         for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
@@ -536,7 +536,7 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
         IPython.keyboard_manager.register_events(toinsert);
         element.append(toinsert);
-        // FIXME TODO : remove `container element for 3.0` 
+        // FIXME TODO : remove `container element for 3.0`
         //backward compat, js should be eval'ed in a context where `container` is defined.
         var container = element;
         container.show = function(){console.log('Warning "container.show()" is deprecated.')};
@@ -602,7 +602,7 @@ var IPython = (function (IPython) {
             });
         });
     };
-    
+
     var set_width_height = function (img, md, mime) {
         // set width and height of an img element from metadata
         var height = _get_metadata_key(md, 'height', mime);
@@ -610,7 +610,7 @@ var IPython = (function (IPython) {
         var width = _get_metadata_key(md, 'width', mime);
         if (width !== undefined) img.attr('width', width);
     };
-    
+
     var append_png = function (png, md, element) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
@@ -662,10 +662,10 @@ var IPython = (function (IPython) {
         this.expand();
         var content = msg.content;
         var area = this.create_output_area();
-        
+
         // disable any other raw_inputs, if they are left around
         $("div.output_subarea.raw_input_container").remove();
-        
+
         area.append(
             $("<div/>")
             .addClass("box-flex1 output_subarea raw_input_container")
@@ -689,7 +689,7 @@ var IPython = (function (IPython) {
                 })
             )
         );
-        
+
         this.element.append(area);
         var raw_input = area.find('input.raw_input');
         // Register events that enable/disable the keyboard manager while raw
@@ -747,7 +747,7 @@ var IPython = (function (IPython) {
                 this.element.height(height);
                 this.clear_queued = false;
             }
-            
+
             // clear all, no need for logic
             this.element.html("");
             this.outputs = [];
@@ -773,7 +773,7 @@ var IPython = (function (IPython) {
                  data = this.rename_keys(data, OutputArea.mime_map_r);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
             }
-            
+
             this.append_output(data);
         }
     };
@@ -812,7 +812,7 @@ var IPython = (function (IPython) {
      * @default 100
      *
      **/
-    OutputArea.auto_scroll_threshold = 100;
+    OutputArea.auto_scroll_threshold = 100000;
 
     /**
      * Lower limit (in lines) for OutputArea to be made scrollable. OutputAreas
@@ -823,7 +823,7 @@ var IPython = (function (IPython) {
      * @default 20
      *
      **/
-    OutputArea.minimum_scroll_threshold = 20;
+    OutputArea.minimum_scroll_threshold = 200000;
 
 
 

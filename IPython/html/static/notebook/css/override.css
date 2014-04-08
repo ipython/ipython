@@ -2,6 +2,54 @@
 This is only required when different pages style the same element differently. This is just
 a hack to deal with our current css styles and no new styling should be added in this file.*/
 
-#ipython-main-app {
-    position: relative;
+#ipython-main-app{
+	padding: 0px;
+}
+
+#notebook-container {
+   border-right: 1px solid #e5e5e5;
+   border-left: 1px solid #e5e5e5;
+}
+
+.container{
+	margin: 0px;
+	width: 100%;
+}
+
+.modal{
+	margin-top: 10%;
+}
+
+#pager_splitter{
+	display: none;
+}
+
+.open > .dropdown-menu{
+	left: 1px;
+}
+
+.ui-wrapper{
+	/*margin: 0px auto!important;*/
+}
+
+img{
+	margin: 0 auto !important;
+}
+
+
+.CodeMirror-matchingbracket{
+	background-color: #f7f7f7;
+}
+
+.cm-s-xq-light .CodeMirror-matchingbracket{
+	background-color: #f7f7f7;
+}
+
+.center{
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+.code_cell_readable{
+	width:650px!important;
 }
