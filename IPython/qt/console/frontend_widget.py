@@ -197,6 +197,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._local_kernel = kw.get('local_kernel',
                                     FrontendWidget._local_kernel)
 
+        # Whether or not a clear_output call is pending new output.
+        self._pending_clearoutput = False
+
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
@@ -339,6 +342,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
+    def _handle_clear_output(self, msg):
+        """Handle clear output messages."""
+        if not self._hidden and self._is_from_this_session(msg):
+            wait = msg['content'].get('wait', True)
+            if wait:
+                self._pending_clearoutput = True
+            else:
+                self.clear_output()
 
     def _handle_complete_reply(self, rep):
         """ Handle replies for tab completion.
@@ -520,6 +531,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.log.debug("pyout: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
+            self.flush_clearoutput()
             text = msg['content']['data']
             self._append_plain_text(text + '\n', before_prompt=True)
 
@@ -528,13 +540,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.log.debug("stream: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
-            # Most consoles treat tabs as being 8 space characters. Convert tabs
-            # to spaces so that output looks as expected regardless of this
-            # widget's tab width.
-            text = msg['content']['data'].expandtabs(8)
-
-            self._append_plain_text(text, before_prompt=True)
-            self._control.moveCursor(QtGui.QTextCursor.End)
+            self.flush_clearoutput()
+            self.append_stream(msg['content']['data'])
 
     def _handle_shutdown_reply(self, msg):
         """ Handle shutdown signal, only if from other console.
@@ -684,6 +691,29 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 'Cannot restart a Kernel I did not start\n',
                 before_prompt=True
             )
+
+    def append_stream(self, text):
+        """Appends text to the output stream."""
+        # Most consoles treat tabs as being 8 space characters. Convert tabs
+        # to spaces so that output looks as expected regardless of this
+        # widget's tab width.
+        text = text.expandtabs(8)
+        self._append_plain_text(text, before_prompt=True)
+        self._control.moveCursor(QtGui.QTextCursor.End)
+
+    def flush_clearoutput(self):
+        """If a clearoutput is pending, execute it."""
+        if self._pending_clearoutput:
+            self._pending_clearoutput = False
+            self.clear_output()
+
+    def clear_output(self):
+        """Clears the current line of output."""
+        cursor = self._control.textCursor()
+        cursor.beginEditBlock()
+        cursor.movePosition(cursor.StartOfLine, cursor.KeepAnchor)
+        cursor.insertText('')
+        cursor.endEditBlock()
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface

@@ -114,6 +114,7 @@ class RichIPythonWidget(IPythonWidget):
         """ Overridden to handle rich data types, like SVG.
         """
         if not self._hidden and self._is_from_this_session(msg):
+            self.flush_clearoutput()
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
             data = content['data']
@@ -140,6 +141,7 @@ class RichIPythonWidget(IPythonWidget):
         """ Overridden to handle rich data types, like SVG.
         """
         if not self._hidden and self._is_from_this_session(msg):
+            self.flush_clearoutput()
             source = msg['content']['source']
             data = msg['content']['data']
             metadata = msg['content']['metadata']

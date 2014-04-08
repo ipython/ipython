@@ -140,7 +140,6 @@ class IPythonWidget(FrontendWidget):
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
-
     def _handle_complete_reply(self, rep):
         """ Reimplemented to support IPython's improved completion machinery.
         """
@@ -223,6 +222,7 @@ class IPythonWidget(FrontendWidget):
         """
         self.log.debug("pyout: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
+            self.flush_clearoutput()
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
             data = content['data']
@@ -250,6 +250,7 @@ class IPythonWidget(FrontendWidget):
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.
         if not self._hidden and self._is_from_this_session(msg):
+            self.flush_clearoutput()
             source = msg['content']['source']
             data = msg['content']['data']
             metadata = msg['content']['metadata']

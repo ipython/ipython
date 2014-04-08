@@ -271,36 +271,44 @@ var IPython = (function (IPython) {
     
     OutputArea.prototype.append_output = function (json) {
         this.expand();
+        
+        // validate output data types
+        json = this.validate_output(json);
+
         // Clear the output if clear is queued.
         var needs_height_reset = false;
         if (this.clear_queued) {
             this.clear_output(false);
             needs_height_reset = true;
         }
-        
-        // validate output data types
-        json = this.validate_output(json);
 
         if (json.output_type === 'pyout') {
             this.append_pyout(json);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
-        } else if (json.output_type === 'display_data') {
-            this.append_display_data(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         }
+
+        // We must release the animation fixed height in a callback since Gecko
+        // (FireFox) doesn't render the image immediately as the data is 
+        // available.
+        var that = this;
+        var handle_appended = function ($el) {
+            // Only reset the height to automatic if the height is currently
+            // fixed (done by wait=True flag on clear_output).
+            if (needs_height_reset) {
+                that.element.height('');
+            }
+            that.element.trigger('resize');
+        };
+        if (json.output_type === 'display_data') {
+            this.append_display_data(json, handle_appended);
+        } else {
+            handle_appended();
+        }
         
         this.outputs.push(json);
-        
-        // Only reset the height to automatic if the height is currently
-        // fixed (done by wait=True flag on clear_output).
-        if (needs_height_reset) {
-            this.element.height('');    
-        }
-
-        var that = this;
-        setTimeout(function(){that.element.trigger('resize');}, 100);
     };
 
 
@@ -475,9 +483,9 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_display_data = function (json) {
+    OutputArea.prototype.append_display_data = function (json, handle_inserted) {
         var toinsert = this.create_output_area();
-        if (this.append_mime_type(json, toinsert)) {
+        if (this.append_mime_type(json, toinsert, handle_inserted)) {
             this._safe_append(toinsert);
             // If we just output latex, typeset it.
             if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
@@ -494,7 +502,7 @@ var IPython = (function (IPython) {
         'image/jpeg' : true
     };
     
-    OutputArea.prototype.append_mime_type = function (json, element) {
+    OutputArea.prototype.append_mime_type = function (json, element, handle_inserted) {
         for (var type_i in OutputArea.display_order) {
             var type = OutputArea.display_order[type_i];
             var append = OutputArea.append_map[type];
@@ -511,7 +519,14 @@ var IPython = (function (IPython) {
                     }
                 }
                 var md = json.metadata || {};
-                var toinsert = append.apply(this, [value, md, element]);
+                var toinsert = append.apply(this, [value, md, element, handle_inserted]);
+                // Since only the png and jpeg mime types call the inserted
+                // callback, if the mime type is something other we must call the 
+                // inserted callback only when the element is actually inserted
+                // into the DOM.  Use a timeout of 0 to do this.
+                if (['image/png', 'image/jpeg'].indexOf(type) < 0 && handle_inserted !== undefined) {
+                    setTimeout(handle_inserted, 0);
+                }
                 $([IPython.events]).trigger('output_appended.OutputArea', [type, value, md, toinsert]);
                 return toinsert;
             }
@@ -611,10 +626,16 @@ var IPython = (function (IPython) {
         if (width !== undefined) img.attr('width', width);
     };
     
-    var append_png = function (png, md, element) {
+    var append_png = function (png, md, element, handle_inserted) {
         var type = 'image/png';
         var toinsert = this.create_output_subarea(md, "output_png", type);
-        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        var img = $("<img/>");
+        if (handle_inserted !== undefined) {
+            img.on('load', function(){
+                handle_inserted(img);
+            });
+        }
+        img[0].src = 'data:image/png;base64,'+ png;
         set_width_height(img, md, 'image/png');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -623,10 +644,16 @@ var IPython = (function (IPython) {
     };
 
 
-    var append_jpeg = function (jpeg, md, element) {
+    var append_jpeg = function (jpeg, md, element, handle_inserted) {
         var type = 'image/jpeg';
         var toinsert = this.create_output_subarea(md, "output_jpeg", type);
-        var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
+        var img = $("<img/>");
+        if (handle_inserted !== undefined) {
+            img.on('load', function(){
+                handle_inserted(img);
+            });
+        }
+        img[0].src = 'data:image/jpeg;base64,'+ jpeg;
         set_width_height(img, md, 'image/jpeg');
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -748,7 +775,10 @@ var IPython = (function (IPython) {
                 this.clear_queued = false;
             }
             
-            // clear all, no need for logic
+            // Clear all
+            // Remove load event handlers from img tags because we don't want
+            // them to fire if the image is never added to the page.
+            this.element.find('img').off('load');
             this.element.html("");
             this.outputs = [];
             this.trusted = true;
