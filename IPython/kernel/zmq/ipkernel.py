@@ -575,6 +575,7 @@ class Kernel(Configurable):
             'ipython_version': ipython_version,
             'language_version': language_version,
             'language': 'python',
+            'banner': self.shell.banner,
         }
         msg = self.session.send(stream, 'kernel_info_reply',
                                 vinfo, parent, ident)
