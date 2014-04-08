@@ -206,11 +206,13 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 self.write('Aborted\n')
                 return
             elif status == 'ok':
-                # print execution payloads as well:
+                # handle payloads
                 for item in content["payload"]:
-                    text = item.get('text', None)
-                    if text:
-                        page.page(text)
+                    source = item['source']
+                    if source == 'page':
+                        page.page(item['data']['text/plain'])
+                    elif source == 'set_next_input':
+                        self.set_next_input(item['text'])
                
             elif status == 'error':
                 for frame in content["traceback"]:

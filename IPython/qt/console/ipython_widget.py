@@ -532,10 +532,11 @@ class IPythonWidget(FrontendWidget):
         # Since the plain text widget supports only a very small subset of HTML
         # and we have no control over the HTML source, we only page HTML
         # payloads in the rich text widget.
-        if item['html'] and self.kind == 'rich':
-            self._page(item['html'], html=True)
+        data = item['data']
+        if 'text/html' in data and self.kind == 'rich':
+            self._page(data['text/html'], html=True)
         else:
-            self._page(item['text'], html=False)
+            self._page(data['text/plain'], html=False)
 
     #------ Trait change handlers --------------------------------------------
 
