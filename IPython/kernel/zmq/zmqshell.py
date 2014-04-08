@@ -73,13 +73,12 @@ class ZMQDisplayPublisher(DisplayPublisher):
         sys.stdout.flush()
         sys.stderr.flush()
 
-    def publish(self, source, data, metadata=None):
+    def publish(self, data, metadata=None, source=None):
         self._flush_streams()
         if metadata is None:
             metadata = {}
-        self._validate_data(source, data, metadata)
+        self._validate_data(data, metadata)
         content = {}
-        content['source'] = source
         content['data'] = encode_images(data)
         content['metadata'] = metadata
         self.session.send(

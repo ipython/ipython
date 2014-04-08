@@ -165,7 +165,7 @@ class Stream(Reference):
 
 
 class DisplayData(MimeBundle):
-    source = Unicode()
+    pass
 
 
 class ExecuteResult(MimeBundle):

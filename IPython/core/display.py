@@ -126,13 +126,13 @@ def display(*objs, **kwargs):
             else:
                 continue
         if raw:
-            publish_display_data('display', obj, metadata)
+            publish_display_data(data=obj, metadata=metadata)
         else:
             format_dict, md_dict = format(obj, include=include, exclude=exclude)
             if metadata:
                 # kwarg-specified metadata gets precedence
                 _merge(md_dict, metadata)
-            publish_display_data('display', format_dict, md_dict)
+            publish_display_data(data=format_dict, metadata=md_dict)
 
 
 def display_pretty(*objs, **kwargs):

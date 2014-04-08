@@ -90,7 +90,7 @@ class ExecuteReply(RichOutput):
     
     def display(self):
         from IPython.display import publish_display_data
-        publish_display_data(self.source, self.data, self.metadata)
+        publish_display_data(self.data, self.metadata)
     
     def _repr_mime_(self, mime):
         if mime not in self.data:

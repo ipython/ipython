@@ -78,8 +78,7 @@ def test_rich_output():
     """test RichOutput basics"""
     data = basic_data
     metadata = basic_metadata
-    rich = capture.RichOutput(source="test", data=data, metadata=metadata)
-    yield nt.assert_equal, rich.source, "test"
+    rich = capture.RichOutput(data=data, metadata=metadata)
     yield nt.assert_equal, rich._repr_html_(), data['text/html']
     yield nt.assert_equal, rich._repr_png_(), (data['image/png'], metadata['image/png'])
     yield nt.assert_equal, rich._repr_latex_(), None
@@ -89,7 +88,7 @@ def test_rich_output():
 def test_rich_output_no_metadata():
     """test RichOutput with no metadata"""
     data = full_data
-    rich = capture.RichOutput(source="test", data=data)
+    rich = capture.RichOutput(data=data)
     for method, mime in _mime_map.items():
         yield nt.assert_equal, getattr(rich, method)(), data[mime]
 
@@ -97,7 +96,7 @@ def test_rich_output_metadata():
     """test RichOutput with metadata"""
     data = full_data
     metadata = full_metadata
-    rich = capture.RichOutput(source="test", data=data, metadata=metadata)
+    rich = capture.RichOutput(data=data, metadata=metadata)
     for method, mime in _mime_map.items():
         yield nt.assert_equal, getattr(rich, method)(), (data[mime], metadata[mime])
 

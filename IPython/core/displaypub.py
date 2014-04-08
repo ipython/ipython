@@ -10,22 +10,10 @@ There are two components of the display system:
 This module defines the logic display publishing. The display publisher uses
 the ``display_data`` message type that is defined in the IPython messaging
 spec.
-
-Authors:
-
-* Brian Granger
 """
 
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2008-2011 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
 
@@ -45,29 +33,24 @@ class DisplayPublisher(Configurable):
     be accessed there.
     """
 
-    def _validate_data(self, source, data, metadata=None):
+    def _validate_data(self, data, metadata=None):
         """Validate the display data.
 
         Parameters
         ----------
-        source : str
-            The fully dotted name of the callable that created the data, like
-            :func:`foo.bar.my_formatter`.
         data : dict
             The formata data dictionary.
         metadata : dict
             Any metadata for the data.
         """
 
-        if not isinstance(source, string_types):
-            raise TypeError('source must be a str, got: %r' % source)
         if not isinstance(data, dict):
             raise TypeError('data must be a dict, got: %r' % data)
         if metadata is not None:
             if not isinstance(metadata, dict):
                 raise TypeError('metadata must be a dict, got: %r' % data)
 
-    def publish(self, source, data, metadata=None):
+    def publish(self, data, metadata=None, source=None):
         """Publish data and metadata to all frontends.
 
         See the ``display_data`` message in the messaging documentation for
@@ -87,9 +70,6 @@ class DisplayPublisher(Configurable):
 
         Parameters
         ----------
-        source : str
-            A string that give the function or method that created the data,
-            such as 'IPython.core.page'.
         data : dict
             A dictionary having keys that are valid MIME types (like
             'text/plain' or 'image/svg+xml') and values that are the data for
@@ -104,6 +84,8 @@ class DisplayPublisher(Configurable):
             the data.  Metadata specific to each mime-type can be specified
             in the metadata dict with the same mime-type keys as
             the data itself.
+        source : str, deprecated
+            Unused.
         """
 
         # The default is to simply write the plain text data using io.stdout.
@@ -122,8 +104,8 @@ class CapturingDisplayPublisher(DisplayPublisher):
     """A DisplayPublisher that stores"""
     outputs = List()
 
-    def publish(self, source, data, metadata=None):
-        self.outputs.append((source, data, metadata))
+    def publish(self, data, metadata=None, source=None):
+        self.outputs.append((data, metadata))
     
     def clear_output(self, wait=False):
         super(CapturingDisplayPublisher, self).clear_output(wait)
@@ -132,7 +114,7 @@ class CapturingDisplayPublisher(DisplayPublisher):
         del self.outputs[:]
 
 
-def publish_display_data(source, data, metadata=None):
+def publish_display_data(data, metadata=None, source=None):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -152,9 +134,6 @@ def publish_display_data(source, data, metadata=None):
 
     Parameters
     ----------
-    source : str
-        A string that give the function or method that created the data,
-        such as 'IPython.core.page'.
     data : dict
         A dictionary having keys that are valid MIME types (like
         'text/plain' or 'image/svg+xml') and values that are the data for
@@ -168,12 +147,13 @@ def publish_display_data(source, data, metadata=None):
         arbitrary key, value pairs that frontends can use to interpret
         the data. mime-type keys matching those in data can be used
         to specify metadata about particular representations.
+    source : str, deprecated
+        Unused.
         """
     from IPython.core.interactiveshell import InteractiveShell
     InteractiveShell.instance().display_pub.publish(
-        source,
-        data,
-        metadata
+        data=data,
+        metadata=metadata,
     )
 
 
