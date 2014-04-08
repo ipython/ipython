@@ -257,9 +257,11 @@ class JSController(TestController):
         ret = super(JSController, self).wait(*pargs, **kwargs)
         # If this is a SlimerJS controller, echo the captured output.
         if self.engine == 'slimerjs':
-            print(self.stdout)
+            # Echo captured output.
+            stdout = bytes_to_str(self.stdout)
+            print(stdout)
             # Return True if a failure occured.
-            return self.slimer_failure.search(strip_ansi(self.stdout))
+            return self.slimer_failure.search(strip_ansi(stdout))
         else:
             return ret
     
