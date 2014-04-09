@@ -417,6 +417,12 @@ casper.cell_has_class = function(index, classes) {
     }, {i : index, c: classes});
 };
 
+casper.is_cell_rendered = function (index, msg) {
+    return this.evaluate(function(i) {
+        return !!IPython.notebook.get_cell(i).rendered;
+    }, {i:i});
+};
+
 casper.assert_colors_equal = function (hex_color, local_color, msg) {
     // Tests to see if two colors are equal.
     //
