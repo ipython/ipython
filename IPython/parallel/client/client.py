@@ -922,6 +922,15 @@ class Client(HasTraits):
         else:
             return self.direct_view(key)
 
+    def __iter__(self):
+        """Since we define getitem, Client is iterable
+
+        but unless we also define __iter__, it won't work correctly unless engine IDs
+        start at zero and are continuous.
+        """
+        for eid in self.ids:
+            yield self.direct_view(eid)
+
     #--------------------------------------------------------------------------
     # Begin public methods
     #--------------------------------------------------------------------------
