@@ -387,7 +387,7 @@ class FileNotebookManager(NotebookManager):
 
         # Move the notebook file
         try:
-            os.rename(old_os_path, new_os_path)
+            shutil.move(old_os_path, new_os_path)
         except Exception as e:
             raise web.HTTPError(500, u'Unknown error renaming notebook: %s %s' % (old_os_path, e))
 
@@ -399,11 +399,11 @@ class FileNotebookManager(NotebookManager):
             new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, new_path)
             if os.path.isfile(old_cp_path):
                 self.log.debug("Renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
-                os.rename(old_cp_path, new_cp_path)
+                shutil.move(old_cp_path, new_cp_path)
 
         # Move the .py script
         if self.save_script:
-            os.rename(old_py_path, new_py_path)
+            shutil.move(old_py_path, new_py_path)
   
     # Checkpoint-related utilities
     
