@@ -12,9 +12,10 @@ to backport PR #123 onto branch 0.13.1
 
 or
 
-    python tools/backport_pr.py 1.x
+    python tools/backport_pr.py 2.1
 
-to see what PRs are marked for backport that have yet to be applied.
+to see what PRs are marked for backport with milestone=2.1 that have yet to be applied
+to branch 2.x.
 
 """
 
@@ -148,9 +149,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if len(sys.argv) < 3:
-        branch = sys.argv[1]
+        milestone = sys.argv[1]
+        branch = milestone.split('.')[0] + '.x'
         already = already_backported(branch)
-        should = should_backport("backport-1.2")
+        should = should_backport(milestone=milestone)
         print ("The following PRs should be backported:")
         for pr in sorted(should.difference(already)):
             print (pr)
