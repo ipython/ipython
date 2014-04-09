@@ -43,6 +43,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
     _executing = False
     _execution_state = Unicode('')
+    _pending_clearoutput = False
     kernel_timeout = Float(60, config=True,
         help="""Timeout for giving up on a kernel (in seconds).
         
@@ -241,13 +242,22 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self._execution_state = sub_msg["content"]["execution_state"]
                 elif msg_type == 'stream':
                     if sub_msg["content"]["name"] == "stdout":
+                        if self._pending_clearoutput:
+                            print("\r", file=io.stdout, end="")
+                            self._pending_clearoutput = False
                         print(sub_msg["content"]["data"], file=io.stdout, end="")
                         io.stdout.flush()
                     elif sub_msg["content"]["name"] == "stderr" :
+                        if self._pending_clearoutput:
+                            print("\r", file=io.stderr, end="")
+                            self._pending_clearoutput = False
                         print(sub_msg["content"]["data"], file=io.stderr, end="")
                         io.stderr.flush()
 
                 elif msg_type == 'pyout':
+                    if self._pending_clearoutput:
+                        print("\r", file=io.stdout, end="")
+                        self._pending_clearoutput = False
                     self.execution_count = int(sub_msg["content"]["execution_count"])
                     format_dict = sub_msg["content"]["data"]
                     self.handle_rich_data(format_dict)
@@ -266,6 +276,12 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                         # if it was an image, we handled it by now
                         if 'text/plain' in data:
                             print(data['text/plain'])
+
+                elif msg_type == 'clear_output':
+                    if sub_msg["content"]["wait"]:
+                        self._pending_clearoutput = True
+                    else:
+                        print("\r", file=io.stdout, end="")
 
     _imagemime = {
         'image/png': 'png',
