@@ -270,6 +270,7 @@ extras_require = dict(
     zmq = ['pyzmq>=2.1.11'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1'],
+    terminal = [],
     notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
     nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
 )
@@ -282,9 +283,13 @@ for deps in extras_require.values():
 extras_require['all'] = everything
 
 install_requires = []
+
+# add readline
 if sys.platform == 'darwin':
     if any(arg.startswith('bdist') for arg in sys.argv) or not setupext.check_for_readline():
         install_requires.append('gnureadline')
+elif sys.platform.startswith('win'):
+    extras_require['terminal'].append('pyreadline>=2.0')
 
 
 if 'setuptools' in sys.modules:
