@@ -135,6 +135,7 @@ class TestController(object):
 
     __del__ = cleanup
 
+
 class PyTestController(TestController):
     """Run Python tests using IPython.testing.iptest"""
     #: str, Python command to execute in subprocess
@@ -201,6 +202,7 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch(buffer_output=buffer_output)
 
+
 js_prefix = 'js/'
 
 def get_js_test_dir():
@@ -222,7 +224,7 @@ class JSController(TestController):
         self.engine = engine
         self.section = section
         self.enabled = enabled
-		self.slimer_failure = re.compile('^FAIL.*', flags=re.MULTILINE)
+        self.slimer_failure = re.compile('^FAIL.*', flags=re.MULTILINE)
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
         test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
@@ -264,7 +266,7 @@ class JSController(TestController):
             return self.slimer_failure.search(strip_ansi(stdout))
         else:
             return ret
-    
+
     def print_extra_info(self):
         print("Running tests with notebook directory %r" % self.nbdir.name)
 
