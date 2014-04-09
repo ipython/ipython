@@ -453,18 +453,15 @@ casper.assert_colors_equal = function (hex_color, local_color, msg) {
 
 casper.notebook_test = function(test) {
     // Wrap a notebook test to reduce boilerplate.
-    //
-    // If you want to read parameters from the commandline, use the following
-    // (i.e. value=):
-    // if (casper.cli.options.value) {
-    //     casper.exit(1);
-    // }
     this.open_new_notebook();
 
     // Echo whether or not we are running this test using SlimerJS
     if (this.evaluate(function(){
         return typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-    })) { console.log('This test is running in SlimerJS.'); }
+    })) { 
+        console.log('This test is running in SlimerJS.'); 
+        this.slimerjs = true;
+    }
     
     // Make sure to remove the onbeforeunload callback.  This callback is 
     // responsable for the "Are you sure you want to quit?" type messages.
