@@ -65,20 +65,22 @@ var IPython = (function (IPython) {
      */
     ToolBar.prototype.add_buttons_group = function (list, group_id) {
         var btn_group = $('<div/>').addClass("btn-group");
-        if( group_id != undefined ) {
+        if( group_id !== undefined ) {
             btn_group.attr('id',group_id);
         }
-        for(var el in list) {
+        var el;
+        for(var i=0; i < list.length; i++) {
+            el = list[i];
             var button  = $('<button/>')
                 .addClass('btn')
-                .attr("title", list[el].label)
+                .attr("title", el.label)
                 .append(
-                    $("<i/>").addClass(list[el].icon)
+                    $("<i/>").addClass(el.icon)
                 );
-            var id = list[el].id;
-            if( id != undefined )
+            var id = el.id;
+            if( id !== undefined )
                 button.attr('id',id);
-            var fun = list[el].callback;
+            var fun = el.callback;
             button.click(fun);
             btn_group.append(button);
         }
@@ -96,7 +98,7 @@ var IPython = (function (IPython) {
      */
     ToolBar.prototype.toggle = function () {
         this.element.toggle();
-        if (IPython.layout_manager != undefined) {
+        if (IPython.layout_manager !== undefined) {
             IPython.layout_manager.do_resize();
         }
     };

@@ -503,8 +503,8 @@ var IPython = (function (IPython) {
     };
     
     OutputArea.prototype.append_mime_type = function (json, element, handle_inserted) {
-        for (var type_i in OutputArea.display_order) {
-            var type = OutputArea.display_order[type_i];
+        for (var i=0; i < OutputArea.display_order.length; i++) {
+            var type = OutputArea.display_order[i];
             var append = OutputArea.append_map[type];
             if ((json[type] !== undefined) && append) {
                 var value = json[type];
