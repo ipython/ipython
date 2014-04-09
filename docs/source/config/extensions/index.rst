@@ -84,7 +84,9 @@ Extensions bundled with IPython
 
    autoreload
    cythonmagic
-   octavemagic
    rmagic
    storemagic
    sympyprinting
+
+* ``octavemagic`` used to be bundled, but is now part of `oct2py <http://blink1073.github.io/oct2py/docs/>`_.
+  Use ``%load_ext oct2py.ipython`` to load it.

@@ -143,7 +143,6 @@ have['qt'] = test_for('IPython.external.qt')
 have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
-have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
 have['requests'] = test_for('requests')
@@ -250,9 +249,6 @@ sec = test_sections['extensions']
 if not have['cython']:
     sec.exclude('cythonmagic')
     sec.exclude('tests.test_cythonmagic')
-if not have['oct2py']:
-    sec.exclude('octavemagic')
-    sec.exclude('tests.test_octavemagic')
 if not have['rpy2'] or not have['numpy']:
     sec.exclude('rmagic')
     sec.exclude('tests.test_rmagic')
