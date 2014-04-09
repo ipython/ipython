@@ -13,15 +13,16 @@ var IPython = (function (IPython) {
             str = '%'+str ;
         }
         return str;
-    }
+    };
 
     function _existing_completion(item, completion_array){
-        for( var c in completion_array ) {
-            if(completion_array[c].trim().substr(-item.length) == item)
-            { return true; }
+        for( var i=0; i < completion_array.length; i++) {
+            if (completion_array[i].trim().substr(-item.length) == item) {
+                return true;
+            }
         }
-       return false;
-    }
+        return false;
+    };
 
     // what is the common start of all completions
     function shared_start(B, drop_prct) {
@@ -164,9 +165,9 @@ var IPython = (function (IPython) {
         var filtered_results = [];
         //remove results from context completion
         //that are already in kernel completion
-        for (var elm in results) {
-            if (!_existing_completion(results[elm].str, matches)) {
-                filtered_results.push(results[elm]);
+        for (var i=0; i < results.length; i++) {
+            if (!_existing_completion(results[i].str, matches)) {
+                filtered_results.push(results[i]);
             }
         }
 
