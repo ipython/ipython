@@ -119,7 +119,7 @@ var IPython = (function (IPython) {
         s = s.replace(/-$/, 'minus'); // catch shortcuts using '-' key
         var keys = s.split('-');
         var k, i;
-        for (i in keys) {
+        for (i=0; i < keys.length; i++) {
             k = keys[i];
             if ( k.length == 1 ) {
                 keys[i] = "<code><strong>" + k + "</strong></code>";
