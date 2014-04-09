@@ -58,7 +58,7 @@ class APITest(NotebookTestBase):
         nb.worksheets = [ws]
         ws.cells.append(new_heading_cell(u'Created by test ³'))
         cc1 = new_code_cell(input=u'print(2*6)')
-        cc1.outputs.append(new_output(output_text=u'12'))
+        cc1.outputs.append(new_output(output_text=u'12', output_type='stream'))
         cc1.outputs.append(new_output(output_png=png_green_pixel, output_type='pyout'))
         ws.cells.append(cc1)
         
