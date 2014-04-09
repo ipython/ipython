@@ -61,10 +61,8 @@ casper.notebook_test(function () {
             colors[1] = window.getComputedStyle(svg2).fill;
             return colors;
         });
-
-
-        this.test.assert(['#ff0000', 'rgb(255, 0, 0)'].indexOf(colors && colors[0]) > -1, 'display_svg() First svg should be red');
-        this.test.assert(['#000000', 'rgb(0, 0, 0)'].indexOf(colors && colors[1]) > -1, 'display_svg() Second svg should be black');
+        this.assert_colors_equal('#ff0000', colors && colors[0], 'display_svg() First svg should be red');
+        this.assert_colors_equal('#000000', colors && colors[1], 'display_svg() Second svg should be black');
     });
 
     // now ensure that we can pass the same metadata dict to plain old display()
@@ -91,8 +89,7 @@ casper.notebook_test(function () {
             colors[1] = window.getComputedStyle(svg2).fill;
             return colors;
         });
-
-        this.test.assert(['#ff0000', 'rgb(255, 0, 0)'].indexOf(colors && colors[0]) > -1, 'display() First svg should be red');
-        this.test.assert(['#000000', 'rgb(0, 0, 0)'].indexOf(colors && colors[1]) > -1, 'display() Second svg should be black');
+        this.assert_colors_equal('#ff0000', colors && colors[0], 'display() First svg should be red');
+        this.assert_colors_equal('#000000', colors && colors[1], 'display() Second svg should be black');
     });
 });
