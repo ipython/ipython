@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import sys
 
 pjoin = os.path.join
 
@@ -50,8 +51,26 @@ def _is_kernel_dir(path):
 def _list_kernels_in(dir):
     if dir is None:
         return {}
+    if not os.path.isdir(dir):
+        os.makedirs(dir, mode=0o644)
     return {f.lower(): pjoin(dir, f) for f in os.listdir(dir)
                         if _is_kernel_dir(pjoin(dir, f))}
+
+def _make_native_kernel_dir():
+    path = pjoin(USER_KERNEL_DIR, NATIVE_KERNEL_NAME)
+    os.mkdir(path)
+    with io.open(pjoin(path, 'kernel.json'), 'w', encoding='utf-8') as f:
+        json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
+                           'from IPython.kernel.zmq.kernelapp import main; main()',
+                            '-f', '{connection_file}'],
+                   'display_name': 'Python 3' if PY3 else 'Python 2',
+                   'language': 'python',
+                   'codemirror_mode': {'name': 'python',
+                                       'version': sys.version_info[0]},
+                  },
+                  f)
+    # TODO: Copy icons into directory
+    return path
 
 def list_kernel_specs():
     """Returns a dict mapping kernels to resource directories."""
@@ -59,7 +78,7 @@ def list_kernel_specs():
     d.update(_list_kernels_in(USER_KERNEL_DIR))
     
     if NATIVE_KERNEL_NAME not in d:
-        d[NATIVE_KERNEL_NAME] = ''  # TODO: native kernel resource directory
+        d[NATIVE_KERNEL_NAME] = _make_native_kernel_dir()
     return d
 
 def get_kernel_spec(kernel_name):
