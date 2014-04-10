@@ -209,7 +209,7 @@ class RMagics(Magics):
         old_writeconsole = ri.get_writeconsole()
         ri.set_writeconsole(self.write_console)
         try:
-            res = ro.r("withVisible({%s})" % line)
+            res = ro.r("withVisible({%s\n})" % line)
             value = res[0] #value (R object)
             visible = ro.conversion.ri2py(res[1])[0] #visible (boolean)
         except (ri.RRuntimeError, ValueError) as exception:
