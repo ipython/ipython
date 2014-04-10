@@ -204,7 +204,7 @@ var IPython = (function (IPython) {
         item.data('name', name);
         item.data('path', path);
         item.find(".item_name").text(name);
-        item.find(".item_icon").addClass('icon-folder-open');
+        item.find(".item_icon").addClass('folder_icon');
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
@@ -221,7 +221,7 @@ var IPython = (function (IPython) {
         item.data('nbname', nbname);
         item.data('path', path);
         item.find(".item_name").text(nbname);
-        item.find(".item_icon").addClass('icon-book');
+        item.find(".item_icon").addClass('notebook_icon');
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
@@ -236,7 +236,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_name_input = function (nbname, item) {
         item.data('nbname', nbname);
-        item.find(".item_icon").addClass('icon-book');
+        item.find(".item_icon").addClass('notebook_icon');
         item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("nbname_input")
