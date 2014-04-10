@@ -40,15 +40,23 @@ class KernelSpec(HasTraits):
     
     @classmethod
     def from_resource_dir(cls, resource_dir):
-        kernel_file = os.path.join(resource_dir, 'kernel.json')
+        """Create a KernelSpec object by reading kernel.json
+        
+        Pass the path to the *directory* containing kernel.json.
+        """
+        kernel_file = pjoin(resource_dir, 'kernel.json')
         with io.open(kernel_file, 'r', encoding='utf-8') as f:
             kernel_dict = json.load(f)
         return cls(resource_dir=resource_dir, **kernel_dict)
 
 def _is_kernel_dir(path):
+    """Is ``path`` a kernel directory?"""
     return os.path.isdir(path) and os.path.isfile(pjoin(path, 'kernel.json'))
 
 def _list_kernels_in(dir):
+    """Ensure dir exists, and return a mapping of kernel names to resource
+    directories from it.
+    """
     if dir is None:
         return {}
     if not os.path.isdir(dir):
@@ -57,6 +65,11 @@ def _list_kernels_in(dir):
                         if _is_kernel_dir(pjoin(dir, f))}
 
 def _make_native_kernel_dir():
+    """Makes a kernel directory for the native kernel.
+    
+    The native kernel is the kernel using the same Python runtime as this
+    process. This will put its informatino in the user kernels directory.
+    """
     path = pjoin(USER_KERNEL_DIR, NATIVE_KERNEL_NAME)
     os.mkdir(path)
     with io.open(pjoin(path, 'kernel.json'), 'w', encoding='utf-8') as f:
@@ -73,16 +86,17 @@ def _make_native_kernel_dir():
     return path
 
 def list_kernel_specs():
-    """Returns a dict mapping kernels to resource directories."""
+    """Returns a dict mapping kernel names to resource directories."""
     d = _list_kernels_in(SYSTEM_KERNEL_DIR)
     d.update(_list_kernels_in(USER_KERNEL_DIR))
     
     if NATIVE_KERNEL_NAME not in d:
         d[NATIVE_KERNEL_NAME] = _make_native_kernel_dir()
     return d
+    # TODO: Caching?
 
 def get_kernel_spec(kernel_name):
-    """Returns a KernelSpec instance for the given kernel_name.
+    """Returns a :class:`KernelSpec` instance for the given kernel_name.
     
     Raises KeyError if the given kernel name is not found.
     """
