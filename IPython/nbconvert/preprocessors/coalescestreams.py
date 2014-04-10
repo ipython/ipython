@@ -70,7 +70,7 @@ def coalesce_streams(cell, resources, index):
     
     # process \r characters
     for output in new_outputs:
-        if output.output_type == 'stream':
+        if output.output_type == 'stream' and '\r' in output.text:
             output.text = cr_pat.sub('', output.text)
 
     cell.outputs = new_outputs
