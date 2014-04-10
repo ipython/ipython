@@ -122,7 +122,7 @@ def _load_ips_ip():
             addrs.append(blocks[1].split('/')[0])
     _populate_from_list(addrs)
 
-_ipconfig_ipv4_pat = re.compile(r'ipv4.*(\d+\.\d+\.\d+\.\d+)$', re.IGNORECASE)
+_ipconfig_ipv4_pat = re.compile(r'ipv4.*?(\d+\.\d+\.\d+\.\d+)$', re.IGNORECASE)
 
 def _load_ips_ipconfig():
     """load ip addresses from `ipconfig` output (Windows)"""
