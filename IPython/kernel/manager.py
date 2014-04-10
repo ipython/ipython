@@ -18,6 +18,7 @@ import re
 import signal
 import sys
 import time
+import warnings
 
 import zmq
 
@@ -31,6 +32,7 @@ from IPython.utils.traitlets import (
 from IPython.kernel import (
     make_ipkernel_cmd,
     launch_kernel,
+    kernelspec,
 )
 from .connect import ConnectionFileMixin
 from .zmq.session import Session
@@ -67,9 +69,22 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     # The kernel process with which the KernelManager is communicating.
     # generally a Popen instance
     kernel = Any()
+    
+    kernel_name = Unicode('native')
+    
+    kernel_spec = Instance(kernelspec.KernelSpec)
+    
+    def _kernel_spec_default(self):
+        return kernelspec.get_kernel_spec(self.kernel_name)
+    
+    def _kernel_name_changed(self, name, old, new):
+        self.kernel_spec = kernelspec.get_kernel_spec(new)
+        self.ipython_kernel = new in {'native', 'python2', 'python3'}
 
     kernel_cmd = List(Unicode, config=True,
-        help="""The Popen Command to launch the kernel.
+        help="""DEPRECATED: Use kernel_name instead.
+        
+        The Popen Command to launch the kernel.
         Override this if you have a custom kernel.
         If kernel_cmd is specified in a configuration file,
         IPython does not pass any arguments to the kernel,
@@ -81,6 +96,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     )
 
     def _kernel_cmd_changed(self, name, old, new):
+        warnings.warn("Setting kernel_cmd is deprecated, use kernel_spec to "
+                      "start different kernels.")
         self.ipython_kernel = False
 
     ipython_kernel = Bool(True)
@@ -150,11 +167,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         """replace templated args (e.g. {connection_file})"""
         if self.kernel_cmd:
             cmd = self.kernel_cmd
-        else:
+        elif self.kernel_name == 'native':
+            # The native kernel gets special handling
             cmd = make_ipkernel_cmd(
                 'from IPython.kernel.zmq.kernelapp import main; main()',
                 **kw
             )
+        else:
+            cmd = self.kernel_spec.argv
+
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
         
