@@ -294,7 +294,7 @@ aliases.update({
 aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir', u'profile', u'profile-dir']
+                    u'notebook-dir', u'profile', u'profile-dir', 'browser']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
