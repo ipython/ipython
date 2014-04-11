@@ -79,7 +79,7 @@ def _make_native_kernel_dir():
                    'codemirror_mode': {'name': 'python',
                                        'version': sys.version_info[0]},
                   },
-                  f)
+                  f, indent=1)
     # TODO: Copy icons into directory
     return path
 
