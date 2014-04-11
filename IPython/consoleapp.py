@@ -98,6 +98,7 @@ app_aliases = dict(
     existing = 'IPythonConsoleApp.existing',
     f = 'IPythonConsoleApp.connection_file',
 
+    kernel = 'IPythonConsoleApp.kernel_name',
 
     ssh = 'IPythonConsoleApp.sshserver',
 )
@@ -173,6 +174,9 @@ class IPythonConsoleApp(ConnectionFileMixin):
 
     existing = CUnicode('', config=True,
         help="""Connect to an already running kernel""")
+
+    kernel_name = Unicode('native', config=True,
+        help="""The name of the default kernel to start.""")
 
     confirm_exit = CBool(True, config=True,
         help="""
@@ -335,6 +339,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
                                 connection_file=self.connection_file,
+                                kernel_name=self.kernel_name,
                                 parent=self,
         )
         self.kernel_manager.client_factory = self.kernel_client_class
