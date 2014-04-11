@@ -31,7 +31,7 @@ import tempfile
 import zmq
 
 # external imports
-from IPython.external.ssh import tunnel
+from IPython.lib.ssh import tunnel
 
 # IPython imports
 from IPython.config import Configurable

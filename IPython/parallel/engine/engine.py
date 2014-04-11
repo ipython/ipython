@@ -22,7 +22,7 @@ from getpass import getpass
 import zmq
 from zmq.eventloop import ioloop, zmqstream
 
-from IPython.external.ssh import tunnel
+from IPython.lib.ssh import tunnel
 # internal
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.traitlets import (
