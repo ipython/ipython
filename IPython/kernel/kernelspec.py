@@ -76,7 +76,7 @@ def _make_native_kernel_dir():
     """
     path = pjoin(USER_KERNEL_DIR, NATIVE_KERNEL_NAME)
     os.makedirs(path, mode=0o755)
-    with io.open(pjoin(path, 'kernel.json'), 'w', encoding='utf-8') as f:
+    with open(pjoin(path, 'kernel.json'), 'w') as f:
         json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
                            'from IPython.kernel.zmq.kernelapp import main; main()',
                             '-f', '{connection_file}'],
