@@ -26,7 +26,7 @@ class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
     language = Unicode()
-    codemirror_mode = Unicode()
+    codemirror_mode = None
     
     resource_dir = Unicode()
     
@@ -57,10 +57,8 @@ def _list_kernels_in(dir):
     """Ensure dir exists, and return a mapping of kernel names to resource
     directories from it.
     """
-    if dir is None:
+    if dir is None or not os.path.isdir(dir):
         return {}
-    if not os.path.isdir(dir):
-        os.makedirs(dir, mode=0o644)
     return {f.lower(): pjoin(dir, f) for f in os.listdir(dir)
                         if _is_kernel_dir(pjoin(dir, f))}
 
@@ -71,7 +69,7 @@ def _make_native_kernel_dir():
     process. This will put its informatino in the user kernels directory.
     """
     path = pjoin(USER_KERNEL_DIR, NATIVE_KERNEL_NAME)
-    os.mkdir(path)
+    os.makedirs(path, mode=0o755)
     with io.open(pjoin(path, 'kernel.json'), 'w', encoding='utf-8') as f:
         json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
                            'from IPython.kernel.zmq.kernelapp import main; main()',
