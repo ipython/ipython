@@ -19,6 +19,12 @@ if os.name == 'nt':
         SYSTEM_KERNEL_DIR = None
 else:
     SYSTEM_KERNEL_DIR = "/usr/share/ipython/kernels"
+
+# List of kernel directories to search. Later ones take priority over earlier.
+kernel_dirs = [
+    SYSTEM_KERNEL_DIR,
+    USER_KERNEL_DIR,
+]
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
@@ -85,8 +91,9 @@ def _make_native_kernel_dir():
 
 def list_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""
-    d = _list_kernels_in(SYSTEM_KERNEL_DIR)
-    d.update(_list_kernels_in(USER_KERNEL_DIR))
+    d = {}
+    for kernel_dir in kernel_dirs:
+        d.update(_list_kernels_in(kernel_dir))
     
     if NATIVE_KERNEL_NAME not in d:
         d[NATIVE_KERNEL_NAME] = _make_native_kernel_dir()
