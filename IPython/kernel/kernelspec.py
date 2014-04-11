@@ -89,7 +89,7 @@ def _make_native_kernel_dir():
     # TODO: Copy icons into directory
     return path
 
-def list_kernel_specs():
+def find_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""
     d = {}
     for kernel_dir in kernel_dirs:
@@ -107,6 +107,6 @@ def get_kernel_spec(kernel_name):
     """
     if kernel_name == 'native':
         kernel_name = NATIVE_KERNEL_NAME
-    d = list_kernel_specs()
+    d = find_kernel_specs()
     resource_dir = d[kernel_name.lower()]
     return KernelSpec.from_resource_dir(resource_dir)
