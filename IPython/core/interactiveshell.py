@@ -1447,6 +1447,12 @@ class InteractiveShell(SingletonConfigurable):
                 ospace = 'IPython internal'
                 ismagic = True
 
+        if not found:
+            obj = self.find_keyword(oname)
+            if obj is not None:
+                found = True
+                ospace = 'Python keyword'
+
         # Last try: special-case some literals like '', [], {}, etc:
         if not found and oname_head in ["''",'""','[]','{}','()']:
             obj = eval(oname_head)
@@ -1511,6 +1517,10 @@ class InteractiveShell(SingletonConfigurable):
                 )
             else:
                 return oinspect.object_info(name=oname, found=False)
+
+    def find_keyword(self, keyword):
+        from IPython.core.keywords_documentation import keywords_documentation
+        return keywords_documentation.get(keyword, None)
 
     #-------------------------------------------------------------------------
     # Things related to history management
