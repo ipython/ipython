@@ -23,8 +23,10 @@ import ast
 import atexit
 import functools
 import os
+import pydoc
 import re
 import runpy
+from string import strip, join, split
 import sys
 import tempfile
 import types
@@ -1519,8 +1521,11 @@ class InteractiveShell(SingletonConfigurable):
                 return oinspect.object_info(name=oname, found=False)
 
     def find_keyword(self, keyword):
-        from IPython.core.keywords_documentation import keywords_documentation
-        return keywords_documentation.get(keyword, None)
+        import StringIO
+        result = StringIO.StringIO()
+        help = Helper(output=result)
+        help.help(keyword)
+        return DocObject(result.getvalue())
 
     #-------------------------------------------------------------------------
     # Things related to history management
@@ -3220,6 +3225,82 @@ class InteractiveShell(SingletonConfigurable):
     def cleanup(self):
         self.restore_sys_module_state()
 
+class Helper(pydoc.Helper):
+    """
+    A subclass of pydoc's Helper with customizable output stream
+
+    pydoc's Helper class prints the documentation to stdout by
+    default. It can almost be customized to print to any stream
+    instead, except for one method which is adapted here, at the price
+    of some code duplication.
+    """
+
+    def help(self, request):
+        # This is pydoc.Helper.help, up to calling self.doc instead of doc,
+        # and supporting Unicode strings
+        if isinstance(request, basestring):
+            request = request.strip()
+            if request == 'help': self.intro()
+            elif request == 'keywords': self.listkeywords()
+            elif request == 'symbols': self.listsymbols()
+            elif request == 'topics': self.listtopics()
+            elif request == 'modules': self.listmodules()
+            elif request[:8] == 'modules ':
+                self.listmodules(split(request)[1])
+            elif request in self.symbols: self.showsymbol(request)
+            elif request in self.keywords: self.showtopic(request)
+            elif request in self.topics: self.showtopic(request)
+            elif request: self.doc(request, 'Help on %s:')
+        elif isinstance(request, Helper): self()
+        else: self.doc(request, 'Help on %s:')
+        self.output.write('\n')
+
+    def doc(self, thing, title='Python Library Documentation: %s', forceload=0):
+        """
+        Write text documentation, given an object or a path to an object.
+        """
+        # This is pydoc.doc except that it writes to self.output instead of calling a pager
+        # and using Python'3 print syntax
+        try:
+            self.output.write(pydoc.render_doc(thing, title, forceload))
+        except (ImportError, pydoc.ErrorDuringImport), value:
+            print(value)
+
+    def showtopic(self, topic, more_xrefs=''):
+        try:
+            import pydoc_data.topics
+        except ImportError:
+            self.output.write('''
+Sorry, topic and keyword documentation is not available because the
+module "pydoc_data.topics" could not be found.
+''')
+            return
+        target = self.topics.get(topic, self.keywords.get(topic))
+        if not target:
+            self.output.write('no documentation found for %s\n' % repr(topic))
+            return
+        if type(target) is type(''):
+            return self.showtopic(target, more_xrefs)
+
+        label, xrefs = target
+        try:
+            doc = pydoc_data.topics.topics[label]
+        except KeyError:
+            self.output.write('no documentation found for %s\n' % repr(topic))
+            return
+        self.output.write(strip(doc) + '\n')
+        if more_xrefs:
+            xrefs = (xrefs or '') + ' ' + more_xrefs
+        if xrefs:
+            import StringIO, formatter
+            buffer = StringIO.StringIO()
+            formatter.DumbWriter(buffer).send_flowing_data(
+                'Related help topics: ' + join(split(xrefs), ', ') + '\n')
+            self.output.write('\n%s\n' % buffer.getvalue())
+
+class DocObject:
+    def __init__(self, doc):
+        self.__doc__ = doc
 
 class InteractiveShellABC(with_metaclass(abc.ABCMeta, object)):
     """An abstract base class for InteractiveShell."""
