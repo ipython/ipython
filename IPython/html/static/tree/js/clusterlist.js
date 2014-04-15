@@ -104,7 +104,7 @@ var IPython = (function (IPython) {
         var input = $('<input/>').attr('type','number')
                 .attr('min',1)
                 .attr('size',3)
-                .addClass('engine_num_input');
+                .addClass('engine_num_input form-control');
         engines_col.append(input);
         var start_button = $('<button/>').addClass("btn btn-default btn-xs").text("Start");
         var action_col = $('<div/>').addClass('action_col col-md-2').append(
