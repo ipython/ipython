@@ -37,7 +37,6 @@ var IPython = (function (IPython) {
         this.inner_element = $('<div/>').addClass('celltoolbar')
         this.element = $('<div/>').addClass('ctb_hideshow')
             .append(this.inner_element);
-        this.show();
     };
 
 
@@ -250,6 +249,7 @@ var IPython = (function (IPython) {
         // which is probably inner_element
         // or this.element.
         this.inner_element.empty();
+        this.ui_controls_list = [];
 
         var callbacks = CellToolbar._callback_dict;
         var preset = CellToolbar._ui_controls_list;
@@ -267,12 +267,20 @@ var IPython = (function (IPython) {
             var local_div = $('<div/>').addClass('button_container');
             try {
                 callback(local_div, this.cell, this);
+                this.ui_controls_list.push(key);
             } catch (e) {
                 console.log("Error in cell toolbar callback " + key, e);
                 continue;
             }
             // only append if callback succeeded.
             this.inner_element.append(local_div);
+        }
+
+        // If there are no controls hide the toolbar.
+        if (this.ui_controls_list.length) {
+            this.show();
+        } else {
+            this.hide();
         }
     };
 
