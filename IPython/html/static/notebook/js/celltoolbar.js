@@ -276,11 +276,11 @@ var IPython = (function (IPython) {
             this.inner_element.append(local_div);
         }
 
-        // If there are no controls hide the toolbar.
-        if (this.ui_controls_list.length) {
-            this.show();
-        } else {
+        // If there are no controls or the cell is a rendered TextCell hide the toolbar.
+        if (!this.ui_controls_list.length || (this.cell instanceof IPython.TextCell && this.cell.rendered)) {
             this.hide();
+        } else {
+            this.show();
         }
     };
 
