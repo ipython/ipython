@@ -15,7 +15,7 @@ casper.notebook_test(function () {
     var selection_values = 'abcd';
     var check_state = function(context, index, state){
         if (0 <= index && index < selection_values.length) {
-            var multibtn_state = context.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(' + (index + 1) + ')', 'hasClass', ['active']);
+            var multibtn_state = context.cell_element_function(selection_index, multibtn_selector + ' .btn.btn-default:nth-child(' + (index + 1) + ')', 'hasClass', ['active']);
             var radio_state = context.cell_element_function(selection_index, radio_selector + ' .radio:nth-child(' + (index + 1) + ') input', 'prop', ['checked']);
             var list_val = context.cell_element_function(selection_index, list_selector, 'val');
             var combo_val = context.cell_element_function(selection_index, combo_selector, 'html');
@@ -105,7 +105,7 @@ casper.notebook_test(function () {
         this.test.assert(verify_selection(this, 2), 'List selection updated view states correctly.');
 
         // Verify that selecting a multibutton option updates all of the others.
-        this.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(4)', 'click');
+        this.cell_element_function(selection_index, multibtn_selector + ' .btn.btn-default:nth-child(4)', 'click');
     });
     this.wait_for_idle();
     this.then(function () {

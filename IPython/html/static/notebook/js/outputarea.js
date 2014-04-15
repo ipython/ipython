@@ -61,7 +61,7 @@ var IPython = (function (IPython) {
         this.wrapper.addClass('output_wrapper');
         this.element.addClass('output');
         
-        this.collapse_button.addClass("btn output_collapsed");
+        this.collapse_button.addClass("btn btn-default output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.text('. . .');
         

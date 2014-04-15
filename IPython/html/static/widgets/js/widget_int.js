@@ -274,7 +274,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .appendTo(this.$el);
             this.$el_to_style = this.$progress; // Set default element to style
             this.$bar = $('<div />')
-                .addClass('bar')
+                .addClass('progress-bar')
                 .css('width', '50%')
                 .appendTo(this.$progress);
             this.update(); // Set defaults.

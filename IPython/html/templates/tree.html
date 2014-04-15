@@ -30,7 +30,7 @@ data-notebook-path="{{notebook_path}}"
 
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
-        <div id="notebook_toolbar" class="row-fluid">
+        <div id="notebook_toolbar" class="row">
             <div class="span8">
                 <form id='alternate_upload'  class='alternate_upload' >
                     <span id="notebook_list_info" style="position:absolute" >
@@ -41,14 +41,14 @@ data-notebook-path="{{notebook_path}}"
             </div>
             <div class="span4 clearfix">
                 <span id="notebook_buttons" class="pull-right">
-                    <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
-                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="new_notebook" title="Create new notebook" class="btn btn-default btn-sm">New Notebook</button>
+                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-sm"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="notebook_list">
-          <div id="notebook_list_header" class="row-fluid list_header">
+          <div id="notebook_list_header" class="row list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
                     <li><a href="{{breadcrumbs[0][0]}}"><i class="icon-home"></i></a><span>/</span></li>
@@ -63,19 +63,19 @@ data-notebook-path="{{notebook_path}}"
     
     <div id="running" class="tab-pane">
 
-        <div id="running_toolbar" class="row-fluid">
+        <div id="running_toolbar" class="row">
             <div class="span8">
                 <span id="running_list_info">Currently running IPython notebooks</span>
             </div>
             <div class="span4" class="clearfix">
                 <span id="running_buttons" class="pull-right">
-                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-sm"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="running_list">
-            <div id="running_list_header" class="row-fluid list_header"> 
+            <div id="running_list_header" class="row list_header"> 
                 <div> There are no notebooks running. </div>
             </div> 
         </div>
@@ -83,19 +83,19 @@ data-notebook-path="{{notebook_path}}"
     
     <div id="clusters" class="tab-pane">
 
-        <div id="cluster_toolbar" class="row-fluid">
+        <div id="cluster_toolbar" class="row">
             <div class="span8">
                 <span id="cluster_list_info">IPython parallel computing clusters</span>
             </div>
             <div class="span4" class="clearfix">
                 <span id="cluster_buttons" class="pull-right">
-                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-sm"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="cluster_list">
-            <div id="cluster_list_header" class="row-fluid list_header">
+            <div id="cluster_list_header" class="row list_header">
                 <div class="profile_col span4">profile</div>
                 <div class="status_col span3">status</div>
                 <div class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</div>

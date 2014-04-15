@@ -300,7 +300,7 @@ class APITest(NotebookTestBase):
         saved = resp.json()
         self.assertEqual(saved['name'], 'a2.ipynb')
         self.assertEqual(saved['path'], 'foo/bar')
-        assert os.path.isfile(pjoin(self.notebook_dir.name,'foo','bar','a2.ipynb'))
+        assert os.path.isfile(pjoin(self.notebook_dir.name,'foo','progress-bar','a2.ipynb'))
         assert not os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'a.ipynb'))
         with assert_http_error(404):
             self.nb_api.read('a.ipynb', 'foo')

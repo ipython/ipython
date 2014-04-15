@@ -64,7 +64,7 @@
         button.click(function(){
                     var v = cell.metadata.foo;
                     cell.metadata.foo = !v;
-                    button.button("option","label",String(!v));
+                    button.button("option","label label-default",String(!v));
                 })
        button_container.append(button);
     }

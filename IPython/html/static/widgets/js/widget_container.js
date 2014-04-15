@@ -165,7 +165,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
             
             this.$show_button = $('<button />')
                 .html("&nbsp;")
-                .addClass('btn btn-info widget-modal-show')
+                .addClass('btn btn-default btn-info widget-modal-show')
                 .appendTo(this.$el)
                 .click(function(){
                     that.show();

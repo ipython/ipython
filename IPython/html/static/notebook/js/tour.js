@@ -112,13 +112,13 @@ var tour_steps = [
 var tour_style = "<div class='popover tour' style='position:relative'>\
   <div class='arrow'></div>\
     <div style='position:absolute; top:7px; right:7px'>\
-        <button class='btn btn-sm icon-remove' data-role='end'></button></div>\
+        <button class='btn btn-default btn-sm icon-remove' data-role='end'></button></div>\
   <h3 class='popover-title'></h3>\
   <div class='popover-content'></div>\
   <div class='popover-navigation'>\
-    <button class='btn btn-default icon-step-backward' data-role='prev'></button>\
-    <button class='btn btn-default icon-step-forward pull-right' data-role='next'></button>\
-    <button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
+    <button class='btn btn-default btn-default icon-step-backward' data-role='prev'></button>\
+    <button class='btn btn-default btn-default icon-step-forward pull-right' data-role='next'></button>\
+    <button id='tour-pause' class='btn btn-default btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
   </div>\
 </div>";
 

@@ -31,7 +31,7 @@ casper.notebook_test(function () {
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel'),
-            'Checkbox label exists.');
+            'Checkbox label label-default exists.');
 
         this.test.assert(this.cell_element_function(index, 
             '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel', 'html')=="Title",
