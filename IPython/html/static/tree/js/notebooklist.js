@@ -192,7 +192,7 @@ var IPython = (function (IPython) {
         var item = $('<div/>').addClass("list_item").addClass("row");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
-        item.append($("<div/>").addClass("span12").append(
+        item.append($("<div/>").addClass("col-md-12").append(
             $('<i/>').addClass('item_icon')
         ).append(
             $("<a/>").addClass("item_link").append(
