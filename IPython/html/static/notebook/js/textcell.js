@@ -407,11 +407,6 @@ var IPython = (function (IPython) {
     };
 
 
-    HeadingCell.prototype.set_rendered = function (html) {
-        this.element.find("div.text_cell_render").html(html);
-    };
-
-
     HeadingCell.prototype.get_rendered = function () {
         var r = this.element.find("div.text_cell_render");
         return r.children().first().html();
