@@ -54,7 +54,7 @@ var IPython = (function (IPython) {
 
 
 
-      
+
 
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {

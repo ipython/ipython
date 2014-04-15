@@ -17,87 +17,127 @@ var IPython = (function (IPython) {
 
     // Default keyboard shortcuts
 
-    var default_common_shortcuts = {
-        'shift' : {
+    var default_common_shortcuts = [
+        {
+            key_shortcut : 'shift',
             help    : '',
-            help_index : '',
             handler : function (event) {
                 // ignore shift keydown
                 return true;
             }
         },
-        'shift-enter' : {
+        {
+            key_shortcut : 'shift-enter',
             help    : 'run cell, select below',
-            help_index : 'ba',
             handler : function (event) {
                 IPython.notebook.execute_cell_and_select_below();
                 return false;
             }
         },
-        'ctrl-enter' : {
+        {
+            key_shortcut : 'ctrl-enter',
             help    : 'run cell',
-            help_index : 'bb',
             handler : function (event) {
                 IPython.notebook.execute_cell();
                 return false;
             }
         },
-        'alt-enter' : {
+        {
+            key_shortcut : 'alt-enter',
             help    : 'run cell, insert below',
-            help_index : 'bc',
             handler : function (event) {
                 IPython.notebook.execute_cell_and_insert_below();
                 return false;
             }
+        },
+        {
+            key_shortcut : 'shift-v',
+            help    : 'paste cell above',
+            handler : function (event) {
+                IPython.notebook.paste_cell_above();
+                return false;
+            }
+        },
+        {
+            key_shortcut : 'shift-o',
+            help    : 'toggle output scrolling',
+            handler : function (event) {
+                IPython.notebook.toggle_output_scroll();
+                return false;
+            }
+        },
+         {
+            key_shortcut : 'shift-m',
+            help    : 'merge cell below first',
+            handler : function (event) {
+                IPython.notebook.merge_cell_below();
+                return false;
+            }
+        },
+        {
+            key_shortcut : 'ctrl-j',
+            help    : 'move cell down',
+            handler : function (event) {
+                IPython.notebook.move_cell_down();
+                return false;
+            }
+        },
+        {
+            key_shortcut : 'ctrl-k',
+            help    : 'move cell up',
+            handler : function (event) {
+                IPython.notebook.move_cell_up();
+                return false;
+            }
         }
-    };
+    ];
 
     if (platform === 'MacOS') {
-        default_common_shortcuts['cmd-s'] =
+        default_common_shortcuts.push(
             {
+                key_shortcut : 'cmd-s',
                 help    : 'save notebook',
-                help_index : 'fb',
                 handler : function (event) {
                     IPython.notebook.save_checkpoint();
                     event.preventDefault();
                     return false;
                 }
-            };
+            });
     } else {
-        default_common_shortcuts['ctrl-s'] =
+        default_common_shortcuts.push(
             {
+                key_shortcut : 'cmd-s',
                 help    : 'save notebook',
-                help_index : 'fb',
                 handler : function (event) {
                     IPython.notebook.save_checkpoint();
                     event.preventDefault();
                     return false;
                 }
-            };
+            });
     }
 
     // Edit mode defaults
 
-    var default_edit_shortcuts = {
-        'esc' : {
+    var default_edit_shortcuts = [
+        {
+            key_shortcut : 'esc',
             help    : 'command mode',
-            help_index : 'aa',
             handler : function (event) {
                 IPython.notebook.command_mode();
                 return false;
             }
         },
-        'ctrl-m' : {
+        {
+            key_shortcut : 'ctrl-m',
             help    : 'command mode',
-            help_index : 'ab',
             handler : function (event) {
                 IPython.notebook.command_mode();
                 return false;
             }
         },
-        'up' : {
+        {
+            key_shortcut : 'up',
             help    : '',
-            help_index : '',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 var cell = IPython.notebook.get_cell(index);
@@ -118,9 +158,9 @@ var IPython = (function (IPython) {
                 }
             }
         },
-        'down' : {
+        {
+            key_shortcut : 'down',
             help    : '',
-            help_index : '',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 var cell = IPython.notebook.get_cell(index);
@@ -141,38 +181,38 @@ var IPython = (function (IPython) {
                 }
             }
         },
-        'ctrl-shift--' : {
+        {
+            key_shortcut : 'ctrl-shift--',
             help    : 'split cell',
-            help_index : 'ea',
             handler : function (event) {
                 IPython.notebook.split_cell();
                 return false;
             }
         },
-        'ctrl-shift-subtract' : {
+        {
+            key_shortcut :  'ctrl-shift-subtract',
             help    : '',
-            help_index : 'eb',
             handler : function (event) {
                 IPython.notebook.split_cell();
                 return false;
             }
-        },
-    };
+        }
+    ];
 
     // Command mode defaults
 
-    var default_command_shortcuts = {
-        'enter' : {
+    var default_command_shortcuts = [
+        {
+            key_shortcut : 'enter',
             help    : 'edit mode',
-            help_index : 'aa',
             handler : function (event) {
                 IPython.notebook.edit_mode();
                 return false;
             }
         },
-        'up' : {
+        {
+            key_shortcut : 'up',
             help    : 'select previous cell',
-            help_index : 'da',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
@@ -182,9 +222,9 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'down' : {
+        {
+            key_shortcut : 'down',
             help    : 'select next cell',
-            help_index : 'db',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
@@ -194,9 +234,9 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'k' : {
+        {
+            key_shortcut : 'k',
             help    : 'select previous cell',
-            help_index : 'dc',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== 0 && index !== null) {
@@ -206,9 +246,9 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'j' : {
+        {
+            key_shortcut : 'j',
             help    : 'select next cell',
-            help_index : 'dd',
             handler : function (event) {
                 var index = IPython.notebook.get_selected_index();
                 if (index !== (IPython.notebook.ncells()-1) && index !== null) {
@@ -218,50 +258,42 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'x' : {
+        {
+            key_shortcut : 'x',
             help    : 'cut cell',
-            help_index : 'ee',
             handler : function (event) {
                 IPython.notebook.cut_cell();
                 return false;
             }
         },
-        'c' : {
+        {
+            key_shortcut : 'c',
             help    : 'copy cell',
-            help_index : 'ef',
             handler : function (event) {
                 IPython.notebook.copy_cell();
                 return false;
             }
         },
-        'shift-v' : {
-            help    : 'paste cell above',
-            help_index : 'eg',
-            handler : function (event) {
-                IPython.notebook.paste_cell_above();
-                return false;
-            }
-        },
-        'v' : {
+        {
+            key_shortcut : 'v',
             help    : 'paste cell below',
-            help_index : 'eh',
             handler : function (event) {
                 IPython.notebook.paste_cell_below();
                 return false;
             }
         },
-        'd' : {
+        {
+            key_shortcut : 'd',
             help    : 'delete cell (press twice)',
-            help_index : 'ej',
             count: 2,
             handler : function (event) {
                 IPython.notebook.delete_cell();
                 return false;
             }
         },
-        'a' : {
+        {
+            key_shortcut : 'a',
             help    : 'insert cell above',
-            help_index : 'ec',
             handler : function (event) {
                 IPython.notebook.insert_cell_above('code');
                 IPython.notebook.select_prev();
@@ -269,9 +301,9 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'b' : {
+        {
+            key_shortcut : 'b',
             help    : 'insert cell below',
-            help_index : 'ed',
             handler : function (event) {
                 IPython.notebook.insert_cell_below('code');
                 IPython.notebook.select_next();
@@ -279,177 +311,161 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
-        'y' : {
+        {
+            key_shortcut : 'y',
             help    : 'to code',
-            help_index : 'ca',
             handler : function (event) {
                 IPython.notebook.to_code();
                 return false;
             }
         },
-        'm' : {
+        {
+            key_shortcut : 'm',
             help    : 'to markdown',
-            help_index : 'cb',
             handler : function (event) {
                 IPython.notebook.to_markdown();
                 return false;
             }
         },
-        'r' : {
+        {
+            key_shortcut : 'r',
             help    : 'to raw',
-            help_index : 'cc',
             handler : function (event) {
                 IPython.notebook.to_raw();
                 return false;
             }
         },
-        '1' : {
+        {
+            key_shortcut : '1' ,
             help    : 'to heading 1',
-            help_index : 'cd',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 1);
                 return false;
             }
         },
-        '2' : {
+        {
+            key_shortcut : '2',
             help    : 'to heading 2',
-            help_index : 'ce',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 2);
                 return false;
             }
         },
-        '3' : {
+        {
+            key_shortcut : '3',
             help    : 'to heading 3',
-            help_index : 'cf',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 3);
                 return false;
             }
         },
-        '4' : {
+        {
+            key_shortcut : '4',
             help    : 'to heading 4',
-            help_index : 'cg',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 4);
                 return false;
             }
         },
-        '5' : {
-            help    : 'to heading 5',
-            help_index : 'ch',
-            handler : function (event) {
-                IPython.notebook.to_heading(undefined, 5);
-                return false;
-            }
-        },
-        '6' : {
-            help    : 'to heading 6',
-            help_index : 'ci',
+        {
+            key_shortcut : '6',
+            help    : 'to heading 6 i dunnooo',
             handler : function (event) {
                 IPython.notebook.to_heading(undefined, 6);
                 return false;
             }
         },
-        'o' : {
+        {
+            key_shortcut : '5',
+            help    : 'to heading 5',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 5);
+                return false;
+            }
+        },
+        {
+            key_shortcut : '6',
+            help    : 'to heading 6',
+            handler : function (event) {
+                IPython.notebook.to_heading(undefined, 6);
+                return false;
+            }
+        },
+        {
+            key_shortcut : 'o',
             help    : 'toggle output',
-            help_index : 'gb',
             handler : function (event) {
                 IPython.notebook.toggle_output();
                 return false;
             }
         },
-        'shift-o' : {
-            help    : 'toggle output scrolling',
-            help_index : 'gc',
-            handler : function (event) {
-                IPython.notebook.toggle_output_scroll();
-                return false;
-            }
-        },
-        's' : {
+        {
+            key_shortcut : 's',
             help    : 'save notebook',
-            help_index : 'fa',
             handler : function (event) {
                 IPython.notebook.save_checkpoint();
                 return false;
             }
         },
-        'ctrl-j' : {
-            help    : 'move cell down',
-            help_index : 'eb',
-            handler : function (event) {
-                IPython.notebook.move_cell_down();
-                return false;
-            }
-        },
-        'ctrl-k' : {
-            help    : 'move cell up',
-            help_index : 'ea',
-            handler : function (event) {
-                IPython.notebook.move_cell_up();
-                return false;
-            }
-        },
-        'l' : {
+        {
+            key_shortcut : 'l',
             help    : 'toggle line numbers',
-            help_index : 'ga',
             handler : function (event) {
                 IPython.notebook.cell_toggle_line_numbers();
                 return false;
             }
         },
-        'i' : {
+        {
+            key_shortcut : 'i',
             help    : 'interrupt kernel (press twice)',
-            help_index : 'ha',
             count: 2,
             handler : function (event) {
                 IPython.notebook.kernel.interrupt();
                 return false;
             }
         },
-        '0' : {
+        {
+            key_shortcut : '0',
             help    : 'restart kernel (press twice)',
-            help_index : 'hb',
             count: 2,
             handler : function (event) {
                 IPython.notebook.restart_kernel();
                 return false;
             }
         },
-        'h' : {
+        {
+            key_shortcut : 'h',
             help    : 'keyboard shortcuts',
-            help_index : 'ge',
             handler : function (event) {
                 IPython.quick_help.show_keyboard_shortcuts();
                 return false;
             }
         },
-        'z' : {
+        {
+            key_shortcut : 'z',
             help    : 'undo last delete',
-            help_index : 'ei',
             handler : function (event) {
                 IPython.notebook.undelete_cell();
                 return false;
             }
         },
-        'shift-m' : {
+        {
+            key_shortcut : 'shift-m',
             help    : 'merge cell below',
-            help_index : 'ek',
             handler : function (event) {
                 IPython.notebook.merge_cell_below();
                 return false;
             }
         },
-        'q' : {
+        {
+            key_shortcut : 'q',
             help    : 'close pager',
-            help_index : 'gd',
             handler : function (event) {
                 IPython.pager.collapse();
                 return false;
             }
-        },
-    };
+        }
+    ];
 
 
     // Main keyboard manager for the notebook

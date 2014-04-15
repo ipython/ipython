@@ -141,25 +141,18 @@ IPython.keyboard = (function (IPython) {
         var help = [];
         for (var shortcut in this._shortcuts) {
             var help_string = this._shortcuts[shortcut]['help'];
-            var help_index = this._shortcuts[shortcut]['help_index'];
+            var key_shortcut = this._shortcuts[shortcut]['key_shortcut'];
             if (help_string) {
                 if (platform === 'MacOS') {
                     shortcut = shortcut.replace('meta', 'cmd');
                 }
                 help.push({
-                    shortcut: shortcut,
+                    shortcut: key_shortcut,
                     help: help_string,
-                    help_index: help_index}
+                }
                 );
             }
         }
-        help.sort(function (a, b) {
-            if (a.help_index > b.help_index)
-                return 1;
-            if (a.help_index < b.help_index)
-                return -1;
-            return 0;
-        });
         return help;
     };
 
@@ -169,14 +162,11 @@ IPython.keyboard = (function (IPython) {
 
     ShortcutManager.prototype.add_shortcut = function (shortcut, data, suppress_help_update) {
         if (typeof(data) === 'function') {
-            data = {help: '', help_index: '', handler: data};
+            data = {key_shortcut:'', help: '', handler: data};
         }
-        data.help_index = data.help_index || '';
         data.help = data.help || '';
         data.count = data.count || 1;
-        if (data.help_index === '') {
-            data.help_index = 'zz';
-        }
+        data.key_shortcut = data.key_shortcut || '';
         shortcut = normalize_shortcut(shortcut);
         this._counts[shortcut] = 0;
         this._shortcuts[shortcut] = data;
@@ -187,8 +177,8 @@ IPython.keyboard = (function (IPython) {
     };
 
     ShortcutManager.prototype.add_shortcuts = function (data) {
-        for (var shortcut in data) {
-            this.add_shortcut(shortcut, data[shortcut], true);
+        for (var shortcut_count=0;shortcut_count<data.length;shortcut_count++) {
+            this.add_shortcut(data[shortcut_count].key_shortcut, data[shortcut_count], true);
         }
         // update the keyboard shortcuts notebook help
         $([IPython.events]).trigger('rebuild.QuickHelp');
