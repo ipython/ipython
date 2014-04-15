@@ -265,7 +265,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_shutdown_button = function (item, session) {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-default btn-xs btn-danger").
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-danger").
             click(function (e) {
                 var settings = {
                     processData : false,
@@ -339,7 +339,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
-            .addClass('btn btn-default btn-primary btn-xs upload_button')
+            .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
                 var nbname = item.find('.item_name > input').val();
                 if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {

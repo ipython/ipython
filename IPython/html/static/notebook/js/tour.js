@@ -116,9 +116,9 @@ var tour_style = "<div class='popover tour' style='position:relative'>\
   <h3 class='popover-title'></h3>\
   <div class='popover-content'></div>\
   <div class='popover-navigation'>\
-    <button class='btn btn-default btn-default icon-step-backward' data-role='prev'></button>\
-    <button class='btn btn-default btn-default icon-step-forward pull-right' data-role='next'></button>\
-    <button id='tour-pause' class='btn btn-default btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
+    <button class='btn btn-default icon-step-backward' data-role='prev'></button>\
+    <button class='btn btn-default icon-step-forward pull-right' data-role='next'></button>\
+    <button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\
   </div>\
 </div>";
 

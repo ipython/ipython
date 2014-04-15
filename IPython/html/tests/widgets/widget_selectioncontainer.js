@@ -83,11 +83,11 @@ casper.notebook_test(function () {
             'Widget subarea exists.');
 
         this.test.assert(this.cell_element_exists(index, multicontainer2_query),
-            'Widget panel-group exists.');
+            'Widget accordion exists.');
 
         this.test.assert(this.cell_element_exists(index, multicontainer2_query + 
-            ' .panel.panel-default:nth-child(1) .panel-collapse'),
-            'First panel-group page exists.');
+            ' .panel:nth-child(1) .panel-collapse'),
+            'First accordion page exists.');
 
         // JQuery selector is 1 based
         this.test.assert(this.cell_element_function(index, multicontainer2_query + 
@@ -95,7 +95,7 @@ casper.notebook_test(function () {
             'html')=='good', 'Accordion page title set (before display).');
 
         // JQuery selector is 1 based
-        this.click(multicontainer2_query + ' .panel.panel-default:nth-child(2) .panel-heading .accordion-toggle');
+        this.click(multicontainer2_query + ' .panel:nth-child(2) .panel-heading .accordion-toggle');
     });
 
     this.wait_for_idle();
@@ -106,7 +106,7 @@ casper.notebook_test(function () {
             'selected_index property updated with tab change.');
 
         var is_collapsed = this.evaluate(function(s){
-             return $(s + ' div.panel.panel-default:nth-child(2) a').hasClass('collapsed'); // 1 based
+             return $(s + ' div.panel:nth-child(2) a').hasClass('collapsed'); // 1 based
         }, {s: multicontainer2_query});
         this.test.assertEquals(is_collapsed, false, 'Was tab actually opened?');
     });

@@ -144,7 +144,7 @@ var IPython = (function (IPython) {
      *          button.click(function(){
      *                      var v = cell.metadata.foo;
      *                      cell.metadata.foo = !v;
-     *                      button.button("option", "label label-default", String(!v));
+     *                      button.button("option", "label", String(!v));
      *                  })
      *
      *          // add the button to the DOM div.
