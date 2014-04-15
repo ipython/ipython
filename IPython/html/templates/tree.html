@@ -31,7 +31,7 @@ data-notebook-path="{{notebook_path}}"
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
         <div id="notebook_toolbar" class="row">
-            <div class="span8">
+            <div class="col-md-8">
                 <form id='alternate_upload'  class='alternate_upload' >
                     <span id="notebook_list_info" style="position:absolute" >
                         To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
@@ -39,7 +39,7 @@ data-notebook-path="{{notebook_path}}"
                     <input type="file" name="datafile" class="fileinput" multiple='multiple'>
                 </form>
             </div>
-            <div class="span4 clearfix">
+            <div class="col-md-4 clearfix">
                 <span id="notebook_buttons" class="pull-right">
                     <button id="new_notebook" title="Create new notebook" class="btn btn-default btn-sm">New Notebook</button>
                     <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-sm"><i class="icon-refresh"></i></button>
@@ -64,10 +64,10 @@ data-notebook-path="{{notebook_path}}"
     <div id="running" class="tab-pane">
 
         <div id="running_toolbar" class="row">
-            <div class="span8">
+            <div class="col-md-8">
                 <span id="running_list_info">Currently running IPython notebooks</span>
             </div>
-            <div class="span4" class="clearfix">
+            <div class="col-md-4" class="clearfix">
                 <span id="running_buttons" class="pull-right">
                     <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-sm"><i class="icon-refresh"></i></button>
                 </span>
@@ -75,7 +75,7 @@ data-notebook-path="{{notebook_path}}"
         </div>
 
         <div id="running_list">
-            <div id="running_list_header" class="row warning"> 
+            <div id="running_list_header" class="row list_header"> 
                 <div> There are no notebooks running. </div>
             </div> 
         </div>
@@ -84,10 +84,10 @@ data-notebook-path="{{notebook_path}}"
     <div id="clusters" class="tab-pane">
 
         <div id="cluster_toolbar" class="row">
-            <div class="span8">
+            <div class="col-md-8">
                 <span id="cluster_list_info">IPython parallel computing clusters</span>
             </div>
-            <div class="span4" class="clearfix">
+            <div class="col-md-4" class="clearfix">
                 <span id="cluster_buttons" class="pull-right">
                     <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-sm"><i class="icon-refresh"></i></button>
                 </span>
