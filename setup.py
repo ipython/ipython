@@ -26,8 +26,9 @@ import sys
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info[:2] < (2,7):
-    error = "ERROR: IPython requires Python Version 2.7 or above."
+v = sys.version_info
+if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
+    error = "ERROR: IPython requires Python version 2.7 or 3.3 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
