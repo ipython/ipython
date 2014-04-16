@@ -358,9 +358,23 @@ class InteractiveShellApp(Configurable):
         """Run files from profile startup directory"""
         startup_dir = self.profile_dir.startup_dir
         startup_files = []
-        if self.exec_PYTHONSTARTUP and not (self.file_to_run or self.code_to_run or self.module_to_run):
-            if os.environ.get('PYTHONSTARTUP', False):
-                startup_files.append(os.environ['PYTHONSTARTUP'])
+        
+        if self.exec_PYTHONSTARTUP and os.environ.get('PYTHONSTARTUP', False) and \
+                not (self.file_to_run or self.code_to_run or self.module_to_run):
+            python_startup = os.environ['PYTHONSTARTUP']
+            self.log.debug("Running PYTHONSTARTUP file %s...", python_startup)
+            try:
+                self._exec_file(python_startup)
+            except:
+                self.log.warn("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
+                self.shell.showtraceback()
+            finally:
+                # Many PYTHONSTARTUP files set up the readline completions,
+                # but this is often at odds with IPython's own completions.
+                # Do not allow PYTHONSTARTUP to set up readline.
+                if self.shell.has_readline:
+                    self.shell.set_readline_completer()
+        
         startup_files += glob.glob(os.path.join(startup_dir, '*.py'))
         startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))
         if not startup_files:
