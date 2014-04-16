@@ -174,7 +174,10 @@ step by:
     $ python setupegg.py develop
 
 This creates links in the right places and installs the command line script to
-the appropriate places.  Then, if you want to update your IPython at any time,
+the appropriate places. You also have to copy `git hooks <https://github.com/ipython/ipython/tree/master/git-hooks>`_
+to your ``./git`` directory to ensure that your submodules are up to date on each pull.
+
+Then, if you want to update your IPython at any time,
 just do:
 
 .. code-block:: bash
