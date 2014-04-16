@@ -389,7 +389,7 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_callback('slideshow.select', select_type);
      *
      */
-    CellToolbar.utils.select_ui_generator = function(list_list, setter, getter, label, cell_types){
+    CellToolbar.utils.select_ui_generator = function(list_list, setter, getter, label) {
         label = label || "";
         return function(div, cell, celltoolbar) {
             var button_container = $(div);
@@ -406,12 +406,6 @@ var IPython = (function (IPython) {
                         setter(cell, select.val());
                     });
             button_container.append($('<div/>').append(lbl).append(select));
-            if (cell_types && cell_types.indexOf(cell.cell_type) == -1) {
-                celltoolbar.hide();
-            } else {
-                celltoolbar.show();
-            }
-
         };
     };
 
