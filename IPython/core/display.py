@@ -169,6 +169,24 @@ def display_html(*objs, **kwargs):
     _display_mimetype('text/html', objs, **kwargs)
 
 
+def display_markdown(*objs, **kwargs):
+    """Displays the Markdown representation of an object.
+
+    Parameters
+    ----------
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw markdown data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
+    """
+
+    _display_mimetype('text/markdown', objs, **kwargs)
+
+
 def display_svg(*objs, **kwargs):
     """Display the SVG representation of an object.
 
@@ -390,6 +408,12 @@ class HTML(TextDisplayObject):
         special characters (<>&) escaped.
         """
         return self._repr_html_()
+
+
+class Markdown(TextDisplayObject):
+
+    def _repr_markdown_(self):
+        return self.data
 
 
 class Math(TextDisplayObject):

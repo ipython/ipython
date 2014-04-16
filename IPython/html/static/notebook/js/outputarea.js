@@ -248,6 +248,7 @@ var IPython = (function (IPython) {
     OutputArea.output_types = [
         'application/javascript',
         'text/html',
+        'text/markdown',
         'text/latex',
         'image/svg+xml',
         'image/png',
@@ -417,7 +418,9 @@ var IPython = (function (IPython) {
         }
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
-        if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
+        if ((json['text/latex'] !== undefined) ||
+            (json['text/html'] !== undefined) ||
+            (json['text/markdown'] !== undefined)) {
             this.typeset();
         }
     };
@@ -488,7 +491,9 @@ var IPython = (function (IPython) {
         if (this.append_mime_type(json, toinsert, handle_inserted)) {
             this._safe_append(toinsert);
             // If we just output latex, typeset it.
-            if ((json['text/latex'] !== undefined) || (json['text/html'] !== undefined)) {
+            if ((json['text/latex'] !== undefined) ||
+                (json['text/html'] !== undefined) ||
+                (json['text/markdown'] !== undefined)) {
                 this.typeset();
             }
         }
@@ -539,6 +544,20 @@ var IPython = (function (IPython) {
         var type = 'text/html';
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         IPython.keyboard_manager.register_events(toinsert);
+        toinsert.append(html);
+        element.append(toinsert);
+        return toinsert;
+    };
+
+
+    var append_markdown = function(markdown, md, element) {
+        var type = 'text/markdown';
+        var toinsert = this.create_output_subarea(md, "output_markdown", type);
+        var text_and_math = IPython.mathjaxutils.remove_math(markdown);
+        var text = text_and_math[0];
+        var math = text_and_math[1];
+        var html = marked.parser(marked.lexer(text));
+        html = IPython.mathjaxutils.replace_math(html, math);
         toinsert.append(html);
         element.append(toinsert);
         return toinsert;
@@ -882,6 +901,7 @@ var IPython = (function (IPython) {
     OutputArea.display_order = [
         'application/javascript',
         'text/html',
+        'text/markdown',
         'text/latex',
         'image/svg+xml',
         'image/png',
@@ -893,6 +913,7 @@ var IPython = (function (IPython) {
     OutputArea.append_map = {
         "text/plain" : append_text,
         "text/html" : append_html,
+        "text/markdown": append_markdown,
         "image/svg+xml" : append_svg,
         "image/png" : append_png,
         "image/jpeg" : append_jpeg,

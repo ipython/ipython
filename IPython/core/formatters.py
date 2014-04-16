@@ -129,6 +129,7 @@ class DisplayFormatter(Configurable):
         formatter_classes = [
             PlainTextFormatter,
             HTMLFormatter,
+            MarkdownFormatter,
             SVGFormatter,
             PNGFormatter,
             PDFFormatter,
@@ -152,6 +153,7 @@ class DisplayFormatter(Configurable):
 
         * text/plain
         * text/html
+        * text/markdown
         * text/latex
         * application/json
         * application/javascript
@@ -706,6 +708,20 @@ class HTMLFormatter(BaseFormatter):
     print_method = ObjectName('_repr_html_')
 
 
+class MarkdownFormatter(BaseFormatter):
+    """A Markdown formatter.
+
+    To define the callables that compute the Markdown representation of your
+    objects, define a :meth:`_repr_markdown_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+
+    The return value of this formatter should be a valid Markdown.
+    """
+    format_type = Unicode('text/markdown')
+
+    print_method = ObjectName('_repr_markdown_')
+
 class SVGFormatter(BaseFormatter):
     """An SVG formatter.
 
@@ -826,6 +842,7 @@ class PDFFormatter(BaseFormatter):
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)
 FormatterABC.register(HTMLFormatter)
+FormatterABC.register(MarkdownFormatter)
 FormatterABC.register(SVGFormatter)
 FormatterABC.register(PNGFormatter)
 FormatterABC.register(PDFFormatter)
@@ -844,6 +861,7 @@ def format_display_data(obj, include=None, exclude=None):
 
     * text/plain
     * text/html
+    * text/markdown
     * text/latex
     * application/json
     * application/javascript
