@@ -1,5 +1,5 @@
 """
-Module with tests for the clearoutput preprocessor.
+Module with tests for the execute preprocessor.
 """
 
 # Copyright (c) IPython Development Team.
