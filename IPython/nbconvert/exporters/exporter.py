@@ -70,6 +70,7 @@ class Exporter(LoggingConfigurable):
                                   'IPython.nbconvert.preprocessors.CSSHTMLHeaderPreprocessor',
                                   'IPython.nbconvert.preprocessors.RevealHelpPreprocessor',
                                   'IPython.nbconvert.preprocessors.LatexPreprocessor',
+                                  'IPython.nbconvert.preprocessors.ClearOutputPreprocessor',
                                   'IPython.nbconvert.preprocessors.HighlightMagicsPreprocessor'],
         config=True,
         help="""List of preprocessors available by default, by name, namespace, 
