@@ -40,6 +40,7 @@ GUI_OSX = 'osx'
 GUI_GLUT = 'glut'
 GUI_PYGLET = 'pyglet'
 GUI_GTK3 = 'gtk3'
+GUI_CLUTTER = 'CLUTTER'
 GUI_NONE = 'none' # i.e. disable
 
 #-----------------------------------------------------------------------------
@@ -461,6 +462,33 @@ class InputHookManager(object):
         """
         self.clear_inputhook()
 
+    def enable_clutter(self, app=None):
+        """Enable event loop integration with Clutter (gir bindings).
+
+        Parameters
+        ----------
+        app : ignored
+           Ignored, it's only a placeholder to keep the call signature of all
+           gui activation methods consistent, which simplifies the logic of
+           supporting magics.
+
+        Notes
+        -----
+        This methods sets the PyOS_InputHook for Clutter, which allows
+        Clutter to integrate with terminal based applications like
+        IPython.
+        """
+        from IPython.lib.inputhookclutter import inputhook_clutter
+        self.set_inputhook(inputhook_clutter)
+        self._current_gui = GUI_CLUTTER
+
+    def disable_clutter(self):
+        """Disable event loop integration with disable_clutter.
+
+        This merely sets PyOS_InputHook to NULL.
+        """
+        self.clear_inputhook()
+
     def current_gui(self):
         """Return a string indicating the currently active GUI or None."""
         return self._current_gui
@@ -481,6 +509,8 @@ enable_pyglet = inputhook_manager.enable_pyglet
 disable_pyglet = inputhook_manager.disable_pyglet
 enable_gtk3 = inputhook_manager.enable_gtk3
 disable_gtk3 = inputhook_manager.disable_gtk3
+enable_clutter = inputhook_manager.enable_clutter
+disable_clutter = inputhook_manager.disable_clutter
 clear_inputhook = inputhook_manager.clear_inputhook
 set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
@@ -497,6 +527,7 @@ guis = {None: clear_inputhook,
         GUI_GLUT: enable_glut,
         GUI_PYGLET: enable_pyglet,
         GUI_GTK3: enable_gtk3,
+        GUI_CLUTTER: enable_clutter,
 }
 
 
