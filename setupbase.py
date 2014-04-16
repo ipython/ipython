@@ -626,9 +626,6 @@ def get_bdist_wheel():
         
         class bdist_wheel_tag(bdist_wheel):
 
-            def get_tag(self):
-                return ('py%i' % sys.version_info[0], 'none', 'any')
-
             def add_requirements(self, metadata_path):
                 """transform platform-dependent requirements"""
                 pkg_info = read_pkg_info(metadata_path)
