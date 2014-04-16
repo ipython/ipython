@@ -135,7 +135,7 @@ var IPython = (function (IPython) {
 
     QuickHelp.prototype.build_edit_help = function (cm_shortcuts) {
         var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
-        jQuery.extend(cm_shortcuts, edit_shortcuts);
+        jQuery.merge(cm_shortcuts, edit_shortcuts);
         return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', cm_shortcuts);
     };
 
