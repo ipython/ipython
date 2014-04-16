@@ -35,6 +35,7 @@ class ClutterEmbed(object):
         """
         # Register our function to initiate the kernel and start Clutter
         GObject.idle_add(self._wire_kernel)
+        Clutter.init([])
         Clutter.main()
 
     def _wire_kernel(self):
