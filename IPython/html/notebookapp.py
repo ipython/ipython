@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
+
 import errno
 import io
 import json
@@ -60,14 +61,12 @@ from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
 from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
-from IPython.core.application import BaseIPythonApplication
-from IPython.core.profiledir import ProfileDir
-from IPython.consoleapp import IPythonConsoleApp
-from IPython.kernel.zmq.session import default_secure
-from IPython.kernel.zmq.kernelapp import (
-    kernel_flags,
-    kernel_aliases,
+from IPython.core.application import (
+    BaseIPythonApplication, base_flags, base_aliases,
 )
+from IPython.core.profiledir import ProfileDir
+from IPython.kernel import KernelManager
+from IPython.kernel.zmq.session import default_secure, Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
@@ -232,10 +231,14 @@ class NbserverListApp(BaseIPythonApplication):
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-flags = dict(kernel_flags)
+flags = dict(base_flags)
 flags['no-browser']=(
     {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
+)
+flags['pylab']=(
+    {'NotebookApp' : {'pylab' : 'warn'}},
+    "DISABLED: use %pylab or %matplotlib in the notebook to enable matplotlib."
 )
 flags['no-mathjax']=(
     {'NotebookApp' : {'enable_mathjax' : False}},
@@ -254,12 +257,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
                'Auto-save a .py script everytime the .ipynb notebook is saved',
                'Do not auto-save .py scripts for every notebook'))
 
-# the flags that are specific to the frontend
-# these must be scrubbed before being passed to the kernel,
-# or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'script', 'no-script']
-
-aliases = dict(kernel_aliases)
+aliases = dict(base_aliases)
 
 aliases.update({
     'ip': 'NotebookApp.ip',
@@ -270,14 +268,8 @@ aliases.update({
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookApp.notebook_dir',
     'browser': 'NotebookApp.browser',
+    'pylab': 'NotebookApp.pylab',
 })
-
-# remove ipkernel flags that are singletons, and don't make sense in
-# multi-kernel evironment:
-aliases.pop('f', None)
-
-notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir', u'profile', u'profile-dir', 'browser']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -294,9 +286,13 @@ class NotebookApp(BaseIPythonApplication):
         HTML5/Javascript Notebook client.
     """
     examples = _examples
+    aliases = aliases
+    flags = flags
     
-    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager,
-        FileNotebookManager, NotebookNotary]
+    classes = [
+        KernelManager, ProfileDir, Session, MappingKernelManager,
+        NotebookManager, FileNotebookManager, NotebookNotary,
+    ]
     flags = Dict(flags)
     aliases = Dict(aliases)
     
@@ -508,6 +504,22 @@ class NotebookApp(BaseIPythonApplication):
     notebook_dir = Unicode(py3compat.getcwd(), config=True,
         help="The directory to use for notebooks and kernels."
     )
+    
+    pylab = Unicode('disabled', config=True,
+        help="""
+        DISABLED: use %pylab or %matplotlib in the notebook to enable matplotlib.
+        """
+    )
+    def _pylab_changed(self, name, old, new):
+        """when --pylab is specified, display a warning and ignore the value"""
+        if new != 'warn':
+            backend = ' %s' % new
+        else:
+            backend = ''
+        self.log.warn("Support for specifying --pylab on the command line has been removed.")
+        self.log.warn(
+            "Please use `%pylab{0}` or `%matplotlib{0}` in the notebook itself.".format(backend)
+        )
 
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
