@@ -86,7 +86,6 @@ from IPython.kernel.zmq.kernelapp import (
 )
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
-from IPython.utils.localinterfaces import localhost
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
@@ -343,11 +342,9 @@ class NotebookApp(BaseIPythonApplication):
 
     # Network related information.
 
-    ip = Unicode(config=True,
+    ip = Unicode('localhost', config=True,
         help="The IP address the notebook server will listen on."
     )
-    def _ip_default(self):
-        return localhost()
 
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
@@ -658,7 +655,7 @@ class NotebookApp(BaseIPythonApplication):
 
     @property
     def connection_url(self):
-        ip = self.ip if self.ip else localhost()
+        ip = self.ip if self.ip else 'localhost'
         return self._url(ip)
 
     def _url(self, ip):
