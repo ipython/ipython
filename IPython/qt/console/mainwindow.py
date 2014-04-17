@@ -613,7 +613,11 @@ class MainWindow(QtGui.QMainWindow):
         # need two level nested function to be sure to pass magic
         # to active frontend **at run time**.
         def inner_dynamic_magic():
-            self.active_frontend.execute(magic)
+            if not self.run_or_paste_action.isChecked():
+                self.active_frontend.execute(magic)
+            else:
+                self.active_frontend.input_buffer = magic
+
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
         return inner_dynamic_magic
 
@@ -706,6 +710,15 @@ class MainWindow(QtGui.QMainWindow):
         # least once let's do it immediately, but it's assured to works
         self.pop.trigger()
 
+        self.run_or_paste_action = QtGui.QAction(
+            "Only Paste Magics",
+            self,
+            statusTip="Check to paste magics without executing them",
+        )
+        self.run_or_paste_action.setCheckable(True)
+        self.add_menu_action(self.magic_menu, self.run_or_paste_action)
+        self.magic_menu.addSeparator()
+ 
         self.reset_action = QtGui.QAction("&Reset",
             self,
             statusTip="Clear all variables from workspace",
