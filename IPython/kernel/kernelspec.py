@@ -7,7 +7,7 @@ pjoin = os.path.join
 
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
-from IPython.utils.traitlets import HasTraits, List, Unicode
+from IPython.utils.traitlets import HasTraits, List, Unicode, Dict
 
 USER_KERNEL_DIR = pjoin(get_ipython_dir(), 'kernels')
 
@@ -33,6 +33,7 @@ class KernelSpec(HasTraits):
     display_name = Unicode()
     language = Unicode()
     codemirror_mode = None
+    env = Dict()
     
     resource_dir = Unicode()
     

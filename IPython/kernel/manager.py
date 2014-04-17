@@ -1,19 +1,12 @@
 """Base class to manage a running kernel"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
 
 # Standard library imports
+import os
 import re
 import signal
 import sys
@@ -40,9 +33,6 @@ from .managerabc import (
     KernelManagerABC
 )
 
-#-----------------------------------------------------------------------------
-# Main kernel manager class
-#-----------------------------------------------------------------------------
 
 class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     """Manages a single kernel in a subprocess on this host.
@@ -232,8 +222,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         self._launch_args = kw.copy()
         # build the Popen cmd
         kernel_cmd = self.format_kernel_cmd(**kw)
+        if self.kernel_cmd:
+            # If kernel_cmd has been set manually, don't refer to a kernel spec
+            env = os.environ
+        else:
+            # Environment variables from kernel spec are added to os.environ
+            env = os.environ.copy()
+            env.update(self.kernel_spec.env or {})
         # launch the kernel subprocess
-        self.kernel = self._launch_kernel(kernel_cmd,
+        self.kernel = self._launch_kernel(kernel_cmd, env=env,
                                     ipython_kernel=self.ipython_kernel,
                                     **kw)
         self.start_restarter()
@@ -401,10 +398,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # we don't have a kernel
             return False
 
-
-#-----------------------------------------------------------------------------
-# ABC Registration
-#-----------------------------------------------------------------------------
 
 KernelManagerABC.register(KernelManager)
 
