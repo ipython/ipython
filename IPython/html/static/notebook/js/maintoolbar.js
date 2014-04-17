@@ -92,7 +92,7 @@ var IPython = (function (IPython) {
                         }
                 }
             ],'move_up_down');
-
+        
 
         this.add_buttons_group([
                 {
@@ -180,7 +180,7 @@ var IPython = (function (IPython) {
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
-
+        
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
