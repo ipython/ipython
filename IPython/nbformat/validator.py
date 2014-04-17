@@ -68,14 +68,3 @@ def resolve_ref(json, schema=None):
         resolved = json
 
     return resolved
-
-
-def convert(namein, nameout, indent=2):
-    """resolve the references of namein, save the result in nameout"""
-    jsn = None
-    with open(namein) as file:
-        jsn = json.load(file)
-    v = resolve_ref(jsn)
-    x = jsonpointer.resolve_pointer(v, '/notebook')
-    with open(nameout, 'w') as file:
-        json.dump(x, file, indent=indent)
