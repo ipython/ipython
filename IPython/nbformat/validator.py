@@ -16,7 +16,7 @@ schema = os.path.join(
     os.path.split(__file__)[0], "v%d" % nbformat, nbformat_schema)
 
 
-def nbvalidate(nbjson, key='/notebook', verbose=True):
+def nbvalidate(nbjson, key='/', verbose=True):
     v3schema = resolve_ref(json.load(open(schema, 'r')))
     if key:
         v3schema = jsonpointer.resolve_pointer(v3schema, key)
@@ -62,31 +62,3 @@ def convert(namein, nameout, indent=2):
     x = jsonpointer.resolve_pointer(v, '/notebook')
     with open(nameout,'w') as file:
         json.dump(x,file,indent=indent)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-k', '--key',
-                    type=str, default='/notebook',
-                    help='subkey to extract json schema from json file')
-
-    parser.add_argument("-v", "--verbose", action="store_true",
-                    help="increase output verbosity")
-
-    parser.add_argument('filename',
-            type=str,
-            help="file to validate",
-            nargs='*',
-            metavar='names')
-
-    args = parser.parse_args()
-    for name in args.filename :
-        nerror = nbvalidate(json.load(open(name,'r')),
-                            key=args.key,
-                            verbose=args.verbose)
-        if nerror is 0:
-            print(u"[Pass]",name)
-        else :
-            print(u"[    ]",name,'(%d)'%(nerror))
-        if args.verbose :
-            print('==================================================')
