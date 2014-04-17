@@ -37,10 +37,10 @@ class ExecutePreprocessor(Preprocessor):
         self.kc.start_channels()
         self.iopub = self.kc.iopub_channel
         self.shell = self.kc.shell_channel
-        
+
         self.shell.execute("pass")
         self.shell.get_msg()
-                    
+
     def preprocess_cell(self, cell, resources, cell_index):
         """
         Apply a transformation on each code cell. See base.py for details.
@@ -63,7 +63,7 @@ class ExecutePreprocessor(Preprocessor):
         # wait for finish, maximum 20s
         shell.get_msg(timeout=20)
         outs = []
-        
+
         while True:
             try:
                 msg = iopub.get_msg(timeout=0.2)
@@ -75,11 +75,11 @@ class ExecutePreprocessor(Preprocessor):
             elif msg_type == 'clear_output':
                 outs = []
                 continue
-            
+
             content = msg['content']
             # print msg_type, content
             out = NotebookNode(output_type=msg_type)
-            
+
             if msg_type == 'stream':
                 out.stream = content['name']
                 out.text = content['data']
@@ -98,10 +98,10 @@ class ExecutePreprocessor(Preprocessor):
                 out.traceback = content['traceback']
             else:
                 print >> sys.stderr, "unhandled iopub msg:", msg_type
-            
+
             outs.append(out)
         return outs
-        
+
 
     def __del__(self):
         self.kc.stop_channels()
