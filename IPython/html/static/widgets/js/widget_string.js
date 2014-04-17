@@ -144,6 +144,8 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.model.on('change:placeholder', function(model, value, options) {
                 this.update_placeholder(value);
             }, this);
+
+            this.update_placeholder();
         },
 
         update_placeholder: function(value) {
