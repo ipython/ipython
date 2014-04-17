@@ -28,13 +28,14 @@ from IPython.nbformat.v3 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
     parse_filename, new_metadata, new_author, new_heading_cell, nbformat,
-    nbformat_minor, to_notebook_json
+    nbformat_minor, nbformat_schema, to_notebook_json
 )
 from IPython.nbformat import v3 as _v_latest
 
 from .reader import reads as reader_reads
 from .reader import versions
 from .convert import convert
+from .validator import nbvalidate
 
 #-----------------------------------------------------------------------------
 # Code
@@ -43,6 +44,7 @@ from .convert import convert
 current_nbformat = nbformat
 current_nbformat_minor = nbformat_minor
 current_nbformat_module = _v_latest.__name__
+
 
 def docstring_nbformat_mod(func):
     """Decorator for docstrings referring to classes/functions accessed through
@@ -76,11 +78,19 @@ def parse_py(s, **kwargs):
 
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
-    return convert(reader_reads(s), current_nbformat)
+    nbjson = reader_reads(s)
+    num_errors = nbvalidate(nbjson)
+    if num_errors > 0:
+        print("Num errors: %d" % num_errors)
+    return convert(nbjson, current_nbformat)
 
 
 def writes_json(nb, **kwargs):
-    return versions[current_nbformat].writes_json(nb, **kwargs)
+    nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
+    num_errors = nbvalidate(nbjson)
+    if num_errors > 0:
+        print("Num errors: %d" % num_errors)
+    return nbjson
 
 
 def reads_py(s, **kwargs):

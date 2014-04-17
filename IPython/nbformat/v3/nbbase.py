@@ -11,6 +11,7 @@ helpers to build the structs in the right form.
 
 import pprint
 import uuid
+import os
 
 from IPython.utils.ipstruct import Struct
 from IPython.utils.py3compat import cast_unicode, unicode_type
@@ -22,6 +23,7 @@ from IPython.utils.py3compat import cast_unicode, unicode_type
 # Change this when incrementing the nbformat version
 nbformat = 3
 nbformat_minor = 0
+nbformat_schema = 'v3.withref.json'
 
 class NotebookNode(Struct):
     pass

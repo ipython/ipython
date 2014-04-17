@@ -4,22 +4,30 @@ from __future__ import print_function
 import argparse
 import traceback
 import json
+import os
 
-from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
+from IPython.external.jsonschema import Draft3Validator, validate, ValidationError
 import IPython.external.jsonpointer as jsonpointer
 from IPython.utils.py3compat import iteritems
 
-def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
-    v3schema = resolve_ref(json.load(open(schema,'r')))
-    if key :
-        v3schema = jsonpointer.resolve_pointer(v3schema,key)
+
+from .current import nbformat, nbformat_schema
+schema = os.path.join(
+    os.path.split(__file__)[0], "v%d" % nbformat, nbformat_schema)
+
+
+def nbvalidate(nbjson, key='/notebook', verbose=True):
+    v3schema = resolve_ref(json.load(open(schema, 'r')))
+    if key:
+        v3schema = jsonpointer.resolve_pointer(v3schema, key)
     errors = 0
-    v = Draft3Validator(v3schema);
+    v = Draft3Validator(v3schema)
     for error in v.iter_errors(nbjson):
         errors = errors + 1
         if verbose:
             print(error)
     return errors
+
 
 def resolve_ref(json, base=None):
     """return a json with resolved internal references
@@ -58,9 +66,6 @@ def convert(namein, nameout, indent=2):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--schema',
-                    type=str, default='v3.withref.json')
-
     parser.add_argument('-k', '--key',
                     type=str, default='/notebook',
                     help='subkey to extract json schema from json file')
@@ -77,7 +82,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     for name in args.filename :
         nerror = nbvalidate(json.load(open(name,'r')),
-                            schema=args.schema,
                             key=args.key,
                             verbose=args.verbose)
         if nerror is 0:
@@ -86,5 +90,3 @@ if __name__ == '__main__':
             print(u"[    ]",name,'(%d)'%(nerror))
         if args.verbose :
             print('==================================================')
-
-
