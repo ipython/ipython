@@ -37,6 +37,9 @@ from .reader import versions
 from .convert import convert
 from .validator import validate
 
+import logging
+logger = logging.getLogger('NotebookApp')
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -81,7 +84,8 @@ def reads_json(s, **kwargs):
     nbjson = reader_reads(s)
     num_errors = validate(nbjson)
     if num_errors > 0:
-        print("Num errors: %d" % num_errors)
+        logger.error(
+            "Notebook JSON is invalid (%d errors detected)" % num_errors)
     return convert(nbjson, current_nbformat)
 
 
@@ -89,7 +93,8 @@ def writes_json(nb, **kwargs):
     nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
     num_errors = validate(nbjson)
     if num_errors > 0:
-        print("Num errors: %d" % num_errors)
+        logger.error(
+            "Notebook JSON is invalid (%d errors detected)" % num_errors)
     return nbjson
 
 
