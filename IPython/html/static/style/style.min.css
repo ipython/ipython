@@ -7892,6 +7892,8 @@ div.input {
   display: flex;
   flex-direction: row;
   align-items: stretch;
+  display: box!important;
+  display: -webkit-box !important;
 }
 @media (max-width: 480px) {
   div.input {
