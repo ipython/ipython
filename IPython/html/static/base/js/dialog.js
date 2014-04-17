@@ -15,16 +15,47 @@ IPython.dialog = (function (IPython) {
     "use strict";
     
     var modal = function (options) {
-        var dialog = $("<div/>").addClass("modal").attr("role", "dialog");
-        dialog.append(
+        // <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        //   <div class="modal-dialog">
+        //     <div class="modal-content">
+        //       <div class="modal-header">
+        //         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        //         <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+        //       </div>
+        //       <div class="modal-body">
+        //         ...
+        //       </div>
+        //       <div class="modal-footer">
+        //         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        //         <button type="button" class="btn btn-primary">Save changes</button>
+        //       </div>
+        //     </div>
+        //   </div>
+        // </div>
+
+        var modal = $("<div/>")
+            .addClass("modal")
+            .addClass("fade")
+            .attr("role", "dialog");
+        var dialog = $("<div/>")
+            .addClass("modal-dialog")
+            .appendTo(modal);
+        var dialog_content = $("<div/>")
+            .addClass("modal-content")
+            .appendTo(dialog);
+        dialog_content.append(
             $("<div/>")
                 .addClass("modal-header")
                 .append($("<button>")
+                    .attr("type", "button")
                     .addClass("close")
                     .attr("data-dismiss", "modal")
+                    .attr("aria-hidden", "true")
                     .html("&times;")
                 ).append(
-                    $("<h3/>").text(options.title || "")
+                    $("<h4/>")
+                        .addClass('modal-title')
+                        .text(options.title || "")
                 )
         ).append(
             $("<div/>").addClass("modal-body").append(
@@ -41,31 +72,31 @@ IPython.dialog = (function (IPython) {
                 .attr("data-dismiss", "modal")
                 .text(label);
             if (btn_opts.click) {
-                button.click($.proxy(btn_opts.click, dialog));
+                button.click($.proxy(btn_opts.click, dialog_content));
             }
             if (btn_opts.class) {
                 button.addClass(btn_opts.class);
             }
             footer.append(button);
         }
-        dialog.append(footer);
+        dialog_content.append(footer);
         // hook up on-open event
-        dialog.on("shown", function() {
+        modal.on("shown", function() {
             setTimeout(function() {
                 footer.find("button").last().focus();
                 if (options.open) {
-                    $.proxy(options.open, dialog)();
+                    $.proxy(options.open, modal)();
                 }
             }, 0);
         });
         
-        // destroy dialog on hide, unless explicitly asked not to
+        // destroy modal on hide, unless explicitly asked not to
         if (options.destroy === undefined || options.destroy) {
-            dialog.on("hidden", function () {
-                dialog.remove();
+            modal.on("hidden", function () {
+                modal.remove();
             });
         }
-        dialog.on("hidden", function () {
+        modal.on("hidden", function () {
             if (IPython.notebook) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell) cell.select();
@@ -78,7 +109,7 @@ IPython.dialog = (function (IPython) {
             IPython.keyboard_manager.disable();
         }
         
-        return dialog.modal(options);
+        return modal.modal(options);
     };
 
     var edit_metadata = function (md, callback, name) {
