@@ -35,7 +35,7 @@ from IPython.nbformat import v3 as _v_latest
 from .reader import reads as reader_reads
 from .reader import versions
 from .convert import convert
-from .validator import nbvalidate
+from .validator import validate
 
 #-----------------------------------------------------------------------------
 # Code
@@ -79,7 +79,7 @@ def parse_py(s, **kwargs):
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
     nbjson = reader_reads(s)
-    num_errors = nbvalidate(nbjson)
+    num_errors = validate(nbjson)
     if num_errors > 0:
         print("Num errors: %d" % num_errors)
     return convert(nbjson, current_nbformat)
@@ -87,7 +87,7 @@ def reads_json(s, **kwargs):
 
 def writes_json(nb, **kwargs):
     nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
-    num_errors = nbvalidate(nbjson)
+    num_errors = validate(nbjson)
     if num_errors > 0:
         print("Num errors: %d" % num_errors)
     return nbjson
