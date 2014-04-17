@@ -96,7 +96,7 @@
         },
         "source": {
           "description": "for code cell, the source code",
-          "type": "array",
+          "type": ["array", "string"],
           "id": "source",
           "required": true,
           "items":
@@ -141,7 +141,7 @@
         },
         "input": {
           "description": "user input for text cells",
-          "type": "array",
+          "type": ["array", "string"],
           "id": "input",
           "required": true,
           "items":
@@ -158,7 +158,7 @@
         },
         "prompt_number": {
             "type": ["integer","null"],
-            "required": true,
+            "required": false,
             "minimum": 0
         },
         "language": {
