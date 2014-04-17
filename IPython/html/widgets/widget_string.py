@@ -23,6 +23,7 @@ class _StringWidget(DOMWidget):
     value = Unicode(help="String value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
+    placeholder = Unicode("", help="Placeholder text to display when nothing has been typed", sync=True)
 
 
 class HTMLWidget(_StringWidget):

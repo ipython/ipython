@@ -141,6 +141,16 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .appendTo(this.$el);
             this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
+            this.model.on('change:placeholder', function(model, value, options) {
+                this.update_placeholder(value);
+            }, this);
+        },
+
+        update_placeholder: function(value) {
+            if (!value) {
+                value = this.model.get('placeholder');
+            }
+            this.$textbox.attr('placeholder', value);
         },
         
         update: function(options){
