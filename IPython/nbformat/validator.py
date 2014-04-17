@@ -10,47 +10,64 @@ from IPython.utils.py3compat import iteritems
 
 
 from .current import nbformat, nbformat_schema
-schema = os.path.join(
+schema_path = os.path.join(
     os.path.split(__file__)[0], "v%d" % nbformat, nbformat_schema)
 
 
-def validate(nbjson, key='/', verbose=True):
-    v3schema = resolve_ref(json.load(open(schema, 'r')))
-    if key:
-        v3schema = jsonpointer.resolve_pointer(v3schema, key)
+def validate(nbjson, key='', verbose=True):
+    # load the schema file
+    with open(schema_path, 'r') as fh:
+        schema_json = json.load(fh)
+
+    # resolve internal references
+    v3schema = resolve_ref(schema_json)
+    v3schema = jsonpointer.resolve_pointer(v3schema, key)
+
     errors = 0
     v = Draft3Validator(v3schema)
     for error in v.iter_errors(nbjson):
         errors = errors + 1
         if verbose:
             print(error)
+
     return errors
 
 
-def resolve_ref(json, base=None):
+def resolve_ref(json, schema=None):
     """return a json with resolved internal references
 
     only support local reference to the same json
     """
-    if not base:
-        base = json
 
-    temp = None
+    if not schema:
+        schema = json
+
+    # if it's a list, resolve references for each item in the list
     if type(json) is list:
-        temp = []
+        resolved = []
         for item in json:
-            temp.append(resolve_ref(item, base=base))
+            resolved.append(resolve_ref(item, schema=schema))
+
+    # if it's a dictionary, resolve references for each item in the
+    # dictionary
     elif type(json) is dict:
-        temp = {}
-        for key, value in iteritems(json):
+        resolved = {}
+        for key, ref in iteritems(json):
+            # if the key is equal to $ref, then replace the entire
+            # dictionary with the resolved value
             if key == '$ref':
-                return resolve_ref(
-                    jsonpointer.resolve_pointer(base, value), base=base)
+                assert len(json) == 1
+                pointer = jsonpointer.resolve_pointer(schema, ref)
+                resolved = resolve_ref(pointer, schema=schema)
+
             else:
-                temp[key] = resolve_ref(value, base=base)
+                resolved[key] = resolve_ref(ref, schema=schema)
+
+    # otherwise it's a normal object, so just return it
     else:
-        return json
-    return temp
+        resolved = json
+
+    return resolved
 
 
 def convert(namein, nameout, indent=2):
@@ -58,7 +75,7 @@ def convert(namein, nameout, indent=2):
     jsn = None
     with open(namein) as file:
         jsn = json.load(file)
-    v = resolve_ref(jsn, base=jsn)
+    v = resolve_ref(jsn)
     x = jsonpointer.resolve_pointer(v, '/notebook')
     with open(nameout, 'w') as file:
         json.dump(x, file, indent=indent)
