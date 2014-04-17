@@ -166,7 +166,10 @@ def _widgets_from_abbreviations(seq):
     result = []
     for name, abbrev, default in seq:
         widget = _widget_from_abbrev(abbrev, default)
-        widget.description = name
+        desc = name.replace("_", " ")
+        if not any([s.isupper() for s in desc]):
+            desc = desc.capitalize()
+        widget.description = desc
         result.append(widget)
     return result
 
