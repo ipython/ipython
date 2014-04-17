@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+#  Copyright (C) 2014  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -85,17 +85,17 @@ class AuthenticatedHandler(web.RequestHandler):
         return self.settings.get('cookie_name', default_cookie_name)
     
     @property
-    def password(self):
-        """our password"""
-        return self.settings.get('password', '')
-    
-    @property
     def logged_in(self):
         """Is a user currently logged in?
 
         """
         user = self.get_current_user()
         return (user and not user == 'anonymous')
+
+    @property
+    def _login_handler(self):
+        """Return the login handler for this application."""
+        return self.settings['login_handler_class']
 
     @property
     def login_available(self):
@@ -105,7 +105,7 @@ class AuthenticatedHandler(web.RequestHandler):
         whether the user is already logged in or not.
 
         """
-        return bool(self.settings.get('password', ''))
+        return bool(self._login_handler.login_available(self.application))
 
 
 class IPythonHandler(AuthenticatedHandler):

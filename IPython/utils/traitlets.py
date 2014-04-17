@@ -79,7 +79,7 @@ class TraitError(Exception):
 #-----------------------------------------------------------------------------
 
 
-def class_of ( object ):
+def class_of( object ):
     """ Returns a string containing the class name of an object with the
     correct indefinite article ('a' or 'an') preceding it (e.g., 'an Image',
     'a PlotValue').
