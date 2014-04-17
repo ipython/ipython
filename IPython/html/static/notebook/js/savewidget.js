@@ -77,7 +77,6 @@ define([
             notebook: options.notebook,
             keyboard_manager: this.keyboard_manager,
             buttons : {
-                "Cancel": {},
                 "OK": {
                     class: "btn-primary",
                     click: function () {
@@ -92,7 +91,8 @@ define([
                     } else {
                         that.notebook.rename(new_name);
                     }
-                }}
+                }},
+                "Cancel": {}
                 },
             open : function (event, ui) {
                 var that = $(this);
