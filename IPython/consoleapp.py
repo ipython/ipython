@@ -175,7 +175,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
     existing = CUnicode('', config=True,
         help="""Connect to an already running kernel""")
 
-    kernel_name = Unicode('native', config=True,
+    kernel_name = Unicode('python', config=True,
         help="""The name of the default kernel to start.""")
 
     confirm_exit = CBool(True, config=True,

@@ -105,7 +105,7 @@ def get_kernel_spec(kernel_name):
     
     Raises KeyError if the given kernel name is not found.
     """
-    if kernel_name == 'native':
+    if kernel_name == 'python':
         kernel_name = NATIVE_KERNEL_NAME
     d = find_kernel_specs()
     resource_dir = d[kernel_name.lower()]

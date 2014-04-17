@@ -70,7 +70,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     # generally a Popen instance
     kernel = Any()
     
-    kernel_name = Unicode('native')
+    kernel_name = Unicode('python')
     
     kernel_spec = Instance(kernelspec.KernelSpec)
     
@@ -79,7 +79,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     
     def _kernel_name_changed(self, name, old, new):
         self.kernel_spec = kernelspec.get_kernel_spec(new)
-        self.ipython_kernel = new in {'native', 'python2', 'python3'}
+        self.ipython_kernel = new in {'python', 'python2', 'python3'}
 
     kernel_cmd = List(Unicode, config=True,
         help="""DEPRECATED: Use kernel_name instead.
@@ -167,7 +167,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         """replace templated args (e.g. {connection_file})"""
         if self.kernel_cmd:
             cmd = self.kernel_cmd
-        elif self.kernel_name == 'native':
+        elif self.kernel_name == 'python':
             # The native kernel gets special handling
             cmd = make_ipkernel_cmd(
                 'from IPython.kernel.zmq.kernelapp import main; main()',
