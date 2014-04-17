@@ -154,6 +154,14 @@ def loop_gtk(kernel):
     gtk_kernel.start()
 
 
+def loop_clutter(kernel):
+    """Start the kernel, coordinating with the GTK event loop"""
+    from .gui.clutterembed import ClutterEmbed
+
+    clutter_kernel = ClutterEmbed(kernel)
+    clutter_kernel.start()
+
+
 def loop_cocoa(kernel):
     """Start the kernel, coordinating with the Cocoa CFRunLoop event loop
     via the matplotlib MacOSX backend.
@@ -233,6 +241,7 @@ loop_map = {
     'wx' : loop_wx,
     'tk' : loop_tk,
     'gtk': loop_gtk,
+    'clutter': loop_clutter,
     None : None,
 }
 
