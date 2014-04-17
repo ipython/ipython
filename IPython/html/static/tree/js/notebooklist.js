@@ -254,6 +254,7 @@ define([
         } else if (model.type == 'notebook') {
             if(this.sessions[path_name] === undefined){
                 this.add_delete_button(item);
+                this.add_duplicate_button(item);
             } else {
                 this.add_shutdown_button(item, this.sessions[path_name]);
             }
@@ -306,7 +307,53 @@ define([
                 return false;
             });
         // var new_buttons = item.find('a'); // shutdown_button;
-        item.find(".item_buttons").text("").append(shutdown_button);
+        item.find(".item_buttons").append(shutdown_button);
+    };
+
+    NotebookList.prototype.add_duplicate_button = function (item) {
+        var new_buttons = $('<span/>').addClass("btn-group pull-right");
+        var notebooklist = this;
+        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-defaultbtn-xs").
+            click(function (e) {
+                // $(this) is the button that was clicked.
+                var that = $(this);
+                // We use the nbname and notebook_id from the parent notebook_item element's
+                // data because the outer scopes values change as we iterate through the loop.
+                var parent_item = that.parents('div.list_item');
+                var nbname = parent_item.data('nbname');
+                var message = 'Are you sure you want to duplicate the notebook: ' + nbname + '?';
+                var copy_from = {'copy_from' : nbname}
+                IPython.dialog.modal({
+                    title : "Duplicate notebook",
+                    body : message,
+                    buttons : {
+                        Duplicate : {
+                            class: "btn-primary",
+                            click: function() {
+                                var settings = {
+                                    processData : false,
+                                    cache : false,
+                                    type : "POST",
+                                    dataType : "json",
+                                    data : JSON.stringify(copy_from),
+                                    success : function (data, status, xhr) {
+                                        notebooklist.load_list();
+                                    }
+                                };
+                                var url = utils.url_join_encode(
+                                    notebooklist.base_url,
+                                    'api/notebooks',
+                                    notebooklist.notebook_path
+                                );
+                                $.ajax(url, settings);
+                            }
+                        },
+                        Cancel : {}
+                    }
+                });
+                return false;
+            });
+        item.find(".item_buttons").append(duplicate_button);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
@@ -340,7 +387,7 @@ define([
                 });
                 return false;
             });
-        item.find(".item_buttons").text("").append(delete_button);
+        item.find(".item_buttons").append(delete_button);
     };
 
     NotebookList.prototype.notebook_deleted = function(path) {
