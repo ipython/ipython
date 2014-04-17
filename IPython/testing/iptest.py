@@ -204,6 +204,9 @@ if not have['zmq']:
 # We do this unconditionally, so that the test suite doesn't import
 # gtk, changing the default encoding and masking some unicode bugs.
 sec.exclude('inputhookgtk')
+# We do this unconditionally, so that the test suite doesn't import
+# clutter.
+sec.exclude('inputhookclutter')
 # We also do this unconditionally, because wx can interfere with Unix signals.
 # There are currently no tests for it anyway.
 sec.exclude('inputhookwx')
