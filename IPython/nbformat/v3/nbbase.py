@@ -11,7 +11,6 @@ helpers to build the structs in the right form.
 
 import pprint
 import uuid
-import os
 
 from IPython.utils.ipstruct import Struct
 from IPython.utils.py3compat import cast_unicode, unicode_type
