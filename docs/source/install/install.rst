@@ -197,7 +197,7 @@ or
     $ python setup.py submodule
 
 Another option is to copy `git hooks <https://github.com/ipython/ipython/tree/master/git-hooks>`_
-to your ``./git`` directory to ensure that your submodules are up to date on each pull.
+to your ``./git/hooks/`` directory to ensure that your submodules are up to date on each pull.
 
 
 Basic optional dependencies
