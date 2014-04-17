@@ -50,8 +50,8 @@ class ExecutePreprocessor(Preprocessor):
         try:
             outputs = self.run_cell(self.shell, self.iopub, cell)
         except Exception as e:
-            print >> sys.stderr, "failed to run cell:", repr(e)
-            print >> sys.stderr, cell.input
+            self.log.error("failed to run cell: " + repr(e))
+            self.log.error(str(cell.input))
             sys.exit(1)
         cell.outputs = outputs
         return cell, resources
@@ -97,7 +97,7 @@ class ExecutePreprocessor(Preprocessor):
                 out.evalue = content['evalue']
                 out.traceback = content['traceback']
             else:
-                print >> sys.stderr, "unhandled iopub msg:", msg_type
+                self.log.error("unhandled iopub msg: " + msg_type)
 
             outs.append(out)
         return outs
