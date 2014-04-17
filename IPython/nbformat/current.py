@@ -80,21 +80,30 @@ def parse_py(s, **kwargs):
 
 
 def reads_json(s, **kwargs):
-    """Read a JSON notebook from a string and return the NotebookNode object."""
+    """Read a JSON notebook from a string and return the NotebookNode
+    object. Report if any JSON format errors are detected.
+
+    """
     nbjson = reader_reads(s)
     num_errors = validate(nbjson)
     if num_errors > 0:
         logger.error(
-            "Notebook JSON is invalid (%d errors detected)" % num_errors)
+            "Notebook JSON is invalid (%d errors detected)",
+            num_errors)
     return convert(nbjson, current_nbformat)
 
 
 def writes_json(nb, **kwargs):
+    """Take a NotebookNode object and write out a JSON string. Report if
+    any JSON format errors are detected.
+
+    """
     nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
     num_errors = validate(nbjson)
     if num_errors > 0:
         logger.error(
-            "Notebook JSON is invalid (%d errors detected)" % num_errors)
+            "Notebook JSON is invalid (%d errors detected)",
+            num_errors)
     return nbjson
 
 
