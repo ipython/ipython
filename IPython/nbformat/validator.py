@@ -14,7 +14,7 @@ schema_path = os.path.join(
     os.path.split(__file__)[0], "v%d" % nbformat, nbformat_schema)
 
 
-def validate(nbjson, key='', verbose=True):
+def validate(nbjson, key='/notebook', verbose=False):
     # load the schema file
     with open(schema_path, 'r') as fh:
         schema_json = json.load(fh)
