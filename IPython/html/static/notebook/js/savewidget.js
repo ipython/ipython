@@ -82,7 +82,6 @@ var IPython = (function (IPython) {
             title: "Rename Notebook",
             body: dialog,
             buttons : {
-                "Cancel": {},
                 "OK": {
                     class: "btn-primary",
                     click: function () {
@@ -97,7 +96,8 @@ var IPython = (function (IPython) {
                     } else {
                         IPython.notebook.rename(new_name);
                     }
-                }}
+                }},
+                "Cancel": {}
                 },
             open : function (event, ui) {
                 var that = $(this);
