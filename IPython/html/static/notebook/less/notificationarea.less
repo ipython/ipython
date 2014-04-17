@@ -1,4 +1,6 @@
 #notification_area {
+    .pull-right();
+    
     z-index: 10;
 }
 
@@ -12,8 +14,17 @@
 }
 
 #kernel_indicator {
-    // Pull it to the right, outside the container boundary
-    margin-right: -16px;
+    .pull-right();
+    .indicator_area();
+
+    margin-right: 12px;
+}
+
+#modal_indicator {
+    .pull-right();
+    .indicator_area();
+    
+    margin-right: 5px;
 }
 
 .edit_mode_icon:before {
