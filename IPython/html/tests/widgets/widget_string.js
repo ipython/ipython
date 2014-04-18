@@ -7,8 +7,8 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var string_index = this.append_cell(
-        'string_widget = [widgets.TextWidget(value = "xyz"),\n' +
-        '    widgets.TextareaWidget(value = "xyz"),\n' +
+        'string_widget = [widgets.TextWidget(value = "xyz", placeholder = "abc"),\n' +
+        '    widgets.TextareaWidget(value = "xyz", placeholder = "def"),\n' +
         '    widgets.HTMLWidget(value = "xyz"),\n' +
         '    widgets.LatexWidget(value = "$\\\\LaTeX{}$")]\n' +
         '[display(widget) for widget in string_widget]\n'+
@@ -41,5 +41,13 @@ casper.notebook_test(function () {
         this.test.assert(this.cell_element_exists(string_index, 
             '.widget-area .widget-subarea div span.MathJax_Preview'),
             'MathJax parsed the LaTeX successfully.');
+
+        this.test.assert(this.cell_element_function(index, 
+            '.widget-area .widget-subarea .widget-hbox textarea', 'attr', ['placeholder'])=='def',
+            'Python set textarea placeholder.');
+
+        this.test.assert(this.cell_element_function(index, 
+            '.widget-area .widget-subarea .widget-hbox-single input[type=text]', 'attr', ['placeholder'])=='abc',
+            'Python set textbox placehoder.');
     });
 });
