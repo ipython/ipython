@@ -546,6 +546,7 @@ current_gui = inputhook_manager.current_gui
 clear_app_refs = inputhook_manager.clear_app_refs
 enable_gui = inputhook_manager.enable_gui
 disable_gui = inputhook_manager.disable_gui
+register = inputhook_manager.register
 guis = inputhook_manager.guihooks
 
 # Deprecated methods: kept for backwards compatibility, do not use in new code
