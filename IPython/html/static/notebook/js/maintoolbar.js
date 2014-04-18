@@ -122,7 +122,7 @@ var IPython = (function (IPython) {
                 }
             ],'run_int');
     };
-
+    
     MainToolBar.prototype.add_celltype_list = function () {
         this.element
             .append($('<select/>')
