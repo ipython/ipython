@@ -79,6 +79,7 @@ Do it all over again!
 Parallel
 ========
 
+.. image:: figs/ipython_parallel_overview.png
 
 nbconvert
 =========
