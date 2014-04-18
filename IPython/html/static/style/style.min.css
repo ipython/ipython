@@ -1504,8 +1504,8 @@ pre,code,kbd,samp{white-space:pre-wrap}
 p{margin-bottom:0}
 .end_space{height:200px}
 .celltoolbar{border:thin solid #cfcfcf;border-bottom:none;background:#eee;border-radius:3px 3px 0 0;width:100%;-webkit-box-pack:end;height:22px;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch;-webkit-box-direction:reverse;-moz-box-direction:reverse;box-direction:reverse;flex-direction:row-reverse}
-.ctb_hideshow{display:none;vertical-align:bottom;padding-right:2px}
-.celltoolbar>div{padding-top:0}
+.ctb_hideshow{display:none;vertical-align:bottom}
+.celltoolbar>div{padding-top:4px}
 .ctb_global_show .ctb_show.ctb_hideshow{display:block}
 .ctb_global_show .ctb_show+.input_area,.ctb_global_show .ctb_show+div.text_cell_input{border-top-right-radius:0;border-top-left-radius:0}
 .celltoolbar .button_container select{margin:10px;margin-top:1px;margin-bottom:0;padding:0;font-size:87%;width:auto;display:inline-block;height:18px;line-height:18px;vertical-align:top}
