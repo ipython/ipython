@@ -3157,23 +3157,10 @@ class InteractiveShell(SingletonConfigurable):
                 raise ValueError("'%s' is a directory, not a regular file." % target)
 
         if search_ns:
-            obj = None
-            parts = target.split(".")
-            try:
-                if len(parts) >= 1:
-                    obj = self.user_ns[parts[0]]
-                
-                    for new_obj in parts[1:]:
-                        obj = getattr(obj, new_obj)
-
-                if obj:
-                    
-                        code = oinspect.getsource(obj)
-                        return code
-            except Exception:
-                # Either the value wa't in th user_ns or the objects could 
-                # not be inspected. It still might load below, so just pass.
-                pass
+            # Inspect namespace to load object source
+            object_info = self.object_inspect(target, detail_level=1)
+            if object_info['found'] and object_info['source']:
+                return object_info['source']
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
