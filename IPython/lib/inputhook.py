@@ -110,7 +110,9 @@ class InputHookManager(object):
             warn("IPython GUI event loop requires ctypes, %gui will not be available")
             return
         self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
-        self._apps = {}
+        self.guihooks = {}
+        self.aliases = {}
+        self.apps = {}
         self._reset()
 
     def _reset(self):
@@ -177,11 +179,105 @@ class InputHookManager(object):
             as those toolkits don't have the notion of an app.
         """
         if gui is None:
-            self._apps = {}
-        elif gui in self._apps:
-            del self._apps[gui]
+            self.apps = {}
+        elif gui in self.apps:
+            del self.apps[gui]
 
-    def enable_wx(self, app=None):
+    def register(self, toolkitname, *aliases):
+        """Register a class to provide the event loop for a given GUI.
+        
+        This is intended to be used as a class decorator. It should be passed
+        the names with which to register this GUI integration. The classes
+        themselves should subclass :class:`InputHookBase`.
+        
+        Examples
+        --------
+        
+        @inputhook_manager.register('qt')
+        class QtInputHook(InputHookBase):
+            def enable(self, app=None):
+                ...
+        """
+        def decorator(cls):
+            inst = cls(self)
+            self.guihooks[toolkitname] = inst
+            for a in aliases:
+                self.aliases[a] = toolkitname
+            return cls
+        return decorator
+
+    def current_gui(self):
+        """Return a string indicating the currently active GUI or None."""
+        return self._current_gui
+
+    def enable_gui(self, gui=None, app=None):
+        """Switch amongst GUI input hooks by name.
+
+        This is a higher level method than :meth:`set_inputhook` - it uses the
+        GUI name to look up a registered object which enables the input hook
+        for that GUI.
+
+        Parameters
+        ----------
+        gui : optional, string or None
+          If None (or 'none'), clears input hook, otherwise it must be one
+          of the recognized GUI names (see ``GUI_*`` constants in module).
+
+        app : optional, existing application object.
+          For toolkits that have the concept of a global app, you can supply an
+          existing one.  If not given, the toolkit will be probed for one, and if
+          none is found, a new one will be created.  Note that GTK does not have
+          this concept, and passing an app if ``gui=="GTK"`` will raise an error.
+
+        Returns
+        -------
+        The output of the underlying gui switch routine, typically the actual
+        PyOS_InputHook wrapper object or the GUI toolkit app created, if there was
+        one.
+        """
+        if gui in (None, GUI_NONE):
+            return self.disable_gui()
+        
+        if gui in self.aliases:
+            return self.enable_gui(self.aliases[gui], app)
+        
+        try:
+            gui_hook = self.guihooks[gui]
+        except KeyError:
+            e = "Invalid GUI request {!r}, valid ones are: {}"
+            raise ValueError(e.format(gui, ', '.join(self.guihooks)))
+        self._current_gui = gui
+        return gui_hook.enable(app)
+
+    def disable_gui(self):
+        """Disable GUI event loop integration.
+        
+        If an application was registered, this sets its ``_in_event_loop``
+        attribute to False. It then calls :meth:`clear_inputhook`.
+        """
+        gui = self._current_gui
+        if gui in self.apps:
+            self.apps[gui]._in_event_loop = False
+        return self.clear_inputhook()
+
+class InputHookBase(object):
+    """Base class for input hooks for specific toolkits.
+    
+    Subclasses should define an :meth:`enable` method with one argument, ``app``,
+    which will either be an instance of the toolkit's application class, or None.
+    They may also define a :meth:`disable` method with no arguments.
+    """
+    def __init__(self, manager):
+        self.manager = manager
+
+    def disable(self):
+        pass
+
+inputhook_manager = InputHookManager()
+
+@inputhook_manager.register('wx')
+class WxInputHook(InputHookBase):
+    def enable(self, app=None):
         """Enable event loop integration with wxPython.
 
         Parameters
@@ -212,30 +308,29 @@ class InputHookManager(object):
         
         from IPython.lib.inputhookwx import inputhook_wx
         from IPython.external.appnope import nope
-        self.set_inputhook(inputhook_wx)
+        self.manager.set_inputhook(inputhook_wx)
         nope()
-        self._current_gui = GUI_WX
+
         import wx
         if app is None:
             app = wx.GetApp()
         if app is None:
             app = wx.App(redirect=False, clearSigInt=False)
         app._in_event_loop = True
-        self._apps[GUI_WX] = app
+        self.manager.apps[GUI_WX] = app
         return app
 
-    def disable_wx(self):
+    def disable(self):
         """Disable event loop integration with wxPython.
 
-        This merely sets PyOS_InputHook to NULL.
+        This restores appnapp on OS X
         """
         from IPython.external.appnope import nap
-        if GUI_WX in self._apps:
-            self._apps[GUI_WX]._in_event_loop = False
-        self.clear_inputhook()
         nap()
 
-    def enable_qt4(self, app=None):
+@inputhook_manager.register('qt', 'qt4')
+class Qt4InputHook(InputHookBase):
+    def enable(self, app=None):
         """Enable event loop integration with PyQt4.
         
         Parameters
@@ -260,26 +355,24 @@ class InputHookManager(object):
         from IPython.lib.inputhookqt4 import create_inputhook_qt4
         from IPython.external.appnope import nope
         app, inputhook_qt4 = create_inputhook_qt4(self, app)
-        self.set_inputhook(inputhook_qt4)
+        self.manager.set_inputhook(inputhook_qt4)
         nope()
 
-        self._current_gui = GUI_QT4
         app._in_event_loop = True
-        self._apps[GUI_QT4] = app
+        self.manager.apps[GUI_QT4] = app
         return app
 
     def disable_qt4(self):
         """Disable event loop integration with PyQt4.
 
-        This merely sets PyOS_InputHook to NULL.
+        This restores appnapp on OS X
         """
         from IPython.external.appnope import nap
-        if GUI_QT4 in self._apps:
-            self._apps[GUI_QT4]._in_event_loop = False
-        self.clear_inputhook()
         nap()
 
-    def enable_gtk(self, app=None):
+@inputhook_manager.register('gtk')
+class GtkInputHook(InputHookBase):
+    def enable(self, app=None):
         """Enable event loop integration with PyGTK.
 
         Parameters
@@ -298,21 +391,15 @@ class InputHookManager(object):
         import gtk
         try:
             gtk.set_interactive(True)
-            self._current_gui = GUI_GTK
         except AttributeError:
             # For older versions of gtk, use our own ctypes version
             from IPython.lib.inputhookgtk import inputhook_gtk
-            self.set_inputhook(inputhook_gtk)
-            self._current_gui = GUI_GTK
+            self.manager.set_inputhook(inputhook_gtk)
 
-    def disable_gtk(self):
-        """Disable event loop integration with PyGTK.
-        
-        This merely sets PyOS_InputHook to NULL.
-        """
-        self.clear_inputhook()
 
-    def enable_tk(self, app=None):
+@inputhook_manager.register('tk')
+class TkInputHook(InputHookBase):
+    def enable(self, app=None):
         """Enable event loop integration with Tk.
 
         Parameters
@@ -328,7 +415,6 @@ class InputHookManager(object):
         :class:`InputHookManager`, since creating that object automatically
         sets ``PyOS_InputHook``.
         """
-        self._current_gui = GUI_TK
         if app is None:
             try:
                 from tkinter import Tk  # Py 3
@@ -336,19 +422,14 @@ class InputHookManager(object):
                 from Tkinter import Tk  # Py 2
             app = Tk()
             app.withdraw()
-            self._apps[GUI_TK] = app
+            self.manager.apps[GUI_TK] = app
             return app
 
-    def disable_tk(self):
-        """Disable event loop integration with Tkinter.
-        
-        This merely sets PyOS_InputHook to NULL.
-        """
-        self.clear_inputhook()
 
-
-    def enable_glut(self, app=None):
-        """ Enable event loop integration with GLUT.
+@inputhook_manager.register('glut')
+class GlutInputHook(InputHookBase):
+    def enable(self, app=None):
+        """Enable event loop integration with GLUT.
 
         Parameters
         ----------
@@ -377,7 +458,7 @@ class InputHookManager(object):
                                               glut_close, glut_display, \
                                               glut_idle, inputhook_glut
 
-        if GUI_GLUT not in self._apps:
+        if GUI_GLUT not in self.manager.apps:
             glut.glutInit( sys.argv )
             glut.glutInitDisplayMode( glut_display_mode )
             # This is specific to freeglut
@@ -394,12 +475,11 @@ class InputHookManager(object):
             glut.glutWMCloseFunc( glut_close )
             glut.glutDisplayFunc( glut_display )
             glut.glutIdleFunc( glut_idle)
-        self.set_inputhook( inputhook_glut )
-        self._current_gui = GUI_GLUT
-        self._apps[GUI_GLUT] = True
+        self.manager.set_inputhook( inputhook_glut )
+        self.manager.apps[GUI_GLUT] = True
 
 
-    def disable_glut(self):
+    def disable(self):
         """Disable event loop integration with glut.
         
         This sets PyOS_InputHook to NULL and set the display function to a
@@ -411,9 +491,11 @@ class InputHookManager(object):
 
         glut.glutHideWindow() # This is an event to be processed below
         glutMainLoopEvent()
-        self.clear_inputhook()
+        super(GlutInputHook, self).disable()
 
-    def enable_pyglet(self, app=None):
+@inputhook_manager.register('pyglet')
+class PygletInputHook(InputHookBase):
+    def enable(self, app=None):
         """Enable event loop integration with pyglet.
 
         Parameters
@@ -431,18 +513,13 @@ class InputHookManager(object):
 
         """
         from IPython.lib.inputhookpyglet import inputhook_pyglet
-        self.set_inputhook(inputhook_pyglet)
-        self._current_gui = GUI_PYGLET
+        self.manager.set_inputhook(inputhook_pyglet)
         return app
 
-    def disable_pyglet(self):
-        """Disable event loop integration with pyglet.
 
-        This merely sets PyOS_InputHook to NULL.
-        """
-        self.clear_inputhook()
-
-    def enable_gtk3(self, app=None):
+@inputhook_manager.register('gtk3')
+class Gtk3InputHook(InputHookBase):
+    def enable(self, app=None):
         """Enable event loop integration with Gtk3 (gir bindings).
 
         Parameters
@@ -459,84 +536,25 @@ class InputHookManager(object):
         IPython.
         """
         from IPython.lib.inputhookgtk3 import inputhook_gtk3
-        self.set_inputhook(inputhook_gtk3)
-        self._current_gui = GUI_GTK
+        self.manager.set_inputhook(inputhook_gtk3)
+        self.manager._current_gui = GUI_GTK
 
-    def disable_gtk3(self):
-        """Disable event loop integration with PyGTK.
 
-        This merely sets PyOS_InputHook to NULL.
-        """
-        self.clear_inputhook()
-
-    def current_gui(self):
-        """Return a string indicating the currently active GUI or None."""
-        return self._current_gui
-
-inputhook_manager = InputHookManager()
-
-enable_wx = inputhook_manager.enable_wx
-disable_wx = inputhook_manager.disable_wx
-enable_qt4 = inputhook_manager.enable_qt4
-disable_qt4 = inputhook_manager.disable_qt4
-enable_gtk = inputhook_manager.enable_gtk
-disable_gtk = inputhook_manager.disable_gtk
-enable_tk = inputhook_manager.enable_tk
-disable_tk = inputhook_manager.disable_tk
-enable_glut = inputhook_manager.enable_glut
-disable_glut = inputhook_manager.disable_glut
-enable_pyglet = inputhook_manager.enable_pyglet
-disable_pyglet = inputhook_manager.disable_pyglet
-enable_gtk3 = inputhook_manager.enable_gtk3
-disable_gtk3 = inputhook_manager.disable_gtk3
 clear_inputhook = inputhook_manager.clear_inputhook
 set_inputhook = inputhook_manager.set_inputhook
 current_gui = inputhook_manager.current_gui
 clear_app_refs = inputhook_manager.clear_app_refs
+enable_gui = inputhook_manager.enable_gui
+disable_gui = inputhook_manager.disable_gui
+guis = inputhook_manager.guihooks
 
-guis = {None: clear_inputhook,
-        GUI_NONE: clear_inputhook,
-        GUI_OSX: lambda app=False: None,
-        GUI_TK: enable_tk,
-        GUI_GTK: enable_gtk,
-        GUI_WX: enable_wx,
-        GUI_QT: enable_qt4, # qt3 not supported
-        GUI_QT4: enable_qt4,
-        GUI_GLUT: enable_glut,
-        GUI_PYGLET: enable_pyglet,
-        GUI_GTK3: enable_gtk3,
-}
-
-
-# Convenience function to switch amongst them
-def enable_gui(gui=None, app=None):
-    """Switch amongst GUI input hooks by name.
-
-    This is just a utility wrapper around the methods of the InputHookManager
-    object.
-
-    Parameters
-    ----------
-    gui : optional, string or None
-      If None (or 'none'), clears input hook, otherwise it must be one
-      of the recognized GUI names (see ``GUI_*`` constants in module).
-
-    app : optional, existing application object.
-      For toolkits that have the concept of a global app, you can supply an
-      existing one.  If not given, the toolkit will be probed for one, and if
-      none is found, a new one will be created.  Note that GTK does not have
-      this concept, and passing an app if ``gui=="GTK"`` will raise an error.
-
-    Returns
-    -------
-    The output of the underlying gui switch routine, typically the actual
-    PyOS_InputHook wrapper object or the GUI toolkit app created, if there was
-    one.
-    """
-    try:
-        gui_hook = guis[gui]
-    except KeyError:
-        e = "Invalid GUI request %r, valid ones are:%s" % (gui, guis.keys())
-        raise ValueError(e)
-    return gui_hook(app)
-
+# Deprecated methods: kept for backwards compatibility, do not use in new code
+enable_wx = lambda app=None: inputhook_manager.enable_gui('wx', app)
+enable_qt4 = lambda app=None: inputhook_manager.enable_gui('qt4', app)
+enable_gtk = lambda app=None: inputhook_manager.enable_gui('gtk', app)
+enable_tk = lambda app=None: inputhook_manager.enable_gui('tk', app)
+enable_glut = lambda app=None: inputhook_manager.enable_gui('glut', app)
+enable_pyglet = lambda app=None: inputhook_manager.enable_gui('pyglet', app)
+enable_gtk3 = lambda app=None: inputhook_manager.enable_gui('gtk3', app)
+disable_wx = disable_qt4 = disable_gtk = disable_gtk3 = disable_glut = \
+        disable_pyglet = inputhook_manager.disable_gui
