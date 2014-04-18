@@ -200,3 +200,12 @@ class TestNbConvertApp(TestsBase):
                             '--PDFPostProcessor.verbose=True')
             assert os.path.isfile(u'nb1_análisis.tex')
             assert os.path.isfile(u'nb1_análisis.pdf')
+
+    def test_cwd_plugin(self):
+        """
+        Verify that an extension in the cwd can be imported.
+        """
+        with self.create_temp_cwd(['hello.py']):
+            self.create_empty_notebook(u'empty.ipynb')
+            self.call('nbconvert empty --to html --NbConvertApp.writer_class=\'hello.HelloWriter\'')
+            assert os.path.isfile(u'hello.txt')
