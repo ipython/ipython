@@ -4,9 +4,11 @@
 How IPython works
 =================
 
-The goal of this document is to give you intuition behind what IPython is, so that you can dive deeply into the internals through the other developer documents.
+The goal of this document is to give you intuition behind what IPython is, so that you can dive deeply into the internals through the other developer documents. By the end, this diagram should make sense.
 
-At it's core, IPython is a thing that executes code. It is a beefy Read-Eval-Print-Loop (REPL). When you type something into the IPython terminal or notebook, that thing that you typed is a "message" that is *read*, *evaluated* by the kernel, then *printed* somehow.
+.. image:: figs/ipython_overview.png
+
+At it's core, IPython is a thing that executes code. It is a beefy **Read-Eval-Print-Loop** (**REPL**). When you type something into the IPython terminal or notebook, that thing that you typed is a "message" that is *read*, *evaluated* by the kernel, then *printed* somehow.
 
 While a REPL is usually associated with typing in a command and then pressing enter, the read-eval-print-loop is [called] whenever the user makes any input that requires IPython to return something, such as when the user presses `<TAB>` to see the auto-complete options for a function. We'll use the example of pressing TAB after typing `ma` in the IPython console. From using IPython, we know that the result in the terminal is,
 
@@ -74,9 +76,6 @@ Loop
 Do it all over again!
 
 
-
-
-
 Parallel
 ========
 
@@ -86,6 +85,9 @@ nbconvert
 
 Converting IPython notebooks to other formats is accomplished via the ``nbconvert`` program. 
 
+The program `nbviewer` is `nbconvert`, as a service via the web.
+
+.. image:: figs/nbconvert_overview.png
 
 Github Repositories
 ===================
