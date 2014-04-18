@@ -57,6 +57,17 @@ for playing with examples from documentation, such as matplotlib.
        ...:
        ...: plt.show()
 
+The ``%load`` magic can also load source code from objects in the user or 
+global namespace by invoking the ``-n`` option.
+
+.. sourcecode:: ipython
+
+   In [1]: import hello_world
+      ...: %load -n hello_world.say_hello
+
+   In [3]: def say_hello() :
+      ...:    print("Hello World!") 
+
 Inline Matplotlib
 =================
 
