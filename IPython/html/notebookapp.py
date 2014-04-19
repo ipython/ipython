@@ -511,15 +511,16 @@ class NotebookApp(BaseIPythonApplication):
         """
     )
     def _pylab_changed(self, name, old, new):
-        """when --pylab is specified, display a warning and ignore the value"""
+        """when --pylab is specified, display a warning and exit"""
         if new != 'warn':
             backend = ' %s' % new
         else:
             backend = ''
-        self.log.warn("Support for specifying --pylab on the command line has been removed.")
-        self.log.warn(
+        self.log.error("Support for specifying --pylab on the command line has been removed.")
+        self.log.error(
             "Please use `%pylab{0}` or `%matplotlib{0}` in the notebook itself.".format(backend)
         )
+        self.exit(1)
 
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
