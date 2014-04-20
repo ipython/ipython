@@ -1,7 +1,6 @@
-"""ButtonWidget class.  
+"""ImageWidget class.  
 
-Represents a button in the frontend using a widget.  Allows user to listen for
-click events on the button and trigger backend code when the clicks are fired.
+Represents an image in the frontend using a widget.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
