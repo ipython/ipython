@@ -341,6 +341,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
                                 connection_file=self.connection_file,
                                 kernel_name=self.kernel_name,
                                 parent=self,
+                                ipython_dir=self.ipython_dir,
         )
         self.kernel_manager.client_factory = self.kernel_client_class
         self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)

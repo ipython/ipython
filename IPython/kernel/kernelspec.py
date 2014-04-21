@@ -9,8 +9,6 @@ from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
 from IPython.utils.traitlets import HasTraits, List, Unicode, Dict
 
-USER_KERNEL_DIR = pjoin(get_ipython_dir(), 'kernels')
-
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
     if programdata:
@@ -19,12 +17,6 @@ if os.name == 'nt':
         SYSTEM_KERNEL_DIR = None
 else:
     SYSTEM_KERNEL_DIR = "/usr/share/ipython/kernels"
-
-# List of kernel directories to search. Later ones take priority over earlier.
-kernel_dirs = [
-    SYSTEM_KERNEL_DIR,
-    USER_KERNEL_DIR,
-]
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
@@ -61,53 +53,83 @@ def _is_kernel_dir(path):
     return os.path.isdir(path) and os.path.isfile(pjoin(path, 'kernel.json'))
 
 def _list_kernels_in(dir):
-    """Ensure dir exists, and return a mapping of kernel names to resource
-    directories from it.
+    """Return a mapping of kernel names to resource directories from dir.
+    
+    If dir is None or does not exist, returns an empty dict.
     """
     if dir is None or not os.path.isdir(dir):
         return {}
     return {f.lower(): pjoin(dir, f) for f in os.listdir(dir)
                         if _is_kernel_dir(pjoin(dir, f))}
 
-def _make_native_kernel_dir():
-    """Makes a kernel directory for the native kernel.
+class KernelSpecManager(HasTraits):
+    ipython_dir = Unicode()
+    def _ipython_dir_default(self):
+        return get_ipython_dir()
+
+    user_kernel_dir = Unicode()
+    def _user_kernel_dir_default(self):
+        return pjoin(self.ipython_dir, 'kernels')
     
-    The native kernel is the kernel using the same Python runtime as this
-    process. This will put its informatino in the user kernels directory.
-    """
-    path = pjoin(USER_KERNEL_DIR, NATIVE_KERNEL_NAME)
-    os.makedirs(path, mode=0o755)
-    with open(pjoin(path, 'kernel.json'), 'w') as f:
-        json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
-                           'from IPython.kernel.zmq.kernelapp import main; main()',
-                            '-f', '{connection_file}'],
-                   'display_name': 'Python 3' if PY3 else 'Python 2',
-                   'language': 'python',
-                   'codemirror_mode': {'name': 'python',
-                                       'version': sys.version_info[0]},
-                  },
-                  f, indent=1)
-    # TODO: Copy icons into directory
-    return path
+    kernel_dirs = List(
+        help="List of kernel directories to search. Later ones take priority over earlier."    
+    )    
+    def _kernel_dirs_default(self):
+        return [
+            SYSTEM_KERNEL_DIR,
+            self.user_kernel_dir,
+        ]
+
+    def _make_native_kernel_dir(self):
+        """Makes a kernel directory for the native kernel.
+        
+        The native kernel is the kernel using the same Python runtime as this
+        process. This will put its informatino in the user kernels directory.
+        """
+        path = pjoin(self.user_kernel_dir, NATIVE_KERNEL_NAME)
+        os.makedirs(path, mode=0o755)
+        with open(pjoin(path, 'kernel.json'), 'w') as f:
+            json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
+                               'from IPython.kernel.zmq.kernelapp import main; main()',
+                                '-f', '{connection_file}'],
+                       'display_name': 'Python 3' if PY3 else 'Python 2',
+                       'language': 'python',
+                       'codemirror_mode': {'name': 'python',
+                                           'version': sys.version_info[0]},
+                      },
+                      f, indent=1)
+        # TODO: Copy icons into directory
+        return path
+    
+    def find_kernel_specs(self):
+        """Returns a dict mapping kernel names to resource directories."""
+        d = {}
+        for kernel_dir in self.kernel_dirs:
+            d.update(_list_kernels_in(kernel_dir))
+        
+        if NATIVE_KERNEL_NAME not in d:
+            d[NATIVE_KERNEL_NAME] = self._make_native_kernel_dir()
+        return d
+        # TODO: Caching?
+    
+    def get_kernel_spec(self, kernel_name):
+        """Returns a :class:`KernelSpec` instance for the given kernel_name.
+        
+        Raises KeyError if the given kernel name is not found.
+        """
+        if kernel_name == 'python':
+            kernel_name = NATIVE_KERNEL_NAME
+        d = self.find_kernel_specs()
+        resource_dir = d[kernel_name.lower()]
+        return KernelSpec.from_resource_dir(resource_dir)
 
 def find_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""
-    d = {}
-    for kernel_dir in kernel_dirs:
-        d.update(_list_kernels_in(kernel_dir))
-    
-    if NATIVE_KERNEL_NAME not in d:
-        d[NATIVE_KERNEL_NAME] = _make_native_kernel_dir()
-    return d
-    # TODO: Caching?
+    return KernelSpecManager().find_kernel_specs()
 
 def get_kernel_spec(kernel_name):
     """Returns a :class:`KernelSpec` instance for the given kernel_name.
     
     Raises KeyError if the given kernel name is not found.
     """
-    if kernel_name == 'python':
-        kernel_name = NATIVE_KERNEL_NAME
-    d = find_kernel_specs()
-    resource_dir = d[kernel_name.lower()]
-    return KernelSpec.from_resource_dir(resource_dir)
+    return KernelSpecManager().get_kernel_spec(kernel_name)

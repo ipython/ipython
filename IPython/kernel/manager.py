@@ -19,6 +19,7 @@ import zmq
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import is_local_ip, local_ips
+from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (
     Any, Instance, Unicode, List, Bool, Type, DottedObjectName
 )
@@ -60,15 +61,20 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     # generally a Popen instance
     kernel = Any()
     
+    kernel_spec_manager = Instance(kernelspec.KernelSpecManager)
+    
+    def _kernel_spec_manager_default(self):
+        return kernelspec.KernelSpecManager(ipython_dir=self.ipython_dir)
+    
     kernel_name = Unicode('python')
     
     kernel_spec = Instance(kernelspec.KernelSpec)
     
     def _kernel_spec_default(self):
-        return kernelspec.get_kernel_spec(self.kernel_name)
+        return self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
     
     def _kernel_name_changed(self, name, old, new):
-        self.kernel_spec = kernelspec.get_kernel_spec(new)
+        self.kernel_spec = self.kernel_spec_manager.get_kernel_spec(new)
         self.ipython_kernel = new in {'python', 'python2', 'python3'}
 
     kernel_cmd = List(Unicode, config=True,
@@ -91,6 +97,10 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         self.ipython_kernel = False
 
     ipython_kernel = Bool(True)
+    
+    ipython_dir = Unicode()
+    def _ipython_dir_default(self):
+        return get_ipython_dir()
 
     # Protected traits
     _launch_args = Any()
