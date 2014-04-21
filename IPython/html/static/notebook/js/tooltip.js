@@ -218,7 +218,7 @@ var IPython = (function (IPython) {
 
     Tooltip.prototype._request_tooltip = function (cell, text, cursor_pos) {
         var callbacks = $.proxy(this._show, this);
-        var msg_id = cell.kernel.object_info(text, cursor_pos, callbacks);
+        var msg_id = cell.kernel.inspect(text, cursor_pos, callbacks);
     };
 
     // make an imediate completion request

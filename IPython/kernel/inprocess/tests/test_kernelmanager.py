@@ -68,7 +68,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         self.assertEqual(sorted(msg['content']['matches']),
                           ['my_bar', 'my_baz'])
 
-    def test_object_info(self):
+    def test_inspect(self):
         """ Does requesting object information from an in-process kernel work?
         """
         km = InProcessKernelManager()
@@ -76,9 +76,9 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         kc = BlockingInProcessKernelClient(kernel=km.kernel)
         kc.start_channels()
         km.kernel.shell.user_ns['foo'] = 1
-        kc.object_info('foo')
+        kc.inspect('foo')
         msg = kc.get_shell_msg()
-        self.assertEqual(msg['header']['msg_type'], 'object_info_reply')
+        self.assertEqual(msg['header']['msg_type'], 'inspect_reply')
         content = msg['content']
         assert content['found']
         self.assertEqual(content['name'], 'foo')

@@ -46,7 +46,7 @@ class ShellChannelABC(ChannelABC):
         pass
 
     @abc.abstractmethod
-    def object_info(self, oname, detail_level=0):
+    def inspect(self, oname, detail_level=0):
         pass
 
     @abc.abstractmethod

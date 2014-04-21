@@ -246,7 +246,7 @@ var IPython = (function (IPython) {
      * Get kernel info
      *
      * @param callback {function}
-     * @method object_info
+     * @method kernel_info
      *
      * When calling this method, pass a callback function that expects one argument.
      * The callback will be passed the complete `kernel_info_reply` message documented
@@ -266,13 +266,13 @@ var IPython = (function (IPython) {
      * @param code {string}
      * @param cursor_pos {integer}
      * @param callback {function}
-     * @method object_info
+     * @method inspect
      *
      * When calling this method, pass a callback function that expects one argument.
-     * The callback will be passed the complete `object_info_reply` message documented
+     * The callback will be passed the complete `inspect_reply` message documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
      */
-    Kernel.prototype.object_info = function (code, cursor_pos, callback) {
+    Kernel.prototype.inspect = function (code, cursor_pos, callback) {
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
@@ -283,7 +283,7 @@ var IPython = (function (IPython) {
             cursor_pos : cursor_pos,
             detail_level : 0,
         };
-        return this.send_shell_message("object_info_request", content, callbacks);
+        return this.send_shell_message("inspect_request", content, callbacks);
     };
 
     /**

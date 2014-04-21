@@ -186,7 +186,7 @@ class ShellChannel(ZMQSocketChannel):
     proxy_methods = [
         'execute',
         'complete',
-        'object_info',
+        'inspect',
         'history',
         'kernel_info',
         'shutdown',
@@ -290,7 +290,7 @@ class ShellChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def object_info(self, code, cursor_pos=0, detail_level=0):
+    def inspect(self, code, cursor_pos=0, detail_level=0):
         """Get metadata information about an object in the kernel's namespace.
 
         It is up to the kernel to determine the appropriate object to inspect.
@@ -312,7 +312,7 @@ class ShellChannel(ZMQSocketChannel):
         content = dict(code=code, cursor_pos=cursor_pos,
             detail_level=detail_level,
         )
-        msg = self.session.msg('object_info_request', content)
+        msg = self.session.msg('inspect_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
 

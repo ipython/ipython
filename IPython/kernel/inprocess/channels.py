@@ -73,7 +73,7 @@ class InProcessShellChannel(InProcessChannel):
     proxy_methods = [
         'execute',
         'complete',
-        'object_info',
+        'inspect',
         'history',
         'shutdown',
         'kernel_info',
@@ -100,11 +100,11 @@ class InProcessShellChannel(InProcessChannel):
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 
-    def object_info(self, code, cursor_pos=0, detail_level=0):
+    def inspect(self, code, cursor_pos=0, detail_level=0):
         content = dict(code=code, cursor_pos=cursor_pos,
             detail_level=detail_level,
         )
-        msg = self.client.session.msg('object_info_request', content)
+        msg = self.client.session.msg('inspect_request', content)
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 

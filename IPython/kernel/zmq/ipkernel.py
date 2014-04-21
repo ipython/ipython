@@ -159,7 +159,7 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
-                      'object_info_request', 'history_request',
+                      'inspect_request', 'history_request',
                       'kernel_info_request',
                       'connect_request', 'shutdown_request',
                       'apply_request',
@@ -503,7 +503,7 @@ class Kernel(Configurable):
                                            matches, parent, ident)
         self.log.debug("%s", completion_msg)
 
-    def object_info_request(self, stream, ident, parent):
+    def inspect_request(self, stream, ident, parent):
         content = parent['content']
         
         name = token_at_cursor(content['code'], content['cursor_pos'])
@@ -522,7 +522,7 @@ class Kernel(Configurable):
             reply_content['data']['text/plain'] = info_text
         # Before we send this object over, we scrub it for JSON usage
         reply_content = json_clean(reply_content)
-        msg = self.session.send(stream, 'object_info_reply',
+        msg = self.session.send(stream, 'inspect_reply',
                                 reply_content, parent, ident)
         self.log.debug("%s", msg)
 

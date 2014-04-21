@@ -505,9 +505,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._kernel_restarted_message(died=died)
         self.reset()
 
-    def _handle_object_info_reply(self, rep):
-        """ Handle replies for call tips.
-        """
+    def _handle_inspect_reply(self, rep):
+        """Handle replies for call tips."""
         self.log.debug("oinfo: %s", rep.get('content', ''))
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
@@ -518,16 +517,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # syntax-highlight it ourselves for nicer formatting in the
             # calltip.
             content = rep['content']
-            # if this is from pykernel, 'docstring' will be the only key
-            if content.get('ismagic', False):
-                # Don't generate a call-tip for magics. Ideally, we should
-                # generate a tooltip, but not on ( like we do for actual
-                # callables.
-                call_info, doc = None, None
-            else:
-                call_info, doc = call_tip(content, format_call=True)
-            if call_info or doc:
-                self._call_tip_widget.show_call_info(call_info, doc)
+            if content.get('status') == 'ok':
+                self._call_tip_widget.show_inspect_data(content)
 
     def _handle_execute_result(self, msg):
         """ Handle display hook output.
@@ -734,7 +725,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         cursor_pos = self._get_input_buffer_cursor_pos()
         code = self.input_buffer
         # Send the metadata request to the kernel
-        msg_id = self.kernel_client.object_info(code, cursor_pos)
+        msg_id = self.kernel_client.inspect(code, cursor_pos)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True

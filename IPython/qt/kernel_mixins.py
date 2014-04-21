@@ -57,7 +57,7 @@ class QtShellChannelMixin(ChannelQObject):
     # Emitted when a reply has been received for the corresponding request type.
     execute_reply = QtCore.Signal(object)
     complete_reply = QtCore.Signal(object)
-    object_info_reply = QtCore.Signal(object)
+    inspect_reply = QtCore.Signal(object)
     history_reply = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------

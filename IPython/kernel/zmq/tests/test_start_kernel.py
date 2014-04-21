@@ -10,7 +10,7 @@ def test_ipython_start_kernel_userns():
            'start_kernel(user_ns=ns)')
 
     with setup_kernel(cmd) as client:
-        msg_id = client.object_info('tre')
+        msg_id = client.inspect('tre')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
@@ -22,7 +22,7 @@ def test_ipython_start_kernel_userns():
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_equal(content['status'], u'ok')
-        msg_id = client.object_info('usermod')
+        msg_id = client.inspect('usermod')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
@@ -40,7 +40,7 @@ def test_ipython_start_kernel_no_userns():
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_equal(content['status'], u'ok')
-        msg_id = client.object_info('usermod')
+        msg_id = client.inspect('usermod')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         assert content['found']

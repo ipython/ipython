@@ -120,7 +120,7 @@ class ExecuteReplyError(Reference):
     traceback = List(Unicode)
 
 
-class OInfoReply(MimeBundle):
+class InspectReply(MimeBundle):
     name = Unicode()
     found = Bool()
 
@@ -174,7 +174,7 @@ class ExecuteResult(MimeBundle):
 
 references = {
     'execute_reply' : ExecuteReply(),
-    'object_info_reply' : OInfoReply(),
+    'inspect_reply' : InspectReply(),
     'status' : Status(),
     'complete_reply' : CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
@@ -297,9 +297,9 @@ def test_user_expressions_fail():
 def test_oinfo():
     flush_channels()
 
-    msg_id = KC.object_info('a')
+    msg_id = KC.inspect('a')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
 
 
 def test_oinfo_found():
@@ -307,9 +307,9 @@ def test_oinfo_found():
 
     msg_id, reply = execute(code='a=5')
     
-    msg_id = KC.object_info('a')
+    msg_id = KC.inspect('a')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     assert content['found']
     nt.assert_equal(content['name'], 'a')
@@ -323,9 +323,9 @@ def test_oinfo_detail():
 
     msg_id, reply = execute(code='ip=get_ipython()')
     
-    msg_id = KC.object_info('ip.object_inspect', cursor_pos=10, detail_level=1)
+    msg_id = KC.inspect('ip.object_inspect', cursor_pos=10, detail_level=1)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     assert content['found']
     nt.assert_equal(content['name'], 'ip.object_inspect')
@@ -337,9 +337,9 @@ def test_oinfo_detail():
 def test_oinfo_not_found():
     flush_channels()
 
-    msg_id = KC.object_info('dne')
+    msg_id = KC.inspect('dne')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     nt.assert_false(content['found'])
 

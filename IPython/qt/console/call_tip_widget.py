@@ -1,5 +1,6 @@
 # Standard library imports
 import re
+import textwrap
 from unicodedata import category
 
 # System library imports
@@ -122,21 +123,15 @@ class CallTipWidget(QtGui.QLabel):
     # 'CallTipWidget' interface
     #--------------------------------------------------------------------------
 
-    def show_call_info(self, call_line=None, doc=None, maxlines=20):
-        """ Attempts to show the specified call line and docstring at the
-            current cursor location. The docstring is possibly truncated for
-            length.
-        """
-        if doc:
-            match = re.match("(?:[^\n]*\n){%i}" % maxlines, doc)
-            if match:
-                doc = doc[:match.end()] + '\n[Documentation continues...]'
-        else:
-            doc = ''
+    def show_inspect_data(self, content, maxlines=20):
+        """Show inspection data as a tooltip"""
+        data = content.get('data', {})
+        text = data.get('text/plain', '')
+        match = re.match("(?:[^\n]*\n){%i}" % maxlines, text)
+        if match:
+            text = text[:match.end()] + '\n[Documentation continues...]'
 
-        if call_line:
-            doc = '\n\n'.join([call_line, doc])
-        return self.show_tip(self._format_tooltip(doc))
+        return self.show_tip(self._format_tooltip(text))
 
     def show_tip(self, tip):
         """ Attempts to show the specified tip at the current cursor location.
@@ -247,8 +242,8 @@ class CallTipWidget(QtGui.QLabel):
             QtGui.qApp.topLevelAt(QtGui.QCursor.pos()) != self):
             self._hide_timer.start(300, self)
 
-    def _format_tooltip(self,doc):
-        import textwrap
+    def _format_tooltip(self, doc):
+        doc = re.sub(r'\033\[(\d|;)+?m', '', doc)
 
         # make sure a long argument list does not make
         # the first row overflow the width of the actual tip body
