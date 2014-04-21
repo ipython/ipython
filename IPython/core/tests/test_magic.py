@@ -949,3 +949,42 @@ def test_bookmark():
     with tt.AssertPrints('bmname'):
         ip.run_line_magic('bookmark', '-l')
     ip.run_line_magic('bookmark', '-d bmname')
+
+def test_load():
+    """Test %load"""
+    ip = get_ipython()
+    nt.assert_raises(ValueError, ip.run_line_magic, 'load', 'test')
+
+    ## Test find_user_code() component of %load
+    from IPython.core.interactiveshell import InteractiveShell
+
+    def test_gist_url_load():
+        """ Test gist_url loading in response to Issue 2149 """
+        interactive_shell = InteractiveShell()
+
+        # test links
+        test_links = ["https://gist.github.com/Bonza-Times/10945158",
+                      "https://gist.github.com/Bonza-Times/10945158/",
+                      "https://gist.github.com/Bonza-Times/10945158/raw",
+                      "https://gist.github.com/Bonza-Times/10945158/raw/",
+                      "https://gist.githubusercontent.com/Bonza-Times/10945158/raw/",
+                      "https://gist.githubusercontent.com/Bonza-Times/10945158/",
+                      "http://www.youtube.com/watch?v=gaE2hL9RLWk",
+                      "https://docs.python.org/2/library/re.html#re.sub"]
+        
+        # correct output
+        correct_value = "https://gist.github.com/Bonza-Times/10945158/raw/"
+    
+        ## Checking to see if links were handled correctly
+        for link in test_links[:-2]:
+            nt.eq_(interactive_shell.gist_load_tweak(link), correct_value)
+        
+        for link in test_links[-2:]:
+            nt.assert_raises(ValueError, interactive_shell.gist_load_tweak,
+                             link)
+
+        ## Ensuring find_user_code() output plays well with gist_load_tweak()
+        nt.eq_(len(interactive_shell.find_user_code(test_links[0])),
+               len(interactive_shell.find_user_code(test_links[3])))
+
+
