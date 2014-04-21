@@ -723,17 +723,15 @@ def _re_pattern_pprint(obj, p, cycle):
 
 def _type_pprint(obj, p, cycle):
     """The pprint for classes and types."""
+    # Heap allocated types might not have the module attribute,
+    # and others may set it to None.
     mod = _safe_getattr(obj, '__module__', None)
-    if mod is None:
-        # Heap allocated types might not have the module attribute,
-        # and others may set it to None.
-        return p.text(obj.__name__)
+    name = _safe_getattr(obj, '__qualname__', obj.__name__)
 
-    if mod in ('__builtin__', 'builtins', 'exceptions'):
-        name = obj.__name__
+    if mod in (None, '__builtin__', 'builtins', 'exceptions'):
+        p.text(name)
     else:
-        name = mod + '.' + obj.__name__
-    p.text(name)
+        p.text(mod + '.' + name)
 
 
 def _repr_pprint(obj, p, cycle):
@@ -743,22 +741,18 @@ def _repr_pprint(obj, p, cycle):
 
 def _function_pprint(obj, p, cycle):
     """Base pprint for all functions and builtin functions."""
-    if obj.__module__ in ('__builtin__', 'builtins', 'exceptions') or not obj.__module__:
-        name = obj.__name__
-    else:
-        name = obj.__module__ + '.' + obj.__name__
+    name = _safe_getattr(obj, '__qualname__', obj.__name__)
+    mod = obj.__module__
+    if mod and mod not in ('__builtin__', 'builtins', 'exceptions'):
+        name = mod + '.' + name
     p.text('<function %s>' % name)
 
 
 def _exception_pprint(obj, p, cycle):
     """Base pprint for all exceptions."""
-    if obj.__class__.__module__ in ('exceptions', 'builtins'):
-        name = obj.__class__.__name__
-    else:
-        name = '%s.%s' % (
-            obj.__class__.__module__,
-            obj.__class__.__name__
-        )
+    name = getattr(obj.__class__, '__qualname__', obj.__class__.__name__)
+    if obj.__class__.__module__ not in ('exceptions', 'builtins'):
+        name = '%s.%s' % (obj.__class__.__module__, name)
     step = len(name) + 1
     p.begin_group(step, name + '(')
     for idx, arg in enumerate(getattr(obj, 'args', ())):
