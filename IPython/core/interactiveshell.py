@@ -3089,6 +3089,52 @@ class InteractiveShell(SingletonConfigurable):
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
 
+    def gist_load_tweak(self, utarget):
+        """ Tweak %load to get raw gist
+
+        In response to issue #2149, this method tweaks the load magic to
+        turn a gist url into a raw-gist url, because it does not make sense
+        to load an html gist page.
+
+        Multi-file gists are not supported. The user will see
+        'error_reporting(0);' if they try to load a multi-file gist.
+        
+        Args:
+            utarget: str
+        
+            A string specifying code to retrieve. utarget is a variable in
+            the find_user_code() method located in this class. The utarget
+            variable is defined as 'utarget = unquote_filename(target)'.
+
+        Returns:
+            A string that contains a gist url modified to be a raw-gist url.
+
+        Raises:
+            ValueError: Gist url not reformatted correctly
+        """
+        trailing_slash = re.compile("[/]$")
+        raw_gist_url = re.compile("\/raw\/")
+        alt_form = re.compile("(^http.*)(githubusercontent)(.*)$")
+
+        # Check to make sure url has a trailing slash.
+        if not trailing_slash.search(utarget):
+            utarget += "/"
+
+        # Check to see if the alternative form of the gist url is present.
+        if alt_form.search(utarget):
+            utarget = re.sub("githubusercontent","github",utarget)
+        
+        # If the link is a raw gist url then return it.
+        if raw_gist_url.search(utarget):
+            return utarget
+            
+        # Otherwise, add '/raw/' to the gist url then return it.
+        elif not raw_gist_url.search(utarget):
+            return utarget + "raw/"
+
+        else:
+            raise ValueError("Gist url not reformatted correctly")
+
     def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True):
         """Get a code string from history, file, url, or a string or macro.
 
@@ -3124,8 +3170,14 @@ class InteractiveShell(SingletonConfigurable):
         if code:
             return code
         utarget = unquote_filename(target)
+        # gist_url added due to issue 2149
+        gist_url = re.compile("^http.[:/]+(gist.github).*")
         try:
-            if utarget.startswith(('http://', 'https://')):
+            if gist_url.search(utarget):
+                return openpy.read_py_url(self.gist_load_tweak(utarget),
+                                          skip_encoding_cookie=skip_encoding_cookie)
+            
+            elif utarget.startswith(('http://', 'https://')):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError:
             if not py_only :
