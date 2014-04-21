@@ -229,7 +229,7 @@ var IPython = (function (IPython) {
         this.cancel_pending();
         var editor = cell.code_mirror;
         var cursor = editor.getCursor();
-        var cursor_pos = IPython.utils.absolute_cursor_pos(editor, cursor);
+        var cursor_pos = utils.to_absolute_cursor_pos(editor, cursor);
         var text = cell.get_text();
 
         this._hide_if_no_docstring = hide_if_no_docstring;

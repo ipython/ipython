@@ -11,15 +11,16 @@ var IPython = (function (IPython) {
 
     // easier key mapping
     var keycodes = IPython.keyboard.keycodes;
+    var utils = IPython.utils;
 
-    function prepend_n_prc(str, n) {
+    var prepend_n_prc = function(str, n) {
         for( var i =0 ; i< n ; i++){
             str = '%'+str ;
         }
         return str;
     };
 
-    function _existing_completion(item, completion_array){
+    var _existing_completion = function(item, completion_array){
         for( var i=0; i < completion_array.length; i++) {
             if (completion_array[i].trim().substr(-item.length) == item) {
                 return true;
@@ -147,13 +148,14 @@ var IPython = (function (IPython) {
 
         // one kernel completion came back, finish_completing will be called with the results
         // we fork here and directly call finish completing if kernel is busy
+        var cursor_pos = utils.to_absolute_cursor_pos(this.editor, cur);
         if (this.skip_kernel_completion) {
-            this.finish_completing({
+            this.finish_completing({ content: {
                 matches: [],
-                matched_text: ""
-            });
+                cursor_start: cursor_pos,
+                cursor_end: cursor_pos,
+            }});
         } else {
-            var cursor_pos = IPython.utils.absolute_cursor_pos(this.editor, cur);
             this.cell.kernel.complete(this.editor.getValue(), cursor_pos,
                 $.proxy(this.finish_completing, this)
             );
@@ -164,7 +166,8 @@ var IPython = (function (IPython) {
         // let's build a function that wrap all that stuff into what is needed
         // for the new completer:
         var content = msg.content;
-        var matched_text = content.matched_text;
+        var start = content.cursor_start;
+        var end = content.cursor_end;
         var matches = content.matches;
 
         var cur = this.editor.getCursor();
@@ -172,7 +175,8 @@ var IPython = (function (IPython) {
         var filtered_results = [];
         //remove results from context completion
         //that are already in kernel completion
-        for (var i=0; i < results.length; i++) {
+        var i;
+        for (i=0; i < results.length; i++) {
             if (!_existing_completion(results[i].str, matches)) {
                 filtered_results.push(results[i]);
             }
@@ -181,18 +185,12 @@ var IPython = (function (IPython) {
         // append the introspection result, in order, at at the beginning of
         // the table and compute the replacement range from current cursor
         // positon and matched_text length.
-        for (var i = matches.length - 1; i >= 0; --i) {
+        for (i = matches.length - 1; i >= 0; --i) {
             filtered_results.unshift({
                 str: matches[i],
                 type: "introspection",
-                from: {
-                    line: cur.line,
-                    ch: cur.ch - matched_text.length
-                },
-                to: {
-                    line: cur.line,
-                    ch: cur.ch
-                }
+                from: utils.from_absolute_cursor_pos(this.editor, start),
+                to: utils.from_absolute_cursor_pos(this.editor, end)
             });
         }
 
@@ -256,8 +254,9 @@ var IPython = (function (IPython) {
 
         // After everything is on the page, compute the postion.
         // We put it above the code if it is too close to the bottom of the page.
-        cur.ch = cur.ch-matched_text.length;
-        var pos = this.editor.cursorCoords(cur);
+        var pos = this.editor.cursorCoords(
+            utils.from_absolute_cursor_pos(this.editor, start)
+        );
         var left = pos.left-3;
         var top;
         var cheight = this.complete.height();

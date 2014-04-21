@@ -496,7 +496,9 @@ class Kernel(Configurable):
         
         txt, matches = self.shell.complete('', code, cursor_pos)
         matches = {'matches' : matches,
-                   'matched_text' : txt,
+                   'cursor_end' : cursor_pos,
+                   'cursor_start' : cursor_pos - len(txt),
+                   'metadata' : {},
                    'status' : 'ok'}
         matches = json_clean(matches)
         completion_msg = self.session.send(stream, 'complete_reply',

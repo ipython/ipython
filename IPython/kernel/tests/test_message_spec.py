@@ -138,6 +138,9 @@ class Status(Reference):
 
 class CompleteReply(Reference):
     matches = List(Unicode)
+    cursor_start = Integer()
+    cursor_end = Integer()
+    status = Unicode()
 
 
 class KernelInfoReply(Reference):

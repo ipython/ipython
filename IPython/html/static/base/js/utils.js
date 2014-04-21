@@ -437,7 +437,7 @@ IPython.utils = (function (IPython) {
         return decodeURIComponent($('body').data(key));
     };
     
-    var absolute_cursor_pos = function (cm, cursor) {
+    var to_absolute_cursor_pos = function (cm, cursor) {
         // get the absolute cursor position from CodeMirror's col, ch
         if (!cursor) {
             cursor = cm.getCursor();
@@ -449,6 +449,27 @@ IPython.utils = (function (IPython) {
         return cursor_pos;
     };
     
+    var from_absolute_cursor_pos = function (cm, cursor_pos) {
+        // turn absolute cursor postion into CodeMirror col, ch cursor
+        var i, line;
+        var offset = 0;
+        for (i = 0, line=cm.getLine(i); line !== undefined; i++, line=cm.getLine(i)) {
+            if (offset + line.length < cursor_pos) {
+                offset += line.length + 1;
+            } else {
+                return {
+                    line : i,
+                    ch : cursor_pos - offset,
+                };
+            }
+        }
+        // reached end, return endpoint
+        return {
+            ch : line.length - 1,
+            line : i - 1,
+        };
+    };
+    
     // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
     var browser = (function() {
         if (typeof navigator === 'undefined') {
@@ -457,7 +478,7 @@ IPython.utils = (function (IPython) {
         }
         var N= navigator.appName, ua= navigator.userAgent, tem;
         var M= ua.match(/(opera|chrome|safari|firefox|msie)\/?\s*(\.?\d+(\.\d+)*)/i);
-        if (M && (tem= ua.match(/version\/([\.\d]+)/i))!= null) M[2]= tem[1];
+        if (M && (tem= ua.match(/version\/([\.\d]+)/i)) !== null) M[2]= tem[1];
         M= M? [M[1], M[2]]: [N, navigator.appVersion,'-?'];
         return M;
     })();
@@ -523,7 +544,8 @@ IPython.utils = (function (IPython) {
         splitext : splitext,
         escape_html : escape_html,
         always_new : always_new,
-        absolute_cursor_pos : absolute_cursor_pos,
+        to_absolute_cursor_pos : to_absolute_cursor_pos,
+        from_absolute_cursor_pos : from_absolute_cursor_pos,
         browser : browser,
         platform: platform,
         is_or_has : is_or_has,
