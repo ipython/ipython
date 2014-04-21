@@ -62,6 +62,10 @@ def _list_kernels_in(dir):
     return {f.lower(): pjoin(dir, f) for f in os.listdir(dir)
                         if _is_kernel_dir(pjoin(dir, f))}
 
+class NoSuchKernel(KeyError):
+    def __init__(self, name):
+        self.name = name
+
 class KernelSpecManager(HasTraits):
     ipython_dir = Unicode()
     def _ipython_dir_default(self):
@@ -115,12 +119,15 @@ class KernelSpecManager(HasTraits):
     def get_kernel_spec(self, kernel_name):
         """Returns a :class:`KernelSpec` instance for the given kernel_name.
         
-        Raises KeyError if the given kernel name is not found.
+        Raises :exc:`NoSuchKernel` if the given kernel name is not found.
         """
         if kernel_name == 'python':
             kernel_name = NATIVE_KERNEL_NAME
         d = self.find_kernel_specs()
-        resource_dir = d[kernel_name.lower()]
+        try:
+            resource_dir = d[kernel_name.lower()]
+        except KeyError:
+            raise NoSuchKernel(kernel_name)
         return KernelSpec.from_resource_dir(resource_dir)
 
 def find_kernel_specs():

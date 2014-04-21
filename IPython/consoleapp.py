@@ -35,6 +35,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.kernel.blocking import BlockingKernelClient
 from IPython.kernel import KernelManager
 from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
+from IPython.kernel.kernelspec import NoSuchKernel
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
@@ -331,18 +332,23 @@ class IPythonConsoleApp(ConnectionFileMixin):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # Create a KernelManager and start a kernel.
-        self.kernel_manager = self.kernel_manager_class(
-                                ip=self.ip,
-                                transport=self.transport,
-                                shell_port=self.shell_port,
-                                iopub_port=self.iopub_port,
-                                stdin_port=self.stdin_port,
-                                hb_port=self.hb_port,
-                                connection_file=self.connection_file,
-                                kernel_name=self.kernel_name,
-                                parent=self,
-                                ipython_dir=self.ipython_dir,
-        )
+        try:
+            self.kernel_manager = self.kernel_manager_class(
+                                    ip=self.ip,
+                                    transport=self.transport,
+                                    shell_port=self.shell_port,
+                                    iopub_port=self.iopub_port,
+                                    stdin_port=self.stdin_port,
+                                    hb_port=self.hb_port,
+                                    connection_file=self.connection_file,
+                                    kernel_name=self.kernel_name,
+                                    parent=self,
+                                    ipython_dir=self.ipython_dir,
+            )
+        except NoSuchKernel:
+            self.log.critical("Could not find kernel %s", self.kernel_name)
+            self.exit(1)
+
         self.kernel_manager.client_factory = self.kernel_client_class
         self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
         atexit.register(self.kernel_manager.cleanup_ipc_files)
