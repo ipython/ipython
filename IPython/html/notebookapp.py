@@ -47,6 +47,7 @@ if version_info < (3,1,0):
 
 from tornado import httpserver
 from tornado import web
+from tornado.log import LogFormatter
 
 from IPython.html import DEFAULT_STATIC_FILES_PATH
 from .base.handlers import Template404
@@ -301,13 +302,19 @@ class NotebookApp(BaseIPythonApplication):
     )
 
     kernel_argv = List(Unicode)
+    
+    _log_formatter_cls = LogFormatter
 
     def _log_level_default(self):
         return logging.INFO
 
+    def _log_datefmt_default(self):
+        """Exclude date from default date format"""
+        return "%H:%M:%S"
+    
     def _log_format_default(self):
         """override default log format to include time"""
-        return u"%(asctime)s.%(msecs).03d [%(name)s]%(highlevel)s %(message)s"
+        return u"%(color)s[%(levelname)1.1s %(asctime)s.%(msecs).03d %(name)s]%(end_color)s %(message)s"
 
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
@@ -584,10 +591,10 @@ class NotebookApp(BaseIPythonApplication):
         self.log.propagate = False
         
         # hook up tornado 3's loggers to our app handlers
-        for name in ('access', 'application', 'general'):
-            logger = logging.getLogger('tornado.%s' % name)
-            logger.parent = self.log
-            logger.setLevel(self.log.level)
+        logger = logging.getLogger('tornado')
+        logger.propagate = True
+        logger.parent = self.log
+        logger.setLevel(self.log.level)
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
