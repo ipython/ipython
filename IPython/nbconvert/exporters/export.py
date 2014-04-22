@@ -1,17 +1,7 @@
-"""
-Module containing single call export functions.
-"""
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+"""Module containing single call export functions."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from functools import wraps
 
@@ -24,6 +14,7 @@ from .templateexporter import TemplateExporter
 from .html import HTMLExporter
 from .slides import SlidesExporter
 from .latex import LatexExporter
+from .pdf import PDFExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
 from .rst import RSTExporter
@@ -79,6 +70,7 @@ __all__ = [
     'export_custom',
     'export_slides',
     'export_latex',
+    'export_pdf',
     'export_markdown',
     'export_python',
     'export_rst',
@@ -134,6 +126,7 @@ exporter_map = dict(
     html=HTMLExporter,
     slides=SlidesExporter,
     latex=LatexExporter,
+    pdf=PDFExporter,
     markdown=MarkdownExporter,
     python=PythonExporter,
     rst=RSTExporter,

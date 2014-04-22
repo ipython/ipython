@@ -1,21 +1,12 @@
 #!/usr/bin/env python
-"""NBConvert is a utility for conversion of .ipynb files.
+"""NbConvert is a utility for conversion of .ipynb files.
 
 Command-line interface for the NbConvert conversion utility.
 """
-#-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
-#
-#Distributed under the terms of the Modified BSD License.
-#
-#The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-#Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-# Stdlib imports
 from __future__ import print_function
 
 import logging
@@ -23,7 +14,6 @@ import sys
 import os
 import glob
 
-# From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
 from IPython.core.profiledir import ProfileDir
 from IPython.config import catch_config_error, Configurable
@@ -128,9 +118,9 @@ class NbConvertApp(BaseIPythonApplication):
         
         > ipython nbconvert mynotebook.ipynb --stdout
 
-        A post-processor can be used to compile a PDF
+        PDF is generated via latex
 
-        > ipython nbconvert mynotebook.ipynb --to latex --post PDF
+        > ipython nbconvert mynotebook.ipynb --to pdf
         
         You can get (and serve) a Reveal.js-powered slideshow
         
@@ -174,8 +164,7 @@ class NbConvertApp(BaseIPythonApplication):
     postprocessor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    postprocessor_aliases = {'pdf': 'IPython.nbconvert.postprocessors.pdf.PDFPostProcessor',
-                              'serve': 'IPython.nbconvert.postprocessors.serve.ServePostProcessor'}
+    postprocessor_aliases = {'serve': 'IPython.nbconvert.postprocessors.serve.ServePostProcessor'}
     postprocessor_factory = Type()
 
     def _postprocessor_class_changed(self, name, old, new):
