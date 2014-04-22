@@ -317,6 +317,7 @@ class DisplayObject(object):
     """An object that wraps data to be displayed."""
 
     _read_flags = 'r'
+    _show_mem_addr = False
 
     def __init__(self, data=None, url=None, filename=None):
         """Create a display object given raw data.
@@ -353,7 +354,15 @@ class DisplayObject(object):
 
         self.reload()
         self._check_data()
-    
+
+    def __repr__(self):
+        if not self._show_mem_addr:
+            cls = self.__class__
+            r = "<%s.%s object>" % (cls.__module__, cls.__name__)
+        else:
+            r = super(DisplayObject, self).__repr__()
+        return r
+
     def _check_data(self):
         """Override in subclasses if there's something to check."""
         pass
