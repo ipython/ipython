@@ -77,6 +77,7 @@ class DisplayPublisher(Configurable):
 
         * text/plain
         * text/html
+        * text/markdown
         * text/latex
         * application/json
         * application/javascript
@@ -141,6 +142,7 @@ def publish_display_data(source, data, metadata=None):
 
     * text/plain
     * text/html
+    * text/markdown
     * text/latex
     * application/json
     * application/javascript
