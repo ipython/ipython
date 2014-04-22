@@ -87,7 +87,7 @@ def reads_json(nbjson, **kwargs):
     nb = reader_reads(nbjson, **kwargs)
     nb_current = convert(nb, current_nbformat)
     errors = validate(nb_current)
-    if len(errors) > 0:
+    if errors:
         logger.error(
             "Notebook JSON is invalid (%d errors detected during read)",
             len(errors))
@@ -100,7 +100,7 @@ def writes_json(nb, **kwargs):
 
     """
     errors = validate(nb)
-    if len(errors) > 0:
+    if errors:
         logger.error(
             "Notebook JSON is invalid (%d errors detected during write)",
             len(errors))

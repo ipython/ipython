@@ -23,7 +23,7 @@ def isvalid(nbjson):
     """
 
     errors = validate(nbjson)
-    return errors == 0
+    return errors == []
 
 
 def validate(nbjson):
@@ -42,7 +42,7 @@ def validate(nbjson):
 
     # count how many errors there are
     v = Draft3Validator(v3schema)
-    errors = [e for e in v.iter_errors(nbjson)]
+    errors = list(v.iter_errors(nbjson))
     return errors
 
 
