@@ -9,7 +9,7 @@ from IPython.utils.py3compat import iteritems
 
 from .current import nbformat, nbformat_schema
 schema_path = os.path.join(
-    os.path.split(__file__)[0], "v%d" % nbformat, nbformat_schema)
+    os.path.dirname(__file__), "v%d" % nbformat, nbformat_schema)
 
 
 def isvalid(nbjson, verbose=False):
