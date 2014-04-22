@@ -1,7 +1,7 @@
 """Some generic utilities for dealing with classes, urls, and serialization."""
 
-# Copyright (c) IPython Development Team.
-# Distributed under the terms of the Modified BSD License.
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import logging
 import os
