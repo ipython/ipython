@@ -9,5 +9,12 @@ code {
   color: @black; // default code color in bootstrap is #d14 (crimson / amaranth)
 }
 
+pre {
+  // bootstrap has pre defaults that we don't want to inherit.
+  // start pre tag defaults based on the surrounding context instead.
+  font-size: inherit;
+  line-height: inherit;
+}
+
 // Our own global variables for all pages go here
 
