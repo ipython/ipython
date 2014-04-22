@@ -138,6 +138,9 @@ var IPython = (function (IPython) {
             }
             this.refresh();
         }
+        if (this.celltoolbar.ui_controls_list.length) {
+            this.celltoolbar.show();
+        }
         return cont;
     };
 
@@ -178,6 +181,7 @@ var IPython = (function (IPython) {
      */
     TextCell.prototype.set_rendered = function(text) {
         this.element.find('div.text_cell_render').html(text);
+        this.celltoolbar.hide();
     };
 
 
@@ -400,11 +404,6 @@ var IPython = (function (IPython) {
      */
     HeadingCell.prototype.get_level = function () {
         return this.level;
-    };
-
-
-    HeadingCell.prototype.set_rendered = function (html) {
-        this.element.find("div.text_cell_render").html(html);
     };
 
 
