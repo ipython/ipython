@@ -678,16 +678,18 @@ class TraitTestBase(TestCase):
         None in self._bad_values):
             trait=self.obj.traits()['value']
             if isinstance(trait, AllowNone) and not trait._allow_none:
-                trait._allow_none = True
-                self._bad_values.remove(None)
-                #skip coerce. Allow None casts None to None.
-                self.assign(None)
-                self.assertEqual(self.obj.value,None)
-                self.test_good_values()
-                self.test_bad_values()
-                #tear down
-                trait._allow_none = False
-                self._bad_values.append(None)
+                try:
+                    trait._allow_none = True
+                    self._bad_values.remove(None)
+                    #skip coerce. Allow None casts None to None.
+                    self.assign(None)
+                    self.assertEqual(self.obj.value,None)
+                    self.test_good_values()
+                    self.test_bad_values()
+                finally:
+                    #tear down
+                    trait._allow_none = False
+                    self._bad_values.append(None)
 
 
     def tearDown(self):
