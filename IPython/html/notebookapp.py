@@ -495,7 +495,20 @@ class NotebookApp(BaseIPythonApplication):
 
     notebook_manager_class = DottedObjectName('IPython.html.services.notebooks.filenbmanager.FileNotebookManager',
         config=True,
-        help='The notebook manager class to use.')
+        help='The notebook manager class to use.'
+    )
+    kernel_manager_class = DottedObjectName('IPython.html.services.kernels.kernelmanager.MappingKernelManager',
+        config=True,
+        help='The kernel manager class to use.'
+    )
+    session_manager_class = DottedObjectName('IPython.html.services.sessions.sessionmanager.SessionManager',
+        config=True,
+        help='The session manager class to use.'
+    )
+    cluster_manager_class = DottedObjectName('IPython.html.services.clusters.clustermanager.ClusterManager',
+        config=True,
+        help='The cluster manager class to use.'
+    )
 
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
@@ -574,14 +587,17 @@ class NotebookApp(BaseIPythonApplication):
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
-        self.kernel_manager = MappingKernelManager(
+        kls = import_item(self.kernel_manager_class)
+        self.kernel_manager = kls(
             parent=self, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
         kls = import_item(self.notebook_manager_class)
         self.notebook_manager = kls(parent=self, log=self.log)
-        self.session_manager = SessionManager(parent=self, log=self.log)
-        self.cluster_manager = ClusterManager(parent=self, log=self.log)
+        kls = import_item(self.session_manager_class)
+        self.session_manager = kls(parent=self, log=self.log)
+        kls = import_item(self.cluster_manager_class)
+        self.cluster_manager = kls(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
 
     def init_logging(self):
