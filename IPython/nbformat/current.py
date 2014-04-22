@@ -86,11 +86,11 @@ def reads_json(nbjson, **kwargs):
     """
     nb = reader_reads(nbjson, **kwargs)
     nb_current = convert(nb, current_nbformat)
-    num_errors = validate(nb_current)
-    if num_errors > 0:
+    errors = validate(nb_current)
+    if len(errors) > 0:
         logger.error(
             "Notebook JSON is invalid (%d errors detected during read)",
-            num_errors)
+            len(errors))
     return nb_current
 
 
@@ -99,11 +99,11 @@ def writes_json(nb, **kwargs):
     any JSON format errors are detected.
 
     """
-    num_errors = validate(nb)
-    if num_errors > 0:
+    errors = validate(nb)
+    if len(errors) > 0:
         logger.error(
             "Notebook JSON is invalid (%d errors detected during write)",
-            num_errors)
+            len(errors))
     nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
     return nbjson
 

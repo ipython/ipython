@@ -12,24 +12,23 @@ schema_path = os.path.join(
     os.path.dirname(__file__), "v%d" % nbformat, nbformat_schema)
 
 
-def isvalid(nbjson, verbose=False):
+def isvalid(nbjson):
     """Checks whether the given notebook JSON conforms to the current
     notebook format schema. Returns True if the JSON is valid, and
     False otherwise.
 
-    If `verbose` is set, then print out each error that is detected.
+    To see the individual errors that were encountered, please use the
+    `validate` function instead.
 
     """
 
-    errors = validate(nbjson, verbose=verbose)
+    errors = validate(nbjson)
     return errors == 0
 
 
-def validate(nbjson, verbose=False):
+def validate(nbjson):
     """Checks whether the given notebook JSON conforms to the current
-    notebook format schema, and returns the number of errors.
-
-    If `verbose` is set, then print out each error that is detected.
+    notebook format schema, and returns the list of errors.
 
     """
 
@@ -42,13 +41,8 @@ def validate(nbjson, verbose=False):
     v3schema = jsonpointer.resolve_pointer(v3schema, '/notebook')
 
     # count how many errors there are
-    errors = 0
     v = Draft3Validator(v3schema)
-    for error in v.iter_errors(nbjson):
-        errors = errors + 1
-        if verbose:
-            print(error)
-
+    errors = [e for e in v.iter_errors(nbjson)]
     return errors
 
 
