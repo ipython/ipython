@@ -9,11 +9,11 @@ Examples
 ========
 
 We have various example scripts and notebooks for using IPython.parallel in our
-:file:`examples/parallel` directory, or they can be found `on GitHub`__.
+:file:`examples/Parallel%20Computing` directory, or they can be viewed `using nbviewer`__.
 Some of these are covered in more detail in the :ref:`examples
 <parallel_examples>` section.
 
-.. __: https://github.com/ipython/ipython/tree/master/examples/parallel
+.. __: http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Parallel%20Computing/Index.ipynb
 
 Introduction
 ============
