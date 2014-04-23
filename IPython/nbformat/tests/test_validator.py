@@ -48,7 +48,7 @@ class TestValidator(TestsBase):
         """Test than an invalid notebook does not pass validation"""
         # this notebook has a few different errors:
         # - the name is an integer, rather than a string
-        # - one cell is missing metadata
+        # - one cell is missing its source
         # - one cell has an invalid level
         with self.fopen(u'invalid.ipynb', u'r') as f:
             nb = read(f, u'json')
