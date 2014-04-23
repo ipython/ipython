@@ -106,7 +106,7 @@ class NbConvertApp(BaseIPythonApplication):
         You can specify the export format with `--to`.
         Options include {0}
         
-        > ipython nbconvert --to latex mynotebook.ipnynb
+        > ipython nbconvert --to latex mynotebook.ipynb
 
         Both HTML and LaTeX support multiple output templates. LaTeX includes
         'basic', 'book', and 'article'.  HTML includes 'basic' and 'full'.  You 
