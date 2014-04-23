@@ -38,6 +38,13 @@
           "id": "nbformat",
           "required": true
         },
+        "orig_nbformat": {
+          "description": "Original notebook format, major number.",
+          "type": "integer",
+          "minimum": 1,
+          "id": "orig_nbformat",
+          "required": false
+        },
         "worksheets": {
           "description": "Array of worksheet, not used by the current implementation of ipython yet",
           "type": "array",
