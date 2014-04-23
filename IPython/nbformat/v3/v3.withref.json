@@ -71,7 +71,7 @@
           "type": "object",
           "description": "metadata of the current worksheet",
           "id": "metadata",
-          "required": true
+          "required": false
         }
       }
     },
@@ -99,7 +99,7 @@
         "metadata": {
           "type": "object",
           "id": "metadata",
-          "required": true
+          "required": false
         },
         "source": {
           "description": "for code cell, the source code",
@@ -140,7 +140,7 @@
         "metadata": {
           "type": "object",
           "id": "metadata",
-          "required": true
+          "required": false
         },
         "collapsed": {
           "type": "boolean",
