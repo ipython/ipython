@@ -3,7 +3,7 @@ Module containing filter functions that allow code to be highlighted
 from within Jinja templates.
 """
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
+# Copyright (c) the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -56,7 +56,10 @@ class Highlight2HTML(NbConvertBase):
         if not language:
             language=self.default_language
 
-        return _pygments_highlight(source if len(source) > 0 else ' ', HtmlFormatter(), language, metadata)
+        return _pygments_highlight(source if len(source) > 0 else ' ',
+                                   # needed to help post processors:
+                                   HtmlFormatter(cssclass="hl-"+language), 
+                                   language, metadata)
 
 
 class Highlight2Latex(NbConvertBase):
