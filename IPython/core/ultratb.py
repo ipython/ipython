@@ -83,6 +83,7 @@ Inheritance diagram:
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from contextlib import contextmanager
 import inspect
 import keyword
 import linecache
@@ -220,8 +221,23 @@ def findsource(object):
         return lines, lnum
     raise IOError('could not find code object')
 
-# Monkeypatch inspect to apply our bugfix.  This code only works with Python >= 2.5
-inspect.findsource = findsource
+# Monkeypatch inspect to apply our bugfix.
+@contextmanager
+def patch_inspect():
+    """context manager for monkeypatching inspect.findsource"""
+    save_findsource = inspect.findsource
+    inspect.findsource = findsource
+    try:
+        yield
+    finally:
+        inspect.findsource = save_findsource
+
+def with_patch_inspect(f):
+    """decorator for monkeypatching inspect.findsource"""
+    def wrapped(*args, **kwargs):
+        with patch_inspect():
+            return f(*args, **kwargs)
+    return wrapped
 
 def fix_frame_records_filenames(records):
     """Try to fix the filenames in each record from inspect.getinnerframes().
@@ -243,6 +259,7 @@ def fix_frame_records_filenames(records):
     return fixed_records
 
 
+@with_patch_inspect
 def _fixed_getinnerframes(etb, context=1,tb_offset=0):
     LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
 
