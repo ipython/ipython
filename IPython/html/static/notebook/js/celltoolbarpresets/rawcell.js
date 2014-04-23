@@ -74,12 +74,10 @@
         return cell.metadata.raw_mimetype || "";
       },
       // name
-      "Raw NBConvert Format",
-      // cell_types
-      ["raw"]
+      "Raw NBConvert Format"
   );
 
-  CellToolbar.register_callback('raw_cell.select', select_type);
+  CellToolbar.register_callback('raw_cell.select', select_type, ['raw']);
 
   raw_cell_preset.push('raw_cell.select');
 
