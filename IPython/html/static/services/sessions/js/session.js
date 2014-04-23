@@ -43,6 +43,7 @@ var IPython = (function (IPython) {
                     callback(data, status, xhr);
                 }
             },
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
@@ -63,6 +64,7 @@ var IPython = (function (IPython) {
             type : "PATCH",
             data: JSON.stringify(model),
             dataType : "json",
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
         $.ajax(url, settings);
@@ -74,6 +76,7 @@ var IPython = (function (IPython) {
             cache : false,
             type : "DELETE",
             dataType : "json",
+            error : utils.log_ajax_error,
         };
         this.kernel.running = false;
         var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);

@@ -26,7 +26,8 @@ var IPython = (function (IPython) {
             cache : false,
             type : "GET",
             dataType : "json",
-            success : $.proxy(that.sessions_loaded, this)
+            success : $.proxy(that.sessions_loaded, this),
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);

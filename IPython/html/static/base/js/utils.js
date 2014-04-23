@@ -487,6 +487,18 @@ IPython.utils = (function (IPython) {
             return false;
         }
     }
+    
+    var log_ajax_error = function (jqXHR, status, error) {
+        // log ajax failures with informative messages
+        var msg = "API request failed (" + jqXHR.status + "): ";
+        console.log(jqXHR);
+        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+            msg += jqXHR.responseJSON.message;
+        } else {
+            msg += jqXHR.statusText;
+        }
+        console.log(msg);
+    };
 
     return {
         regex_split : regex_split,
@@ -506,7 +518,8 @@ IPython.utils = (function (IPython) {
         browser : browser,
         platform: platform,
         is_or_has : is_or_has,
-        is_focused : is_focused
+        is_focused : is_focused,
+        log_ajax_error : log_ajax_error,
     };
 
 }(IPython));
