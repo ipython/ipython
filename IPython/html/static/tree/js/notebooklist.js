@@ -407,7 +407,7 @@ var IPython = (function (IPython) {
                     '_blank'
                 );
             },
-            error : utils.log_ajax_error,
+            error : $.proxy(this.new_notebook_failed, this),
         };
         var url = utils.url_join_encode(
             base_url,
@@ -416,7 +416,24 @@ var IPython = (function (IPython) {
         );
         $.ajax(url, settings);
     };
-
+    
+    
+    NotebookList.prototype.new_notebook_failed = function (xhr, status, error) {
+        utils.log_ajax_error(xhr, status, error);
+        var msg;
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            msg = xhr.responseJSON.message;
+        } else {
+            msg = xhr.statusText;
+        }
+        IPython.dialog.modal({
+            title : 'Creating Notebook Failed',
+            body : "The error was: " + msg,
+            buttons : {'OK' : {'class' : 'btn-primary'}}
+        });
+    }
+    
+    
     IPython.NotebookList = NotebookList;
 
     return IPython;
