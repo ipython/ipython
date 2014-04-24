@@ -14,7 +14,7 @@ casper.notebook_test(function () {
     this.evaluate(function () {
         var cell = IPython.notebook.get_cell(0);
         cell.set_text( "dp = get_ipython().display_pub\n" +
-                       "dp.publish('test', {'text/plain' : '5', 'image/png' : 5})"
+                       "dp.publish({'text/plain' : '5', 'image/png' : 5})"
         );
         cell.execute();
     });
