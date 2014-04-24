@@ -25,7 +25,11 @@ from ..execute import ExecutePreprocessor
 class TestExecute(PreprocessorTestsBase):
     """Contains test functions for execute.py"""
 
-    def prepare_cell(self, cell):
+    @staticmethod
+    def normalize_cell(cell):
+        """
+        Normalizes cells for comparison.
+        """
         cell = dict(cell)
         if 'metadata' in cell:
             del cell['metadata']
@@ -41,13 +45,12 @@ class TestExecute(PreprocessorTestsBase):
         actual_cells = actual['worksheets'][0]['cells']
         assert len(expected_cells) == len(actual_cells)
 
-        # TODO: what does this code do?
-        for expected_out, actual_out in zip(expected_cells, actual_cells):
-            for k in set(expected_out).union(actual_out):
-                if k == 'outputs':
-                    self.assertEquals(len(expected_out[k]), len(actual_out[k]))
-                    for e, a in zip(expected_out[k], actual_out[k]):
-                        assert self.prepare_cell(e) == self.prepare_cell(a)
+        for expected_cell, actual_cell in zip(expected_cells, actual_cells):
+            expected_outputs = expected_cell.get('outputs', [])
+            actual_outputs = actual_cell.get('outputs', [])
+            normalized_expected_outputs = map(self.normalize_cell, expected_outputs)
+            normalized_actual_outputs = map(self.normalize_cell, actual_outputs)
+            assert normalized_expected_outputs == normalized_actual_outputs
 
 
     def build_preprocessor(self):
