@@ -31,21 +31,25 @@ class ExecutePreprocessor(Preprocessor):
         super(ExecutePreprocessor, self).__init__(**kwargs)
         self.extra_arguments = []
 
-    def preprocess(self, nb, resources):
+    def _create_client(self):
         self.km = KernelManager()
         self.km.start_kernel(extra_arguments=self.extra_arguments, stderr=open(os.devnull, 'w'))
         self.kc = self.km.client()
         self.kc.start_channels()
         self.iopub = self.kc.iopub_channel
         self.shell = self.kc.shell_channel
-
         self.shell.execute("pass")
         self.shell.get_msg()
 
+    def _shutdown_client(self):
+        self.kc.stop_channels()
+        self.km.shutdown_kernel()
+        del self.km
 
-        create_client()
+    def preprocess(self, nb, resources):
+        self._create_client()
         nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
-        shutdown_client()
+        self._shutdown_client()
         return nb, resources
 
     def preprocess_cell(self, cell, resources, cell_index):
@@ -109,8 +113,3 @@ class ExecutePreprocessor(Preprocessor):
             outs.append(out)
         return outs
 
-
-    def __del__(self):
-        self.kc.stop_channels()
-        self.km.shutdown_kernel()
-        del self.km
