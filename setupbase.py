@@ -185,7 +185,12 @@ def find_package_data():
         'IPython.html.tests' : js_tests,
         'IPython.qt.console' : ['resources/icon/*.svg'],
         'IPython.nbconvert' : nbconvert_templates +
-            ['tests/files/*.*', 'exporters/tests/files/*.*'],
+            [
+                'tests/files/*.*',
+                'exporters/tests/files/*.*',
+                'preprocessor/tests/input/*.*',
+                'preprocessor/tests/expected/*.*',
+            ],
         'IPython.nbconvert.filters' : ['marked.js'],
         'IPython.nbformat' : ['tests/*.ipynb','v3/v3.withref.json']
     }
