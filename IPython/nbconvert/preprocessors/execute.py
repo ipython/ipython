@@ -38,8 +38,7 @@ class ExecutePreprocessor(Preprocessor):
         self.kc.start_channels()
         self.iopub = self.kc.iopub_channel
         self.shell = self.kc.shell_channel
-        self.shell.execute("pass")
-        self.shell.get_msg()
+        self.shell.kernel_info()
 
     def _shutdown_client(self):
         self.kc.stop_channels()
