@@ -16,7 +16,7 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, AllowNone, Any, CBytes, Dict,
+    HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link
@@ -73,7 +73,7 @@ class TestTraitType(TestCase):
         self.assertEqual(a.tt, -1)
 
     def test_default_validate(self):
-        class MyIntTT(AllowNone):
+        class MyIntTT(TraitType):
             def validate(self, obj, value):
                 if isinstance(value, int):
                     return value
@@ -354,29 +354,29 @@ class TestHasTraitsNotify(TestCase):
 
         class A(HasTraits):
             listen_to = ['a']
-
+            
             a = Int(0)
             b = 0
-
+            
             def __init__(self, **kwargs):
                 super(A, self).__init__(**kwargs)
                 self.on_trait_change(self.listener1, ['a'])
-
+            
             def listener1(self, name, old, new):
                 self.b += 1
 
         class B(A):
-
+                    
             c = 0
             d = 0
-
+            
             def __init__(self, **kwargs):
                 super(B, self).__init__(**kwargs)
                 self.on_trait_change(self.listener2)
-
+            
             def listener2(self, name, old, new):
                 self.c += 1
-
+            
             def _a_changed(self, name, old, new):
                 self.d += 1
 
@@ -442,7 +442,7 @@ class TestHasTraits(TestCase):
             def __init__(self, i):
                 super(A, self).__init__()
                 self.i = i
-
+        
         a = A(5)
         self.assertEqual(a.i, 5)
         # should raise TypeError if no positional arg given
@@ -677,19 +677,19 @@ class TraitTestBase(TestCase):
         if (hasattr(self, '_bad_values') and hasattr(self, '_good_values') and
         None in self._bad_values):
             trait=self.obj.traits()['value']
-            if isinstance(trait, AllowNone) and not trait._allow_none:
-                try:
-                    trait._allow_none = True
-                    self._bad_values.remove(None)
-                    #skip coerce. Allow None casts None to None.
-                    self.assign(None)
-                    self.assertEqual(self.obj.value,None)
-                    self.test_good_values()
-                    self.test_bad_values()
-                finally:
-                    #tear down
-                    trait._allow_none = False
-                    self._bad_values.append(None)
+            try:
+                trait.allow_none = True
+                self._bad_values.remove(None)
+                #skip coerce. Allow None casts None to None.
+                self.assign(None)
+                self.assertEqual(self.obj.value,None)
+                self.test_good_values()
+                self.test_bad_values()
+            finally:
+                #tear down
+                trait.allow_none = False
+                self._bad_values.append(None)
+                print "bad values %s" % self
 
 
     def tearDown(self):
@@ -894,7 +894,7 @@ class TestList(TraitTestBase):
     _default_value = []
     _good_values = [[], [1], list(range(10)), (1,2)]
     _bad_values = [10, [1,'a'], 'a']
-
+    
     def coerce(self, value):
         if value is not None:
             value = list(value)
@@ -1073,7 +1073,7 @@ class TestLink(TestCase):
             count = Int()
         a = A(value=9)
         b = B(count=8)
-
+        
         # Register callbacks that count.
         callback_count = []
         def a_callback(name, old, new):
