@@ -24,15 +24,16 @@ class ExecutePreprocessor(Preprocessor):
     """
     Executes all the cells in a notebook
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, extra_arguments=[], **kwargs):
         """
         Start an kernel to run the Python code
         """
-        super(ExecutePreprocessor, self).__init__(*args, **kwargs)
+        super(ExecutePreprocessor, self).__init__(**kwargs)
+        self.extra_arguments = []
+
+    def preprocess(self, nb, resources):
         self.km = KernelManager()
-        # run %pylab inline, because some notebooks assume this
-        # even though they shouldn't
-        self.km.start_kernel(extra_arguments=['--pylab=inline'], stderr=open(os.devnull, 'w'))
+        self.km.start_kernel(extra_arguments=self.extra_arguments, stderr=open(os.devnull, 'w'))
         self.kc = self.km.client()
         self.kc.start_channels()
         self.iopub = self.kc.iopub_channel
@@ -40,6 +41,12 @@ class ExecutePreprocessor(Preprocessor):
 
         self.shell.execute("pass")
         self.shell.get_msg()
+
+
+        create_client()
+        nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
+        shutdown_client()
+        return nb, resources
 
     def preprocess_cell(self, cell, resources, cell_index):
         """
