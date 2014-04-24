@@ -278,6 +278,7 @@ class Pdb(OldPdb):
                 OldPdb.interaction(self, frame, traceback)
             except KeyboardInterrupt:
                 self.shell.write("\nKeyboardInterrupt\n")
+                break
             else:
                 break
 
