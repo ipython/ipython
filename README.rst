@@ -41,7 +41,7 @@ dependencies quickly::
 
    $ git clone --recursive https://github.com/ipython/ipython.git
    $ cd ipython
-   $ pip install -e ".[notebook]"
+   $ pip install -e ".[notebook]" --user
 
 This installs the necessary packages and symlinks IPython into your current
 environment so that you can work on your local repo copy and run it from anywhere::

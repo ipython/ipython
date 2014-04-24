@@ -45,6 +45,10 @@ class MyDict(dict):
     def _repr_pretty_(self, p, cycle):
         p.text("MyDict(...)")
 
+class MyObj(object):
+    def somemethod(self):
+        pass
+
 
 class Dummy1(object):
     def _repr_pretty_(self, p, cycle):
@@ -222,3 +226,6 @@ def test_long_dict():
     last2 = p.rsplit('\n', 2)[-2:]
     nt.assert_equal(last2, [' 999: 999,', ' ...}'])
 
+def test_unbound_method():
+    output = pretty.pretty(MyObj.somemethod)
+    nt.assert_in('MyObj.somemethod', output)

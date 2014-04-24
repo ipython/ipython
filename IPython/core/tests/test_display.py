@@ -116,3 +116,17 @@ def test_set_matplotlib_formats_kwargs():
     expected.update(cfg.print_figure_kwargs)
     nt.assert_equal(cell, expected)
 
+def test_displayobject_repr():
+    h = display.HTML('<br />')
+    nt.assert_equal(repr(h), '<IPython.core.display.HTML object>')
+    h._show_mem_addr = True
+    nt.assert_equal(repr(h), object.__repr__(h))
+    h._show_mem_addr = False
+    nt.assert_equal(repr(h), '<IPython.core.display.HTML object>')
+
+    j = display.Javascript('')
+    nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')
+    j._show_mem_addr = True
+    nt.assert_equal(repr(j), object.__repr__(j))
+    j._show_mem_addr = False
+    nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')

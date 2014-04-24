@@ -33,13 +33,17 @@ def _compile_less(source, target, minify=True, verbose=False):
     ver_flag = '--verbose' if verbose is True else ''
     
     # pin less to 1.4
-    out = check_output(['lessc', '--version'])
+    try:
+        out = check_output(['lessc', '--version'])
+    except OSError as err:
+        raise ValueError("Unable to find lessc.  Please install lessc >= %s and < %s " \
+                         % (min_less_version, max_less_version))
     out = out.decode('utf8', 'replace')
     less_version = out.split()[1]
     if V(less_version) < V(min_less_version):
         raise ValueError("lessc too old: %s < %s" % (less_version, min_less_version))
-    if V(less_version) > V(max_less_version):
-        raise ValueError("lessc too new: %s > %s" % (less_version, max_less_version))
+    if V(less_version) >= V(max_less_version):
+        raise ValueError("lessc too new: %s >= %s" % (less_version, max_less_version))
     
     with lcd(static_dir):
         local('lessc {min_flag} {ver_flag} {source} {target}'.format(**locals()))

@@ -7,7 +7,7 @@ Stores variables, aliases and macros in IPython's database.
 To automatically restore stored variables at startup, add this to your
 :file:`ipython_config.py` file::
 
-  c.StoreMagic.autorestore = True
+  c.StoreMagics.autorestore = True
 """
 from __future__ import print_function
 #-----------------------------------------------------------------------------

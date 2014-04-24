@@ -449,7 +449,7 @@ class MetaHasTraits(type):
 class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
     def __new__(cls, *args, **kw):
-        # This is needed because in Python 2.6 object.__new__ only accepts
+        # This is needed because object.__new__ only accepts
         # the cls argument.
         new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:

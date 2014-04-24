@@ -40,8 +40,8 @@ class depend(object):
     raises an UnmetDependency error, then the task will not be run
     and another engine will be tried.
     """
-    def __init__(self, f, *args, **kwargs):
-        self.f = f
+    def __init__(self, _wrapped_f, *args, **kwargs):
+        self.f = _wrapped_f
         self.args = args
         self.kwargs = kwargs
     
@@ -54,14 +54,14 @@ class dependent(object):
     in traditional decorators, which are not picklable.
     """
 
-    def __init__(self, f, df, *dargs, **dkwargs):
-        self.f = f
-        name = getattr(f, '__name__', 'f')
+    def __init__(self, _wrapped_f, _wrapped_df, *dargs, **dkwargs):
+        self.f = _wrapped_f
+        name = getattr(_wrapped_f, '__name__', 'f')
         if py3compat.PY3:
             self.__name__ = name
         else:
             self.func_name = name
-        self.df = df
+        self.df = _wrapped_df
         self.dargs = dargs
         self.dkwargs = dkwargs
     

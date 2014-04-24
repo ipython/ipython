@@ -1,5 +1,4 @@
 from .base import PostProcessorBase
-from .pdf import PDFPostProcessor
 
 # protect against unavailable tornado
 try:

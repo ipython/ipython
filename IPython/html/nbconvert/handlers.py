@@ -73,7 +73,7 @@ class NbconvertFileHandler(IPythonHandler):
     @web.authenticated
     def get(self, format, path='', name=None):
         
-        exporter = get_exporter(format, config=self.config)
+        exporter = get_exporter(format, config=self.config, log=self.log)
         
         path = path.strip('/')
         model = self.notebook_manager.get_notebook(name=name, path=path)

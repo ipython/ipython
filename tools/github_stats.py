@@ -129,6 +129,9 @@ if __name__ == "__main__":
     parser.add_argument('--days', type=int,
         help="The number of days of data to summarize (use this or --since-tag)."
     )
+    parser.add_argument('--project', type=str, default="ipython/ipython",
+        help="The project to summarize."
+    )
     
     opts = parser.parse_args()
     tag = opts.since_tag
@@ -153,19 +156,20 @@ if __name__ == "__main__":
     since = round_hour(since)
     
     milestone = opts.milestone
+    project = opts.project
 
     print("fetching GitHub stats since %s (tag: %s, milestone: %s)" % (since, tag, milestone), file=sys.stderr)
     if milestone:
-        milestone_id = get_milestone_id("ipython/ipython", milestone,
+        milestone_id = get_milestone_id(project=project, milestone=milestone,
                 auth=True)
-        issues = get_issues_list("ipython/ipython",
+        issues = get_issues_list(project=project,
                 milestone=milestone_id,
                 state='closed',
                 auth=True,
         )
     else:
-        issues = issues_closed_since(since, pulls=False)
-    pulls = issues_closed_since(since, pulls=True)
+        issues = issues_closed_since(since, project=project, pulls=False)
+    pulls = issues_closed_since(since, project=project, pulls=True)
     
     # For regular reports, it's nice to show them in reverse chronological order
     issues = sorted_by_field(issues, reverse=True)

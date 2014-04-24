@@ -204,7 +204,7 @@ toolbar (which will be "Code", initially), or via :ref:`keyboard shortcuts
 
 For more information on the different things you can do in a notebook,
 see the `collection of examples
-<https://github.com/ipython/ipython/tree/master/examples/notebooks#readme>`_.
+<http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Notebook/Index.ipynb>`_.
 
 Code cells
 ~~~~~~~~~~
@@ -349,52 +349,12 @@ to remember are the following:
     is thus a shortcut for the sequence :kbd:`Shift-Enter`, :kbd:`Ctrl-m a`.
     (:kbd:`Ctrl-m a` adds a new cell above the current one.)
   
-* :kbd:`Ctrl-m`: 
-  This is the prefix for *all* other shortcuts, which consist of :kbd:`Ctrl-m` 
-  followed by a single letter or character. For example, if you type 
-  :kbd:`Ctrl-m h` (that is, the sole letter :kbd:`h` after :kbd:`Ctrl-m`), 
-  IPython will show you all the available keyboard shortcuts.
+* :kbd:`Esc` and :kbd:`Enter`: Command mode and edit mode
+    In command mode, you can easily navigate around the notebook using keyboard
+    shortcuts. In edit mode, you can edit text in cells.
 
-
-..
-    TODO: these live in IPython/html/static/notebook/js/quickhelp.js
-    They were last updated for IPython 1.0 release, so update them again for
-    future releases.
-
-Here is the complete set of keyboard shortcuts available:
-
-============  ==========================
-**Shortcut**        **Action**
-------------  --------------------------
-Shift-Enter    run cell
-Ctrl-Enter     run cell in-place
-Alt-Enter      run cell, insert below
-Ctrl-m x       cut cell
-Ctrl-m c       copy cell
-Ctrl-m v       paste cell
-Ctrl-m d       delete cell
-Ctrl-m z       undo last cell deletion
-Ctrl-m -       split cell
-Ctrl-m a       insert cell above
-Ctrl-m b       insert cell below
-Ctrl-m o       toggle output
-Ctrl-m O       toggle output scroll
-Ctrl-m l       toggle line numbers
-Ctrl-m s       save notebook
-Ctrl-m j       move cell down
-Ctrl-m k       move cell up
-Ctrl-m y       code cell
-Ctrl-m m       markdown cell
-Ctrl-m t       raw cell
-Ctrl-m 1-6     heading 1-6 cell
-Ctrl-m p       select previous
-Ctrl-m n       select next
-Ctrl-m i       interrupt kernel
-Ctrl-m .       restart kernel
-Ctrl-m h       show keyboard shortcuts
-============  ==========================
-
-
+For the full list of available shortcuts, click :guilabel:`Help`,
+:guilabel:`Keyboard Shortcuts` in the notebook menus.
 
 Plotting
 --------

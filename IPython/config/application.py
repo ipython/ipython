@@ -1,24 +1,10 @@
 # encoding: utf-8
-"""
-A base class for a configurable application.
+"""A base class for a configurable application."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Brian Granger
-* Min RK
-"""
 from __future__ import print_function
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import logging
 import os
@@ -41,10 +27,6 @@ from IPython.utils.importstring import import_item
 from IPython.utils.text import indent, wrap_paragraphs, dedent
 from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types, iteritems
-
-#-----------------------------------------------------------------------------
-# function for re-wrapping a helpstring
-#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Descriptions for the various sections
@@ -161,6 +143,8 @@ class Application(SingletonConfigurable):
             self.log_level = new
         self.log.setLevel(new)
     
+    _log_formatter_cls = LevelFormatter
+    
     log_datefmt = Unicode("%Y-%m-%d %H:%M:%S", config=True,
         help="The date format used by logging formatters for %(asctime)s"
     )
@@ -173,8 +157,9 @@ class Application(SingletonConfigurable):
     def _log_format_changed(self, name, old, new):
         """Change the log formatter when log_format is set."""
         _log_handler = self.log.handlers[0]
-        _log_formatter = LevelFormatter(new, datefmt=self.log_datefmt)
+        _log_formatter = self._log_formatter_cls(fmt=new, datefmt=self.log_datefmt)
         _log_handler.setFormatter(_log_formatter)
+    
 
     log = Instance(logging.Logger)
     def _log_default(self):
@@ -201,7 +186,7 @@ class Application(SingletonConfigurable):
             _log_handler = logging.StreamHandler(open(os.devnull, 'w'))
         else:
             _log_handler = logging.StreamHandler()
-        _log_formatter = LevelFormatter(self.log_format, datefmt=self.log_datefmt)
+        _log_formatter = self._log_formatter_cls(fmt=self.log_format, datefmt=self.log_datefmt)
         _log_handler.setFormatter(_log_formatter)
         log.addHandler(_log_handler)
         return log

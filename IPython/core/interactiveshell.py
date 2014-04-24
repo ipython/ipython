@@ -3089,7 +3089,7 @@ class InteractiveShell(SingletonConfigurable):
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
 
-    def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True):
+    def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True, search_ns=False):
         """Get a code string from history, file, url, or a string or macro.
 
         This is mainly used by magic functions.
@@ -3156,11 +3156,18 @@ class InteractiveShell(SingletonConfigurable):
             elif os.path.isdir(os.path.expanduser(tgt)):
                 raise ValueError("'%s' is a directory, not a regular file." % target)
 
+        if search_ns:
+            # Inspect namespace to load object source
+            object_info = self.object_inspect(target, detail_level=1)
+            if object_info['found'] and object_info['source']:
+                return object_info['source']
+
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
         except Exception:
             raise ValueError(("'%s' was not found in history, as a file, url, "
                                 "nor in the user namespace.") % target)
+
         if isinstance(codeobj, string_types):
             return codeobj
         elif isinstance(codeobj, Macro):

@@ -8,18 +8,12 @@ This includes:
     * Functions for finding things like packages, package data, etc.
     * A function for checking dependencies.
 """
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
 import errno
 import os
 import sys
@@ -647,7 +641,8 @@ def get_bdist_wheel():
                 for pkg in ("gnureadline", "pyreadline", "mock"):
                     _remove_startswith(requires, pkg)
                 requires.append("gnureadline; sys.platform == 'darwin' and platform.python_implementation == 'CPython'")
-                requires.append("pyreadline (>=2.0); sys.platform == 'win32' and platform.python_implementation == 'CPython'")
+                requires.append("pyreadline (>=2.0); extra == 'terminal' and sys.platform == 'win32' and platform.python_implementation == 'CPython'")
+                requires.append("pyreadline (>=2.0); extra == 'all' and sys.platform == 'win32' and platform.python_implementation == 'CPython'")
                 requires.append("mock; extra == 'test' and python_version < '3.3'")
                 for r in requires:
                     pkg_info['Requires-Dist'] = r
