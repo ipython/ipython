@@ -219,19 +219,16 @@ var IPython = (function (IPython) {
             json.metadata = content.metadata;
         } else if (msg_type === "execute_result") {
             json = content.data;
-            // pyout message has been renamed to execute_result,
-            // but the nbformat has not been updated,
-            // so transform back to pyout for json.
-            json.output_type = "pyout";
+            json.output_type = msg_type;
             json.metadata = content.metadata;
             json.prompt_number = content.execution_count;
         } else if (msg_type === "error") {
-            // pyerr message has been renamed to error,
-            // but the nbformat has not been updated,
-            // so transform back to pyerr for json.
-            json.output_type = "pyerr";
-            json = this.convert_mime_types(json, content.data);
-            json.metadata = this.convert_mime_types({}, content.metadata);
+            json.ename = content.ename;
+            json.evalue = content.evalue;
+            json.traceback = content.traceback;
+        } else {
+            console.log("unhandled output message", msg);
+            return;
         }
         this.append_output(json);
     };
@@ -285,9 +282,9 @@ var IPython = (function (IPython) {
             needs_height_reset = true;
         }
 
-        if (json.output_type === 'pyout') {
+        if (json.output_type === 'execute_result') {
             this.append_execute_result(json);
-        } else if (json.output_type === 'pyerr') {
+        } else if (json.output_type === 'error') {
             this.append_error(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
@@ -416,7 +413,7 @@ var IPython = (function (IPython) {
         }
         var inserted = this.append_mime_type(json, toinsert);
         if (inserted) {
-            inserted.addClass('output_pyout');
+            inserted.addClass('output_result');
         }
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
@@ -440,7 +437,7 @@ var IPython = (function (IPython) {
             var toinsert = this.create_output_area();
             var append_text = OutputArea.append_map['text/plain'];
             if (append_text) {
-                append_text.apply(this, [s, {}, toinsert]).addClass('output_pyerr');
+                append_text.apply(this, [s, {}, toinsert]).addClass('output_error');
             }
             this._safe_append(toinsert);
         }
@@ -859,7 +856,18 @@ var IPython = (function (IPython) {
         for (var i=0; i<len; i++) {
             data = outputs[i];
             var msg_type = data.output_type;
-            if (msg_type === "display_data" || msg_type === "pyout") {
+            if (msg_type == "pyout") {
+                // pyout message has been renamed to execute_result,
+                // but the nbformat has not been updated,
+                // so transform back to pyout for json.
+                msg_type = data.output_type = "execute_result";
+            } else if (msg_type == "pyerr") {
+                // pyerr message has been renamed to error,
+                // but the nbformat has not been updated,
+                // so transform back to pyerr for json.
+                msg_type = data.output_type = "error";
+            }
+            if (msg_type === "display_data" || msg_type === "execute_result") {
                 // convert short keys to mime keys
                 // TODO: remove mapping of short keys when we update to nbformat 4
                  data = this.rename_keys(data, OutputArea.mime_map_r);
@@ -878,10 +886,21 @@ var IPython = (function (IPython) {
         for (var i=0; i<len; i++) {
             data = this.outputs[i];
             var msg_type = data.output_type;
-            if (msg_type === "display_data" || msg_type === "pyout") {
+            if (msg_type === "display_data" || msg_type === "execute_result") {
                   // convert mime keys to short keys
                  data = this.rename_keys(data, OutputArea.mime_map);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
+            }
+            if (msg_type == "execute_result") {
+                // pyout message has been renamed to execute_result,
+                // but the nbformat has not been updated,
+                // so transform back to pyout for json.
+                data.output_type = "pyout";
+            } else if (msg_type == "error") {
+                // pyerr message has been renamed to error,
+                // but the nbformat has not been updated,
+                // so transform back to pyerr for json.
+                data.output_type = "pyerr";
             }
             outputs[i] = data;
         }
