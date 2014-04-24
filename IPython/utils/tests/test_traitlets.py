@@ -689,8 +689,6 @@ class TraitTestBase(TestCase):
                 #tear down
                 trait.allow_none = False
                 self._bad_values.append(None)
-                print "bad values %s" % self
-
 
     def tearDown(self):
         # restore default value after tests, if set
