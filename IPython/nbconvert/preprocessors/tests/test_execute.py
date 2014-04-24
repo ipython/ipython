@@ -31,6 +31,8 @@ class TestExecute(PreprocessorTestsBase):
             del cell['metadata']
         if 'text' in cell:
             cell['text'] = re.sub('0x[0-9a-f]{7,9}', '<HEXADDR>', cell['text'])
+        if 'svg' in cell:
+            del cell['text']
         return cell
 
 
