@@ -68,6 +68,26 @@ def use_dill():
     # disable special function handling, let dill take care of it
     can_map.pop(FunctionType, None)
 
+def use_cloudpickle():
+    """use cloudpickle to expand serialization support
+    
+    adds support for object methods and closures to serialization.
+    """
+    from cloud.serialization import cloudpickle
+    
+    global pickle
+    pickle = cloudpickle
+
+    try:
+        from IPython.kernel.zmq import serialize
+    except ImportError:
+        pass
+    else:
+        serialize.pickle = cloudpickle
+    
+    # disable special function handling, let cloudpickle take care of it
+    can_map.pop(FunctionType, None)
+
 
 #-------------------------------------------------------------------------------
 # Classes
