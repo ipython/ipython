@@ -367,29 +367,29 @@ class TestHasTraitsNotify(TestCase):
 
         class A(HasTraits):
             listen_to = ['a']
-
+            
             a = Int(0)
             b = 0
-
+            
             def __init__(self, **kwargs):
                 super(A, self).__init__(**kwargs)
                 self.on_trait_change(self.listener1, ['a'])
-
+            
             def listener1(self, name, old, new):
                 self.b += 1
 
         class B(A):
-
+                    
             c = 0
             d = 0
-
+            
             def __init__(self, **kwargs):
                 super(B, self).__init__(**kwargs)
                 self.on_trait_change(self.listener2)
-
+            
             def listener2(self, name, old, new):
                 self.c += 1
-
+            
             def _a_changed(self, name, old, new):
                 self.d += 1
 
@@ -455,7 +455,7 @@ class TestHasTraits(TestCase):
             def __init__(self, i):
                 super(A, self).__init__()
                 self.i = i
-
+        
         a = A(5)
         self.assertEqual(a.i, 5)
         # should raise TypeError if no positional arg given
@@ -888,7 +888,7 @@ class TestList(TraitTestBase):
     _default_value = []
     _good_values = [[], [1], list(range(10)), (1,2)]
     _bad_values = [10, [1,'a'], 'a']
-
+    
     def coerce(self, value):
         if value is not None:
             value = list(value)
@@ -1086,7 +1086,7 @@ class TestLink(TestCase):
             count = Int()
         a = A(value=9)
         b = B(count=8)
-
+        
         # Register callbacks that count.
         callback_count = []
         def a_callback(name, old, new):
