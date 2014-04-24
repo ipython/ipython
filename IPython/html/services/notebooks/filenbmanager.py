@@ -492,3 +492,7 @@ class FileNotebookManager(NotebookManager):
     
     def info_string(self):
         return "Serving notebooks from local directory: %s" % self.notebook_dir
+
+    def get_kernel_path(self, name, path='', model=None):
+        """ Return the path to start kernel in """
+        return os.path.join(self.notebook_dir, path)

@@ -1,53 +1,41 @@
-"""
-Contains writer for writing nbconvert output to PDF.
-"""
-#-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
-#
-#Distributed under the terms of the Modified BSD License.
-#
-#The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+"""Export to PDF via latex"""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import subprocess
 import os
 import sys
 
-from IPython.utils.traitlets import Integer, List, Bool
+from IPython.utils.traitlets import Integer, List, Bool, Instance
+from IPython.utils.tempdir import TemporaryWorkingDirectory
+from .latex import LatexExporter
 
-from .base import PostProcessorBase
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
-class PDFPostProcessor(PostProcessorBase):
+class PDFExporter(LatexExporter):
     """Writer designed to write to PDF files"""
 
-    latex_count = Integer(3, config=True, help="""
-        How many times pdflatex will be called.
-        """)
+    latex_count = Integer(3, config=True,
+        help="How many times latex will be called."
+    )
 
-    latex_command = List([u"pdflatex", u"{filename}"], config=True, help="""
-        Shell command used to compile PDF.""")
+    latex_command = List([u"pdflatex", u"{filename}"], config=True, 
+        help="Shell command used to compile latex."
+    )
 
-    bib_command = List([u"bibtex", u"{filename}"], config=True, help="""
-        Shell command used to run bibtex.""")
+    bib_command = List([u"bibtex", u"{filename}"], config=True,
+        help="Shell command used to run bibtex."
+    )
 
-    verbose = Bool(False, config=True, help="""
-        Whether or not to display the output of the compile call.
-        """)
+    verbose = Bool(False, config=True,
+        help="Whether to display the output of latex commands."
+    )
 
-    temp_file_exts = List(['.aux', '.bbl', '.blg', '.idx', '.log', '.out'], 
-        config=True, help="""
-        Filename extensions of temp files to remove after running.
-        """)
-    pdf_open = Bool(False, config=True, help="""
-        Whether or not to open the pdf after the compile call.
-        """)
+    temp_file_exts = List(['.aux', '.bbl', '.blg', '.idx', '.log', '.out'], config=True,
+        help="File extensions of temp files to remove after running."
+    )
+    
+    writer = Instance("IPython.nbconvert.writers.FilesWriter", args=())
 
     def run_command(self, command_list, filename, count, log_function):
         """Run command_list count times.
@@ -64,7 +52,7 @@ class PDFPostProcessor(PostProcessorBase):
         
         Returns
         -------
-        continue : bool
+        success : bool
             A boolean indicating if the command was successful (True)
             or failed (False).
         """
@@ -124,33 +112,30 @@ class PDFPostProcessor(PostProcessorBase):
             except OSError:
                 pass
 
-    def open_pdf(self, filename):
-        """Open the pdf in the default viewer."""
-        if sys.platform.startswith('darwin'):
-            subprocess.call(('open', filename))
-        elif os.name == 'nt':
-            os.startfile(filename)
-        elif os.name == 'posix':
-            subprocess.call(('xdg-open', filename))
-        return
-
-    def postprocess(self, filename):
-        """Build a PDF by running pdflatex and bibtex"""
-        self.log.info("Building PDF")
-        cont = self.run_latex(filename)
-        if cont:
-            cont = self.run_bib(filename)
-        else:
-            self.clean_temp_files(filename)
-            return
-        if cont:
-            cont = self.run_latex(filename)
-        self.clean_temp_files(filename)
-        filename = os.path.splitext(filename)[0]
-        if os.path.isfile(filename+'.pdf'):
+    def from_notebook_node(self, nb, resources=None, **kw):
+        latex, resources = super(PDFExporter, self).from_notebook_node(
+            nb, resources=resources, **kw
+        )
+        with TemporaryWorkingDirectory() as td:
+            notebook_name = "notebook"
+            tex_file = self.writer.write(latex, resources, notebook_name=notebook_name)
+            self.log.info("Building PDF")
+            rc = self.run_latex(tex_file)
+            if not rc:
+                rc = self.run_bib(tex_file)
+            if not rc:
+                rc = self.run_latex(tex_file)
+            
+            pdf_file = notebook_name + '.pdf'
+            if not os.path.isfile(pdf_file):
+                raise RuntimeError("PDF creating failed")
             self.log.info('PDF successfully created')
-            if self.pdf_open: 
-                self.log.info('Viewer called')
-                self.open_pdf(filename+'.pdf')
-        return
- 
+            with open(pdf_file, 'rb') as f:
+                pdf_data = f.read()
+        
+        # convert output extension to pdf
+        # the writer above required it to be tex
+        resources['output_extension'] = 'pdf'
+        
+        return pdf_data, resources
+    

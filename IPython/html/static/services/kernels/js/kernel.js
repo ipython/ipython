@@ -35,6 +35,7 @@ var IPython = (function (IPython) {
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
+        this.post = $.post;
 
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket;
@@ -94,7 +95,7 @@ var IPython = (function (IPython) {
         params = params || {};
         if (!this.running) {
             var qs = $.param(params);
-            $.post(utils.url_join_encode(this.kernel_service_url) + '?' + qs,
+            this.post(utils.url_join_encode(this.kernel_service_url) + '?' + qs,
                 $.proxy(this._kernel_started, this),
                 'json'
             );
@@ -113,7 +114,7 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
         if (this.running) {
             this.stop_channels();
-            $.post(utils.url_join_encode(this.kernel_url, "restart"),
+            this.post(utils.url_join_encode(this.kernel_url, "restart"),
                 $.proxy(this._kernel_started, this),
                 'json'
             );
@@ -386,7 +387,7 @@ var IPython = (function (IPython) {
     Kernel.prototype.interrupt = function () {
         if (this.running) {
             $([IPython.events]).trigger('status_interrupting.Kernel', {kernel: this});
-            $.post(utils.url_join_encode(this.kernel_url, "interrupt"));
+            this.post(utils.url_join_encode(this.kernel_url, "interrupt"));
         }
     };
 

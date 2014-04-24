@@ -71,6 +71,11 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.update(); // Set defaults.
 
             this.model.on('msg:custom', $.proxy(this._handle_textarea_msg, this));
+            this.model.on('change:placeholder', function(model, value, options) {
+                this.update_placeholder(value);
+            }, this);
+
+            this.update_placeholder();
         },
 
         _handle_textarea_msg: function (content){
@@ -78,6 +83,13 @@ define(["widgets/js/widget"], function(WidgetManager){
             if (content.method == "scroll_to_bottom") {
                 this.scroll_to_bottom();                
             }
+        },
+
+        update_placeholder: function(value) {
+            if (!value) {
+                value = this.model.get('placeholder');
+            }
+            this.$textbox.attr('placeholder', value);
         },
 
         scroll_to_bottom: function (){
@@ -141,6 +153,18 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .appendTo(this.$el);
             this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
+            this.model.on('change:placeholder', function(model, value, options) {
+                this.update_placeholder(value);
+            }, this);
+
+            this.update_placeholder();
+        },
+
+        update_placeholder: function(value) {
+            if (!value) {
+                value = this.model.get('placeholder');
+            }
+            this.$textbox.attr('placeholder', value);
         },
         
         update: function(options){

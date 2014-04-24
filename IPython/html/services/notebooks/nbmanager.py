@@ -168,6 +168,10 @@ class NotebookManager(LoggingConfigurable):
     # NotebookManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
 
+    def get_kernel_path(self, name, path='', model=None):
+        """ Return the path to start kernel in """
+        return path
+
     def increment_filename(self, basename, path=''):
         """Increment a notebook filename without the .ipynb to make it unique.
         

@@ -6,23 +6,10 @@ Also defined here are utilities for working with Sessions:
 * A SessionFactory to be used as a base class for configurables that work with
 Sessions.
 * A Message object for convenience that allows attribute-access to the msg dict.
-
-Authors:
-
-* Min RK
-* Brian Granger
-* Fernando Perez
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import hashlib
 import hmac
@@ -80,7 +67,7 @@ def squash_unicode(obj):
 #-----------------------------------------------------------------------------
 
 # ISO8601-ify datetime objects
-json_packer = lambda obj: jsonapi.dumps(obj, default=date_default)
+json_packer = lambda obj: jsonapi.dumps(obj, default=date_default, ensure_ascii=False)
 json_unpacker = lambda s: jsonapi.loads(s)
 
 pickle_packer = lambda o: pickle.dumps(squash_dates(o),-1)

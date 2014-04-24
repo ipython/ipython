@@ -8,6 +8,7 @@ from .latex import LatexPreprocessor
 from .csshtmlheader import CSSHTMLHeaderPreprocessor
 from .highlightmagics import HighlightMagicsPreprocessor
 from .execute import ExecutePreprocessor
+from .clearoutput import ClearOutputPreprocessor
 
 # decorated function Preprocessors
 from .coalescestreams import coalesce_streams

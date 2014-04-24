@@ -4,6 +4,7 @@ from .slides import SlidesExporter
 from .templateexporter import TemplateExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
+from .pdf import PDFExporter
 from .python import PythonExporter
 from .rst import RSTExporter
 from .exporter import Exporter

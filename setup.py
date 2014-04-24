@@ -26,8 +26,9 @@ import sys
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
-if sys.version_info[:2] < (2,7):
-    error = "ERROR: IPython requires Python Version 2.7 or above."
+v = sys.version_info
+if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
+    error = "ERROR: IPython requires Python version 2.7 or 3.3 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -270,6 +271,7 @@ extras_require = dict(
     zmq = ['pyzmq>=2.1.11'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1'],
+    terminal = [],
     notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
     nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
 )
@@ -282,12 +284,14 @@ for deps in extras_require.values():
 extras_require['all'] = everything
 
 install_requires = []
+
+# add readline
 if sys.platform == 'darwin':
     if any(arg.startswith('bdist') for arg in sys.argv) or not setupext.check_for_readline():
         install_requires.append('gnureadline')
 elif sys.platform.startswith('win'):
-    # Pyreadline has unicode and Python 3 fixes in 2.0
-    install_requires.append('pyreadline>=2.0')
+    extras_require['terminal'].append('pyreadline>=2.0')
+
 
 if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules

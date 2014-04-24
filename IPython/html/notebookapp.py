@@ -1,23 +1,11 @@
 # coding: utf-8
-"""A tornado based IPython notebook server.
+"""A tornado based IPython notebook server."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Brian Granger
-"""
 from __future__ import print_function
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# stdlib
 import errno
 import io
 import json
@@ -33,7 +21,6 @@ import time
 import webbrowser
 
 
-# Third party
 # check for pyzmq 2.1.11
 from IPython.utils.zmqrelated import check_for_zmq
 check_for_zmq('2.1.11', 'IPython.html')
@@ -60,8 +47,8 @@ if version_info < (3,1,0):
 
 from tornado import httpserver
 from tornado import web
+from tornado.log import LogFormatter
 
-# Our own libraries
 from IPython.html import DEFAULT_STATIC_FILES_PATH
 from .base.handlers import Template404
 from .log import log_request
@@ -75,18 +62,14 @@ from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
 from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
-from IPython.core.application import BaseIPythonApplication
-from IPython.core.profiledir import ProfileDir
-from IPython.consoleapp import IPythonConsoleApp
-from IPython.kernel import swallow_argv
-from IPython.kernel.zmq.session import default_secure
-from IPython.kernel.zmq.kernelapp import (
-    kernel_flags,
-    kernel_aliases,
+from IPython.core.application import (
+    BaseIPythonApplication, base_flags, base_aliases,
 )
+from IPython.core.profiledir import ProfileDir
+from IPython.kernel import KernelManager
+from IPython.kernel.zmq.session import default_secure, Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
-from IPython.utils.localinterfaces import localhost
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes,
@@ -249,10 +232,14 @@ class NbserverListApp(BaseIPythonApplication):
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-flags = dict(kernel_flags)
+flags = dict(base_flags)
 flags['no-browser']=(
     {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
+)
+flags['pylab']=(
+    {'NotebookApp' : {'pylab' : 'warn'}},
+    "DISABLED: use %pylab or %matplotlib in the notebook to enable matplotlib."
 )
 flags['no-mathjax']=(
     {'NotebookApp' : {'enable_mathjax' : False}},
@@ -271,12 +258,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
                'Auto-save a .py script everytime the .ipynb notebook is saved',
                'Do not auto-save .py scripts for every notebook'))
 
-# the flags that are specific to the frontend
-# these must be scrubbed before being passed to the kernel,
-# or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'script', 'no-script']
-
-aliases = dict(kernel_aliases)
+aliases = dict(base_aliases)
 
 aliases.update({
     'ip': 'NotebookApp.ip',
@@ -287,14 +269,8 @@ aliases.update({
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookApp.notebook_dir',
     'browser': 'NotebookApp.browser',
+    'pylab': 'NotebookApp.pylab',
 })
-
-# remove ipkernel flags that are singletons, and don't make sense in
-# multi-kernel evironment:
-aliases.pop('f', None)
-
-notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir', u'profile', u'profile-dir', 'browser']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -311,9 +287,13 @@ class NotebookApp(BaseIPythonApplication):
         HTML5/Javascript Notebook client.
     """
     examples = _examples
+    aliases = aliases
+    flags = flags
     
-    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager,
-        FileNotebookManager, NotebookNotary]
+    classes = [
+        KernelManager, ProfileDir, Session, MappingKernelManager,
+        NotebookManager, FileNotebookManager, NotebookNotary,
+    ]
     flags = Dict(flags)
     aliases = Dict(aliases)
     
@@ -322,13 +302,19 @@ class NotebookApp(BaseIPythonApplication):
     )
 
     kernel_argv = List(Unicode)
+    
+    _log_formatter_cls = LogFormatter
 
     def _log_level_default(self):
         return logging.INFO
 
+    def _log_datefmt_default(self):
+        """Exclude date from default date format"""
+        return "%H:%M:%S"
+    
     def _log_format_default(self):
         """override default log format to include time"""
-        return u"%(asctime)s.%(msecs).03d [%(name)s]%(highlevel)s %(message)s"
+        return u"%(color)s[%(levelname)1.1s %(asctime)s.%(msecs).03d %(name)s]%(end_color)s %(message)s"
 
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
@@ -343,11 +329,9 @@ class NotebookApp(BaseIPythonApplication):
 
     # Network related information.
 
-    ip = Unicode(config=True,
+    ip = Unicode('localhost', config=True,
         help="The IP address the notebook server will listen on."
     )
-    def _ip_default(self):
-        return localhost()
 
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
@@ -527,6 +511,23 @@ class NotebookApp(BaseIPythonApplication):
     notebook_dir = Unicode(py3compat.getcwd(), config=True,
         help="The directory to use for notebooks and kernels."
     )
+    
+    pylab = Unicode('disabled', config=True,
+        help="""
+        DISABLED: use %pylab or %matplotlib in the notebook to enable matplotlib.
+        """
+    )
+    def _pylab_changed(self, name, old, new):
+        """when --pylab is specified, display a warning and exit"""
+        if new != 'warn':
+            backend = ' %s' % new
+        else:
+            backend = ''
+        self.log.error("Support for specifying --pylab on the command line has been removed.")
+        self.log.error(
+            "Please use `%pylab{0}` or `%matplotlib{0}` in the notebook itself.".format(backend)
+        )
+        self.exit(1)
 
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
@@ -564,16 +565,7 @@ class NotebookApp(BaseIPythonApplication):
 
     def init_kernel_argv(self):
         """construct the kernel arguments"""
-        # Scrub frontend-specific flags
-        self.kernel_argv = swallow_argv(self.argv, notebook_aliases, notebook_flags)
-        if any(arg.startswith(u'--pylab') for arg in self.kernel_argv):
-            self.log.warn('\n    '.join([
-                "Starting all kernels in pylab mode is not recommended,",
-                "and will be disabled in a future release.",
-                "Please use the %matplotlib magic to enable matplotlib instead.",
-                "pylab implies many imports, which can have confusing side effects",
-                "and harm the reproducibility of your notebooks.",
-            ]))
+        self.kernel_argv = []
         # Kernel should inherit default config file from frontend
         self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
         # Kernel should get *absolute* path to profile directory
@@ -599,10 +591,10 @@ class NotebookApp(BaseIPythonApplication):
         self.log.propagate = False
         
         # hook up tornado 3's loggers to our app handlers
-        for name in ('access', 'application', 'general'):
-            logger = logging.getLogger('tornado.%s' % name)
-            logger.parent = self.log
-            logger.setLevel(self.log.level)
+        logger = logging.getLogger('tornado')
+        logger.propagate = True
+        logger.parent = self.log
+        logger.setLevel(self.log.level)
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
@@ -658,7 +650,7 @@ class NotebookApp(BaseIPythonApplication):
 
     @property
     def connection_url(self):
-        ip = self.ip if self.ip else localhost()
+        ip = self.ip if self.ip else 'localhost'
         return self._url(ip)
 
     def _url(self, ip):
