@@ -81,7 +81,6 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         self.assertEqual(msg['header']['msg_type'], 'inspect_reply')
         content = msg['content']
         assert content['found']
-        self.assertEqual(content['name'], 'foo')
         text = content['data']['text/plain']
         self.assertIn('int', text)
 

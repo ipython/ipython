@@ -121,7 +121,6 @@ class ExecuteReplyError(Reference):
 
 
 class InspectReply(MimeBundle):
-    name = Unicode()
     found = Bool()
 
 
@@ -315,7 +314,6 @@ def test_oinfo_found():
     validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     assert content['found']
-    nt.assert_equal(content['name'], 'a')
     text = content['data']['text/plain']
     nt.assert_in('Type:', text)
     nt.assert_in('Docstring:', text)
@@ -331,7 +329,6 @@ def test_oinfo_detail():
     validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     assert content['found']
-    nt.assert_equal(content['name'], 'ip.object_inspect')
     text = content['data']['text/plain']
     nt.assert_in('Definition:', text)
     nt.assert_in('Source:', text)
@@ -388,7 +385,6 @@ def test_stream():
     stdout = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(stdout, 'stream', msg_id)
     content = stdout['content']
-    nt.assert_equal(content['name'], u'stdout')
     nt.assert_equal(content['data'], u'hi\n')
 
 

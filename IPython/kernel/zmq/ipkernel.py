@@ -514,7 +514,6 @@ class Kernel(Configurable):
         reply_content = {'status' : 'ok'}
         reply_content['data'] = data = {}
         reply_content['metadata'] = {}
-        reply_content['name'] = name
         reply_content['found'] = info['found']
         if info['found']:
             info_text = self.shell.object_inspect_text(
