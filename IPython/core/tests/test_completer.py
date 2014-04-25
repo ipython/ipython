@@ -584,21 +584,6 @@ def test_dict_key_completion_unicode_py3():
     nt.assert_in(unicode_type(b"a\xd7\x90']", 'utf8'), matches)
 
 
-def test_dict_like_key_completion():
-    """Test dict key completion applies where __getitem__ and keys exist"""
-    class D(object):
-        def __getitem__(self):
-            pass
-        def keys(self):
-            return iter(['hello', 'world'])
-    ip = get_ipython()
-    complete = ip.Completer.complete
-    ip.user_ns['d'] = D()
-    _, matches = complete(line_buffer="d['")
-    nt.assert_in("hello']", matches)
-    nt.assert_in("world']", matches)
-
-
 @dec.skip_without('numpy')
 def test_struct_array_key_completion():
     """Test dict key completion applies to numpy struct arrays"""

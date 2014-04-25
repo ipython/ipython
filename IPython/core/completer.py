@@ -97,6 +97,21 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
+
+# For dict key completion
+try:
+    import numpy
+except ImportError:
+    STRUCT_ARRAY_TYPES = ()
+else:
+    STRUCT_ARRAY_TYPES = (numpy.ndarray,)
+    try:
+        import pandas
+    except ImportError:
+        KEYED_DICT_TYPES = (dict,)
+    else:
+        KEYED_DICT_TYPES = (dict, pandas.DataFrame)
+
 #-----------------------------------------------------------------------------
 # Main functions and classes
 #-----------------------------------------------------------------------------
@@ -856,14 +871,15 @@ class IPCompleter(Completer):
 
     def dict_key_matches(self, text):
         def get_keys(obj):
-            if not callable(getattr(obj, '__getitem__', None)):
-                return []
-            if hasattr(obj, 'keys'):
+            # Only allow completion for known in-memory dict-like types
+            if isinstance(obj, KEYED_DICT_TYPES):
                 try:
                     return list(obj.keys())
                 except Exception:
                     return []
-            return getattr(getattr(obj, 'dtype', None), 'names', [])
+            elif isinstance(obj, STRUCT_ARRAY_TYPES):
+                return obj.dtype.names or []
+            return []
 
         try:
             regexps = self.__dict_key_regexps
