@@ -539,7 +539,7 @@ def test_dict_key_completion_unicode_py2():
     ip = get_ipython()
     complete = ip.Completer.complete
 
-    ip.user_ns['d'] = {unicode_type('abc'): None,
+    ip.user_ns['d'] = {u'abc': None,
                        unicode_type('a\xd7\x90', 'utf8'): None}
 
     _, matches = complete(line_buffer="d[")

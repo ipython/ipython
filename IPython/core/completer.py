@@ -446,15 +446,17 @@ def match_dict_keys(keys, prefix):
         try:
             if not key.startswith(prefix_str):
                 continue
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError, UnicodeError):
             # Python 3+ TypeError on b'a'.startswith('a') or vice-versa
             continue
 
         # reformat remainder of key to begin with prefix
         rem = key[len(prefix_str):]
-        # force repr with '
+        # force repr wrapped in '
         rem_repr = repr(rem + '"')
         if rem_repr.startswith('u') and prefix[0] not in 'uU':
+            # Found key is unicode, but prefix is Py2 string.
+            # Therefore attempt to interpret key as string.
             try:
                 rem_repr = repr(rem.encode('ascii') + '"')
             except UnicodeEncodeError:
@@ -462,6 +464,9 @@ def match_dict_keys(keys, prefix):
 
         rem_repr = rem_repr[1 + rem_repr.index("'"):-2]
         if quote == '"':
+            # The entered prefix is quoted with ",
+            # but the match is quoted with '.
+            # A contained " hence needs escaping for comparison:
             rem_repr = rem_repr.replace('"', '\\"')
 
         # then reinsert prefix from start of token
