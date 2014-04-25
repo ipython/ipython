@@ -95,7 +95,7 @@ def pkg_info(pkg_path):
 def get_sys_info():
     """Return useful information about IPython and the system, as a dict."""
     p = os.path
-    path = p.dirname(p.abspath(p.join(__file__, '..')))
+    path = p.realpath(p.dirname(p.abspath(p.join(__file__, '..'))))
     return pkg_info(path)
 
 @py3compat.doctest_refactor_print
