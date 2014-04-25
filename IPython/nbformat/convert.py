@@ -63,7 +63,7 @@ def convert(nb, to_version):
         converted = convert_function(nb)
         if converted.get('nbformat', 1) == version:
             raise Exception("Cannot convert notebook from v%d to v%d.  Operation" \
-                "failed silently." % (major, step_version))
+                "failed silently." % (version, step_version))
 
         # Recursively convert until target version is reached.
         return convert(converted, to_version)
