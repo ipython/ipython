@@ -10,7 +10,11 @@
 import os
 import sys
 
-from Queue import Empty
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
+
 from IPython.kernel import KernelManager
 from IPython.nbformat.current import reads, NotebookNode, writes
 
