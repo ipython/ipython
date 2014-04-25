@@ -28,6 +28,7 @@ import sys
 import subprocess
 import time
 
+import IPython
 from .iptest import have, test_group_names as py_test_group_names, test_sections, StreamCapturer
 from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
@@ -365,7 +366,10 @@ def report():
     _add('Python version', inf['sys_version'].replace('\n',''))
     _add('sys.executable', compress_user(inf['sys_executable']))
     _add('Platform', inf['platform'])
-
+    _add('TEST CODE LOCATION', os.path.realpath(
+      os.path.dirname((IPython.__file__)))) # Caps intentional since
+                                            # tests sometimes run against
+                                            # non-local code.
     width = max(len(n) for (n,v) in out)
     out = ["{:<{width}}: {}\n".format(n, v, width=width) for (n,v) in out]
 
