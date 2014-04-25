@@ -38,6 +38,13 @@
           "id": "nbformat",
           "required": true
         },
+        "orig_nbformat": {
+          "description": "Original notebook format, major number.",
+          "type": "integer",
+          "minimum": 1,
+          "id": "orig_nbformat",
+          "required": false
+        },
         "worksheets": {
           "description": "Array of worksheet, not used by the current implementation of ipython yet",
           "type": "array",
@@ -64,7 +71,7 @@
           "type": "object",
           "description": "metadata of the current worksheet",
           "id": "metadata",
-          "required": true
+          "required": false
         }
       }
     },
@@ -92,11 +99,11 @@
         "metadata": {
           "type": "object",
           "id": "metadata",
-          "required": true
+          "required": false
         },
         "source": {
           "description": "for code cell, the source code",
-          "type": "array",
+          "type": ["array", "string"],
           "id": "source",
           "required": true,
           "items":
@@ -133,7 +140,7 @@
         "metadata": {
           "type": "object",
           "id": "metadata",
-          "required": true
+          "required": false
         },
         "collapsed": {
           "type": "boolean",
@@ -141,7 +148,7 @@
         },
         "input": {
           "description": "user input for text cells",
-          "type": "array",
+          "type": ["array", "string"],
           "id": "input",
           "required": true,
           "items":
@@ -158,7 +165,7 @@
         },
         "prompt_number": {
             "type": ["integer","null"],
-            "required": true,
+            "required": false,
             "minimum": 0
         },
         "language": {

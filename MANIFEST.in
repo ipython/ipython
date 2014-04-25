@@ -14,6 +14,7 @@ prune IPython/html/static/mathjax
 # Include some specific files and data resources we need
 include IPython/.git_commit_info.ini
 include IPython/qt/console/resources/icon/IPythonConsole.svg
+include IPython/nbformat/v3/v3.withref.json
 
 # Documentation
 graft docs
