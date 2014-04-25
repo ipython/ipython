@@ -287,6 +287,7 @@ def json_errors(method):
         except web.HTTPError as e:
             status = e.status_code
             message = e.log_message
+            self.log.warn(message)
             self.set_status(e.status_code)
             self.finish(json.dumps(dict(message=message)))
         except Exception:
