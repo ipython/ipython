@@ -55,6 +55,20 @@ class TestFileNotebookManager(TestCase):
             path = fm._get_os_path('test.ipynb', '////')
             fs_path = os.path.join(fm.notebook_dir, 'test.ipynb')
             self.assertEqual(path, fs_path)
+    
+    def test_checkpoint_subdir(self):
+        subd = u'sub ∂ir'
+        cp_name = 'test-cp.ipynb'
+        with TemporaryDirectory() as td:
+            nbdir = td
+            os.mkdir(os.path.join(td, subd))
+            fm = FileNotebookManager(notebook_dir=nbdir)
+            cp_dir = fm.get_checkpoint_path('cp', 'test.ipynb', '/')
+            cp_subdir = fm.get_checkpoint_path('cp', 'test.ipynb', '/%s/' % subd)
+        self.assertNotEqual(cp_dir, cp_subdir)
+        self.assertEqual(cp_dir, os.path.join(nbdir, fm.checkpoint_dir, cp_name))
+        self.assertEqual(cp_subdir, os.path.join(nbdir, subd, fm.checkpoint_dir, cp_name))
+    
 
 class TestNotebookManager(TestCase):
     
