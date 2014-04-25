@@ -83,7 +83,6 @@ Inheritance diagram:
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from contextlib import contextmanager
 import inspect
 import keyword
 import linecache
@@ -222,21 +221,15 @@ def findsource(object):
     raise IOError('could not find code object')
 
 # Monkeypatch inspect to apply our bugfix.
-@contextmanager
-def patch_inspect():
-    """context manager for monkeypatching inspect.findsource"""
-    save_findsource = inspect.findsource
-    inspect.findsource = findsource
-    try:
-        yield
-    finally:
-        inspect.findsource = save_findsource
-
 def with_patch_inspect(f):
     """decorator for monkeypatching inspect.findsource"""
     def wrapped(*args, **kwargs):
-        with patch_inspect():
+        save_findsource = inspect.findsource
+        inspect.findsource = findsource
+        try:
             return f(*args, **kwargs)
+        finally:
+            inspect.findsource = save_findsource
     return wrapped
 
 def fix_frame_records_filenames(records):
