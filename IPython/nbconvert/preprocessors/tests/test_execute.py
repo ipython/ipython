@@ -48,8 +48,8 @@ class TestExecute(PreprocessorTestsBase):
         for expected_cell, actual_cell in zip(expected_cells, actual_cells):
             expected_outputs = expected_cell.get('outputs', [])
             actual_outputs = actual_cell.get('outputs', [])
-            normalized_expected_outputs = map(self.normalize_cell, expected_outputs)
-            normalized_actual_outputs = map(self.normalize_cell, actual_outputs)
+            normalized_expected_outputs = list(map(self.normalize_cell, expected_outputs))
+            normalized_actual_outputs = list(map(self.normalize_cell, actual_outputs))
             assert normalized_expected_outputs == normalized_actual_outputs
 
 
