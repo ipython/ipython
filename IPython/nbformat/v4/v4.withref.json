@@ -176,14 +176,16 @@
                     "items": {"type": "string"}
                 },
                 "outputs": {
-                    "description": "Outputs of cell, to be defined.",
+                    "description": "Execution, display, or stream outputs.",
                     "type": "array",
                     "required": true,
-                    "items": [
-                        {"$ref": "/definitions/pyout_output"}
-                        {"$ref": "/definitions/display_data_output"}
-                        {"$ref": "/definitions/stream_output"}
-                    ]
+                    "items": {
+                        "type": [
+                            {"$ref": "/definitions/pyout_output"},
+                            {"$ref": "/definitions/display_data_output"},
+                            {"$ref": "/definitions/stream_output"}
+                        ]
+                    }
                 },
                 "collapsed": {
                     "description": "Whether the cell is collapsed/expanded.",
@@ -207,6 +209,7 @@
         "pyout_output": {
             "description": "Result of executing a code cell.",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
@@ -224,7 +227,7 @@
                     "type": ["integer", "null"],
                     "required": true,
                     "minimum": 0
-                }
+                },
                 "text": {
                     "description": "The cell's text output, represented as an array of strings.",
                     "type": "array",
@@ -240,7 +243,7 @@
                 "png": {
                     "description": "The cell's png output.",
                     "type": "string",
-                    "required": false,
+                    "required": false
                 }
             }
         },
@@ -248,6 +251,7 @@
         "display_data_output": {
             "description": "Display data output from a code cell.",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
@@ -272,12 +276,18 @@
                     "required": false,
                     "items": {"type": "string"}
                 },
+                "png": {
+                    "description": "The cell's png output.",
+                    "type": "string",
+                    "required": false
+                }
             }
         },
 
         "stream_output": {
             "description": "Stream output from a code cell.",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
