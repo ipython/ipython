@@ -18,6 +18,11 @@
                     "language": {
                         "type": "string",
                         "required": true
+                    },
+                    "kernel_info": {
+                        "type": "object",
+                        "required": true,
+                        "description": "kernel information, to be determined"
                     }
                 }
             },
