@@ -1,20 +1,20 @@
 {
     "description": "custom json structure with references to generate notebook schema",
-    "notebook":{
+    "notebook": {
         "type": "object",
         "description": "notebook v4.0 root schema",
         "$schema": "http://json-schema.org/draft-03/schema",
         "id": "#notebook",
         "required": true,
         "additionalProperties": false,
-        "properties":{
+        "properties": {
             "metadata": {
                 "type": "object",
                 "id": "metadata",
                 "required": true,
                 "description": "the metadata atribute can contain any additionnal information",
                 "additionalProperties": true,
-                "properties":{
+                "properties": {
                     "name": {
                         "id": "name",
                         "description": "the title of the notebook",
@@ -63,7 +63,7 @@
         "id": "#cell",
         "required": true,
         "additionalProperties": false,
-        "properties":{
+        "properties": {
             "cell_type": {
                 "type": "string",
                 "id": "cell_type",
@@ -100,18 +100,18 @@
 
     "any_cell": {
         "description": "Meta cell type that match any cell type",
-        "type": [{"$ref": "/text_cell"},{"$ref":"/code_cell"}],
+        "type": [{"$ref": "/text_cell"}, {"$ref":"/code_cell"}],
         "$schema": "http://json-schema.org/draft-03/schema"
     },
 
-    "code_cell":{
+    "code_cell": {
         "type": "object",
         "$schema": "http://json-schema.org/draft-03/schema",
         "description": "Cell used to execute code",
         "id": "#cell",
         "required": true,
         "additionalProperties": false,
-        "properties":{
+        "properties": {
             "cell_type": {
                 "type": "string",
                 "id": "cell_type",
@@ -144,7 +144,7 @@
                 "type": "array"
             },
             "prompt_number": {
-                "type": ["integer","null"],
+                "type": ["integer", "null"],
                 "required": false,
                 "minimum": 0
             },
