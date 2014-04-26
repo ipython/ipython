@@ -2,7 +2,7 @@
     "description": "custom json structure with references to generate notebook schema",
     "notebook":{
       "type": "object",
-      "description": "notebook v3.0 root schema",
+      "description": "notebook v4.0 root schema",
       "$schema": "http://json-schema.org/draft-03/schema",
       "id": "#notebook",
       "required": true,
@@ -34,7 +34,7 @@
         "nbformat": {
           "description": "Notebook format, major number. Incremented between backward incompatible change is introduced.",
           "type": "integer",
-          "minimum": 3,
+          "minimum": 4,
           "id": "nbformat",
           "required": true
         },
