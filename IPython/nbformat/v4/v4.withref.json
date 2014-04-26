@@ -13,7 +13,13 @@
                 "id": "metadata",
                 "required": true,
                 "description": "the metadata atribute can contain any additionnal information",
-                "additionalProperties": true
+                "additionalProperties": true,
+                "properties": {
+                    "language": {
+                        "type": "string",
+                        "required": true
+                    }
+                }
             },
             "nbformat_minor": {
                 "description": "Notebook format, minor number. Incremented for slight variation of notebook format.",
@@ -135,10 +141,6 @@
                 "type": ["integer", "null"],
                 "required": false,
                 "minimum": 0
-            },
-            "language": {
-                "type": "string",
-                "required": true
             }
         }
     }
