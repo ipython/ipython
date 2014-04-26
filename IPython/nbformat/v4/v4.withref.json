@@ -167,7 +167,19 @@
                     "description": "Cell-level metadata.",
                     "type": "object",
                     "required": true,
-                    "additionalProperties": true
+                    "additionalProperties": true,
+                    "properties": {
+                        "collapsed": {
+                            "description": "Whether the cell is collapsed/expanded.",
+                            "type": "boolean",
+                            "required": true
+                        },
+                        "autoscroll": {
+                            "description": "Whether the cell's output should autoscroll.",
+                            "type": "boolean",
+                            "required": true
+                        }
+                    }
                 },
                 "source": {
                     "description": "Contents of the cell, represented as an array of lines.",
@@ -187,16 +199,6 @@
                             {"$ref": "/definitions/error_output"}
                         ]
                     }
-                },
-                "collapsed": {
-                    "description": "Whether the cell is collapsed/expanded.",
-                    "type": "boolean",
-                    "required": true
-                },
-                "autoscroll": {
-                    "description": "Whether the cell's output should autoscroll.",
-                    "type": "boolean",
-                    "required": true
                 },
                 "prompt_number": {
                     "description": "The code cell's prompt number. Will be null if the cell has not been run.",
