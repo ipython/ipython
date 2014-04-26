@@ -126,6 +126,10 @@
                 "type": "boolean",
                 "required": true
             },
+            "autoscroll": {
+                "type": "boolean",
+                "required": true
+            },
             "source": {
                 "description": "for code cell source code",
                 "type": "array",
