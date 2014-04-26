@@ -45,33 +45,13 @@
           "id": "orig_nbformat",
           "required": false
         },
-        "worksheets": {
-          "description": "Array of worksheet, not used by the current implementation of ipython yet",
-          "type": "array",
-          "id": "worksheets",
-          "required": true,
-          "items": {"$ref": "/worksheet"}
-        }
-      }
-    },
-
-    "worksheet": {
-      "additionalProperties": false,
-      "properties":{
         "cells": {
-          "type": "array",
           "$schema": "http://json-schema.org/draft-03/schema",
           "description": "array of cells of the current worksheet",
+          "type": "array",
           "id": "#cells",
           "required": true,
           "items": {"$ref": "/any_cell"}
-
-        },
-        "metadata": {
-          "type": "object",
-          "description": "metadata of the current worksheet",
-          "id": "metadata",
-          "required": false
         }
       }
     },
