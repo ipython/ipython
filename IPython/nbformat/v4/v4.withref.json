@@ -178,7 +178,12 @@
                 "outputs": {
                     "description": "Outputs of cell, to be defined.",
                     "type": "array",
-                    "required": true
+                    "required": true,
+                    "items": [
+                        {"$ref": "/definitions/pyout_output"}
+                        {"$ref": "/definitions/display_data_output"}
+                        {"$ref": "/definitions/stream_output"}
+                    ]
                 },
                 "collapsed": {
                     "description": "Whether the cell is collapsed/expanded.",
@@ -197,6 +202,18 @@
                     "minimum": 0
                 }
             }
+        },
+
+        "pyout_output": {
+
+        },
+
+        "display_data_output": {
+
+        },
+
+        "stream_output": {
+
         }
     }
 }
