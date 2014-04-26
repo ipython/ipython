@@ -42,7 +42,7 @@
             "minimum": 1
         },
         "cells": {
-            "description": "array of cells of the current notebook",
+            "description": "Array of cells of the current notebook.",
             "type": "array",
             "required": true,
             "items": {
@@ -58,23 +58,23 @@
     "definitions": {
 
         "text_cell": {
-            "description": "Notebook text cell",
+            "description": "Notebook text cell.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "cell_type": {
-                    "description": "String identifying the type of cell",
+                    "description": "String identifying the type of cell.",
                     "enum": ["markdown", "raw"],
                     "required": true
                 },
                 "metadata": {
-                    "description": "Cell-level metadata",
+                    "description": "Cell-level metadata.",
                     "type": "object",
                     "required": true,
                     "additionalProperties": true
                 },
                 "source": {
-                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n)",
+                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n).",
                     "type": "array",
                     "required": true,
                     "items": {
@@ -86,23 +86,23 @@
         },
 
         "heading_cell": {
-            "description": "Notebook heading cell",
+            "description": "Notebook heading cell.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "cell_type": {
-                    "description": "String identifying the type of cell",
+                    "description": "String identifying the type of cell.",
                     "enum": ["heading"],
                     "required": true
                 },
                 "metadata": {
-                    "description": "Cell-level metadata",
+                    "description": "Cell-level metadata.",
                     "type": "object",
                     "required": true,
                     "additionalProperties": true
                 },
                 "source": {
-                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n)",
+                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n).",
                     "type": "array",
                     "required": true,
                     "items": {
@@ -111,9 +111,9 @@
                     }
                 },
                 "level": {
-                    "description": "Level of heading cells",
+                    "description": "Level of heading cells.",
                     "type": "integer",
-                    "required": false,
+                    "required": true,
                     "minimum": 1,
                     "maximum": 6
                 }
@@ -121,23 +121,23 @@
         },
 
         "code_cell": {
-            "description": "Notebook code cell",
+            "description": "Notebook code cell.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "cell_type": {
-                    "description": "String identifying the type of cell",
+                    "description": "String identifying the type of cell.",
                     "enum": ["code"],
                     "required": true
                 },
                 "metadata": {
-                    "description": "Cell-level metadata",
+                    "description": "Cell-level metadata.",
                     "type": "object",
                     "required": true,
                     "additionalProperties": true
                 },
                 "source": {
-                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n)",
+                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n).",
                     "type": "array",
                     "required": true,
                     "items": {
@@ -146,21 +146,22 @@
                     }
                 }
                 "outputs": {
-                    "description": "Outputs of cell, to be defined",
+                    "description": "Outputs of cell, to be defined.",
                     "type": "array",
                     "required": true
                 },
                 "collapsed": {
-                    "description": "Whether the cell is collapsed/expanded",
+                    "description": "Whether the cell is collapsed/expanded.",
                     "type": "boolean",
                     "required": true
                 },
                 "autoscroll": {
-                    "description": "Whether the cell's output should autoscroll",
+                    "description": "Whether the cell's output should autoscroll.",
                     "type": "boolean",
                     "required": true
                 },
                 "prompt_number": {
+                    "description": "The code cell's prompt number. Will be null if the cell has not been run.",
                     "type": ["integer", "null"],
                     "required": true,
                     "minimum": 0
