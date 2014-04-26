@@ -25,7 +25,7 @@
                     "description": "SHA256 hash of the notebook.",
                     "type": "string",
                     "required": true,
-                    "pattern": "^sha256:[0-9a-b]{256}$"
+                    "pattern": "^sha256:[0-9a-f]{64}$"
                 }
             }
         },
@@ -53,9 +53,10 @@
             "required": true,
             "items": {
                 "type": [
-                    {"$ref": "#/definitions/text_cell"},
-                    {"$ref": "#/definitions/heading_cell"},
-                    {"$ref": "#/definitions/code_cell"}
+                    {"$ref": "/definitions/raw_cell"},
+                    {"$ref": "/definitions/markdown_cell"},
+                    {"$ref": "/definitions/heading_cell"},
+                    {"$ref": "/definitions/code_cell"}
                 ]
             }
         }
