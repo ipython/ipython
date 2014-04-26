@@ -49,7 +49,7 @@
             },
             "cells": {
                 "$schema": "http://json-schema.org/draft-03/schema",
-                "description": "array of cells of the current worksheet",
+                "description": "array of cells of the current notebook",
                 "type": "array",
                 "id": "#cells",
                 "required": true,
