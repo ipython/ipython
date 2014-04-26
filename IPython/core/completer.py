@@ -98,20 +98,6 @@ else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
 
-# For dict key completion
-try:
-    import numpy
-except ImportError:
-    STRUCT_ARRAY_TYPES = ()
-else:
-    STRUCT_ARRAY_TYPES = (numpy.ndarray,)
-    try:
-        import pandas
-    except ImportError:
-        KEYED_DICT_TYPES = (dict,)
-    else:
-        KEYED_DICT_TYPES = (dict, pandas.DataFrame)
-
 #-----------------------------------------------------------------------------
 # Main functions and classes
 #-----------------------------------------------------------------------------
@@ -487,6 +473,13 @@ def match_dict_keys(keys, prefix):
         # then reinsert prefix from start of token
         matched.append('%s%s' % (token_prefix, rem_repr))
     return quote, matched
+
+
+def _safe_isinstance(obj, module, class_name):
+    """Checks if obj is an instance of module.class_name if loaded
+    """
+    return (module in sys.modules and
+            isinstance(obj, getattr(__import__(module), class_name)))
 
 
 
@@ -872,12 +865,13 @@ class IPCompleter(Completer):
     def dict_key_matches(self, text):
         def get_keys(obj):
             # Only allow completion for known in-memory dict-like types
-            if isinstance(obj, KEYED_DICT_TYPES):
+            if isinstance(obj, dict) or\
+               _safe_isinstance(obj, 'pandas', 'DataFrame'):
                 try:
                     return list(obj.keys())
                 except Exception:
                     return []
-            elif isinstance(obj, STRUCT_ARRAY_TYPES):
+            elif _safe_isinstance(obj, 'numpy', 'ndarray'):
                 return obj.dtype.names or []
             return []
 
