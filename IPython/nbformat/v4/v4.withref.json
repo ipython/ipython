@@ -194,7 +194,6 @@
                     "items": {
                         "type": [
                             {"$ref": "/definitions/execute_output"},
-                            {"$ref": "/definitions/display_data_output"},
                             {"$ref": "/definitions/stream_output"},
                             {"$ref": "/definitions/error_output"}
                         ]
@@ -216,7 +215,7 @@
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
-                    "enum": ["execute_output"],
+                    "enum": ["execute_output", "display_data"],
                     "required": true
                 },
                 "metadata": {
@@ -228,7 +227,7 @@
                 "prompt_number": {
                     "description": "The code cell's prompt number. Will be null if the cell has not been run.",
                     "type": ["integer", "null"],
-                    "required": true,
+                    "required": false,
                     "minimum": 0
                 },
                 "text": {
@@ -239,36 +238,6 @@
                 },
                 "html": {
                     "description": "The cell's html output, represented as an array of strings.",
-                    "type": "array",
-                    "required": false,
-                    "items": {"type": "string"}
-                },
-                "png": {
-                    "description": "The cell's png output.",
-                    "type": "string",
-                    "required": false
-                }
-            }
-        },
-
-        "display_data_output": {
-            "description": "Display data output from a code cell.",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "output_type": {
-                    "description": "Type of cell output.",
-                    "enum": ["display_data"],
-                    "required": true
-                },
-                "metadata": {
-                    "description": "Cell output metadata.",
-                    "type": "object",
-                    "required": true,
-                    "additionalProperties": true
-                },
-                "text": {
-                    "description": "The display data text output, represented as an array of strings.",
                     "type": "array",
                     "required": false,
                     "items": {"type": "string"}
