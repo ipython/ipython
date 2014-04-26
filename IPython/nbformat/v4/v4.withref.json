@@ -13,16 +13,7 @@
                 "id": "metadata",
                 "required": true,
                 "description": "the metadata atribute can contain any additionnal information",
-                "additionalProperties": true,
-                "properties": {
-                    "name": {
-                        "id": "name",
-                        "description": "the title of the notebook",
-                        "type": "string",
-                        "id": "name",
-                        "required": true
-                    }
-                }
+                "additionalProperties": true
             },
             "nbformat_minor": {
                 "description": "Notebook format, minor number. Incremented for slight variation of notebook format.",
