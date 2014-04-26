@@ -82,15 +82,13 @@
                 "required": false
             },
             "source": {
-                "description": "for code cell, the source code",
-                "type": ["array", "string"],
+                "description": "source text of the cell",
+                "type": "array",
                 "id": "source",
                 "required": true,
-                "items":
-                {
+                "items": {
                     "type": "string",
-                    "description": "each item represent one line of the source code written, terminated by \n",
-                    "id": "0",
+                    "description": "each item represents one line of cell, terminated by \n",
                     "required": true
                 }
             }
@@ -126,18 +124,17 @@
                 "type": "boolean",
                 "required": true
             },
-            "input": {
-                "description": "user input for text cells",
-                "type": ["array", "string"],
-                "id": "input",
+            "source": {
+                "description": "for code cell source code",
+                "type": "array",
+                "id": "source",
                 "required": true,
-                "items":
-                {
+                "items": {
                     "type": "string",
-                    "id": "input",
+                    "description": "each item represents one line of the source code written, terminated by \n",
                     "required": true
                 }
-            },
+            }
             "outputs": {
                 "description": "output for code cell, to be definied",
                 "required": true,
