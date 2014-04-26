@@ -181,7 +181,7 @@
                     "required": true,
                     "items": {
                         "type": [
-                            {"$ref": "/definitions/pyout_output"},
+                            {"$ref": "/definitions/execute_output"},
                             {"$ref": "/definitions/display_data_output"},
                             {"$ref": "/definitions/stream_output"}
                         ]
@@ -206,14 +206,14 @@
             }
         },
 
-        "pyout_output": {
+        "execute_output": {
             "description": "Result of executing a code cell.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
-                    "enum": ["pyout"],
+                    "enum": ["execute_output"],
                     "required": true
                 },
                 "metadata": {
