@@ -344,7 +344,7 @@
                 "traceback": {
                     "description": "The error's traceback, represented as an array of strings.",
                     "type": "array",
-                    "required": false,
+                    "required": true,
                     "items": {"type": "string"}
                 }
             }
