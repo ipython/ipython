@@ -205,15 +205,103 @@
         },
 
         "pyout_output": {
-
+            "description": "Result of executing a code cell.",
+            "type": "object",
+            "properties": {
+                "output_type": {
+                    "description": "Type of cell output.",
+                    "enum": ["pyout"],
+                    "required": true
+                },
+                "metadata": {
+                    "description": "Cell output metadata.",
+                    "type": "object",
+                    "required": true,
+                    "additionalProperties": true
+                },
+                "prompt_number": {
+                    "description": "The code cell's prompt number. Will be null if the cell has not been run.",
+                    "type": ["integer", "null"],
+                    "required": true,
+                    "minimum": 0
+                }
+                "text": {
+                    "description": "The cell's text output, represented as an array of strings.",
+                    "type": "array",
+                    "required": false,
+                    "items": {"type": "string"}
+                },
+                "html": {
+                    "description": "The cell's html output, represented as an array of strings.",
+                    "type": "array",
+                    "required": false,
+                    "items": {"type": "string"}
+                },
+                "png": {
+                    "description": "The cell's png output.",
+                    "type": "string",
+                    "required": false,
+                }
+            }
         },
 
         "display_data_output": {
-
+            "description": "Display data output from a code cell.",
+            "type": "object",
+            "properties": {
+                "output_type": {
+                    "description": "Type of cell output.",
+                    "enum": ["display_data"],
+                    "required": true
+                },
+                "metadata": {
+                    "description": "Cell output metadata.",
+                    "type": "object",
+                    "required": true,
+                    "additionalProperties": true
+                },
+                "text": {
+                    "description": "The display data text output, represented as an array of strings.",
+                    "type": "array",
+                    "required": false,
+                    "items": {"type": "string"}
+                },
+                "javascript": {
+                    "description": "The cell's javascript output, represented as an array of strings.",
+                    "type": "array",
+                    "required": false,
+                    "items": {"type": "string"}
+                },
+            }
         },
 
         "stream_output": {
-
+            "description": "Stream output from a code cell.",
+            "type": "object",
+            "properties": {
+                "output_type": {
+                    "description": "Type of cell output.",
+                    "enum": ["stream"],
+                    "required": true
+                },
+                "metadata": {
+                    "description": "Cell output metadata.",
+                    "type": "object",
+                    "required": true,
+                    "additionalProperties": true
+                },
+                "stream": {
+                    "description": "The stream type/destination.",
+                    "type": "string",
+                    "required": true
+                },
+                "text": {
+                    "description": "The stream's text output, represented as an array of strings.",
+                    "type": "array",
+                    "required": false,
+                    "items": {"type": "string"}
+                }
+            }
         }
     }
 }
