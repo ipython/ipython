@@ -183,7 +183,8 @@
                         "type": [
                             {"$ref": "/definitions/execute_output"},
                             {"$ref": "/definitions/display_data_output"},
-                            {"$ref": "/definitions/stream_output"}
+                            {"$ref": "/definitions/stream_output"},
+                            {"$ref": "/definitions/error_output"}
                         ]
                     }
                 },
@@ -307,6 +308,41 @@
                 },
                 "text": {
                     "description": "The stream's text output, represented as an array of strings.",
+                    "type": "array",
+                    "required": false,
+                    "items": {"type": "string"}
+                }
+            }
+        },
+
+        "error_output": {
+            "description": "Output of an error that occurred during code cell execution.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "output_type": {
+                    "description": "Type of cell output.",
+                    "enum": ["error"],
+                    "required": true
+                },
+                "metadata": {
+                    "description": "Cell output metadata.",
+                    "type": "object",
+                    "required": true,
+                    "additionalProperties": true
+                },
+                "ename": {
+                    "description": "The name of the error.",
+                    "type": "string",
+                    "required": true
+                },
+                "evalue": {
+                    "description": "The value, or message, of the error.",
+                    "type": "string",
+                    "required": true
+                },
+                "traceback": {
+                    "description": "The error's traceback, represented as an array of strings.",
                     "type": "array",
                     "required": false,
                     "items": {"type": "string"}
