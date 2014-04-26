@@ -16,7 +16,7 @@
                     "required": true
                 },
                 "kernel_info": {
-                    "description": "Other kernel information, to be determined."
+                    "description": "Other kernel information, to be determined.",
                     "type": "object",
                     "required": true,
                     "additionalProperties": true
@@ -144,7 +144,7 @@
                         "type": "string",
                         "pattern": "^.*\n$"
                     }
-                }
+                },
                 "outputs": {
                     "description": "Outputs of cell, to be defined.",
                     "type": "array",
