@@ -63,14 +63,46 @@
 
     "definitions": {
 
-        "text_cell": {
-            "description": "Notebook text cell.",
+        "raw_cell": {
+            "description": "Notebook raw nbconvert cell.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "cell_type": {
                     "description": "String identifying the type of cell.",
-                    "enum": ["markdown", "raw"],
+                    "enum": ["raw"],
+                    "required": true
+                },
+                "metadata": {
+                    "description": "Cell-level metadata.",
+                    "type": "object",
+                    "required": true,
+                    "additionalProperties": true,
+                    "properties": {
+                        "format": {
+                            "description": "Raw cell format, to be determined.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                "source": {
+                    "description": "Contents of the cell, represented as an array of lines.",
+                    "type": "array",
+                    "required": true,
+                    "items": {"type": "string"}
+                }
+            }
+        },
+
+        "markdown_cell": {
+            "description": "Notebook markdown cell.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "cell_type": {
+                    "description": "String identifying the type of cell.",
+                    "enum": ["markdown"],
                     "required": true
                 },
                 "metadata": {
@@ -80,13 +112,10 @@
                     "additionalProperties": true
                 },
                 "source": {
-                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n).",
+                    "description": "Contents of the cell, represented as an array of lines.",
                     "type": "array",
                     "required": true,
-                    "items": {
-                        "type": "string",
-                        "pattern": "^.*\n$"
-                    }
+                    "items": {"type": "string"}
                 }
             }
         },
@@ -108,13 +137,10 @@
                     "additionalProperties": true
                 },
                 "source": {
-                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n).",
+                    "description": "Contents of the cell, represented as an array of lines.",
                     "type": "array",
                     "required": true,
-                    "items": {
-                        "type": "string",
-                        "pattern": "^.*\n$"
-                    }
+                    "items": {"type": "string"}
                 },
                 "level": {
                     "description": "Level of heading cells.",
@@ -143,13 +169,10 @@
                     "additionalProperties": true
                 },
                 "source": {
-                    "description": "Contents of the cell, represented as an array of lines (each terminated by \n).",
+                    "description": "Contents of the cell, represented as an array of lines.",
                     "type": "array",
                     "required": true,
-                    "items": {
-                        "type": "string",
-                        "pattern": "^.*\n$"
-                    }
+                    "items": {"type": "string"}
                 },
                 "outputs": {
                     "description": "Outputs of cell, to be defined.",
