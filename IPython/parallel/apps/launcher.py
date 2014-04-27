@@ -1,23 +1,8 @@
 # encoding: utf-8
-"""
-Facilities for launching IPython processes asynchronously.
+"""Facilities for launching IPython processes asynchronously."""
 
-Authors:
-
-* Brian Granger
-* MinRK
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import copy
 import logging
@@ -62,7 +47,7 @@ from IPython.utils.traitlets import (
     Any, Integer, CFloat, List, Unicode, Dict, Instance, HasTraits, CRegExp
 )
 from IPython.utils.encoding import DEFAULT_ENCODING
-from IPython.utils.path import get_home_dir
+from IPython.utils.path import get_home_dir, ensure_dir_exists
 from IPython.utils.process import find_cmd, FindCmdError
 from IPython.utils.py3compat import iteritems, itervalues
 
@@ -629,8 +614,7 @@ class SSHLauncher(LocalProcessLauncher):
             elif check == u'yes':
                 break
         local_dir = os.path.dirname(local)
-        if not os.path.exists(local_dir):
-            os.makedirs(local_dir, 775)
+        ensure_dir_exists(local_dir, 775)
         check_output(self.scp_cmd + [full_remote, local])
     
     def fetch_files(self):

@@ -3,16 +3,8 @@
 Utilities for path handling.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import sys
@@ -324,7 +316,7 @@ def get_ipython_cache_dir():
         return get_ipython_dir()
     ipdir = os.path.join(xdgdir, "ipython")
     if not os.path.exists(ipdir) and _writable_dir(xdgdir):
-        os.makedirs(ipdir)
+        ensure_dir_exists(ipdir)
     elif not _writable_dir(xdgdir):
         return get_ipython_dir()
 
@@ -572,3 +564,17 @@ def link_or_copy(src, dst):
         # Either link isn't supported, or the filesystem doesn't support
         # linking, or 'src' and 'dst' are on different filesystems.
         shutil.copy(src, dst)
+
+def ensure_dir_exists(path, mode=0o777):
+    """ensure that a directory exists
+    
+    If it doesn't exist, try to create it and protect against a race condition
+    if another process is doing the same.
+    """
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path, mode=mode)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+    

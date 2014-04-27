@@ -1,21 +1,7 @@
-"""A notebook manager that uses the local file system for storage.
+"""A notebook manager that uses the local file system for storage."""
 
-Authors:
-
-* Brian Granger
-* Zach Sailer
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import io
 import os
@@ -26,6 +12,7 @@ from tornado import web
 
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
+from IPython.utils.path import ensure_dir_exists
 from IPython.utils.traitlets import Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
@@ -402,8 +389,7 @@ class FileNotebookManager(NotebookManager):
         )
         os_path = self._get_os_path(path=path)
         cp_dir = os.path.join(os_path, self.checkpoint_dir)
-        if not os.path.exists(cp_dir):
-            os.mkdir(cp_dir)
+        ensure_dir_exists(cp_dir)
         cp_path = os.path.join(cp_dir, filename)
         return cp_path
 
@@ -429,8 +415,6 @@ class FileNotebookManager(NotebookManager):
         checkpoint_id = u"checkpoint"
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         self.log.debug("creating checkpoint for notebook %s", name)
-        if not os.path.exists(self.checkpoint_dir):
-            os.mkdir(self.checkpoint_dir)
         self._copy(nb_path, cp_path)
         
         # return the checkpoint info
