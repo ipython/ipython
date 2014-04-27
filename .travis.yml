@@ -3,6 +3,9 @@ language: python
 python:
     - 2.7
     - 3.3
+env:
+    - GROUP=
+    - GROUP=js
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
     - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
@@ -14,4 +17,4 @@ before_install:
 install:
     - time python setup.py install -q 
 script:
-    - cd /tmp && iptest
+    - cd /tmp && iptest $GROUP
