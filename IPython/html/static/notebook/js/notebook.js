@@ -2377,7 +2377,7 @@ var IPython = (function (IPython) {
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),
-            error: $.proxy(this.delete_notebook_error, this)
+            error: $.proxy(this.delete_checkpoint_error, this)
         });
     };
     
