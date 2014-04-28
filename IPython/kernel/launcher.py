@@ -1,21 +1,8 @@
 """Utilities for launching kernels
-
-Authors:
-
-* Min Ragan-Kelley
-
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import sys
@@ -24,9 +11,6 @@ from subprocess import Popen, PIPE
 from IPython.utils.encoding import getdefaultencoding
 from IPython.utils.py3compat import cast_bytes_py2
 
-#-----------------------------------------------------------------------------
-# Launching Kernels
-#-----------------------------------------------------------------------------
 
 def swallow_argv(argv, aliases=None, flags=None):
     """strip frontend-specific aliases and flags from an argument list
@@ -136,7 +120,7 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
     return arguments
 
 
-def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
+def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
                         independent=False,
                         cwd=None, ipython_kernel=True,
                         **kw
@@ -221,7 +205,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
         if independent:
             proc = Popen(cmd,
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, env=os.environ)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, env=env)
         else:
             if ipython_kernel:
                 try:
@@ -238,7 +222,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
             
             
             proc = Popen(cmd,
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=env)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
         proc.win32_interrupt_event = interrupt_event
@@ -246,12 +230,12 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
     else:
         if independent:
             proc = Popen(cmd, preexec_fn=lambda: os.setsid(),
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=env)
         else:
             if ipython_kernel:
                 cmd += ['--parent=1']
             proc = Popen(cmd,
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=env)
 
     # Clean up pipes created to work around Popen bug.
     if redirect_in:

@@ -1,23 +1,17 @@
 """Base class to manage a running kernel"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
 
 # Standard library imports
+import os
 import re
 import signal
 import sys
 import time
+import warnings
 
 import zmq
 
@@ -25,12 +19,14 @@ import zmq
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import is_local_ip, local_ips
+from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (
     Any, Instance, Unicode, List, Bool, Type, DottedObjectName
 )
 from IPython.kernel import (
     make_ipkernel_cmd,
     launch_kernel,
+    kernelspec,
 )
 from .connect import ConnectionFileMixin
 from .zmq.session import Session
@@ -38,9 +34,6 @@ from .managerabc import (
     KernelManagerABC
 )
 
-#-----------------------------------------------------------------------------
-# Main kernel manager class
-#-----------------------------------------------------------------------------
 
 class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     """Manages a single kernel in a subprocess on this host.
@@ -67,9 +60,27 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     # The kernel process with which the KernelManager is communicating.
     # generally a Popen instance
     kernel = Any()
+    
+    kernel_spec_manager = Instance(kernelspec.KernelSpecManager)
+    
+    def _kernel_spec_manager_default(self):
+        return kernelspec.KernelSpecManager(ipython_dir=self.ipython_dir)
+    
+    kernel_name = Unicode('python')
+    
+    kernel_spec = Instance(kernelspec.KernelSpec)
+    
+    def _kernel_spec_default(self):
+        return self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
+    
+    def _kernel_name_changed(self, name, old, new):
+        self.kernel_spec = self.kernel_spec_manager.get_kernel_spec(new)
+        self.ipython_kernel = new in {'python', 'python2', 'python3'}
 
     kernel_cmd = List(Unicode, config=True,
-        help="""The Popen Command to launch the kernel.
+        help="""DEPRECATED: Use kernel_name instead.
+        
+        The Popen Command to launch the kernel.
         Override this if you have a custom kernel.
         If kernel_cmd is specified in a configuration file,
         IPython does not pass any arguments to the kernel,
@@ -81,9 +92,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     )
 
     def _kernel_cmd_changed(self, name, old, new):
+        warnings.warn("Setting kernel_cmd is deprecated, use kernel_spec to "
+                      "start different kernels.")
         self.ipython_kernel = False
 
     ipython_kernel = Bool(True)
+    
+    ipython_dir = Unicode()
+    def _ipython_dir_default(self):
+        return get_ipython_dir()
 
     # Protected traits
     _launch_args = Any()
@@ -150,11 +167,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         """replace templated args (e.g. {connection_file})"""
         if self.kernel_cmd:
             cmd = self.kernel_cmd
-        else:
+        elif self.kernel_name == 'python':
+            # The native kernel gets special handling
             cmd = make_ipkernel_cmd(
                 'from IPython.kernel.zmq.kernelapp import main; main()',
                 **kw
             )
+        else:
+            cmd = self.kernel_spec.argv
+
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
         
@@ -211,8 +232,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         self._launch_args = kw.copy()
         # build the Popen cmd
         kernel_cmd = self.format_kernel_cmd(**kw)
+        if self.kernel_cmd:
+            # If kernel_cmd has been set manually, don't refer to a kernel spec
+            env = os.environ
+        else:
+            # Environment variables from kernel spec are added to os.environ
+            env = os.environ.copy()
+            env.update(self.kernel_spec.env or {})
         # launch the kernel subprocess
-        self.kernel = self._launch_kernel(kernel_cmd,
+        self.kernel = self._launch_kernel(kernel_cmd, env=env,
                                     ipython_kernel=self.ipython_kernel,
                                     **kw)
         self.start_restarter()
@@ -380,10 +408,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # we don't have a kernel
             return False
 
-
-#-----------------------------------------------------------------------------
-# ABC Registration
-#-----------------------------------------------------------------------------
 
 KernelManagerABC.register(KernelManager)
 
