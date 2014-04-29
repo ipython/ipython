@@ -8,7 +8,7 @@ import os
 import glob
 
 from IPython.utils.traitlets import Unicode
-from IPython.utils.path import link_or_copy
+from IPython.utils.path import link_or_copy, ensure_dir_exists
 from IPython.utils.py3compat import unicode_type
 
 from .base import WriterBase
@@ -28,8 +28,8 @@ class FilesWriter(WriterBase):
 
     # Make sure that the output directory exists.
     def _build_directory_changed(self, name, old, new):
-        if new and not os.path.isdir(new):
-            os.makedirs(new)
+        if new:
+            ensure_dir_exists(new)
 
 
     def __init__(self, **kw):
@@ -39,9 +39,9 @@ class FilesWriter(WriterBase):
     
     def _makedir(self, path):
         """Make a directory if it doesn't already exist"""
-        if path and not os.path.isdir(path):
+        if path:
             self.log.info("Making directory %s", path)
-            os.makedirs(path)
+            ensure_dir_exists(path)
 
     def write(self, output, resources, notebook_name=None, **kw):
             """

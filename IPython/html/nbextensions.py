@@ -1,12 +1,8 @@
 # coding: utf-8
 """Utilities for installing Javascript extensions for the notebook"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2014 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
 
@@ -24,7 +20,7 @@ except ImportError:
     from urlparse import urlparse
     from urllib import urlretrieve
 
-from IPython.utils.path import get_ipython_dir
+from IPython.utils.path import get_ipython_dir, ensure_dir_exists
 from IPython.utils.py3compat import string_types, cast_unicode_py2
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -109,8 +105,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
     ipython_dir = ipython_dir or get_ipython_dir()
     nbext = pjoin(ipython_dir, u'nbextensions')
     # make sure nbextensions dir exists
-    if not os.path.exists(nbext):
-        os.makedirs(nbext)
+    ensure_dir_exists(nbext)
     
     if isinstance(files, string_types):
         # one file given, turn it into a list

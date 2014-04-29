@@ -1,25 +1,8 @@
 # encoding: utf-8
-"""
-An object for managing IPython profile directories.
+"""An object for managing IPython profile directories."""
 
-Authors:
-
-* Brian Granger
-* Fernando Perez
-* Min RK
-
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import shutil
@@ -27,14 +10,9 @@ import errno
 import time
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.utils.path import get_ipython_package_dir, expand_path
+from IPython.utils.path import get_ipython_package_dir, expand_path, ensure_dir_exists
 from IPython.utils import py3compat
 from IPython.utils.traitlets import Unicode, Bool
-
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
-
 
 #-----------------------------------------------------------------------------
 # Module errors
@@ -80,16 +58,7 @@ class ProfileDir(LoggingConfigurable):
         if self._location_isset:
             raise RuntimeError("Cannot set profile location more than once.")
         self._location_isset = True
-        num_tries = 0
-        max_tries = 5
-        while not os.path.isdir(new):
-            try:
-                os.makedirs(new)
-            except OSError:
-                if num_tries > max_tries:
-                    raise
-                num_tries += 1
-                time.sleep(0.5)
+        ensure_dir_exists(new)
 
         # ensure config files exist:
         self.security_dir = os.path.join(new, self.security_dir_name)
