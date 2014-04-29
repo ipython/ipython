@@ -1,20 +1,7 @@
-"""Tornado handlers for WebSocket <-> ZMQ sockets.
+"""Tornado handlers for WebSocket <-> ZMQ sockets."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 try:
     from urllib.parse import urlparse # Py 3
@@ -37,9 +24,6 @@ from IPython.utils.py3compat import PY3, cast_unicode
 
 from .handlers import IPythonHandler
 
-#-----------------------------------------------------------------------------
-# ZMQ handlers
-#-----------------------------------------------------------------------------
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
 
