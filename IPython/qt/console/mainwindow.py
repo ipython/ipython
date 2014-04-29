@@ -653,12 +653,8 @@ class MainWindow(QtGui.QMainWindow):
                     self,
                     triggered=self._make_dynamic_magic(pmagic)
                     )
-                xaction_all = QtGui.QAction(pmagic,
-                    self,
-                    triggered=self._make_dynamic_magic(pmagic)
-                    )
                 magic_menu.addAction(xaction)
-                self.all_magic_menu.addAction(xaction_all)
+                self.all_magic_menu.addAction(xaction)
 
     def update_all_magic_menu(self):
         """ Update the list of magics in the "All Magics..." Menu
