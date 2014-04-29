@@ -54,6 +54,9 @@ class Adapter(object):
         handler = getattr(self, header['msg_type'], None)
         if handler is None:
             return msg
+        # no transform for status=error
+        if msg['content'].get('status', None) in {'error', 'aborted'}:
+            return msg
         return handler(msg)
 
 def _version_str_to_list(version):
@@ -62,7 +65,7 @@ def _version_str_to_list(version):
     non-int segments are excluded
     """
     v = []
-    for part in content[key].split('.'):
+    for part in version.split('.'):
         try:
             v.append(int(part))
         except ValueError:
@@ -121,7 +124,7 @@ class V5toV4(Adapter):
         new_content = msg['content'] = {}
         new_content['text'] = ''
         new_content['line'] = line
-        new_content['blob'] = None
+        new_content['block'] = None
         new_content['cursor_pos'] = cursor_pos
         return msg
     
@@ -138,10 +141,10 @@ class V5toV4(Adapter):
         content = msg['content']
         code = content['code']
         cursor_pos = content['cursor_pos']
-        line, cursor_pos = code_to_line(code, cursor_pos)
+        line, _ = code_to_line(code, cursor_pos)
         
-        new_content = msg['content'] = {}
-        new_content['name'] = token_at_cursor(code, cursor_pos)
+        new_content = msg['content'] = {'status' : 'ok'}
+        new_content['oname'] = token_at_cursor(code, cursor_pos)
         new_content['detail_level'] = content['detail_level']
         return msg
     
@@ -155,6 +158,13 @@ class V5toV4(Adapter):
     def display_data(self, msg):
         content = msg['content']
         content.setdefault("source", "display")
+        data = content['data']
+        if 'application/json' in data:
+            try:
+                data['application/json'] = json.dumps(data['application/json'])
+            except Exception:
+                # warn?
+                pass
         return msg
     
     # stdin channel
@@ -219,25 +229,45 @@ class V4toV5(Adapter):
     def complete_reply(self, msg):
         # TODO: complete_reply needs more context than we have
         # Maybe strip common prefix and give magic cursor_start = cursor_end = 0?
-        content = msg['content'] = {}
-        content['matches'] = []
-        content['cursor_start'] = content['cursor_end'] = 0
-        content['metadata'] = {}
+        content = msg['content']
+        new_content = msg['content'] = {'status' : 'ok'}
+        n = len(content['matched_text'])
+        new_content['matches'] = [ m[n:] for m in content['matches'] ]
+        new_content['cursor_start'] = new_content['cursor_end'] = 0
+        new_content['metadata'] = {}
         return msg
     
     def inspect_request(self, msg):
         content = msg['content']
-        name = content['name']
+        name = content['oname']
         
         new_content = msg['content'] = {}
         new_content['code'] = name
-        new_content['cursor_pos'] = len(name) - 1
+        new_content['cursor_pos'] = len(name)
         new_content['detail_level'] = content['detail_level']
         return msg
     
     def inspect_reply(self, msg):
         """inspect_reply can't be easily backward compatible"""
-        msg['content'] = {'found' : False, 'name' : 'unknown'}
+        content = msg['content']
+        new_content = msg['content'] = {'status' : 'ok'}
+        found = new_content['found'] = content['found']
+        new_content['name'] = content['name']
+        new_content['data'] = data = {}
+        new_content['metadata'] = {}
+        if found:
+            lines = []
+            for key in ('call_def', 'init_definition', 'definition'):
+                if content.get(key, False):
+                    lines.append(content[key])
+                    break
+            for key in ('call_docstring', 'init_docstring', 'docstring'):
+                if content.get(key, False):
+                    lines.append(content[key])
+                    break
+            if not lines:
+                lines.append("<empty docstring>")
+            data['text/plain'] = '\n'.join(lines)
         return msg
     
     # iopub channel
@@ -247,7 +277,11 @@ class V4toV5(Adapter):
         content.pop("source", None)
         data = content['data']
         if 'application/json' in data:
-            data['application/json'] = json.dumps(data['application/json'])
+            try:
+                data['application/json'] = json.loads(data['application/json'])
+            except Exception:
+                # warn?
+                pass
         return msg
     
     # stdin channel

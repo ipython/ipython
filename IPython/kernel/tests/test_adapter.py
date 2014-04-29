@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import copy
-
+import json
 from unittest import TestCase
 import nose.tools as nt
 
@@ -18,13 +18,12 @@ def test_default_version():
     msg['header'].pop('version')
     original = copy.deepcopy(msg)
     adapted = adapt(original)
-    nt.assert_equal(adapted['header'].version, V4toV5.version)
+    nt.assert_equal(adapted['header']['version'], V4toV5.version)
 
 
 class AdapterTest(TestCase):
     
     def setUp(self):
-        print("hi")
         self.session = Session()
     
     def adapt(self, msg, version=None):
@@ -85,25 +84,90 @@ class V4toV5TestCase(AdapterTest):
         v4c = v4['content']
         v5c = v5['content']
         self.assertEqual(v5c['user_expressions'], {'a' : 'apple', 'b': 'b'})
-        nt.assert_not_in('user_variables', v5c)
+        self.assertNotIn('user_variables', v5c)
         self.assertEqual(v5c['code'], v4c['code'])
     
     def test_complete_request(self):
-        pass
+        msg = self.msg("complete_request", {
+            'text' : 'a.is',
+            'line' : 'foo = a.is',
+            'block' : None,
+            'cursor_pos' : 10,
+        })
+        v4, v5 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        for key in ('text', 'line', 'block'):
+            self.assertNotIn(key, v5c)
+        self.assertEqual(v5c['cursor_pos'], v4c['cursor_pos'])
+        self.assertEqual(v5c['code'], v4c['line'])
     
     def test_complete_reply(self):
-        pass
+        msg = self.msg("complete_reply", {
+            'matched_text' : 'a.is',
+            'matches' : ['a.isalnum',
+                        'a.isalpha',
+                        'a.isdigit',
+                        'a.islower',
+                        ],
+        })
+        v4, v5 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        n = len(v4c['matched_text'])
+        expected_matches = [ m[n:] for m in v4c['matches'] ]
+        
+        self.assertEqual(v5c['matches'], expected_matches)
+        self.assertEqual(v5c['metadata'], {})
+        self.assertEqual(v5c['cursor_start'], 0)
+        self.assertEqual(v5c['cursor_end'], 0)
     
     def test_object_info_request(self):
-        pass
+        msg = self.msg("object_info_request", {
+            'oname' : 'foo',
+            'detail_level' : 1,
+        })
+        v4, v5 = self.adapt(msg)
+        self.assertEqual(v5['header']['msg_type'], 'inspect_request')
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v5c['code'], v4c['oname'])
+        self.assertEqual(v5c['cursor_pos'], len(v4c['oname']))
+        self.assertEqual(v5c['detail_level'], v4c['detail_level'])
     
     def test_object_info_reply(self):
-        pass
+        msg = self.msg("object_info_reply", {
+            'name' : 'foo',
+            'found' : True,
+            'status' : 'ok',
+            'definition' : 'foo(a=5)',
+            'docstring' : "the docstring",
+        })
+        v4, v5 = self.adapt(msg)
+        self.assertEqual(v5['header']['msg_type'], 'inspect_reply')
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(sorted(v5c), [ 'data', 'found', 'metadata', 'name', 'status'])
+        text = v5c['data']['text/plain']
+        self.assertEqual(text, '\n'.join([v4c['definition'], v4c['docstring']]))
     
     # iopub channel
     
     def test_display_data(self):
-        pass
+        jsondata = dict(a=5)
+        msg = self.msg("display_data", {
+            'data' : {
+                'text/plain' : 'some text',
+                'application/json' : json.dumps(jsondata)
+            },
+            'metadata' : {'text/plain' : { 'key' : 'value' }},
+        })
+        v4, v5 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v5c['metadata'], v4c['metadata'])
+        self.assertEqual(v5c['data']['text/plain'], v4c['data']['text/plain'])
+        self.assertEqual(v5c['data']['application/json'], jsondata)
     
     # stdin channel
     
@@ -162,21 +226,84 @@ class V5toV4TestCase(AdapterTest):
         self.assertEqual(v5c['code'], v4c['code'])
     
     def test_complete_request(self):
-        pass
+        msg = self.msg("complete_request", {
+            'code' : 'def foo():\n'
+                     '    a.is\n'
+                     'foo()',
+            'cursor_pos': 19,
+        })
+        v5, v4 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertNotIn('code', v4c)
+        self.assertEqual(v4c['line'], v5c['code'].splitlines(True)[1])
+        self.assertEqual(v4c['cursor_pos'], 8)
+        self.assertEqual(v4c['text'], '')
+        self.assertEqual(v4c['block'], None)
     
     def test_complete_reply(self):
-        pass
+        msg = self.msg("complete_reply", {
+            'cursor_start' : 10,
+            'cursor_end' : 14,
+            'matches' : ['a.isalnum',
+                        'a.isalpha',
+                        'a.isdigit',
+                        'a.islower',
+                        ],
+            'metadata' : {},
+        })
+        v5, v4 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v4c['matched_text'], 'a.is')
+        self.assertEqual(v4c['matches'], v5c['matches'])
     
     def test_inspect_request(self):
-        pass
+        msg = self.msg("inspect_request", {
+            'code' : 'def foo():\n'
+                     '    apple\n'
+                     'bar()',
+            'cursor_pos': 18,
+            'detail_level' : 1,
+        })
+        v5, v4 = self.adapt(msg)
+        self.assertEqual(v4['header']['msg_type'], 'object_info_request')
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v4c['oname'], 'apple')
+        self.assertEqual(v5c['detail_level'], v4c['detail_level'])
     
     def test_inspect_reply(self):
-        pass
+        msg = self.msg("inspect_reply", {
+            'name' : 'foo',
+            'found' : True,
+            'data' : {'text/plain' : 'some text'},
+            'metadata' : {},
+        })
+        v5, v4 = self.adapt(msg)
+        self.assertEqual(v4['header']['msg_type'], 'object_info_reply')
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(sorted(v4c), ['found', 'name'])
+        self.assertEqual(v4c['found'], False)
     
     # iopub channel
     
     def test_display_data(self):
-        pass
+        jsondata = dict(a=5)
+        msg = self.msg("display_data", {
+            'data' : {
+                'text/plain' : 'some text',
+                'application/json' : jsondata,
+            },
+            'metadata' : {'text/plain' : { 'key' : 'value' }},
+        })
+        v5, v4 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v5c['metadata'], v4c['metadata'])
+        self.assertEqual(v5c['data']['text/plain'], v4c['data']['text/plain'])
+        self.assertEqual(v4c['data']['application/json'], json.dumps(jsondata))
     
     # stdin channel
     
