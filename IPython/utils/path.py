@@ -577,4 +577,5 @@ def ensure_dir_exists(path, mode=0o777):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
-    
+    elif not os.path.isdir(path):
+        raise IOError("%r exists but is not a directory" % path)
