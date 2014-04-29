@@ -565,11 +565,13 @@ def link_or_copy(src, dst):
         # linking, or 'src' and 'dst' are on different filesystems.
         shutil.copy(src, dst)
 
-def ensure_dir_exists(path, mode=0o777):
+def ensure_dir_exists(path, mode=0o755):
     """ensure that a directory exists
     
     If it doesn't exist, try to create it and protect against a race condition
     if another process is doing the same.
+    
+    The default permissions are 755, which differ from os.makedirs default of 777.
     """
     if not os.path.exists(path):
         try:
