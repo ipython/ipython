@@ -699,120 +699,22 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.help_menu, self.onlineHelpAct)
 
     def init_magic_helper(self):
-        self.magic_helper_data = None
-        self.magic_helper = QtGui.QDockWidget("Show Magics", self)
+        from .magic_helper import MagicHelper
+
+        self.magic_helper = MagicHelper("Show Magics", self)
+
         self.magic_helper.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | 
                                           QtCore.Qt.RightDockWidgetArea)        
         self.magic_helper.setVisible(False)
 
-        class MinListWidget(QtGui.QListWidget):
-            def sizeHint(self):
-                s = QtCore.QSize()
-                s.setHeight(super(MinListWidget,self).sizeHint().height())
-                s.setWidth(self.sizeHintForColumn(0))
-                return s
-
-        self.magic_helper_frame = QtGui.QFrame()
-        self.magic_helper_searchl = QtGui.QLabel("Search:")
-        self.magic_helper_search = QtGui.QLineEdit()
-        self.magic_helper_class = QtGui.QComboBox()
-        self.magic_helper_list = MinListWidget()
-        self.magic_helper_paste = QtGui.QPushButton("Paste")
-        self.magic_helper_run = QtGui.QPushButton("Run")
-        
-        main_layout = QtGui.QVBoxLayout()
-        search_layout = QtGui.QHBoxLayout()
-        search_layout.addWidget(self.magic_helper_searchl)
-        search_layout.addWidget(self.magic_helper_search, 10)
-        main_layout.addLayout(search_layout)
-        main_layout.addWidget(self.magic_helper_class)
-        main_layout.addWidget(self.magic_helper_list, 10)
-        action_layout = QtGui.QHBoxLayout()
-        action_layout.addWidget(self.magic_helper_paste)
-        action_layout.addWidget(self.magic_helper_run)
-        main_layout.addLayout(action_layout)
-
-        self.magic_helper_frame.setLayout(main_layout)
-        self.magic_helper.setWidget(self.magic_helper_frame)
-
-        self.magic_helper.visibilityChanged[bool].connect(
-            self.update_magic_helper
-        )
-        self.magic_helper_class.activated[int].connect(
-            self.magic_helper_class_selected
-        )
-        self.magic_helper_search.textChanged[str].connect(
-            self.magic_helper_search_changed
-        )
-        self.magic_helper_list.itemDoubleClicked[QtGui.QListWidgetItem].connect(
+        self.magic_helper.pasteRequested[str].connect(
             self.magic_helper_paste_requested
         )
-        self.magic_helper_paste.clicked[bool].connect(
-            self.magic_helper_paste_requested
-        )
-        self.magic_helper_run.clicked[bool].connect(
+        self.magic_helper.runRequested[str].connect(
             self.magic_helper_run_requested
         )
 
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.magic_helper)
-
-    def update_magic_helper(self, visible):
-        if not visible or self.magic_helper_data != None:
-            return
-        self.magic_helper_data = {}
-        self.magic_helper_class.clear()
-        self.magic_helper_class.addItem("Populating...")
-        self.active_frontend._silent_exec_callback(
-            'get_ipython().magic("lsmagic")',
-            self.populate_magic_helper
-        )
-
-    def populate_magic_helper(self, data):
-        if not data:
-            return
-
-        if data['status'] != 'ok':
-            self.log.warn("%%lsmagic user-expression failed: {}".format(data))
-            return
-
-        self.magic_helper_class.clear()
-        self.magic_helper_list.clear()
-                
-        self.magic_helper_data = json.loads(
-            data['data'].get('application/json', {})
-        )
-        
-        self.magic_helper_class.addItem('All Magics', 'any')
-        classes = set()
-
-        for mtype in sorted(self.magic_helper_data):
-            subdict = self.magic_helper_data[mtype]
-            for name in sorted(subdict):
-                classes.add(subdict[name])
-
-        for cls in sorted(classes):
-            label = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>", cls)
-            self.magic_helper_class.addItem(label, cls)
-
-        self.filter_magic_helper('.', 'any')
-
-    def magic_helper_class_selected(self, index):
-        item = self.magic_helper_class.itemData(index)
-        regex = self.magic_helper_search.text()
-        self.filter_magic_helper(regex = regex, cls = item)
-
-    def magic_helper_search_changed(self, search_string):
-        item = self.magic_helper_class.itemData(
-            self.magic_helper_class.currentIndex()
-        )
-        self.filter_magic_helper(regex = search_string, cls = item)
-
-    def _magic_helper_get_current(self, item = None):
-        text = None
-        if not isinstance(item, QtGui.QListWidgetItem):
-            item = self.magic_helper_list.currentItem()        
-        text = item.text()
-        return text
 
     def _set_active_frontend_focus(self):
         # this is a hack, self.active_frontend._control seems to be 
@@ -820,36 +722,16 @@ class MainWindow(QtGui.QMainWindow):
         # to set focus reliably
         QtCore.QTimer.singleShot(200, self.active_frontend._control.setFocus)
 
-    def magic_helper_paste_requested(self, item = None):
-        text = self._magic_helper_get_current(item)
+    def magic_helper_paste_requested(self, text = None):
         if text != None:
             self.active_frontend.input_buffer = text            
             self._set_active_frontend_focus()
 
-    def magic_helper_run_requested(self, item = None):
-        text = self._magic_helper_get_current(item)
+    def magic_helper_run_requested(self, text = None):
         if text != None:            
             self.active_frontend.execute(text)  
             self._set_active_frontend_focus()
 
-    def filter_magic_helper(self, regex, cls):
-        if regex == "" or regex == None:
-            regex = '.'
-        if cls == None:
-            cls = 'any'
-
-        self.magic_helper_list.clear()
-        for mtype in sorted(self.magic_helper_data):
-            subdict = self.magic_helper_data[mtype]
-            prefix = magic_escapes[mtype]
-
-            for name in sorted(subdict):
-                mclass = subdict[name]
-                pmagic = prefix + name
-
-                if (re.match(regex, name) or re.match(regex, pmagic)) and \
-                   (cls == 'any' or cls == mclass): 
-                    self.magic_helper_list.addItem(pmagic)
 
         
     # minimize/maximize/fullscreen actions:
