@@ -271,8 +271,8 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                                 )
         self.window.log = self.log
         self.window.add_tab_with_frontend(self.widget)
-        self.window.init_menu_bar()
         self.window.init_magic_helper()
+        self.window.init_menu_bar()
 
         # Ignore on OSX, where there is always a menu bar
         if sys.platform != 'darwin' and self.hide_menubar:
