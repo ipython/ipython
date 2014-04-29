@@ -2,40 +2,22 @@
 Module containing filter functions that allow code to be highlighted
 from within Jinja templates.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 # pygments must not be imported at the module level
 # because errors should be raised at runtime if it's actually needed,
 # not import time, when it may not be needed.
 
-# Our own imports
 from IPython.nbconvert.utils.base import NbConvertBase
 
-#-----------------------------------------------------------------------------
-# Globals and constants
-#-----------------------------------------------------------------------------
-
 MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
-
-#-----------------------------------------------------------------------------
-# Utility functions
-#-----------------------------------------------------------------------------
 
 __all__ = [
     'Highlight2HTML',
     'Highlight2Latex'
 ]
-
 
 class Highlight2HTML(NbConvertBase):
 
@@ -58,7 +40,7 @@ class Highlight2HTML(NbConvertBase):
 
         return _pygments_highlight(source if len(source) > 0 else ' ',
                                    # needed to help post processors:
-                                   HtmlFormatter(cssclass="hl-"+language), 
+                                   HtmlFormatter(cssclass=" highlight hl-"+language),
                                    language, metadata)
 
 
