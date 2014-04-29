@@ -713,6 +713,9 @@ class MainWindow(QtGui.QMainWindow):
         self.magic_helper.runRequested[str].connect(
             self.magic_helper_run_requested
         )
+        self.magic_helper.readyForUpdate.connect(
+            self.magic_helper_update_requested
+        )
 
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.magic_helper)
 
@@ -732,8 +735,23 @@ class MainWindow(QtGui.QMainWindow):
             self.active_frontend.execute(text)  
             self._set_active_frontend_focus()
 
+    def magic_helper_update_requested(self):
+        def _handle_data(data):
+            if not data:
+                return
 
-        
+            if data['status'] != 'ok':
+                self.log.warn( 
+                    "%%lsmagic user-expression failed: {}".format(data)
+                )
+                return
+            self.magic_helper.populate_magic_helper(data)
+
+        self.active_frontend._silent_exec_callback(
+            'get_ipython().magic("lsmagic")',
+            _handle_data
+        )
+
     # minimize/maximize/fullscreen actions:
 
     def toggle_menu_bar(self):

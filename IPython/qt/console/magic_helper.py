@@ -25,6 +25,7 @@ class MagicHelper(QtGui.QDockWidget):
 
     pasteRequested = QtCore.pyqtSignal(str, name = 'pasteRequested')
     runRequested = QtCore.pyqtSignal(str, name = 'runRequested')
+    readyForUpdate = QtCore.pyqtSignal(name = 'readyForUpdate')
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -33,11 +34,6 @@ class MagicHelper(QtGui.QDockWidget):
     def __init__(self, name, parent):
 
         super(MagicHelper, self).__init__(name, parent)
-
-        # this is a hack. The main_window reference will be used for 
-        # explicit interface to kernel that must be hidden by signal/slot 
-        # mechanism in the future
-        self.main_window = parent
 
         self.data = None
 
@@ -94,21 +90,9 @@ class MagicHelper(QtGui.QDockWidget):
         self.data = {}
         self.search_class.clear()
         self.search_class.addItem("Populating...")
-        self.main_window.active_frontend._silent_exec_callback(
-            'get_ipython().magic("lsmagic")',
-            self.populate_magic_helper
-        )
+        self.readyForUpdate.emit()
 
     def populate_magic_helper(self, data):
-        if not data:
-            return
-
-        if data['status'] != 'ok':
-            self.main_window.log.warn(
-                "%%lsmagic user-expression failed: {}".format(data)
-            )
-            return
-
         self.search_class.clear()
         self.search_list.clear()
                 
