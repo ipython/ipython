@@ -131,6 +131,20 @@ class MultiKernelManager(LoggingConfigurable):
         self.log.info("Kernel shutdown: %s" % kernel_id)
         self.remove_kernel(kernel_id)
 
+    @kernel_method
+    def request_shutdown(self, kernel_id):
+        """Ask a kernel to shut down by its kernel uuid"""
+
+    @kernel_method
+    def wait_shutdown(self, kernel_id):
+        """Wait for a kernel to finish shutting down, and kill it if it doesn't
+        """
+        self.log.info("Kernel shutdown: %s" % kernel_id)
+
+    @kernel_method
+    def cleanup(self, kernel_id):
+        """Clean up a kernel's resources"""
+
     def remove_kernel(self, kernel_id):
         """remove a kernel from our mapping.
 
@@ -143,8 +157,12 @@ class MultiKernelManager(LoggingConfigurable):
 
     def shutdown_all(self, now=False):
         """Shutdown all kernels."""
-        for kid in self.list_kernel_ids():
-            self.shutdown_kernel(kid, now=now)
+        kids = self.list_kernel_ids()
+        for kid in kids:
+            self.request_shutdown(kid)
+        for kid in kids:
+            self.wait_shutdown(kid)
+            self.cleanup(kid)
 
     @kernel_method
     def interrupt_kernel(self, kernel_id):
