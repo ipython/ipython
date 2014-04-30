@@ -28,7 +28,7 @@ from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.kernel.kernelspec import NoSuchKernel
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, CUnicode, Int, CBool, Any
+    Dict, List, Unicode, CUnicode, CBool, Any
 )
 from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
@@ -144,21 +144,6 @@ class IPythonConsoleApp(ConnectionFileMixin):
     sshkey = Unicode('', config=True,
         help="""Path to the ssh key to use for logging in to the ssh server.""")
     
-    hb_port = Int(0, config=True,
-        help="set the heartbeat port [default: random]")
-    shell_port = Int(0, config=True,
-        help="set the shell (ROUTER) port [default: random]")
-    iopub_port = Int(0, config=True,
-        help="set the iopub (PUB) port [default: random]")
-    stdin_port = Int(0, config=True,
-        help="set the stdin (DEALER) port [default: random]")
-    connection_file = Unicode('', config=True,
-        help="""JSON file in which to store connection info [default: kernel-<pid>.json]
-
-        This file will contain the IP, ports, and authentication key needed to connect
-        clients to this kernel. By default, this file will be created in the security-dir
-        of the current profile, but can be specified by absolute path.
-        """)
     def _connection_file_default(self):
         return 'kernel-%i.json' % os.getpid()
 

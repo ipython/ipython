@@ -419,11 +419,16 @@ class ConnectionFileMixin(Configurable):
 
     # protected traits
 
-    hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
-    shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
-    iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True, help="set the stdin (ROUTER) port [default: random]")
-    control_port = Integer(0, config=True, help="set the control (ROUTER) port [default: random]")
+    hb_port = Integer(0, config=True,
+            help="set the heartbeat port [default: random]")
+    shell_port = Integer(0, config=True,
+            help="set the shell (ROUTER) port [default: random]")
+    iopub_port = Integer(0, config=True,
+            help="set the iopub (PUB) port [default: random]")
+    stdin_port = Integer(0, config=True,
+            help="set the stdin (ROUTER) port [default: random]")
+    control_port = Integer(0, config=True,
+            help="set the control (ROUTER) port [default: random]")
 
     @property
     def ports(self):
