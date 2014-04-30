@@ -22,10 +22,9 @@
                     "additionalProperties": true
                 },
                 "signature": {
-                    "description": "SHA256 hash of the notebook.",
+                    "description": "Hash of the notebook.",
                     "type": "string",
-                    "required": true,
-                    "pattern": "^sha256:[0-9a-f]{64}$"
+                    "required": false
                 }
             }
         },
