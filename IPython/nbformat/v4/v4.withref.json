@@ -80,7 +80,7 @@
                     "additionalProperties": true,
                     "properties": {
                         "format": {
-                            "description": "Raw cell format, to be determined.",
+                            "description": "Raw cell metadata format for nbconvert.",
                             "type": "string",
                             "required": false
                         }
