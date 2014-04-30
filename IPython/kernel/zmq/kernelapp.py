@@ -1,15 +1,7 @@
 """An Application for launching a kernel
-
-Authors
--------
-* MinRK
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -19,7 +11,6 @@ from __future__ import print_function
 
 # Standard library imports
 import atexit
-import json
 import os
 import sys
 import signal
@@ -39,15 +30,13 @@ from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.utils import io
-from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind
-from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
-    Any, Instance, Dict, Unicode, Integer, Bool, CaselessStrEnum,
-    DottedObjectName,
+    Any, Instance, Dict, Unicode, Integer, Bool, DottedObjectName,
 )
 from IPython.utils.importstring import import_item
 from IPython.kernel import write_connection_file
+from IPython.kernel.connect import ConnectionFileMixin
 
 # local imports
 from .heartbeat import Heartbeat
@@ -113,7 +102,8 @@ To read more about this, see https://github.com/ipython/ipython/issues/2049
 # Application class for starting an IPython Kernel
 #-----------------------------------------------------------------------------
 
-class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
+class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
+        ConnectionFileMixin):
     name='ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
@@ -146,30 +136,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         self.config_file_specified.remove(self.config_file_name)
         
     # connection info:
-    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
-    ip = Unicode(config=True,
-        help="Set the IP or interface on which the kernel will listen.")
-    def _ip_default(self):
-        if self.transport == 'ipc':
-            if self.connection_file:
-                return os.path.splitext(self.abs_connection_file)[0] + '-ipc'
-            else:
-                return 'kernel-ipc'
-        else:
-            return localhost()
     
-    hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
-    shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
-    iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True, help="set the stdin (ROUTER) port [default: random]")
-    control_port = Integer(0, config=True, help="set the control (ROUTER) port [default: random]")
-    connection_file = Unicode('', config=True, 
-    help="""JSON file in which to store connection info [default: kernel-<pid>.json]
-    
-    This file will contain the IP, ports, and authentication key needed to connect
-    clients to this kernel. By default, this file will be created in the security dir
-    of the current profile, but can be specified by absolute path.
-    """)
     @property
     def abs_connection_file(self):
         if os.path.basename(self.connection_file) == self.connection_file:
@@ -227,31 +194,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
             s.bind("ipc://%s" % path)
         return port
 
-    def load_connection_file(self):
-        """load ip/port/hmac config from JSON connection file"""
-        try:
-            fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
-        except IOError:
-            self.log.debug("Connection file not found: %s", self.connection_file)
-            # This means I own it, so I will clean it up:
-            atexit.register(self.cleanup_connection_file)
-            return
-        self.log.debug(u"Loading connection file %s", fname)
-        with open(fname) as f:
-            s = f.read()
-        cfg = json.loads(s)
-        self.transport = cfg.get('transport', self.transport)
-        if self.ip == self._ip_default() and 'ip' in cfg:
-            # not overridden by config or cl_args
-            self.ip = cfg['ip']
-        for channel in ('hb', 'shell', 'iopub', 'stdin', 'control'):
-            name = channel + '_port'
-            if getattr(self, name) == 0 and name in cfg:
-                # not overridden by config or cl_args
-                setattr(self, name, cfg[name])
-        if 'key' in cfg:
-            self.config.Session.key = str_to_bytes(cfg['key'])
-    
     def write_connection_file(self):
         """write connection info to JSON file"""
         cf = self.abs_connection_file
@@ -270,20 +212,16 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         
         self.cleanup_ipc_files()
     
-    def cleanup_ipc_files(self):
-        """cleanup ipc files if we wrote them"""
-        if self.transport != 'ipc':
-            return
-        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port, self.control_port):
-            ipcfile = "%s-%i" % (self.ip, port)
-            try:
-                os.remove(ipcfile)
-            except (IOError, OSError):
-                pass
-    
     def init_connection_file(self):
         if not self.connection_file:
             self.connection_file = "kernel-%s.json"%os.getpid()
+        try:
+            self.connection_file = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
+        except IOError:
+            self.log.debug("Connection file not found: %s", self.connection_file)
+            # This means I own it, so I will clean it up:
+            atexit.register(self.cleanup_connection_file)
+            return
         try:
             self.load_connection_file()
         except Exception:

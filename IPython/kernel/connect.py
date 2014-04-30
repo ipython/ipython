@@ -1,17 +1,11 @@
 """Utilities for connecting to kernels
 
-Authors:
-
-* Min Ragan-Kelley
-
+Notable contents: 
+- ConnectionFileMixin class
+    encapsulates the logic related to writing and reading connections files.
 """
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -392,7 +386,13 @@ class ConnectionFileMixin(Configurable):
     """Mixin for configurable classes that work with connection files"""
 
     # The addresses for the communication channels
-    connection_file = Unicode('')
+    connection_file = Unicode('', config=True, 
+    help="""JSON file in which to store connection info [default: kernel-<pid>.json]
+    
+    This file will contain the IP, ports, and authentication key needed to connect
+    clients to this kernel. By default, this file will be created in the security dir
+    of the current profile, but can be specified by absolute path.
+    """)
     _connection_file_written = Bool(False)
 
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
@@ -419,11 +419,16 @@ class ConnectionFileMixin(Configurable):
 
     # protected traits
 
-    shell_port = Integer(0)
-    iopub_port = Integer(0)
-    stdin_port = Integer(0)
-    control_port = Integer(0)
-    hb_port = Integer(0)
+    hb_port = Integer(0, config=True,
+            help="set the heartbeat port [default: random]")
+    shell_port = Integer(0, config=True,
+            help="set the shell (ROUTER) port [default: random]")
+    iopub_port = Integer(0, config=True,
+            help="set the iopub (PUB) port [default: random]")
+    stdin_port = Integer(0, config=True,
+            help="set the stdin (ROUTER) port [default: random]")
+    control_port = Integer(0, config=True,
+            help="set the control (ROUTER) port [default: random]")
 
     @property
     def ports(self):
@@ -491,18 +496,20 @@ class ConnectionFileMixin(Configurable):
 
     def load_connection_file(self):
         """Load connection info from JSON dict in self.connection_file."""
+        self.log.debug(u"Loading connection file %s", self.connection_file)
         with open(self.connection_file) as f:
-            cfg = json.loads(f.read())
-
-        self.transport = cfg.get('transport', 'tcp')
-        self.ip = cfg['ip']
+            cfg = json.load(f)
+        self.transport = cfg.get('transport', self.transport)
+        self.ip = cfg.get('ip', self._ip_default())
+        
         for name in port_names:
-            setattr(self, name, cfg[name])
+            if getattr(self, name) == 0 and name in cfg:
+                # not overridden by config or cl_args
+                setattr(self, name, cfg[name])
         if 'key' in cfg:
-            self.session.key = str_to_bytes(cfg['key'])
-        if cfg.get('signature_scheme'):
-            self.session.signature_scheme = cfg['signature_scheme']
-
+            self.config.Session.key = str_to_bytes(cfg['key'])
+        if 'signature_scheme' in cfg:
+            self.config.Session.signature_scheme = cfg['signature_scheme']
     #--------------------------------------------------------------------------
     # Creating connected sockets
     #--------------------------------------------------------------------------
