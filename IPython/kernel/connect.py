@@ -1,17 +1,11 @@
 """Utilities for connecting to kernels
 
-Authors:
-
-* Min Ragan-Kelley
+There is a ConnectionFileMixin class which encapsulates the logic related to
+writing and reading connections files
 
 """
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -491,18 +485,20 @@ class ConnectionFileMixin(Configurable):
 
     def load_connection_file(self):
         """Load connection info from JSON dict in self.connection_file."""
+        self.log.debug(u"Loading connection file %s", self.connection_file)
         with open(self.connection_file) as f:
-            cfg = json.loads(f.read())
-
+            cfg = json.load(f)
         self.transport = cfg.get('transport', 'tcp')
-        self.ip = cfg['ip']
+        self.ip = cfg.get('ip', localhost())
+        
         for name in port_names:
-            setattr(self, name, cfg[name])
+            if getattr(self, name) == 0 and name in cfg:
+                # not overridden by config or cl_args
+                setattr(self, name, cfg[name])
         if 'key' in cfg:
-            self.session.key = str_to_bytes(cfg['key'])
-        if cfg.get('signature_scheme'):
-            self.session.signature_scheme = cfg['signature_scheme']
-
+            self.config.Session.key = str_to_bytes(cfg['key'])
+        if 'signature_scheme' in cfg:
+            self.config.Session.signature_scheme = cfg['signature_scheme']
     #--------------------------------------------------------------------------
     # Creating connected sockets
     #--------------------------------------------------------------------------

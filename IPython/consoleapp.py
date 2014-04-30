@@ -3,18 +3,9 @@
 This is not a complete console app, as subprocess will not be able to receive
 input, there is no real readline support, among other limitations. This is a
 refactoring of what used to be the IPython/qt/console/qtconsoleapp.py
-
-Authors:
-
-* Evan Patterson
-* Min RK
-* Erik Tollerud
-* Fernando Perez
-* Bussonnier Matthias
-* Thomas Kluyver
-* Paul Ivanov
-
 """
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -22,7 +13,6 @@ Authors:
 
 # stdlib imports
 import atexit
-import json
 import os
 import signal
 import sys
@@ -37,7 +27,6 @@ from IPython.kernel import KernelManager
 from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.kernel.kernelspec import NoSuchKernel
 from IPython.utils.path import filefind
-from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, CUnicode, Int, CBool, Any
 )
@@ -230,6 +219,11 @@ class IPythonConsoleApp(ConnectionFileMixin):
                 else:
                     cf = self.connection_file
                 self.connection_file = cf
+        try:
+            self.connection_file = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
+        except IOError:
+            self.log.debug("Connection File not found: %s", self.connection_file)
+            return
         
         # should load_connection_file only be used for existing?
         # as it is now, this allows reusing ports if an existing
@@ -239,31 +233,6 @@ class IPythonConsoleApp(ConnectionFileMixin):
         except Exception:
             self.log.error("Failed to load connection file: %r", self.connection_file, exc_info=True)
             self.exit(1)
-    
-    def load_connection_file(self):
-        """load ip/port/hmac config from JSON connection file"""
-        # this is identical to IPKernelApp.load_connection_file
-        # perhaps it can be centralized somewhere?
-        try:
-            fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
-        except IOError:
-            self.log.debug("Connection File not found: %s", self.connection_file)
-            return
-        self.log.debug(u"Loading connection file %s", fname)
-        with open(fname) as f:
-            cfg = json.load(f)
-        self.transport = cfg.get('transport', 'tcp')
-        self.ip = cfg.get('ip', localhost())
-        
-        for channel in ('hb', 'shell', 'iopub', 'stdin', 'control'):
-            name = channel + '_port'
-            if getattr(self, name) == 0 and name in cfg:
-                # not overridden by config or cl_args
-                setattr(self, name, cfg[name])
-        if 'key' in cfg:
-            self.config.Session.key = str_to_bytes(cfg['key'])
-        if 'signature_scheme' in cfg:
-            self.config.Session.signature_scheme = cfg['signature_scheme']
     
     def init_ssh(self):
         """set up ssh tunnels, if needed."""
