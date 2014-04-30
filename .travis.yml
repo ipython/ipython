@@ -3,6 +3,7 @@ language: python
 python:
     - 2.7
     - 3.3
+    - 3.4
 env:
     - GROUP=
     - GROUP=js
@@ -18,3 +19,8 @@ install:
     - time python setup.py install -q 
 script:
     - cd /tmp && iptest $GROUP
+
+matrix:
+    exclude:
+        - python: 3.3
+          env: GROUP=js
