@@ -131,6 +131,10 @@ if sys.version_info[0] >= 3:
         
         Accepts a string or a function, so it can be used as a decorator."""
         return s.format(u='')
+    
+    def get_closure(f):
+        """Get a function's closure attribute"""
+        return f.__closure__
 
 else:
     PY3 = False
@@ -192,6 +196,9 @@ else:
     def doctest_refactor_print(func_or_str):
         return func_or_str
 
+    def get_closure(f):
+        """Get a function's closure attribute"""
+        return f.func_closure
 
     # Abstract u'abc' syntax:
     @_modify_str_or_docstring
