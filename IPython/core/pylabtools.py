@@ -118,8 +118,8 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     # build keyword args
     kw = dict(
         format=fmt,
-        fc=fig.get_facecolor(),
-        ec=fig.get_edgecolor(),
+        facecolor=fig.get_facecolor(),
+        edgecolor=fig.get_edgecolor(),
         dpi=dpi,
         bbox_inches=bbox_inches,
     )
