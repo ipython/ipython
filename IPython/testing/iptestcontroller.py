@@ -6,16 +6,9 @@ test suite.
 
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import argparse
@@ -34,6 +27,7 @@ from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 
+NOTEBOOK_SHUTDOWN_TIMEOUT = 10
 
 class TestController(object):
     """Run tests in a subprocess
@@ -287,7 +281,27 @@ class JSController(TestController):
         except OSError:
             # already dead
             pass
-        self.server.wait()
+        # wait 10s for the server to shutdown
+        try:
+            self.server.wait(NOTEBOOK_SHUTDOWN_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            # server didn't terminate, kill it
+            try:
+                print("Failed to terminate notebook server, killing it.",
+                    file=sys.stderr
+                )
+                self.server.kill()
+            except OSError:
+                # already dead
+                pass
+        # wait another 10s
+        try:
+            self.server.wait(NOTEBOOK_SHUTDOWN_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            print("Notebook server still running (%s)" % self.server_info_file,
+                file=sys.stderr
+            )
+            
         self.stream_capturer.halt()
         TestController.cleanup(self)
 
