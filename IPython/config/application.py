@@ -54,7 +54,7 @@ if not hasattr(sys, "argv"):
 subcommand_description = """
 Subcommands are launched as `{app} cmd [args]`. For information on using
 subcommand 'cmd', do: `{app} cmd -h`.
-""".strip().format(app=os.path.basename(sys.argv[0]))
+"""
 # get running program name
 
 #-----------------------------------------------------------------------------
@@ -310,7 +310,8 @@ class Application(SingletonConfigurable):
         lines = ["Subcommands"]
         lines.append('-'*len(lines[0]))
         lines.append('')
-        for p in wrap_paragraphs(self.subcommand_description):
+        for p in wrap_paragraphs(self.subcommand_description.format(
+                    app=os.path.basename(self.argv[0]))):
             lines.append(p)
             lines.append('')
         for subc, (cls, help) in iteritems(self.subcommands):
