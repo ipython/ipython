@@ -30,11 +30,9 @@ from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.utils import io
-from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
-    Any, Instance, Dict, Unicode, Integer, Bool, CaselessStrEnum,
-    DottedObjectName,
+    Any, Instance, Dict, Unicode, Integer, Bool, DottedObjectName,
 )
 from IPython.utils.importstring import import_item
 from IPython.kernel import write_connection_file
@@ -138,30 +136,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         self.config_file_specified.remove(self.config_file_name)
         
     # connection info:
-    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
-    ip = Unicode(config=True,
-        help="Set the IP or interface on which the kernel will listen.")
-    def _ip_default(self):
-        if self.transport == 'ipc':
-            if self.connection_file:
-                return os.path.splitext(self.abs_connection_file)[0] + '-ipc'
-            else:
-                return 'kernel-ipc'
-        else:
-            return localhost()
     
-    hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
-    shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
-    iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True, help="set the stdin (ROUTER) port [default: random]")
-    control_port = Integer(0, config=True, help="set the control (ROUTER) port [default: random]")
-    connection_file = Unicode('', config=True, 
-    help="""JSON file in which to store connection info [default: kernel-<pid>.json]
-    
-    This file will contain the IP, ports, and authentication key needed to connect
-    clients to this kernel. By default, this file will be created in the security dir
-    of the current profile, but can be specified by absolute path.
-    """)
     @property
     def abs_connection_file(self):
         if os.path.basename(self.connection_file) == self.connection_file:
@@ -236,17 +211,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
             pass
         
         self.cleanup_ipc_files()
-    
-    def cleanup_ipc_files(self):
-        """cleanup ipc files if we wrote them"""
-        if self.transport != 'ipc':
-            return
-        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port, self.control_port):
-            ipcfile = "%s-%i" % (self.ip, port)
-            try:
-                os.remove(ipcfile)
-            except (IOError, OSError):
-                pass
     
     def init_connection_file(self):
         if not self.connection_file:

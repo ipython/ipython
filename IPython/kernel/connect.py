@@ -386,7 +386,13 @@ class ConnectionFileMixin(Configurable):
     """Mixin for configurable classes that work with connection files"""
 
     # The addresses for the communication channels
-    connection_file = Unicode('')
+    connection_file = Unicode('', config=True, 
+    help="""JSON file in which to store connection info [default: kernel-<pid>.json]
+    
+    This file will contain the IP, ports, and authentication key needed to connect
+    clients to this kernel. By default, this file will be created in the security dir
+    of the current profile, but can be specified by absolute path.
+    """)
     _connection_file_written = Bool(False)
 
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
@@ -413,11 +419,11 @@ class ConnectionFileMixin(Configurable):
 
     # protected traits
 
-    shell_port = Integer(0)
-    iopub_port = Integer(0)
-    stdin_port = Integer(0)
-    control_port = Integer(0)
-    hb_port = Integer(0)
+    hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
+    shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
+    iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
+    stdin_port = Integer(0, config=True, help="set the stdin (ROUTER) port [default: random]")
+    control_port = Integer(0, config=True, help="set the control (ROUTER) port [default: random]")
 
     @property
     def ports(self):
