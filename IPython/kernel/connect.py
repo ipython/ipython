@@ -1,8 +1,8 @@
 """Utilities for connecting to kernels
 
-There is a ConnectionFileMixin class which encapsulates the logic related to
-writing and reading connections files
-
+Notable contents: 
+- ConnectionFileMixin class
+    encapsulates the logic related to writing and reading connections files.
 """
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -488,8 +488,8 @@ class ConnectionFileMixin(Configurable):
         self.log.debug(u"Loading connection file %s", self.connection_file)
         with open(self.connection_file) as f:
             cfg = json.load(f)
-        self.transport = cfg.get('transport', 'tcp')
-        self.ip = cfg.get('ip', localhost())
+        self.transport = cfg.get('transport', self.transport)
+        self.ip = cfg.get('ip', self._ip_default())
         
         for name in port_names:
             if getattr(self, name) == 0 and name in cfg:
