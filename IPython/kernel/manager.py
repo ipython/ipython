@@ -259,15 +259,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         msg = self.session.msg("shutdown_request", content=content)
         self.session.send(self._control_socket, msg)
 
-    def wait_shutdown(self, totaltime=1, interval=0.1):
+    def finish_shutdown(self, waittime=1, pollinterval=0.1):
         """Wait for kernel shutdown, then kill process if it doesn't shutdown.
         
         This does not send shutdown requests - use :meth:`request_shutdown`
         first.
         """
-        for i in range(int(totaltime/interval)):
+        for i in range(int(waittime/pollinterval)):
             if self.is_alive():
-                time.sleep(interval)
+                time.sleep(pollinterval)
             else:
                 break
         else:
@@ -311,7 +311,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # Don't send any additional kernel kill messages immediately, to give
             # the kernel a chance to properly execute shutdown actions. Wait for at
             # most 1s, checking every 0.1s.
-            self.wait_shutdown()
+            self.finish_shutdown()
 
         self.cleanup(connection_file=not restart)
 
