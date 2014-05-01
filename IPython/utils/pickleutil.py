@@ -1,19 +1,8 @@
 # encoding: utf-8
-
 """Pickle related utilities. Perhaps this should be called 'can'."""
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import copy
 import logging
@@ -38,6 +27,16 @@ if py3compat.PY3:
 else:
     from types import ClassType
     class_type = (type, ClassType)
+
+def _get_cell_type(a=None):
+    """the type of a closure cell doesn't seem to be importable,
+    so just create one
+    """
+    def inner():
+        return a
+    return type(py3compat.get_closure(inner)[0])
+
+cell_type = _get_cell_type()
 
 #-------------------------------------------------------------------------------
 # Functions
@@ -131,6 +130,18 @@ class Reference(CannedObject):
         return eval(self.name, g)
 
 
+class CannedCell(CannedObject):
+    """Can a closure cell"""
+    def __init__(self, cell):
+        self.cell_contents = can(cell.cell_contents)
+    
+    def get_object(self, g=None):
+        cell_contents = uncan(self.cell_contents, g)
+        def inner():
+            return cell_contents
+        return py3compat.get_closure(inner)[0]
+
+
 class CannedFunction(CannedObject):
 
     def __init__(self, f):
@@ -140,6 +151,13 @@ class CannedFunction(CannedObject):
             self.defaults = [ can(fd) for fd in f.__defaults__ ]
         else:
             self.defaults = None
+        
+        closure = py3compat.get_closure(f)
+        if closure:
+            self.closure = tuple( can(cell) for cell in closure )
+        else:
+            self.closure = None
+        
         self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
         self.buffers = []
@@ -159,7 +177,11 @@ class CannedFunction(CannedObject):
             defaults = tuple(uncan(cfd, g) for cfd in self.defaults)
         else:
             defaults = None
-        newFunc = FunctionType(self.code, g, self.__name__, defaults)
+        if self.closure:
+            closure = tuple(uncan(cell, g) for cell in self.closure)
+        else:
+            closure = None
+        newFunc = FunctionType(self.code, g, self.__name__, defaults, closure)
         return newFunc
 
 class CannedClass(CannedObject):
@@ -378,6 +400,7 @@ can_map = {
     FunctionType : CannedFunction,
     bytes : CannedBytes,
     buffer : CannedBuffer,
+    cell_type : CannedCell,
     class_type : can_class,
 }
 
