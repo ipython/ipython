@@ -2,18 +2,8 @@
 
 """Pickle related utilities. Perhaps this should be called 'can'."""
 
-__docformat__ = "restructuredtext en"
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import copy
 import logging
@@ -35,9 +25,11 @@ from IPython.config import Application
 if py3compat.PY3:
     buffer = memoryview
     class_type = type
+    closure_attr = '__closure__'
 else:
     from types import ClassType
     class_type = (type, ClassType)
+    closure_attr = 'func_closure'
 
 #-------------------------------------------------------------------------------
 # Functions
@@ -140,6 +132,9 @@ class CannedFunction(CannedObject):
             self.defaults = [ can(fd) for fd in f.__defaults__ ]
         else:
             self.defaults = None
+            
+        if getattr(f, closure_attr, None):
+            raise ValueError("Sorry, cannot pickle functions with closures.")
         self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
         self.buffers = []
