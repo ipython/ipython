@@ -64,6 +64,24 @@
 
     "definitions": {
 
+        "cell_metadata_name": {
+            "description": "The cell's name. If present, must be a non-empty string.",
+            "type": "string",
+            "required": false,
+            "pattern": "^.+$"
+        },
+
+        "cell_metadata_tags": {
+            "description": "The cell's tags. Tags must be unique, and must not contain commas.",
+            "type": "array",
+            "required": false,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "pattern": "^[^,]+$"
+            }
+        },
+
         "raw_cell": {
             "description": "Notebook raw nbconvert cell.",
             "type": "object",
@@ -84,7 +102,9 @@
                             "description": "Raw cell metadata format for nbconvert.",
                             "type": "string",
                             "required": false
-                        }
+                        },
+                        "name": {"$ref": "/definitions/cell_metadata_name"},
+                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
                     }
                 },
                 "source": {
@@ -110,6 +130,10 @@
                     "description": "Cell-level metadata.",
                     "type": "object",
                     "required": true,
+                    "properties": {
+                        "name": {"$ref": "/definitions/cell_metadata_name"},
+                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
+                    },
                     "additionalProperties": true
                 },
                 "source": {
@@ -135,6 +159,10 @@
                     "description": "Cell-level metadata.",
                     "type": "object",
                     "required": true,
+                    "properties": {
+                        "name": {"$ref": "/definitions/cell_metadata_name"},
+                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
+                    },
                     "additionalProperties": true
                 },
                 "source": {
@@ -178,7 +206,9 @@
                             "description": "Whether the cell's output should autoscroll.",
                             "type": "boolean",
                             "required": true
-                        }
+                        },
+                        "name": {"$ref": "/definitions/cell_metadata_name"},
+                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
                     }
                 },
                 "source": {
