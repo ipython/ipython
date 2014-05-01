@@ -118,7 +118,7 @@ class MultiKernelManager(LoggingConfigurable):
         return kernel_id
 
     @kernel_method
-    def shutdown_kernel(self, kernel_id, now=False):
+    def shutdown_kernel(self, kernel_id, now=False, restart=False):
         """Shutdown a kernel by its kernel uuid.
 
         Parameters
@@ -127,22 +127,24 @@ class MultiKernelManager(LoggingConfigurable):
             The id of the kernel to shutdown.
         now : bool
             Should the kernel be shutdown forcibly using a signal.
+        restart : bool
+            Will the kernel be restarted?
         """
         self.log.info("Kernel shutdown: %s" % kernel_id)
         self.remove_kernel(kernel_id)
 
     @kernel_method
-    def request_shutdown(self, kernel_id):
+    def request_shutdown(self, kernel_id, restart=False):
         """Ask a kernel to shut down by its kernel uuid"""
 
     @kernel_method
-    def wait_shutdown(self, kernel_id):
+    def wait_shutdown(self, kernel_id, totaltime=1, interval=0.1):
         """Wait for a kernel to finish shutting down, and kill it if it doesn't
         """
         self.log.info("Kernel shutdown: %s" % kernel_id)
 
     @kernel_method
-    def cleanup(self, kernel_id):
+    def cleanup(self, kernel_id, connection_file=True):
         """Clean up a kernel's resources"""
 
     def remove_kernel(self, kernel_id):
