@@ -232,7 +232,7 @@
                 }
             },
             "patternProperties": {
-                "^[a-zA-Z0-9+-].*/[a-zA-Z0-9+-].*$": {
+                "^[a-zA-Z0-9+-]+/[a-zA-Z0-9+-]+$": {
                     "description": "The cell's mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
                     "type": ["string", "array"],
                     "required": false
