@@ -1,20 +1,7 @@
-"""Remote Functions and decorators for Views.
+"""Remote Functions and decorators for Views."""
 
-Authors:
-
-* Brian Granger
-* Min RK
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import division
 
@@ -202,6 +189,10 @@ class ParallelFunction(RemoteFunction):
             if minlen == -1 or n < minlen:
                 minlen = n
             lens.append(n)
+        
+        if maxlen == 0:
+            # nothing to iterate over
+            return []
         
         # check that the length of sequences match
         if not self._mapping and minlen != maxlen:
