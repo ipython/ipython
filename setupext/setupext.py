@@ -14,7 +14,7 @@ __docformat__ = "restructuredtext en"
 # Imports
 #-------------------------------------------------------------------------------
 
-import sys, os
+import sys
 from textwrap import fill
 
 display_status=True

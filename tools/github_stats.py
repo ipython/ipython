@@ -12,8 +12,6 @@ To generate a report for IPython 2.0, run:
 from __future__ import print_function
 
 import codecs
-import json
-import re
 import sys
 
 from argparse import ArgumentParser

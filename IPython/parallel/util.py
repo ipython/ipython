@@ -33,9 +33,7 @@ from IPython.config.application import Application
 from IPython.utils.localinterfaces import localhost, is_public_ip, public_ips
 from IPython.utils.py3compat import string_types, iteritems, itervalues
 from IPython.kernel.zmq.log import EnginePUBHandler
-from IPython.kernel.zmq.serialize import (
-    unserialize_object, serialize_object, pack_apply_message, unpack_apply_message
-)
+
 
 #-----------------------------------------------------------------------------
 # Classes

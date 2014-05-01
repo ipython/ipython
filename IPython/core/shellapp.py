@@ -35,7 +35,7 @@ from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
-    Unicode, Instance, List, Bool, CaselessStrEnum, Dict
+    Unicode, Instance, List, Bool, CaselessStrEnum
 )
 from IPython.lib.inputhook import guis
 

@@ -30,9 +30,7 @@ import logging
 import os
 import sys
 
-from IPython.config.loader import (
-    Config, PyFileConfigLoader, ConfigFileNotFound
-)
+from IPython.config.loader import Config
 from IPython.config.application import boolean_flag, catch_config_error, Application
 from IPython.core import release
 from IPython.core import usage

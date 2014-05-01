@@ -35,11 +35,9 @@ from IPython.external.decorator import decorator
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
-from IPython.utils import io
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
 )
-from IPython.utils.warn import warn
 from IPython.utils.py3compat import (
     unicode_to_str, with_metaclass, PY3, string_types, unicode_type,
 )

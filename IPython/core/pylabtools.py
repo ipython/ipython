@@ -20,7 +20,6 @@ from __future__ import print_function
 # Imports
 #-----------------------------------------------------------------------------
 
-import sys
 from io import BytesIO
 
 from IPython.core.display import _pngxy
