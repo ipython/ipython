@@ -127,7 +127,10 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         # closed before the ZMQ streams are setup, they could be None.
         if self.zmq_stream is not None and not self.zmq_stream.closed():
             self.zmq_stream.on_recv(None)
+            # close the socket directly, don't wait for the stream
+            socket = self.zmq_stream.socket
             self.zmq_stream.close()
+            socket.close()
 
 
 class IOPubHandler(ZMQChannelHandler):
