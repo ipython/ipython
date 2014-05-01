@@ -38,7 +38,8 @@
             "description": "Notebook format (major number). Incremented between backwards incompatible changes to the notebook format.",
             "type": "integer",
             "required": true,
-            "minimum": 4
+            "minimum": 4,
+            "maximum": 4
         },
         "orig_nbformat": {
             "description": "Original notebook format (major number) before converting the notebook between versions.",
