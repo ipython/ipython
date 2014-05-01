@@ -6,8 +6,6 @@ from __future__ import print_function
 import os
 import sys
 
-from distutils.dir_util import remove_tree
-
 # Useful shorthands
 pjoin = os.path.join
 cd = os.chdir

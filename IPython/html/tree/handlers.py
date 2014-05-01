@@ -15,11 +15,9 @@ Authors:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import os
-
 from tornado import web
 from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
-from ..utils import url_path_join, path2url, url2path, url_escape, is_hidden
+from ..utils import url_path_join, url_escape
 
 #-----------------------------------------------------------------------------
 # Handlers

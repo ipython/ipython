@@ -18,7 +18,6 @@ from __future__ import print_function
 # Stdlib
 import os
 import sys
-import shlex
 
 # Our own
 if sys.platform == 'win32':

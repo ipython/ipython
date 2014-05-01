@@ -34,7 +34,6 @@ else:
 import os
 import sys
 
-from IPython.utils.warn import warn
 from IPython.utils.version import check_version
 from IPython.external.qt_loaders import (load_qt, QT_API_PYSIDE,
                                          QT_API_PYQT, QT_API_PYQT_DEFAULT,

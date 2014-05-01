@@ -7,10 +7,7 @@ from tornado import web
 from ..base.handlers import IPythonHandler, notebook_path_regex
 from IPython.nbformat.current import to_notebook_json
 
-from IPython.utils import tz
 from IPython.utils.py3compat import cast_bytes
-
-import sys
 
 def find_resource_files(output_files_dir):
     files = []

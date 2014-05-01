@@ -16,19 +16,11 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-
-import logging
-import os
-
-import zmq
-from zmq.eventloop.ioloop import IOLoop
-
-from IPython.config.configurable import Configurable
 from IPython.utils.localinterfaces import localhost
-from IPython.utils.traitlets import Integer, Instance, Unicode
+from IPython.utils.traitlets import Integer, Unicode
 
 from IPython.parallel.util import select_random_ports
-from IPython.kernel.zmq.session import Session, SessionFactory
+from IPython.kernel.zmq.session import SessionFactory
 
 #-----------------------------------------------------------------------------
 # Classes

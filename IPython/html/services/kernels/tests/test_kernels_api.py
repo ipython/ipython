@@ -1,10 +1,6 @@
 """Test the kernels service API."""
 
 
-import os
-import sys
-import json
-
 import requests
 
 from IPython.html.utils import url_path_join

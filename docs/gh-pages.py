@@ -15,7 +15,6 @@ something like 'current' as a stable URL for the most current version of the """
 # Imports
 #-----------------------------------------------------------------------------
 import os
-import re
 import shutil
 import sys
 from os import chdir as cd

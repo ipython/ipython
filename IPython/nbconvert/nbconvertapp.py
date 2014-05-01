@@ -21,7 +21,6 @@ from IPython.utils.traitlets import (
     Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
 )
 from IPython.utils.importstring import import_item
-from IPython.utils.text import dedent
 
 from .exporters.export import get_export_names, exporter_map
 from IPython.nbconvert import exporters, preprocessors, writers, postprocessors

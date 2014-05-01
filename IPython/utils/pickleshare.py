@@ -35,7 +35,7 @@ License: MIT open source license.
 from __future__ import print_function
 
 from IPython.external.path import path as Path
-import os,stat,time
+import stat, time
 import collections
 try:
     import cPickle as pickle

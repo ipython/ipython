@@ -21,9 +21,7 @@ import os
 from tornado import web
 
 from IPython.kernel.multikernelmanager import MultiKernelManager
-from IPython.utils.traitlets import (
-    Dict, List, Unicode,
-)
+from IPython.utils.traitlets import List, Unicode, TraitError
 
 from IPython.html.utils import to_os_path
 from IPython.utils.py3compat import getcwd
