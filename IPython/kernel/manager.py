@@ -275,14 +275,12 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             if self.has_kernel:
                 self._kill_kernel()
 
-    def cleanup(self, restart=False):
+    def cleanup(self, connection_file=True):
         """Clean up resources when the kernel is shut down"""
-        if not restart:
+        if connection_file:
             self.cleanup_connection_file()
-            self.cleanup_ipc_files()
-        else:
-            self.cleanup_ipc_files()
 
+        self.cleanup_ipc_files()
         self._close_control_socket()
 
     def shutdown_kernel(self, now=False, restart=False):
@@ -315,7 +313,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # most 1s, checking every 0.1s.
             self.wait_shutdown()
 
-        self.cleanup(restart=restart)
+        self.cleanup(connection_file=not restart)
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
