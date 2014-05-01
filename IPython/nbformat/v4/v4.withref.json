@@ -64,24 +64,6 @@
 
     "definitions": {
 
-        "cell_metadata_name": {
-            "description": "The cell's name. If present, must be a non-empty string.",
-            "type": "string",
-            "required": false,
-            "pattern": "^.+$"
-        },
-
-        "cell_metadata_tags": {
-            "description": "The cell's tags. Tags must be unique, and must not contain commas.",
-            "type": "array",
-            "required": false,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "pattern": "^[^,]+$"
-            }
-        },
-
         "raw_cell": {
             "description": "Notebook raw nbconvert cell.",
             "type": "object",
@@ -103,16 +85,11 @@
                             "type": "string",
                             "required": false
                         },
-                        "name": {"$ref": "/definitions/cell_metadata_name"},
-                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
+                        "name": {"$ref": "/definitions/misc/metadata_name"},
+                        "tags": {"$ref": "/definitions/misc/metadata_tags"}
                     }
                 },
-                "source": {
-                    "description": "Contents of the cell, represented as an array of lines.",
-                    "type": "array",
-                    "required": true,
-                    "items": {"type": "string"}
-                }
+                "source": {"$ref": "/definitions/misc/source"}
             }
         },
 
@@ -131,17 +108,12 @@
                     "type": "object",
                     "required": true,
                     "properties": {
-                        "name": {"$ref": "/definitions/cell_metadata_name"},
-                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
+                        "name": {"$ref": "/definitions/misc/metadata_name"},
+                        "tags": {"$ref": "/definitions/misc/metadata_tags"}
                     },
                     "additionalProperties": true
                 },
-                "source": {
-                    "description": "Contents of the cell, represented as an array of lines.",
-                    "type": "array",
-                    "required": true,
-                    "items": {"type": "string"}
-                }
+                "source": {"$ref": "/definitions/misc/source"}
             }
         },
 
@@ -160,17 +132,12 @@
                     "type": "object",
                     "required": true,
                     "properties": {
-                        "name": {"$ref": "/definitions/cell_metadata_name"},
-                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
+                        "name": {"$ref": "/definitions/misc/metadata_name"},
+                        "tags": {"$ref": "/definitions/misc/metadata_tags"}
                     },
                     "additionalProperties": true
                 },
-                "source": {
-                    "description": "Contents of the cell, represented as an array of lines.",
-                    "type": "array",
-                    "required": true,
-                    "items": {"type": "string"}
-                },
+                "source": {"$ref": "/definitions/misc/source"},
                 "level": {
                     "description": "Level of heading cells.",
                     "type": "integer",
@@ -207,16 +174,11 @@
                             "type": "boolean",
                             "required": true
                         },
-                        "name": {"$ref": "/definitions/cell_metadata_name"},
-                        "tags": {"$ref": "/definitions/cell_metadata_tags"}
+                        "name": {"$ref": "/definitions/misc/metadata_name"},
+                        "tags": {"$ref": "/definitions/misc/metadata_tags"}
                     }
                 },
-                "source": {
-                    "description": "Contents of the cell, represented as an array of lines.",
-                    "type": "array",
-                    "required": true,
-                    "items": {"type": "string"}
-                },
+                "source": {"$ref": "/definitions/misc/source"},
                 "outputs": {
                     "description": "Execution, display, or stream outputs.",
                     "type": "array",
@@ -224,6 +186,7 @@
                     "items": {
                         "type": [
                             {"$ref": "/definitions/execute_output"},
+                            {"$ref": "/definitions/display_data_output"},
                             {"$ref": "/definitions/stream_output"},
                             {"$ref": "/definitions/error_output"}
                         ]
@@ -245,29 +208,28 @@
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
-                    "enum": ["execute_output", "display_data"],
+                    "enum": ["execute_output"],
                     "required": true
                 },
-                "metadata": {
-                    "description": "Cell output metadata.",
-                    "type": "object",
-                    "required": true,
-                    "additionalProperties": true
-                },
-                "prompt_number": {
-                    "description": "The code cell's prompt number. Will be null if the cell has not been run.",
-                    "type": ["integer", "null"],
-                    "required": false,
-                    "minimum": 0
-                }
+                "metadata": {"$ref": "/definitions/misc/output_metadata"},
+                "prompt_number": {"$ref": "/definitions/misc/prompt_number"}
             },
-            "patternProperties": {
-                "^[a-zA-Z0-9+-]+/[a-zA-Z0-9+-]+$": {
-                    "description": "The cell's mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
-                    "type": ["string", "array"],
-                    "required": false
-                }
-            }
+            "patternProperties": {"$ref": "/definitions/misc/mimetype"}
+        },
+
+        "display_data_output": {
+            "description": "Data displayed as a result of code cell execution.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "output_type": {
+                    "description": "Type of cell output.",
+                    "enum": ["display_data"],
+                    "required": true
+                },
+                "metadata": {"$ref": "/definitions/misc/output_metadata"}
+            },
+            "patternProperties": {"$ref": "/definitions/misc/mimetype"}
         },
 
         "stream_output": {
@@ -280,12 +242,7 @@
                     "enum": ["stream"],
                     "required": true
                 },
-                "metadata": {
-                    "description": "Cell output metadata.",
-                    "type": "object",
-                    "required": true,
-                    "additionalProperties": true
-                },
+                "metadata": {"$ref": "/definitions/misc/output_metadata"},
                 "stream": {
                     "description": "The stream type/destination.",
                     "type": "string",
@@ -310,12 +267,7 @@
                     "enum": ["error"],
                     "required": true
                 },
-                "metadata": {
-                    "description": "Cell output metadata.",
-                    "type": "object",
-                    "required": true,
-                    "additionalProperties": true
-                },
+                "metadata": {"$ref": "/definitions/misc/output_metadata"},
                 "ename": {
                     "description": "The name of the error.",
                     "type": "string",
@@ -332,6 +284,50 @@
                     "required": true,
                     "items": {"type": "string"}
                 }
+            }
+        },
+
+        "misc": {
+            "metadata_name": {
+                "description": "The cell's name. If present, must be a non-empty string.",
+                "type": "string",
+                "required": false,
+                "pattern": "^.+$"
+            },
+            "metadata_tags": {
+                "description": "The cell's tags. Tags must be unique, and must not contain commas.",
+                "type": "array",
+                "required": false,
+                "uniqueItems": true,
+                "items": {
+                    "type": "string",
+                    "pattern": "^[^,]+$"
+                }
+            },
+            "source": {
+                "description": "Contents of the cell, represented as an array of lines.",
+                "type": "array",
+                "required": true,
+                "items": {"type": "string"}
+            },
+            "prompt_number": {
+                "description": "The code cell's prompt number. Will be null if the cell has not been run.",
+                "type": ["integer", "null"],
+                "required": true,
+                "minimum": 0
+            },
+            "mimetype": {
+                "^[a-zA-Z0-9+-]+/[a-zA-Z0-9+-]+$": {
+                    "description": "The cell's mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
+                    "type": ["string", "array"],
+                    "required": false
+                }
+            },
+            "output_metadata": {
+                "description": "Cell output metadata.",
+                "type": "object",
+                "required": true,
+                "additionalProperties": true
             }
         }
     }
