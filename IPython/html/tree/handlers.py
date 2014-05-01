@@ -44,7 +44,7 @@ class TreeHandler(IPythonHandler):
         if len(comps) > 3:
             for i in range(len(comps)-2):
                 comps.pop(0)
-        page_title = url_escape(url_path_join(*comps))
+        page_title = url_path_join(*comps)
         if page_title:
             return page_title+'/'
         else:
