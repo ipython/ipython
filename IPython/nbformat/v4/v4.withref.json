@@ -229,28 +229,12 @@
                     "type": ["integer", "null"],
                     "required": false,
                     "minimum": 0
-                },
-                "text": {
-                    "description": "The cell's text output, represented as an array of strings.",
-                    "type": "array",
-                    "required": false,
-                    "items": {"type": "string"}
-                },
-                "html": {
-                    "description": "The cell's html output, represented as an array of strings.",
-                    "type": "array",
-                    "required": false,
-                    "items": {"type": "string"}
-                },
-                "javascript": {
-                    "description": "The cell's javascript output, represented as an array of strings.",
-                    "type": "array",
-                    "required": false,
-                    "items": {"type": "string"}
-                },
-                "png": {
-                    "description": "The cell's png output.",
-                    "type": "string",
+                }
+            },
+            "patternProperties": {
+                "^[a-zA-Z0-9+-].*/[a-zA-Z0-9+-].*$": {
+                    "description": "The cell's mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
+                    "type": ["string", "array"],
                     "required": false
                 }
             }
@@ -277,7 +261,7 @@
                     "type": "string",
                     "required": true
                 },
-                "text": {
+                "text/plain": {
                     "description": "The stream's text output, represented as an array of strings.",
                     "type": "array",
                     "required": false,
