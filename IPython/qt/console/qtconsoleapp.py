@@ -2,17 +2,6 @@
 
 This is not a complete console app, as subprocess will not be able to receive
 input, there is no real readline support, among other limitations.
-
-Authors:
-
-* Evan Patterson
-* Min RK
-* Erik Tollerud
-* Fernando Perez
-* Bussonnier Matthias
-* Thomas Kluyver
-* Paul Ivanov
-
 """
 
 # Copyright (c) IPython Development Team.

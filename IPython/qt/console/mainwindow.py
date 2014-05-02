@@ -2,17 +2,6 @@
 
 This is a tabbed pseudo-terminal of IPython sessions, with a menu bar for
 common actions.
-
-Authors:
-
-* Evan Patterson
-* Min RK
-* Erik Tollerud
-* Fernando Perez
-* Bussonnier Matthias
-* Thomas Kluyver
-* Paul Ivanov
-
 """
 
 # Copyright (c) IPython Development Team.

@@ -1,9 +1,4 @@
 """MagicHelper - dockable widget showing magic commands for the MainWindow
-
-
-Authors:
-
-* Dimitry Kloper
 """
 
 # Copyright (c) IPython Development Team.
