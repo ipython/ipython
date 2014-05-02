@@ -1284,6 +1284,11 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
+    def instance_init(self, obj):
+        if isinstance(self._trait, Instance):
+            self._trait._resolve_classes()
+        super(Container, self).instance_init(obj)
+
 
 class List(Container):
     """An instance of a Python list."""
