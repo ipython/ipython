@@ -96,6 +96,7 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
+
 #-----------------------------------------------------------------------------
 # Main functions and classes
 #-----------------------------------------------------------------------------
@@ -425,6 +426,62 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, string_types)]
 
 
+def match_dict_keys(keys, prefix):
+    """Used by dict_key_matches, matching the prefix to a list of keys"""
+    if not prefix:
+        return None, [repr(k) for k in keys
+                      if isinstance(k, (string_types, bytes))]
+    quote_match = re.search('["\']', prefix)
+    quote = quote_match.group()
+    try:
+        prefix_str = eval(prefix + quote, {})
+    except Exception:
+        return None, []
+
+    token_prefix = re.search('\w*$', prefix).group()
+
+    # TODO: support bytes in Py3k
+    matched = []
+    for key in keys:
+        try:
+            if not key.startswith(prefix_str):
+                continue
+        except (AttributeError, TypeError, UnicodeError):
+            # Python 3+ TypeError on b'a'.startswith('a') or vice-versa
+            continue
+
+        # reformat remainder of key to begin with prefix
+        rem = key[len(prefix_str):]
+        # force repr wrapped in '
+        rem_repr = repr(rem + '"')
+        if rem_repr.startswith('u') and prefix[0] not in 'uU':
+            # Found key is unicode, but prefix is Py2 string.
+            # Therefore attempt to interpret key as string.
+            try:
+                rem_repr = repr(rem.encode('ascii') + '"')
+            except UnicodeEncodeError:
+                continue
+
+        rem_repr = rem_repr[1 + rem_repr.index("'"):-2]
+        if quote == '"':
+            # The entered prefix is quoted with ",
+            # but the match is quoted with '.
+            # A contained " hence needs escaping for comparison:
+            rem_repr = rem_repr.replace('"', '\\"')
+
+        # then reinsert prefix from start of token
+        matched.append('%s%s' % (token_prefix, rem_repr))
+    return quote, matched
+
+
+def _safe_isinstance(obj, module, class_name):
+    """Checks if obj is an instance of module.class_name if loaded
+    """
+    return (module in sys.modules and
+            isinstance(obj, getattr(__import__(module), class_name)))
+
+
+
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
@@ -537,6 +594,7 @@ class IPCompleter(Completer):
                          self.file_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
+                         self.dict_key_matches,
                          ]
 
     def all_completions(self, text):
@@ -802,6 +860,76 @@ class IPCompleter(Completer):
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         return argMatches
+
+    def dict_key_matches(self, text):
+        def get_keys(obj):
+            # Only allow completion for known in-memory dict-like types
+            if isinstance(obj, dict) or\
+               _safe_isinstance(obj, 'pandas', 'DataFrame'):
+                try:
+                    return list(obj.keys())
+                except Exception:
+                    return []
+            elif _safe_isinstance(obj, 'numpy', 'ndarray'):
+                return obj.dtype.names or []
+            return []
+
+        try:
+            regexps = self.__dict_key_regexps
+        except AttributeError:
+            dict_key_re_fmt = r'''(?x)
+            (  # match dict-referring expression wrt greedy setting
+                %s
+            )
+            \[   # open bracket
+            \s*  # and optional whitespace
+            ([uUbB]?  # string prefix (r not handled)
+                (?:   # unclosed string
+                    '(?:[^']|(?<!\\)\\')*
+                |
+                    "(?:[^"]|(?<!\\)\\")*
+                )
+            )?
+            $
+            '''
+            regexps = self.__dict_key_regexps = {
+                False: re.compile(dict_key_re_fmt % '''
+                                  # identifiers separated by .
+                                  (?!\d)\w+
+                                  (?:\.(?!\d)\w+)*
+                                  '''),
+                True: re.compile(dict_key_re_fmt % '''
+                                 .+
+                                 ''')
+            }
+
+        match = regexps[self.greedy].search(self.text_until_cursor)
+        if match is None:
+            return []
+
+        expr, prefix = match.groups()
+        try:
+            obj = eval(expr, self.namespace)
+        except Exception:
+            try:
+                obj = eval(expr, self.global_namespace)
+            except Exception:
+                return []
+
+        keys = get_keys(obj)
+        if not keys:
+            return keys
+        closing_quote, matches = match_dict_keys(keys, prefix)
+
+        # append closing quote and bracket as appropriate
+        continuation = self.line_buffer[len(self.text_until_cursor):]
+        if closing_quote and continuation.startswith(closing_quote):
+            suf = ''
+        elif continuation.startswith(']'):
+            suf = closing_quote or ''
+        else:
+            suf = (closing_quote or '') + ']'
+        return [k + suf for k in matches]
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
