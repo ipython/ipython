@@ -1,12 +1,12 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 python:
+    - 3.4
     - 2.7
     - 3.3
-    - 3.4
 env:
-    - GROUP=
     - GROUP=js
+    - GROUP=
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
     - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
