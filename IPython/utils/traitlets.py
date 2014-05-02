@@ -751,7 +751,7 @@ class Type(ClassBasedTraitType):
 
         self.klass       = klass
 
-        super(Type, self).__init__(default_value, allow_none, **metadata)
+        super(Type, self).__init__(default_value, allow_none=allow_none, **metadata)
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
@@ -857,7 +857,7 @@ class Instance(ClassBasedTraitType):
 
             default_value = DefaultValueGenerator(*args, **kw)
 
-        super(Instance, self).__init__(default_value, allow_none, **metadata)
+        super(Instance, self).__init__(default_value, allow_none=allow_none, **metadata)
 
     def validate(self, obj, value):
         if isinstance(value, self.klass):
@@ -1165,7 +1165,7 @@ class Enum(TraitType):
 
     def __init__(self, values, default_value=None, allow_none=True, **metadata):
         self.values = values
-        super(Enum, self).__init__(default_value, allow_none, **metadata)
+        super(Enum, self).__init__(default_value, allow_none=allow_none, **metadata)
 
     def validate(self, obj, value):
         if value in self.values:
