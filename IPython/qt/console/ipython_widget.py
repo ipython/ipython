@@ -226,13 +226,7 @@ class IPythonWidget(FrontendWidget):
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
             data = content['data']
-            if 'text/html' in data:
-                self._append_plain_text(self.output_sep, True)
-                self._append_html(self._make_out_prompt(prompt_number), True)
-                html = data['text/html']
-                self._append_plain_text('\n', True)
-                self._append_html(html + self.output_sep2, True)
-            elif 'text/plain' in data:
+            if 'text/plain' in data:
                 self._append_plain_text(self.output_sep, True)
                 self._append_html(self._make_out_prompt(prompt_number), True)
                 text = data['text/plain']
@@ -256,10 +250,7 @@ class IPythonWidget(FrontendWidget):
             metadata = msg['content']['metadata']
             # In the regular IPythonWidget, we simply print the plain text
             # representation.
-            if 'text/html' in data:
-                html = data['text/html']
-                self._append_html(html, True)
-            elif 'text/plain' in data:
+            if 'text/plain' in data:
                 text = data['text/plain']
                 self._append_plain_text(text, True)
             # This newline seems to be needed for text and html output.
