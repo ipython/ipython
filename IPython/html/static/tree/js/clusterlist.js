@@ -49,7 +49,8 @@ var IPython = (function (IPython) {
             cache : false,
             type : "GET",
             dataType : "json",
-            success : $.proxy(this.load_list_success, this)
+            success : $.proxy(this.load_list_success, this),
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(this.base_url, 'clusters');
         $.ajax(url, settings);
@@ -129,8 +130,9 @@ var IPython = (function (IPython) {
                     success : function (data, status, xhr) {
                         that.update_state(data);
                     },
-                    error : function (data, status, xhr) {
+                    error : function (xhr, status, error) {
                         status_col.text("error starting cluster");
+                        utils.log_ajax_error(xhr, status, error);
                     }
                 };
                 status_col.text('starting');
@@ -170,8 +172,8 @@ var IPython = (function (IPython) {
                 success : function (data, status, xhr) {
                     that.update_state(data);
                 },
-                error : function (data, status, xhr) {
-                    console.log('error',data);
+                error : function (xhr, status, error) {
+                    utils.log_ajax_error(xhr, status, error),
                     status_col.text("error stopping cluster");
                 }
             };

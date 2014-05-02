@@ -1885,7 +1885,8 @@ var IPython = (function (IPython) {
                     ),
                     '_blank'
                 );
-            }
+            },
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(
             base_url,
@@ -1913,7 +1914,8 @@ var IPython = (function (IPython) {
                     data.path,
                     data.name
                 ), '_blank');
-            }
+            },
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(
             base_url,
@@ -1956,6 +1958,7 @@ var IPython = (function (IPython) {
             cache : false,
             type : "DELETE",
             dataType: "json",
+            error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(
             this.base_url,
@@ -2374,7 +2377,7 @@ var IPython = (function (IPython) {
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),
-            error: $.proxy(this.delete_notebook_error,this)
+            error: $.proxy(this.delete_checkpoint_error, this)
         });
     };
     

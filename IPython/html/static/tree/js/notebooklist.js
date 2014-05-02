@@ -131,7 +131,8 @@ var IPython = (function (IPython) {
             type : "GET",
             dataType : "json",
             success : $.proxy(this.list_loaded, this),
-            error : $.proxy( function(){
+            error : $.proxy( function(xhr, status, error){
+                utils.log_ajax_error(xhr, status, error);
                 that.list_loaded([], null, null, {msg:"Error connecting to server."});
                              },this)
         };
@@ -273,7 +274,8 @@ var IPython = (function (IPython) {
                     dataType : "json",
                     success : function () {
                         that.load_sessions();
-                    }
+                    },
+                    error : utils.log_ajax_error,
                 };
                 var url = utils.url_join_encode(
                     that.base_url,
@@ -313,7 +315,8 @@ var IPython = (function (IPython) {
                                     dataType : "json",
                                     success : function (data, status, xhr) {
                                         parent_item.remove();
-                                    }
+                                    },
+                                    error : utils.log_ajax_error,
                                 };
                                 var url = utils.url_join_encode(
                                     notebooklist.base_url,
@@ -359,9 +362,7 @@ var IPython = (function (IPython) {
                         that.add_link(path, nbname, item);
                         that.add_delete_button(item);
                     },
-                    error : function (data, status, xhr) {
-                        console.log(data, status);
-                    }
+                    error : utils.log_ajax_error,
                 };
 
                 var url = utils.url_join_encode(
@@ -405,7 +406,8 @@ var IPython = (function (IPython) {
                         notebook_name),
                     '_blank'
                 );
-            }
+            },
+            error : $.proxy(this.new_notebook_failed, this),
         };
         var url = utils.url_join_encode(
             base_url,
@@ -414,7 +416,24 @@ var IPython = (function (IPython) {
         );
         $.ajax(url, settings);
     };
-
+    
+    
+    NotebookList.prototype.new_notebook_failed = function (xhr, status, error) {
+        utils.log_ajax_error(xhr, status, error);
+        var msg;
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            msg = xhr.responseJSON.message;
+        } else {
+            msg = xhr.statusText;
+        }
+        IPython.dialog.modal({
+            title : 'Creating Notebook Failed',
+            body : "The error was: " + msg,
+            buttons : {'OK' : {'class' : 'btn-primary'}}
+        });
+    }
+    
+    
     IPython.NotebookList = NotebookList;
 
     return IPython;

@@ -397,7 +397,8 @@ var IPython = (function (IPython) {
             this.running = false;
             var settings = {
                 cache : false,
-                type : "DELETE"
+                type : "DELETE",
+                error : utils.log_ajax_error,
             };
             $.ajax(utils.url_join_encode(this.kernel_url), settings);
         }
