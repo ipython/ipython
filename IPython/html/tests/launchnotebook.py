@@ -79,9 +79,9 @@ class NotebookTestBase(TestCase):
     @classmethod
     def teardown_class(cls):
         cls.notebook.terminate()
+        cls.wait_until_dead()
         cls.ipython_dir.cleanup()
         cls.notebook_dir.cleanup()
-        cls.wait_until_dead()
 
     @classmethod
     def base_url(cls):
