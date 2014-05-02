@@ -1448,7 +1448,7 @@ class Tuple(Container):
         validated = []
         for t,v in zip(self._traits, value):
             try:
-                v = t.validate(obj, v)
+                v = t._validate(obj, v)
             except TraitError:
                 self.element_error(obj, v, t)
             else:

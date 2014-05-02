@@ -936,14 +936,14 @@ class TestLenList(TraitTestBase):
 
 class TupleTrait(HasTraits):
 
-    value = Tuple(Int)
+    value = Tuple(Int(allow_none=True))
 
 class TestTupleTrait(TraitTestBase):
 
     obj = TupleTrait()
 
     _default_value = None
-    _good_values = [(1,), None, (0,), [1]]
+    _good_values = [(1,), None, (0,), [1], (None,)]
     _bad_values = [10, (1,2), ('a'), ()]
 
     def coerce(self, value):
