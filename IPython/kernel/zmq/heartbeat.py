@@ -53,6 +53,7 @@ class Heartbeat(Thread):
 
     def run(self):
         self.socket = self.context.socket(zmq.REP)
+        self.socket.linger = 1000
         c = ':' if self.transport == 'tcp' else '-'
         self.socket.bind('%s://%s' % (self.transport, self.ip) + c + str(self.port))
         while True:
