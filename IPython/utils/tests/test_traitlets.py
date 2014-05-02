@@ -881,6 +881,25 @@ class TestList(TraitTestBase):
             value = list(value)
         return value
 
+class Foo(object):
+    pass
+
+class InstanceListTrait(HasTraits):
+
+    value = List(Instance(__name__+'.Foo'))
+
+class TestInstanceList(TraitTestBase):
+
+    obj = InstanceListTrait()
+
+    def test_klass(self):
+        """Test that the instance klass is properly assigned."""
+        self.assertIs(self.obj.traits()['value']._trait.klass, Foo)
+
+    _default_value = []
+    _good_values = [[Foo(), Foo(), None], None]
+    _bad_values = [['1', 2,], '1', [Foo]]
+
 class LenListTrait(HasTraits):
 
     value = List(Int, [0], minlen=1, maxlen=2)
