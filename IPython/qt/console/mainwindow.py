@@ -2,18 +2,11 @@
 
 This is a tabbed pseudo-terminal of IPython sessions, with a menu bar for
 common actions.
-
-Authors:
-
-* Evan Patterson
-* Min RK
-* Erik Tollerud
-* Fernando Perez
-* Bussonnier Matthias
-* Thomas Kluyver
-* Paul Ivanov
-
 """
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License. 
+
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -46,8 +39,6 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
-
-    _magic_menu_dict = {}
 
     def __init__(self, app,
                     confirm_exit=True,
@@ -584,132 +575,15 @@ class MainWindow(QtGui.QMainWindow):
 
         self.add_menu_action(self.kernel_menu, self.confirm_restart_kernel_action)
         self.tab_widget.currentChanged.connect(self.update_restart_checkbox)
-
-    def _make_dynamic_magic(self,magic):
-        """Return a function `fun` that will execute `magic` on active frontend.
-
-        Parameters
-        ----------
-        magic : string
-            string that will be executed as is when the returned function is called
-
-        Returns
-        -------
-        fun : function
-            function with no parameters, when called will execute `magic` on the
-            current active frontend at call time
-
-        See Also
-        --------
-        populate_all_magic_menu : generate the "All Magics..." menu
-
-        Notes
-        -----
-        `fun` executes `magic` in active frontend at the moment it is triggered,
-        not the active frontend at the moment it was created.
-
-        This function is mostly used to create the "All Magics..." Menu at run time.
-        """
-        # need two level nested function to be sure to pass magic
-        # to active frontend **at run time**.
-        def inner_dynamic_magic():
-            self.active_frontend.execute(magic)
-        inner_dynamic_magic.__name__ = "dynamics_magic_s"
-        return inner_dynamic_magic
-
-    def populate_all_magic_menu(self, display_data=None):
-        """Clean "All Magics..." menu and repopulate it with `display_data`
-
-        Parameters
-        ----------
-        display_data : dict,
-            dict of display_data for the magics dict of a MagicsManager.
-            Expects json data, as the result of %lsmagic
-
-        """
-        for k,v in self._magic_menu_dict.items():
-            v.clear()
-        self.all_magic_menu.clear()
-        
-        if not display_data:
-            return
-        
-        if display_data['status'] != 'ok':
-            self.log.warn("%%lsmagic user-expression failed: %s" % display_data)
-            return
-        
-        mdict = json.loads(display_data['data'].get('application/json', {}))
-        
-        for mtype in sorted(mdict):
-            subdict = mdict[mtype]
-            prefix = magic_escapes[mtype]
-            for name in sorted(subdict):
-                mclass = subdict[name]
-                magic_menu = self._get_magic_menu(mclass)
-                pmagic = prefix + name
-                
-                # Adding seperate QActions is needed for some window managers
-                xaction = QtGui.QAction(pmagic,
-                    self,
-                    triggered=self._make_dynamic_magic(pmagic)
-                    )
-                xaction_all = QtGui.QAction(pmagic,
-                    self,
-                    triggered=self._make_dynamic_magic(pmagic)
-                    )
-                magic_menu.addAction(xaction)
-                self.all_magic_menu.addAction(xaction_all)
-
-    def update_all_magic_menu(self):
-        """ Update the list of magics in the "All Magics..." Menu
-
-        Request the kernel with the list of available magics and populate the
-        menu with the list received back
-
-        """
-        self.active_frontend._silent_exec_callback('get_ipython().magic("lsmagic")',
-                self.populate_all_magic_menu)
-
-    def _get_magic_menu(self,menuidentifier, menulabel=None):
-        """return a submagic menu by name, and create it if needed
-       
-        Parameters
-        ----------
-
-        menulabel : str
-            Label for the menu
-
-        Will infere the menu name from the identifier at creation if menulabel not given.
-        To do so you have too give menuidentifier as a CamelCassedString
-        """
-        menu = self._magic_menu_dict.get(menuidentifier,None)
-        if not menu :
-            if not menulabel:
-                menulabel = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>",menuidentifier)
-            menu = QtGui.QMenu(menulabel,self.magic_menu)
-            self._magic_menu_dict[menuidentifier]=menu
-            self.magic_menu.insertMenu(self.magic_menu_separator,menu)
-        return menu
-
-
         
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
+
+        self.add_menu_action(self.magic_menu, 
+                             self.magic_helper.toggleViewAction())
+
         self.magic_menu_separator = self.magic_menu.addSeparator()
         
-        self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
-
-        # This action should usually not appear as it will be cleared when menu
-        # is updated at first kernel response. Though, it is necessary when
-        # connecting through X-forwarding, as in this case, the menu is not
-        # auto updated, SO DO NOT DELETE.
-        self.pop = QtGui.QAction("&Update All Magic Menu ",
-            self, triggered=self.update_all_magic_menu)
-        self.add_menu_action(self.all_magic_menu, self.pop)
-        # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immediately, but it's assured to works
-        self.pop.trigger()
-
         self.reset_action = QtGui.QAction("&Reset",
             self,
             statusTip="Clear all variables from workspace",
@@ -816,6 +690,60 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self._open_online_help)
         self.add_menu_action(self.help_menu, self.onlineHelpAct)
+
+    def init_magic_helper(self):
+        from .magic_helper import MagicHelper
+
+        self.magic_helper = MagicHelper("Show Magics", self)
+
+        self.magic_helper.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | 
+                                          QtCore.Qt.RightDockWidgetArea)        
+        self.magic_helper.setVisible(False)
+
+        self.magic_helper.pasteRequested[str].connect(
+            self.magic_helper_paste_requested
+        )
+        self.magic_helper.runRequested[str].connect(
+            self.magic_helper_run_requested
+        )
+        self.magic_helper.readyForUpdate.connect(
+            self.magic_helper_update_requested
+        )
+
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.magic_helper)
+
+    def _set_active_frontend_focus(self):
+        # this is a hack, self.active_frontend._control seems to be 
+        # a private member. Unfortunately this is the only method 
+        # to set focus reliably
+        QtCore.QTimer.singleShot(200, self.active_frontend._control.setFocus)
+
+    def magic_helper_paste_requested(self, text = None):
+        if text != None:
+            self.active_frontend.input_buffer = text            
+            self._set_active_frontend_focus()
+
+    def magic_helper_run_requested(self, text = None):
+        if text != None:            
+            self.active_frontend.execute(text)  
+            self._set_active_frontend_focus()
+
+    def magic_helper_update_requested(self):
+        def _handle_data(data):
+            if not data:
+                return
+
+            if data['status'] != 'ok':
+                self.log.warn( 
+                    "%%lsmagic user-expression failed: {}".format(data)
+                )
+                return
+            self.magic_helper.populate_magic_helper(data)
+
+        self.active_frontend._silent_exec_callback(
+            'get_ipython().magic("lsmagic")',
+            _handle_data
+        )
 
     # minimize/maximize/fullscreen actions:
 

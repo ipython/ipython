@@ -2,18 +2,10 @@
 
 This is not a complete console app, as subprocess will not be able to receive
 input, there is no real readline support, among other limitations.
-
-Authors:
-
-* Evan Patterson
-* Min RK
-* Erik Tollerud
-* Fernando Perez
-* Bussonnier Matthias
-* Thomas Kluyver
-* Paul Ivanov
-
 """
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License. 
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -271,6 +263,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                                 )
         self.window.log = self.log
         self.window.add_tab_with_frontend(self.widget)
+        self.window.init_magic_helper()
         self.window.init_menu_bar()
 
         # Ignore on OSX, where there is always a menu bar
