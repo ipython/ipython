@@ -1277,7 +1277,7 @@ class Container(Instance):
             return value
         for v in value:
             try:
-                v = self._trait.validate(obj, v)
+                v = self._trait._validate(obj, v)
             except TraitError:
                 self.element_error(obj, v, self._trait)
             else:
@@ -1353,8 +1353,6 @@ class List(Container):
     
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
-        if value is None:
-            return value
 
         value = self.validate_elements(obj, value)
 
