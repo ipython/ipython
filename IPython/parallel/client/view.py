@@ -519,6 +519,12 @@ class DirectView(View):
         pickleutil.use_dill()
         return self.apply(pickleutil.use_dill)
 
+    def use_cloudpickle(self):
+        """Expand serialization support with cloudpickle.
+        """
+        pickleutil.use_cloudpickle()
+        return self.apply(pickleutil.use_cloudpickle)
+
 
     @sync_results
     @save_ids
