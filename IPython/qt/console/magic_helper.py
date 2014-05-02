@@ -27,16 +27,16 @@ class MagicHelper(QtGui.QDockWidget):
     # signals
     #---------------------------------------------------------------------------
 
-    pasteRequested = QtCore.pyqtSignal(str, name = 'pasteRequested')
+    pasteRequested = QtCore.Signal(str, name = 'pasteRequested')
     """This signal is emitted when user wants to paste selected magic 
        command into the command line.
     """
 
-    runRequested = QtCore.pyqtSignal(str, name = 'runRequested')
+    runRequested = QtCore.Signal(str, name = 'runRequested')
     """This signal is emitted when user wants to execute selected magic command
     """
 
-    readyForUpdate = QtCore.pyqtSignal(name = 'readyForUpdate')
+    readyForUpdate = QtCore.Signal(name = 'readyForUpdate')
     """This signal is emitted when MagicHelper is ready to be populated.
        Since kernel querying mechanisms are out of scope of this class,
        it expects its owner to invoke MagicHelper.populate_magic_helper()
