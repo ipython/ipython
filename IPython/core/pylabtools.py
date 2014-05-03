@@ -382,6 +382,8 @@ def configure_inline_support(shell, backend):
 def drawnow(draw_fig, show_once=False, *argv, **kwargs):
     """A function to refresh the current figure.
 
+    Depends on matplotlib's interactive mode.
+
     Parameters
     ----------
     draw_fig : callable
