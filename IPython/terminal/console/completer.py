@@ -34,7 +34,8 @@ class ZMQCompleter(IPCompleter):
         # send completion request to kernel
         # Give the kernel up to 0.5s to respond
         msg_id = self.client.shell_channel.complete(text=text, line=line,
-                                                        cursor_pos=cursor_pos)
+                                                    cursor_pos=cursor_pos,
+                                                    from_readline=True)
         
         msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:

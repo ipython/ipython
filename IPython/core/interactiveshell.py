@@ -1981,7 +1981,7 @@ class InteractiveShell(SingletonConfigurable):
         if self.has_readline:
             self.set_readline_completer()
 
-    def complete(self, text, line=None, cursor_pos=None):
+    def complete(self, text, line=None, cursor_pos=None, from_readline=False):
         """Return the completed text and a list of completions.
 
         Parameters
@@ -1997,6 +1997,9 @@ class InteractiveShell(SingletonConfigurable):
 
            cursor_pos : int, optional
              The position of the cursor on the input line.
+
+           from_readline : bool, option
+             True if this completion was requested from a Readline instance.
 
         Returns
         -------
@@ -2024,7 +2027,8 @@ class InteractiveShell(SingletonConfigurable):
 
         # Inject names into __builtin__ so we can complete on the added names.
         with self.builtin_trap:
-            return self.Completer.complete(text, line, cursor_pos)
+            return self.Completer.complete(text, line, cursor_pos,
+                                           from_readline=from_readline)
 
     def set_custom_completer(self, completer, pos=0):
         """Adds a new custom completer function.

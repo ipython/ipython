@@ -787,7 +787,8 @@ class Kernel(Configurable):
             cpos = len(c['text'])
             if cpos==0:
                 cpos = len(c['line'])
-        return self.shell.complete(c['text'], c['line'], cpos)
+        return self.shell.complete(c['text'], c['line'], cpos,
+                                   from_readline=c.get('from_readline', False))
 
     def _at_shutdown(self):
         """Actions taken at shutdown by the kernel, called by python's atexit.

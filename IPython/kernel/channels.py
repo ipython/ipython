@@ -288,7 +288,7 @@ class ShellChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def complete(self, text, line, cursor_pos, block=None):
+    def complete(self, text, line, cursor_pos, block=None, from_readline=False):
         """Tab complete text in the kernel's namespace.
 
         Parameters
@@ -303,12 +303,16 @@ class ShellChannel(ZMQSocketChannel):
             requested.
         block : str, optional
             The full block of code in which the completion is being requested.
+        from_readline : bool, option
+            True if this completion was requested from a Readline instance.
+
 
         Returns
         -------
         The msg_id of the message sent.
         """
-        content = dict(text=text, line=line, block=block, cursor_pos=cursor_pos)
+        content = dict(text=text, line=line, block=block,
+                       cursor_pos=cursor_pos, from_readline=from_readline)
         msg = self.session.msg('complete_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
