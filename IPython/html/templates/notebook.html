@@ -358,5 +358,29 @@ class="notebook_app"
 <script src="{{ static_url("notebook/js/celltoolbarpresets/default.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/celltoolbarpresets/rawcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("notebook/js/celltoolbarpresets/slideshow.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("notebook/js/refactorkeyboardshortcuts.js") }}" type="text/javascript" charset="utf-8"></script>
+<script>
+    // Below is a proof-of-concept for refactoring the keyboard shortcuts, which are newly hard-coded in refactorkeyboardshortcuts.js.
+    var common_shortcuts = IPython.common_shortcuts;
+    var command_shortcuts = IPython.command_shortcuts;
+    var edit_shortcuts = IPython.edit_shortcuts;
+    var dropdown_menus = $(".dropdown-menu");
+    var shortcuts_array = [common_shortcuts, command_shortcuts, edit_shortcuts];
+    dropdown_menus = dropdown_menus.slice(3,dropdown_menus.length);
+    for (var menu_count=0;menu_count<dropdown_menus.length;menu_count++) {
+        for (var menu_item_count=0;menu_item_count<dropdown_menus[menu_count].children.length;menu_item_count++) {
+            for (var shortcut_array_count=0;shortcut_array_count<shortcuts_array.length;shortcut_array_count++) {
+                add_shortcut(shortcuts_array[shortcut_array_count], menu_count, menu_item_count, dropdown_menus);
+            }
+        }
+    }
 
+   function add_shortcut(shortcut_type, menu_count, menu_item_count, dropdown_menus) {
+        if (shortcut_type.hasOwnProperty(dropdown_menus[menu_count].children[menu_item_count].id)) {
+                var shortcut_key = shortcut_type[dropdown_menus[menu_count].children[menu_item_count].id].shortcut;
+                var shortcut_info = $("<div class='shortcut_info'><code>" + shortcut_key +"</code></div>");
+                $("li#"+dropdown_menus[menu_count].children[menu_item_count].id.toString()  + " a[href=#]").append(shortcut_info);
+            }
+  }
+</script>
 {% endblock %}
