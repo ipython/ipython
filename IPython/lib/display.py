@@ -18,12 +18,16 @@ class Audio(DisplayObject):
     Parameters
     ----------
     data : numpy array, list, unicode, str or bytes
-        Can be a
-        * Numpy 1d array containing the desired waveform (mono)
-        * List of float or integer representing the waveform (mono)
-        * String containing the filename
-        * Bytestring containing raw PCM data or
-        * URL pointing to a file on the web.
+        Can be one of
+
+          * Numpy 1d array containing the desired waveform (mono)
+          * Numpy 2d array containing waveforms for each channel.
+            Shape=(NCHAN, NSAMPLES). For the standard channel order, see
+            http://msdn.microsoft.com/en-us/library/windows/hardware/dn653308(v=vs.85).aspx
+          * List of float or integer representing the waveform (mono)
+          * String containing the filename
+          * Bytestring containing raw PCM data or
+          * URL pointing to a file on the web.
 
         If the array option is used the waveform will be normalized.
 
@@ -57,6 +61,11 @@ class Audio(DisplayObject):
         t = np.linspace(0,5,framerate*5)
         data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t))
         Audio(data,rate=framerate)
+
+        # Can also do stereo or more channels
+        dataleft = np.sin(2*np.pi*220*t)
+        dataright = np.sin(2*np.pi*224*t)
+        Audio([dataleft, dataright],rate=framerate)
 
         Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # From URL
         Audio(url="http://www.w3schools.com/html/horse.ogg")
