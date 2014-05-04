@@ -1,20 +1,7 @@
-"""Tests for asyncresult.py
+"""Tests for asyncresult.py"""
 
-Authors:
-
-* Min RK
-"""
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import time
 
@@ -323,5 +310,33 @@ class AsyncResultTest(ClusterTestCase):
             ar = dv.apply_async(lambda : 5)
             self.assertEqual(ar.get(10), [5])
         self.client._build_targets = save_build
+    
+    def test_owner_pop(self):
+        self.minimum_engines(1)
+        
+        view = self.client[-1]
+        ar = view.apply_async(lambda : 1)
+        ar.get()
+        msg_id = ar.msg_ids[0]
+        self.assertNotIn(msg_id, self.client.results)
+        self.assertNotIn(msg_id, self.client.metadata)
+
+    def test_non_owner(self):
+        self.minimum_engines(1)
+        
+        view = self.client[-1]
+        ar = view.apply_async(lambda : 1)
+        ar.owner = False
+        ar.get()
+        msg_id = ar.msg_ids[0]
+        self.assertIn(msg_id, self.client.results)
+        self.assertIn(msg_id, self.client.metadata)
+        ar2 = self.client.get_result(msg_id, owner=True)
+        self.assertIs(type(ar2), type(ar))
+        self.assertTrue(ar2.owner)
+        self.assertEqual(ar.get(), ar2.get())
+        ar2.get()
+        self.assertNotIn(msg_id, self.client.results)
+        self.assertNotIn(msg_id, self.client.metadata)
 
 

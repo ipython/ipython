@@ -1,20 +1,9 @@
-"""Views of remote engines.
+"""Views of remote engines."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Min RK
-"""
 from __future__ import print_function
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import imp
 import sys
@@ -315,7 +304,7 @@ class View(HasTraits):
         return self.client.shutdown(targets=targets, restart=restart, hub=hub, block=block)
 
     @spin_after
-    def get_result(self, indices_or_msg_ids=None):
+    def get_result(self, indices_or_msg_ids=None, block=None, owner=True):
         """return one or more results, specified by history index or msg_id.
 
         See :meth:`IPython.parallel.client.client.Client.get_result` for details.
@@ -330,7 +319,7 @@ class View(HasTraits):
             for i,index in enumerate(indices_or_msg_ids):
                 if isinstance(index, int):
                     indices_or_msg_ids[i] = self.history[index]
-        return self.client.get_result(indices_or_msg_ids)
+        return self.client.get_result(indices_or_msg_ids, block=block, owner=owner)
 
     #-------------------------------------------------------------------
     # Map
@@ -577,7 +566,9 @@ class DirectView(View):
         if isinstance(targets, int):
             msg_ids = msg_ids[0]
         tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=_targets, tracker=tracker)
+        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=_targets,
+            tracker=tracker, owner=True,
+        )
         if block:
             try:
                 return ar.get()
@@ -656,7 +647,7 @@ class DirectView(View):
             msg_ids.append(msg['header']['msg_id'])
         if isinstance(targets, int):
             msg_ids = msg_ids[0]
-        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=_targets)
+        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=_targets, owner=True)
         if block:
             try:
                 ar.get()
@@ -774,7 +765,9 @@ class DirectView(View):
         else:
             tracker = None
 
-        r = AsyncResult(self.client, msg_ids, fname='scatter', targets=targets, tracker=tracker)
+        r = AsyncResult(self.client, msg_ids, fname='scatter', targets=targets,
+            tracker=tracker, owner=True,
+        )
         if block:
             r.wait()
         else:
@@ -1057,8 +1050,9 @@ class LoadBalancedView(View):
                                 metadata=metadata)
         tracker = None if track is False else msg['tracker']
 
-        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=getname(f), targets=None, tracker=tracker)
-
+        ar = AsyncResult(self.client, msg['header']['msg_id'], fname=getname(f),
+            targets=None, tracker=tracker, owner=True,
+        )
         if block:
             try:
                 return ar.get()

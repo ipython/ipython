@@ -1358,7 +1358,7 @@ class Client(HasTraits):
     #--------------------------------------------------------------------------
 
     @spin_first
-    def get_result(self, indices_or_msg_ids=None, block=None):
+    def get_result(self, indices_or_msg_ids=None, block=None, owner=True):
         """Retrieve a result by msg_id or history index, wrapped in an AsyncResult object.
 
         If the client already has the results, no request to the Hub will be made.
@@ -1384,6 +1384,11 @@ class Client(HasTraits):
 
         block : bool
             Whether to wait for the result to be done
+        owner : bool [default: True]
+            Whether this AsyncResult should own the result.
+            If so, calling `ar.get()` will remove data from the
+            client's result and metadata cache.
+            There should only be one owner of any given msg_id.
 
         Returns
         -------
@@ -1421,9 +1426,9 @@ class Client(HasTraits):
             theids = theids[0]
 
         if remote_ids:
-            ar = AsyncHubResult(self, msg_ids=theids)
+            ar = AsyncHubResult(self, msg_ids=theids, owner=owner)
         else:
-            ar = AsyncResult(self, msg_ids=theids)
+            ar = AsyncResult(self, msg_ids=theids, owner=owner)
 
         if block:
             ar.wait()
@@ -1703,8 +1708,8 @@ class Client(HasTraits):
             if still_outstanding:
                 raise RuntimeError("Can't purge outstanding tasks: %s" % still_outstanding)
             for mid in msg_ids:
-                self.results.pop(mid)
-                self.metadata.pop(mid)
+                self.results.pop(mid, None)
+                self.metadata.pop(mid, None)
 
 
     @spin_first

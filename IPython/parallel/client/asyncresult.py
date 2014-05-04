@@ -16,16 +16,10 @@ from IPython.external.decorator import decorator
 from IPython.parallel import error
 from IPython.utils.py3compat import string_types
 
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
 
 def _raw_text(s):
     display_pretty(s, raw=True)
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 # global empty tracker that's always done:
 finished_tracker = MessageTracker()
@@ -48,8 +42,11 @@ class AsyncResult(object):
     _targets = None
     _tracker = None
     _single_result = False
+    owner = False,
 
-    def __init__(self, client, msg_ids, fname='unknown', targets=None, tracker=None):
+    def __init__(self, client, msg_ids, fname='unknown', targets=None, tracker=None,
+        owner=False,
+    ):
         if isinstance(msg_ids, string_types):
             # always a list
             msg_ids = [msg_ids]
@@ -64,6 +61,7 @@ class AsyncResult(object):
         self._fname=fname
         self._targets = targets
         self._tracker = tracker
+        self.owner = owner
         
         self._ready = False
         self._outputs_ready = False
@@ -150,6 +148,12 @@ class AsyncResult(object):
                     # cutoff infinite wait at 10s
                     timeout = 10
                 self._wait_for_outputs(timeout)
+                
+                if self.owner:
+                    
+                    self._metadata = [self._client.metadata.pop(mid) for mid in self.msg_ids]
+                    [self._client.results.pop(mid) for mid in self.msg_ids]
+                
 
 
     def successful(self):
@@ -691,5 +695,9 @@ class AsyncHubResult(AsyncResult):
                 self._success = True
             finally:
                 self._metadata = [self._client.metadata[mid] for mid in self.msg_ids]
+                if self.owner:
+                    [self._client.metadata.pop(mid) for mid in self.msg_ids]
+                    [self._client.results.pop(mid) for mid in self.msg_ids]
+            
 
 __all__ = ['AsyncResult', 'AsyncMapResult', 'AsyncHubResult']
