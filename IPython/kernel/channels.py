@@ -209,6 +209,7 @@ class ShellChannel(ZMQSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
+        self.socket.linger = 1000
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect(self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
@@ -408,6 +409,7 @@ class IOPubChannel(ZMQSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.SUB)
+        self.socket.linger = 1000
         self.socket.setsockopt(zmq.SUBSCRIBE,b'')
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect(self.address)
@@ -468,6 +470,7 @@ class StdInChannel(ZMQSocketChannel):
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
+        self.socket.linger = 1000
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
         self.socket.connect(self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
@@ -518,7 +521,7 @@ class HBChannel(ZMQSocketChannel):
             self.poller.unregister(self.socket)
             self.socket.close()
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.setsockopt(zmq.LINGER, 0)
+        self.socket.linger = 1000
         self.socket.connect(self.address)
 
         self.poller.register(self.socket, zmq.POLLIN)

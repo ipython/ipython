@@ -531,6 +531,8 @@ class ConnectionFileMixin(Configurable):
         socket_type = channel_socket_types[channel]
         self.log.debug("Connecting to: %s" % url)
         sock = self.context.socket(socket_type)
+        # set linger to 1s to prevent hangs at exit
+        sock.linger = 1000
         if identity:
             sock.identity = identity
         sock.connect(url)
