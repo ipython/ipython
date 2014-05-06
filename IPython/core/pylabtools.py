@@ -379,7 +379,7 @@ def configure_inline_support(shell, backend):
     # Setup the default figure format
     select_figure_formats(shell, cfg.figure_formats, **cfg.print_figure_kwargs)
 
-def drawnow(draw_fig, show_once=False, *argv, **kwargs):
+def drawnow(draw_fig, show_once=False, confirm=False, *argv, **kwargs):
     """A function to refresh the current figure.
 
     Depends on matplotlib's interactive mode.
@@ -392,7 +392,7 @@ def drawnow(draw_fig, show_once=False, *argv, **kwargs):
                the list of parameters to pass ``draw_fig()``
     **kwargs : any
                the keywords to pass to ``draw_fig()``
-    show_once, optional : bool, default: False. 
+    show_once, optional : bool, default == False. 
                If True, will call show() instead of draw(). 
 
     Limitations
@@ -415,6 +415,7 @@ def drawnow(draw_fig, show_once=False, *argv, **kwargs):
       >>>     drawnow(draw_fig_real)
     """
     from matplotlib.pyplot import clf, show, draw
+
     # get the kwargs
     kw = dict()
     kw.update(kwargs)
@@ -423,8 +424,7 @@ def drawnow(draw_fig, show_once=False, *argv, **kwargs):
     clf()
     draw_fig(*argv, **kw)
 
-    # should we show once? show() causes many windows to open, draw() doesn't
-    if show_once:
-        show()
-    else:
-        draw()
+    if show_once: show()
+    else: draw()
+    if confirm: raw_input('Hit <Enter> to continue\n')
+
