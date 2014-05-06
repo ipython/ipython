@@ -111,9 +111,7 @@ var IPython = (function (IPython) {
                     return false;
                 } else if (cell) {
                     var cm = cell.code_mirror;
-                    var cursor = cm.getCursor();
-                    cursor.line -= 1;
-                    cm.setCursor(cursor);
+                    cm.execCommand('goLineUp');
                     return false;
                 }
             }
@@ -134,9 +132,7 @@ var IPython = (function (IPython) {
                     return false;
                 } else {
                     var cm = cell.code_mirror;
-                    var cursor = cm.getCursor();
-                    cursor.line += 1;
-                    cm.setCursor(cursor);
+                    cm.execCommand('goLineDown');
                     return false;
                 }
             }
