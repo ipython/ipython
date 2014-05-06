@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import shutil
 import sys
 
 pjoin = os.path.join
@@ -130,6 +131,35 @@ class KernelSpecManager(HasTraits):
             raise NoSuchKernel(kernel_name)
         return KernelSpec.from_resource_dir(resource_dir)
 
+    def install_kernel_spec(self, source_dir, kernel_name=None, system=False,
+                            replace=False):
+        """Install a kernel spec by copying its directory.
+        
+        If ``kernel_name`` is not given, the basename of ``source_dir`` will
+        be used.
+        
+        If ``system`` is True, it will attempt to install into the systemwide
+        kernel registry. If the process does not have appropriate permissions,
+        an :exc:`OSError` will be raised.
+        
+        If ``replace`` is True, this will replace an existing kernel of the same
+        name. Otherwise, if the destination already exists, an :exc:`OSError`
+        will be raised.
+        """
+        if not kernel_name:
+            kernel_name = os.path.basename(source_dir)
+        kernel_name = kernel_name.lower()
+
+        if system:
+            destination = os.path.join(SYSTEM_KERNEL_DIR, kernel_name)
+        else:
+            destination = os.path.join(self.user_kernel_dir, kernel_name)
+
+        if replace and os.path.isdir(destination):
+            shutil.rmtree(destination)
+
+        shutil.copytree(source_dir, destination)
+
 def find_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""
     return KernelSpecManager().find_kernel_specs()
@@ -140,3 +170,8 @@ def get_kernel_spec(kernel_name):
     Raises KeyError if the given kernel name is not found.
     """
     return KernelSpecManager().get_kernel_spec(kernel_name)
+
+def install_kernel_spec(source_dir, kernel_name=None, system=False):
+    return KernelSpecManager().install_kernel_spec(source_dir, kernel_name, system)
+
+install_kernel_spec.__doc__ = KernelSpecManager.install_kernel_spec.__doc__
