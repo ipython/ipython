@@ -44,20 +44,20 @@ div.traceback-wrapper{text-align:left;max-width:800px;margin:auto}
 .ansibgpurple{background-color:#f0f}
 .ansibgcyan{background-color:#0ff}
 .ansibggray{background-color:#808080}
-div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell{border:1px solid transparent}div.cell.selected{border-radius:4px;border:thin #ababab solid}
 div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
 div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
-div.prompt{min-width:11ex;padding:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
-@media (max-width:480px){div.prompt{text-align:left}}div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
-div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
+div.prompt{min-width:80px;float:left;padding-top:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
+div.inner_cell{margin-left:83px;margin-right:auto}
+@media (max-width:480px){div.prompt{float:none} div.inner_cell{margin-left:0;margin-right:0} div.prompt{text-align:left}}div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
 div.prompt:empty{padding-top:0;padding-bottom:0}
-div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch}
-@media (max-width:480px){div.input{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}}div.input_prompt{color:#000080;border-top:1px solid transparent}
+div.input{page-break-inside:avoid}
+div.input_prompt{color:#000080;border-top:1px solid transparent}
 div.input_area>div.highlight{margin:.4em;border:none;padding:0;background-color:transparent}
 div.input_area>div.highlight>pre{margin:0;border:none;padding:0;background-color:transparent}
 .CodeMirror{line-height:1.21429em;height:auto;background:none;}
 .CodeMirror-scroll{overflow-y:hidden;overflow-x:auto}
-@-moz-document url-prefix(){.CodeMirror-scroll{overflow-x:hidden}}.CodeMirror-lines{padding:.4em}
+.CodeMirror-lines{padding:.4em}
 .CodeMirror-linenumber{padding:0 8px 0 4px}
 .CodeMirror-gutters{border-bottom-left-radius:4px;border-top-left-radius:4px}
 .CodeMirror pre{padding:0;border:0;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0}
@@ -144,7 +144,7 @@ p.p-space{margin-bottom:10px}
 .rendered_html *+p{margin-top:1em}
 .rendered_html img{display:block;margin-left:auto;margin-right:auto}
 .rendered_html *+img{margin-top:1em}
-div.text_cell{padding:5px 5px 5px 0;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch}
+div.text_cell{padding:5px 5px 5px 0}
 @media (max-width:480px){div.text_cell>div.prompt{display:none}}div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:.5em .5em .5em .4em;color:#000}
 a.anchor-link:link{text-decoration:none;padding:0 20px;visibility:hidden}
 h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible}
