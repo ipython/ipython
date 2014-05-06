@@ -923,7 +923,11 @@ class IPCompleter(Completer):
 
         # append closing quote and bracket as appropriate
         continuation = self.line_buffer[len(self.text_until_cursor):]
-        if closing_quote and continuation.startswith(closing_quote):
+        if self.from_readline:
+            # readline will close the quote itself,
+            # and won't notice if we do it explicitly
+            suf = ''
+        elif closing_quote and continuation.startswith(closing_quote):
             suf = ''
         elif continuation.startswith(']'):
             suf = closing_quote or ''
@@ -974,7 +978,7 @@ class IPCompleter(Completer):
 
         return None
 
-    def complete(self, text=None, line_buffer=None, cursor_pos=None):
+    def complete(self, text=None, line_buffer=None, cursor_pos=None, from_readline=False):
         """Find completions for the given text and line context.
 
         This is called successively with state == 0, 1, 2, ... until it
@@ -998,6 +1002,11 @@ class IPCompleter(Completer):
           cursor_pos : int, optional
             Index of the cursor in the full line buffer.  Should be provided by
             remote frontends where kernel has no access to frontend state.
+
+          from_readline : bool, optional
+            True if this completion was requested from a Readline instance.
+            This allows completion modules to anticipate GNU Readline features
+            such as quote completion.
 
         Returns
         -------
@@ -1024,6 +1033,7 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
+        self.from_readline = from_readline
         #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
@@ -1109,14 +1119,14 @@ class IPCompleter(Completer):
             #DEBUG = True # dbg
             if DEBUG:
                 try:
-                    self.complete(text, line_buffer, cursor_pos)
+                    self.complete(text, line_buffer, cursor_pos, from_readline=True)
                 except:
                     import traceback; traceback.print_exc()
             else:
                 # The normal production version is here
 
                 # This method computes the self.matches array
-                self.complete(text, line_buffer, cursor_pos)
+                self.complete(text, line_buffer, cursor_pos, from_readline=True)
 
         try:
             return self.matches[state]
