@@ -60,31 +60,15 @@ class FileNotebookManager(NotebookManager):
             return
         if not os.path.exists(new) or not os.path.isdir(new):
             raise TraitError("notebook dir %r is not a directory" % new)
-
-    checkpoint_dir = Unicode(config=True,
-        help="""The location in which to keep notebook checkpoints
+    
+    checkpoint_dir = Unicode('.ipynb_checkpoints', config=True,
+        help="""The directory name in which to keep notebook checkpoints
         
-        By default, it is notebook-dir/.ipynb_checkpoints
+        This is a path relative to the notebook's own directory.
+        
+        By default, it is .ipynb_checkpoints
         """
     )
-    def _checkpoint_dir_default(self):
-        return os.path.join(self.notebook_dir, '.ipynb_checkpoints')
-    
-    def _checkpoint_dir_changed(self, name, old, new):
-        """do a bit of validation of the checkpoint dir"""
-        if not os.path.isabs(new):
-            # If we receive a non-absolute path, make it absolute.
-            abs_new = os.path.abspath(new)
-            self.checkpoint_dir = abs_new
-            return
-        if os.path.exists(new) and not os.path.isdir(new):
-            raise TraitError("checkpoint dir %r is not a directory" % new)
-        if not os.path.exists(new):
-            self.log.info("Creating checkpoint dir %s", new)
-            try:
-                os.mkdir(new)
-            except:
-                raise TraitError("Couldn't create checkpoint dir %r" % new)
     
     def _copy(self, src, dest):
         """copy src to dest
@@ -416,7 +400,11 @@ class FileNotebookManager(NotebookManager):
             checkpoint_id=checkpoint_id,
             ext=self.filename_ext,
         )
-        cp_path = os.path.join(path, self.checkpoint_dir, filename)
+        os_path = self._get_os_path(path=path)
+        cp_dir = os.path.join(os_path, self.checkpoint_dir)
+        if not os.path.exists(cp_dir):
+            os.mkdir(cp_dir)
+        cp_path = os.path.join(cp_dir, filename)
         return cp_path
 
     def get_checkpoint_model(self, checkpoint_id, name, path=''):
@@ -455,8 +443,8 @@ class FileNotebookManager(NotebookManager):
         """
         path = path.strip('/')
         checkpoint_id = "checkpoint"
-        path = self.get_checkpoint_path(checkpoint_id, name, path)
-        if not os.path.exists(path):
+        os_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        if not os.path.exists(os_path):
             return []
         else:
             return [self.get_checkpoint_model(checkpoint_id, name, path)]
