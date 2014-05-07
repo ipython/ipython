@@ -56,7 +56,7 @@ class dependent(object):
 
     def __init__(self, _wrapped_f, _wrapped_df, *dargs, **dkwargs):
         self.f = _wrapped_f
-        name = getattr(f, '__name__', 'f')
+        name = getattr(_wrapped_f, '__name__', 'f')
         if py3compat.PY3:
             self.__name__ = name
         else:
