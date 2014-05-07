@@ -10,12 +10,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import __future__
 import abc
@@ -453,7 +448,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_profile_dir(profile_dir)
         self.init_instance_attrs()
         self.init_environment()
-        self.compute_banner()
         
         # Check if we're in a virtualenv, and set up sys.path.
         self.init_virtualenv()
@@ -788,18 +782,14 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to the banner
     #-------------------------------------------------------------------------
     
-    def _banner1_changed(self):
-        self.compute_banner()
-
-    def _banner2_changed(self):
-        self.compute_banner()
-    
-    def compute_banner(self):
-        self.banner = self.banner1
+    @property
+    def banner(self):
+        banner = self.banner1
         if self.profile and self.profile != 'default':
-            self.banner += '\nIPython profile: %s\n' % self.profile
+            banner += '\nIPython profile: %s\n' % self.profile
         if self.banner2:
-            self.banner += '\n' + self.banner2
+            banner += '\n' + self.banner2
+        return banner
 
     def show_banner(self, banner=None):
         if banner is None:
