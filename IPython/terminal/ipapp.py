@@ -250,6 +250,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         trust=('IPython.nbformat.sign.TrustNotebookApp',
             "Sign notebooks to trust their potentially unsafe contents at load."
         ),
+        kernelspec=('IPython.kernel.kernelspecapp.KernelSpecApp',
+            "Manage IPython kernel specifications."
+        ),
     )
     subcommands['install-nbextension'] = (
         "IPython.html.nbextensions.NBExtensionApp",
