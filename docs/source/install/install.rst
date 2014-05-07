@@ -174,12 +174,30 @@ step by:
     $ python setupegg.py develop
 
 This creates links in the right places and installs the command line script to
-the appropriate places.  Then, if you want to update your IPython at any time,
+the appropriate places. 
+
+Then, if you want to update your IPython at any time,
 just do:
 
 .. code-block:: bash
 
     $ git pull
+
+IPython now uses git submodules to ship its javascript dependencies. If you run 
+IPython from git master, you may need to update submodules once in a while with:
+
+.. code-block:: bash
+
+    $ git submodule update
+
+or
+
+.. code-block:: bash
+
+    $ python setup.py submodule
+
+Another option is to copy `git hooks <https://github.com/ipython/ipython/tree/master/git-hooks>`_
+to your ``./git/hooks/`` directory to ensure that your submodules are up to date on each pull.
 
 
 Basic optional dependencies
