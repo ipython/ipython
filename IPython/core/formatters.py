@@ -810,7 +810,7 @@ class JavascriptFormatter(BaseFormatter):
 class PDFFormatter(BaseFormatter):
     """A PDF formatter.
 
-    To defined the callables that compute to PDF representation of your
+    To define the callables that compute the PDF representation of your
     objects, define a :meth:`_repr_pdf_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
