@@ -294,7 +294,7 @@ class ProfileCreate(BaseIPythonApplication):
 
 
 class ProfileApp(Application):
-    name = u'ipython-profile'
+    name = u'ipython profile'
     description = profile_help
     examples = _main_examples
 

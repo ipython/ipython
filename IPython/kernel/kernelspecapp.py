@@ -90,7 +90,7 @@ class InstallKernelSpec(BaseIPythonApplication):
             raise
 
 class KernelSpecApp(Application):
-    name = "ipython-kernelspec"
+    name = "ipython kernelspec"
     description = """Manage IPython kernel specifications."""
 
     subcommands = Dict(dict(
