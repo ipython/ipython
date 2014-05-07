@@ -50,7 +50,7 @@ def default_aliases():
 
     if os.name == 'posix':
         default_aliases = [('mkdir', 'mkdir'), ('rmdir', 'rmdir'),
-                           ('mv', 'mv -i'), ('rm', 'rm -i'), ('cp', 'cp -i'),
+                           ('mv', 'mv'), ('rm', 'rm'), ('cp', 'cp'),
                            ('cat', 'cat'),
                            ]
         # Useful set of ls aliases.  The GNU and BSD options are a little
