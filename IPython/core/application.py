@@ -131,7 +131,7 @@ class BaseIPythonApplication(Application):
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
-        is usually $HOME/.ipython. This options can also be specified through
+        is usually $HOME/.ipython. This option can also be specified through
         the environment variable IPYTHONDIR.
         """
     )

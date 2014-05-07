@@ -6,7 +6,9 @@ import errno
 import os.path
 
 from IPython.config.application import Application
-from IPython.core.application import BaseIPythonApplication, base_flags
+from IPython.core.application import (
+    BaseIPythonApplication, base_flags, base_aliases
+)
 from IPython.utils.traitlets import Instance, Dict, Unicode, Bool
 
 from .kernelspec import KernelSpecManager
@@ -20,6 +22,10 @@ def _pythonfirst(s):
 class ListKernelSpecs(BaseIPythonApplication):
     description = """List installed kernel specifications."""
     kernel_spec_manager = Instance(KernelSpecManager)
+    
+    # Not all of the base aliases are meaningful (e.g. profile)
+    aliases = {k: base_aliases[k] for k in ['ipython-dir', 'log-level']}
+    flags = {'debug': base_flags['debug'],}
 
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(ipython_dir=self.ipython_dir)
@@ -56,13 +62,15 @@ class InstallKernelSpec(BaseIPythonApplication):
     )
 
     aliases = {'name': 'InstallKernelSpec.kernel_name'}
+    for k in ['ipython-dir', 'log-level']:
+        aliases[k] = base_aliases[k]
 
     flags = {'system': ({'InstallKernelSpec': {'system': True}},
                 "Install to the systemwide kernel registry"),
              'replace': ({'InstallKernelSpec': {'replace': True}},
                 "Replace any existing kernel spec with this name."),
+             'debug': base_flags['debug'],
             }
-    flags.update(base_flags)
 
     def parse_command_line(self, argv):
         super(InstallKernelSpec, self).parse_command_line(argv)
@@ -97,6 +105,9 @@ class KernelSpecApp(Application):
         list = (ListKernelSpecs, ListKernelSpecs.description.splitlines()[0]),
         install = (InstallKernelSpec, InstallKernelSpec.description.splitlines()[0])
     ))
+    
+    aliases = {}
+    flags = {}
 
     def start(self):
         if self.subapp is None:
