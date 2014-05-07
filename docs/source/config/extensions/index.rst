@@ -14,8 +14,14 @@ Getting extensions
 
 A few important extensions are :ref:`bundled with IPython <bundled_extensions>`.
 Others can be found on the `extensions index
-<https://github.com/ipython/ipython/wiki/Extensions-Index>`_ on the wiki, and installed with
-the ``%install_ext`` magic function.
+<https://github.com/ipython/ipython/wiki/Extensions-Index>`_ on the wiki, and
+the `Framework :: IPython tag <https://pypi.python.org/pypi?:action=browse&c=586>`_
+on PyPI.
+
+Extensions on PyPI can be installed using ``pip``, like any other Python package.
+Other simple extensions can be installed with the ``%install_ext`` magic. The
+latter does no validation, so be careful using it on untrusted networks like
+public wifi.
 
 Using extensions
 ================
@@ -72,7 +78,9 @@ within the :ref:`IPython directory <ipythondir>`. This directory is
 added to :data:`sys.path` automatically.
 
 When your extension is ready for general use, please add it to the `extensions
-index <https://github.com/ipython/ipython/wiki/Extensions-Index>`_.
+index <https://github.com/ipython/ipython/wiki/Extensions-Index>`_. We also
+encourage you to upload it to PyPI and use the ``Framework :: IPython``
+classifier, so that users can install it with standard packaging tools.
 
 .. _bundled_extensions:
 
