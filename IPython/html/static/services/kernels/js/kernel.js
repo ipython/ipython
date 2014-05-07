@@ -1,9 +1,5 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 //============================================================================
 // Kernel
@@ -48,6 +44,9 @@ var IPython = (function (IPython) {
         this.init_iopub_handlers();
         this.comm_manager = new IPython.CommManager(this);
         this.widget_manager = new IPython.WidgetManager(this.comm_manager);
+        
+        this.last_msg_id = null;
+        this.last_msg_callbacks = {};
     };
 
 
@@ -427,13 +426,37 @@ var IPython = (function (IPython) {
 
     Kernel.prototype.get_callbacks_for_msg = function (msg_id) {
         // get callbacks for a specific message
-        return this._msg_callbacks[msg_id];
+        if (msg_id == this.last_msg_id) {
+            return this.last_msg_callbacks;
+        } else {
+            return this._msg_callbacks[msg_id];
+        }
     };
 
 
     Kernel.prototype.clear_callbacks_for_msg = function (msg_id) {
         if (this._msg_callbacks[msg_id] !== undefined ) {
             delete this._msg_callbacks[msg_id];
+        }
+    };
+    
+    Kernel.prototype._finish_shell = function (msg_id) {
+        var callbacks = this._msg_callbacks[msg_id];
+        if (callbacks !== undefined) {
+            callbacks.shell_done = true;
+            if (callbacks.iopub_done) {
+                this.clear_callbacks_for_msg(msg_id);
+            }
+        }
+    };
+
+    Kernel.prototype._finish_iopub = function (msg_id) {
+        var callbacks = this._msg_callbacks[msg_id];
+        if (callbacks !== undefined) {
+            callbacks.iopub_done = true;
+            if (!callbacks.shell_done) {
+                this.clear_callbacks_for_msg(msg_id);
+            }
         }
     };
     
@@ -445,13 +468,17 @@ var IPython = (function (IPython) {
     
      */
     Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
+        this.last_msg_id = msg_id;
         if (callbacks) {
             // shallow-copy mapping, because we will modify it at the top level
-            var cbcopy = this._msg_callbacks[msg_id] = {};
+            var cbcopy = this._msg_callbacks[msg_id] = this.last_msg_callbacks = {};
             cbcopy.shell = callbacks.shell;
             cbcopy.iopub = callbacks.iopub;
             cbcopy.input = callbacks.input;
-            this._msg_callbacks[msg_id] = cbcopy;
+            cbcopy.shell_done = (!callbacks.shell);
+            cbcopy.iopub_done = (!callbacks.iopub);
+        } else {
+            this.last_msg_callbacks = {};
         }
     };
 
@@ -468,12 +495,8 @@ var IPython = (function (IPython) {
         }
         var shell_callbacks = callbacks.shell;
         
-        // clear callbacks on shell
-        delete callbacks.shell;
-        delete callbacks.input;
-        if (!callbacks.iopub) {
-            this.clear_callbacks_for_msg(parent_id);
-        }
+        // signal that shell callbacks are done
+        this._finish_shell(parent_id);
         
         if (shell_callbacks.reply !== undefined) {
             shell_callbacks.reply(reply);
@@ -514,14 +537,11 @@ var IPython = (function (IPython) {
         if (execution_state === 'busy') {
             $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
         } else if (execution_state === 'idle') {
-            // clear callbacks on idle, there can be no more
-            if (callbacks !== undefined) {
-                delete callbacks.iopub;
-                delete callbacks.input;
-                if (!callbacks.shell) {
-                    this.clear_callbacks_for_msg(parent_id);
-                }
-            }
+            // signal that iopub callbacks are (probably) done
+            // async output may still arrive,
+            // but only for the most recent request
+            this._finish_iopub(parent_id);
+            
             // trigger status_idle event
             $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
         } else if (execution_state === 'restarting') {
