@@ -67,7 +67,11 @@ def squash_unicode(obj):
 #-----------------------------------------------------------------------------
 
 # ISO8601-ify datetime objects
-json_packer = lambda obj: jsonapi.dumps(obj, default=date_default, ensure_ascii=False)
+# allow unicode
+# disallow nan, because it's not actually valid JSON
+json_packer = lambda obj: jsonapi.dumps(obj, default=date_default,
+    ensure_ascii=False, allow_nan=False,
+)
 json_unpacker = lambda s: jsonapi.loads(s)
 
 pickle_packer = lambda o: pickle.dumps(squash_dates(o),-1)
