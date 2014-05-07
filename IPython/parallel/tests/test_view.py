@@ -1,20 +1,8 @@
 # -*- coding: utf-8 -*-
-"""test View objects
+"""test View objects"""
 
-Authors:
-
-* Min RK
-"""
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import base64
 import sys
@@ -346,6 +334,11 @@ class TestView(ClusterTestCase):
         data = list(range(16))
         r = view.map_sync(f, data)
         self.assertEqual(r, list(map(f, data)))
+    
+    def test_map_empty_sequence(self):
+        view = self.client[:]
+        r = view.map_sync(lambda x: x, [])
+        self.assertEqual(r, [])
     
     def test_map_iterable(self):
         """test map on iterables (direct)"""
