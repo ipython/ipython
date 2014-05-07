@@ -30,6 +30,7 @@ This template does not define a docclass, the inheriting class must define this.
     % internal cross-reference links, web links for URLs, etc.)
     \usepackage{hyperref}
     \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
     ((* endblock packages *))
 
     ((* block definitions *))
