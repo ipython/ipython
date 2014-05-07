@@ -320,15 +320,18 @@ class IPEngineApp(BaseParallelApplication):
         
         exec_lines = []
         for app in ('IPKernelApp', 'InteractiveShellApp'):
-            if '%s.exec_lines' in config:
-                exec_lines = config.IPKernelApp.exec_lines = config[app].exec_lines
+            if '%s.exec_lines' % app in config:
+                exec_lines = config[app].exec_lines
                 break
         
         exec_files = []
         for app in ('IPKernelApp', 'InteractiveShellApp'):
-            if '%s.exec_files' in config:
-                exec_files = config.IPKernelApp.exec_files = config[app].exec_files
+            if '%s.exec_files' % app in config:
+                exec_files = config[app].exec_files
                 break
+        
+        config.IPKernelApp.exec_lines = exec_lines
+        config.IPKernelApp.exec_files = exec_files
         
         if self.startup_script:
             exec_files.append(self.startup_script)
