@@ -456,7 +456,7 @@ var IPython = (function (IPython) {
         var callbacks = this._msg_callbacks[msg_id];
         if (callbacks !== undefined) {
             callbacks.iopub_done = true;
-            if (!callbacks.shell_done) {
+            if (callbacks.shell_done) {
                 this.clear_callbacks_for_msg(msg_id);
             }
         }
