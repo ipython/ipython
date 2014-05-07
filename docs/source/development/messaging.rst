@@ -9,7 +9,7 @@ Versioning
 ==========
 
 The IPython message specification is versioned independently of IPython.
-The current version of the specification is 5.0.0.
+The current version of the specification is 5.0.
 
 
 Introduction
@@ -107,7 +107,7 @@ A message is defined by the following four-dictionary structure::
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
                     # the message protocol version
-                    'version' : '5.0.0',
+                    'version' : '5.0',
          },
 
       # In a chain of messages, the header from the parent is copied so that
@@ -122,7 +122,7 @@ A message is defined by the following four-dictionary structure::
       'content' : dict,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``version`` key added to the header.
 
@@ -281,7 +281,7 @@ Message type: ``execute_request``::
     'allow_stdin' : True,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``user_variables`` removed, because it is redundant with user_expressions.
 
@@ -366,7 +366,7 @@ When status is 'ok', the following extra fields are present::
       'user_expressions' : dict,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``user_variables`` is removed, use user_expressions instead.
 
@@ -433,11 +433,11 @@ Message type: ``inspect_request``::
         'detail_level' : 0 or 1,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``object_info_request`` renamed to ``inspect_request``.
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``name`` key replaced with ``code`` and ``cursor_pos``,
     moving the lexing responsibility to the kernel.
@@ -457,11 +457,11 @@ Message type: ``inspect_reply``::
         'metadata' : dict,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``object_info_reply`` renamed to ``inspect_reply``.
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     Reply is changed from structured data to a mime bundle,  allowing formatting decisions to be made by the kernel.
 
@@ -480,7 +480,7 @@ Message type: ``complete_request``::
         'cursor_pos' : int,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``line``, ``block``, and ``text`` keys are removed in favor of a single ``code`` for context.
     Lexing is up to the kernel.
@@ -507,7 +507,7 @@ Message type: ``complete_reply``::
     'status' : 'ok'
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     - ``matched_text`` is removed in favor of ``cursor_start`` and ``cursor_end``.
     - ``metadata`` is added for extended information.
@@ -638,15 +638,15 @@ Message type: ``kernel_info_reply``::
         'banner' : str,
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     Versions changed from lists of integers to strings.
     
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``ipython_version`` is removed.
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``implementation``, ``implementation_version``, and ``banner`` keys are added.
 
@@ -760,7 +760,7 @@ of images::
     }
 
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     `application/json` data should be unpacked JSON data,
     not double-serialized as a JSON string.
@@ -822,7 +822,7 @@ Message type: ``execute_input``::
         'execution_count' : int
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``pyin`` is renamed to ``execute_input``.
 
@@ -868,7 +868,7 @@ Message type: ``error``::
        # except the 'status' field is omitted.
     }
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``pyerr`` renamed to ``error``
 
@@ -937,7 +937,7 @@ Message type: ``input_reply``::
 
 When ``password`` is True, the frontend should not echo the input as it is entered.
 
-.. versionchanged:: 5.0.0
+.. versionchanged:: 5.0
 
     ``password`` key added.
 

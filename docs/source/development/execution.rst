@@ -10,14 +10,12 @@ The execution of use code consists of the following phases:
 3. Execute the ``code`` field, see below for details.
 4. If execution succeeds, expressions in ``user_expressions`` are computed.
    This ensures that any error in the expressions don't affect the main code execution.
-5. Fire the post_execute eventCall any method registered with :meth:`register_post_execute`.
+5. Fire the post_execute event.
 
-.. warning::
+.. seealso::
 
-   The API for running code before/after the main code block is likely to
-   change soon.  Both the ``pre_runcode_hook`` and the
-   :meth:`register_post_execute` are susceptible to modification, as we find a
-   consistent model for both.
+    :doc:`config/callbacks`
+
 
 To understand how the ``code`` field is executed, one must know that Python
 code can be compiled in one of three modes (controlled by the ``mode`` argument
@@ -63,8 +61,4 @@ execution in 'single' mode, and then:
   * otherwise (last one is also multiline), run all in 'exec' mode as a single
     unit.
 
-
-Errors in any registered post_execute functions are reported,
-and the failing function is removed from the post_execution set so that it does
-not continue triggering failures.
 

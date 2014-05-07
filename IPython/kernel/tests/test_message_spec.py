@@ -59,11 +59,20 @@ class Reference(HasTraits):
             except TraitError as e:
                 assert False, str(e)
 
+
 class Version(Unicode):
+    def __init__(self, *args, **kwargs):
+        self.min = kwargs.pop('min', None)
+        self.max = kwargs.pop('max', None)
+        kwargs['default_value'] = self.min
+        super(Version, self).__init__(*args, **kwargs)
+    
     def validate(self, obj, value):
-        min_version = self.default_value
-        if V(value) < V(min_version):
-            raise TraitError("bad version: %s < %s" % (value, min_version))
+        if self.min and V(value) < V(self.min):
+            raise TraitError("bad version: %s < %s" % (value, self.min))
+        if self.max and (V(value) > V(self.max)):
+            raise TraitError("bad version: %s > %s" % (value, self.max))
+
 
 class RMessage(Reference):
     msg_id = Unicode()
@@ -83,9 +92,9 @@ class RHeader(Reference):
     msg_type = Unicode()
     session = Unicode()
     username = Unicode()
-    version = Version('5.0')
+    version = Version(min='5.0')
 
-mime_pat = re.compile(r'\w+/\w+')
+mime_pat = re.compile(r'^[\w\-\+\.]+/[\w\-\+\.]+$')
 
 class MimeBundle(Reference):
     metadata = Dict()
@@ -143,10 +152,10 @@ class CompleteReply(Reference):
 
 
 class KernelInfoReply(Reference):
-    protocol_version = Version('5.0')
+    protocol_version = Version(min='5.0')
     implementation = Unicode('ipython')
-    implementation_version = Version('2.1')
-    language_version = Version('2.7')
+    implementation_version = Version(min='2.1')
+    language_version = Version(min='2.7')
     language = Unicode('python')
     banner = Unicode()
 

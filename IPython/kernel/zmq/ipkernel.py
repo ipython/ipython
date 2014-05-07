@@ -369,9 +369,13 @@ class Kernel(Configurable):
         getpass.getpass = self._save_getpass
     
     def set_parent(self, ident, parent):
-        """Record the parent state
+        """Set the current parent_header
         
-        For associating side effects with their requests.
+        Side effects (IOPub messages) and replies are associated with
+        the request that caused them via the parent_header.
+        
+        The parent identity is used to route input_request messages
+        on the stdin channel.
         """
         self._parent_ident = ident
         self._parent_header = parent
@@ -617,9 +621,6 @@ class Kernel(Configurable):
         shell = self.shell
         shell.set_parent(parent)
 
-        # execute_input_msg = self.session.msg(u'execute_input',{u'code':code}, parent=parent)
-        # self.iopub_socket.send(execute_input_msg)
-        # self.session.send(self.iopub_socket, u'execute_input', {u'code':code},parent=parent)
         md = self._make_metadata(parent['metadata'])
         try:
             working = shell.user_ns

@@ -512,10 +512,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         info = self._request_info.get('call_tip')
         if info and info.id == rep['parent_header']['msg_id'] and \
                 info.pos == cursor.position():
-            # Get the information for a call tip.  For now we format the call
-            # line as string, later we can pass False to format_call and
-            # syntax-highlight it ourselves for nicer formatting in the
-            # calltip.
             content = rep['content']
             if content.get('status') == 'ok':
                 self._call_tip_widget.show_inspect_data(content)

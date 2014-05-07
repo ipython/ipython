@@ -40,8 +40,8 @@ version = __version__  # backwards compatibility name
 version_info = (_version_major, _version_minor, _version_patch, _version_extra)
 
 # Change this when incrementing the kernel protocol version
-kernel_protocol_version_info = (5, 0, 0)
-kernel_protocol_version = "%i.%i.%i" % kernel_protocol_version_info
+kernel_protocol_version_info = (5, 0)
+kernel_protocol_version = "%i.%i" % kernel_protocol_version_info
 
 description = "IPython: Productive Interactive Computing"
 

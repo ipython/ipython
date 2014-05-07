@@ -133,7 +133,10 @@ def _detect_screen_size(screen_lines_def):
     #screen_cols,'columns.' # dbg
 
 def page(strng, start=0, screen_lines=0, pager_cmd=None):
-    """Print a string, piping through a pager after a certain length.
+    """Display a string, piping through a pager after a certain length.
+    
+    strng can be a mime-bundle dict, supplying multiple representations,
+    keyed by mime-type.
 
     The screen_lines parameter specifies the number of *usable* lines of your
     terminal screen (total lines minus lines you need to reserve to show other

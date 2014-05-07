@@ -270,7 +270,7 @@ class ShellChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def complete(self, code, cursor_pos=0, block=None):
+    def complete(self, code, cursor_pos=None):
         """Tab complete text in the kernel's namespace.
 
         Parameters
@@ -280,17 +280,20 @@ class ShellChannel(ZMQSocketChannel):
             Can be anything between a variable name and an entire cell.
         cursor_pos : int, optional
             The position of the cursor in the block of code where the completion was requested.
+            Default: ``len(code)``
 
         Returns
         -------
         The msg_id of the message sent.
         """
+        if cursor_pos is None:
+            cursor_pos = len(code)
         content = dict(code=code, cursor_pos=cursor_pos)
         msg = self.session.msg('complete_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def inspect(self, code, cursor_pos=0, detail_level=0):
+    def inspect(self, code, cursor_pos=None, detail_level=0):
         """Get metadata information about an object in the kernel's namespace.
 
         It is up to the kernel to determine the appropriate object to inspect.
@@ -302,6 +305,7 @@ class ShellChannel(ZMQSocketChannel):
             Can be anything between a variable name and an entire cell.
         cursor_pos : int, optional
             The position of the cursor in the block of code where the info was requested.
+            Default: ``len(code)``
         detail_level : int, optional
             The level of detail for the introspection (0-2)
 
@@ -309,6 +313,8 @@ class ShellChannel(ZMQSocketChannel):
         -------
         The msg_id of the message sent.
         """
+        if cursor_pos is None:
+            cursor_pos = len(code)
         content = dict(code=code, cursor_pos=cursor_pos,
             detail_level=detail_level,
         )

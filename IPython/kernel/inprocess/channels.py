@@ -94,13 +94,17 @@ class InProcessShellChannel(InProcessChannel):
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 
-    def complete(self, code, cursor_pos=0):
+    def complete(self, code, cursor_pos=None):
+        if cursor_pos is None:
+            cursor_pos = len(code)
         content = dict(code=code, cursor_pos=cursor_pos)
         msg = self.client.session.msg('complete_request', content)
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 
-    def inspect(self, code, cursor_pos=0, detail_level=0):
+    def inspect(self, code, cursor_pos=None, detail_level=0):
+        if cursor_pos is None:
+            cursor_pos = len(code)
         content = dict(code=code, cursor_pos=cursor_pos,
             detail_level=detail_level,
         )

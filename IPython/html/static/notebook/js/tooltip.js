@@ -251,11 +251,6 @@ var IPython = (function (IPython) {
             this.reset_tabs_function (cell, text);
         }
 
-        // don't do anything if line begins with '(' or is empty
-        // if (text === "" || text === "(") {
-        //     return;
-        // }
-
         this.tabs_functions[this._consecutive_counter](cell, text, cursor_pos);
 
         // then if we are at the end of list function, reset
