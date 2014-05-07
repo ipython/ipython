@@ -287,6 +287,9 @@ def get_ipython_dir():
                 if os.path.exists(ipdir):
                     warnings.warn(('Ignoring {0} in favour of {1}. Remove {0} '
                     'to get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                elif os.path.islink(xdg_ipdir):
+                    warnings.warn(('{0} is deprecated. Move link to {1} '
+                    'to get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
                     warnings.warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
                     os.rename(xdg_ipdir, ipdir)
