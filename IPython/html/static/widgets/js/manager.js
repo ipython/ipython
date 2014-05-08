@@ -123,7 +123,6 @@
                 model.on('destroy', view.remove, view);
                 return view;
             }
-            console.log('VIEW NOT REGISTERED?!');
             return null;
         };
 
