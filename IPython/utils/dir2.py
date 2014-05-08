@@ -60,7 +60,11 @@ def dir2(obj):
     # Start building the attribute list via dir(), and then complete it
     # with a few extra special-purpose calls.
 
-    words = set(dir(obj))
+    try:
+        words = set(dir(obj))
+    except Exception:
+        # TypeError: dir(obj) does not return a list
+        words = set()
 
     if safe_hasattr(obj, '__class__'):
         #words.add('__class__')
