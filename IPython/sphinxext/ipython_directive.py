@@ -445,8 +445,9 @@ class EmbeddedSphinxShell(object):
                     ret.append(formatted_line)
 
         if not is_suppress and len(rest.strip()) and is_verbatim:
-            # The "rest" is the standard output of the input.
-            # This needs to be added, even in verbatim mode.
+            # The "rest" is the standard output of the input. This needs to be
+            # added when in verbatim mode. If there is no "rest", then we don't
+            # add it, as the new line will be added by the processed output.
             ret.append(rest)
 
         # Fetch the processed output. (This is not the submitted output.)
