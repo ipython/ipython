@@ -36,6 +36,12 @@
                     "description": "Hash of the notebook.",
                     "type": "string",
                     "required": false
+                },
+                "orig_nbformat": {
+                    "description": "Original notebook format (major number) before converting the notebook between versions.",
+                    "type": "integer",
+                    "required": false,
+                    "minimum": 1
                 }
             }
         },
@@ -51,12 +57,6 @@
             "required": true,
             "minimum": 4,
             "maximum": 4
-        },
-        "orig_nbformat": {
-            "description": "Original notebook format (major number) before converting the notebook between versions.",
-            "type": "integer",
-            "required": false,
-            "minimum": 1
         },
         "cells": {
             "description": "Array of cells of the current notebook.",
