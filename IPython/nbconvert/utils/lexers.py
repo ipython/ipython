@@ -491,7 +491,9 @@ class IPyLexer(Lexer):
         self.IPythonConsoleLexer = IPythonConsoleLexer(**options)
 
     def get_tokens_unprocessed(self, text):
-        if re.match(r'(In \[[0-9]+\]:)', text.strip()):
+        # Search for the input prompt anywhere...this allows code blocks to
+        # begin with comments as well.
+        if re.match(r'.*(In \[[0-9]+\]:)', text.strip(), re.DOTALL):
             lex = self.IPythonConsoleLexer
         else:
             lex = self.IPythonLexer
