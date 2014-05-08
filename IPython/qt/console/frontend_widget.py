@@ -546,7 +546,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_shutdown_reply(self, msg):
         """ Handle shutdown signal, only if from other console.
         """
-        self.log.warn("shutdown: %s", msg.get('content', ''))
+        self.log.info("shutdown: %s", msg.get('content', ''))
         restart = msg.get('content', {}).get('restart', False)
         if not self._hidden and not self._is_from_this_session(msg):
             # got shutdown reply, request came from session other than ours
