@@ -57,7 +57,11 @@ function (marked) {
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp();
-    IPython.tour = new IPython.NotebookTour();
+    try {
+        IPython.tour = new IPython.NotebookTour();
+    } catch (e) {
+        console.log("Failed to instantiate Notebook Tour", e);
+    }
     IPython.login_widget = new IPython.LoginWidget('span#login_widget', opts);
     IPython.notebook = new IPython.Notebook('div#notebook', opts);
     IPython.keyboard_manager = new IPython.KeyboardManager();
