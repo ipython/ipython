@@ -114,13 +114,11 @@ class V4toV5TestCase(AdapterTest):
         v4, v5 = self.adapt(msg)
         v4c = v4['content']
         v5c = v5['content']
-        n = len(v4c['matched_text'])
-        expected_matches = [ m[n:] for m in v4c['matches'] ]
         
-        self.assertEqual(v5c['matches'], expected_matches)
+        self.assertEqual(v5c['matches'], v4c['matches'])
         self.assertEqual(v5c['metadata'], {})
-        self.assertEqual(v5c['cursor_start'], 0)
-        self.assertEqual(v5c['cursor_end'], 0)
+        self.assertEqual(v5c['cursor_start'], -4)
+        self.assertEqual(v5c['cursor_end'], None)
     
     def test_object_info_request(self):
         msg = self.msg("object_info_request", {

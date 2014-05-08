@@ -5,7 +5,7 @@
 
 import json
 
-from IPython.core.release import kernel_protocol_version, kernel_protocol_version_info
+from IPython.core.release import kernel_protocol_version_info
 from IPython.utils.tokenutil import token_at_cursor
 
 
@@ -45,6 +45,13 @@ class Adapter(object):
             msg['msg_type'] = header['msg_type'] = self.msg_type_map[msg_type]
         return msg
     
+    def handle_reply_status_error(msg):
+        """This will be called *instead of* the regular handler
+        
+        on any reply with status != ok
+        """
+        return msg
+    
     def __call__(self, msg):
         msg = self.update_header(msg)
         msg = self.update_metadata(msg)
@@ -54,9 +61,10 @@ class Adapter(object):
         handler = getattr(self, header['msg_type'], None)
         if handler is None:
             return msg
-        # no transform for status=error
+        
+        # handle status=error replies separately (no change, at present)
         if msg['content'].get('status', None) in {'error', 'aborted'}:
-            return msg
+            return self.handle_reply_status_error(msg)
         return handler(msg)
 
 def _version_str_to_list(version):
@@ -143,7 +151,7 @@ class V5toV4(Adapter):
         cursor_pos = content['cursor_pos']
         line, _ = code_to_line(code, cursor_pos)
         
-        new_content = msg['content'] = {'status' : 'ok'}
+        new_content = msg['content'] = {}
         new_content['oname'] = token_at_cursor(code, cursor_pos)
         new_content['detail_level'] = content['detail_level']
         return msg
@@ -173,12 +181,10 @@ class V5toV4(Adapter):
         msg['content'].pop('password', None)
         return msg
 
-def _tuple_to_str(version):
-    return ".".join(map(str, version))
 
 class V4toV5(Adapter):
     """Convert msg spec V4 to V5"""
-    version = kernel_protocol_version
+    version = '5.0'
     
     # invert message renames above
     msg_type_map = {v:k for k,v in V5toV4.msg_type_map.items()}
@@ -227,13 +233,14 @@ class V4toV5(Adapter):
         return msg
     
     def complete_reply(self, msg):
-        # TODO: complete_reply needs more context than we have
-        # Maybe strip common prefix and give magic cursor_start = cursor_end = 0?
+        # complete_reply needs more context than we have to get cursor_start and end.
+        # use special value of `-1` to indicate to frontend that it should be at
+        # the current cursor position.
         content = msg['content']
         new_content = msg['content'] = {'status' : 'ok'}
-        n = len(content['matched_text'])
-        new_content['matches'] = [ m[n:] for m in content['matches'] ]
-        new_content['cursor_start'] = new_content['cursor_end'] = 0
+        new_content['matches'] = content['matches']
+        new_content['cursor_start'] = -len(content['matched_text'])
+        new_content['cursor_end'] = None
         new_content['metadata'] = {}
         return msg
     

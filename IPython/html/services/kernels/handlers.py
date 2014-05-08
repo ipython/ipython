@@ -81,16 +81,23 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
         self.zmq_stream = meth(self.kernel_id, identity=self.session.bsession)
+        # Create a kernel_info channel to query the kernel protocol version.
+        # This channel will be closed after the kernel_info reply is received.
         self.kernel_info_channel = None
         self.kernel_info_channel = km.connect_shell(self.kernel_id)
-        self.kernel_info_channel.on_recv(self._handle_kernel_info)
+        self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
         self._request_kernel_info()
     
     def _request_kernel_info(self):
+        """send a request for kernel_info"""
         self.log.debug("requesting kernel info")
         self.session.send(self.kernel_info_channel, "kernel_info_request")
     
-    def _handle_kernel_info(self, msg):
+    def _handle_kernel_info_reply(self, msg):
+        """process the kernel_info_reply
+        
+        enabling msg spec adaptation, if necessary
+        """
         idents,msg = self.session.feed_identities(msg)
         try:
             msg = self.session.unserialize(msg)
