@@ -208,15 +208,17 @@ def get_js_test_dir():
 def all_js_groups():
     import glob
     test_dir = get_js_test_dir()
-    all_subdirs = glob.glob(test_dir + '*/')
-    return [js_prefix+os.path.relpath(x, test_dir) for x in all_subdirs if os.path.relpath(x, test_dir) != '__pycache__']
+    all_subdirs = glob.glob(test_dir + '[!_]*/')
+    return [js_prefix+os.path.relpath(x, test_dir) for x in all_subdirs]
 
 class JSController(TestController):
     """Run CasperJS tests """
-    def __init__(self, section):
+    requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3']
+    def __init__(self, section, enabled=True):
         """Create new test runner."""
         TestController.__init__(self)
         self.section = section
+        self.enabled = enabled
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
         test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
@@ -244,7 +246,7 @@ class JSController(TestController):
 
     @property
     def will_run(self):
-        return all(have[a] for a in ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3'])
+        return self.enabled and all(have[a] for a in self.requirements)
 
     def _init_server(self):
         "Start the notebook server in a separate process"
@@ -335,15 +337,15 @@ def prepare_controllers(options):
             js_testgroups = all_js_groups()
         else:
             js_testgroups = [g for g in testgroups if g not in py_testgroups]
+        js_enabled = len(js_testgroups) > 0
     else:
         py_testgroups = py_test_group_names
+        js_testgroups = all_js_groups()
         if not options.all:
-            js_testgroups = []
+            js_enabled = False
             test_sections['parallel'].enabled = False
-        else:
-            js_testgroups = all_js_groups()
 
-    c_js = [JSController(name) for name in js_testgroups]
+    c_js = [JSController(name, js_enabled) for name in js_testgroups]
     c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
