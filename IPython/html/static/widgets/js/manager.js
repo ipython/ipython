@@ -120,7 +120,6 @@
                 var parameters = {model: model, options: options};
                 view = new ViewType(parameters);
                 view.render();
-                model.views.push(view);
                 model.on('destroy', view.remove, view);
                 return view;
             }
