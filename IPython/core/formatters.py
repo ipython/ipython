@@ -74,7 +74,7 @@ def _valid_formatter(f):
         # anything that works with zero args should be okay
         try:
             inspect.getcallargs(f)
-        except TypeError:
+        except Exception:
             return False
         else:
             return True
