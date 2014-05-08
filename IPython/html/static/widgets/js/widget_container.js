@@ -27,6 +27,18 @@ define(["widgets/js/widget"], function(WidgetManager) {
                 this.update_children(model.previous('_children'), value);
             }, this);
             this.update();
+
+            // Trigger model displayed events for any models that are child to 
+            // this model when this model is displayed.
+            var that = this;
+            this.model.on('displayed', function(){
+                that.is_displayed = true;
+                for (var property in that.child_views) {
+                    if (that.child_views.hasOwnProperty(property)) {
+                        that.child_views[property].model.trigger('displayed');
+                    }
+                }
+            });
         },
         
         update_children: function(old_list, new_list) {
@@ -47,6 +59,11 @@ define(["widgets/js/widget"], function(WidgetManager) {
             // Called when a model is added to the children list.
             var view = this.create_child_view(model);
             this.$el.append(view.$el);
+
+            // Trigger the displayed event if this model is displayed.
+            if (this.is_displayed) {
+                model.trigger('displayed');
+            }
         },
         
         update: function(){
@@ -81,7 +98,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
             // need to know about all of the top-level widgets.  The IPython
             // widget manager uses this to register the elements with the
             // keyboard manager.
-            this.additional_elements = [this.$window]
+            this.additional_elements = [this.$window];
 
             this.$title_bar = $('<div />')
                 .addClass('popover-title')
@@ -169,6 +186,17 @@ define(["widgets/js/widget"], function(WidgetManager) {
                 this.update_children(model.previous('_children'), value);
             }, this);
             this.update();
+
+            // Trigger model displayed events for any models that are child to 
+            // this model when this model is displayed.
+            this.model.on('displayed', function(){
+                that.is_displayed = true;
+                for (var property in that.child_views) {
+                    if (that.child_views.hasOwnProperty(property)) {
+                        that.child_views[property].model.trigger('displayed');
+                    }
+                }
+            });
         },
         
         hide: function() {
@@ -228,6 +256,11 @@ define(["widgets/js/widget"], function(WidgetManager) {
             // Called when a child is added to children list.
             var view = this.create_child_view(model);
             this.$body.append(view.$el);
+
+            // Trigger the displayed event if this model is displayed.
+            if (this.is_displayed) {
+                model.trigger('displayed');
+            }
         },
         
         update: function(){
