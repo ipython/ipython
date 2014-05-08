@@ -62,7 +62,7 @@ def dir2(obj):
 
     try:
         words = set(dir(obj))
-    except:
+    except Exception:
         # TypeError: dir(obj) does not return a list
         words = set()
 
