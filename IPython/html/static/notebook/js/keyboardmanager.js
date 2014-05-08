@@ -480,6 +480,10 @@ var IPython = (function (IPython) {
             // websocket connection with firefox
             event.preventDefault();
         }
+
+        if ($(event.target).closest('#ipython-main-app').attr("id") == undefined ) {
+            return true;
+        }
         
         if (!this.enabled) {
             if (event.which === keycodes.esc) {
