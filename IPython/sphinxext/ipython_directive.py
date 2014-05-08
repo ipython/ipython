@@ -542,6 +542,16 @@ class EmbeddedSphinxShell(object):
             else:
                 self.custom_doctest(decorator, input_lines, found, submitted)
 
+        # Make sure output is processed when in verbatim mode.
+        # https://github.com/ipython/ipython/issues/5776
+        is_verbatim = decorator=='@verbatim' or self.is_verbatim
+        if is_verbatim:
+            out_data = data
+        else:
+            out_data = None
+
+        return out_data
+
     def process_comment(self, data):
         """Process data fPblock for COMMENT token."""
         if not self.is_suppress:
