@@ -57,7 +57,8 @@ var IPython = (function (IPython) {
                 msg_id : utils.uuid(),
                 username : this.username,
                 session : this.session_id,
-                msg_type : msg_type
+                msg_type : msg_type,
+                version : "5.0"
             },
             metadata : metadata || {},
             content : content,
