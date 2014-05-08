@@ -83,16 +83,21 @@ class ExecutePreprocessor(Preprocessor):
                 msg = iopub.get_msg(timeout=0.2)
             except Empty:
                 break
+
             msg_type = msg['msg_type']
+            content = msg['content']
+            out = NotebookNode(output_type=msg_type)
+
+            # set the prompt number for the input and the output
+            if 'execution_count' in content:
+                cell['prompt_number'] = content['execution_count']
+                out.prompt_number = content['execution_count']
+
             if msg_type in ('status', 'pyin'):
                 continue
             elif msg_type == 'clear_output':
                 outs = []
                 continue
-
-            content = msg['content']
-            # print msg_type, content
-            out = NotebookNode(output_type=msg_type)
 
             if msg_type == 'stream':
                 out.stream = content['name']
@@ -104,8 +109,6 @@ class ExecutePreprocessor(Preprocessor):
                     # this gets most right, but fix svg+html, plain
                     attr = attr.replace('+xml', '').replace('plain', 'text')
                     setattr(out, attr, data)
-                if msg_type == 'pyout':
-                    out.prompt_number = content['execution_count']
             elif msg_type == 'pyerr':
                 out.ename = content['ename']
                 out.evalue = content['evalue']
@@ -115,4 +118,3 @@ class ExecutePreprocessor(Preprocessor):
 
             outs.append(out)
         return outs
-
