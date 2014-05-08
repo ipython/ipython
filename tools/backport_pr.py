@@ -142,6 +142,8 @@ def should_backport(labels=None, milestone=None):
         if not pr['merged']:
             print ("Marked PR closed without merge: %i" % pr['number'])
             continue
+        if pr['base']['ref'] != 'master':
+            continue
         should_backport.add(pr['number'])
     return should_backport
 
