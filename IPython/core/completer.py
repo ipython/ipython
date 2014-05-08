@@ -79,6 +79,7 @@ from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.utils import generics
+from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types
@@ -429,16 +430,18 @@ def get__all__entries(obj):
 def match_dict_keys(keys, prefix):
     """Used by dict_key_matches, matching the prefix to a list of keys"""
     if not prefix:
-        return None, [repr(k) for k in keys
+        return None, 0, [repr(k) for k in keys
                       if isinstance(k, (string_types, bytes))]
     quote_match = re.search('["\']', prefix)
     quote = quote_match.group()
     try:
         prefix_str = eval(prefix + quote, {})
     except Exception:
-        return None, []
-
-    token_prefix = re.search('\w*$', prefix).group()
+        return None, 0, []
+    
+    token_match = re.search(r'\w*$', prefix, re.UNICODE)
+    token_start = token_match.start()
+    token_prefix = token_match.group()
 
     # TODO: support bytes in Py3k
     matched = []
@@ -471,7 +474,7 @@ def match_dict_keys(keys, prefix):
 
         # then reinsert prefix from start of token
         matched.append('%s%s' % (token_prefix, rem_repr))
-    return quote, matched
+    return quote, token_start, matched
 
 
 def _safe_isinstance(obj, module, class_name):
@@ -919,17 +922,47 @@ class IPCompleter(Completer):
         keys = get_keys(obj)
         if not keys:
             return keys
-        closing_quote, matches = match_dict_keys(keys, prefix)
+        closing_quote, token_offset, matches = match_dict_keys(keys, prefix)
+        if not matches:
+            return matches
+        
+        # get the cursor position of
+        # - the text being completed
+        # - the start of the key text
+        # - the start of the completion
+        text_start = len(self.text_until_cursor) - len(text)
+        if prefix:
+            key_start = match.start(2)
+            completion_start = key_start + token_offset
+        else:
+            key_start = completion_start = match.end()
+        
+        # grab the leading prefix, to make sure all completions start with `text`
+        if text_start > key_start:
+            leading = ''
+        else:
+            leading = text[text_start:completion_start]
+        
+        # the index of the `[` character
+        bracket_idx = match.end(1)
 
         # append closing quote and bracket as appropriate
+        # this is *not* appropriate if the opening quote or bracket is outside
+        # the text given to this method
+        suf = ''
         continuation = self.line_buffer[len(self.text_until_cursor):]
-        if closing_quote and continuation.startswith(closing_quote):
-            suf = ''
-        elif continuation.startswith(']'):
-            suf = closing_quote or ''
-        else:
-            suf = (closing_quote or '') + ']'
-        return [k + suf for k in matches]
+        if key_start > text_start and closing_quote:
+            # quotes were opened inside text, maybe close them
+            if continuation.startswith(closing_quote):
+                continuation = continuation[len(closing_quote):]
+            else:
+                suf += closing_quote
+        if bracket_idx > text_start:
+            # brackets were opened inside text, maybe close them
+            if not continuation.startswith(']'):
+                suf += ']'
+        
+        return [leading + k + suf for k in matches]
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
