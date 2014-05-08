@@ -463,3 +463,20 @@ def test_fixed():
         description='b',
     )
 
+def test_default_description():
+    c = interactive(f, b='text')
+    w = c.children[0]
+    check_widget(w,
+        cls=widgets.TextWidget,
+        value='text',
+        description='b',
+    )
+
+def test_custom_description():
+    c = interactive(f, b=widgets.TextWidget(value='text', description='foo'))
+    w = c.children[0]
+    check_widget(w,
+        cls=widgets.TextWidget,
+        value='text',
+        description='foo',
+    )
