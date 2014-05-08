@@ -1,8 +1,7 @@
 """Utilities for connecting to kernels
 
-Notable contents: 
-- ConnectionFileMixin class
-    encapsulates the logic related to writing and reading connections files.
+The :class:`ConnectionFileMixin` class in this module encapsulates the logic
+related to writing and reading connections files.
 """
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -299,7 +298,7 @@ def connect_qtconsole(connection_file=None, argv=None, profile=None):
     
     Returns
     -------
-    subprocess.Popen instance running the qtconsole frontend
+    :class:`subprocess.Popen` instance running the qtconsole frontend
     """
     argv = [] if argv is None else argv
     
