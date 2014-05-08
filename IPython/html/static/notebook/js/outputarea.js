@@ -872,6 +872,10 @@ var IPython = (function (IPython) {
                 // TODO: remove mapping of short keys when we update to nbformat 4
                  data = this.rename_keys(data, OutputArea.mime_map_r);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
+                 // msg spec JSON is an object, nbformat v3 JSON is a JSON string
+                 if (data["application/json"] !== undefined && typeof data["application/json"] === 'string') {
+                     data["application/json"] = JSON.parse(data["application/json"]);
+                 }
             }
             
             this.append_output(data);
@@ -890,6 +894,10 @@ var IPython = (function (IPython) {
                   // convert mime keys to short keys
                  data = this.rename_keys(data, OutputArea.mime_map);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
+                 // msg spec JSON is an object, nbformat v3 JSON is a JSON string
+                 if (data.json !== undefined && typeof data.json !== 'string') {
+                     data.json = JSON.stringify(data.json);
+                 }
             }
             if (msg_type == "execute_result") {
                 // pyout message has been renamed to execute_result,
