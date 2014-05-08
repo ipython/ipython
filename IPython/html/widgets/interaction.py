@@ -166,7 +166,8 @@ def _widgets_from_abbreviations(seq):
     result = []
     for name, abbrev, default in seq:
         widget = _widget_from_abbrev(abbrev, default)
-        widget.description = name
+        if not widget.description:
+            widget.description = name
         result.append(widget)
     return result
 
