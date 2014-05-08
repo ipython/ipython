@@ -274,8 +274,14 @@ class JSController(TestController):
             if self.server.poll() is not None:
                 return self._failed_to_start()
             if os.path.exists(self.server_info_file):
-                self._load_server_info()
-                return
+                try:
+                    self._load_server_info()
+                except ValueError:
+                    # If the server is halfway through writing the file, we may
+                    # get invalid JSON; it should be ready next iteration.
+                    pass
+                else:
+                    return
             time.sleep(0.1)
         print("Notebook server-info file never arrived: %s" % self.server_info_file,
             file=sys.stderr
