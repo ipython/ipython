@@ -252,13 +252,16 @@ class TraitType(object):
 
     metadata = {}
     default_value = Undefined
+    allow_none = False
     info_text = 'any value'
 
-    def __init__(self, default_value=NoDefaultSpecified, **metadata):
+    def __init__(self, default_value=NoDefaultSpecified, allow_none=None, **metadata):
         """Create a TraitType.
         """
         if default_value is not NoDefaultSpecified:
             self.default_value = default_value
+        if allow_none is not None:
+            self.allow_none = allow_none
 
         if len(metadata) > 0:
             if len(self.metadata) > 0:
@@ -371,6 +374,8 @@ class TraitType(object):
             obj._notify_trait(self.name, old_value, new_value)
 
     def _validate(self, obj, value):
+        if value is None and self.allow_none:
+            return value
         if hasattr(self, 'validate'):
             return self.validate(obj, value)
         elif hasattr(self, 'is_valid_for'):
@@ -745,9 +750,8 @@ class Type(ClassBasedTraitType):
             raise TraitError("A Type trait must specify a class.")
 
         self.klass       = klass
-        self._allow_none = allow_none
 
-        super(Type, self).__init__(default_value, **metadata)
+        super(Type, self).__init__(default_value, allow_none=allow_none, **metadata)
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
@@ -755,8 +759,7 @@ class Type(ClassBasedTraitType):
             if issubclass(value, self.klass):
                 return value
         except:
-            if (value is None) and (self._allow_none):
-                return value
+            pass
 
         self.error(obj, value)
 
@@ -767,7 +770,7 @@ class Type(ClassBasedTraitType):
         else:
             klass = self.klass.__name__
         result = 'a subclass of ' + klass
-        if self._allow_none:
+        if self.allow_none:
             return result + ' or None'
         return result
 
@@ -831,8 +834,6 @@ class Instance(ClassBasedTraitType):
         not (but not both), None is replace by ``()`` or ``{}``.
         """
 
-        self._allow_none = allow_none
-
         if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, py3compat.string_types))):
             raise TraitError('The klass argument must be a class'
                                 ' you gave: %r' % klass)
@@ -856,14 +857,9 @@ class Instance(ClassBasedTraitType):
 
             default_value = DefaultValueGenerator(*args, **kw)
 
-        super(Instance, self).__init__(default_value, **metadata)
+        super(Instance, self).__init__(default_value, allow_none=allow_none, **metadata)
 
     def validate(self, obj, value):
-        if value is None:
-            if self._allow_none:
-                return value
-            self.error(obj, value)
-
         if isinstance(value, self.klass):
             return value
         else:
@@ -875,7 +871,7 @@ class Instance(ClassBasedTraitType):
         else:
             klass = self.klass.__name__
         result = class_of(klass)
-        if self._allow_none:
+        if self.allow_none:
             return result + ' or None'
 
         return result
@@ -1169,14 +1165,9 @@ class Enum(TraitType):
 
     def __init__(self, values, default_value=None, allow_none=True, **metadata):
         self.values = values
-        self._allow_none = allow_none
-        super(Enum, self).__init__(default_value, **metadata)
+        super(Enum, self).__init__(default_value, allow_none=allow_none, **metadata)
 
     def validate(self, obj, value):
-        if value is None:
-            if self._allow_none:
-                return value
-
         if value in self.values:
                 return value
         self.error(obj, value)
@@ -1184,7 +1175,7 @@ class Enum(TraitType):
     def info(self):
         """ Returns a description of the trait."""
         result = 'any of ' + repr(self.values)
-        if self._allow_none:
+        if self.allow_none:
             return result + ' or None'
         return result
 
@@ -1192,10 +1183,6 @@ class CaselessStrEnum(Enum):
     """An enum of strings that are caseless in validate."""
 
     def validate(self, obj, value):
-        if value is None:
-            if self._allow_none:
-                return value
-
         if not isinstance(value, py3compat.string_types):
             self.error(obj, value)
 
@@ -1290,7 +1277,7 @@ class Container(Instance):
             return value
         for v in value:
             try:
-                v = self._trait.validate(obj, v)
+                v = self._trait._validate(obj, v)
             except TraitError:
                 self.element_error(obj, v, self._trait)
             else:
@@ -1366,8 +1353,6 @@ class List(Container):
     
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
-        if value is None:
-            return value
 
         value = self.validate_elements(obj, value)
 
@@ -1463,7 +1448,7 @@ class Tuple(Container):
         validated = []
         for t,v in zip(self._traits, value):
             try:
-                v = t.validate(obj, v)
+                v = t._validate(obj, v)
             except TraitError:
                 self.element_error(obj, v, t)
             else:
