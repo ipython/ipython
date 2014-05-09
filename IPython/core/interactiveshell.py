@@ -10,12 +10,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import __future__
 import abc
@@ -57,6 +52,7 @@ from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.prompts import PromptManager
+from IPython.core.usage import default_banner
 from IPython.lib.latextools import LaTeXTool
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
@@ -233,6 +229,16 @@ class InteractiveShell(SingletonConfigurable):
         Enable magic commands to be called without the leading %.
         """
     )
+    
+    banner = Unicode('')
+    
+    banner1 = Unicode(default_banner, config=True,
+        help="""The part of the banner to be printed before the profile"""
+    )
+    banner2 = Unicode('', config=True,
+        help="""The part of the banner to be printed after the profile"""
+    )
+
     cache_size = Integer(1000, config=True, help=
         """
         Set the size of the output cache.  The default is 1000, you can
@@ -772,6 +778,24 @@ class InteractiveShell(SingletonConfigurable):
         if self._orig_sys_modules_main_mod is not None:
             sys.modules[self._orig_sys_modules_main_name] = self._orig_sys_modules_main_mod
 
+    #-------------------------------------------------------------------------
+    # Things related to the banner
+    #-------------------------------------------------------------------------
+    
+    @property
+    def banner(self):
+        banner = self.banner1
+        if self.profile and self.profile != 'default':
+            banner += '\nIPython profile: %s\n' % self.profile
+        if self.banner2:
+            banner += '\n' + self.banner2
+        return banner
+
+    def show_banner(self, banner=None):
+        if banner is None:
+            banner = self.banner
+        self.write(banner)
+    
     #-------------------------------------------------------------------------
     # Things related to hooks
     #-------------------------------------------------------------------------
@@ -1502,6 +1526,7 @@ class InteractiveShell(SingletonConfigurable):
             return 'not found'  # so callers can take other action
 
     def object_inspect(self, oname, detail_level=0):
+        """Get object info about oname"""
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
@@ -1510,6 +1535,17 @@ class InteractiveShell(SingletonConfigurable):
                 )
             else:
                 return oinspect.object_info(name=oname, found=False)
+
+    def object_inspect_text(self, oname, detail_level=0):
+        """Get object info as formatted text"""
+        with self.builtin_trap:
+            info = self._object_find(oname)
+            if info.found:
+                return self.inspector._format_info(info.obj, oname, info=info,
+                            detail_level=detail_level
+                )
+            else:
+                raise KeyError(oname)
 
     #-------------------------------------------------------------------------
     # Things related to history management
@@ -2395,7 +2431,7 @@ class InteractiveShell(SingletonConfigurable):
     def _user_obj_error(self):
         """return simple exception dict
         
-        for use in user_variables / expressions
+        for use in user_expressions
         """
         
         etype, evalue, tb = self._get_exc_info()
@@ -2413,7 +2449,7 @@ class InteractiveShell(SingletonConfigurable):
     def _format_user_obj(self, obj):
         """format a user object to display dict
         
-        for use in user_expressions / variables
+        for use in user_expressions
         """
         
         data, md = self.display_formatter.format(obj)
@@ -2424,30 +2460,6 @@ class InteractiveShell(SingletonConfigurable):
         }
         return value
     
-    def user_variables(self, names):
-        """Get a list of variable names from the user's namespace.
-
-        Parameters
-        ----------
-        names : list of strings
-          A list of names of variables to be read from the user namespace.
-
-        Returns
-        -------
-        A dict, keyed by the input names and with the rich mime-type repr(s) of each value.
-        Each element will be a sub-dict of the same form as a display_data message.
-        """
-        out = {}
-        user_ns = self.user_ns
-        
-        for varname in names:
-            try:
-                value = self._format_user_obj(user_ns[varname])
-            except:
-                value = self._user_obj_error()
-            out[varname] = value
-        return out
-
     def user_expressions(self, expressions):
         """Evaluate a dict of expressions in the user's namespace.
 

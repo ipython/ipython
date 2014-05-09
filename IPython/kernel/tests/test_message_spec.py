@@ -1,13 +1,10 @@
-"""Test suite for our zeromq-based message specification.
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+"""Test suite for our zeromq-based message specification."""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import re
+from distutils.version import LooseVersion as V
 from subprocess import PIPE
 try:
     from queue import Empty  # Py 3
@@ -60,7 +57,21 @@ class Reference(HasTraits):
             try:
                 setattr(self, key, d[key])
             except TraitError as e:
-                nt.assert_true(False, str(e))
+                assert False, str(e)
+
+
+class Version(Unicode):
+    def __init__(self, *args, **kwargs):
+        self.min = kwargs.pop('min', None)
+        self.max = kwargs.pop('max', None)
+        kwargs['default_value'] = self.min
+        super(Version, self).__init__(*args, **kwargs)
+    
+    def validate(self, obj, value):
+        if self.min and V(value) < V(self.min):
+            raise TraitError("bad version: %s < %s" % (value, self.min))
+        if self.max and (V(value) > V(self.max)):
+            raise TraitError("bad version: %s > %s" % (value, self.max))
 
 
 class RMessage(Reference):
@@ -69,16 +80,31 @@ class RMessage(Reference):
     header = Dict()
     parent_header = Dict()
     content = Dict()
+    
+    def check(self, d):
+        super(RMessage, self).check(d)
+        RHeader().check(self.header)
+        if self.parent_header:
+            RHeader().check(self.parent_header)
 
 class RHeader(Reference):
     msg_id = Unicode()
     msg_type = Unicode()
     session = Unicode()
     username = Unicode()
+    version = Version(min='5.0')
 
-class RContent(Reference):
-    status = Enum((u'ok', u'error'))
+mime_pat = re.compile(r'^[\w\-\+\.]+/[\w\-\+\.]+$')
 
+class MimeBundle(Reference):
+    metadata = Dict()
+    data = Dict()
+    def _data_changed(self, name, old, new):
+        for k,v in iteritems(new):
+            assert mime_pat.match(k)
+            nt.assert_is_instance(v, string_types)
+
+# shell replies
 
 class ExecuteReply(Reference):
     execution_count = Integer()
@@ -94,7 +120,6 @@ class ExecuteReply(Reference):
 
 class ExecuteReplyOkay(Reference):
     payload = List(Dict)
-    user_variables = Dict()
     user_expressions = Dict()
 
 
@@ -104,31 +129,8 @@ class ExecuteReplyError(Reference):
     traceback = List(Unicode)
 
 
-class OInfoReply(Reference):
-    name = Unicode()
+class InspectReply(MimeBundle):
     found = Bool()
-    ismagic = Bool()
-    isalias = Bool()
-    namespace = Enum((u'builtin', u'magics', u'alias', u'Interactive'))
-    type_name = Unicode()
-    string_form = Unicode()
-    base_class = Unicode()
-    length = Integer()
-    file = Unicode()
-    definition = Unicode()
-    argspec = Dict()
-    init_definition = Unicode()
-    docstring = Unicode()
-    init_docstring = Unicode()
-    class_docstring = Unicode()
-    call_def = Unicode()
-    call_docstring = Unicode()
-    source = Unicode()
-    
-    def check(self, d):
-        Reference.check(self, d)
-        if d['argspec'] is not None:
-            ArgSpec().check(d['argspec'])
 
 
 class ArgSpec(Reference):
@@ -144,33 +146,28 @@ class Status(Reference):
 
 class CompleteReply(Reference):
     matches = List(Unicode)
-
-
-def Version(num, trait=Integer):
-    return List(trait, default_value=[0] * num, minlen=num, maxlen=num)
+    cursor_start = Integer()
+    cursor_end = Integer()
+    status = Unicode()
 
 
 class KernelInfoReply(Reference):
-
-    protocol_version = Version(2)
-    ipython_version = Version(4, Any)
-    language_version = Version(3)
-    language = Unicode()
-
-    def _ipython_version_changed(self, name, old, new):
-        for v in new:
-            assert isinstance(v, int) or isinstance(v, string_types), \
-            'expected int or string as version component, got {0!r}'.format(v)
+    protocol_version = Version(min='5.0')
+    implementation = Unicode('ipython')
+    implementation_version = Version(min='2.1')
+    language_version = Version(min='2.7')
+    language = Unicode('python')
+    banner = Unicode()
 
 
 # IOPub messages
 
-class PyIn(Reference):
+class ExecuteInput(Reference):
     code = Unicode()
     execution_count = Integer()
 
 
-PyErr = ExecuteReplyError
+Error = ExecuteReplyError
 
 
 class Stream(Reference):
@@ -178,38 +175,26 @@ class Stream(Reference):
     data = Unicode()
 
 
-mime_pat = re.compile(r'\w+/\w+')
-
-class DisplayData(Reference):
-    source = Unicode()
-    metadata = Dict()
-    data = Dict()
-    def _data_changed(self, name, old, new):
-        for k,v in iteritems(new):
-            assert mime_pat.match(k)
-            nt.assert_is_instance(v, string_types)
+class DisplayData(MimeBundle):
+    pass
 
 
-class PyOut(Reference):
+class ExecuteResult(MimeBundle):
     execution_count = Integer()
-    data = Dict()
-    def _data_changed(self, name, old, new):
-        for k,v in iteritems(new):
-            assert mime_pat.match(k)
-            nt.assert_is_instance(v, string_types)
 
 
 references = {
     'execute_reply' : ExecuteReply(),
-    'object_info_reply' : OInfoReply(),
+    'inspect_reply' : InspectReply(),
     'status' : Status(),
     'complete_reply' : CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
-    'pyin' : PyIn(),
-    'pyout' : PyOut(),
-    'pyerr' : PyErr(),
+    'execute_input' : ExecuteInput(),
+    'execute_result' : ExecuteResult(),
+    'error' : Error(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
+    'header' : RHeader(),
 }
 """
 Specifications of `content` part of the reply messages.
@@ -280,8 +265,8 @@ def test_execute_error():
     nt.assert_equal(reply['status'], 'error')
     nt.assert_equal(reply['ename'], 'ZeroDivisionError')
     
-    pyerr = KC.iopub_channel.get_msg(timeout=TIMEOUT)
-    validate_message(pyerr, 'pyerr', msg_id)
+    error = KC.iopub_channel.get_msg(timeout=TIMEOUT)
+    validate_message(error, 'error', msg_id)
 
 
 def test_execute_inc():
@@ -296,28 +281,6 @@ def test_execute_inc():
     msg_id, reply = execute(code='x=2')
     count_2 = reply['execution_count']
     nt.assert_equal(count_2, count+1)
-
-
-def test_user_variables():
-    flush_channels()
-
-    msg_id, reply = execute(code='x=1', user_variables=['x'])
-    user_variables = reply['user_variables']
-    nt.assert_equal(user_variables, {u'x': {
-        u'status': u'ok',
-        u'data': {u'text/plain': u'1'},
-        u'metadata': {},
-    }})
-
-
-def test_user_variables_fail():
-    flush_channels()
-
-    msg_id, reply = execute(code='x=1', user_variables=['nosuchname'])
-    user_variables = reply['user_variables']
-    foo = user_variables['nosuchname']
-    nt.assert_equal(foo['status'], 'error')
-    nt.assert_equal(foo['ename'], 'KeyError')
 
 
 def test_user_expressions():
@@ -345,9 +308,9 @@ def test_user_expressions_fail():
 def test_oinfo():
     flush_channels()
 
-    msg_id = KC.object_info('a')
+    msg_id = KC.inspect('a')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
 
 
 def test_oinfo_found():
@@ -355,13 +318,14 @@ def test_oinfo_found():
 
     msg_id, reply = execute(code='a=5')
     
-    msg_id = KC.object_info('a')
+    msg_id = KC.inspect('a')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     assert content['found']
-    argspec = content['argspec']
-    nt.assert_is(argspec, None)
+    text = content['data']['text/plain']
+    nt.assert_in('Type:', text)
+    nt.assert_in('Docstring:', text)
 
 
 def test_oinfo_detail():
@@ -369,22 +333,22 @@ def test_oinfo_detail():
 
     msg_id, reply = execute(code='ip=get_ipython()')
     
-    msg_id = KC.object_info('ip.object_inspect', detail_level=2)
+    msg_id = KC.inspect('ip.object_inspect', cursor_pos=10, detail_level=1)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     assert content['found']
-    argspec = content['argspec']
-    nt.assert_is_instance(argspec, dict, "expected non-empty argspec dict, got %r" % argspec)
-    nt.assert_equal(argspec['defaults'], [0])
+    text = content['data']['text/plain']
+    nt.assert_in('Definition:', text)
+    nt.assert_in('Source:', text)
 
 
 def test_oinfo_not_found():
     flush_channels()
 
-    msg_id = KC.object_info('dne')
+    msg_id = KC.inspect('dne')
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'object_info_reply', msg_id)
+    validate_message(reply, 'inspect_reply', msg_id)
     content = reply['content']
     nt.assert_false(content['found'])
 
@@ -394,7 +358,7 @@ def test_complete():
 
     msg_id, reply = execute(code="alpha = albert = 5")
     
-    msg_id = KC.complete('al', 'al', 2)
+    msg_id = KC.complete('al', 2)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'complete_reply', msg_id)
     matches = reply['content']['matches']
@@ -430,7 +394,6 @@ def test_stream():
     stdout = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(stdout, 'stream', msg_id)
     content = stdout['content']
-    nt.assert_equal(content['name'], u'stdout')
     nt.assert_equal(content['data'], u'hi\n')
 
 

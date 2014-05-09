@@ -1,20 +1,7 @@
-"""Tests for parallel client.py
+"""Tests for parallel client.py"""
 
-Authors:
-
-* Min RK
-"""
-
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import division
 
@@ -177,7 +164,7 @@ class TestClient(ClusterTestCase):
         time.sleep(.25)
         ahr = self.client.get_result(ar.msg_ids[0])
         self.assertTrue(isinstance(ahr, AsyncHubResult))
-        self.assertEqual(ahr.get().pyout, ar.get().pyout)
+        self.assertEqual(ahr.get().execute_result, ar.get().execute_result)
         ar2 = self.client.get_result(ar.msg_ids[0])
         self.assertFalse(isinstance(ar2, AsyncHubResult))
         c.close()

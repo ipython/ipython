@@ -519,3 +519,16 @@ ul.keywordmatches li.goodmatch a {
 div.figure {
     text-align: center;
 }
+
+div.versionchanged {
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+span.versionmodified {
+    font-style: italic;
+}
+
+pre {
+  white-space: pre-wrap;
+}

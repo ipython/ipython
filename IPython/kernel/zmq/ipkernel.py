@@ -1,12 +1,11 @@
-#!/usr/bin/env python
 """An interactive kernel that talks to frontends over 0MQ."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Standard library imports
+import getpass
 import sys
 import time
 import traceback
@@ -18,18 +17,17 @@ from signal import (
         signal, default_int_handler, SIGINT
 )
 
-# System library imports
 import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
-# Local imports
 from IPython.config.configurable import Configurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
 from IPython.utils import py3compat
 from IPython.utils.py3compat import builtin_mod, unicode_type, string_types
 from IPython.utils.jsonutil import json_clean
+from IPython.utils.tokenutil import token_at_cursor
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, List, Set, Integer, Unicode,
     Type, Bool,
@@ -44,9 +42,9 @@ from .zmqshell import ZMQInteractiveShell
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-protocol_version = list(release.kernel_protocol_version_info)
-ipython_version = list(release.version_info)
-language_version = list(sys.version_info[:3])
+protocol_version = release.kernel_protocol_version
+ipython_version = release.version
+language_version = sys.version.split()[0]
 
 
 class Kernel(Configurable):
@@ -100,6 +98,10 @@ class Kernel(Configurable):
         """
     )
 
+    # track associations with current request
+    _allow_stdin = Bool(False)
+    _parent_header = Dict()
+    _parent_ident = Any(b'')
     # Time to sleep after flushing the stdout/err buffers in each execute
     # cycle.  While this introduces a hard limit on the minimal latency of the
     # execute cycle, it helps prevent output synchronization problems for
@@ -146,7 +148,7 @@ class Kernel(Configurable):
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
-        self.shell.displayhook.topic = self._topic('pyout')
+        self.shell.displayhook.topic = self._topic('execute_result')
         self.shell.display_pub.session = self.session
         self.shell.display_pub.pub_socket = self.iopub_socket
         self.shell.data_pub.session = self.session
@@ -157,7 +159,7 @@ class Kernel(Configurable):
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
-                      'object_info_request', 'history_request',
+                      'inspect_request', 'history_request',
                       'kernel_info_request',
                       'connect_request', 'shutdown_request',
                       'apply_request',
@@ -241,6 +243,7 @@ class Kernel(Configurable):
         else:
             # ensure default_int_handler during handler call
             sig = signal(SIGINT, default_int_handler)
+            self.log.debug("%s: %s", msg_type, msg)
             try:
                 handler(stream, idents, msg)
             except Exception:
@@ -320,12 +323,12 @@ class Kernel(Configurable):
             new_md.update(other)
         return new_md
     
-    def _publish_pyin(self, code, parent, execution_count):
-        """Publish the code request on the pyin stream."""
+    def _publish_execute_input(self, code, parent, execution_count):
+        """Publish the code request on the iopub stream."""
 
-        self.session.send(self.iopub_socket, u'pyin',
+        self.session.send(self.iopub_socket, u'execute_input',
                             {u'code':code, u'execution_count': execution_count},
-                            parent=parent, ident=self._topic('pyin')
+                            parent=parent, ident=self._topic('execute_input')
         )
     
     def _publish_status(self, status, parent=None):
@@ -336,8 +339,48 @@ class Kernel(Configurable):
                           parent=parent,
                           ident=self._topic('status'),
                           )
+    
+    def _forward_input(self, allow_stdin=False):
+        """Forward raw_input and getpass to the current frontend.
         
-
+        via input_request
+        """
+        self._allow_stdin = allow_stdin
+        
+        if py3compat.PY3:
+            self._sys_raw_input = builtin_mod.input
+            builtin_mod.input = self.raw_input
+        else:
+            self._sys_raw_input = builtin_mod.raw_input
+            self._sys_eval_input = builtin_mod.input
+            builtin_mod.raw_input = self.raw_input
+            builtin_mod.input = lambda prompt='': eval(self.raw_input(prompt))
+        self._save_getpass = getpass.getpass
+        getpass.getpass = self.getpass
+    
+    def _restore_input(self):
+        """Restore raw_input, getpass"""
+        if py3compat.PY3:
+            builtin_mod.input = self._sys_raw_input
+        else:
+            builtin_mod.raw_input = self._sys_raw_input
+            builtin_mod.input = self._sys_eval_input
+        
+        getpass.getpass = self._save_getpass
+    
+    def set_parent(self, ident, parent):
+        """Set the current parent_header
+        
+        Side effects (IOPub messages) and replies are associated with
+        the request that caused them via the parent_header.
+        
+        The parent identity is used to route input_request messages
+        on the stdin channel.
+        """
+        self._parent_ident = ident
+        self._parent_header = parent
+        self.shell.set_parent(parent)
+    
     def execute_request(self, stream, ident, parent):
         """handle an execute_request"""
         
@@ -354,33 +397,17 @@ class Kernel(Configurable):
             return
         
         md = self._make_metadata(parent['metadata'])
-
+        
         shell = self.shell # we'll need this a lot here
-
-        # Replace raw_input. Note that is not sufficient to replace
-        # raw_input in the user namespace.
-        if content.get('allow_stdin', False):
-            raw_input = lambda prompt='': self._raw_input(prompt, ident, parent)
-            input = lambda prompt='': eval(raw_input(prompt))
-        else:
-            raw_input = input = lambda prompt='' : self._no_raw_input()
-
-        if py3compat.PY3:
-            self._sys_raw_input = builtin_mod.input
-            builtin_mod.input = raw_input
-        else:
-            self._sys_raw_input = builtin_mod.raw_input
-            self._sys_eval_input = builtin_mod.input
-            builtin_mod.raw_input = raw_input
-            builtin_mod.input = input
-
+        
+        self._forward_input(content.get('allow_stdin', False))
         # Set the parent message of the display hook and out streams.
-        shell.set_parent(parent)
-
+        self.set_parent(ident, parent)
+        
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
         if not silent:
-            self._publish_pyin(code, parent, shell.execution_count)
+            self._publish_execute_input(code, parent, shell.execution_count)
 
         reply_content = {}
         # FIXME: the shell calls the exception handler itself.
@@ -401,12 +428,7 @@ class Kernel(Configurable):
         else:
             status = u'ok'
         finally:
-            # Restore raw_input.
-             if py3compat.PY3:
-                 builtin_mod.input = self._sys_raw_input
-             else:
-                 builtin_mod.raw_input = self._sys_raw_input
-                 builtin_mod.input = self._sys_eval_input
+            self._restore_input()
 
         reply_content[u'status'] = status
 
@@ -427,16 +449,12 @@ class Kernel(Configurable):
         
 
         # At this point, we can tell whether the main code execution succeeded
-        # or not.  If it did, we proceed to evaluate user_variables/expressions
+        # or not.  If it did, we proceed to evaluate user_expressions
         if reply_content['status'] == 'ok':
-            reply_content[u'user_variables'] = \
-                         shell.user_variables(content.get(u'user_variables', []))
             reply_content[u'user_expressions'] = \
                          shell.user_expressions(content.get(u'user_expressions', {}))
         else:
-            # If there was an error, don't even try to compute variables or
-            # expressions
-            reply_content[u'user_variables'] = {}
+            # If there was an error, don't even try to compute expressions
             reply_content[u'user_expressions'] = {}
 
         # Payloads should be retrieved regardless of outcome, so we can both
@@ -476,24 +494,41 @@ class Kernel(Configurable):
         self._publish_status(u'idle', parent)
 
     def complete_request(self, stream, ident, parent):
-        txt, matches = self._complete(parent)
+        content = parent['content']
+        code = content['code']
+        cursor_pos = content['cursor_pos']
+        
+        txt, matches = self.shell.complete('', code, cursor_pos)
         matches = {'matches' : matches,
-                   'matched_text' : txt,
+                   'cursor_end' : cursor_pos,
+                   'cursor_start' : cursor_pos - len(txt),
+                   'metadata' : {},
                    'status' : 'ok'}
         matches = json_clean(matches)
         completion_msg = self.session.send(stream, 'complete_reply',
                                            matches, parent, ident)
         self.log.debug("%s", completion_msg)
 
-    def object_info_request(self, stream, ident, parent):
+    def inspect_request(self, stream, ident, parent):
         content = parent['content']
-        object_info = self.shell.object_inspect(content['oname'],
-                        detail_level = content.get('detail_level', 0)
-        )
+        
+        name = token_at_cursor(content['code'], content['cursor_pos'])
+        info = self.shell.object_inspect(name)
+        
+        reply_content = {'status' : 'ok'}
+        reply_content['data'] = data = {}
+        reply_content['metadata'] = {}
+        reply_content['found'] = info['found']
+        if info['found']:
+            info_text = self.shell.object_inspect_text(
+                name,
+                detail_level=content.get('detail_level', 0),
+            )
+            reply_content['data']['text/plain'] = info_text
         # Before we send this object over, we scrub it for JSON usage
-        oinfo = json_clean(object_info)
-        msg = self.session.send(stream, 'object_info_reply',
-                                oinfo, parent, ident)
+        reply_content = json_clean(reply_content)
+        msg = self.session.send(stream, 'inspect_reply',
+                                reply_content, parent, ident)
         self.log.debug("%s", msg)
 
     def history_request(self, stream, ident, parent):
@@ -542,9 +577,11 @@ class Kernel(Configurable):
     def kernel_info_request(self, stream, ident, parent):
         vinfo = {
             'protocol_version': protocol_version,
-            'ipython_version': ipython_version,
+            'implementation': 'ipython',
+            'implementation_version': ipython_version,
             'language_version': language_version,
             'language': 'python',
+            'banner': self.shell.banner,
         }
         msg = self.session.send(stream, 'kernel_info_reply',
                                 vinfo, parent, ident)
@@ -584,9 +621,6 @@ class Kernel(Configurable):
         shell = self.shell
         shell.set_parent(parent)
 
-        # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
-        # self.iopub_socket.send(pyin_msg)
-        # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
         md = self._make_metadata(parent['metadata'])
         try:
             working = shell.user_ns
@@ -631,8 +665,8 @@ class Kernel(Configurable):
                 # reset after use
                 shell._reply_content = None
             
-            self.session.send(self.iopub_socket, u'pyerr', reply_content, parent=parent,
-                                ident=self._topic('pyerr'))
+            self.session.send(self.iopub_socket, u'error', reply_content, parent=parent,
+                                ident=self._topic('error'))
             self.log.info("Exception in apply request:\n%s", '\n'.join(reply_content['traceback']))
             result_buf = []
 
@@ -734,8 +768,42 @@ class Kernel(Configurable):
         stdin."""
         raise StdinNotImplementedError("raw_input was called, but this "
                                        "frontend does not support stdin.") 
+    
+    def getpass(self, prompt=''):
+        """Forward getpass to frontends
         
-    def _raw_input(self, prompt, ident, parent):
+        Raises
+        ------
+        StdinNotImplentedError if active frontend doesn't support stdin.
+        """
+        if not self._allow_stdin:
+            raise StdinNotImplementedError(
+                "getpass was called, but this frontend does not support input requests."
+            )
+        return self._input_request(prompt,
+            self._parent_ident,
+            self._parent_header,
+            password=True,
+        )
+    
+    def raw_input(self, prompt=''):
+        """Forward raw_input to frontends
+        
+        Raises
+        ------
+        StdinNotImplentedError if active frontend doesn't support stdin.
+        """
+        if not self._allow_stdin:
+            raise StdinNotImplementedError(
+                "raw_input was called, but this frontend does not support input requests."
+            )
+        return self._input_request(prompt,
+            self._parent_ident,
+            self._parent_header,
+            password=False,
+        )
+    
+    def _input_request(self, prompt, ident, parent, password=False):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -750,7 +818,7 @@ class Kernel(Configurable):
                     raise
         
         # Send the input request.
-        content = json_clean(dict(prompt=prompt))
+        content = json_clean(dict(prompt=prompt, password=password))
         self.session.send(self.stdin_socket, u'input_request', content, parent,
                           ident=ident)
 
@@ -768,26 +836,12 @@ class Kernel(Configurable):
         try:
             value = py3compat.unicode_to_str(reply['content']['value'])
         except:
-            self.log.error("Got bad raw_input reply: ")
-            self.log.error("%s", parent)
+            self.log.error("Bad input_reply: %s", parent)
             value = ''
         if value == '\x04':
             # EOF
             raise EOFError
         return value
-
-    def _complete(self, msg):
-        c = msg['content']
-        try:
-            cpos = int(c['cursor_pos'])
-        except:
-            # If we don't get something that we can convert to an integer, at
-            # least attempt the completion guessing the cursor is at the end of
-            # the text, if there's any, and otherwise of the line
-            cpos = len(c['text'])
-            if cpos==0:
-                cpos = len(c['line'])
-        return self.shell.complete(c['text'], c['line'], cpos)
 
     def _at_shutdown(self):
         """Actions taken at shutdown by the kernel, called by python's atexit.

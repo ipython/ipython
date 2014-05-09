@@ -7,12 +7,9 @@ Similar in spirit to the inspect module, but all calls take a name argument to
 reference the name under which an object is being read.
 """
 
-#*****************************************************************************
-#       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#*****************************************************************************
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
 __all__ = ['Inspector','InspectColors']
@@ -532,21 +529,9 @@ class Inspector:
                         ("Init docstring", "init_docstring"),
                         ("Call def", "call_def"),
                         ("Call docstring", "call_docstring")]
-
-    def pinfo(self,obj,oname='',formatter=None,info=None,detail_level=0):
-        """Show detailed information about an object.
-
-        Optional arguments:
-
-        - oname: name of the variable pointing to the object.
-
-        - formatter: special formatter for docstrings (see pdoc)
-
-        - info: a structure with some information fields which may have been
-          precomputed already.
-
-        - detail_level: if set to 1, more information is given.
-        """
+    
+    def _format_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
+        """Format an info dict as text"""
         info = self.info(obj, oname=oname, formatter=formatter,
                             info=info, detail_level=detail_level)
         displayfields = []
@@ -590,11 +575,30 @@ class Inspector:
         # Info for objects:
         else:
             add_fields(self.pinfo_fields_obj)
-
-        # Finally send to printer/pager:
+        
         if displayfields:
-            page.page(self._format_fields(displayfields))
+            return self._format_fields(displayfields)
+        else:
+            return u''
+    
+    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0):
+        """Show detailed information about an object.
 
+        Optional arguments:
+
+        - oname: name of the variable pointing to the object.
+
+        - formatter: special formatter for docstrings (see pdoc)
+
+        - info: a structure with some information fields which may have been
+          precomputed already.
+
+        - detail_level: if set to 1, more information is given.
+        """
+        text = self._format_info(obj, oname, formatter, info, detail_level)
+        if text:
+            page.page(text)
+    
     def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """Compute a dict with detailed information about an object.
 

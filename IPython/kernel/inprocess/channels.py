@@ -1,23 +1,13 @@
-""" A kernel client for in-process kernels. """
+"""A kernel client for in-process kernels."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2012  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# IPython imports
 from IPython.kernel.channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )
 
-# Local imports
 from .socket import DummySocket
 
 #-----------------------------------------------------------------------------
@@ -83,7 +73,7 @@ class InProcessShellChannel(InProcessChannel):
     proxy_methods = [
         'execute',
         'complete',
-        'object_info',
+        'inspect',
         'history',
         'shutdown',
         'kernel_info',
@@ -94,26 +84,31 @@ class InProcessShellChannel(InProcessChannel):
     #--------------------------------------------------------------------------
 
     def execute(self, code, silent=False, store_history=True,
-                user_variables=[], user_expressions={}, allow_stdin=None):
+                user_expressions={}, allow_stdin=None):
         if allow_stdin is None:
             allow_stdin = self.allow_stdin
         content = dict(code=code, silent=silent, store_history=store_history,
-                       user_variables=user_variables,
                        user_expressions=user_expressions,
                        allow_stdin=allow_stdin)
         msg = self.client.session.msg('execute_request', content)
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 
-    def complete(self, text, line, cursor_pos, block=None):
-        content = dict(text=text, line=line, block=block, cursor_pos=cursor_pos)
+    def complete(self, code, cursor_pos=None):
+        if cursor_pos is None:
+            cursor_pos = len(code)
+        content = dict(code=code, cursor_pos=cursor_pos)
         msg = self.client.session.msg('complete_request', content)
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 
-    def object_info(self, oname, detail_level=0):
-        content = dict(oname=oname, detail_level=detail_level)
-        msg = self.client.session.msg('object_info_request', content)
+    def inspect(self, code, cursor_pos=None, detail_level=0):
+        if cursor_pos is None:
+            cursor_pos = len(code)
+        content = dict(code=code, cursor_pos=cursor_pos,
+            detail_level=detail_level,
+        )
+        msg = self.client.session.msg('inspect_request', content)
         self._dispatch_to_kernel(msg)
         return msg['header']['msg_id']
 

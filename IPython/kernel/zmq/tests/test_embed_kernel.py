@@ -113,7 +113,7 @@ def test_embed_kernel_basic():
     
     with setup_kernel(cmd) as client:
         # oinfo a (int)
-        msg_id = client.object_info('a')
+        msg_id = client.inspect('a')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
@@ -124,11 +124,12 @@ def test_embed_kernel_basic():
         nt.assert_equal(content['status'], u'ok')
 
         # oinfo c (should be 10)
-        msg_id = client.object_info('c')
+        msg_id = client.inspect('c')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equal(content['string_form'], u'10')
+        text = content['data']['text/plain']
+        nt.assert_in('10', text)
 
 def test_embed_kernel_namespace():
     """IPython.embed_kernel() inherits calling namespace"""
@@ -144,21 +145,23 @@ def test_embed_kernel_namespace():
     
     with setup_kernel(cmd) as client:
         # oinfo a (int)
-        msg_id = client.object_info('a')
+        msg_id = client.inspect('a')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equal(content['string_form'], u'5')
+        text = content['data']['text/plain']
+        nt.assert_in(u'5', text)
 
         # oinfo b (str)
-        msg_id = client.object_info('b')
+        msg_id = client.inspect('b')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equal(content['string_form'], u'hi there')
+        text = content['data']['text/plain']
+        nt.assert_in(u'hi there', text)
 
         # oinfo c (undefined)
-        msg_id = client.object_info('c')
+        msg_id = client.inspect('c')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         nt.assert_false(content['found'])
@@ -180,11 +183,12 @@ def test_embed_kernel_reentrant():
     
     with setup_kernel(cmd) as client:
         for i in range(5):
-            msg_id = client.object_info('count')
+            msg_id = client.inspect('count')
             msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
             content = msg['content']
             nt.assert_true(content['found'])
-            nt.assert_equal(content['string_form'], unicode_type(i))
+            text = content['data']['text/plain']
+            nt.assert_in(unicode_type(i), text)
             
             # exit from embed_kernel
             client.execute("get_ipython().exit_now = True")

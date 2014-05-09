@@ -3,11 +3,9 @@
 This supports the additional functionality provided by the IPython kernel.
 """
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-# Standard library imports
 from collections import namedtuple
 import os.path
 import re
@@ -16,11 +14,10 @@ import sys
 import time
 from textwrap import dedent
 
-# System library imports
 from IPython.external.qt import QtCore, QtGui
 
-# Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.release import version
 from IPython.core.inputtransformer import ipy_prompt
 from IPython.utils.traitlets import Bool, Unicode
 from .frontend_widget import FrontendWidget
@@ -111,6 +108,7 @@ class IPythonWidget(FrontendWidget):
     _payload_source_next_input = 'set_next_input'
     _payload_source_page = 'page'
     _retrying_history_request = False
+    _starting = False
 
     #---------------------------------------------------------------------------
     # 'object' interface
@@ -148,22 +146,12 @@ class IPythonWidget(FrontendWidget):
         info = self._request_info.get('complete')
         if info and info.id == rep['parent_header']['msg_id'] and \
                 info.pos == cursor.position():
-            matches = rep['content']['matches']
-            text = rep['content']['matched_text']
-            offset = len(text)
-
-            # Clean up matches with period and path separators if the matched
-            # text has not been transformed. This is done by truncating all
-            # but the last component and then suitably decreasing the offset
-            # between the current cursor position and the start of completion.
-            if len(matches) > 1 and matches[0][:offset] == text:
-                parts = re.split(r'[./\\]', text)
-                sep_count = len(parts) - 1
-                if sep_count:
-                    chop_length = sum(map(len, parts[:sep_count])) + sep_count
-                    matches = [ match[chop_length:] for match in matches ]
-                    offset -= chop_length
-
+            content = rep['content']
+            matches = content['matches']
+            start = content['cursor_start']
+            end = content['cursor_end']
+            
+            offset = end - start
             # Move the cursor to the start of the match and complete.
             cursor.movePosition(QtGui.QTextCursor.Left, n=offset)
             self._complete_with_items(cursor, matches)
@@ -217,10 +205,10 @@ class IPythonWidget(FrontendWidget):
                 last_cell = cell
         self._set_history(items)
 
-    def _handle_pyout(self, msg):
+    def _handle_execute_result(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
-        self.log.debug("pyout: %s", msg.get('content', ''))
+        self.log.debug("execute_result: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             self.flush_clearoutput()
             content = msg['content']
@@ -257,30 +245,27 @@ class IPythonWidget(FrontendWidget):
             self._append_plain_text(u'\n', True)
 
     def _handle_kernel_info_reply(self, rep):
-        """ Handle kernel info replies.
-        """
+        """Handle kernel info replies."""
+        content = rep['content']
         if not self._guiref_loaded:
-            if rep['content'].get('language') == 'python':
+            if content.get('language') == 'python':
                 self._load_guiref_magic()
             self._guiref_loaded = True
+        
+        self.kernel_banner = content.get('banner', '')
+        if self._starting:
+            # finish handling started channels
+            self._starting = False
+            super(IPythonWidget, self)._started_channels()
 
     def _started_channels(self):
         """Reimplemented to make a history request and load %guiref."""
-        super(IPythonWidget, self)._started_channels()
-
+        self._starting = True
         # The reply will trigger %guiref load provided language=='python'
         self.kernel_client.kernel_info()
 
         self.kernel_client.shell_channel.history(hist_access_type='tail',
                                                   n=1000)
-    
-    def _started_kernel(self):
-        """Load %guiref when the kernel starts (if channels are also started).
-        
-        Principally triggered by kernel restart.
-        """
-        if self.kernel_client.shell_channel is not None:
-            self._load_guiref_magic()
     
     def _load_guiref_magic(self):
         """Load %guiref magic."""
@@ -330,24 +315,6 @@ class IPythonWidget(FrontendWidget):
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
-
-    def _complete(self):
-        """ Reimplemented to support IPython's improved completion machinery.
-        """
-        # We let the kernel split the input line, so we *always* send an empty
-        # text field. Readline-based frontends do get a real text field which
-        # they can use.
-        text = ''
-
-        # Send the completion request to the kernel
-        msg_id = self.kernel_client.shell_channel.complete(
-            text,                                    # text
-            self._get_input_buffer_cursor_line(),    # line
-            self._get_input_buffer_cursor_column(),  # cursor_pos
-            self.input_buffer)                       # block
-        pos = self._get_cursor().position()
-        info = self._CompletionRequest(msg_id, pos)
-        self._request_info['complete'] = info
 
     def _process_execute_error(self, msg):
         """ Reimplemented for IPython-style traceback formatting.
@@ -555,10 +522,11 @@ class IPythonWidget(FrontendWidget):
         # Since the plain text widget supports only a very small subset of HTML
         # and we have no control over the HTML source, we only page HTML
         # payloads in the rich text widget.
-        if item['html'] and self.kind == 'rich':
-            self._page(item['html'], html=True)
+        data = item['data']
+        if 'text/html' in data and self.kind == 'rich':
+            self._page(data['text/html'], html=True)
         else:
-            self._page(item['text'], html=False)
+            self._page(data['text/plain'], html=False)
 
     #------ Trait change handlers --------------------------------------------
 
@@ -590,5 +558,4 @@ class IPythonWidget(FrontendWidget):
     #------ Trait default initializers -----------------------------------------
 
     def _banner_default(self):
-        from IPython.core.usage import default_gui_banner
-        return default_gui_banner
+        return "IPython QtConsole {version}\n".format(version=version)

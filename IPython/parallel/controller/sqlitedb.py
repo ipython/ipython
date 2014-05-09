@@ -1,15 +1,7 @@
-"""A TaskRecord backend using sqlite3
+"""A TaskRecord backend using sqlite3"""
 
-Authors:
-
-* Min RK
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import json
 import os
@@ -128,9 +120,9 @@ class SQLiteDB(BaseDB):
             'result_content' ,
             'result_buffers' ,
             'queue' ,
-            'pyin' ,
-            'pyout',
-            'pyerr',
+            'execute_input' ,
+            'execute_result',
+            'error',
             'stdout',
             'stderr',
         ])
@@ -152,9 +144,9 @@ class SQLiteDB(BaseDB):
             'result_content' : 'dict text',
             'result_buffers' : 'bufs blob',
             'queue' : 'text',
-            'pyin' : 'text',
-            'pyout' : 'text',
-            'pyerr' : 'text',
+            'execute_input' : 'text',
+            'execute_result' : 'text',
+            'error' : 'text',
             'stdout' : 'text',
             'stderr' : 'text',
         })
@@ -263,9 +255,9 @@ class SQLiteDB(BaseDB):
                 result_content dict text,
                 result_buffers bufs blob,
                 queue text,
-                pyin text,
-                pyout text,
-                pyerr text,
+                execute_input text,
+                execute_result text,
+                error text,
                 stdout text,
                 stderr text)
                 """%self.table)

@@ -32,6 +32,7 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
+from IPython.core.release import kernel_protocol_version
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
@@ -182,6 +183,7 @@ class Message(object):
 
 def msg_header(msg_id, msg_type, username, session):
     date = datetime.now()
+    version = kernel_protocol_version
     return locals()
 
 def extract_header(msg_or_header):

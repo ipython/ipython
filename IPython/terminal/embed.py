@@ -75,24 +75,17 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     # Like the base class display_banner is not configurable, but here it
     # is True by default.
     display_banner = CBool(True)
-
-    def __init__(self, config=None, ipython_dir=None, user_ns=None,
-                 user_module=None, custom_exceptions=((),None),
-                 usage=None, banner1=None, banner2=None,
-                 display_banner=None, exit_msg=u'', user_global_ns=None):
+    exit_msg = Unicode()
     
-        if user_global_ns is not None:
+
+    def __init__(self, **kw):
+        
+    
+        if kw.get('user_global_ns', None) is not None:
             warnings.warn("user_global_ns has been replaced by user_module. The\
                            parameter will be ignored.", DeprecationWarning)
 
-        super(InteractiveShellEmbed,self).__init__(
-            config=config, ipython_dir=ipython_dir, user_ns=user_ns,
-            user_module=user_module, custom_exceptions=custom_exceptions,
-            usage=usage, banner1=banner1, banner2=banner2,
-            display_banner=display_banner
-        )
-
-        self.exit_msg = exit_msg
+        super(InteractiveShellEmbed,self).__init__(**kw)
 
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped

@@ -1,9 +1,5 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 //============================================================================
 // OutputArea
@@ -221,15 +217,18 @@ var IPython = (function (IPython) {
             json = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
-        } else if (msg_type === "pyout") {
+        } else if (msg_type === "execute_result") {
             json = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
             json.prompt_number = content.execution_count;
-        } else if (msg_type === "pyerr") {
+        } else if (msg_type === "error") {
             json.ename = content.ename;
             json.evalue = content.evalue;
             json.traceback = content.traceback;
+        } else {
+            console.log("unhandled output message", msg);
+            return;
         }
         this.append_output(json);
     };
@@ -283,10 +282,10 @@ var IPython = (function (IPython) {
             needs_height_reset = true;
         }
 
-        if (json.output_type === 'pyout') {
-            this.append_pyout(json);
-        } else if (json.output_type === 'pyerr') {
-            this.append_pyerr(json);
+        if (json.output_type === 'execute_result') {
+            this.append_execute_result(json);
+        } else if (json.output_type === 'error') {
+            this.append_error(json);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         }
@@ -406,7 +405,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pyout = function (json) {
+    OutputArea.prototype.append_execute_result = function (json) {
         var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
@@ -414,7 +413,7 @@ var IPython = (function (IPython) {
         }
         var inserted = this.append_mime_type(json, toinsert);
         if (inserted) {
-            inserted.addClass('output_pyout');
+            inserted.addClass('output_result');
         }
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
@@ -426,7 +425,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_pyerr = function (json) {
+    OutputArea.prototype.append_error = function (json) {
         var tb = json.traceback;
         if (tb !== undefined && tb.length > 0) {
             var s = '';
@@ -438,7 +437,7 @@ var IPython = (function (IPython) {
             var toinsert = this.create_output_area();
             var append_text = OutputArea.append_map['text/plain'];
             if (append_text) {
-                append_text.apply(this, [s, {}, toinsert]).addClass('output_pyerr');
+                append_text.apply(this, [s, {}, toinsert]).addClass('output_error');
             }
             this._safe_append(toinsert);
         }
@@ -746,6 +745,8 @@ var IPython = (function (IPython) {
         // disable any other raw_inputs, if they are left around
         $("div.output_subarea.raw_input_container").remove();
         
+        var input_type = content.password ? 'password' : 'text';
+        
         area.append(
             $("<div/>")
             .addClass("box-flex1 output_subarea raw_input_container")
@@ -757,7 +758,7 @@ var IPython = (function (IPython) {
             .append(
                 $("<input/>")
                 .addClass("raw_input")
-                .attr('type', 'text')
+                .attr('type', input_type)
                 .attr("size", 47)
                 .keydown(function (event, ui) {
                     // make sure we submit on enter,
@@ -786,10 +787,15 @@ var IPython = (function (IPython) {
         var theprompt = container.find("span.raw_input_prompt");
         var theinput = container.find("input.raw_input");
         var value = theinput.val();
+        var echo  = value;
+        // don't echo if it's a password
+        if (theinput.attr('type') == 'password') {
+            echo = '········';
+        }
         var content = {
             output_type : 'stream',
             name : 'stdout',
-            text : theprompt.text() + value + '\n'
+            text : theprompt.text() + echo + '\n'
         }
         // remove form container
         container.parent().remove();
@@ -850,11 +856,26 @@ var IPython = (function (IPython) {
         for (var i=0; i<len; i++) {
             data = outputs[i];
             var msg_type = data.output_type;
-            if (msg_type === "display_data" || msg_type === "pyout") {
+            if (msg_type == "pyout") {
+                // pyout message has been renamed to execute_result,
+                // but the nbformat has not been updated,
+                // so transform back to pyout for json.
+                msg_type = data.output_type = "execute_result";
+            } else if (msg_type == "pyerr") {
+                // pyerr message has been renamed to error,
+                // but the nbformat has not been updated,
+                // so transform back to pyerr for json.
+                msg_type = data.output_type = "error";
+            }
+            if (msg_type === "display_data" || msg_type === "execute_result") {
                 // convert short keys to mime keys
                 // TODO: remove mapping of short keys when we update to nbformat 4
                  data = this.rename_keys(data, OutputArea.mime_map_r);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
+                 // msg spec JSON is an object, nbformat v3 JSON is a JSON string
+                 if (data["application/json"] !== undefined && typeof data["application/json"] === 'string') {
+                     data["application/json"] = JSON.parse(data["application/json"]);
+                 }
             }
             
             this.append_output(data);
@@ -869,10 +890,25 @@ var IPython = (function (IPython) {
         for (var i=0; i<len; i++) {
             data = this.outputs[i];
             var msg_type = data.output_type;
-            if (msg_type === "display_data" || msg_type === "pyout") {
+            if (msg_type === "display_data" || msg_type === "execute_result") {
                   // convert mime keys to short keys
                  data = this.rename_keys(data, OutputArea.mime_map);
                  data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
+                 // msg spec JSON is an object, nbformat v3 JSON is a JSON string
+                 if (data.json !== undefined && typeof data.json !== 'string') {
+                     data.json = JSON.stringify(data.json);
+                 }
+            }
+            if (msg_type == "execute_result") {
+                // pyout message has been renamed to execute_result,
+                // but the nbformat has not been updated,
+                // so transform back to pyout for json.
+                data.output_type = "pyout";
+            } else if (msg_type == "error") {
+                // pyerr message has been renamed to error,
+                // but the nbformat has not been updated,
+                // so transform back to pyerr for json.
+                data.output_type = "pyerr";
             }
             outputs[i] = data;
         }

@@ -133,7 +133,10 @@ def _detect_screen_size(screen_lines_def):
     #screen_cols,'columns.' # dbg
 
 def page(strng, start=0, screen_lines=0, pager_cmd=None):
-    """Print a string, piping through a pager after a certain length.
+    """Display a string, piping through a pager after a certain length.
+    
+    strng can be a mime-bundle dict, supplying multiple representations,
+    keyed by mime-type.
 
     The screen_lines parameter specifies the number of *usable* lines of your
     terminal screen (total lines minus lines you need to reserve to show other
@@ -152,6 +155,10 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     If no system pager works, the string is sent through a 'dumb pager'
     written in python, very simplistic.
     """
+    
+    # for compatibility with mime-bundle form:
+    if isinstance(strng, dict):
+        strng = strng['text/plain']
 
     # Some routines may auto-compute start offsets incorrectly and pass a
     # negative value.  Offset to 0 for robustness.

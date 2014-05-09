@@ -20,7 +20,7 @@ import os
 import sys
 
 from IPython.core.error import TryNext, UsageError
-from IPython.core.usage import interactive_usage, default_banner
+from IPython.core.usage import interactive_usage
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, magics_class, line_magic
@@ -258,13 +258,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
     autoedit_syntax = CBool(False, config=True,
         help="auto editing of files with syntax errors.")
-    banner = Unicode('')
-    banner1 = Unicode(default_banner, config=True,
-        help="""The part of the banner to be printed before the profile"""
-    )
-    banner2 = Unicode('', config=True,
-        help="""The part of the banner to be printed after the profile"""
-    )
     confirm_exit = CBool(True, config=True,
         help="""
         Set to confirm when you try to exit IPython with an EOF (Control-D
@@ -274,8 +267,7 @@ class TerminalInteractiveShell(InteractiveShell):
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
     # because for the terminal based application, the banner behavior
-    # is controlled by Global.display_banner, which IPythonApp looks at
-    # to determine if *it* should call show_banner() by hand or not.
+    # is controlled by the application.
     display_banner = CBool(False) # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
@@ -300,6 +292,7 @@ class TerminalInteractiveShell(InteractiveShell):
     term_title = CBool(False, config=True,
         help="Enable auto setting the terminal title."
     )
+    usage = Unicode(interactive_usage)
     
     # This `using_paste_magics` is used to detect whether the code is being
     # executed via paste magics functions
@@ -317,23 +310,7 @@ class TerminalInteractiveShell(InteractiveShell):
         except ValueError as e:
             raise UsageError("%s" % e)
     
-    def __init__(self, config=None, ipython_dir=None, profile_dir=None,
-                 user_ns=None, user_module=None, custom_exceptions=((),None),
-                 usage=None, banner1=None, banner2=None, display_banner=None,
-                 **kwargs):
-
-        super(TerminalInteractiveShell, self).__init__(
-            config=config, ipython_dir=ipython_dir, profile_dir=profile_dir, user_ns=user_ns,
-            user_module=user_module, custom_exceptions=custom_exceptions,
-            **kwargs
-        )
-        # use os.system instead of utils.process.system by default,
-        # because piped system doesn't make sense in the Terminal:
-        self.system = self.system_raw
-
-        self.init_term_title()
-        self.init_usage(usage)
-        self.init_banner(banner1, banner2, display_banner)
+    system = InteractiveShell.system_raw
 
     #-------------------------------------------------------------------------
     # Overrides of init stages
@@ -355,6 +332,9 @@ class TerminalInteractiveShell(InteractiveShell):
         else:
             num_lines_bot = self.separate_in.count('\n')+1
             return self.screen_length - num_lines_bot
+
+    def _term_title_changed(self, name, new_value):
+        self.init_term_title()
 
     def init_term_title(self):
         # Enable or disable the terminal title.
@@ -384,46 +364,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
         for name, cmd in aliases:
             self.alias_manager.soft_define_alias(name, cmd)
-
-    #-------------------------------------------------------------------------
-    # Things related to the banner and usage
-    #-------------------------------------------------------------------------
-
-    def _banner1_changed(self):
-        self.compute_banner()
-
-    def _banner2_changed(self):
-        self.compute_banner()
-
-    def _term_title_changed(self, name, new_value):
-        self.init_term_title()
-
-    def init_banner(self, banner1, banner2, display_banner):
-        if banner1 is not None:
-            self.banner1 = banner1
-        if banner2 is not None:
-            self.banner2 = banner2
-        if display_banner is not None:
-            self.display_banner = display_banner
-        self.compute_banner()
-
-    def show_banner(self, banner=None):
-        if banner is None:
-            banner = self.banner
-        self.write(banner)
-
-    def compute_banner(self):
-        self.banner = self.banner1
-        if self.profile and self.profile != 'default':
-            self.banner += '\nIPython profile: %s\n' % self.profile
-        if self.banner2:
-            self.banner += '\n' + self.banner2
-
-    def init_usage(self, usage=None):
-        if usage is None:
-            self.usage = interactive_usage
-        else:
-            self.usage = usage
 
     #-------------------------------------------------------------------------
     # Mainloop and code execution logic

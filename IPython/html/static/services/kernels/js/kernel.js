@@ -57,7 +57,8 @@ var IPython = (function (IPython) {
                 msg_id : utils.uuid(),
                 username : this.username,
                 session : this.session_id,
-                msg_type : msg_type
+                msg_type : msg_type,
+                version : "5.0"
             },
             metadata : metadata || {},
             content : content,
@@ -76,13 +77,13 @@ var IPython = (function (IPython) {
     // Initialize the iopub handlers
     
     Kernel.prototype.init_iopub_handlers = function () {
-        var output_types = ['stream', 'display_data', 'pyout', 'pyerr'];
+        var output_msg_types = ['stream', 'display_data', 'execute_result', 'error'];
         this._iopub_handlers = {};
         this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
         this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
         
-        for (var i=0; i < output_types.length; i++) {
-            this.register_iopub_handler(output_types[i], $.proxy(this._handle_output_message, this));
+        for (var i=0; i < output_msg_types.length; i++) {
+            this.register_iopub_handler(output_msg_types[i], $.proxy(this._handle_output_message, this));
         }
     };
 
@@ -246,7 +247,7 @@ var IPython = (function (IPython) {
      * Get kernel info
      *
      * @param callback {function}
-     * @method object_info
+     * @method kernel_info
      *
      * When calling this method, pass a callback function that expects one argument.
      * The callback will be passed the complete `kernel_info_reply` message documented
@@ -263,28 +264,27 @@ var IPython = (function (IPython) {
     /**
      * Get info on an object
      *
-     * @param objname {string}
+     * @param code {string}
+     * @param cursor_pos {integer}
      * @param callback {function}
-     * @method object_info
+     * @method inspect
      *
      * When calling this method, pass a callback function that expects one argument.
-     * The callback will be passed the complete `object_info_reply` message documented
+     * The callback will be passed the complete `inspect_reply` message documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
      */
-    Kernel.prototype.object_info = function (objname, callback) {
+    Kernel.prototype.inspect = function (code, cursor_pos, callback) {
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
         }
         
-        if (typeof(objname) !== null && objname !== null) {
-            var content = {
-                oname : objname.toString(),
-                detail_level : 0,
-            };
-            return this.send_shell_message("object_info_request", content, callbacks);
-        }
-        return;
+        var content = {
+            code : code,
+            cursor_pos : cursor_pos,
+            detail_level : 0,
+        };
+        return this.send_shell_message("inspect_request", content, callbacks);
     };
 
     /**
@@ -302,7 +302,6 @@ var IPython = (function (IPython) {
      * @param {object} [options]
      *      @param [options.silent=false] {Boolean}
      *      @param [options.user_expressions=empty_dict] {Dict}
-     *      @param [options.user_variables=empty_list] {List od Strings}
      *      @param [options.allow_stdin=false] {Boolean} true|false
      *
      * @example
@@ -312,7 +311,6 @@ var IPython = (function (IPython) {
      *
      *      options = {
      *        silent : true,
-     *        user_variables : [],
      *        user_expressions : {},
      *        allow_stdin : false
      *      }
@@ -342,7 +340,6 @@ var IPython = (function (IPython) {
             code : code,
             silent : true,
             store_history : false,
-            user_variables : [],
             user_expressions : {},
             allow_stdin : false
         };
@@ -363,21 +360,19 @@ var IPython = (function (IPython) {
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#complete)
      *
      * @method complete
-     * @param line {integer}
+     * @param code {string}
      * @param cursor_pos {integer}
      * @param callback {function}
      *
      */
-    Kernel.prototype.complete = function (line, cursor_pos, callback) {
+    Kernel.prototype.complete = function (code, cursor_pos, callback) {
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
         }
         var content = {
-            text : '',
-            line : line,
-            block : null,
-            cursor_pos : cursor_pos
+            code : code,
+            cursor_pos : cursor_pos,
         };
         return this.send_shell_message("complete_request", content, callbacks);
     };
@@ -573,7 +568,7 @@ var IPython = (function (IPython) {
     };
 
 
-    // handle an output message (pyout, display_data, etc.)
+    // handle an output message (execute_result, display_data, etc.)
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {

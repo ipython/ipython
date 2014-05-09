@@ -1,19 +1,10 @@
 # encoding: utf-8
-"""
-IO capturing utilities.
-"""
+"""IO capturing utilities."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function, absolute_import
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import sys
 
@@ -30,14 +21,13 @@ else:
 
 
 class RichOutput(object):
-    def __init__(self, source="", data=None, metadata=None):
-        self.source = source
+    def __init__(self, data=None, metadata=None):
         self.data = data or {}
         self.metadata = metadata or {}
     
     def display(self):
         from IPython.display import publish_display_data
-        publish_display_data(self.source, self.data, self.metadata)
+        publish_display_data(data=self.data, metadata=self.metadata)
     
     def _repr_mime_(self, mime):
         if mime not in self.data:
@@ -118,7 +108,7 @@ class CapturedIO(object):
             for o in c.outputs:
                 display(o)
         """
-        return [ RichOutput(s, d, md) for s, d, md in self._outputs ]
+        return [ RichOutput(d, md) for d, md in self._outputs ]
     
     def show(self):
         """write my output to sys.stdout/err as appropriate"""
@@ -126,8 +116,8 @@ class CapturedIO(object):
         sys.stderr.write(self.stderr)
         sys.stdout.flush()
         sys.stderr.flush()
-        for source, data, metadata in self._outputs:
-            RichOutput(source, data, metadata).display()
+        for data, metadata in self._outputs:
+            RichOutput(data, metadata).display()
     
     __call__ = show
 

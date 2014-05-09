@@ -1,17 +1,19 @@
+"""Frontend widget for the Qt Console"""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Standard library imports
 from collections import namedtuple
 import sys
 import uuid
 
-# System library imports
 from IPython.external import qt
 from IPython.external.qt import QtCore, QtGui
 from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 
-# Local imports
 from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
 from IPython.core.inputtransformer import classic_prompt
 from IPython.core.oinspect import call_tip
@@ -80,6 +82,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     # The text to show when the kernel is (re)started.
     banner = Unicode(config=True)
+    kernel_banner = Unicode()
 
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
@@ -502,34 +505,21 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._kernel_restarted_message(died=died)
         self.reset()
 
-    def _handle_object_info_reply(self, rep):
-        """ Handle replies for call tips.
-        """
+    def _handle_inspect_reply(self, rep):
+        """Handle replies for call tips."""
         self.log.debug("oinfo: %s", rep.get('content', ''))
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
         if info and info.id == rep['parent_header']['msg_id'] and \
                 info.pos == cursor.position():
-            # Get the information for a call tip.  For now we format the call
-            # line as string, later we can pass False to format_call and
-            # syntax-highlight it ourselves for nicer formatting in the
-            # calltip.
             content = rep['content']
-            # if this is from pykernel, 'docstring' will be the only key
-            if content.get('ismagic', False):
-                # Don't generate a call-tip for magics. Ideally, we should
-                # generate a tooltip, but not on ( like we do for actual
-                # callables.
-                call_info, doc = None, None
-            else:
-                call_info, doc = call_tip(content, format_call=True)
-            if call_info or doc:
-                self._call_tip_widget.show_call_info(call_info, doc)
+            if content.get('status') == 'ok':
+                self._call_tip_widget.show_inspect_data(content)
 
-    def _handle_pyout(self, msg):
+    def _handle_execute_result(self, msg):
         """ Handle display hook output.
         """
-        self.log.debug("pyout: %s", msg.get('content', ''))
+        self.log.debug("execute_result: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             self.flush_clearoutput()
             text = msg['content']['data']
@@ -637,6 +627,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if clear:
             self._control.clear()
             self._append_plain_text(self.banner)
+            if self.kernel_banner:
+                self._append_plain_text(self.kernel_banner)
+                
         # update output marker for stdout/stderr, so that startup
         # messages appear after banner:
         self._append_before_prompt_pos = self._get_cursor().position()
@@ -725,17 +718,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # Decide if it makes sense to show a call tip
         if not self.enable_calltips:
             return False
-        cursor = self._get_cursor()
-        cursor.movePosition(QtGui.QTextCursor.Left)
-        if cursor.document().characterAt(cursor.position()) != '(':
-            return False
-        context = self._get_context(cursor)
-        if not context:
-            return False
-
+        cursor_pos = self._get_input_buffer_cursor_pos()
+        code = self.input_buffer
         # Send the metadata request to the kernel
-        name = '.'.join(context)
-        msg_id = self.kernel_client.object_info(name)
+        msg_id = self.kernel_client.inspect(code, cursor_pos)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
@@ -747,10 +733,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if context:
             # Send the completion request to the kernel
             msg_id = self.kernel_client.complete(
-                '.'.join(context),                       # text
-                self._get_input_buffer_cursor_line(),    # line
-                self._get_input_buffer_cursor_column(),  # cursor_pos
-                self.input_buffer)                       # block
+                code=self.input_buffer,
+                cursor_pos=self._get_input_buffer_cursor_pos(),
+            )
             pos = self._get_cursor().position()
             info = self._CompletionRequest(msg_id, pos)
             self._request_info['complete'] = info

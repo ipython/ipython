@@ -10,20 +10,18 @@ implementation that doesn't rely on so much monkeypatching.
 But this lets us maintain a fully working IPython as we develop the new
 machinery.  This should thus be thought of as scaffolding.
 """
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Stdlib
 import os
 import sys
 import time
 
-# System library imports
 from zmq.eventloop import ioloop
 
-# Our own
 from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
@@ -34,6 +32,7 @@ from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
+from IPython.core.usage import default_gui_banner
 from IPython.display import display, Javascript
 from IPython.kernel.inprocess.socket import SocketABC
 from IPython.kernel import (
@@ -74,13 +73,12 @@ class ZMQDisplayPublisher(DisplayPublisher):
         sys.stdout.flush()
         sys.stderr.flush()
 
-    def publish(self, source, data, metadata=None):
+    def publish(self, data, metadata=None, source=None):
         self._flush_streams()
         if metadata is None:
             metadata = {}
-        self._validate_data(source, data, metadata)
+        self._validate_data(data, metadata)
         content = {}
-        content['source'] = source
         content['data'] = encode_images(data)
         content['metadata'] = metadata
         self.session.send(
@@ -424,6 +422,9 @@ class ZMQInteractiveShell(InteractiveShell):
     data_pub_class = Type(ZMQDataPublisher)
     kernel = Any()
     parent_header = Any()
+    
+    def _banner1_default(self):
+        return default_gui_banner
 
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved
@@ -512,9 +513,9 @@ class ZMQInteractiveShell(InteractiveShell):
         # to pick up
         topic = None
         if dh.topic:
-            topic = dh.topic.replace(b'pyout', b'pyerr')
+            topic = dh.topic.replace(b'execute_result', b'error')
         
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
+        exc_msg = dh.session.send(dh.pub_socket, u'error', json_clean(exc_content), dh.parent_header, ident=topic)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic

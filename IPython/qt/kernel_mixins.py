@@ -1,10 +1,10 @@
-""" Defines a KernelManager that provides signals and slots.
-"""
+"""Defines a KernelManager that provides signals and slots."""
 
-# System library imports.
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from IPython.external.qt import QtCore
 
-# IPython imports.
 from IPython.utils.traitlets import HasTraits, Type
 from .util import MetaQObjectHasTraits, SuperQObject
 
@@ -57,7 +57,7 @@ class QtShellChannelMixin(ChannelQObject):
     # Emitted when a reply has been received for the corresponding request type.
     execute_reply = QtCore.Signal(object)
     complete_reply = QtCore.Signal(object)
-    object_info_reply = QtCore.Signal(object)
+    inspect_reply = QtCore.Signal(object)
     history_reply = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
@@ -85,14 +85,14 @@ class QtIOPubChannelMixin(ChannelQObject):
     # Emitted when a message of type 'stream' is received.
     stream_received = QtCore.Signal(object)
 
-    # Emitted when a message of type 'pyin' is received.
-    pyin_received = QtCore.Signal(object)
+    # Emitted when a message of type 'execute_input' is received.
+    execute_input_received = QtCore.Signal(object)
 
-    # Emitted when a message of type 'pyout' is received.
-    pyout_received = QtCore.Signal(object)
+    # Emitted when a message of type 'execute_result' is received.
+    execute_result_received = QtCore.Signal(object)
 
-    # Emitted when a message of type 'pyerr' is received.
-    pyerr_received = QtCore.Signal(object)
+    # Emitted when a message of type 'error' is received.
+    error_received = QtCore.Signal(object)
 
     # Emitted when a message of type 'display_data' is received
     display_data_received = QtCore.Signal(object)

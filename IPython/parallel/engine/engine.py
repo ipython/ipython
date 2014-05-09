@@ -1,17 +1,10 @@
 """A simple engine that talks to a controller over 0MQ.
 it handles registration, etc. and launches a kernel
 connected to the Controller's Schedulers.
-
-Authors:
-
-* Min RK
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
 
@@ -228,7 +221,7 @@ class EngineFactory(RegistrationFactory):
                 sys.stderr.topic = cast_bytes('engine.%i.stderr' % self.id)
             if self.display_hook_factory:
                 sys.displayhook = self.display_hook_factory(self.session, iopub_socket)
-                sys.displayhook.topic = cast_bytes('engine.%i.pyout' % self.id)
+                sys.displayhook.topic = cast_bytes('engine.%i.execute_result' % self.id)
 
             self.kernel = Kernel(parent=self, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,

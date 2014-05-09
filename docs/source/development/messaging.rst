@@ -9,7 +9,7 @@ Versioning
 ==========
 
 The IPython message specification is versioned independently of IPython.
-The current version of the specification is 4.1.
+The current version of the specification is 5.0.
 
 
 Introduction
@@ -38,22 +38,13 @@ The basic design is explained in the following diagram:
 A single kernel can be simultaneously connected to one or more frontends.  The
 kernel has three sockets that serve the following functions:
 
-1. stdin: this ROUTER socket is connected to all frontends, and it allows
-   the kernel to request input from the active frontend when :func:`raw_input` is called.
-   The frontend that executed the code has a DEALER socket that acts as a 'virtual keyboard'
-   for the kernel while this communication is happening (illustrated in the
-   figure by the black outline around the central keyboard).  In practice,
-   frontends may display such kernel requests using a special input widget or
-   otherwise indicating that the user is to type input for the kernel instead
-   of normal commands in the frontend.
-
-2. Shell: this single ROUTER socket allows multiple incoming connections from
+1. Shell: this single ROUTER socket allows multiple incoming connections from
    frontends, and this is the socket where requests for code execution, object
    information, prompts, etc. are made to the kernel by any frontend.  The
    communication on this socket is a sequence of request/reply actions from
    each frontend and the kernel.
 
-3. IOPub: this socket is the 'broadcast channel' where the kernel publishes all
+2. IOPub: this socket is the 'broadcast channel' where the kernel publishes all
    side effects (stdout, stderr, etc.) as well as the requests coming from any
    client over the shell socket and its own requests on the stdin socket.  There
    are a number of actions in Python which generate side effects: :func:`print`
@@ -64,10 +55,22 @@ kernel has three sockets that serve the following functions:
    about communications taking place with one client over the shell channel
    to be made available to all clients in a uniform manner.
 
+3. stdin: this ROUTER socket is connected to all frontends, and it allows
+   the kernel to request input from the active frontend when :func:`raw_input` is called.
+   The frontend that executed the code has a DEALER socket that acts as a 'virtual keyboard'
+   for the kernel while this communication is happening (illustrated in the
+   figure by the black outline around the central keyboard).  In practice,
+   frontends may display such kernel requests using a special input widget or
+   otherwise indicating that the user is to type input for the kernel instead
+   of normal commands in the frontend.
+
    All messages are tagged with enough information (details below) for clients
    to know which messages come from their own interaction with the kernel and
    which ones are from other clients, so they can display each type
    appropriately.
+
+4. Control: This channel is identical to Shell, but operates on a separate socket,
+   to allow important messages to avoid queueing behind execution requests (e.g. shutdown or abort).
 
 The actual format of the messages allowed on each of these channels is
 specified below.  Messages are dicts of dicts with string keys and values that
@@ -103,6 +106,8 @@ A message is defined by the following four-dictionary structure::
                     'session' : uuid,
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
+                    # the message protocol version
+                    'version' : '5.0',
          },
 
       # In a chain of messages, the header from the parent is copied so that
@@ -116,6 +121,10 @@ A message is defined by the following four-dictionary structure::
       # depends on the message type.
       'content' : dict,
     }
+
+.. versionchanged:: 5.0
+
+    ``version`` key added to the header.
 
 The Wire Protocol
 =================
@@ -151,14 +160,14 @@ The front of the message is the ZeroMQ routing prefix,
 which can be zero or more socket identities.
 This is every piece of the message prior to the delimiter key ``<IDS|MSG>``.
 In the case of IOPub, there should be just one prefix component,
-which is the topic for IOPub subscribers, e.g. ``pyout``, ``display_data``.
+which is the topic for IOPub subscribers, e.g. ``execute_result``, ``display_data``.
 
 .. note::
 
     In most cases, the IOPub topics are irrelevant and completely ignored,
     because frontends just subscribe to all topics.
     The convention used in the IPython kernel is to use the msg_type as the topic,
-    and possibly extra information about the message, e.g. ``pyout`` or ``stream.stdout``
+    and possibly extra information about the message, e.g. ``execute_result`` or ``stream.stdout``
 
 After the delimiter is the `HMAC`_ signature of the message, used for authentication.
 If authentication is disabled, this should be an empty string.
@@ -248,13 +257,11 @@ Message type: ``execute_request``::
     'code' : str,
 
     # A boolean flag which, if True, signals the kernel to execute
-    # this code as quietly as possible.  This means that the kernel
-    # will compile the code with 'exec' instead of 'single' (so
-    # sys.displayhook will not fire), forces store_history to be False, 
+    # this code as quietly as possible.
+    # silent=True forces store_history to be False,
     # and will *not*:
-    #   - broadcast exceptions on the PUB socket
-    #   - do any logging
-    #
+    #   - broadcast output on the IOPUB channel
+    #   - have an execute_result
     # The default is False.
     'silent' : bool,
 
@@ -263,156 +270,67 @@ Message type: ``execute_request``::
     # is forced to be False.
     'store_history' : bool,
 
-    # A list of variable names from the user's namespace to be retrieved.
-    # What returns is a rich representation of each variable (dict keyed by name).
+    # A dict mapping names to expressions to be evaluated in the
+    # user's dict. The rich display-data representation of each will be evaluated after execution.
     # See the display_data content for the structure of the representation data.
-    'user_variables' : list,
-
-    # Similarly, a dict mapping names to expressions to be evaluated in the
-    # user's dict.
     'user_expressions' : dict,
 
-    # Some frontends (e.g. the Notebook) do not support stdin requests. If
-    # raw_input is called from code executed from such a frontend, a
-    # StdinNotImplementedError will be raised.
+    # Some frontends do not support stdin requests.
+    # If raw_input is called from code executed from such a frontend,
+    # a StdinNotImplementedError will be raised.
     'allow_stdin' : True,
-
     }
 
-The ``code`` field contains a single string (possibly multiline).  The kernel
-is responsible for splitting this into one or more independent execution blocks
-and deciding whether to compile these in 'single' or 'exec' mode (see below for
-detailed execution semantics).
+.. versionchanged:: 5.0
 
-The ``user_`` fields deserve a detailed explanation.  In the past, IPython had
+    ``user_variables`` removed, because it is redundant with user_expressions.
+
+The ``code`` field contains a single string (possibly multiline) to be executed.
+
+The ``user_expressions`` field deserves a detailed explanation.  In the past, IPython had
 the notion of a prompt string that allowed arbitrary code to be evaluated, and
 this was put to good use by many in creating prompts that displayed system
 status, path information, and even more esoteric uses like remote instrument
 status acquired over the network.  But now that IPython has a clean separation
 between the kernel and the clients, the kernel has no prompt knowledge; prompts
-are a frontend-side feature, and it should be even possible for different
+are a frontend feature, and it should be even possible for different
 frontends to display different prompts while interacting with the same kernel.
+``user_expressions`` can be used to retrieve this information.
 
-The kernel now provides the ability to retrieve data from the user's namespace
-after the execution of the main ``code``, thanks to two fields in the
-``execute_request`` message:
+Any error in evaluating any expression in ``user_expressions`` will result in
+only that key containing a standard error message, of the form::
 
-- ``user_variables``: If only variables from the user's namespace are needed, a
-  list of variable names can be passed and a dict with these names as keys and
-  their :func:`repr()` as values will be returned.
-
-- ``user_expressions``: For more complex expressions that require function
-  evaluations, a dict can be provided with string keys and arbitrary python
-  expressions as values.  The return message will contain also a dict with the
-  same keys and the :func:`repr()` of the evaluated expressions as value.
-
-With this information, frontends can display any status information they wish
-in the form that best suits each frontend (a status line, a popup, inline for a
-terminal, etc).
+    {
+        'status' : 'error',
+        'ename' : 'NameError',
+        'evalue' : 'foo',
+        'traceback' : ...
+    }
 
 .. Note::
 
    In order to obtain the current execution counter for the purposes of
-   displaying input prompts, frontends simply make an execution request with an
+   displaying input prompts, frontends may make an execution request with an
    empty code string and ``silent=True``.
-
-Execution semantics
-~~~~~~~~~~~~~~~~~~~
-
-When the silent flag is false, the execution of use code consists of the
-following phases (in silent mode, only the ``code`` field is executed):
-
-1. Run the ``pre_runcode_hook``.
-
-2. Execute the ``code`` field, see below for details.
-
-3. If #2 succeeds, compute ``user_variables`` and ``user_expressions`` are
-   computed.  This ensures that any error in the latter don't harm the main
-   code execution.
-
-4. Call any method registered with :meth:`register_post_execute`.
-
-.. warning::
-
-   The API for running code before/after the main code block is likely to
-   change soon.  Both the ``pre_runcode_hook`` and the
-   :meth:`register_post_execute` are susceptible to modification, as we find a
-   consistent model for both.
-
-To understand how the ``code`` field is executed, one must know that Python
-code can be compiled in one of three modes (controlled by the ``mode`` argument
-to the :func:`compile` builtin):
-
-*single*
-  Valid for a single interactive statement (though the source can contain
-  multiple lines, such as a for loop).  When compiled in this mode, the
-  generated bytecode contains special instructions that trigger the calling of
-  :func:`sys.displayhook` for any expression in the block that returns a value.
-  This means that a single statement can actually produce multiple calls to
-  :func:`sys.displayhook`, if for example it contains a loop where each
-  iteration computes an unassigned expression would generate 10 calls::
-
-      for i in range(10):
-          i**2
-
-*exec*
-  An arbitrary amount of source code, this is how modules are compiled.
-  :func:`sys.displayhook` is *never* implicitly called.
-
-*eval*
-  A single expression that returns a value.  :func:`sys.displayhook` is *never*
-  implicitly called.
-
-
-The ``code`` field is split into individual blocks each of which is valid for
-execution in 'single' mode, and then:
-
-- If there is only a single block: it is executed in 'single' mode.
-
-- If there is more than one block:
-
-  * if the last one is a single line long, run all but the last in 'exec' mode
-    and the very last one in 'single' mode.  This makes it easy to type simple
-    expressions at the end to see computed values.
-
-  * if the last one is no more than two lines long, run all but the last in
-    'exec' mode and the very last one in 'single' mode.  This makes it easy to
-    type simple expressions at the end to see computed values.  - otherwise
-    (last one is also multiline), run all in 'exec' mode
-
-  * otherwise (last one is also multiline), run all in 'exec' mode as a single
-    unit.
-
-Any error in retrieving the ``user_variables`` or evaluating the
-``user_expressions`` will result in a simple error message in the return fields
-of the form::
-
-   [ERROR] ExceptionType: Exception message
-
-The user can simply send the same variable name or expression for evaluation to
-see a regular traceback.
-
-Errors in any registered post_execute functions are also reported similarly,
-and the failing function is removed from the post_execution set so that it does
-not continue triggering failures.
 
 Upon completion of the execution request, the kernel *always* sends a reply,
 with a status code indicating what happened and additional data depending on
 the outcome.  See :ref:`below <execution_results>` for the possible return
 codes and associated data.
 
+.. seealso::
+
+    :ref:`execution_semantics`
 
 .. _execution_counter:
 
-Execution counter (old prompt number)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Execution counter (prompt number)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The kernel has a single, monotonically increasing counter of all execution
-requests that are made with ``store_history=True``.  This counter is used to populate
-the ``In[n]``, ``Out[n]`` and ``_n`` variables, so clients will likely want to
-display it in some form to the user, which will typically (but not necessarily)
-be done in the prompts.  The value of this counter will be returned as the
-``execution_count`` field of all ``execute_reply`` and ``pyin`` messages.
+The kernel should have a single, monotonically increasing counter of all execution
+requests that are made with ``store_history=True``. This counter is used to populate
+the ``In[n]`` and ``Out[n]`` prompts.  The value of this counter will be returned as the
+``execution_count`` field of all ``execute_reply`` and ``execute_input`` messages.
 
 .. _execution_results:
 
@@ -444,15 +362,18 @@ When status is 'ok', the following extra fields are present::
       # which is a string classifying the payload (e.g. 'pager').
       'payload' : list(dict),
 
-      # Results for the user_variables and user_expressions.
-      'user_variables' : dict,
+      # Results for the user_expressions.
       'user_expressions' : dict,
     }
+
+.. versionchanged:: 5.0
+
+    ``user_variables`` is removed, use user_expressions instead.
 
 .. admonition:: Execution payloads
     
    The notion of an 'execution payload' is different from a return value of a
-   given set of code, which normally is just displayed on the pyout stream
+   given set of code, which normally is just displayed on the execute_result stream
    through the PUB socket.  The idea of a payload is to allow special types of
    code, typically magics, to populate a data container in the IPython kernel
    that will be shipped back to the caller via this channel.  The kernel
@@ -489,144 +410,81 @@ When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
 
-Object information
-------------------
+Introspection
+-------------
 
-One of IPython's most used capabilities is the introspection of Python objects
-in the user's namespace, typically invoked via the ``?`` and ``??`` characters
-(which in reality are shorthands for the ``%pinfo`` magic).  This is used often
-enough that it warrants an explicit message type, especially because frontends
-may want to get object information in response to user keystrokes (like Tab or
-F1) besides from the user explicitly typing code like ``x??``.
+Code can be inspected to show useful information to the user.
+It is up to the Kernel to decide what information should be displayed, and its formatting.
 
-Message type: ``object_info_request``::
+Message type: ``inspect_request``::
 
     content = {
-        # The (possibly dotted) name of the object to be searched in all
-        # relevant namespaces
-        'oname' : str,
+        # The code context in which introspection is requested
+        # this may be up to an entire multiline cell.
+        'code' : str,
+        
+        # The cursor position within 'code' (in unicode characters) where inspection is requested
+        'cursor_pos' : int,
 
-        # The level of detail desired.  The default (0) is equivalent to typing
+        # The level of detail desired.  In IPython, the default (0) is equivalent to typing
         # 'x?' at the prompt, 1 is equivalent to 'x??'.
-        'detail_level' : int,
+        # The difference is up to kernels, but in IPython level 1 includes the source code
+        # if available.
+        'detail_level' : 0 or 1,
     }
 
-The returned information will be a dictionary with keys very similar to the
-field names that IPython prints at the terminal.
-    
-Message type: ``object_info_reply``::
+.. versionchanged:: 5.0
+
+    ``object_info_request`` renamed to ``inspect_request``.
+
+.. versionchanged:: 5.0
+
+    ``name`` key replaced with ``code`` and ``cursor_pos``,
+    moving the lexing responsibility to the kernel.
+
+The reply is a mime-bundle, like a `display_data`_ message,
+which should be a formatted representation of information about the context.
+In the notebook, this is used to show tooltips over function calls, etc.
+
+Message type: ``inspect_reply``::
 
     content = {
-    # The name the object was requested under
-    'name' : str,
-    
-    # Boolean flag indicating whether the named object was found or not.  If
-    # it's false, all other fields will be empty.
-    'found' : bool,
-    
-    # Flags for magics and system aliases
-    'ismagic' : bool,
-    'isalias' : bool,
-
-    # The name of the namespace where the object was found ('builtin',
-    # 'magics', 'alias', 'interactive', etc.)
-    'namespace' : str,
-
-    # The type name will be type.__name__ for normal Python objects, but it
-    # can also be a string like 'Magic function' or 'System alias'
-    'type_name' : str,
-
-    # The string form of the object, possibly truncated for length if 
-    # detail_level is 0
-    'string_form' : str,
-
-    # For objects with a __class__ attribute this will be set
-    'base_class' : str,
-
-    # For objects with a __len__ attribute this will be set
-    'length' : int,
-
-    # If the object is a function, class or method whose file we can find,
-    # we give its full path
-    'file' : str,
-
-    # For pure Python callable objects, we can reconstruct the object
-    # definition line which provides its call signature.  For convenience this
-    # is returned as a single 'definition' field, but below the raw parts that
-    # compose it are also returned as the argspec field.
-    'definition' : str,
-
-    # The individual parts that together form the definition string.  Clients
-    # with rich display capabilities may use this to provide a richer and more
-    # precise representation of the definition line (e.g. by highlighting
-    # arguments based on the user's cursor position).  For non-callable
-    # objects, this field is empty.
-    'argspec' : { # The names of all the arguments
-                  args : list,
-        # The name of the varargs (*args), if any
-                      varargs : str,
-        # The name of the varkw (**kw), if any
-        varkw : str,
-        # The values (as strings) of all default arguments.  Note
-        # that these must be matched *in reverse* with the 'args'
-        # list above, since the first positional args have no default
-        # value at all.
-        defaults : list,
-    },
-
-    # For instances, provide the constructor signature (the definition of
-    # the __init__ method):
-    'init_definition' : str,
-    
-    # Docstrings: for any object (function, method, module, package) with a
-    # docstring, we show it.  But in addition, we may provide additional
-    # docstrings.  For example, for instances we will show the constructor
-    # and class docstrings as well, if available.
-    'docstring' : str,
-
-    # For instances, provide the constructor and class docstrings
-    'init_docstring' : str,
-    'class_docstring' : str,
-    
-    # If it's a callable object whose call method has a separate docstring and
-    # definition line:
-    'call_def' : str,
-    'call_docstring' : str,
-    
-    # If detail_level was 1, we also try to find the source code that
-    # defines the object, if possible.  The string 'None' will indicate
-    # that no source was found.
-    'source' : str,
+        # 'ok' if the request succeeded or 'error', with error information as in all other replies.
+        'status' : 'ok',
+        
+        # data can be empty if nothing is found
+        'data' : dict,
+        'metadata' : dict,
     }
 
-    
-Complete
---------
+.. versionchanged:: 5.0
+
+    ``object_info_reply`` renamed to ``inspect_reply``.
+
+.. versionchanged:: 5.0
+
+    Reply is changed from structured data to a mime bundle,  allowing formatting decisions to be made by the kernel.
+
+Completion
+----------
 
 Message type: ``complete_request``::
 
     content = {
-        # The text to be completed, such as 'a.is'
-        # this may be an empty string if the frontend does not do any lexing,
-        # in which case the kernel must figure out the completion
-        # based on 'line' and 'cursor_pos'.
-        'text' : str,
-
-        # The full line, such as 'print a.is'.  This allows completers to
-        # make decisions that may require information about more than just the
-        # current word.
-        'line' : str,
-
-        # The entire block of text where the line is.  This may be useful in the
-        # case of multiline completions where more context may be needed.  Note: if
-        # in practice this field proves unnecessary, remove it to lighten the
-        # messages.
-    
-        'block' : str or null/None,
-
-        # The position of the cursor where the user hit 'TAB' on the line.
+        # The code context in which completion is requested
+        # this may be up to an entire multiline cell, such as
+        # 'foo = a.isal'
+        'code' : str,
+        
+        # The cursor position within 'code' (in unicode characters) where completion is requested
         'cursor_pos' : int,
     }
+
+.. versionchanged:: 5.0
+
+    ``line``, ``block``, and ``text`` keys are removed in favor of a single ``code`` for context.
+    Lexing is up to the kernel.
+
 
 Message type: ``complete_reply``::
 
@@ -635,11 +493,13 @@ Message type: ``complete_reply``::
     # ['a.isalnum', 'a.isalpha'] for the above example.
     'matches' : list,
     
-    # the substring of the matched text
-    # this is typically the common prefix of the matches,
-    # and the text that is already in the block that would be replaced by the full completion.
-    # This would be 'a.is' in the above example.
-    'matched_text' : str,
+    # The range of text that should be replaced by the above matches when a completion is accepted.
+    # typically cursor_end is the same as cursor_pos in the request.
+    'cursor_start' : int,
+    'cursor_end' : int,
+    
+    # Information that frontend plugins might use for extra display information about completions.
+    'metadata' : dict,
     
     # status should be 'ok' unless an exception was raised during the request,
     # in which case it should be 'error', along with the usual error message content
@@ -647,7 +507,12 @@ Message type: ``complete_reply``::
     'status' : 'ok'
     }
 
-    
+.. versionchanged:: 5.0
+
+    - ``matched_text`` is removed in favor of ``cursor_start`` and ``cursor_end``.
+    - ``metadata`` is added for extended information.
+
+
 History
 -------
 
@@ -743,29 +608,47 @@ Message type: ``kernel_info_request``::
 Message type: ``kernel_info_reply``::
 
     content = {
-        # Version of messaging protocol (mandatory).
+        # Version of messaging protocol.
         # The first integer indicates major version.  It is incremented when
         # there is any backward incompatible change.
         # The second integer indicates minor version.  It is incremented when
         # there is any backward compatible change.
-        'protocol_version': [int, int],
+        'protocol_version': 'X.Y.Z',
 
-        # IPython version number (optional).
-        # Non-python kernel backend may not have this version number.
-        # The last component is an extra field, which may be 'dev' or
-        # 'rc1' in development version.  It is an empty string for
-        # released version.
-        'ipython_version': [int, int, int, str],
+        # The kernel implementation name
+        # (e.g. 'ipython' for the IPython kernel)
+        'implementation': str,
 
-        # Language version number (mandatory).
-        # It is Python version number (e.g., [2, 7, 3]) for the kernel
-        # included in IPython.
-        'language_version': [int, ...],
+        # Implementation version number.
+        # The version number of the kernel's implementation
+        # (e.g. IPython.__version__ for the IPython kernel)
+        'implementation_version': 'X.Y.Z', 
 
-        # Programming language in which kernel is implemented (mandatory).
+        # Programming language in which kernel is implemented.
         # Kernel included in IPython returns 'python'.
         'language': str,
+        
+        # Language version number.
+        # It is Python version number (e.g., '2.7.3') for the kernel
+        # included in IPython.
+        'language_version': 'X.Y.Z',
+
+        # A banner of information about the kernel,
+        # which may be desplayed in console environments.
+        'banner' : str,
     }
+
+.. versionchanged:: 5.0
+
+    Versions changed from lists of integers to strings.
+    
+.. versionchanged:: 5.0
+
+    ``ipython_version`` is removed.
+
+.. versionchanged:: 5.0
+
+    ``implementation``, ``implementation_version``, and ``banner`` keys are added.
 
 
 Kernel shutdown
@@ -834,6 +717,14 @@ frontend to decide which to use and how. A single message should contain all
 possible representations of the same information. Each representation should
 be a JSON'able data structure, and should be a valid MIME type.
 
+Some questions remain about this design:
+
+* Do we use this message type for execute_result/displayhook? Probably not, because
+  the displayhook also has to handle the Out prompt display. On the other hand
+  we could put that information into the metadata section.
+
+.. _display_data:
+
 Message type: ``display_data``::
 
     content = {
@@ -861,12 +752,18 @@ with a reasonably unique name to avoid conflicts.
 The only metadata keys currently defined in IPython are the width and height
 of images::
 
-    'metadata' : {
+    metadata = {
       'image/png' : {
         'width': 640,
         'height': 480
       }
     }
+
+
+.. versionchanged:: 5.0
+
+    `application/json` data should be unpacked JSON data,
+    not double-serialized as a JSON string.
 
 
 Raw Data Publication
@@ -888,11 +785,11 @@ Message type: ``data_pub``::
 
     content = {
         # the keys of the data dict, after it has been unserialized
-        keys = ['a', 'b']
+        'keys' : ['a', 'b']
     }
     # the namespace dict will be serialized in the message buffers,
     # which will have a length of at least one
-    buffers = ['pdict', ...]
+    buffers = [b'pdict', ...]
 
 
 The interpretation of a sequence of data_pub messages for a given parent request should be
@@ -906,15 +803,15 @@ to update a single namespace with subsequent results.
     of which the Client can then publish *representations* via ``display_data``
     to various frontends.
 
-Python inputs
--------------
+Code inputs
+-----------
 
 To let all frontends know what code is being executed at any given time, these
 messages contain a re-broadcast of the ``code`` portion of an
 :ref:`execute_request <execute>`, along with the :ref:`execution_count
 <execution_counter>`.
 
-Message type: ``pyin``::
+Message type: ``execute_input``::
 
     content = {
         'code' : str,  # Source code to be executed, one or more lines
@@ -925,32 +822,25 @@ Message type: ``pyin``::
         'execution_count' : int
     }
 
-Python outputs
---------------
+.. versionchanged:: 5.0
 
-When Python produces output from code that has been compiled in with the
-'single' flag to :func:`compile`, any expression that produces a value (such as
-``1+1``) is passed to ``sys.displayhook``, which is a callable that can do with
-this value whatever it wants.  The default behavior of ``sys.displayhook`` in
-the Python interactive prompt is to print to ``sys.stdout`` the :func:`repr` of
-the value as long as it is not ``None`` (which isn't printed at all).  In our
-case, the kernel instantiates as ``sys.displayhook`` an object which has
-similar behavior, but which instead of printing to stdout, broadcasts these
-values as ``pyout`` messages for clients to display appropriately.
+    ``pyin`` is renamed to ``execute_input``.
 
-IPython's displayhook can handle multiple simultaneous formats depending on its
-configuration. The default pretty-printed repr text is always given with the
-``data`` entry in this message. Any other formats are provided in the
-``extra_formats`` list. Frontends are free to display any or all of these
-according to its capabilities. ``extra_formats`` list contains 3-tuples of an ID
-string, a type string, and the data. The ID is unique to the formatter
-implementation that created the data. Frontends will typically ignore the ID
-unless if it has requested a particular formatter. The type string tells the
-frontend how to interpret the data. It is often, but not always a MIME type.
-Frontends should ignore types that it does not understand. The data itself is
+
+Execution results
+-----------------
+
+Results of an execution are published as an ``execute_result``.
+These are identical to `display_data`_ messages, with the addition of an ``execution_count`` key.
+
+Results can have multiple simultaneous formats depending on its
+configuration. A plain text representation should always be provided
+in the ``text/plain`` mime-type. Frontends are free to display any or all of these
+according to its capabilities.
+Frontends should ignore mime-types they do not understand. The data itself is
 any JSON object and depends on the format. It is often, but not always a string.
 
-Message type: ``pyout``::
+Message type: ``execute_result``::
 
     content = {
 
@@ -958,25 +848,29 @@ Message type: ``pyout``::
         # display it, since IPython automatically creates variables called _N
         # (for prompt N).
         'execution_count' : int,
-        
+
         # data and metadata are identical to a display_data message.
         # the object being displayed is that passed to the display hook,
         # i.e. the *result* of the execution.
         'data' : dict,
         'metadata' : dict,
     }
-    
-Python errors
--------------
+
+Execution errors
+----------------
 
 When an error occurs during code execution
 
-Message type: ``pyerr``::
+Message type: ``error``::
 
     content = {
        # Similar content to the execute_reply messages for the 'error' case,
        # except the 'status' field is omitted.
     }
+
+.. versionchanged:: 5.0
+
+    ``pyerr`` renamed to ``error``
 
 Kernel status
 -------------
@@ -1009,8 +903,8 @@ Message type: ``clear_output``::
 
 .. versionchanged:: 4.1
 
-    'stdout', 'stderr', and 'display' boolean keys for selective clearing are removed,
-    and 'wait' is added.
+    ``stdout``, ``stderr``, and ``display`` boolean keys for selective clearing are removed,
+    and ``wait`` is added.
     The selective clearing keys are ignored in v4 and the default behavior remains the same,
     so v4 clear_output messages will be safely handled by a v4.1 frontend.
 
@@ -1028,12 +922,25 @@ the ``raw_input(prompt)`` call.
 
 Message type: ``input_request``::
 
-    content = { 'prompt' : str }
+    content = {
+        # the text to show at the prompt
+        'prompt' : str,
+        # Is the request for a password?
+        # If so, the frontend shouldn't echo input.
+        'password' : bool
+    }
 
 Message type: ``input_reply``::
 
     content = { 'value' : str }
-    
+
+
+When ``password`` is True, the frontend should not echo the input as it is entered.
+
+.. versionchanged:: 5.0
+
+    ``password`` key added.
+
 .. note::
 
     The stdin socket of the client is required to have the same zmq IDENTITY
@@ -1053,34 +960,13 @@ Message type: ``input_reply``::
    transported over the zmq connection), raw ``stdin`` isn't expected to be
    available.
 
-   
+
 Heartbeat for kernels
 =====================
 
-Initially we had considered using messages like those above over ZMQ for a
-kernel 'heartbeat' (a way to detect quickly and reliably whether a kernel is
-alive at all, even if it may be busy executing user code).  But this has the
-problem that if the kernel is locked inside extension code, it wouldn't execute
-the python heartbeat code.  But it turns out that we can implement a basic
-heartbeat with pure ZMQ, without using any Python messaging at all.
+Clients send ping messages on a REQ socket, which are echoed right back
+from the Kernel's REP socket. These are simple bytestrings, not full JSON messages described above.
 
-The monitor sends out a single zmq message (right now, it is a str of the
-monitor's lifetime in seconds), and gets the same message right back, prefixed
-with the zmq identity of the DEALER socket in the heartbeat process. This can be
-a uuid, or even a full message, but there doesn't seem to be a need for packing
-up a message when the sender and receiver are the exact same Python object.
-
-The model is this::
-
-    monitor.send(str(self.lifetime)) # '1.2345678910'
-
-and the monitor receives some number of messages of the form::
-
-    ['uuid-abcd-dead-beef', '1.2345678910']
-
-where the first part is the zmq.IDENTITY of the heart's DEALER on the engine, and
-the rest is the message sent by the monitor.  No Python code ever has any
-access to the message between the monitor's send, and the monitor's recv.
 
 Custom Messages
 ===============
@@ -1156,15 +1042,11 @@ handlers should set the parent header and publish status busy / idle,
 just like an execute request.
 
 
-ToDo
-====
+To Do
+=====
 
 Missing things include:
 
 * Important: finish thinking through the payload concept and API.
-
-* Important: ensure that we have a good solution for magics like %edit.  It's
-  likely that with the payload concept we can build a full solution, but not
-  100% clear yet.
 
 .. include:: ../links.txt

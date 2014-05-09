@@ -1,9 +1,6 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
+
 //============================================================================
 // Tooltip
 //============================================================================
@@ -105,8 +102,8 @@ var IPython = (function (IPython) {
             this.tooltip.append(this.text);
 
             // function that will be called if you press tab 1, 2, 3... times in a row
-            this.tabs_functions = [function (cell, text) {
-                that._request_tooltip(cell, text);
+            this.tabs_functions = [function (cell, text, cursor) {
+                that._request_tooltip(cell, text, cursor);
             }, function () {
                 that.expand();
             }, function () {
@@ -131,13 +128,10 @@ var IPython = (function (IPython) {
     Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
-        var callbacks = {'shell' : {
-                'payload' : {
-                    'page' : $.proxy(cell._open_with_pager, cell)
-                }
-            }
-        };
-        cell.kernel.execute(that.name + '?', callbacks, {'silent': false, 'store_history': true});
+        var payload = {};
+        payload.text = that._reply.content.data['text/plain'];
+        
+        $([IPython.events]).trigger('open_with_text.Pager', payload);
         this.remove_and_cancel_tooltip();
     };
 
@@ -222,10 +216,9 @@ var IPython = (function (IPython) {
         return Tooltip.last_token_re.exec(line);
     };
 
-    Tooltip.prototype._request_tooltip = function (cell, line) {
+    Tooltip.prototype._request_tooltip = function (cell, text, cursor_pos) {
         var callbacks = $.proxy(this._show, this);
-        var oir_token = this.extract_oir_token(line);
-        var msg_id = cell.kernel.object_info(oir_token, callbacks);
+        var msg_id = cell.kernel.inspect(text, cursor_pos, callbacks);
     };
 
     // make an imediate completion request
@@ -236,10 +229,8 @@ var IPython = (function (IPython) {
         this.cancel_pending();
         var editor = cell.code_mirror;
         var cursor = editor.getCursor();
-        var text = editor.getRange({
-            line: cursor.line,
-            ch: 0
-        }, cursor).trim();
+        var cursor_pos = utils.to_absolute_cursor_pos(editor, cursor);
+        var text = cell.get_text();
 
         this._hide_if_no_docstring = hide_if_no_docstring;
 
@@ -260,17 +251,12 @@ var IPython = (function (IPython) {
             this.reset_tabs_function (cell, text);
         }
 
-        // don't do anything if line beggin with '(' or is empty
-        if (text === "" || text === "(") {
-            return;
-        }
-
-        this.tabs_functions[this._consecutive_counter](cell, text);
+        this.tabs_functions[this._consecutive_counter](cell, text, cursor_pos);
 
         // then if we are at the end of list function, reset
         if (this._consecutive_counter == this.tabs_functions.length) {
-            this.reset_tabs_function (cell, text);
-	}
+            this.reset_tabs_function (cell, text, cursor);
+        }
 
         return;
     };
@@ -302,6 +288,7 @@ var IPython = (function (IPython) {
     Tooltip.prototype._show = function (reply) {
         // move the bubble if it is not hidden
         // otherwise fade it
+        this._reply = reply;
         var content = reply.content;
         if (!content.found) {
             // object not found, nothing to show
@@ -338,43 +325,14 @@ var IPython = (function (IPython) {
         this.arrow.animate({
             'left': posarrowleft + 'px'
         });
-
-        // build docstring
-        var defstring = content.call_def;
-        if (!defstring) {
-            defstring = content.init_definition;
-        }
-        if (!defstring) {
-            defstring = content.definition;
-        }
-
-        var docstring = content.call_docstring;
-        if (!docstring) {
-            docstring = content.init_docstring;
-        }
-        if (!docstring) {
-            docstring = content.docstring;
-        }
-
-        if (!docstring) {
-            // For reals this time, no docstring
-            if (this._hide_if_no_docstring) {
-                return;
-            } else {
-                docstring = "<empty docstring>";
-            }
-        }
-
+        
         this._hidden = false;
         this.tooltip.fadeIn('fast');
         this.text.children().remove();
-
+        
+        // This should support rich data types, but only text/plain for now
         // Any HTML within the docstring is escaped by the fixConsole() method.
-        var pre = $('<pre/>').html(utils.fixConsole(docstring));
-        if (defstring) {
-            var defstring_html = $('<pre/>').html(utils.fixConsole(defstring));
-            this.text.append(defstring_html);
-        }
+        var pre = $('<pre/>').html(utils.fixConsole(content.data['text/plain']));
         this.text.append(pre);
         // keep scroll top to be sure to always see the first line
         this.text.scrollTop(0);

@@ -1,9 +1,5 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 //============================================================================
 // Pager
@@ -81,12 +77,18 @@ var IPython = (function (IPython) {
         var that = this;
 
         this.pager_element.bind('collapse_pager', function (event, extrap) {
-            var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
+            var time = 'fast';
+            if (extrap && extrap.duration) {
+                time = extrap.duration;
+            }
             that.pager_element.hide(time);
         });
 
         this.pager_element.bind('expand_pager', function (event, extrap) {
-            var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
+            var time = 'fast';
+            if (extrap && extrap.duration) {
+                time = extrap.duration;
+            }
             that.pager_element.show(time);
         });
 
@@ -103,12 +105,13 @@ var IPython = (function (IPython) {
             that.toggle();
         });
 
-        $([IPython.events]).on('open_with_text.Pager', function (event, data) {
-            if (data.text.trim() !== '') {
+        $([IPython.events]).on('open_with_text.Pager', function (event, payload) {
+            // FIXME: support other mime types
+            if (payload.data['text/plain'] && payload.data['text/plain'] !== "") {
                 that.clear();
                 that.expand();
-                that.append_text(data.text);
-            };
+                that.append_text(payload.data['text/plain']);
+            }
         });
     };
 
@@ -117,7 +120,7 @@ var IPython = (function (IPython) {
         if (this.expanded === true) {
             this.expanded = false;
             this.pager_element.add($('div#notebook')).trigger('collapse_pager', extrap);
-        };
+        }
     };
 
 
@@ -125,7 +128,7 @@ var IPython = (function (IPython) {
         if (this.expanded !== true) {
             this.expanded = true;
             this.pager_element.add($('div#notebook')).trigger('expand_pager', extrap);
-        };
+        }
     };
 
 
@@ -134,7 +137,7 @@ var IPython = (function (IPython) {
             this.collapse();
         } else {
             this.expand();
-        };
+        }
     };
 
 
@@ -160,8 +163,7 @@ var IPython = (function (IPython) {
         pager_body.append(this.pager_element.clone().children());
         w.document.close();
         this.collapse();
-
-    }
+    };
 
     Pager.prototype.append_text = function (text) {
         // The only user content injected with this HTML call is escaped by

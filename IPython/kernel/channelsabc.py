@@ -1,11 +1,7 @@
 """Abstract base classes for kernel client channels"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import abc
 
@@ -42,7 +38,7 @@ class ShellChannelABC(ChannelABC):
 
     @abc.abstractmethod
     def execute(self, code, silent=False, store_history=True,
-                user_variables=None, user_expressions=None, allow_stdin=None):
+                user_expressions=None, allow_stdin=None):
         pass
 
     @abc.abstractmethod
@@ -50,7 +46,7 @@ class ShellChannelABC(ChannelABC):
         pass
 
     @abc.abstractmethod
-    def object_info(self, oname, detail_level=0):
+    def inspect(self, oname, detail_level=0):
         pass
 
     @abc.abstractmethod
