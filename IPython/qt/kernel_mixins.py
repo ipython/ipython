@@ -59,6 +59,7 @@ class QtShellChannelMixin(ChannelQObject):
     complete_reply = QtCore.Signal(object)
     inspect_reply = QtCore.Signal(object)
     history_reply = QtCore.Signal(object)
+    kernel_info_reply = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
     # 'ShellChannel' interface
@@ -72,6 +73,9 @@ class QtShellChannelMixin(ChannelQObject):
 
         # Emit signals for specialized message types.
         msg_type = msg['header']['msg_type']
+        if msg_type == 'kernel_info_reply':
+            self._handle_kernel_info_reply(msg)
+        
         signal = getattr(self, msg_type, None)
         if signal:
             signal.emit(msg)

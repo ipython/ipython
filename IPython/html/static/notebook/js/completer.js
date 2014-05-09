@@ -171,6 +171,15 @@ var IPython = (function (IPython) {
         var matches = content.matches;
 
         var cur = this.editor.getCursor();
+        if (end === null) {
+            // adapted message spec replies don't have cursor position info,
+            // interpret end=null as current position,
+            // and negative start relative to that
+            end = utils.to_absolute_cursor_pos(this.editor, cur);
+            if (start < 0) {
+                start = end + start;
+            }
+        }
         var results = CodeMirror.contextHint(this.editor);
         var filtered_results = [];
         //remove results from context completion

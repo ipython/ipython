@@ -1,20 +1,7 @@
-"""Tornado handlers for the notebook.
+"""Tornado handlers for kernels."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import logging
 from tornado import web
@@ -22,15 +9,13 @@ from tornado import web
 from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
+from IPython.utils.py3compat import string_types
 from IPython.html.utils import url_path_join, url_escape
 
 from ...base.handlers import IPythonHandler, json_errors
 from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
 
-#-----------------------------------------------------------------------------
-# Kernel handlers
-#-----------------------------------------------------------------------------
-
+from IPython.core.release import kernel_protocol_version
 
 class MainKernelHandler(IPythonHandler):
 
@@ -96,6 +81,41 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
         self.zmq_stream = meth(self.kernel_id, identity=self.session.bsession)
+        # Create a kernel_info channel to query the kernel protocol version.
+        # This channel will be closed after the kernel_info reply is received.
+        self.kernel_info_channel = None
+        self.kernel_info_channel = km.connect_shell(self.kernel_id)
+        self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
+        self._request_kernel_info()
+    
+    def _request_kernel_info(self):
+        """send a request for kernel_info"""
+        self.log.debug("requesting kernel info")
+        self.session.send(self.kernel_info_channel, "kernel_info_request")
+    
+    def _handle_kernel_info_reply(self, msg):
+        """process the kernel_info_reply
+        
+        enabling msg spec adaptation, if necessary
+        """
+        idents,msg = self.session.feed_identities(msg)
+        try:
+            msg = self.session.unserialize(msg)
+        except:
+            self.log.error("Bad kernel_info reply", exc_info=True)
+            self._request_kernel_info()
+            return
+        else:
+            if msg['msg_type'] != 'kernel_info_reply' or 'protocol_version' not in msg['content']:
+                self.log.error("Kernel info request failed, assuming current %s", msg['content'])
+            else:
+                protocol_version = msg['content']['protocol_version']
+                if protocol_version != kernel_protocol_version:
+                    self.session.adapt_version = int(protocol_version.split('.')[0])
+                    self.log.info("adapting kernel to %s" % protocol_version)
+        self.kernel_info_channel.close()
+        self.kernel_info_channel = None
+    
     
     def initialize(self, *args, **kwargs):
         self.zmq_stream = None

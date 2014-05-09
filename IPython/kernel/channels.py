@@ -16,7 +16,8 @@ import zmq
 from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
-# Local imports
+from IPython.core.release import kernel_protocol_version_info
+
 from .channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
@@ -26,6 +27,8 @@ from IPython.utils.py3compat import string_types, iteritems
 #-----------------------------------------------------------------------------
 # Constants and exceptions
 #-----------------------------------------------------------------------------
+
+major_protocol_version = kernel_protocol_version_info[0]
 
 class InvalidPortNumber(Exception):
     pass
@@ -173,7 +176,8 @@ class ZMQSocketChannel(Thread):
         Unpacks message, and calls handlers with it.
         """
         ident,smsg = self.session.feed_identities(msg)
-        self.call_handlers(self.session.unserialize(smsg))
+        msg = self.session.unserialize(smsg)
+        self.call_handlers(msg)
 
 
 
@@ -195,7 +199,7 @@ class ShellChannel(ZMQSocketChannel):
     def __init__(self, context, session, address):
         super(ShellChannel, self).__init__(context, session, address)
         self.ioloop = ioloop.IOLoop()
-
+    
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
@@ -365,6 +369,15 @@ class ShellChannel(ZMQSocketChannel):
         msg = self.session.msg('kernel_info_request')
         self._queue_send(msg)
         return msg['header']['msg_id']
+    
+    def _handle_kernel_info_reply(self, msg):
+        """handle kernel info reply
+        
+        sets protocol adaptation version
+        """
+        adapt_version = int(msg['content']['protocol_version'].split('.')[0])
+        if adapt_version != major_protocol_version:
+            self.session.adapt_version = adapt_version
 
     def shutdown(self, restart=False):
         """Request an immediate kernel shutdown.

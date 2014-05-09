@@ -32,7 +32,7 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.core.release import kernel_protocol_version
+from IPython.core.release import kernel_protocol_version, kernel_protocol_version_info
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
@@ -43,6 +43,7 @@ from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer,
                                         TraitError,
 )
+from IPython.kernel.adapter import adapt
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
@@ -298,6 +299,9 @@ class Session(Configurable):
 
     metadata = Dict({}, config=True,
         help="""Metadata dictionary, which serves as the default top-level metadata dict for each message.""")
+    
+    # if 0, no adapting to do.
+    adapt_version = Integer(0)
 
     # message signature related traits:
     
@@ -625,6 +629,8 @@ class Session(Configurable):
             io.rprint(msg)
             return
         buffers = [] if buffers is None else buffers
+        if self.adapt_version:
+            msg = adapt(msg, self.adapt_version)
         to_send = self.serialize(msg, ident)
         to_send.extend(buffers)
         longest = max([ len(s) for s in to_send ])
@@ -823,7 +829,10 @@ class Session(Configurable):
             message['content'] = msg_list[4]
 
         message['buffers'] = msg_list[5:]
-        return message
+        # print("received: %s: %s\n    %s" % (message['msg_type'], message['header'], message['content']))
+        # adapt to the current version
+        return adapt(message)
+        # print("adapted: %s: %s\n     %s" % (adapted['msg_type'], adapted['header'], adapted['content']))
 
 def test_msg2obj():
     am = dict(x=1)
