@@ -3,12 +3,11 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import logging
 from tornado import web
 
 from zmq.utils import jsonapi
 
-from ...base.handlers import IPythonHandler, json_errors, path_regex
+from ...base.handlers import IPythonHandler, json_errors
 
 
 class MainKernelSpecHandler(IPythonHandler):
@@ -34,7 +33,10 @@ class KernelSpecHandler(IPythonHandler):
     @json_errors
     def get(self, kernel_name):
         ksm = self.kernel_spec_manager
-        kernelspec = ksm.get_kernel_spec(kernel_name)
+        try:
+            kernelspec = ksm.get_kernel_spec(kernel_name)
+        except KeyError:
+            raise web.HTTPError(404, u'Kernel spec %s not found' % kernel_name)
         self.set_header("Content-Type", 'application/json')
         self.finish(kernelspec.to_json())
 
@@ -47,24 +49,18 @@ class KernelSpecResourceHandler(web.StaticFileHandler, IPythonHandler):
 
     def get(self, kernel_name, path, include_body=True):
         ksm = self.kernel_spec_manager
-        self.root = ksm.get_kernel_spec(kernel_name).resource_dir
-        self.log.warn("Set root: %s", self.root)
+        try:
+            self.root = ksm.get_kernel_spec(kernel_name).resource_dir
+        except KeyError:
+            raise web.HTTPError(404, u'Kernel spec %s not found' % kernel_name)
+        self.log.debug("Serving kernel resource from: %s", self.root)
         return web.StaticFileHandler.get(self, path, include_body=include_body)
-    
-#    @classmethod
-#    def get_absolute_path(cls, root, path):
-#        res = web.StaticFileHandler.get_absolute_path(cls, root, path)
-#        self.log.warn("Full path: %s", res)
-#        return res
     
     def head(self, kernel_name, path):
         self.get(kernel_name, path, include_body=False)
 
 
-#-----------------------------------------------------------------------------
 # URL to handler mappings
-#-----------------------------------------------------------------------------
-
 
 _kernel_name_regex = r"(?P<kernel_name>\w+)"
 
