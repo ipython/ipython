@@ -41,31 +41,11 @@ class KernelSpecHandler(IPythonHandler):
         self.finish(kernelspec.to_json())
 
 
-class KernelSpecResourceHandler(web.StaticFileHandler, IPythonHandler):
-    SUPPORTED_METHODS = ('GET', 'HEAD')
-
-    def initialize(self):
-        web.StaticFileHandler.initialize(self, path='')
-
-    def get(self, kernel_name, path, include_body=True):
-        ksm = self.kernel_spec_manager
-        try:
-            self.root = ksm.get_kernel_spec(kernel_name).resource_dir
-        except KeyError:
-            raise web.HTTPError(404, u'Kernel spec %s not found' % kernel_name)
-        self.log.debug("Serving kernel resource from: %s", self.root)
-        return web.StaticFileHandler.get(self, path, include_body=include_body)
-    
-    def head(self, kernel_name, path):
-        self.get(kernel_name, path, include_body=False)
-
-
 # URL to handler mappings
 
-_kernel_name_regex = r"(?P<kernel_name>\w+)"
+kernel_name_regex = r"(?P<kernel_name>\w+)"
 
 default_handlers = [
     (r"/api/kernelspecs", MainKernelSpecHandler),
-    (r"/api/kernelspecs/%s" % _kernel_name_regex, KernelSpecHandler),
-    (r"/api/kernelspecs/%s/(?P<path>.*)" % _kernel_name_regex, KernelSpecResourceHandler),
+    (r"/api/kernelspecs/%s" % kernel_name_regex, KernelSpecHandler),
 ]

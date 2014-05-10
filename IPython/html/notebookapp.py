@@ -187,6 +187,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('auth.logout'))
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
+        handlers.extend(load_handlers('kernelspecs.handlers'))
         handlers.extend(load_handlers('services.kernels.handlers'))
         handlers.extend(load_handlers('services.notebooks.handlers'))
         handlers.extend(load_handlers('services.clusters.handlers'))

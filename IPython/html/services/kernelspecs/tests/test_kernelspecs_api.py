@@ -30,20 +30,20 @@ class KernelSpecAPI(object):
 
     def _req(self, verb, path, body=None):
         response = requests.request(verb,
-                url_path_join(self.base_url, 'api/kernelspecs', path),
+                url_path_join(self.base_url, path),
                 data=body,
         )
         response.raise_for_status()
         return response
 
     def list(self):
-        return self._req('GET', '')
+        return self._req('GET', 'api/kernelspecs')
 
     def kernel_spec_info(self, name):
-        return self._req('GET', name)
+        return self._req('GET', url_path_join('api/kernelspecs', name))
     
     def kernel_resource(self, name, path):
-        return self._req('GET', url_path_join(name, path))
+        return self._req('GET', url_path_join('kernelspecs', name, path))
 
 class APITest(NotebookTestBase):
     """Test the kernelspec web service API"""
