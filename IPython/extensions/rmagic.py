@@ -665,7 +665,7 @@ class RMagics(Magics):
                 self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
 
         for tag, disp_d in display_data:
-            publish_display_data(tag, disp_d)
+            publish_display_data(data=disp_d, source=tag)
 
         # this will keep a reference to the display_data
         # which might be useful to other objects who happen to use
