@@ -6,6 +6,7 @@ define([], function(){
     var ScrollManager = function (notebook) {
         // Public constructor.
         this.notebook = notebook;
+        this.animation_speed = 250; //ms
     };
 
     ScrollManager.prototype.scroll = function (delta) {
@@ -60,14 +61,22 @@ define([], function(){
             // Cancel browser keyboard scroll.
             return false;
         
-        // No slides exist, default browser scroll
+        // No slides exist, scroll up or down one page height.  Instead of using
+        // the browser's built in method to do this, animate it using jQuery.
         } else {
-            return true;
+            this.scroll_some(delta);
+            return false;
         }
     };
 
     ScrollManager.prototype.scroll_to = function(destination) {
-        $('html, body').animate({'scrollTop': element.offset().top}, 'slow', 'swing');
+        // Scroll to an element in the notebook.
+        $('#notebook').animate({'scrollTop': $(destination).offset().top + $('#notebook').scrollTop() - $('#notebook').offset().top}, this.animation_speed);
+    };
+
+    ScrollManager.prototype.scroll_some = function(pages) {
+        // Scroll up or down a given number of pages.
+        $('#notebook').animate({'scrollTop': $('#notebook').scrollTop() + pages * $('#notebook').height()}, this.animation_speed);
     };
 
     // For convinience, add the ScrollManager class to the global namespace
