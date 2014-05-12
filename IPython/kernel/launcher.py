@@ -174,6 +174,8 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
     else:
         _stdout, _stderr = stdout, stderr
     
+    env = env if (env is not None) else os.environ.copy()
+
     encoding = getdefaultencoding(prefer_stream=False)
     
     # Spawn a kernel.
@@ -186,6 +188,9 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
         from IPython.kernel.zmq.parentpoller import ParentPollerWindows
         # Create a Win32 event for interrupting the kernel.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
+        # Store this in an environment variable for third party kernels, but at
+        # present, our own kernel expects this as a command line argument.
+        env["IPY_INTERRUPT_EVENT"] = str(interrupt_event)
         if ipython_kernel:
             cmd += [ '--interrupt=%i' % interrupt_event ]
 
