@@ -1349,7 +1349,7 @@ input.engine_num_input{width:60px}
 .ansibgpurple{background-color:#f0f}
 .ansibgcyan{background-color:#0ff}
 .ansibggray{background-color:#808080}
-div.cell{border:1px solid transparent;width:100%;padding:5px 5px 5px 0;margin:0;outline:none}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell{border:1px solid transparent;width:100%;padding:5px 5px 5px 0;margin:0;outline:none;position:relative}div.cell.selected{border-radius:4px;border:thin #ababab solid}
 div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
 div.cell div.input{position:relative}
 div.prompt{min-width:80px;position:absolute;height:100%;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}div.prompt div.prompt-text{padding-top:.4em}
