@@ -19,8 +19,9 @@ class MainKernelSpecHandler(IPythonHandler):
         ksm = self.kernel_spec_manager
         results = []
         for kernel_name in ksm.find_kernel_specs():
-            results.append(dict(name=kernel_name,
-                display_name=ksm.get_kernel_spec(kernel_name).display_name))
+            d = ksm.get_kernel_spec(kernel_name).to_dict()
+            d['name'] = kernel_name
+            results.append(d)
 
         self.set_header("Content-Type", 'application/json')
         self.finish(jsonapi.dumps(results))

@@ -68,11 +68,14 @@ class APITest(NotebookTestBase):
     def test_list_kernelspecs(self):
         specs = self.ks_api.list().json()
         assert isinstance(specs, list)
-        
+
         # 2: the sample kernelspec created in setUp, and the native Python kernel
         self.assertEqual(len(specs), 2)
-        assert any(s == {'name': 'sample', 'display_name': 'Test kernel'}
-                    for s in specs), specs
+
+        def is_sample_kernelspec(s):
+            return s['name'] == 'sample' and s['display_name'] == 'Test kernel'
+
+        assert any(is_sample_kernelspec(s) for s in specs), specs
 
     def test_get_kernelspec(self):
         spec = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive
