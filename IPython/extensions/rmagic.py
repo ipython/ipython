@@ -624,8 +624,8 @@ class RMagics(Magics):
                 print(e.err)
             rmtree(tmpd)
             return
-
-        self.r('dev.off()')
+        finally:
+            self.r('dev.off()')
 
         # read out all the saved .png files
 
