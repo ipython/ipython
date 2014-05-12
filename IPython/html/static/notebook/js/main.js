@@ -19,6 +19,7 @@ require([
     'notebook/js/keyboardmanager',
     'notebook/js/config',
     'notebook/js/kernelselector',
+    'notebook/js/scrollmanager'
     // only loaded, not used:
     'custom/custom',
 ], function(
@@ -38,7 +39,8 @@ require([
     savewidget, 
     keyboardmanager,
     config,
-    kernelselector
+    kernelselector,
+    scrollmanager
     ) {
     "use strict";
 
@@ -67,6 +69,7 @@ require([
         save_widget: save_widget,
         config: user_config},
         common_options));
+    var scrollmanager = new scrollmanager.ScrollManager(notebook);
     var login_widget = new loginwidget.LoginWidget('span#login_widget', common_options);
     var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', {
         notebook: notebook, 
@@ -132,6 +135,7 @@ require([
     IPython.save_widget = save_widget;
     IPython.config = user_config;
     IPython.tooltip = notebook.tooltip;
+    IPython.scrollmanager = scrollmanager;
 
     events.trigger('app_initialized.NotebookApp');
     notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
