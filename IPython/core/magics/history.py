@@ -24,6 +24,7 @@ from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
+from IPython.utils.py3compat import cast_unicode_py2
 
 #-----------------------------------------------------------------------------
 # Magics class implementation
@@ -213,7 +214,7 @@ class HistoryMagics(Magics):
                     inline = "\n... ".join(inline.splitlines()) + "\n..."
             print(inline, file=outfile)
             if get_output and output:
-                print(output, file=outfile)
+                print(cast_unicode_py2(output), file=outfile)
 
         if close_at_end:
             outfile.close()
