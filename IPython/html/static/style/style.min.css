@@ -1357,7 +1357,7 @@ div.inner_cell{margin-left:83px;margin-right:auto}
 @media (max-width:480px){div.prompt{float:none} div.inner_cell{margin-left:0;margin-right:0} div.prompt{text-align:left}}div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
 div.prompt:empty{padding-top:0;padding-bottom:0}
 div.input{page-break-inside:avoid}
-div.input_prompt{color:#000080;border-top:1px solid transparent}
+div.input_prompt{color:#000080}div.input_prompt div.prompt-text{border-top:1px solid transparent}
 div.input_area>div.highlight{margin:.4em;border:none;padding:0;background-color:transparent}
 div.input_area>div.highlight>pre{margin:0;border:none;padding:0;background-color:transparent}
 .CodeMirror{line-height:1.21429em;height:auto;background:none;}
