@@ -1,3 +1,7 @@
+.clearfix{*zoom:1}.clearfix:before,.clearfix:after{display:table;content:"";line-height:0}
+.clearfix:after{clear:both}
+.hide-text{font:0/0 a;color:transparent;text-shadow:none;background-color:transparent;border:0}
+.input-block-level{display:block;width:100%;min-height:30px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
 article,aside,details,figcaption,figure,footer,header,hgroup,nav,section{display:block}
 audio,canvas,video{display:inline-block;*display:inline;*zoom:1}
 audio:not([controls]){display:none}
@@ -852,10 +856,6 @@ a.label:hover,a.label:focus,a.badge:hover,a.badge:focus{color:#fff;text-decorati
 .show{display:block}
 .invisible{visibility:hidden}
 .affix{position:fixed}
-.clearfix{*zoom:1}.clearfix:before,.clearfix:after{display:table;content:"";line-height:0}
-.clearfix:after{clear:both}
-.hide-text{font:0/0 a;color:transparent;text-shadow:none;background-color:transparent;border:0}
-.input-block-level{display:block;width:100%;min-height:30px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
 @-ms-viewport{width:device-width}.hidden{display:none;visibility:hidden}
 .visible-phone{display:none !important}
 .visible-tablet{display:none !important}
@@ -1349,10 +1349,10 @@ input.engine_num_input{width:60px}
 .ansibgpurple{background-color:#f0f}
 .ansibgcyan{background-color:#0ff}
 .ansibggray{background-color:#808080}
-div.cell{border:1px solid transparent}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell{border:1px solid transparent;width:100%;padding:5px 5px 5px 0;margin:0;outline:none}div.cell.selected{border-radius:4px;border:thin #ababab solid}
 div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
-div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
-div.prompt{min-width:80px;float:left;padding-top:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
+div.cell div.input{position:relative}
+div.prompt{min-width:80px;position:absolute;height:100%;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}div.prompt div.prompt-text{padding-top:.4em}
 div.inner_cell{margin-left:83px;margin-right:auto}
 @media (max-width:480px){div.prompt{float:none} div.inner_cell{margin-left:0;margin-right:0} div.prompt{text-align:left}}div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
 div.prompt:empty{padding-top:0;padding-bottom:0}
