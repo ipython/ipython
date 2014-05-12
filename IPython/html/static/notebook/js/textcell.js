@@ -76,8 +76,8 @@ var IPython = (function (IPython) {
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
 
-        var prompt = $('<div/>').addClass('prompt input_prompt');
-        cell.append(prompt);
+        var prompt = $('<div/>').addClass('prompt-text');
+        cell.append($('<div/>').addClass('prompt input_prompt').append(prompt));
         var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
