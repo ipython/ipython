@@ -16,7 +16,8 @@ from .kernelspec import KernelSpecManager
 def _pythonfirst(s):
     "Sort key function that will put strings starting with 'python' first."
     if s.startswith('python'):
-        return ''
+        # Space is not valid in kernel names, so this should sort first
+        return ' ' + s
     return s
 
 class ListKernelSpecs(BaseIPythonApplication):
@@ -93,7 +94,7 @@ class InstallKernelSpec(BaseIPythonApplication):
                 print("Permission denied")
                 self.exit(1)
             elif e.errno == errno.EEXIST:
-                print("A kernel spec named %r is already present" % self.kernel_name)
+                print("A kernel spec is already present at %s" % e.filename)
                 self.exit(1)
             raise
 
