@@ -236,6 +236,16 @@ def doctest_hist_op():
     >>> 
     """
 
+def test_hist_pof():
+    ip = get_ipython()
+    ip.run_cell(u"1+2", store_history=True)
+    #raise Exception(ip.history_manager.session_number)
+    #raise Exception(list(ip.history_manager._get_range_session()))
+    with TemporaryDirectory() as td:
+        tf = os.path.join(td, 'hist.py')
+        ip.run_line_magic('history', '-pof %s' % tf)
+        assert os.path.isfile(tf)
+
 
 @dec.skip_without('sqlite3')
 def test_macro():
