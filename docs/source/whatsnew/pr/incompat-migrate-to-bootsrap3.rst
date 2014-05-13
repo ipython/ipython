@@ -6,3 +6,6 @@ Additional changes:
 - Set `#header` div `margin-bottom: 0px;`
 - Set `#menus` to `float: left;`
 - Set `#maintoolbar .navbar-text` to `float: none;`
+
+- Added no-padding convienence class.
+- Set border of #maintoolbar to 0px

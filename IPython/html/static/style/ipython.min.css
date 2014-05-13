@@ -2,6 +2,7 @@
 code{color:#222}
 .border-box-sizing{box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}
 .corner-all{border-radius:4px}
+.no-padding{padding:0}
 .hbox{display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;display:flex;flex-direction:row;align-items:stretch}
 .hbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;flex:none}
 .vbox{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}
@@ -32,7 +33,7 @@ ul#tabs a{padding-top:4px;padding-bottom:4px}
 ul.breadcrumb a:focus,ul.breadcrumb a:hover{text-decoration:none}
 ul.breadcrumb i.icon-home{font-size:16px;margin-right:4px}
 ul.breadcrumb span{color:#5e5e5e}
-.list_toolbar{padding:4px 0 4px 0}
+.list_toolbar{padding:4px 0 4px 0;vertical-align:middle}.list_toolbar .tree-buttons{padding-top:2px}
 .list_toolbar [class*="span"]{min-height:26px}
 .list_header{font-weight:bold}
 .list_container{margin-top:4px;margin-bottom:20px;border:1px solid #ababab;border-radius:4px}
@@ -40,15 +41,17 @@ ul.breadcrumb span{color:#5e5e5e}
 .list_container>div:last-child{border:none}
 .list_item:hover .list_item{background-color:#ddd}
 .list_item a{text-decoration:none}
-.list_header>div,.list_item>div{padding-top:4px;padding-bottom:4px;padding-left:7px;padding-right:7px;height:22px;line-height:22px}
+.action_col{text-align:right}
+.list_header>div,.list_item>div{padding-top:4px;padding-bottom:4px;padding-left:7px;padding-right:7px;line-height:22px}
 .item_name{line-height:22px;height:26px}
 .item_icon{font-size:14px;color:#5e5e5e;margin-right:7px}
 .item_buttons{line-height:1em}
 .toolbar_info{height:26px;line-height:26px}
-input.nbname_input,input.engine_num_input{padding-top:3px;padding-bottom:3px;height:14px;line-height:14px;margin:0}
+input.nbname_input,input.engine_num_input{padding-top:3px;padding-bottom:3px;height:22px;line-height:14px;margin:0}
 input.engine_num_input{width:60px}
 .highlight_text{color:#00f}
 #project_name>.breadcrumb{padding:0;margin-bottom:0;background-color:transparent;font-weight:bold}
+.tab-content .row{margin-left:0;margin-right:0}
 .ansibold{font-weight:bold}
 .ansiblack{color:#000}
 .ansired{color:#8b0000}
@@ -114,7 +117,7 @@ div.output_area{padding:0;page-break-inside:avoid;display:-webkit-box;-webkit-bo
 div.output_area .rendered_html table{margin-left:0;margin-right:0}
 div.output_area .rendered_html img{margin-left:0;margin-right:0}
 .output{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}
-@media (max-width:480px){div.output_area{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}}div.output_area pre{margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:#000;background-color:transparent;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;line-height:inherit}
+@media (max-width:480px){div.output_area{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}}div.output_area pre{margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:#000;background-color:transparent;border-radius:0;line-height:inherit}
 div.output_subarea{padding:.4em .4em 0 .4em;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
 div.output_text{text-align:left;color:#222;line-height:1.21429em}
 div.output_stderr{background:#fdd;}
