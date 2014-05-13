@@ -108,7 +108,7 @@ class NbConvertApp(BaseIPythonApplication):
         > ipython nbconvert --to latex mynotebook.ipynb
 
         Both HTML and LaTeX support multiple output templates. LaTeX includes
-        'basic', 'book', and 'article'.  HTML includes 'basic' and 'full'.  You 
+        'base', 'article' and 'report'.  HTML includes 'basic' and 'full'. You
         can specify the flavor of the format used.
 
         > ipython nbconvert --to html --template basic mynotebook.ipynb
