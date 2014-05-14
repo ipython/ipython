@@ -5,9 +5,6 @@ Module with tests for the execute preprocessor.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 import copy
 import os
 import re
@@ -17,10 +14,11 @@ from IPython.nbformat import current as nbformat
 from .base import PreprocessorTestsBase
 from ..execute import ExecutePreprocessor
 
+from IPython.nbconvert.filters import strip_ansi
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
+
+addr_pat = re.compile(r'0x[0-9a-f]{7,9}')
+
 
 class TestExecute(PreprocessorTestsBase):
     """Contains test functions for execute.py"""
@@ -34,9 +32,15 @@ class TestExecute(PreprocessorTestsBase):
         if 'metadata' in cell:
             del cell['metadata']
         if 'text' in cell:
-            cell['text'] = re.sub('0x[0-9a-f]{7,9}', '<HEXADDR>', cell['text'])
+            cell['text'] = re.sub(addr_pat, '<HEXADDR>', cell['text'])
         if 'svg' in cell:
             del cell['text']
+        if 'traceback' in cell:
+            tb = []
+            for line in cell['traceback']:
+                tb.append(strip_ansi(line))
+            cell['traceback'] = tb
+            
         return cell
 
 
