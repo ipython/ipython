@@ -252,9 +252,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         On Windows, this just kills kernels instead, because the shutdown
         messages don't work.
         """
-        # FIXME: Shutdown does not work on Windows due to ZMQ errors!
-        if sys.platform == 'win32' and self.has_kernel:
-            return self._kill_kernel()
         content = dict(restart=restart)
         msg = self.session.msg("shutdown_request", content=content)
         self.session.send(self._control_socket, msg)
@@ -345,11 +342,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # Start new kernel.
             self._launch_args.update(kw)
             self.start_kernel(**self._launch_args)
-
-            # FIXME: Messages get dropped in Windows due to probable ZMQ bug
-            # unless there is some delay here.
-            if sys.platform == 'win32':
-                time.sleep(0.2)
 
     @property
     def has_kernel(self):
