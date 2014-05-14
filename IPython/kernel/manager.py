@@ -246,11 +246,39 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         self.start_restarter()
         self._connect_control_socket()
 
-    def _send_shutdown_request(self, restart=False):
-        """TODO: send a shutdown request via control channel"""
+    def request_shutdown(self, restart=False):
+        """Send a shutdown request via control channel
+        
+        On Windows, this just kills kernels instead, because the shutdown
+        messages don't work.
+        """
         content = dict(restart=restart)
         msg = self.session.msg("shutdown_request", content=content)
         self.session.send(self._control_socket, msg)
+
+    def finish_shutdown(self, waittime=1, pollinterval=0.1):
+        """Wait for kernel shutdown, then kill process if it doesn't shutdown.
+        
+        This does not send shutdown requests - use :meth:`request_shutdown`
+        first.
+        """
+        for i in range(int(waittime/pollinterval)):
+            if self.is_alive():
+                time.sleep(pollinterval)
+            else:
+                break
+        else:
+            # OK, we've waited long enough.
+            if self.has_kernel:
+                self._kill_kernel()
+
+    def cleanup(self, connection_file=True):
+        """Clean up resources when the kernel is shut down"""
+        if connection_file:
+            self.cleanup_connection_file()
+
+        self.cleanup_ipc_files()
+        self._close_control_socket()
 
     def shutdown_kernel(self, now=False, restart=False):
         """Attempts to the stop the kernel process cleanly.
@@ -273,32 +301,16 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         # Stop monitoring for restarting while we shutdown.
         self.stop_restarter()
 
-        # FIXME: Shutdown does not work on Windows due to ZMQ errors!
-        if now or sys.platform == 'win32':
-            if self.has_kernel:
-                self._kill_kernel()
+        if now:
+            self._kill_kernel()
         else:
+            self.request_shutdown(restart=restart)
             # Don't send any additional kernel kill messages immediately, to give
             # the kernel a chance to properly execute shutdown actions. Wait for at
             # most 1s, checking every 0.1s.
-            self._send_shutdown_request(restart=restart)
-            for i in range(10):
-                if self.is_alive():
-                    time.sleep(0.1)
-                else:
-                    break
-            else:
-                # OK, we've waited long enough.
-                if self.has_kernel:
-                    self._kill_kernel()
+            self.finish_shutdown()
 
-        if not restart:
-            self.cleanup_connection_file()
-            self.cleanup_ipc_files()
-        else:
-            self.cleanup_ipc_files()
-        
-        self._close_control_socket()
+        self.cleanup(connection_file=not restart)
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
@@ -330,11 +342,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # Start new kernel.
             self._launch_args.update(kw)
             self.start_kernel(**self._launch_args)
-
-            # FIXME: Messages get dropped in Windows due to probable ZMQ bug
-            # unless there is some delay here.
-            if sys.platform == 'win32':
-                time.sleep(0.2)
 
     @property
     def has_kernel(self):
