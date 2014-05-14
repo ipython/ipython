@@ -505,10 +505,17 @@ class ConnectionFileMixin(Configurable):
             if getattr(self, name) == 0 and name in cfg:
                 # not overridden by config or cl_args
                 setattr(self, name, cfg[name])
+        
+        if self.session:
+            session = self.session
+        else:
+            session = self.config.Session
+        
         if 'key' in cfg:
-            self.config.Session.key = str_to_bytes(cfg['key'])
+            session.key = str_to_bytes(cfg['key'])
         if 'signature_scheme' in cfg:
-            self.config.Session.signature_scheme = cfg['signature_scheme']
+            session.signature_scheme = cfg['signature_scheme']
+
     #--------------------------------------------------------------------------
     # Creating connected sockets
     #--------------------------------------------------------------------------
