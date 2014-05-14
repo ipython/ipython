@@ -34,7 +34,7 @@ def _compile_less(source, target, minify=True, verbose=False):
     
     # pin less to 1.4
     try:
-    out = check_output(['lessc', '--version'])
+        out = check_output(['lessc', '--version'])
     except OSError as err:
         raise ValueError("Unable to find lessc.  Please install lessc >= %s and < %s " \
                          % (min_less_version, max_less_version))
