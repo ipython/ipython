@@ -3,10 +3,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 import os
 import sys
 
@@ -15,34 +11,60 @@ try:
 except ImportError:
     from Queue import Empty  # Py 2
 
-from IPython.kernel import KernelManager
-from IPython.nbformat.current import reads, NotebookNode, writes
+from IPython.utils.traitlets import List, Unicode
 
+from IPython.nbformat.current import reads, NotebookNode, writes
 from .base import Preprocessor
 
+# default timeout for reply and output: 10s
+TIMEOUT = 10
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 class ExecutePreprocessor(Preprocessor):
     """
     Executes all the cells in a notebook
     """
-    def __init__(self, extra_arguments=[], **kwargs):
-        """
-        Start an kernel to run the Python code
-        """
-        super(ExecutePreprocessor, self).__init__(**kwargs)
-        self.extra_arguments = []
-
+    
+    # FIXME: to be removed with nbformat v4
+    # map msg_type to v3 output_type
+    msg_type_map = {
+        "error" : "pyerr",
+        "execute_result" : "pyout",
+    }
+    
+    # FIXME: to be removed with nbformat v4
+    # map mime-type to v3 mime-type keys
+    mime_map = {
+        "text/plain" : "text",
+        "text/html" : "html",
+        "image/svg+xml" : "svg",
+        "image/png" : "png",
+        "image/jpeg" : "jpeg",
+        "text/latex" : "latex",
+        "application/json" : "json",
+        "application/javascript" : "javascript",
+    }
+    
+    extra_arguments = List(Unicode)
+    
     def _create_client(self):
+        from IPython.kernel import KernelManager
         self.km = KernelManager()
         self.km.start_kernel(extra_arguments=self.extra_arguments, stderr=open(os.devnull, 'w'))
         self.kc = self.km.client()
         self.kc.start_channels()
+        self.log.debug('kc.start_channels: %s', self.kc.session.session)
         self.iopub = self.kc.iopub_channel
         self.shell = self.kc.shell_channel
         self.shell.kernel_info()
+        try:
+            self.shell.get_msg(timeout=TIMEOUT)
+        except Empty:
+            self.log.error("Timeout waiting for kernel_info reply")
+            raise
+        try:
+            self.iopub.get_msg(timeout=TIMEOUT)
+        except Empty:
+            self.log.warn("Timeout waiting for IOPub on startup")
 
     def _shutdown_client(self):
         self.kc.stop_channels()
@@ -66,50 +88,70 @@ class ExecutePreprocessor(Preprocessor):
         except Exception as e:
             self.log.error("failed to run cell: " + repr(e))
             self.log.error(str(cell.input))
-            sys.exit(1)
+            raise
         cell.outputs = outputs
         return cell, resources
 
-    @staticmethod
-    def run_cell(shell, iopub, cell):
-        # print cell.input
-        shell.execute(cell.input)
-        # wait for finish, maximum 20s
-        shell.get_msg(timeout=20)
+    def run_cell(self, shell, iopub, cell):
+        msg_id = shell.execute(cell.input)
+        self.log.debug("Executing cell:\n%s", cell.input)
+        # wait for finish, with timeout
+        while True:
+            try:
+                msg = shell.get_msg(timeout=TIMEOUT)
+            except Empty:
+                self.log.error("Timeout waiting for execute reply")
+                raise
+            if msg['parent_header'].get('msg_id') == msg_id:
+                break
+            else:
+                # not our reply
+                continue
+        
         outs = []
 
         while True:
             try:
-                msg = iopub.get_msg(timeout=0.2)
+                msg = iopub.get_msg(timeout=TIMEOUT)
             except Empty:
+                self.log.warn("Timeout waiting for IOPub output")
                 break
+            if msg['parent_header'].get('msg_id') != msg_id:
+                # not an output from our execution
+                continue
 
             msg_type = msg['msg_type']
+            self.log.debug("output: %s", msg_type)
             content = msg['content']
-            out = NotebookNode(output_type=msg_type)
+            if msg_type == 'status':
+                if content['execution_state'] == 'idle':
+                    break
+                else:
+                    continue
+            elif msg_type in {'execute_input', 'pyin'}:
+                continue
+            elif msg_type == 'clear_output':
+                outs = []
+                continue
+
+            out = NotebookNode(output_type=self.msg_type_map.get(msg_type, msg_type))
 
             # set the prompt number for the input and the output
             if 'execution_count' in content:
                 cell['prompt_number'] = content['execution_count']
                 out.prompt_number = content['execution_count']
 
-            if msg_type in ('status', 'pyin'):
-                continue
-            elif msg_type == 'clear_output':
-                outs = []
-                continue
-
             if msg_type == 'stream':
                 out.stream = content['name']
                 out.text = content['data']
-            elif msg_type in ('display_data', 'pyout'):
+            elif msg_type in ('display_data', 'execute_result'):
                 out['metadata'] = content['metadata']
-                for mime, data in content['data'].iteritems():
-                    attr = mime.split('/')[-1].lower()
-                    # this gets most right, but fix svg+html, plain
-                    attr = attr.replace('+xml', '').replace('plain', 'text')
-                    setattr(out, attr, data)
-            elif msg_type == 'pyerr':
+                for mime, data in content['data'].items():
+                    # map mime-type keys to nbformat v3 keys
+                    # this will be unnecessary in nbformat v4
+                    key = self.mime_map.get(mime, mime)
+                    out[key] = data
+            elif msg_type == 'error':
                 out.ename = content['ename']
                 out.evalue = content['evalue']
                 out.traceback = content['traceback']

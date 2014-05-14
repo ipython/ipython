@@ -19,29 +19,28 @@ from IPython.nbconvert.filters import strip_ansi
 
 addr_pat = re.compile(r'0x[0-9a-f]{7,9}')
 
-
 class TestExecute(PreprocessorTestsBase):
     """Contains test functions for execute.py"""
 
     @staticmethod
-    def normalize_cell(cell):
+    def normalize_output(output):
         """
-        Normalizes cells for comparison.
+        Normalizes outputs for comparison.
         """
-        cell = dict(cell)
-        if 'metadata' in cell:
-            del cell['metadata']
-        if 'text' in cell:
-            cell['text'] = re.sub(addr_pat, '<HEXADDR>', cell['text'])
-        if 'svg' in cell:
-            del cell['text']
-        if 'traceback' in cell:
+        output = dict(output)
+        if 'metadata' in output:
+            del output['metadata']
+        if 'text' in output:
+            output['text'] = re.sub(addr_pat, '<HEXADDR>', output['text'])
+        if 'svg' in output:
+            del output['text']
+        if 'traceback' in output:
             tb = []
-            for line in cell['traceback']:
+            for line in output['traceback']:
                 tb.append(strip_ansi(line))
-            cell['traceback'] = tb
+            output['traceback'] = tb
             
-        return cell
+        return output
 
 
     def assert_notebooks_equal(self, expected, actual):
@@ -52,8 +51,8 @@ class TestExecute(PreprocessorTestsBase):
         for expected_cell, actual_cell in zip(expected_cells, actual_cells):
             expected_outputs = expected_cell.get('outputs', [])
             actual_outputs = actual_cell.get('outputs', [])
-            normalized_expected_outputs = list(map(self.normalize_cell, expected_outputs))
-            normalized_actual_outputs = list(map(self.normalize_cell, actual_outputs))
+            normalized_expected_outputs = list(map(self.normalize_output, expected_outputs))
+            normalized_actual_outputs = list(map(self.normalize_output, actual_outputs))
             assert normalized_expected_outputs == normalized_actual_outputs
 
 
