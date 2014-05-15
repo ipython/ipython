@@ -1459,7 +1459,7 @@ body{background-color:#fff}
 body.notebook_app{overflow:hidden}
 @media (max-width:767px){body.notebook_app{padding-left:0;padding-right:0}}span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%}
 div#notebook_panel{margin:0 0 0 0;padding:0;-webkit-box-shadow:inset 1px 4px 13px -6px rgba(0,0,0,0.2);box-shadow:inset 1px 4px 13px -6px rgba(0,0,0,0.2)}
-div#notebook{font-size:14px;line-height:20px;overflow-y:scroll;overflow-x:auto;width:100%;padding:2em 0 1em 0;margin:0;border-top:1px solid #e7e7e7;outline:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}
+div#notebook{font-size:14px;line-height:20px;overflow-y:scroll;overflow-x:auto;width:100%;padding:1em 0 1em 0;margin:0;border-top:1px solid #e7e7e7;outline:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}
 div.ui-widget-content{border:1px solid #ababab;outline:none}
 pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:.4em;padding-left:2em}
 p.dialog{padding:.2em}
