@@ -1480,7 +1480,7 @@ p{margin-bottom:0}
 .completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;border-radius:4px;-webkit-box-shadow:0 6px 10px -1px #adadad;box-shadow:0 6px 10px -1px #adadad}
 .completions select{background:#fff;outline:none;border:none;padding:0;margin:0;overflow:auto;font-family:monospace;font-size:110%;color:#222;width:auto}
 .completions select option.context{color:#3071a9}
-#menubar{margin-bottom:15px;margin-top:2px}
+#menubar{margin-bottom:15px;margin-top:2px;margin-left:-32px;margin-right:-32px}
 #menubar .navbar-inner{min-height:28px;border-top:1px;border-radius:0 0 4px 4px}
 #menubar .navbar{margin-bottom:8px}
 .nav-wrapper{border-bottom:1px solid #e7e7e7}
