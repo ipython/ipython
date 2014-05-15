@@ -307,11 +307,8 @@ class Session(Configurable):
     
     key = CBytes(b'', config=True,
         help="""execution key, for extra authentication.""")
-    def _key_changed(self, name, old, new):
-        if new:
-            self.auth = hmac.HMAC(new, digestmod=self.digest_mod)
-        else:
-            self.auth = None
+    def _key_changed(self):
+        self._new_auth()
     
     signature_scheme = Unicode('hmac-sha256', config=True,
         help="""The digest scheme used to construct the message signatures.
@@ -324,12 +321,19 @@ class Session(Configurable):
             self.digest_mod = getattr(hashlib, hash_name)
         except AttributeError:
             raise TraitError("hashlib has no such attribute: %s" % hash_name)
+        self._new_auth()
     
     digest_mod = Any()
     def _digest_mod_default(self):
         return hashlib.sha256
     
     auth = Instance(hmac.HMAC)
+    
+    def _new_auth(self):
+        if self.key:
+            self.auth = hmac.HMAC(self.key, digestmod=self.digest_mod)
+        else:
+            self.auth = None
     
     digest_history = Set()
     digest_history_size = Integer(2**16, config=True,
