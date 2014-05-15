@@ -142,11 +142,12 @@ class TestView(ClusterTestCase):
         ar = v.apply_async(wait, 1)
         # give the monitor time to notice the message
         time.sleep(.25)
-        ahr = v2.get_result(ar.msg_ids[0])
-        self.assertTrue(isinstance(ahr, AsyncHubResult))
+        ahr = v2.get_result(ar.msg_ids[0], owner=False)
+        self.assertIsInstance(ahr, AsyncHubResult)
         self.assertEqual(ahr.get(), ar.get())
         ar2 = v2.get_result(ar.msg_ids[0])
-        self.assertFalse(isinstance(ar2, AsyncHubResult))
+        self.assertNotIsInstance(ar2, AsyncHubResult)
+        self.assertEqual(ahr.get(), ar2.get())
         c.spin()
         c.close()
     
