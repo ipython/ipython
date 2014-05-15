@@ -26,7 +26,7 @@ div.output_collapsed {
 
 div.out_prompt_overlay {
     height: 100%;
-    padding: 0px @code_padding;
+    padding: 0px 0px;
     position: absolute;
     .corner-all;
 }
@@ -45,7 +45,7 @@ div.output_prompt {
 div.output_area {
     padding: 0px;
     page-break-inside: avoid;
-    .hbox();
+    position: relative;
 
     .MathJax_Display {
         // Inside a CodeCell, elements are left justified
@@ -73,9 +73,10 @@ div.output_area {
 }
 
 @media (max-width: 480px) {
-    // move prompts above output on small screens
-    div.output_area {
-        .vbox();
+    // move prompts above code on small screens
+    div.output_subarea {
+        margin-left: 0px;
+        margin-right: 0px;
     }
 }
 
@@ -93,7 +94,8 @@ div.output_area pre {
    the prompt div. */
 div.output_subarea {
     padding: @code_padding @code_padding 0.0em @code_padding;
-    .box-flex1();
+    margin-left: 83px;
+    margin-right: auto;
 }
 
 /* The rest of the output_* classes are for special styling of the different

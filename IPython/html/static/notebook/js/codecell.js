@@ -126,7 +126,7 @@ var IPython = (function (IPython) {
         cell.attr('tabindex','2');
 
         var input = $('<div></div>').addClass('input');
-        var prompt = $('<div/>').addClass('prompt input_prompt');
+        var prompt = $('<div/>').addClass('prompt input_prompt').append($('<div />').addClass('prompt-text'));
         var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
@@ -423,7 +423,7 @@ var IPython = (function (IPython) {
         this.input_prompt_number = number;
         var prompt_html = CodeCell.input_prompt_function(this.input_prompt_number, nline);
         // This HTML call is okay because the user contents are escaped.
-        this.element.find('div.input_prompt').html(prompt_html);
+        this.element.find('div.input_prompt div.prompt-text').html(prompt_html);
     };
 
 

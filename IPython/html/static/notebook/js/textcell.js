@@ -74,10 +74,11 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.create_element.apply(this, arguments);
 
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
+        var padded_cell = $("<div>").addClass('cell-padded').appendTo(cell);
         cell.attr('tabindex','2');
 
-        var prompt = $('<div/>').addClass('prompt input_prompt');
-        cell.append(prompt);
+        var prompt = $('<div/>').addClass('prompt-text');
+        padded_cell.append($('<div/>').addClass('prompt input_prompt').append(prompt));
         var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new IPython.CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
@@ -87,7 +88,7 @@ var IPython = (function (IPython) {
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
         inner_cell.append(input_area).append(render_area);
-        cell.append(inner_cell);
+        padded_cell.append(inner_cell);
         this.element = cell;
     };
 

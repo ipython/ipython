@@ -1,6 +1,5 @@
 div.cell {
     border: 1px solid transparent;
-    .vbox();
 
     &.selected {
         .corner-all;
@@ -11,39 +10,54 @@ div.cell {
         .corner-all;
         border : thin green solid;
     }
-}
 
-div.cell {
     width: 100%;
     padding: 5px 5px 5px 0px;
     /* This acts as a spacer between cells, that is outside the border */
     margin: 0px;
     outline: none;
+    position: relative;
+
+    div.input {
+        position: relative;
+    }
 }
 
 div.prompt {
     /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
-    min-width: 11ex;
-    /* This padding is tuned to match the padding on the CodeMirror editor. */
-    padding: @code_padding;
+    min-width: 80px;
+    position: absolute;
+    height: 100%;
     margin: 0px;
     font-family: @monoFontFamily;
     text-align: right;
     /* This has to match that of the the CodeMirror class line-height below */	
     line-height: @code_line_height;
+
+    div.prompt-text {
+        padding-top: @code_padding;
+    }
+}
+
+div.inner_cell {
+    margin-left: 83px;
+    margin-right: auto;
 }
 
 @media (max-width: 480px) {
+    // move prompts above code on small screens
+    div.prompt {
+        position: relative;
+    }
+    div.inner_cell {
+        margin-left: 0px;
+        margin-right: 0px;
+    }
     // prompts are in the main column on small screens,
     // so text should be left-aligned
     div.prompt {
         text-align: left;
     }
-}
-
-div.inner_cell {
-    .vbox();
-    .box-flex1();
 }
 
 /* input_area and input_prompt must match in top border and margin for alignment */

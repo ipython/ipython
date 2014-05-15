@@ -7,20 +7,15 @@ div.code_cell.running {
 
 div.input {
     page-break-inside: avoid;
-    .hbox();
-}
-
-@media (max-width: 480px) {
-    // move prompts above code on small screens
-    div.input {
-        .vbox();
-    }
 }
 
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_prompt {
     color: navy;
-    border-top: 1px solid transparent;
+
+    div.prompt-text {
+        border-top: 1px solid transparent;
+    }
 }
 
 // The styles related to div.highlight are for nbconvert HTML output only. This works
