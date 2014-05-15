@@ -5,7 +5,6 @@
 
 from __future__ import absolute_import
 
-# Standard library imports
 import os
 import re
 import signal
@@ -15,8 +14,6 @@ import warnings
 
 import zmq
 
-# Local imports
-from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import is_local_ip, local_ips
 from IPython.utils.path import get_ipython_dir
@@ -35,7 +32,7 @@ from .managerabc import (
 )
 
 
-class KernelManager(LoggingConfigurable, ConnectionFileMixin):
+class KernelManager(ConnectionFileMixin):
     """Manages a single kernel in a subprocess on this host.
 
     This version starts kernels with Popen.

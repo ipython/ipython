@@ -27,7 +27,7 @@ import zmq
 from IPython.external.ssh import tunnel
 
 # IPython imports
-from IPython.config import Configurable
+from IPython.config import LoggingConfigurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind, get_ipython_dir
@@ -381,7 +381,7 @@ channel_socket_types = {
 
 port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
 
-class ConnectionFileMixin(Configurable):
+class ConnectionFileMixin(LoggingConfigurable):
     """Mixin for configurable classes that work with connection files"""
 
     # The addresses for the communication channels
