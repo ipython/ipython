@@ -56,11 +56,6 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     def _context_default(self):
         return zmq.Context.instance()
 
-    # The Session to use for communication with the kernel.
-    session = Instance(Session)
-    def _session_default(self):
-        return Session(parent=self)
-
     # The classes to use for the various channels
     shell_channel_class = Type(ShellChannel)
     iopub_channel_class = Type(IOPubChannel)

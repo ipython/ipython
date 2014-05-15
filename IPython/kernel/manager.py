@@ -46,11 +46,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     def _context_default(self):
         return zmq.Context.instance()
 
-    # The Session to use for communication with the kernel.
-    session = Instance(Session)
-    def _session_default(self):
-        return Session(parent=self)
-
     # the class to create with our `client` method
     client_class = DottedObjectName('IPython.kernel.blocking.BlockingKernelClient')
     client_factory = Type()

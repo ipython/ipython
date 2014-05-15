@@ -34,7 +34,7 @@ from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import (str_to_bytes, bytes_to_str, cast_bytes_py2,
                                      string_types)
 from IPython.utils.traitlets import (
-    Bool, Integer, Unicode, CaselessStrEnum,
+    Bool, Integer, Unicode, CaselessStrEnum, Instance,
 )
 
 
@@ -433,6 +433,12 @@ class ConnectionFileMixin(Configurable):
     def ports(self):
         return [ getattr(self, name) for name in port_names ]
 
+    # The Session to use for communication with the kernel.
+    session = Instance('IPython.kernel.zmq.session.Session')
+    def _session_default(self):
+        from IPython.kernel.zmq.session import Session
+        return Session(parent=self)
+
     #--------------------------------------------------------------------------
     # Connection and ipc file management
     #--------------------------------------------------------------------------
@@ -506,15 +512,10 @@ class ConnectionFileMixin(Configurable):
                 # not overridden by config or cl_args
                 setattr(self, name, cfg[name])
         
-        if self.session:
-            session = self.session
-        else:
-            session = self.config.Session
-        
         if 'key' in cfg:
-            session.key = str_to_bytes(cfg['key'])
+            self.session.key = str_to_bytes(cfg['key'])
         if 'signature_scheme' in cfg:
-            session.signature_scheme = cfg['signature_scheme']
+            self.session.signature_scheme = cfg['signature_scheme']
 
     #--------------------------------------------------------------------------
     # Creating connected sockets

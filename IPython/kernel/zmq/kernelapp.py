@@ -111,7 +111,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
-    session = Instance('IPython.kernel.zmq.session.Session')
     ports = Dict()
     
     # ipkernel doesn't get its own config file
@@ -289,11 +288,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
                                 stdin=self.stdin_port, hb=self.hb_port,
                                 control=self.control_port)
 
-    def init_session(self):
-        """create our session object"""
-        default_secure(self.config)
-        self.session = Session(parent=self, username=u'kernel')
-
     def init_blackhole(self):
         """redirects stdout/stderr to devnull if necessary"""
         if self.no_stdout or self.no_stderr:
@@ -363,9 +357,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
+        default_secure(self.config)
         self.init_blackhole()
         self.init_connection_file()
-        self.init_session()
         self.init_poller()
         self.init_sockets()
         self.init_heartbeat()
