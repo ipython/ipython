@@ -97,7 +97,7 @@ unknown type  {{ cell.type }}
 {% block stream_stdout -%}
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-{{ output.text | ansi2html }}
+{{- output.text | ansi2html -}}
 </pre>
 </div>
 {%- endblock stream_stdout %}
@@ -105,7 +105,7 @@ unknown type  {{ cell.type }}
 {% block stream_stderr -%}
 <div class="output_subarea output_stream output_stderr output_text">
 <pre>
-{{ output.text | ansi2html }}
+{{- output.text | ansi2html -}}
 </pre>
 </div>
 {%- endblock stream_stderr %}
@@ -168,7 +168,9 @@ height={{output.metadata['jpeg']['height']}}
 
 {% block pyerr -%}
 <div class="output_subarea output_text output_pyerr">
-<pre>{{ super() }}</pre>
+<pre>
+{{- super() -}}
+</pre>
 </div>
 {%- endblock pyerr %}
 
@@ -179,7 +181,7 @@ height={{output.metadata['jpeg']['height']}}
 {%- block data_text scoped %}
 <div class="output_text output_subarea {{extra_class}}">
 <pre>
-{{ output.text | ansi2html }}
+{{- output.text | ansi2html -}}
 </pre>
 </div>
 {%- endblock -%}
