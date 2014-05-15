@@ -13,7 +13,7 @@
                 "kernel_info": {
                     "description": "Kernel information.",
                     "type": "object",
-                    "required": true,
+                    "required": false,
                     "properties": {
                         "name": {
                             "description": "Name of the kernel specification.",
@@ -46,7 +46,7 @@
             }
         },
         "nbformat_minor": {
-            "description": "Notebook format (minor number). Incremented for slight changes to the notebook format.",
+            "description": "Notebook format (minor number). Incremented for backward compatible changes to the notebook format.",
             "type": "integer",
             "required": true,
             "minimum": 0
@@ -178,12 +178,12 @@
                         "collapsed": {
                             "description": "Whether the cell is collapsed/expanded.",
                             "type": "boolean",
-                            "required": true
+                            "required": false
                         },
                         "autoscroll": {
-                            "description": "Whether the cell's output should autoscroll.",
-                            "type": "boolean",
-                            "required": true
+                            "description": "Whether the cell's output is scrolled, unscrolled, or autoscrolled.",
+                            "enum": [true, false, "auto"],
+                            "required": false
                         },
                         "name": {"$ref": "/definitions/misc/metadata_name"},
                         "tags": {"$ref": "/definitions/misc/metadata_tags"}
@@ -196,7 +196,7 @@
                     "required": true,
                     "items": {
                         "type": [
-                            {"$ref": "/definitions/execute_output"},
+                            {"$ref": "/definitions/execute_result"},
                             {"$ref": "/definitions/display_data_output"},
                             {"$ref": "/definitions/stream_output"},
                             {"$ref": "/definitions/error_output"}
@@ -212,14 +212,14 @@
             }
         },
 
-        "execute_output": {
+        "execute_result": {
             "description": "Result of executing a code cell.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
-                    "enum": ["execute_output"],
+                    "enum": ["execute_result"],
                     "required": true
                 },
                 "metadata": {"$ref": "/definitions/misc/output_metadata"},
@@ -261,9 +261,8 @@
                 },
                 "text/plain": {
                     "description": "The stream's text output, represented as an array of strings.",
-                    "type": "array",
-                    "required": false,
-                    "items": {"type": "string"}
+                    "type": ["string", "array"],
+                    "required": false
                 }
             }
         },
@@ -292,8 +291,8 @@
                 "traceback": {
                     "description": "The error's traceback, represented as an array of strings.",
                     "type": "array",
-                    "required": true,
-                    "items": {"type": "string"}
+                    "items": {"type": "string"},
+                    "required": true
                 }
             }
         },
@@ -317,9 +316,8 @@
             },
             "source": {
                 "description": "Contents of the cell, represented as an array of lines.",
-                "type": "array",
-                "required": true,
-                "items": {"type": "string"}
+                "type": ["string", "array"],
+                "required": true
             },
             "prompt_number": {
                 "description": "The code cell's prompt number. Will be null if the cell has not been run.",
