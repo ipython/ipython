@@ -399,7 +399,7 @@ class AsyncResult(object):
             return
         md = content['metadata'] or {}
         md['engine'] = eid
-        ip.display_pub.publish(content['source'], content['data'], md)
+        ip.display_pub.publish(data=content['data'], metadata=md)
     
     def _display_stream(self, text, prefix='', file=None):
         if not text:
