@@ -32,10 +32,10 @@ def upgrade(nb, from_version=1):
     ----------
     nb : NotebookNode
         The Python representation of the notebook to convert.
-    orig_version : int
-        The original version of the notebook to convert.
+    from_version : int
+        The version of the notebook to convert from.
     """
-    if orig_version == 1:
+    if from_version == 1:
         newnb = new_notebook()
         ws = new_worksheet()
         for cell in nb.cells:
@@ -47,7 +47,7 @@ def upgrade(nb, from_version=1):
         newnb.worksheets.append(ws)
         return newnb
     else:
-        raise ValueError('Cannot convert a notebook from v%s to v2' % orig_version)
+        raise ValueError('Cannot convert a notebook from v%s to v2' % from_version)
 
 
 def downgrade(nb):
