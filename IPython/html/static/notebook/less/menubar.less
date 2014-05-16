@@ -1,33 +1,33 @@
 #menubar {
-  margin-bottom: 15px;
-  margin-top: 2px;
-  margin-left: -32px;
-  margin-right: -32px;
-}
+  margin-top: 0px;
+  margin-bottom: -19px;
+  position: relative;
+  z-index: 1000; /* Make the menubar higher than the header so the header's 
+                    shadow doesn't affect the menubar. */
 
-#menubar .navbar-inner {
-  min-height: 28px;
-  border-top: 1px;
-  border-radius: 0px 0px @border-radius-base @border-radius-base;
-}
+  .navbar {
+    border-top: 1px;
+    border-radius: 0px 0px @border-radius-base @border-radius-base;
+  }
 
-#menubar .navbar {
-  margin-bottom: 8px;
+
+  li.dropdown {
+    line-height: 12px;
+
+    a {
+      padding-top: 6px;
+      padding-bottom: 5px;
+    }
+  }
+
+  ul.navbar-right {
+    padding-top: 2px;
+  }
 }
 
 .nav-wrapper {
   border-bottom: 1px solid @navbar-default-border;
 }
-
-#menubar li.dropdown {
-  line-height: 12px;
-}
-
-#menubar .navbar-right {
-  // Add some padding to the right aligned items.
-  padding-top: 5px;
-}
-
 
 i.menu-icon {
   // add padding to account for float-right
@@ -42,8 +42,8 @@ ul#help_menu li a{
     }
 }
 
-ul#menus {
-  float: left;
+#menus {
+  min-height: 30px;
 }
 
 // Make sub menus work in BS3.
