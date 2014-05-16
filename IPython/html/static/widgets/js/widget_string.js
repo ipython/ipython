@@ -65,7 +65,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .hide();
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
-                .addClass('widget-text')
+                .addClass('widget-text form-control')
                 .appendTo(this.$el);
             this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
@@ -150,7 +150,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
-                .addClass('widget-text')
+                .addClass('widget-text form-control')
                 .appendTo(this.$el);
             this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.

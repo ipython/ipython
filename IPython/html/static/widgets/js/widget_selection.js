@@ -310,7 +310,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('widget-hlabel')
                 .hide();
             this.$listbox = $('<select />')
-                .addClass('widget-listbox')
+                .addClass('widget-listbox form-control')
                 .attr('size', 6)
                 .appendTo(this.$el);
             this.$el_to_style = this.$listbox; // Set default element to style

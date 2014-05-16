@@ -164,7 +164,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('widget-hlabel')
                 .hide();
             this.$textbox = $('<input type="text" />')
-                .addClass('input')
+                .addClass('form-control')
                 .addClass('widget-numeric-text')
                 .appendTo(this.$el);
             this.$el_to_style = this.$textbox; // Set default element to style
