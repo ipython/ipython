@@ -22,11 +22,11 @@ def win32_clipboard_get():
     win32clipboard.OpenClipboard()
     try:
         text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
-    except TypeError:
+    except (TypeError, win32clipboard.error):
         try:
             text = win32clipboard.GetClipboardData(win32clipboard.CF_TEXT)
             text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
-        except TypeError:
+        except (TypeError, win32clipboard.error):
             raise ClipboardEmpty
     finally:
         win32clipboard.CloseClipboard()
