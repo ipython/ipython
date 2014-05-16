@@ -134,6 +134,8 @@ def test_history():
             ip.history_manager.writeout_cache()
             nt.assert_equal(ip.history_manager.session_number, 3)
         finally:
+            # Ensure saving thread is shut down before we try to clean up the files
+            ip.history_manager.save_thread.stop()
             # Restore history manager
             ip.history_manager = hist_manager_ori
 
