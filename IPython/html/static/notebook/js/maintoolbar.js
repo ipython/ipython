@@ -20,7 +20,7 @@ var IPython = (function (IPython) {
         this.bind_events();
     };
 
-    MainToolBar.prototype = new IPython.ToolBar(); 
+    MainToolBar.prototype = new IPython.ToolBar();
 
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([
@@ -92,7 +92,7 @@ var IPython = (function (IPython) {
                         }
                 }
             ],'move_up_down');
-        
+
 
         this.add_buttons_group([
                 {
@@ -170,12 +170,17 @@ var IPython = (function (IPython) {
             var name = data.name;
             select.append($('<option/>').attr('value', name).text(name));
         });
+        // Update select value when a preset is activated.
+        $([IPython.events]).on('preset_activated.CellToolbar', function (event, data) {
+            if (select.val() !== data.name)
+                select.val(data.name);
+        });
     };
 
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
-        
+
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
