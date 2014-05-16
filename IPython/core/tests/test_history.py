@@ -136,6 +136,8 @@ def test_history():
         finally:
             # Ensure saving thread is shut down before we try to clean up the files
             ip.history_manager.save_thread.stop()
+            # Forcibly close database rather than relying on garbage collection
+            ip.history_manager.db.close()
             # Restore history manager
             ip.history_manager = hist_manager_ori
 
