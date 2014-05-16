@@ -65,7 +65,7 @@ define(["widgets/js/manager",
             var method = msg.content.data.method;
             switch (method) {
                 case 'update':
-                    this.apply_update(msg.content.data.state);
+                    this.set_state(msg.content.data.state);
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -76,7 +76,7 @@ define(["widgets/js/manager",
             }
         },
 
-        apply_update: function (state) {
+        set_state: function (state) {
             // Handle when a widget is updated via the python side.
             var that = this;
             _.each(state, function(value, key) {
@@ -87,6 +87,11 @@ define(["widgets/js/manager",
                     that.key_value_lock = null;
                 }
             });
+        },
+
+        get_state: function () {
+            // Get the state of the model
+            return this._pack_models(this.toJSON());
         },
 
         _handle_status: function (msg, callbacks) {

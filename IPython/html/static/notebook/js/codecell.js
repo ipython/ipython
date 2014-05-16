@@ -14,29 +14,29 @@ define([
     "use strict";
     var Cell = cell.Cell;
 
-    /* local util for codemirror */
-    var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
+/* local util for codemirror */
+var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
 
-    /**
-     *
-     * function to delete until previous non blanking space character
-     * or first multiple of 4 tabstop.
-     * @private
-     */
-    CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
-        var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
-        if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
-        var cur = cm.getCursor(), line = cm.getLine(cur.line);
-        var tabsize = cm.getOption('tabSize');
-        var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-        from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
-        var select = cm.getRange(from,cur);
-        if( select.match(/^\ +$/) !== null){
-            cm.replaceRange("",from,cur);
-        } else {
-            cm.deleteH(-1,"char");
-        }
-    };
+/**
+ *
+ * function to delete until previous non blanking space character
+ * or first multiple of 4 tabstop.
+ * @private
+ */
+CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
+    var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
+    if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
+    var cur = cm.getCursor(), line = cm.getLine(cur.line);
+    var tabsize = cm.getOption('tabSize');
+    var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
+    from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
+    var select = cm.getRange(from,cur);
+    if( select.match(/^\ +$/) !== null){
+        cm.replaceRange("",from,cur);
+    } else {
+        cm.deleteH(-1,"char");
+    }
+};
 
     var keycodes = keyboard.keycodes;
 
@@ -70,6 +70,7 @@ define([
         this.output_area = null;
         this.last_msg_id = null;
         this.completer = null;
+        this.widgets = [];
 
 
         var cm_overwrite_options  = {
@@ -89,6 +90,11 @@ define([
         this.element.focusout(
             function() { that.auto_highlight(); }
         );
+
+        this.events.on('status_restarting.Kernel', function(){
+            that.clear_widgets();
+            that._load_widgets();
+        });
     };
 
     CodeCell.options_default = {
@@ -150,11 +156,14 @@ define([
             .addClass('widget-subarea')
             .appendTo(widget_area);
         this.widget_subarea = widget_subarea;
+        var that = this;
         var widget_clear_buton = $('<button />')
             .addClass('close')
             .html('&times;')
             .click(function() {
-                widget_area.slideUp('', function(){ widget_subarea.html(''); });
+                widget_area.slideUp('', function(){ 
+                    that.clear_widgets();
+                });
                 })
             .appendTo(widget_prompt);
 
@@ -260,6 +269,18 @@ define([
 
     CodeCell.prototype.set_kernel = function (kernel) {
         this.kernel = kernel;
+        this.clear_widgets();
+        this._load_widgets();
+    };
+
+    CodeCell.prototype.clear_widgets = function() {
+        this.widgets = [];
+        var old_html = this.widget_subarea.html();
+        this.widget_subarea.html('');
+        this.widget_subarea.height('');
+        this.widget_area.height('');
+        this.widget_area.hide();
+        return old_html !== '';
     };
 
     /**
@@ -269,11 +290,10 @@ define([
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output();
         
-        // Clear widget area
-        this.widget_subarea.html('');
-        this.widget_subarea.height('');
-        this.widget_area.height('');
-        this.widget_area.hide();
+        // Remove widgets and clear widget area
+        if (this.clear_widgets()) {
+            $([IPython.events]).trigger('set_dirty.Notebook', {value: true});
+        }
 
         this.set_input_prompt('*');
         this.element.addClass("running");
@@ -482,11 +502,56 @@ define([
                 }
             }
         }
+        this._load_widgets();
+    };
+
+
+    CodeCell.prototype.display_widget_view = function (view) {
+        // Display a widget view in this cell.
+        this.widget_subarea.append(view.$el);
+        this.widgets.push({
+            id: view.model.id, 
+            target: this.kernel.widget_manager.get_model_target(view.model)
+        });
+        this.events.trigger('set_dirty.Notebook', {value: true});
+    };
+
+
+    CodeCell.prototype._load_widgets = function () {
+        // Load the widgets stored in the cell metadata.
+        if (this.kernel) {
+            if (this.metadata.widgets) {
+                var cached_widgets = this.metadata.widgets;
+                for (var i = 0; i < cached_widgets.length; i++) {
+                    var widget = cached_widgets[i];
+                    var widget_manager = this.kernel.widget_manager;
+                    var model = widget_manager.get_model(widget.id, widget.target);
+                    // Set the model's initial state and display its view.
+                    model.set_state(widget.state);
+                    widget_manager.display_cell_view(this, model);
+                }
+            }
+        }
     };
 
 
     CodeCell.prototype.toJSON = function () {
-        var data = Cell.prototype.toJSON.apply(this);
+        // Copy the widgets array to the cell's metadata.  Get the current model
+        // states and save them too.
+        this.metadata.widgets = [];
+        if (this.kernel) {
+            for (var i = 0; i < this.widgets.length; i++) {
+                var widget = this.widgets[i];
+                var model = this.kernel.widget_manager.get_model(widget.id);
+                // Save the state as disabled.  Later when the page is reloaded, the
+                // widget will be disabled until it recieves a proper state update
+                // from the backend.
+                widget.state = $.extend(model.get_state(), {disabled: true});
+                this.metadata.widgets.push(widget);
+            }
+        }
+
+        var data = IPython.Cell.prototype.toJSON.apply(this);
         data.input = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
