@@ -2,11 +2,11 @@
 """
 Backport pull requests to a particular branch.
 
-Usage: backport_pr.py branch [PR]
+Usage: backport_pr.py branch [PR] [PR2]
 
 e.g.:
 
-    python tools/backport_pr.py 0.13.1 123
+    python tools/backport_pr.py 0.13.1 123 155
 
 to backport PR #123 onto branch 0.13.1
 
@@ -29,7 +29,7 @@ from subprocess import Popen, PIPE, check_call, check_output
 try:
     from urllib.request import urlopen
 except:
-    from urllib import urlopen    
+    from urllib import urlopen
 
 from gh_api import (
     get_issues_list,
@@ -163,4 +163,9 @@ if __name__ == '__main__':
             print (pr)
         sys.exit(0)
 
-    sys.exit(backport_pr(sys.argv[1], int(sys.argv[2])))
+    for prno in map(int, sys.argv[2:]):
+        print("Backporting PR #%i" % prno)
+        rc = backport_pr(sys.argv[1], prno)
+        if rc:
+            print("Backporting PR #%i failed" % prno)
+            sys.exit(rc)
