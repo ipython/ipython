@@ -775,6 +775,7 @@ class HistorySavingThread(threading.Thread):
             while True:
                 self.history_manager.save_flag.wait()
                 if self.stop_now:
+                    self.db.close()
                     return
                 self.history_manager.save_flag.clear()
                 self.history_manager.writeout_cache(self.db)
