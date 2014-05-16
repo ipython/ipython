@@ -335,15 +335,13 @@ def prepare_controllers(options):
     """Returns two lists of TestController instances, those to run, and those
     not to run."""
     testgroups = options.testgroups
-    js_enabled = True
     if testgroups:
-        py_testgroups = [g for g in testgroups if (g in py_test_group_names) \
-                                                or g.startswith('IPython.')]
         if 'js' in testgroups:
             js_testgroups = all_js_groups()
         else:
-            js_testgroups = [g for g in testgroups if g not in py_testgroups]
-        js_enabled = len(js_testgroups) > 0
+            js_testgroups = [g for g in testgroups if g.startswith(js_prefix)]
+        
+        py_testgroups = [g for g in testgroups if g not in ['js'] + js_testgroups]
     else:
         py_testgroups = py_test_group_names
         if not options.all:
@@ -352,7 +350,7 @@ def prepare_controllers(options):
         else:
             js_testgroups = all_js_groups()
 
-    c_js = [JSController(name, js_enabled) for name in js_testgroups]
+    c_js = [JSController(name) for name in js_testgroups]
     c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
