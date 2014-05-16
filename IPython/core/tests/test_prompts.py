@@ -8,7 +8,7 @@ import os
 from IPython.testing import tools as tt, decorators as dec
 from IPython.core.prompts import PromptManager, LazyEvaluate
 from IPython.testing.globalipapp import get_ipython
-from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
 
@@ -67,13 +67,10 @@ class PromptTests(unittest.TestCase):
     
     @dec.onlyif_unicode_paths
     def test_render_unicode_cwd(self):
-        save = py3compat.getcwd()
-        with TemporaryDirectory(u'ünicødé') as td:
-            os.chdir(td)
+        with TemporaryWorkingDirectory(u'ünicødé'):
             self.pm.in_template = r'\w [\#]'
             p = self.pm.render('in', color=False)
             self.assertEqual(p, u"%s [%i]" % (py3compat.getcwd(), ip.execution_count))
-        os.chdir(save)
     
     def test_lazy_eval_unicode(self):
         u = u'ünicødé'

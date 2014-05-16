@@ -15,7 +15,7 @@ import nose.tools as nt
 from IPython.config.loader import Config
 from IPython.core import completer
 from IPython.external.decorators import knownfailureif
-from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types, unicode_type
@@ -189,28 +189,22 @@ def test_abspath_file_completions():
 
 def test_local_file_completions():
     ip = get_ipython()
-    cwd = py3compat.getcwd()
-    try:
-        with TemporaryDirectory() as tmpdir:
-            os.chdir(tmpdir)
-            prefix = './foo'
-            suffixes = ['1', '2']
-            names = [prefix+s for s in suffixes]
-            for n in names:
-                open(n, 'w').close()
+    with TemporaryWorkingDirectory():
+        prefix = './foo'
+        suffixes = ['1', '2']
+        names = [prefix+s for s in suffixes]
+        for n in names:
+            open(n, 'w').close()
 
-            # Check simple completion
-            c = ip.complete(prefix)[1]
-            nt.assert_equal(c, names)
+        # Check simple completion
+        c = ip.complete(prefix)[1]
+        nt.assert_equal(c, names)
 
-            # Now check with a function call
-            cmd = 'a = f("%s' % prefix
-            c = ip.complete(prefix, cmd)[1]
-            comp = [prefix+s for s in suffixes]
-            nt.assert_equal(c, comp)
-    finally:
-        # prevent failures from making chdir stick
-        os.chdir(cwd)
+        # Now check with a function call
+        cmd = 'a = f("%s' % prefix
+        c = ip.complete(prefix, cmd)[1]
+        comp = [prefix+s for s in suffixes]
+        nt.assert_equal(c, comp)
 
 
 def test_greedy_completions():
