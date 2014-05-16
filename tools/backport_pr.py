@@ -70,6 +70,11 @@ def backport_pr(branch, num, project='ipython/ipython'):
         req = urlopen(patch_url)
         patch = req.read()
 
+    lines = description.splitlines()
+    if len(lines) > 5:
+        lines = lines[:5] + ['...']
+        description = '\n'.join(lines)
+
     msg = "Backport PR #%i: %s" % (num, title) + '\n\n' + description
     check = Popen(['git', 'apply', '--check', '--verbose'], stdin=PIPE)
     a,b = check.communicate(patch)
