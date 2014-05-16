@@ -284,7 +284,12 @@ class TestSession(SessionTestCase):
     
     @skipif(module_not_available('msgpack'))
     def test_datetimes_msgpack(self):
-        session = ss.Session(packer='msgpack.packb', unpacker='msgpack.unpackb')
+        import msgpack
+        
+        session = ss.Session(
+            pack=msgpack.packb,
+            unpack=lambda buf: msgpack.unpackb(buf, encoding='utf8'),
+        )
         self._datetime_test(session)
     
     def test_send_raw(self):
