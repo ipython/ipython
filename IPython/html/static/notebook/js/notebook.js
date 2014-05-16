@@ -2106,6 +2106,8 @@ var IPython = (function (IPython) {
         if (this.metadata.celltoolbar) {
             IPython.CellToolbar.global_show();
             IPython.CellToolbar.activate_preset(this.metadata.celltoolbar);
+        } else {
+            IPython.CellToolbar.global_hide();
         }
 
         // now that we're fully loaded, it is safe to restore save functionality

@@ -185,6 +185,10 @@ var IPython = (function (IPython) {
     CellToolbar.register_preset = function(name, preset_list) {
         CellToolbar._presets[name] = preset_list;
         $([IPython.events]).trigger('preset_added.CellToolbar', {name: name});
+        // When "register_callback" is called by a custom extension, it may be executed after notebook is loaded.
+        // In that case, activate the preset if needed.
+        if (IPython.notebook && IPython.notebook.metadata && IPython.notebook.metadata.celltoolbar === name)
+            this.activate_preset(name);
     };
 
 
@@ -224,6 +228,8 @@ var IPython = (function (IPython) {
             CellToolbar._ui_controls_list = preset;
             CellToolbar.rebuild_all();
         }
+
+        $([IPython.events]).trigger('preset_activated.CellToolbar', {name: preset_name});
     };
 
 
