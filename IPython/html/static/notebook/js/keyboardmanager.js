@@ -259,7 +259,7 @@ var IPython = (function (IPython) {
             help    : 'insert cell above',
             help_index : 'ec',
             handler : function (event) {
-                IPython.notebook.insert_cell_above('code');
+                IPython.notebook.insert_cell_above();
                 IPython.notebook.select_prev();
                 IPython.notebook.focus_cell();
                 return false;
@@ -269,7 +269,7 @@ var IPython = (function (IPython) {
             help    : 'insert cell below',
             help_index : 'ed',
             handler : function (event) {
-                IPython.notebook.insert_cell_below('code');
+                IPython.notebook.insert_cell_below();
                 IPython.notebook.select_next();
                 IPython.notebook.focus_cell();
                 return false;

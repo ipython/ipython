@@ -1478,7 +1478,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.command_mode();
-            this.insert_cell_below('code');
+            this.insert_cell_below();
             this.select(cell_index+1);
             this.edit_mode();
             this.scroll_to_bottom();
@@ -1487,7 +1487,7 @@ var IPython = (function (IPython) {
         }
 
         this.command_mode();
-        this.insert_cell_below('code');
+        this.insert_cell_below();
         this.select(cell_index+1);
         this.edit_mode();
         this.set_dirty(true);
@@ -1508,7 +1508,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.command_mode();
-            this.insert_cell_below('code');
+            this.insert_cell_below();
             this.select(cell_index+1);
             this.edit_mode();
             this.scroll_to_bottom();
