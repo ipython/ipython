@@ -139,6 +139,7 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
 def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
                         independent=False,
                         cwd=None, ipython_kernel=True,
+                        env=None,
                         **kw
                         ):
     """ Launches a localhost kernel, binding to the specified ports.
