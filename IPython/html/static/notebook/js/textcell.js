@@ -242,23 +242,89 @@ var IPython = (function (IPython) {
     MarkdownCell.prototype = new TextCell();
 
     /**
+     * A hook used to preprocess the text of markdown cells before rendering.
+     *
+     * @property preprocess
+     * @type Hook
+     *
+     * Callbacks attached to this hook must be of type:
+     *
+     * @callback MarkdownCell~preprocessCallback
+     * @param data {Object}
+     * @param data.cell {MarkdownCell} - The markdown cell to be rendered.
+     * @param data.text {string} - The text to process.
+     *
+     * At first data.text stores the text content of the cell, then its value is modified
+     * by the hook callbacks in turn and finally it is passed to the markdown renderer.
+     *
+     */
+    MarkdownCell.preprocess = new IPython.Hook();
+
+    MarkdownCell.preprocess.add_callback(function(data) {
+        var text_and_math = IPython.mathjaxutils.remove_math(data.text);
+        data.text = text_and_math[0];
+        data.cell.mathjax_processor_data = text_and_math[1];
+    }, 10);
+
+    /**
+     * A hook used to handle the result of the rendering process before setting output.
+     *
+     * @property postprocess
+     * @type Hook
+     *
+     * Callbacks attached to this hook must be of type:
+     *
+     * @callback MarkdownCell~postprocessCallback
+     * @param data {Object}
+     * @param data.cell {MarkdownCell} - The markdown cell being rendered.
+     * @param data.html {string} - String containing the html to be processed.
+     *
+     * At first data.html stores the result of the markdown translation process,
+     * then its content is modified by the hook callbacks in turn and finally it is set into
+     * the output area.
+     *
+     */
+    MarkdownCell.postprocess = new IPython.Hook();
+
+    MarkdownCell.postprocess.add_callback(function(data) {
+        var math = data.cell.mathjax_processor_data;
+        data.cell.mathjax_processor_data = null;
+        data.html = IPython.mathjaxutils.replace_math(data.html, math);
+    }, -30);
+
+    MarkdownCell.postprocess.add_callback(function(data) {
+        data.html = security.sanitize_html(data.html);
+    }, -20);
+
+    MarkdownCell.postprocess.add_callback(function(data) {
+        var html = $(data.html);
+        // links in markdown cells should open in new tabs
+        html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+        data.html = '';
+        html.each(function(index, el) {
+            var outer = el.outerHTML;
+            if (outer) data.html += outer;
+        });
+    }, -10);
+
+    /**
      * @method render
      */
     MarkdownCell.prototype.render = function () {
         var cont = IPython.TextCell.prototype.render.apply(this);
         if (cont) {
             var text = this.get_text();
-            var math = null;
             if (text === "") { text = this.placeholder; }
-            var text_and_math = IPython.mathjaxutils.remove_math(text);
-            text = text_and_math[0];
-            math = text_and_math[1];
-            var html = marked.parser(marked.lexer(text));
-            html = IPython.mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
-            html = $(html);
-            // links in markdown cells should open in new tabs
-            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+
+            var data = {cell: this, text: text};
+            MarkdownCell.preprocess.execute([data]);
+
+            var html = marked.parser(marked.lexer(data.text));
+
+            data = {cell: this, html: html};
+            MarkdownCell.postprocess.execute([data]);
+
+            html = $(data.html);
             this.set_rendered(html);
             this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
@@ -412,33 +478,99 @@ var IPython = (function (IPython) {
         return r.children().first().html();
     };
 
+    /**
+     * A hook used to preprocess the text of heading cells before rendering.
+     *
+     * @property preprocess
+     * @type Hook
+     *
+     * Callbacks attached to this hook must be of type:
+     *
+     * @callback HeadingCell~preprocessCallback
+     * @param data {Object}
+     * @param data.cell {HeadingCell} - The heading cell to be rendered.
+     * @param data.text {string} - The text to process.
+     *
+     * At first data.text stores the text content of the cell, then its value is modified
+     * by the hook callbacks in turn and finally it is passed to the markdown renderer.
+     *
+     */
+    HeadingCell.preprocess = new IPython.Hook();
+
+    HeadingCell.preprocess.add_callback(function(data) {
+            data.text = data.text.replace(/\n/g, ' ');
+            data.text = Array(data.cell.level + 1).join("#") + " " + data.text;
+    }, 10);
+
+    HeadingCell.preprocess.add_callback(function(data) {
+        var text_and_math = IPython.mathjaxutils.remove_math(data.text);
+        data.text = text_and_math[0];
+        data.cell.mathjax_processor_data = text_and_math[1];
+    }, 20);
+
+    /**
+     * A hook used to handle the result of the rendering process before setting output.
+     *
+     * @property postprocess
+     * @type Hook
+     *
+     * Callbacks attached to this hook must be of type:
+     *
+     * @callback HeadingCell~postprocessCallback
+     * @param data {Object}
+     * @param data.cell {HeadingCell} - The heading cell to be rendered.
+     * @param data.html {string} - String containing the html to be processed.
+     *
+     * At first data.html stores the result of the markdown translation process,
+     * then its content is modified by the hook callbacks in turn and finally it is set into
+     * the output area.
+     */
+    HeadingCell.postprocess = new IPython.Hook();
+
+    HeadingCell.postprocess.add_callback(function(data) {
+        var math = data.cell.mathjax_processor_data;
+        data.cell.mathjax_processor_data = null;
+        data.html = IPython.mathjaxutils.replace_math(data.html, math);
+    }, -30);
+
+    HeadingCell.postprocess.add_callback(function(data) {
+        data.html = security.sanitize_html(data.html);
+    }, -20);
+
+    HeadingCell.postprocess.add_callback(function(data) {
+        html = $(data.html);
+        // add id and linkback anchor
+        var hash = html.text().replace(/ /g, '-');
+        html.attr('id', hash);
+        html.append(
+            $('<a/>')
+                .addClass('anchor-link')
+                .attr('href', '#' + hash)
+                .text('¶')
+        );
+        data.html = '';
+        html.each(function(index, el) {
+            var outer = el.outerHTML;
+            if (outer) data.html += outer;
+        });
+    }, -10);
 
     HeadingCell.prototype.render = function () {
         var cont = IPython.TextCell.prototype.render.apply(this);
         if (cont) {
             var text = this.get_text();
-            var math = null;
-            // Markdown headings must be a single line
-            text = text.replace(/\n/g, ' ');
             if (text === "") { text = this.placeholder; }
-            text = Array(this.level + 1).join("#") + " " + text;
-            var text_and_math = IPython.mathjaxutils.remove_math(text);
-            text = text_and_math[0];
-            math = text_and_math[1];
-            var html = marked.parser(marked.lexer(text));
-            html = IPython.mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
-            var h = $(html);
-            // add id and linkback anchor
-            var hash = h.text().replace(/ /g, '-');
-            h.attr('id', hash);
-            h.append(
-                $('<a/>')
-                    .addClass('anchor-link')
-                    .attr('href', '#' + hash)
-                    .text('¶')
-            );
-            this.set_rendered(h);
+
+            var data = {cell: this, text: text};
+            HeadingCell.preprocess.execute([data]);
+
+            var html = marked.parser(marked.lexer(data.text));
+
+            data = {cell: this, html: html};
+            HeadingCell.postprocess.execute([data]);
+
+            html = $(data.html);
+            this.set_rendered(html);
             this.element.find('div.input_area').hide();
             this.element.find("div.text_cell_render").show();
             this.typeset();
