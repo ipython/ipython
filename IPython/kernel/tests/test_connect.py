@@ -27,6 +27,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.py3compat import str_to_bytes
 from IPython.kernel import connect
+from IPython.kernel.zmq.session import Session
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -51,6 +52,24 @@ def test_write_connection_file():
             info = json.load(f)
     info['key'] = str_to_bytes(info['key'])
     nt.assert_equal(info, sample_info)
+
+
+def test_load_connection_file_session():
+    """test load_connection_file() after """
+    session = Session()
+    app = DummyConsoleApp(session=Session())
+    app.initialize(argv=[])
+    session = app.session
+    
+    with TemporaryDirectory() as d:
+        cf = os.path.join(d, 'kernel.json')
+        connect.write_connection_file(cf, **sample_info)
+        app.connection_file = cf
+        app.load_connection_file()
+    
+    nt.assert_equal(session.key, sample_info['key'])
+    nt.assert_equal(session.signature_scheme, sample_info['signature_scheme'])
+
 
 def test_app_load_connection_file():
     """test `ipython console --existing` loads a connection file"""

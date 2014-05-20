@@ -27,14 +27,14 @@ import zmq
 from IPython.external.ssh import tunnel
 
 # IPython imports
-from IPython.config import Configurable
+from IPython.config import LoggingConfigurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import (str_to_bytes, bytes_to_str, cast_bytes_py2,
                                      string_types)
 from IPython.utils.traitlets import (
-    Bool, Integer, Unicode, CaselessStrEnum,
+    Bool, Integer, Unicode, CaselessStrEnum, Instance,
 )
 
 
@@ -381,7 +381,7 @@ channel_socket_types = {
 
 port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
 
-class ConnectionFileMixin(Configurable):
+class ConnectionFileMixin(LoggingConfigurable):
     """Mixin for configurable classes that work with connection files"""
 
     # The addresses for the communication channels
@@ -432,6 +432,12 @@ class ConnectionFileMixin(Configurable):
     @property
     def ports(self):
         return [ getattr(self, name) for name in port_names ]
+
+    # The Session to use for communication with the kernel.
+    session = Instance('IPython.kernel.zmq.session.Session')
+    def _session_default(self):
+        from IPython.kernel.zmq.session import Session
+        return Session(parent=self)
 
     #--------------------------------------------------------------------------
     # Connection and ipc file management
@@ -505,10 +511,12 @@ class ConnectionFileMixin(Configurable):
             if getattr(self, name) == 0 and name in cfg:
                 # not overridden by config or cl_args
                 setattr(self, name, cfg[name])
+        
         if 'key' in cfg:
-            self.config.Session.key = str_to_bytes(cfg['key'])
+            self.session.key = str_to_bytes(cfg['key'])
         if 'signature_scheme' in cfg:
-            self.config.Session.signature_scheme = cfg['signature_scheme']
+            self.session.signature_scheme = cfg['signature_scheme']
+
     #--------------------------------------------------------------------------
     # Creating connected sockets
     #--------------------------------------------------------------------------

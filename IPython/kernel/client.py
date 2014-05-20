@@ -1,23 +1,12 @@
-"""Base class to manage the interaction with a running kernel
-"""
+"""Base class to manage the interaction with a running kernel"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
 
 import zmq
 
-# Local imports
-from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import (
     Any, Instance, Type,
 )
@@ -31,11 +20,7 @@ from .clientabc import KernelClientABC
 from .connect import ConnectionFileMixin
 
 
-#-----------------------------------------------------------------------------
-# Main kernel client class
-#-----------------------------------------------------------------------------
-
-class KernelClient(LoggingConfigurable, ConnectionFileMixin):
+class KernelClient(ConnectionFileMixin):
     """Communicates with a single kernel on any host via zmq channels.
 
     There are four channels associated with each kernel:
@@ -55,11 +40,6 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     context = Instance(zmq.Context)
     def _context_default(self):
         return zmq.Context.instance()
-
-    # The Session to use for communication with the kernel.
-    session = Instance(Session)
-    def _session_default(self):
-        return Session(parent=self)
 
     # The classes to use for the various channels
     shell_channel_class = Type(ShellChannel)
