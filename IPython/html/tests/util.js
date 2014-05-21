@@ -167,8 +167,6 @@ casper.get_cell_text = function(index){
 casper.insert_cell_at_bottom = function(cell_type){
     // Inserts a cell at the bottom of the notebook
     // Returns the new cell's index.
-    cell_type = cell_type || 'code';
-
     return this.evaluate(function (cell_type) {
         var cell = IPython.notebook.insert_cell_at_bottom(cell_type);
         return IPython.notebook.find_cell_index(cell);
