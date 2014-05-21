@@ -17,9 +17,10 @@ import sys
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from subprocess import check_output
+
 from gh_api import (
     get_paged_request, make_auth_header, get_pull_request, is_pull_request,
-    get_milestone_id, get_issues_list,
+    get_milestone_id, get_issues_list, get_authors,
 )
 #-----------------------------------------------------------------------------
 # Globals
@@ -101,10 +102,10 @@ def report(issues, show_urls=False):
         for i in issues:
             role = 'ghpull' if 'merged_at' in i else 'ghissue'
             print('* :%s:`%d`: %s' % (role, i['number'],
-                                        i['title'].encode('utf-8')))
+                                        i['title'].replace('`', '``').encode('utf-8')))
     else:
         for i in issues:
-            print('* %d: %s' % (i['number'], i['title'].encode('utf-8')))
+            print('* %d: %s' % (i['number'], i['title'].replace('`', '``').encode('utf-8')))
 
 #-----------------------------------------------------------------------------
 # Main script
@@ -160,14 +161,15 @@ if __name__ == "__main__":
     if milestone:
         milestone_id = get_milestone_id(project=project, milestone=milestone,
                 auth=True)
-        issues = get_issues_list(project=project,
+        issues_and_pulls = get_issues_list(project=project,
                 milestone=milestone_id,
                 state='closed',
                 auth=True,
         )
+        issues, pulls = split_pulls(issues_and_pulls)
     else:
         issues = issues_closed_since(since, project=project, pulls=False)
-    pulls = issues_closed_since(since, project=project, pulls=True)
+        pulls = issues_closed_since(since, project=project, pulls=True)
     
     # For regular reports, it's nice to show them in reverse chronological order
     issues = sorted_by_field(issues, reverse=True)
@@ -185,24 +187,35 @@ if __name__ == "__main__":
     print()
     print("These lists are automatically generated, and may be incomplete or contain duplicates.")
     print()
+    
+    ncommits = 0
+    all_authors = []
     if tag:
         # print git info, in addition to GitHub info:
         since_tag = tag+'..'
         cmd = ['git', 'log', '--oneline', since_tag]
-        ncommits = len(check_output(cmd).splitlines())
+        ncommits += len(check_output(cmd).splitlines())
         
         author_cmd = ['git', 'log', '--use-mailmap', "--format=* %aN", since_tag]
-        all_authors = check_output(author_cmd).decode('utf-8', 'replace').splitlines()
-        unique_authors = sorted(set(all_authors), key=lambda s: s.lower())
-        print("The following %i authors contributed %i commits." % (len(unique_authors), ncommits))
-        print()
-        print('\n'.join(unique_authors))
-        print()
-        
+        all_authors.extend(check_output(author_cmd).decode('utf-8', 'replace').splitlines())
+    
+    pr_authors = []
+    for pr in pulls:
+        pr_authors.extend(get_authors(pr))
+    ncommits = len(pr_authors) + ncommits - len(pulls)
+    author_cmd = ['git', 'check-mailmap'] + pr_authors
+    with_email = check_output(author_cmd).decode('utf-8', 'replace').splitlines()
+    all_authors.extend([ u'* ' + a.split(' <')[0] for a in with_email ])
+    unique_authors = sorted(set(all_authors), key=lambda s: s.lower())
+
+    print("The following %i authors contributed %i commits." % (len(unique_authors), ncommits))
     print()
-    print("We closed a total of %d issues, %d pull requests and %d regular issues;\n"
+    print('\n'.join(unique_authors))
+    
+    print()
+    print("We closed %d issues and merged %d pull requests;\n"
           "this is the full list (generated with the script \n"
-          ":file:`tools/github_stats.py`):" % (n_total, n_pulls, n_issues))
+          ":file:`tools/github_stats.py`):" % (n_pulls, n_issues))
     print()
     print('Pull Requests (%d):\n' % n_pulls)
     report(pulls, show_urls)

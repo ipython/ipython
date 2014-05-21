@@ -181,6 +181,18 @@ def is_pull_request(issue):
     """Return True if the given issue is a pull request."""
     return bool(issue.get('pull_request', {}).get('html_url', None))
 
+def get_authors(pr):
+    print("getting authors for #%i" % pr['number'], file=sys.stderr)
+    h = make_auth_header()
+    r = requests.get(pr['commits_url'], headers=h)
+    r.raise_for_status()
+    commits = r.json()
+    authors = []
+    for commit in commits:
+        author = commit['commit']['author']
+        authors.append("%s <%s>" % (author['name'], author['email']))
+    return authors
+
 # encode_multipart_formdata is from urllib3.filepost
 # The only change is to iter_fields, to enforce S3's required key ordering
 
