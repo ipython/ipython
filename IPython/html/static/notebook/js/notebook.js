@@ -731,13 +731,16 @@ var IPython = (function (IPython) {
     /**
      * Insert a cell so that after insertion the cell is at given index.
      *
+     * If cell type is not provided, it will default to the type of the
+     * currently active cell.
+     *
      * Similar to insert_above, but index parameter is mandatory
      *
-     * Index will be brought back into the accissible range [0,n]
+     * Index will be brought back into the accessible range [0,n]
      *
      * @method insert_cell_at_index
-     * @param type {string} in ['code','markdown','heading']
-     * @param [index] {int} a valid index where to inser cell
+     * @param [type] {string} in ['code','markdown','heading'], defaults to 'code'
+     * @param [index] {int} a valid index where to insert cell
      *
      * @return cell {cell|null} created cell or null
      **/
@@ -747,6 +750,7 @@ var IPython = (function (IPython) {
         index = Math.min(index,ncells);
         index = Math.max(index,0);
         var cell = null;
+        type = type || this.get_selected_cell().cell_type;
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
@@ -819,7 +823,7 @@ var IPython = (function (IPython) {
      * default index value is the one of currently selected cell
      *
      * @method insert_cell_above
-     * @param type {string} cell type
+     * @param [type] {string} cell type
      * @param [index] {integer}
      *
      * @return handle to created cell or null
@@ -831,12 +835,12 @@ var IPython = (function (IPython) {
 
     /**
      * Insert a cell of given type below given index, or at bottom
-     * of notebook if index greater thatn number of cell
+     * of notebook if index greater than number of cells
      *
      * default index value is the one of currently selected cell
      *
      * @method insert_cell_below
-     * @param type {string} cell type
+     * @param [type] {string} cell type
      * @param [index] {integer}
      *
      * @return handle to created cell or null
@@ -1474,7 +1478,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.command_mode();
-            this.insert_cell_below('code');
+            this.insert_cell_below();
             this.select(cell_index+1);
             this.edit_mode();
             this.scroll_to_bottom();
@@ -1483,7 +1487,7 @@ var IPython = (function (IPython) {
         }
 
         this.command_mode();
-        this.insert_cell_below('code');
+        this.insert_cell_below();
         this.select(cell_index+1);
         this.edit_mode();
         this.set_dirty(true);
@@ -1504,7 +1508,7 @@ var IPython = (function (IPython) {
         // If we are at the end always insert a new cell and return
         if (cell_index === (this.ncells()-1)) {
             this.command_mode();
-            this.insert_cell_below('code');
+            this.insert_cell_below();
             this.select(cell_index+1);
             this.edit_mode();
             this.scroll_to_bottom();
