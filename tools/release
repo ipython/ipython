@@ -21,6 +21,8 @@ cd(ipdir)
 
 # Load release info
 execfile(pjoin('IPython','core','release.py'))
+# ensure js version is in sync
+sh('./setup.py jsversion')
 
 # Build site addresses for file uploads
 release_site = '%s/release/%s' % (archive, version)
@@ -51,6 +53,9 @@ sh('./setup.py register')
 
 # Upload all files
 sh(sdists + ' upload')
+for py in ('2.7', '3.3'):
+    sh('python%s setupegg.py bdist_wheel' % py)
+
 cd(distdir)
 print( 'Uploading distribution files...')
 
