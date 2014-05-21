@@ -2,6 +2,18 @@
  2.0 Series
 ============
 
+
+Release 2.1.0
+=============
+
+May, 2014
+
+IPython 2.1 is the first bugfix release for 2.0.
+For more information on what fixes have been backported to 2.1,
+see our :ref:`detailed release info
+<issues_list_200>`.
+
+
 Release 2.0.0
 =============
 

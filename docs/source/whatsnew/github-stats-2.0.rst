@@ -3,6 +3,190 @@
 Issues closed in the 2.0 development cycle
 ==========================================
 
+Issues closed in 2.1.0
+----------------------
+
+GitHub stats for 2014/04/02 - 2014/05/21 (since 2.0.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 35 authors contributed 145 commits.
+
+* Adrian Price-Whelan
+* Aron Ahmadia
+* Benjamin Ragan-Kelley
+* Benjamin Schultz
+* Björn Linse
+* Blake Griffith
+* chebee7i
+* Damián Avila
+* Dav Clark
+* dexterdev
+* Erik Tollerud
+* Grzegorz Rożniecki
+* Jakob Gager
+* jdavidheiser
+* Jessica B. Hamrick
+* Jim Garrison
+* Jonathan Frederic
+* Matthias Bussonnier
+* Maximilian Albert
+* Mohan Raj Rajamanickam
+* ncornette
+* Nikolay Koldunov
+* Nile Geisinger
+* Pankaj Pandey
+* Paul Ivanov
+* Pierre Haessig
+* Raffaele De Feo
+* Renaud Richardet
+* Spencer Nelson
+* Steve Chan
+* sunny
+* Susan Tan
+* Thomas Kluyver
+* Yaroslav Halchenko
+* zah
+
+We closed a total of 129 issues, 92 pull requests and 37 regular issues;
+this is the full list (generated with the script 
+:file:`tools/github_stats.py --milestone 2.1`):
+
+Pull Requests (92):
+
+* :ghpull:`5871`: specify encoding in msgpack.unpackb
+* :ghpull:`5869`: Catch more errors from clipboard access on Windows
+* :ghpull:`5866`: Make test robust against differences in line endings
+* :ghpull:`5605`: Two cell toolbar fixes.
+* :ghpull:`5843`: remove Firefox-specific CSS workaround
+* :ghpull:`5845`: Pass Windows interrupt event to kernels as an environment variable
+* :ghpull:`5835`: fix typo in v2 convert
+* :ghpull:`5841`: Fix writing history with output to a file in Python 2
+* :ghpull:`5842`: fix typo in nbconvert help
+* :ghpull:`5846`: Fix typos in Cython example
+* :ghpull:`5839`: Close graphics dev in finally clause
+* :ghpull:`5837`: pass on install docs
+* :ghpull:`5832`: Fixed example to work with python3
+* :ghpull:`5826`: allow notebook tour instantiation to fail
+* :ghpull:`5560`: Minor expansion of Cython example
+* :ghpull:`5818`: interpret any exception in getcallargs as not callable
+* :ghpull:`5816`: Add output to IPython directive when in verbatim mode.
+* :ghpull:`5822`: Don't overwrite widget description in interact
+* :ghpull:`5782`: Silence exception thrown by completer when dir() does not return a list
+* :ghpull:`5807`: Drop log level to info for Qt console shutdown
+* :ghpull:`5814`: Remove -i options from mv, rm and cp aliases
+* :ghpull:`5812`: Fix application name when printing subcommand help.
+* :ghpull:`5804`: remove an inappropriate ``!``
+* :ghpull:`5805`: fix engine startup files
+* :ghpull:`5806`: Don't auto-move .config/ipython if symbolic link
+* :ghpull:`5716`: Add booktabs package to latex base.tplx
+* :ghpull:`5669`: allows threadsafe sys.stdout.flush from background threads
+* :ghpull:`5668`: allow async output on the most recent request
+* :ghpull:`5768`: fix cursor keys in long lines wrapped in markdown
+* :ghpull:`5788`: run cells with ``silent=True`` in ``%run nb.ipynb``
+* :ghpull:`5715`: log all failed ajax API requests
+* :ghpull:`5769`: Don't urlescape the text that goes into a title tag
+* :ghpull:`5762`: Fix check for pickling closures
+* :ghpull:`5766`: View.map with empty sequence should return empty list
+* :ghpull:`5758`: Applied bug fix: using fc and ec did not properly set the figure canvas ...
+* :ghpull:`5754`: Format command name into subcommand_description at run time, not import
+* :ghpull:`5744`: Describe using PyPI/pip to distribute & install extensions
+* :ghpull:`5712`: monkeypatch inspect.findsource only when we use it
+* :ghpull:`5708`: create checkpoints dir in notebook subdirectories
+* :ghpull:`5714`: log error message when API requests fail
+* :ghpull:`5732`: Quick typo fix in nbformat/convert.py
+* :ghpull:`5713`: Fix a NameError in IPython.parallel
+* :ghpull:`5704`: Update nbconvertapp.py
+* :ghpull:`5534`: cleanup some ``pre`` css inheritance
+* :ghpull:`5699`: don't use common names in require decorators
+* :ghpull:`5692`: Update notebook.rst fixing broken reference to notebook examples readme
+* :ghpull:`5693`: Update parallel_intro.rst to fix a broken link to examples
+* :ghpull:`5486`: disambiguate to location when no IPs can be determined
+* :ghpull:`5574`: Remove the outdated keyboard shortcuts from notebook docs
+* :ghpull:`5568`: Use ``__qualname__`` in pretty reprs for Python 3
+* :ghpull:`5678`: Fix copy & paste error in docstring of ImageWidget class
+* :ghpull:`5677`: Fix %bookmark -l for Python 3
+* :ghpull:`5670`: nbconvert: Fix CWD imports
+* :ghpull:`5647`: Mention git hooks in install documentation
+* :ghpull:`5671`: Fix blank slides issue in Reveal slideshow pdf export
+* :ghpull:`5657`: use 'localhost' as default for the notebook server
+* :ghpull:`5584`: more semantic icons
+* :ghpull:`5594`: update components with marked-0.3.2
+* :ghpull:`5500`: check for Python 3.2
+* :ghpull:`5582`: reset readline after running PYTHONSTARTUP
+* :ghpull:`5630`: Fixed Issue :ghissue:`4012` Added Help menubar link to Github markdown doc
+* :ghpull:`5613`: Fixing bug :ghissue:`5607`
+* :ghpull:`5633`: Provide more help if lessc is not found.
+* :ghpull:`5620`: fixed a typo in IPython.core.formatters
+* :ghpull:`5619`: Fix typo in storemagic module docstring
+* :ghpull:`5592`: add missing ``browser`` to notebook_aliases list
+* :ghpull:`5506`: Fix ipconfig regex pattern
+* :ghpull:`5581`: Fix rmagic for cells ending in comment.
+* :ghpull:`5576`: only process cr if it's found
+* :ghpull:`5478`: Add git-hooks install script. Update README.md
+* :ghpull:`5546`: do not shutdown notebook if 'n' is part of answer
+* :ghpull:`5527`: Don't remove upload items from nav tree unless explicitly requested.
+* :ghpull:`5501`: remove inappropriate wheel tag override
+* :ghpull:`5548`: FileNotebookManager: Use shutil.move() instead of os.rename()
+* :ghpull:`5524`: never use ``for (var i in array)``
+* :ghpull:`5459`: Fix interact animation page jump FF
+* :ghpull:`5559`: Minor typo fix in "Cython Magics.ipynb"
+* :ghpull:`5507`: Fix typo in interactive widgets examples index notebook
+* :ghpull:`5554`: Make HasTraits pickleable
+* :ghpull:`5535`: fix n^2 performance issue in coalesce_streams preprocessor
+* :ghpull:`5522`: fix iteration over Client
+* :ghpull:`5488`: Added missing require and jquery from cdn.
+* :ghpull:`5516`: ENH: list generated config files in generated, and rm them upon clean
+* :ghpull:`5493`: made a minor fix to one of the widget examples
+* :ghpull:`5512`: Update tooltips to refer to shift-tab
+* :ghpull:`5505`: Make backport_pr work on Python 3
+* :ghpull:`5503`: check explicitly for 'dev' before adding the note to docs
+* :ghpull:`5498`: use milestones to indicate backport
+* :ghpull:`5492`: Polish whatsnew docs
+* :ghpull:`5495`: Fix various broken things in docs
+* :ghpull:`5496`: Exclude whatsnew/pr directory from docs builds
+* :ghpull:`5489`: Fix required Python versions
+
+Issues (37):
+
+* :ghissue:`5364`: Horizontal scrollbar hides cell's last line on Firefox
+* :ghissue:`5192`: horisontal scrollbar overlaps output or touches next cell
+* :ghissue:`5840`: Third-party Windows kernels don't get interrupt signal
+* :ghissue:`2412`: print history to file using qtconsole and notebook
+* :ghissue:`5703`: Notebook doesn't render with "ask me every time" cookie setting in Firefox
+* :ghissue:`5817`: calling mock object in IPython 2.0.0 under Python 3.4.0 raises AttributeError
+* :ghissue:`5499`: Error running widgets nbconvert example
+* :ghissue:`5654`: Broken links from ipython documentation
+* :ghissue:`5019`: print in QT event callback doesn't show up in ipython notebook.
+* :ghissue:`5800`: Only last In prompt number set ?
+* :ghissue:`5801`: startup_command specified in ipengine_config.py is not executed
+* :ghissue:`5690`: ipython 2.0.0 and pandoc 1.12.2.1 problem
+* :ghissue:`5408`: Add checking/flushing of background output from kernel in mainloop
+* :ghissue:`5407`: clearing message handlers on status=idle loses async output
+* :ghissue:`5467`: Incorrect behavior of up/down keyboard arrows in code cells on wrapped lines
+* :ghissue:`3085`: nicer notebook error message when lacking permissions
+* :ghissue:`5765`: map_sync over empty list raises IndexError
+* :ghissue:`5553`: Notebook matplotlib inline backend: can't set figure facecolor
+* :ghissue:`5710`: inspect.findsource monkeypatch raises wrong exception for C extensions
+* :ghissue:`5706`: Multi-Directory notebooks overwrite each other's checkpoints
+* :ghissue:`5698`: can't require a function named ``f``
+* :ghissue:`5569`: Keyboard shortcuts in documentation are out of date
+* :ghissue:`5566`: Function name printing should use ``__qualname__`` instead of ``__name__`` (Python 3)
+* :ghissue:`5676`: "bookmark -l" not working in ipython 2.0
+* :ghissue:`5555`: Differentiate more clearly between Notebooks and Folders in new UI
+* :ghissue:`5590`: Marked double escape 
+* :ghissue:`5514`: import tab-complete fail with ipython 2.0 shell
+* :ghissue:`4012`: Notebook: link to markdown formatting reference
+* :ghissue:`5611`: Typo in 'storemagic' documentation
+* :ghissue:`5589`: Kernel start fails when using --browser argument
+* :ghissue:`5491`: Bug in Windows ipconfig ip address regular expression  
+* :ghissue:`5579`: rmagic extension throws 'Error while parsing the string.' when last line is comment
+* :ghissue:`5518`: Ipython2 will not open ipynb in example directory
+* :ghissue:`5561`: New widget documentation has missing notebook link
+* :ghissue:`5128`: Page jumping when output from widget interaction replaced
+* :ghissue:`5519`: IPython.parallel.Client behavior as iterator
+* :ghissue:`5510`: Tab-completion for function argument list
+
 
 Issues closed in 2.0.0
 ----------------------
