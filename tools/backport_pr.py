@@ -2,11 +2,11 @@
 """
 Backport pull requests to a particular branch.
 
-Usage: backport_pr.py branch [PR]
+Usage: backport_pr.py branch [PR] [PR2]
 
 e.g.:
 
-    python tools/backport_pr.py 0.13.1 123
+    python tools/backport_pr.py 0.13.1 123 155
 
 to backport PR #123 onto branch 0.13.1
 
@@ -69,6 +69,11 @@ def backport_pr(branch, num, project='ipython/ipython'):
     else:
         req = urlopen(patch_url)
         patch = req.read()
+
+    lines = description.splitlines()
+    if len(lines) > 5:
+        lines = lines[:5] + ['...']
+        description = '\n'.join(lines)
 
     msg = "Backport PR #%i: %s" % (num, title) + '\n\n' + description
     check = Popen(['git', 'apply', '--check', '--verbose'], stdin=PIPE)
@@ -142,6 +147,8 @@ def should_backport(labels=None, milestone=None):
         if not pr['merged']:
             print ("Marked PR closed without merge: %i" % pr['number'])
             continue
+        if pr['base']['ref'] != 'master':
+            continue
         should_backport.add(pr['number'])
     return should_backport
 
@@ -161,4 +168,9 @@ if __name__ == '__main__':
             print (pr)
         sys.exit(0)
 
-    sys.exit(backport_pr(sys.argv[1], int(sys.argv[2])))
+    for prno in map(int, sys.argv[2:]):
+        print("Backporting PR #%i" % prno)
+        rc = backport_pr(sys.argv[1], prno)
+        if rc:
+            print("Backporting PR #%i failed" % prno)
+            sys.exit(rc)
