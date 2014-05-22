@@ -84,11 +84,17 @@ define(["widgets/js/widget"], function(WidgetManager) {
             this.children={};
             
             this.$el.on("remove", function(){
-                    that.$window.remove();
+                    that.$backdrop.remove();
                 });
-            this.$window = $('<div />')
-                .addClass('modal widget-modal')
+            this.$backdrop = $('<div />')
                 .appendTo($('#notebook-container'))
+                .addClass('modal-dialog')
+                .css('position', 'absolute')
+                .css('left', '0px')
+                .css('top', '0px');
+            this.$window = $('<div />')
+                .appendTo(this.$backdrop)
+                .addClass('modal-content widget-modal')
                 .mousedown(function(){
                     that.bring_to_front();
                 });
@@ -127,7 +133,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
                         that.$window
                             .draggable('destroy')
                             .resizable('destroy')
-                            .removeClass('widget-modal modal')
+                            .removeClass('widget-modal modal-content')
                             .addClass('docked-widget-modal')
                             .detach()
                             .insertBefore(that.$show_button);
@@ -140,9 +146,9 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
                         that.$window
                             .removeClass('docked-widget-modal')
-                            .addClass('widget-modal modal')
+                            .addClass('widget-modal modal-content')
                             .detach()
-                            .appendTo($('#notebook-container'))
+                            .appendTo(that.$backdrop)
                             .draggable({handle: '.popover-title', snap: '#notebook, .modal', snapMode: 'both'})
                             .resizable()
                             .children('.ui-resizable-handle').show();
@@ -223,12 +229,15 @@ define(["widgets/js/widget"], function(WidgetManager) {
             var $widget_modals = $(".widget-modal");
             var max_zindex = 0;
             $widget_modals.each(function (index, el){
-                max_zindex = Math.max(max_zindex, parseInt($(el).css('z-index')));
+                var zindex = parseInt($(el).css('z-index'));
+                if (!isNaN(zindex)) {
+                    max_zindex = Math.max(max_zindex, zindex);
+                }
             });
             
             // Start z-index of widget modals at 2000
             max_zindex = Math.max(max_zindex, 2000);
-
+            
             $widget_modals.each(function (index, el){
                 $el = $(el);
                 if (max_zindex == parseInt($el.css('z-index'))) {

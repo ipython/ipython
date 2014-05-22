@@ -63,7 +63,7 @@ IPython.dialog = (function (IPython) {
         }
         dialog_content.append(footer);
         // hook up on-open event
-        modal.on("shown", function() {
+        modal.on("shown.bs.modal", function() {
             setTimeout(function() {
                 footer.find("button").last().focus();
                 if (options.open) {
@@ -74,11 +74,11 @@ IPython.dialog = (function (IPython) {
         
         // destroy modal on hide, unless explicitly asked not to
         if (options.destroy === undefined || options.destroy) {
-            modal.on("hidden", function () {
+            modal.on("hidden.bs.modal", function () {
                 modal.remove();
             });
         }
-        modal.on("hidden", function () {
+        modal.on("hidden.bs.modal", function () {
             if (IPython.notebook) {
                 var cell = IPython.notebook.get_selected_cell();
                 if (cell) cell.select();
