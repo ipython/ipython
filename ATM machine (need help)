@@ -1,0 +1,80 @@
+//
+//  main.cpp
+//  hayimheron
+//
+//
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+// function declarations
+void print_menu (void);
+void print_balance (double);
+
+int main()
+{
+    char choice;
+  
+    double deposit(double a);
+    double withdraw(double x);
+    double balance = 5000.00;
+    int quit;
+    cout << "Welcome!" << endl;
+  
+    // call print_balance ()
+    print_balance(balance);
+    // call print_menu () here
+    print_menu();
+  
+    cin >> choice;
+  
+    //write your code
+    while (withdraw < balance > 0)
+        {
+          
+            cout << "Here are your options: Enter (D) or (d) to make a deposit, (W) or (w) to make a withdrawal, (B) or (b) to view the current balance and (Q) or (q) to quit." << endl;
+            char choice;
+            cout<<"Please make your choice:"<<endl;
+            cin>>choice;
+            // the user wants to make a deposit
+            if (choice == 'D' || choice == 'd')
+            {
+                cout << "Please enter the number you would like to deposit: " << endl;
+                cin >> deposit;
+                balance = balance + ('D' | 'd');
+            }
+            // the user wants to make a withdrawal
+            else if (choice == 'W' || choice == 'w')
+            {
+                cout << "Please enter the number you would like to withdraw: " << endl;
+                cin >> withdraw;
+                balance = balance - ('W' | 'w');
+            }
+            // the user wants to view the current balance
+            else if (choice == 'B' || choice == 'b')
+            {
+                cout << "Your current balance is: " << endl;
+                cin >> balance;
+            }
+            else if (choice == 'Q' || choice == 'q')
+            {
+                cout << "Thank you" << endl;
+                cin >> quit;
+            }
+            else
+            {
+                cout << "Please select an option" << endl;
+            }
+          
+            // call print_balance () here
+            print_balance(balance);
+            // call print_menu () here
+            print_menu();
+        }
+    return 0;
+}
+// function definitions here
+
+//void print_menu();
+//void print_balance;
