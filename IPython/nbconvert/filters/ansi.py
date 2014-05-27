@@ -39,42 +39,43 @@ def strip_ansi(source):
     return re.sub(r'\033\[(\d|;)+?m', '', source)
 
 
+ansi_colormap = {
+    '30': 'ansiblack',
+    '31': 'ansired',
+    '32': 'ansigreen',
+    '33': 'ansiyellow',
+    '34': 'ansiblue',
+    '35': 'ansipurple',
+    '36': 'ansicyan',
+    '37': 'ansigrey',
+    '01': 'ansibold',
+}
+
+html_escapes = {
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&apos;',
+    '"': '&quot;',
+    '`': '&#96;',
+}
+ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
+
 def ansi2html(text):
     """
-    Conver ansi colors to html colors.
+    Convert ansi colors to html colors.
     
     Parameters
     ----------
     text : str
         Text containing ansi colors to convert to html
     """
-    
-    ansi_colormap = {
-        '30': 'ansiblack',
-        '31': 'ansired',
-        '32': 'ansigreen',
-        '33': 'ansiyellow',
-        '34': 'ansiblue',
-        '35': 'ansipurple',
-        '36': 'ansicyan',
-        '37': 'ansigrey',
-        '01': 'ansibold',
-    }
 
     # do ampersand first
     text = text.replace('&', '&amp;')
-    html_escapes = {
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&apos;',
-        '"': '&quot;',
-        '`': '&#96;',
-    }
     
     for c, escape in html_escapes.items():
         text = text.replace(c, escape)
 
-    ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
     m = ansi_re.search(text)
     opened = False
     cmds = []
@@ -90,7 +91,7 @@ def ansi2html(text):
         classes = []
         for cmd in cmds:
             if cmd in ansi_colormap:
-                classes.append(ansi_colormap.get(cmd))
+                classes.append(ansi_colormap[cmd])
 
         if classes:
             opener = '<span class="%s">' % (' '.join(classes))
