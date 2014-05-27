@@ -510,8 +510,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
         // Display a widget view in this cell.
         this.widget_subarea.append(view.$el);
         this.widgets.push({
-            id: view.model.id, 
-            target: this.kernel.widget_manager.get_model_target(view.model)
+            id: view.model.id
         });
         this.events.trigger('set_dirty.Notebook', {value: true});
     };
@@ -525,9 +524,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
                 for (var i = 0; i < cached_widgets.length; i++) {
                     var widget = cached_widgets[i];
                     var widget_manager = this.kernel.widget_manager;
-                    var model = widget_manager.get_model(widget.id, widget.target);
-                    // Set the model's initial state and display its view.
-                    model.set_state(widget.state);
+                    var model = widget_manager.get_model(widget.id);
                     widget_manager.display_cell_view(this, model);
                 }
             }
@@ -541,13 +538,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
         this.metadata.widgets = [];
         if (this.kernel) {
             for (var i = 0; i < this.widgets.length; i++) {
-                var widget = this.widgets[i];
-                var model = this.kernel.widget_manager.get_model(widget.id);
-                // Save the state as disabled.  Later when the page is reloaded, the
-                // widget will be disabled until it recieves a proper state update
-                // from the backend.
-                widget.state = $.extend(model.get_state(), {disabled: true});
-                this.metadata.widgets.push(widget);
+                this.metadata.widgets.push(this.widgets[i]);
             }
         }
 

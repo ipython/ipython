@@ -1550,6 +1550,7 @@ define([
      */
     Notebook.prototype._session_started = function(){
         this.kernel = this.session.kernel;
+        this._load_widgets();
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
@@ -1757,6 +1758,10 @@ define([
             // Always delete cell 0 as they get renumbered as they are deleted.
             this.delete_cell(0);
         }
+
+        this.widgets = content.widgets;
+        this._load_widgets();
+
         // Save the metadata and name.
         this.metadata = content.metadata;
         this.notebook_name = data.name;
@@ -1815,6 +1820,68 @@ define([
     };
 
     /**
+     * Load the widgets in the widget dict.
+     * 
+     * @method _load_widgets
+     * @return {null} 
+     */
+    Notebook.prototype._load_widgets = function () {
+        // Read in the widget model information.
+        if (this.kernel) {
+
+            // Create a list of model ids.  Create a model for each id.
+            var model_ids = [];
+            var widget_manager = this.kernel.widget_manager;
+            for (var model_id in this.widgets) {
+                if (this.widgets.hasOwnProperty(model_id)) {
+                    model_ids.push(model_id);
+                    var target = this.widgets[model_id].target;
+                    widget_manager.get_model(model_id, target);
+                }
+            }
+
+            // Set the widget initial states.  This must be done after ALL of
+            // the widget models have been created by the loop above so
+            // child model lists work.  In other words, if a child model doesn't
+            // exist when the state of the model is set, the unpack method won't
+            // be abled to find the child model for the guid string, and the
+            // guid string will be left in place.
+            for (var i = 0; i < model_ids.length; i++) {
+                var model_id = model_ids[i];
+                var model = widget_manager.get_model(model_id);
+                
+                // Set the state as disabled since a comm doesn't exist for this
+                // model at this point.
+                model.set_state($.extend(this.widgets[model_id].state, {disabled: true}));
+            }
+        }
+    }
+
+    /**
+     * Save the widgets in the widget dict.
+     * 
+     * @method _save_widgets
+     * @return {null} 
+     */
+    Notebook.prototype._save_widgets = function () {
+        // Create a dictionary of the widget models and their current states.
+        var widget_states = {};
+        if (this.kernel) {
+            var widget_manager = this.kernel.widget_manager;
+            for (var model_id in widget_manager._models) {
+                if (widget_manager._models.hasOwnProperty(model_id)) {
+                    var model = widget_manager._models[model_id];
+                    widget_states[model_id] = {
+                        state: model.get_state(),
+                        target: widget_manager.get_model_target(model)
+                    };
+                }
+            }
+        }
+        this.widgets = widget_states;
+    }
+
+    /**
      * Dump this notebook into a JSON-friendly object.
      * 
      * @method toJSON
@@ -1832,13 +1899,15 @@ define([
             }
             cell_array[i] = cell.toJSON();
         }
+        this._save_widgets();
         var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{
                 cells: cell_array,
                 metadata: this.worksheet_metadata
             }],
-            metadata : this.metadata
+            metadata : this.metadata,
+            widgets: this.widgets
         };
         if (trusted != this.trusted) {
             this.trusted = trusted;
