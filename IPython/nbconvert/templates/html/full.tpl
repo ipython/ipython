@@ -10,8 +10,17 @@
 <meta charset="utf-8" />
 <title>{{resources['metadata']['name']}}</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+{% if resources.inlining.js -%}
+    {% for filename, js in resources.inlining.js.items() -%}
+        <!-- {{ filename }} -->
+        <script>
+        {{ js }}
+        </script>
+    {% endfor %}
+{% else %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+{% endif %}
 
 {% for css in resources.inlining.css -%}
     <style type="text/css">

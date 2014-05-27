@@ -1,45 +1,28 @@
 """
-Module with tests for the csshtmlheader preprocessor
+Module with tests for the InlineHTML preprocessor
 """
-
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from .base import PreprocessorTestsBase
-from ..csshtmlheader import CSSHTMLHeaderPreprocessor
+from ..inlinehtml import InlineHTMLPreprocessor
 
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
-
-class TestCSSHTMLHeader(PreprocessorTestsBase):
-    """Contains test functions for csshtmlheader.py"""
-
+class TestInlineHTML(PreprocessorTestsBase):
+    """Contains test functions for inlinehtml.py"""
 
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
-        preprocessor = CSSHTMLHeaderPreprocessor()
+        preprocessor = InlineHTMLPreprocessor()
         preprocessor.enabled = True
         return preprocessor
 
-
     def test_constructor(self):
-        """Can a CSSHTMLHeaderPreprocessor be constructed?"""
+        """Can a InlineHTMLPreprocessor be constructed?"""
         self.build_preprocessor()
     
-
     def test_output(self):
-        """Test the output of the CSSHTMLHeaderPreprocessor"""
+        """Test the output of the InlineHTMLPreprocessor"""
         nb = self.build_notebook()
         res = self.build_resources()
         preprocessor = self.build_preprocessor()

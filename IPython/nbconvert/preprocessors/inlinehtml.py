@@ -5,17 +5,19 @@
 import os
 import io
 import hashlib
+import glob
 
 from IPython.utils import path
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, Bool
 from IPython.utils.py3compat import str_to_bytes
 from .base import Preprocessor
 
-class CSSHTMLHeaderPreprocessor(Preprocessor):
-    """
-    Preprocessor used to pre-process notebook for HTML output.  Adds IPython notebook
-    front-end CSS and Pygments CSS to HTML output.
-    """
+class InlineHTMLPreprocessor(Preprocessor):
+    """Preprocessor used to pre-process notebooks for HTML output.  
+
+    Adds IPython notebook front-end CSS, Pygments CSS, and Widget JS to the 
+    resources dictionary."""
+
     highlight_class = Unicode('.highlight', config=True,
                               help="CSS highlight class identifier")
 
@@ -39,16 +41,16 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
             preprocessors to pass variables into the Jinja engine.
         """
         resources['inlining'] = {}
-        resources['inlining']['css'] = self._generate_header(resources)
+        resources['inlining']['css'] = self._generate_css(resources)
+        resources['inlining']['js'] = self._generate_js()
         return nb, resources
 
-    def _generate_header(self, resources):
-        """ 
-        Fills self.header with lines of CSS extracted from IPython 
+    def _generate_css(self, resources):
+        """Fills self.css with lines of CSS extracted from IPython 
         and Pygments.
         """
         from pygments.formatters import HtmlFormatter
-        header = []
+        css = []
         
         # Construct path to IPy CSS
         from IPython.html import DEFAULT_STATIC_FILES_PATH
@@ -57,12 +59,12 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
         
         # Load style CSS file.
         with io.open(sheet_filename, encoding='utf-8') as f:
-            header.append(f.read())
+            css.append(f.read())
 
         # Add pygments CSS
         formatter = HtmlFormatter()
         pygments_css = formatter.get_style_defs(self.highlight_class)
-        header.append(pygments_css)
+        css.append(pygments_css)
 
         # Load the user's custom CSS and IPython's default custom CSS.  If they
         # differ, assume the user has made modifications to his/her custom CSS
@@ -74,8 +76,36 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
                 self._default_css_hash = self._hash(os.path.join(DEFAULT_STATIC_FILES_PATH, 'custom', 'custom.css'))
             if self._hash(custom_css_filename) != self._default_css_hash:
                 with io.open(custom_css_filename, encoding='utf-8') as f:
-                    header.append(f.read())
-        return header
+                    css.append(f.read())
+
+        return css
+
+    def _generate_js(self):
+        """Fills self.js with the widget JS.
+        """
+        js = None
+        if inline_js:
+            js = {}
+
+            # Construct JS filename glob patterns.  All filenames are relative to
+            # the IPython static files directory.
+            patterns = [
+                ('components', 'requirejs', 'require.js'),
+                ('components', 'underscore', 'underscore-min.js'),
+                ('components', 'jquery', 'jquery.min.js'),
+                ('components', 'jquery-ui', 'minified', 'jquery-ui.min.js'),
+                ('components', 'backbone', 'backbone-min.js'),
+                ('components', 'bootstrap', 'bootstrap', 'js', 'bootstrap.min.js'),
+                ('widgets', 'js', '*.js'),
+            ]
+
+            # Read each file into the JS dict.
+            from IPython.html import DEFAULT_STATIC_FILES_PATH
+            for pattern in patterns:
+                for filename in glob.glob(os.path.join(DEFAULT_STATIC_FILES_PATH, *pattern)):
+                    with open(filename, 'r') as f:
+                        js[filename] = f.read()
+        return js
 
     def _hash(self, filename):
         """Compute the hash of a file."""
