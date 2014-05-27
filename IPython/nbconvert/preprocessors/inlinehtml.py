@@ -2,15 +2,19 @@
 """
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+
+import warnings
 import os
 import io
 import hashlib
-import glob
+from io import TextIOWrapper, BytesIO
 
 from IPython.utils import path
 from IPython.utils.traitlets import Unicode, Bool
 from IPython.utils.py3compat import str_to_bytes
+
 from .base import Preprocessor
+from ..utils.node import get_node_cmd, NodeJSMissing
 
 class InlineHTMLPreprocessor(Preprocessor):
     """Preprocessor used to pre-process notebooks for HTML output.  
@@ -42,7 +46,9 @@ class InlineHTMLPreprocessor(Preprocessor):
         """
         resources['inlining'] = {}
         resources['inlining']['css'] = self._generate_css(resources)
-        resources['inlining']['js'] = self._generate_js()
+        js = self._generate_js()
+        if js and len(js) > 0:
+            resources['inlining']['js'] = js
         return nb, resources
 
     def _generate_css(self, resources):
@@ -83,28 +89,64 @@ class InlineHTMLPreprocessor(Preprocessor):
     def _generate_js(self):
         """Fills self.js with the widget JS.
         """
-        js = None
-        if inline_js:
-            js = {}
+        js = []
+        if self.inline_js:
 
-            # Construct JS filename glob patterns.  All filenames are relative to
-            # the IPython static files directory.
-            patterns = [
-                ('components', 'requirejs', 'require.js'),
-                ('components', 'underscore', 'underscore-min.js'),
-                ('components', 'jquery', 'jquery.min.js'),
-                ('components', 'jquery-ui', 'minified', 'jquery-ui.min.js'),
-                ('components', 'backbone', 'backbone-min.js'),
-                ('components', 'bootstrap', 'bootstrap', 'js', 'bootstrap.min.js'),
-                ('widgets', 'js', '*.js'),
-            ]
+            global _node
+            if not _node:
+                _node = get_node_cmd()
 
-            # Read each file into the JS dict.
-            from IPython.html import DEFAULT_STATIC_FILES_PATH
-            for pattern in patterns:
-                for filename in glob.glob(os.path.join(DEFAULT_STATIC_FILES_PATH, *pattern)):
-                    with open(filename, 'r') as f:
-                        js[filename] = f.read()
+            # Run r.js on the widget init file to build a single, minimized js
+            # file containing all of the JS that needs to be embeded on the 
+            # page.
+            ipythonjs = '.ipython.js'
+            if not _node:
+                warnings.warn("Node.js not found.  Cannot inline notebook JS.  " +
+                    "Using CDN references instead (inline_js=False).")
+            else:
+                # Embed require.js
+                from IPython.html import DEFAULT_STATIC_FILES_PATH
+                with open(os.path.join(DEFAULT_STATIC_FILES_PATH, 'components', 'requirejs', 'require.js'), 'r') as f:
+                    js.append(('require.js', f.read()))
+
+                # CD into the static files path.  Remember the current path so
+                # we can direct the output to it.
+                cwd = os.getcwd()
+                try:
+                    os.chdir(DEFAULT_STATIC_FILES_PATH)
+
+                    command = [
+                        _node, 
+                        os.path.join('components', 'r.js', 'dist', 'r.js'),
+                        '-o',
+                        'build.js',
+                        'out=' + os.path.join(cwd, ipythonjs),
+                    ]
+                    try:
+                        out, err, return_code = get_output_error_code(command)
+                    except OSError as e:
+                        # Command not found
+                        warnings.warn("The command '%s' returned an error: %s.\n" % (" ".join(command), e) +
+                            "Please check that Node.js is installed."
+                        )
+                    if return_code:
+                        # Command error
+                        warnings.warn("The command '%s' returned an error code: %s.\n" % (" ".join(command), return_code))
+
+                    # Log r.js output.
+                    from IPython.config import Application
+                    if Application.initialized():
+                        Application.instance().log.info("node r.js output")
+                        for line in out.strip().split('\n'):
+                            Application.instance().log.info("    %s" % line)
+                finally:
+                    # Return to original path.
+                    os.chdir(cwd)
+                    
+                # Read the file into the JS dict.
+                with open(ipythonjs, 'r') as f:
+                    js.append((ipythonjs, f.read()))
+                os.remove(ipythonjs)
         return js
 
     def _hash(self, filename):

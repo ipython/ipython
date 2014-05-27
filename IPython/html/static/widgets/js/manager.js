@@ -22,10 +22,12 @@ define([
             this._models = {}; /* Dictionary of model ids and model instances */
 
             // Register already-registered widget model types with the comm manager.
-            var that = this;
-            _.each(WidgetManager._model_types, function(model_type, model_name) {
-                that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
-            });
+            if (this.comm_manager) {
+                var that = this;
+                _.each(WidgetManager._model_types, function(model_type, model_name) {
+                    that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
+                });
+            }
         };
 
         //--------------------------------------------------------------------

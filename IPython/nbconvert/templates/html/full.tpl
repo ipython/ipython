@@ -10,16 +10,18 @@
 <meta charset="utf-8" />
 <title>{{resources['metadata']['name']}}</title>
 
-{% if resources.inlining.js -%}
-    {% for filename, js in resources.inlining.js.items() -%}
+{% if resources.inlining.js is not defined -%}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <!-- TODO: Replace rawgit with permanent url. -->
+    <script src="https://rawgit.com/jdfreder/ipython/widgetpersistance/IPython/html/static/widgets/js/staticmanager.js"></script>
+{% else %}  
+    {% for filename, js in resources.inlining.js -%}
         <!-- {{ filename }} -->
         <script>
         {{ js }}
         </script>
     {% endfor %}
-{% else %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 {% endif %}
 
 {% for css in resources.inlining.css -%}
