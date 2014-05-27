@@ -66,6 +66,7 @@ def empty_record():
         'result_content' : None,
         'result_buffers' : None,
         'queue' : None,
+        'priority': None,
         'execute_input' : None,
         'execute_result': None,
         'error': None,
@@ -94,6 +95,7 @@ def init_record(msg):
         'result_content' : None,
         'result_buffers' : None,
         'queue' : None,
+        'priority': msg['metadata']['priority'],
         'execute_input' : None,
         'execute_result': None,
         'error': None,
@@ -110,7 +112,7 @@ class EngineConnector(HasTraits):
     pending: set of msg_ids
     stallback: DelayedCallback for stalled registration
     """
-    
+
     id = Integer(0)
     uuid = Unicode()
     pending = Set()
@@ -193,20 +195,20 @@ class HubFactory(RegistrationFactory):
 
     db_class = DottedObjectName('NoDB',
         config=True, help="""The class to use for the DB backend
-        
+
         Options include:
-        
+
         SQLiteDB: SQLite
         MongoDB : use MongoDB
         DictDB  : in-memory storage (fastest, but be mindful of memory growth of the Hub)
         NoDB    : disable database altogether (default)
-        
+
         """)
 
     registration_timeout = Integer(0, config=True,
         help="Engine registration timeout in seconds [default: max(30,"
              "10*heartmonitor.period)]" )
-    
+
     def _registration_timeout_default(self):
         if self.heartmonitor is None:
             # early initialization, this value will be ignored
@@ -248,11 +250,11 @@ class HubFactory(RegistrationFactory):
     def client_url(self, channel):
         """return full zmq url for a named client channel"""
         return "%s://%s:%i" % (self.client_transport, self.client_ip, self.client_info[channel])
-    
+
     def engine_url(self, channel):
         """return full zmq url for a named engine channel"""
         return "%s://%s:%i" % (self.engine_transport, self.engine_ip, self.engine_info[channel])
-    
+
     def init_hub(self):
         """construct Hub object"""
 
@@ -263,7 +265,7 @@ class HubFactory(RegistrationFactory):
         else:
             from .scheduler import TaskScheduler
             scheme = TaskScheduler.scheme_name.get_default_value()
-        
+
         # build connection dicts
         engine = self.engine_info = {
             'interface'     : "%s://%s" % (self.engine_transport, self.engine_ip),
@@ -286,10 +288,10 @@ class HubFactory(RegistrationFactory):
             'iopub'         : self.iopub[0],
             'notification'  : self.notifier_port,
             }
-        
+
         self.log.debug("Hub engine addrs: %s", self.engine_info)
         self.log.debug("Hub client addrs: %s", self.client_info)
-        
+
         # Registrar socket
         q = ZMQStream(ctx.socket(zmq.ROUTER), loop)
         util.set_hwm(q, 0)
@@ -313,7 +315,7 @@ class HubFactory(RegistrationFactory):
                             )
 
         ### Client connections ###
-        
+
         # Notifier socket
         n = ZMQStream(ctx.socket(zmq.PUB), loop)
         n.bind(self.client_url('notification'))
@@ -367,9 +369,9 @@ class Hub(SessionFactory):
     client_info: dict of zmq connection information for engines to connect
                 to the queues.
     """
-    
+
     engine_state_file = Unicode()
-    
+
     # internal data structures:
     ids=Set() # engine IDs
     keytable=Dict()
@@ -450,7 +452,7 @@ class Hub(SessionFactory):
         self.resubmit.on_recv(lambda msg: None, copy=False)
 
         self.log.info("hub::created hub")
-    
+
     @property
     def _next_id(self):
         """gemerate a new ID.
@@ -465,7 +467,7 @@ class Hub(SessionFactory):
         # while newid in self.ids or newid in incoming:
         #     newid += 1
         # return newid
-    
+
     #-----------------------------------------------------------------------------
     # message validation
     #-----------------------------------------------------------------------------
@@ -766,11 +768,14 @@ class Hub(SessionFactory):
         md = msg['metadata']
         engine_uuid = md.get('engine', u'')
         eid = self.by_ident.get(cast_bytes(engine_uuid), None)
-        
+
         status = md.get('status', None)
 
         if msg_id in self.pending:
-            self.log.info("task::task %r finished on %s", msg_id, eid)
+            rec = self.db.get_record(msg_id)
+            session_uuid_short = util.msg_short(rec['client_uuid'])
+            self.log.info("%s task::task %r finished on %s p: %s",
+                          session_uuid_short, msg_id, eid, rec['priority'])
             self.pending.remove(msg_id)
             self.all_completed.add(msg_id)
             if eid is not None:
@@ -808,10 +813,13 @@ class Hub(SessionFactory):
         content = msg['content']
         # print (content)
         msg_id = content['msg_id']
+        rec = self.db.get_record(msg_id)
+        session_uuid_short = util.msg_short(rec['client_uuid'])
         engine_uuid = content['engine_id']
         eid = self.by_ident[cast_bytes(engine_uuid)]
 
-        self.log.info("task::task %r arrived on %r", msg_id, eid)
+        self.log.info("%s task::task %r arrived on %r p: %s", session_uuid_short,
+                      msg_id, eid, rec['priority'])
         if msg_id in self.unassigned:
             self.unassigned.remove(msg_id)
         # else:
@@ -959,7 +967,7 @@ class Hub(SessionFactory):
                 self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid,stallback=dc)
         else:
             self.log.error("registration::registration %i failed: %r", eid, content['evalue'])
-        
+
         return eid
 
     def unregister_engine(self, ident, msg):
@@ -985,7 +993,7 @@ class Hub(SessionFactory):
         dc = ioloop.DelayedCallback(handleit, self.registration_timeout, self.loop)
         dc.start()
         ############## TODO: HANDLE IT ################
-        
+
         self._save_engine_state()
 
         if self.notifier:
@@ -1045,7 +1053,7 @@ class Hub(SessionFactory):
         if self.notifier:
             self.session.send(self.notifier, "registration_notification", content=content)
         self.log.info("engine::Engine Connected: %i", eid)
-        
+
         self._save_engine_state()
 
     def _purge_stalled_registration(self, heart):
@@ -1062,7 +1070,7 @@ class Hub(SessionFactory):
 
     def _cleanup_engine_state_file(self):
         """cleanup engine state mapping"""
-        
+
         if os.path.exists(self.engine_state_file):
             self.log.debug("cleaning up engine state: %s", self.engine_state_file)
             try:
@@ -1081,11 +1089,11 @@ class Hub(SessionFactory):
         for eid, ec in iteritems(self.engines):
             if ec.uuid not in self.dead_engines:
                 engines[eid] = ec.uuid
-        
+
         state['engines'] = engines
-        
+
         state['next_id'] = self._idcounter
-        
+
         with open(self.engine_state_file, 'w') as f:
             json.dump(state, f)
 
@@ -1094,12 +1102,12 @@ class Hub(SessionFactory):
         """load engine mapping from JSON file"""
         if not os.path.exists(self.engine_state_file):
             return
-        
+
         self.log.info("loading engine state from %s" % self.engine_state_file)
-        
+
         with open(self.engine_state_file) as f:
             state = json.load(f)
-        
+
         save_notifier = self.notifier
         self.notifier = None
         for eid, uuid in iteritems(state['engines']):
@@ -1107,12 +1115,12 @@ class Hub(SessionFactory):
             # start with this heart as current and beating:
             self.heartmonitor.responses.add(heart)
             self.heartmonitor.hearts.add(heart)
-            
+
             self.incoming_registrations[heart] = EngineConnector(id=int(eid), uuid=uuid)
             self.finish_registration(heart)
-        
+
         self.notifier = save_notifier
-        
+
         self._idcounter = state['next_id']
 
     #-------------------------------------------------------------------------
@@ -1285,7 +1293,7 @@ class Hub(SessionFactory):
             msg = self.session.msg(header['msg_type'], parent=header)
             msg_id = msg['msg_id']
             msg['content'] = rec['content']
-            
+
             # use the old header, but update msg_id and timestamp
             fresh = msg['header']
             header['msg_id'] = fresh['msg_id']
@@ -1304,7 +1312,7 @@ class Hub(SessionFactory):
                 return finish(error.wrap_exception())
 
         finish(dict(status='ok', resubmitted=resubmitted))
-        
+
         # store the new IDs in the Task DB
         for msg_id, resubmit_id in iteritems(resubmitted):
             try:
@@ -1318,7 +1326,7 @@ class Hub(SessionFactory):
         io_dict = {}
         for key in ('execute_input', 'execute_result', 'error', 'stdout', 'stderr'):
                 io_dict[key] = rec[key]
-        content = { 
+        content = {
             'header': rec['header'],
             'metadata': rec['metadata'],
             'result_metadata': rec['result_metadata'],

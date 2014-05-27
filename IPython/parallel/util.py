@@ -34,6 +34,11 @@ from IPython.utils.localinterfaces import localhost, is_public_ip, public_ips
 from IPython.utils.py3compat import string_types, iteritems, itervalues
 from IPython.kernel.zmq.log import EnginePUBHandler
 
+PRIORITY_CRITICAL = 3
+PRIORITY_HIGH = 2
+PRIORITY_NORMAL = 1
+PRIORITY_LOW = 0
+PRIORITIES = (PRIORITY_CRITICAL, PRIORITY_HIGH, PRIORITY_NORMAL, PRIORITY_LOW)
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -386,3 +391,8 @@ def set_hwm(sock, hwm=0):
             pass
 
         
+def msg_short(msg):
+    if '-' in msg:
+        return msg.split('-')[0]
+    else:
+        return msg

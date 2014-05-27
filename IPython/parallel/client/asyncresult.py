@@ -570,11 +570,13 @@ class AsyncMapResult(AsyncResult):
     
     """
 
-    def __init__(self, client, msg_ids, mapObject, fname='', ordered=True):
+    def __init__(self, client, msg_ids, mapObject, fname='', ordered=True,
+                 priority=None):
         AsyncResult.__init__(self, client, msg_ids, fname=fname)
         self._mapObject = mapObject
         self._single_result = False
         self.ordered = ordered
+        self.priority = priority
 
     def _reconstruct_result(self, res):
         """Perform the gather on the actual results."""
