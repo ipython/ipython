@@ -136,13 +136,18 @@ class NotebookWebApplication(web.Application):
         # make the patterns unicode, and ultimately result in unicode
         # keys in kwargs to handler._execute(**kwargs) in tornado.
         # This enforces that base_url be ascii in that situation.
-        # 
+        #
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_url = py3compat.unicode_to_str(base_url, 'ascii')
         template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
-        jenv_opt = jinja_env_options if jinja_env_options else {}
-        env = Environment(loader=FileSystemLoader(template_path),**jenv_opt )
+
+        # Use i18n extension by default for l10n/i18n support
+        jenv_opt = {"extensions": ["jinja2.ext.i18n"]}
+        # Pass any cmdline overrides to jinja environment options
+        jenv_opt.update(jinja_env_options)
+
+        env = Environment(loader=FileSystemLoader(template_path), **jenv_opt)
         settings = dict(
             # basics
             log_function=log_request,
@@ -151,12 +156,12 @@ class NotebookWebApplication(web.Application):
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
             static_url_prefix = url_path_join(base_url,'/static/'),
-            
+
             # authentication
             cookie_secret=ipython_app.cookie_secret,
             login_url=url_path_join(base_url,'/login'),
             password=ipython_app.password,
-            
+
             # managers
             kernel_manager=kernel_manager,
             notebook_manager=notebook_manager,
