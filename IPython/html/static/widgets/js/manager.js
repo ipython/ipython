@@ -71,10 +71,10 @@ define([
 
         WidgetManager.prototype.display_cell_view = function(cell, model) {
             // Displays a view for a particular model.
-                var view = this.create_view(model, {cell: cell});
-                if (view === null) {
-                    console.error("View creation failed", model);
-                }
+            var view = this.create_view(model, {cell: cell});
+            if (view === null) {
+                console.error("View creation failed", model);
+            }
             if (cell.widget_subarea) {
                 cell.widget_area.show();
                 this._handle_display_view(view);
@@ -90,11 +90,11 @@ define([
             if (this.keyboard_manager) {
                 this.keyboard_manager.register_events(view.$el);
             
-                if (view.additional_elements) {
-                    for (var i = 0; i < view.additional_elements.length; i++) {
+            if (view.additional_elements) {
+                for (var i = 0; i < view.additional_elements.length; i++) {
                         this.keyboard_manager.register_events(view.additional_elements[i]);
-                    }
-                } 
+                }
+            } 
             }
         };
 
@@ -232,4 +232,4 @@ define([
         IPython.WidgetManager = WidgetManager;
 
     return {'WidgetManager': WidgetManager};
-});
+    });

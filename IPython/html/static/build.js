@@ -1,9 +1,10 @@
 ({
     paths: {
-        backbone   : "components/backbone/backbone",
-        bootstrap  : "components/bootstrap/bootstrap/js/bootstrap.min",
-        jquery     : "components/jquery/jquery.min",
-        underscore : "components/underscore/underscore"
+        backbone    : "components/backbone/backbone",
+        bootstrap   : "components/bootstrap/bootstrap/js/bootstrap.min",
+        jquery      : "components/jquery/jquery.min",
+        "jquery-ui" : "components/jquery-ui/ui/minified/jquery-ui.min",
+        underscore  : "components/underscore/underscore"
     },
 
     shim : {

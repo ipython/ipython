@@ -71,7 +71,23 @@ div#notebook {
 <body>
   <div tabindex="-1" id="notebook" class="border-box-sizing">
     <div class="container" id="notebook-container">
+
+<script>
+
+// Create widget models.
+{% for model_id in nb.widgets -%}
+IPython.widgets.create_widget("{{ model_id }}", "{{ nb.widgets[model_id].target }}"); 
+{%- endfor %}
+
+// Set widget model states.
+{% for model_id in nb.widgets -%}
+IPython.widgets.set_widget("{{ model_id }}", JSON.parse('{{ nb.widgets[model_id].state | tojson | replace("'", "\\'") }}')); 
+{%- endfor %}
+
+</script>
+
 {{ super() }}
+
     </div>
   </div>
 </body>
@@ -80,3 +96,20 @@ div#notebook {
 {% block footer %}
 </html>
 {% endblock footer %}
+
+{%- block widget_group scoped -%}
+<div class="widget-area">
+<div class="prompt"><button class="close">&times;</button></div>
+<div class="widget-subarea" id="widgetarea{{ worksheet.cells.index(cell) }}">
+</div>
+</div>
+
+<script>
+// Display all of the widgets for this cell.
+{{ super() }}
+</script>
+{%- endblock widget_group -%}
+
+{%- block widget scoped -%}
+IPython.widgets.display_widget("{{ widget.id }}", "widgetarea{{ worksheet.cells.index(cell) }}"); 
+{%- endblock widget -%}

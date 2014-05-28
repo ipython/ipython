@@ -193,7 +193,7 @@ define([
             this.touch();
         },
     });
-    
+
 
     var ToggleButtonsView = widget.DOMWidgetView.extend({
         render : function(){
@@ -284,7 +284,7 @@ define([
             this.touch();
         },    
     });
-    
+
 
     var SelectView = widget.DOMWidgetView.extend({    
         render : function(){

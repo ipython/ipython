@@ -58,14 +58,16 @@ class InlineHTMLPreprocessor(Preprocessor):
         from pygments.formatters import HtmlFormatter
         css = []
         
-        # Construct path to IPy CSS
+        # Load IPython CSS dependencies.
         from IPython.html import DEFAULT_STATIC_FILES_PATH
-        sheet_filename = os.path.join(DEFAULT_STATIC_FILES_PATH,
-            'style', 'style.min.css')
-        
-        # Load style CSS file.
-        with io.open(sheet_filename, encoding='utf-8') as f:
-            css.append(f.read())
+        paths = [
+            ('components', 'jquery-ui', 'themes', 'smoothness', 'jquery-ui.min.css'),
+            ('style', 'style.min.css'),
+        ]
+        for path in paths:
+            sheet_filename = os.path.join(DEFAULT_STATIC_FILES_PATH, *path)
+            with io.open(sheet_filename, encoding='utf-8') as f:
+                css.append(f.read())
 
         # Add pygments CSS
         formatter = HtmlFormatter()

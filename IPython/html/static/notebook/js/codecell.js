@@ -501,6 +501,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
                     this.expand_output();
                 }
             }
+            this.saved_widgets = data.widgets;
         }
         this._load_widgets();
     };
@@ -519,7 +520,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
     CodeCell.prototype._load_widgets = function () {
         // Load the widgets stored in the cell metadata.
         if (this.kernel) {
-            if (this.metadata.widgets) {
+            if (this.saved_widgets) {
                 var cached_widgets = this.metadata.widgets;
                 for (var i = 0; i < cached_widgets.length; i++) {
                     var widget = cached_widgets[i];
@@ -533,16 +534,8 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
 
 
     CodeCell.prototype.toJSON = function () {
-        // Copy the widgets array to the cell's metadata.  Get the current model
-        // states and save them too.
-        this.metadata.widgets = [];
-        if (this.kernel) {
-            for (var i = 0; i < this.widgets.length; i++) {
-                this.metadata.widgets.push(this.widgets[i]);
-            }
-        }
-
         var data = IPython.Cell.prototype.toJSON.apply(this);
+        data.widgets = this.widgets;
         data.input = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
