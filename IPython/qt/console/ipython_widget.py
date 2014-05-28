@@ -233,7 +233,6 @@ class IPythonWidget(FrontendWidget):
         # data. But we need to figure out how to handle this in the GUI.
         if not self._hidden and self._is_from_this_session(msg):
             self.flush_clearoutput()
-            source = msg['content']['source']
             data = msg['content']['data']
             metadata = msg['content']['metadata']
             # In the regular IPythonWidget, we simply print the plain text

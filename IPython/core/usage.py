@@ -566,5 +566,5 @@ default_gui_banner = ''.join(default_gui_banner_parts)
 def page_guiref(arg_s=None):
     """Show a basic reference about the GUI Console."""
     from IPython.core import page
-    page.page(gui_reference, auto_html=True)
+    page.page(gui_reference)
 
