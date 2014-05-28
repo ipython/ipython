@@ -45,7 +45,7 @@ class Adapter(object):
             msg['msg_type'] = header['msg_type'] = self.msg_type_map[msg_type]
         return msg
     
-    def handle_reply_status_error(msg):
+    def handle_reply_status_error(self, msg):
         """This will be called *instead of* the regular handler
         
         on any reply with status != ok
