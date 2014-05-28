@@ -7,6 +7,7 @@
 from __future__ import print_function
 
 import errno
+import gettext
 import io
 import json
 import logging
@@ -148,6 +149,16 @@ class NotebookWebApplication(web.Application):
         jenv_opt.update(jinja_env_options)
 
         env = Environment(loader=FileSystemLoader(template_path), **jenv_opt)
+
+        # Get the language requested from webapp_settings cmdline option
+        language = settings_overrides.get("language", "")
+        # Get the Translations instance. If no language is specified
+        # e.g. language == "", it will default to native English.
+        translations = gettext.translation("ipynotebook",
+                os.path.join(os.path.dirname(__file__), "locale"),
+                [language], fallback=True)
+        env.install_gettext_translations(translations)
+
         settings = dict(
             # basics
             log_function=log_request,
