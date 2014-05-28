@@ -43,9 +43,9 @@
 <body {% block params %}{% endblock %}>
 
 <noscript>
-    <div id='noscript'>
+    <div id='noscript'>{% trans %}
       IPython Notebook requires JavaScript.<br>
-      Please enable it to proceed.
+      Please enable it to proceed.{% endtrans %}
   </div>
 </noscript>
 
@@ -58,9 +58,9 @@
 
       <span id="login_widget">
         {% if logged_in %}
-          <button id="logout">Logout</button>
+          <button id="logout">{% trans %}Logout{% endtrans %}</button>
         {% elif login_available and not logged_in %}
-          <button id="login">Login</button>
+          <button id="login">{% trans %}Login{% endtrans %}</button>
         {% endif %}
       </span>
 
