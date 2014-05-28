@@ -292,7 +292,7 @@ def get_ipython_dir():
                     'to get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
                     warnings.warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
-                    os.rename(xdg_ipdir, ipdir)
+                    shutil.move(xdg_ipdir, ipdir)
 
     ipdir = os.path.normpath(os.path.expanduser(ipdir))
 
