@@ -1,21 +1,21 @@
 # Turkish (Turkey) translations for IPython notebook.
-# This file is distributed under the same license as the IPython notebook project.
+# This file is distributed under the same license as the IPython notebook
+# project.
 # Ozan Çağlayan <ozancag@gmail.com>, 2014.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-05-28 17:20+0300\n"
+"POT-Creation-Date: 2014-05-29 17:46+0300\n"
 "PO-Revision-Date: 2014-05-29 13:08+0300\n"
 "Last-Translator: Ozan Çağlayan <ozancag@gmail.com>\n"
 "Language-Team: Turkish <>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=1; plural=0\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
-"X-Generator: Gtranslator 2.91.6\n"
 
 #: IPython/html/templates/404.html:3
 msgid "You are requesting a page that does not exist!"
@@ -160,7 +160,8 @@ msgstr "Görünüm"
 #: IPython/html/templates/notebook.html:123
 msgid "Show/Hide the IPython Notebook logo and notebook title (above menu bar)"
 msgstr ""
-"IPython Notebook logosunu ve defter başlığını (menünün üzerinde) göster/gizle"
+"IPython Notebook logosunu ve defter başlığını (menünün üzerinde) "
+"göster/gizle"
 
 #: IPython/html/templates/notebook.html:124
 msgid "Toggle Header"
@@ -251,8 +252,8 @@ msgid ""
 "All cells in the notebook have a cell type. By default, new cells are "
 "created as 'Code' cells"
 msgstr ""
-"Defterdeki tüm hücrelerin bir türü vardır. Yeni hücreler öntanımlı olarak "
-"'Kod' türünden yaratılır"
+"Defterdeki tüm hücrelerin bir türü vardır. Yeni hücreler öntanımlı olarak"
+" 'Kod' türünden yaratılır"
 
 #: IPython/html/templates/notebook.html:157
 msgid "Cell Type"
@@ -260,11 +261,11 @@ msgstr "Hücre Türü"
 
 #: IPython/html/templates/notebook.html:160
 msgid ""
-"Contents will be sent to the kernel for execution, and output will display "
-"in the footer of cell"
+"Contents will be sent to the kernel for execution, and output will "
+"display in the footer of cell"
 msgstr ""
-"İçerik çalıştırılmak üzere çekirdeğe gönderilir ve çıktı hücrenin altında "
-"gösterilir"
+"İçerik çalıştırılmak üzere çekirdeğe gönderilir ve çıktı hücrenin altında"
+" gösterilir"
 
 #: IPython/html/templates/notebook.html:161
 msgid "Code"
@@ -272,8 +273,7 @@ msgstr "Kod"
 
 #: IPython/html/templates/notebook.html:163
 msgid "Contents will be rendered as HTML and serve as explanatory text"
-msgstr ""
-"İçerik açıklayıcı metin olarak kullanılmak için HTML biçeminde üretilecek"
+msgstr "İçerik açıklayıcı metin olarak kullanılmak için HTML biçeminde üretilecek"
 
 #: IPython/html/templates/notebook.html:164
 msgid "Markdown"
@@ -287,110 +287,91 @@ msgstr "İçerik nbconvert tarafından işlenmez, ham olarak geçer"
 msgid "Raw NBConvert"
 msgstr "Ham NBConvert"
 
-#: IPython/html/templates/notebook.html:168
-msgid "Heading 1"
-msgstr "Başlık 1"
-
 #: IPython/html/templates/notebook.html:169
-msgid "Heading 2"
-msgstr "Başlık 2"
+#, python-format
+msgid "Heading %(level)d"
+msgstr "Başlık %(level)d"
 
-#: IPython/html/templates/notebook.html:170
-msgid "Heading 3"
-msgstr "Başlık 3"
-
-#: IPython/html/templates/notebook.html:171
-msgid "Heading 4"
-msgstr "Başlık 4"
-
-#: IPython/html/templates/notebook.html:172
-msgid "Heading 5"
-msgstr "Başlık 5"
-
-#: IPython/html/templates/notebook.html:173
-msgid "Heading 6"
-msgstr "Başlık 6"
-
-#: IPython/html/templates/notebook.html:177
+#: IPython/html/templates/notebook.html:174
 msgid "Current Output"
 msgstr "Mevcut Çıktı"
 
-#: IPython/html/templates/notebook.html:180
+#: IPython/html/templates/notebook.html:177
 msgid "Hide/Show the output of the current cell"
 msgstr "Etkin hücrenin çıktısını gizle/göster"
 
-#: IPython/html/templates/notebook.html:181
-#: IPython/html/templates/notebook.html:197
+#: IPython/html/templates/notebook.html:178
+#: IPython/html/templates/notebook.html:194
 msgid "Toggle"
 msgstr "Göster/Gizle"
 
-#: IPython/html/templates/notebook.html:184
+#: IPython/html/templates/notebook.html:181
 msgid "Scroll the output of the current cell"
 msgstr "Şu anki hücrenin çıktısını kaydır"
 
-#: IPython/html/templates/notebook.html:185
-#: IPython/html/templates/notebook.html:201
+#: IPython/html/templates/notebook.html:182
+#: IPython/html/templates/notebook.html:198
 msgid "Toggle Scrolling"
 msgstr "Kaydırmayı Aç/Kapa"
 
-#: IPython/html/templates/notebook.html:188
+#: IPython/html/templates/notebook.html:185
 msgid "Clear the output of the current cell"
 msgstr "Mevcut hücrenin çıktısını temizle"
 
-#: IPython/html/templates/notebook.html:189
-#: IPython/html/templates/notebook.html:205
+#: IPython/html/templates/notebook.html:186
+#: IPython/html/templates/notebook.html:202
 msgid "Clear"
 msgstr "Temizle"
 
-#: IPython/html/templates/notebook.html:193
+#: IPython/html/templates/notebook.html:190
 msgid "All Output"
 msgstr "Tüm Çıktı"
 
-#: IPython/html/templates/notebook.html:196
+#: IPython/html/templates/notebook.html:193
 msgid "Hide/Show the output of all cells"
 msgstr "Tüm hücrelerin çıktısını gizle/göster"
 
-#: IPython/html/templates/notebook.html:200
+#: IPython/html/templates/notebook.html:197
 msgid "Scroll the output of all cells"
 msgstr "Hücrelerin çıktısını kaydır"
 
-#: IPython/html/templates/notebook.html:204
+#: IPython/html/templates/notebook.html:201
 msgid "Clear the output of all cells"
 msgstr "Tüm hücrelerin çıktılarını temizle"
 
-#: IPython/html/templates/notebook.html:211
+#: IPython/html/templates/notebook.html:208
 msgid "Kernel"
 msgstr "Çekirdek"
 
-#: IPython/html/templates/notebook.html:214
+#: IPython/html/templates/notebook.html:211
 msgid "Send KeyboardInterrupt (CTRL-C) to the Kernel"
 msgstr "Çekirdeğe klavye kesmesi (CTRL-C) gönder"
 
-#: IPython/html/templates/notebook.html:215
+#: IPython/html/templates/notebook.html:212
 msgid "Interrupt"
 msgstr "Durdur"
 
-#: IPython/html/templates/notebook.html:218
+#: IPython/html/templates/notebook.html:215
 msgid "Restart"
 msgstr "Yeniden başlat"
 
-#: IPython/html/templates/notebook.html:221
+#: IPython/html/templates/notebook.html:218
 msgid "Help"
 msgstr "Yardım"
 
-#: IPython/html/templates/notebook.html:223
+#: IPython/html/templates/notebook.html:220
 msgid "A quick tour of the notebook user interface"
 msgstr "Defter arayüzüne dair hızlı bir tanıtım turu"
 
-#: IPython/html/templates/notebook.html:223
+#: IPython/html/templates/notebook.html:220
 msgid "User Interface Tour"
 msgstr "Kullanıcı Arayüz Turu"
 
-#: IPython/html/templates/notebook.html:224
+#: IPython/html/templates/notebook.html:221
 msgid "Opens a tooltip with all keyboard shortcuts"
 msgstr "Tüm klavye kısayollarını gösteren bir pencere açar"
 
-#: IPython/html/templates/notebook.html:224
+#: IPython/html/templates/notebook.html:221
 msgid "Keyboard Shortcuts"
 msgstr "Klavye Kısayolları"
 

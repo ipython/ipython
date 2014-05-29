@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-05-29 12:34+0300\n"
+"POT-Creation-Date: 2014-05-29 17:46+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -281,110 +281,91 @@ msgstr ""
 msgid "Raw NBConvert"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:168
-msgid "Heading 1"
-msgstr ""
-
 #: IPython/html/templates/notebook.html:169
-msgid "Heading 2"
+#, python-format
+msgid "Heading %(level)d"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:170
-msgid "Heading 3"
-msgstr ""
-
-#: IPython/html/templates/notebook.html:171
-msgid "Heading 4"
-msgstr ""
-
-#: IPython/html/templates/notebook.html:172
-msgid "Heading 5"
-msgstr ""
-
-#: IPython/html/templates/notebook.html:173
-msgid "Heading 6"
-msgstr ""
-
-#: IPython/html/templates/notebook.html:177
+#: IPython/html/templates/notebook.html:174
 msgid "Current Output"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:180
+#: IPython/html/templates/notebook.html:177
 msgid "Hide/Show the output of the current cell"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:181
-#: IPython/html/templates/notebook.html:197
+#: IPython/html/templates/notebook.html:178
+#: IPython/html/templates/notebook.html:194
 msgid "Toggle"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:184
+#: IPython/html/templates/notebook.html:181
 msgid "Scroll the output of the current cell"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:185
-#: IPython/html/templates/notebook.html:201
+#: IPython/html/templates/notebook.html:182
+#: IPython/html/templates/notebook.html:198
 msgid "Toggle Scrolling"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:188
+#: IPython/html/templates/notebook.html:185
 msgid "Clear the output of the current cell"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:189
-#: IPython/html/templates/notebook.html:205
+#: IPython/html/templates/notebook.html:186
+#: IPython/html/templates/notebook.html:202
 msgid "Clear"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:193
+#: IPython/html/templates/notebook.html:190
 msgid "All Output"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:196
+#: IPython/html/templates/notebook.html:193
 msgid "Hide/Show the output of all cells"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:200
+#: IPython/html/templates/notebook.html:197
 msgid "Scroll the output of all cells"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:204
+#: IPython/html/templates/notebook.html:201
 msgid "Clear the output of all cells"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:211
+#: IPython/html/templates/notebook.html:208
 msgid "Kernel"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:214
+#: IPython/html/templates/notebook.html:211
 msgid "Send KeyboardInterrupt (CTRL-C) to the Kernel"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:215
+#: IPython/html/templates/notebook.html:212
 msgid "Interrupt"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:218
+#: IPython/html/templates/notebook.html:215
 msgid "Restart"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:221
+#: IPython/html/templates/notebook.html:218
 msgid "Help"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:223
+#: IPython/html/templates/notebook.html:220
 msgid "A quick tour of the notebook user interface"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:223
+#: IPython/html/templates/notebook.html:220
 msgid "User Interface Tour"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:224
+#: IPython/html/templates/notebook.html:221
 msgid "Opens a tooltip with all keyboard shortcuts"
 msgstr ""
 
-#: IPython/html/templates/notebook.html:224
+#: IPython/html/templates/notebook.html:221
 msgid "Keyboard Shortcuts"
 msgstr ""
 
