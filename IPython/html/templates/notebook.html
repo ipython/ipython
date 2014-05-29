@@ -165,12 +165,9 @@ class="notebook_app"
                       <li id="to_raw"
                           title="{% trans %}Contents will pass through nbconvert unmodified{% endtrans %}">
                           <a href="#">{% trans %}Raw NBConvert{% endtrans %}</a></li>
-                      <li id="to_heading1"><a href="#">{% trans %}Heading 1{% endtrans %}</a></li>
-                      <li id="to_heading2"><a href="#">{% trans %}Heading 2{% endtrans %}</a></li>
-                      <li id="to_heading3"><a href="#">{% trans %}Heading 3{% endtrans %}</a></li>
-                      <li id="to_heading4"><a href="#">{% trans %}Heading 4{% endtrans %}</a></li>
-                      <li id="to_heading5"><a href="#">{% trans %}Heading 5{% endtrans %}</a></li>
-                      <li id="to_heading6"><a href="#">{% trans %}Heading 6{% endtrans %}</a></li>
+                      {% for l in range(1,7) %}
+                        <li id="to_heading{{ l }}"><a href="#">{{ _('Heading %(level)d')|format(level=l) }}</a></li>
+                      {% endfor %}
                     </ul>
                 </li>
                 <li class="divider"></li>
