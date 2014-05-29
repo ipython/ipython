@@ -38,7 +38,7 @@ define([
             // Called when a model is added to the children list.
             var view = this.create_child_view(model);
             this.$el.append(view.$el);
-
+        
             // Trigger the displayed event of the child view.
             this.after_displayed(function() {
                 view.trigger('displayed');
@@ -46,7 +46,7 @@ define([
         },
     });
     
-
+    
     var PopupView = widget.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
@@ -193,7 +193,7 @@ define([
             
             // Start z-index of widget modals at 2000
             max_zindex = Math.max(max_zindex, 2000);
-            
+
             $widget_modals.each(function (index, el){
                 $el = $(el);
                 if (max_zindex == parseInt($el.css('z-index'))) {

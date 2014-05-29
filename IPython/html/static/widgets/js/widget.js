@@ -259,11 +259,11 @@ define(["widgets/js/manager",
 
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
 		var model = this.widget_manager.get_model(value.slice(10, value.length));
-		if (model) {
-		    return model;
-		} else {
-		    return value;
-		}
+                if (model) {
+                    return model;
+                } else {
+                    return value;
+                }
             } else {
                     return value;
             }
@@ -331,7 +331,7 @@ define(["widgets/js/manager",
                 // Remove the view list specific to this model if it is empty.
                 if (view_ids.length === 0) {
                     delete this.child_model_views[child_model.id];
-                }
+            }
                 return view;
             }
             return null;
@@ -422,7 +422,7 @@ define(["widgets/js/manager",
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
         },
-
+        
         on_msg: function(msg) {
             // Handle DOM specific msgs.
             switch(msg.msg_type) {
@@ -439,12 +439,12 @@ define(["widgets/js/manager",
             // Add a DOM class to an element.
             this._get_selector_element(selector).addClass(class_list);
         },
-
+        
         remove_class: function (selector, class_list) {
             // Remove a DOM class from an element.
             this._get_selector_element(selector).removeClass(class_list);
         },
-
+    
         update_visible: function(model, value) {
             // Update visibility
             this.$el.toggle(value);
@@ -470,8 +470,8 @@ define(["widgets/js/manager",
             // Get the elements via the css selector.
             var elements;
             if (!selector) {
-                elements = this.$el;
-            } else {
+                    elements = this.$el;
+                } else {
                 elements = this.$el.find(selector).addBack(selector);
             }
             return elements;

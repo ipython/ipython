@@ -10,24 +10,25 @@
 <meta charset="utf-8" />
 <title>{{resources['metadata']['name']}}</title>
 
-{% if resources.inlining.js is not defined -%}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <!-- TODO: Replace rawgit with permanent url. -->
-    <script src="https://rawgit.com/jdfreder/ipython/widgetpersistance/IPython/html/static/widgets/js/staticmanager.js"></script>
-{% else %}  
-    {% for filename, js in resources.inlining.js -%}
-        <!-- {{ filename }} -->
-        <script>
-        {{ js }}
-        </script>
-    {% endfor %}
+{% if resources.references.js is defined -%}
+  {% for url in resources.references.js -%}
+    <script src="{{ url }}"></script>
+  {% endfor %}
+{% endif %}
+
+{% if resources.inlining.js is defined -%}
+  {% for filename, js in resources.inlining.js -%}
+    <!-- {{ filename }} -->
+    <script>
+      {{ js }}
+    </script>
+  {% endfor %}
 {% endif %}
 
 {% for css in resources.inlining.css -%}
-    <style type="text/css">
+  <style type="text/css">
     {{ css }}
-    </style>
+  </style>
 {% endfor %}
 
 <style type="text/css">
@@ -105,8 +106,8 @@ IPython.widgets.set_widget("{{ model_id }}", JSON.parse('{{ nb.widgets[model_id]
 </div>
 
 <script>
-// Display all of the widgets for this cell.
-{{ super() }}
+  // Display all of the widgets for this cell.
+  {{ super() }}
 </script>
 {%- endblock widget_group -%}
 

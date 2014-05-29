@@ -50,7 +50,6 @@ IPython.widgets.display_widget = function(model_id, elementid) {
 require([
     "widgets/js/manager",
     "widgets/js/init",
-    "jquery-ui",
 ], function(WidgetManager){ 
     IPython.widget_manager = new WidgetManager(undefined);
 

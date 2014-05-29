@@ -90,11 +90,11 @@ define([
             if (this.keyboard_manager) {
                 this.keyboard_manager.register_events(view.$el);
             
-            if (view.additional_elements) {
-                for (var i = 0; i < view.additional_elements.length; i++) {
+                if (view.additional_elements) {
+                    for (var i = 0; i < view.additional_elements.length; i++) {
                         this.keyboard_manager.register_events(view.additional_elements[i]);
-                }
-            } 
+                    }
+                } 
             }
         };
 

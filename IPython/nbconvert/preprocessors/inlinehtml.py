@@ -2,19 +2,11 @@
 """
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
-import warnings
 import os
-import io
-import hashlib
-from io import TextIOWrapper, BytesIO
+import shutil
 
-from IPython.utils import path
 from IPython.utils.traitlets import Unicode, Bool
-from IPython.utils.py3compat import str_to_bytes
-
 from .base import Preprocessor
-from ..utils.node import get_node_cmd, NodeJSMissing
 
 class InlineHTMLPreprocessor(Preprocessor):
     """Preprocessor used to pre-process notebooks for HTML output.  
@@ -22,19 +14,20 @@ class InlineHTMLPreprocessor(Preprocessor):
     Adds IPython notebook front-end CSS, Pygments CSS, and Widget JS to the 
     resources dictionary."""
 
-    highlight_class = Unicode('.highlight', config=True,
-                              help="CSS highlight class identifier")
+    highlight_class = Unicode('.highlight', config=True, help="CSS highlight class identifier")
+    inline_js = Bool(False, config=True, help="Inline IPython JS")
 
-    def __init__(self, *pargs, **kwargs):
-        Preprocessor.__init__(self, *pargs, **kwargs)
-        self._default_css_hash = None
+    css = []
+    js_code = [] # (filename, contents)
+    js_urls = []
 
     def preprocess(self, nb, resources):
-        """Fetch and add CSS to the resource dictionary
+        """Fetch and add CSS & JS to the resource dictionary
 
         Fetch CSS from IPython and Pygments to add at the beginning
         of the html files.  Add this css in resources in the 
-        "inlining.css" key
+        "inlining.css" key.  Add either CDN/local references to JS or inline
+        the required JS too.
         
         Parameters
         ----------
@@ -44,14 +37,31 @@ class InlineHTMLPreprocessor(Preprocessor):
             Additional resources used in the conversion process.  Allows
             preprocessors to pass variables into the Jinja engine.
         """
+        # Look through the notebook to see if any widgets are displayed.  If at
+        # least one widget is displayed somewhere, we should include the widget
+        # JS one way or another.
+        has_widgets = False
+        for worksheet in nb.worksheets:
+            for cell in worksheet.cells:
+                has_widgets = 'widgets' in cell and len(cell['widgets']) > 0
+                if has_widgets: break
+            if has_widgets: break
+
+        # Inlined CSS
+        self._generate_css(has_widgets)
         resources['inlining'] = {}
-        resources['inlining']['css'] = self._generate_css(resources)
-        js = self._generate_js()
-        if js and len(js) > 0:
-            resources['inlining']['js'] = js
+        resources['inlining']['css'] = self.css
+
+        # Inlined/referenced JS
+        resources = self._generate_js(has_widgets, resources)
+        if len(self.js_code) > 0:
+            resources['inlining']['js'] = self.js_code
+        if len(self.js_urls) > 0:
+            resources['references'] = {}
+            resources['references']['js'] = self.js_urls
         return nb, resources
 
-    def _generate_css(self, resources):
+    def _generate_css(self, has_widgets):
         """Fills self.css with lines of CSS extracted from IPython 
         and Pygments.
         """
@@ -60,13 +70,13 @@ class InlineHTMLPreprocessor(Preprocessor):
         
         # Load IPython CSS dependencies.
         from IPython.html import DEFAULT_STATIC_FILES_PATH
-        paths = [
-            ('components', 'jquery-ui', 'themes', 'smoothness', 'jquery-ui.min.css'),
-            ('style', 'style.min.css'),
-        ]
+        paths = [('style', 'style.min.css')]
+        if has_widgets:
+            paths.append(('components', 'jquery-ui', 'themes', 'smoothness', 'jquery-ui.min.css'))
+            
         for path in paths:
             sheet_filename = os.path.join(DEFAULT_STATIC_FILES_PATH, *path)
-            with io.open(sheet_filename, encoding='utf-8') as f:
+            with open(sheet_filename, encoding='utf-8') as f:
                 css.append(f.read())
 
         # Add pygments CSS
@@ -74,86 +84,45 @@ class InlineHTMLPreprocessor(Preprocessor):
         pygments_css = formatter.get_style_defs(self.highlight_class)
         css.append(pygments_css)
 
-        # Load the user's custom CSS and IPython's default custom CSS.  If they
-        # differ, assume the user has made modifications to his/her custom CSS
-        # and that we should inline it in the nbconvert output.
-        profile_dir = resources['profile_dir']
-        custom_css_filename = os.path.join(profile_dir, 'static', 'custom', 'custom.css')
-        if os.path.isfile(custom_css_filename):
-            if self._default_css_hash is None:
-                self._default_css_hash = self._hash(os.path.join(DEFAULT_STATIC_FILES_PATH, 'custom', 'custom.css'))
-            if self._hash(custom_css_filename) != self._default_css_hash:
-                with io.open(custom_css_filename, encoding='utf-8') as f:
-                    css.append(f.read())
+        # Set css        
+        self.css = css
 
-        return css
-
-    def _generate_js(self):
-        """Fills self.js with the widget JS.
+    def _generate_js(self, has_widgets, resources):
+        """Fills self.js_code with the widget JS.
         """
-        js = []
+        from IPython.html import DEFAULT_STATIC_FILES_PATH
+        if has_widgets:
+            src_staticwidgets = os.path.join(DEFAULT_STATIC_FILES_PATH, 'widgets', 'js', 'staticwidgets.min.js')
+                
+        self.js_urls = []
+        self.js_code = []
         if self.inline_js:
+            # Inline require.min.js & jquery.min.js
+            for path in [
+                ('components', 'requirejs', 'require.js'),
+                ('components', 'jquery', 'jquery.min.js')]:
+                with open(os.path.join(DEFAULT_STATIC_FILES_PATH, *path), encoding='utf-8') as f:
+                    self.js_code.append((path[-1] ,f.read()))
 
-            global _node
-            if not _node:
-                _node = get_node_cmd()
+            # Inline staticwidgets.min.js
+            if has_widgets:
+                with open(src_staticwidgets, encoding='utf-8') as f:
+                    self.js_code.append(('IPython static widgets', f.read()))
 
-            # Run r.js on the widget init file to build a single, minimized js
-            # file containing all of the JS that needs to be embeded on the 
-            # page.
-            ipythonjs = '.ipython.js'
-            if not _node:
-                warnings.warn("Node.js not found.  Cannot inline notebook JS.  " +
-                    "Using CDN references instead (inline_js=False).")
             else:
-                # Embed require.js
-                from IPython.html import DEFAULT_STATIC_FILES_PATH
-                with open(os.path.join(DEFAULT_STATIC_FILES_PATH, 'components', 'requirejs', 'require.js'), 'r') as f:
-                    js.append(('require.js', f.read()))
+            self.js_urls += [
+            "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js",
+            ]
 
-                # CD into the static files path.  Remember the current path so
-                # we can direct the output to it.
-                cwd = os.getcwd()
-                try:
-                    os.chdir(DEFAULT_STATIC_FILES_PATH)
+            if has_widgets:
+                dest_staticwidgets = 'staticwidgets.min.js'
 
-                    command = [
-                        _node, 
-                        os.path.join('components', 'r.js', 'dist', 'r.js'),
-                        '-o',
-                        'build.js',
-                        'out=' + os.path.join(cwd, ipythonjs),
-                    ]
-                    try:
-                        out, err, return_code = get_output_error_code(command)
-                    except OSError as e:
-                        # Command not found
-                        warnings.warn("The command '%s' returned an error: %s.\n" % (" ".join(command), e) +
-                            "Please check that Node.js is installed."
-                        )
-                    if return_code:
-                        # Command error
-                        warnings.warn("The command '%s' returned an error code: %s.\n" % (" ".join(command), return_code))
+                #Make sure outputs key exists
+                if not isinstance(resources['outputs'], dict):
+                    resources['outputs'] = {}
 
-                    # Log r.js output.
-                    from IPython.config import Application
-                    if Application.initialized():
-                        Application.instance().log.info("node r.js output")
-                        for line in out.strip().split('\n'):
-                            Application.instance().log.info("    %s" % line)
-                finally:
-                    # Return to original path.
-                    os.chdir(cwd)
-                    
-                # Read the file into the JS dict.
-                with open(ipythonjs, 'r') as f:
-                    js.append((ipythonjs, f.read()))
-                os.remove(ipythonjs)
-        return js
-
-    def _hash(self, filename):
-        """Compute the hash of a file."""
-        md5 = hashlib.md5()
-        with open(filename) as f:
-            md5.update(str_to_bytes(f.read()))
-        return md5.digest()
+                with open(src_staticwidgets, 'rb') as f:
+                    resources['outputs'][dest_staticwidgets] = f.read()
+                self.js_urls.append(dest_staticwidgets)
+        return resources

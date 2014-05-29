@@ -5,7 +5,7 @@ define([
     "widgets/js/widget",
     "jquery",
 ], function(widget, $){
-    
+
     var ImageView = widget.DOMWidgetView.extend({  
         render : function(){
             // Called when view is rendered.
