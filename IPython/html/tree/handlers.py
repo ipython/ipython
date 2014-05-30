@@ -51,7 +51,7 @@ class TreeHandler(IPythonHandler):
     @web.authenticated
     def get(self, path='', name=None):
         path = path.strip('/')
-        nbm = self.notebook_manager
+        cm = self.contents_manager
         if name is not None:
             # is a notebook, redirect to notebook handler
             url = url_escape(url_path_join(
@@ -60,10 +60,10 @@ class TreeHandler(IPythonHandler):
             self.log.debug("Redirecting %s to %s", self.request.path, url)
             self.redirect(url)
         else:
-            if not nbm.path_exists(path=path):
+            if not cm.path_exists(path=path):
                 # Directory is hidden or does not exist.
                 raise web.HTTPError(404)
-            elif nbm.is_hidden(path):
+            elif cm.is_hidden(path):
                 self.log.info("Refusing to serve hidden directory, via 404 Error")
                 raise web.HTTPError(404)
             breadcrumbs = self.generate_breadcrumbs(path)

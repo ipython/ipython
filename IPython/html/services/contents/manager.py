@@ -1,21 +1,7 @@
-"""A base class notebook manager.
+"""A base class for contents managers."""
 
-Authors:
-
-* Brian Granger
-* Zach Sailer
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from fnmatch import fnmatch
 import itertools
@@ -25,13 +11,8 @@ from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current, sign
 from IPython.utils.traitlets import Instance, Unicode, List
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
-class NotebookManager(LoggingConfigurable):
-
-    filename_ext = Unicode(u'.ipynb')
+class ContentsManager(LoggingConfigurable):
 
     notary = Instance(sign.NotebookNotary)
     def _notary_default(self):
@@ -41,7 +22,7 @@ class NotebookManager(LoggingConfigurable):
         Glob patterns to hide in file and directory listings.
     """)
 
-    # NotebookManager API part 1: methods that must be
+    # ContentsManager API part 1: methods that must be
     # implemented in subclasses.
 
     def path_exists(self, path):
@@ -68,7 +49,7 @@ class NotebookManager(LoggingConfigurable):
         ----------
         path : string
             The path to check. This is an API path (`/` separated,
-            relative to base notebook-dir).
+            relative to root dir).
 
         Returns
         -------
@@ -78,7 +59,7 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError
 
-    def notebook_exists(self, name, path=''):
+    def file_exists(self, name, path=''):
         """Returns a True if the notebook exists. Else, returns False.
 
         Parameters
@@ -114,12 +95,10 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def list_notebooks(self, path=''):
-        """Return a list of notebook dicts without content.
+    def list_files(self, path=''):
+        """Return a list of contents dicts without content.
 
-        This returns a list of dicts, each of the form::
-
-            dict(notebook_id=notebook,name=name)
+        This returns a list of dicts
 
         This list of dicts should be sorted by name::
 
@@ -127,19 +106,19 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def get_notebook(self, name, path='', content=True):
+    def get_model(self, name, path='', content=True):
         """Get the notebook model with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_notebook(self, model, name, path=''):
+    def save(self, model, name, path=''):
         """Save the notebook and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def update_notebook(self, model, name, path=''):
+    def update(self, model, name, path=''):
         """Update the notebook and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook(self, name, path=''):
+    def delete(self, name, path=''):
         """Delete notebook by name and path."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -165,34 +144,34 @@ class NotebookManager(LoggingConfigurable):
     def info_string(self):
         return "Serving notebooks"
 
-    # NotebookManager API part 2: methods that have useable default
+    # ContentsManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
 
     def get_kernel_path(self, name, path='', model=None):
         """ Return the path to start kernel in """
         return path
 
-    def increment_filename(self, basename, path=''):
-        """Increment a notebook filename without the .ipynb to make it unique.
+    def increment_filename(self, filename, path=''):
+        """Increment a filename until it is unique.
 
         Parameters
         ----------
-        basename : unicode
-            The name of a notebook without the ``.ipynb`` file extension.
+        filename : unicode
+            The name of a file, including extension
         path : unicode
             The URL path of the notebooks directory
 
         Returns
         -------
         name : unicode
-            A notebook name (with the .ipynb extension) that starts
-            with basename and does not refer to any existing notebook.
+            A filename that is unique, based on the input filename.
         """
         path = path.strip('/')
+        basename, ext = os.path.splitext(filename)
         for i in itertools.count():
             name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
-                                                ext=self.filename_ext)
-            if not self.notebook_exists(name, path):
+                                                ext=ext)
+            if not self.file_exists(name, path):
                 break
         return name
 
@@ -205,24 +184,25 @@ class NotebookManager(LoggingConfigurable):
             metadata = current.new_metadata(name=u'')
             model['content'] = current.new_notebook(metadata=metadata)
         if 'name' not in model:
-            model['name'] = self.increment_filename('Untitled', path)
+            model['name'] = self.increment_filename('Untitled.ipynb', path)
 
         model['path'] = path
-        model = self.save_notebook(model, model['name'], model['path'])
+        model = self.save(model, model['name'], model['path'])
         return model
 
-    def copy_notebook(self, from_name, to_name=None, path=''):
-        """Copy an existing notebook and return its new model.
+    def copy(self, from_name, to_name=None, path=''):
+        """Copy an existing file and return its new model.
 
         If to_name not specified, increment `from_name-Copy#.ipynb`.
         """
         path = path.strip('/')
-        model = self.get_notebook(from_name, path)
+        model = self.get(from_name, path)
         if not to_name:
-            base = os.path.splitext(from_name)[0] + '-Copy'
-            to_name = self.increment_filename(base, path)
+            base, ext = os.path.splitext(from_name)
+            copy_name = u'{0}-Copy{1}'.format(base, ext)
+            to_name = self.increment_filename(copy_name, path)
         model['name'] = to_name
-        model = self.save_notebook(model, to_name, path)
+        model = self.save(model, to_name, path)
         return model
 
     def log_info(self):
@@ -238,11 +218,11 @@ class NotebookManager(LoggingConfigurable):
         path : string
             The notebook's directory
         """
-        model = self.get_notebook(name, path)
+        model = self.get(name, path)
         nb = model['content']
         self.log.warn("Trusting notebook %s/%s", path, name)
         self.notary.mark_cells(nb, True)
-        self.save_notebook(model, name, path)
+        self.save(model, name, path)
 
     def check_and_sign(self, nb, name, path=''):
         """Check for trusted cells, and sign the notebook.

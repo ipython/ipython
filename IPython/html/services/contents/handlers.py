@@ -1,20 +1,7 @@
-"""Tornado handlers for the notebooks web service.
+"""Tornado handlers for the contents web service."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import json
 
@@ -27,33 +14,29 @@ from IPython.html.base.handlers import (IPythonHandler, json_errors,
                                     notebook_path_regex, path_regex,
                                     notebook_name_regex)
 
-#-----------------------------------------------------------------------------
-# Notebook web service handlers
-#-----------------------------------------------------------------------------
 
-
-class NotebookHandler(IPythonHandler):
+class ContentsHandler(IPythonHandler):
 
     SUPPORTED_METHODS = (u'GET', u'PUT', u'PATCH', u'POST', u'DELETE')
 
-    def notebook_location(self, name, path=''):
-        """Return the full URL location of a notebook based.
+    def location_url(self, name, path=''):
+        """Return the full URL location of a file.
 
         Parameters
         ----------
         name : unicode
-            The base name of the notebook, such as "foo.ipynb".
+            The base name of the file, such as "foo.ipynb".
         path : unicode
-            The URL path of the notebook.
+            The API path of the file, such as "foo/bar".
         """
         return url_escape(url_path_join(
-            self.base_url, 'api', 'notebooks', path, name
+            self.base_url, 'api', 'contents', path, name
         ))
 
     def _finish_model(self, model, location=True):
         """Finish a JSON request with a model, setting relevant headers, etc."""
         if location:
-            location = self.notebook_location(model['name'], model['path'])
+            location = self.location_url(model['name'], model['path'])
             self.set_header('Location', location)
         self.set_header('Last-Modified', model['last_modified'])
         self.finish(json.dumps(model, default=date_default))
@@ -61,68 +44,68 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def get(self, path='', name=None):
-        """Return a Notebook or list of notebooks.
+        """Return a file or list of files.
 
-        * GET with path and no notebook name lists notebooks in a directory
-        * GET with path and notebook name returns notebook JSON
+        * GET with path and no filename lists files in a directory
+        * GET with path and filename returns file contents model
         """
-        nbm = self.notebook_manager
-        # Check to see if a notebook name was given
+        cm = self.contents_manager
+        # Check to see if a filename was given
         if name is None:
             # TODO: Remove this after we create the contents web service and directories are
             # no longer listed by the notebook web service. This should only handle notebooks
             # and not directories.
-            dirs = nbm.list_dirs(path)
-            notebooks = []
+            dirs = cm.list_dirs(path)
+            files = []
             index = []
-            for nb in nbm.list_notebooks(path):
+            for nb in cm.list_files(path):
                 if nb['name'].lower() == 'index.ipynb':
                     index.append(nb)
                 else:
-                    notebooks.append(nb)
-            notebooks = index + dirs + notebooks
-            self.finish(json.dumps(notebooks, default=date_default))
+                    files.append(nb)
+            files = index + dirs + files
+            self.finish(json.dumps(files, default=date_default))
             return
         # get and return notebook representation
-        model = nbm.get_notebook(name, path)
+        model = cm.get(name, path)
         self._finish_model(model, location=False)
 
     @web.authenticated
     @json_errors
     def patch(self, path='', name=None):
         """PATCH renames a notebook without re-uploading content."""
-        nbm = self.notebook_manager
+        cm = self.contents_manager
         if name is None:
-            raise web.HTTPError(400, u'Notebook name missing')
+            raise web.HTTPError(400, u'Filename missing')
         model = self.get_json_body()
         if model is None:
             raise web.HTTPError(400, u'JSON body missing')
-        model = nbm.update_notebook(model, name, path)
+        model = cm.update(model, name, path)
         self._finish_model(model)
 
-    def _copy_notebook(self, copy_from, path, copy_to=None):
-        """Copy a notebook in path, optionally specifying the new name.
+    def _copy(self, copy_from, path, copy_to=None):
+        """Copy a file in path, optionally specifying the new name.
 
         Only support copying within the same directory.
         """
-        self.log.info(u"Copying notebook from %s/%s to %s/%s",
+        self.log.info(u"Copying from %s/%s to %s/%s",
             path, copy_from,
             path, copy_to or '',
         )
-        model = self.notebook_manager.copy_notebook(copy_from, copy_to, path)
+        model = self.contents_manager.copy(copy_from, copy_to, path)
         self.set_status(201)
         self._finish_model(model)
 
-    def _upload_notebook(self, model, path, name=None):
-        """Upload a notebook
+    def _upload(self, model, path, name=None):
+        """Upload a file
 
         If name specified, create it in path/name.
         """
-        self.log.info(u"Uploading notebook to %s/%s", path, name or '')
+        self.log.info(u"Uploading file to %s/%s", path, name or '')
         if name:
             model['name'] = name
 
-        model = self.notebook_manager.create_notebook(model, path)
+        model = self.contents_manager.create_notebook(model, path)
         self.set_status(201)
         self._finish_model(model)
 
@@ -135,14 +118,14 @@ class NotebookHandler(IPythonHandler):
         model = {}
         if name:
             model['name'] = name
-        model = self.notebook_manager.create_notebook(model, path=path)
+        model = self.contents_manager.create_notebook(model, path=path)
         self.set_status(201)
         self._finish_model(model)
 
-    def _save_notebook(self, model, path, name):
-        """Save an existing notebook."""
-        self.log.info(u"Saving notebook at %s/%s", path, name)
-        model = self.notebook_manager.save_notebook(model, name, path)
+    def _save(self, model, path, name):
+        """Save an existing file."""
+        self.log.info(u"Saving file at %s/%s", path, name)
+        model = self.contents_manager.save(model, name, path)
         if model['path'] != path.strip('/') or model['name'] != name:
             # a rename happened, set Location header
             location = True
@@ -157,10 +140,10 @@ class NotebookHandler(IPythonHandler):
 
         POST creates new notebooks. The server always decides on the notebook name.
 
-        POST /api/notebooks/path
+        POST /api/contents/path
           New untitled notebook in path. If content specified, upload a
           notebook, otherwise start empty.
-        POST /api/notebooks/path?copy=OtherNotebook.ipynb
+        POST /api/contents/path?copy=OtherNotebook.ipynb
           New copy of OtherNotebook in path
         """
 
@@ -174,25 +157,25 @@ class NotebookHandler(IPythonHandler):
             if copy_from:
                 if model.get('content'):
                     raise web.HTTPError(400, "Can't upload and copy at the same time.")
-                self._copy_notebook(copy_from, path)
+                self._copy(copy_from, path)
             else:
-                self._upload_notebook(model, path)
+                self._upload(model, path)
         else:
             self._create_empty_notebook(path)
 
     @web.authenticated
     @json_errors
     def put(self, path='', name=None):
-        """Saves the notebook in the location specified by name and path.
+        """Saves the file in the location specified by name and path.
 
         PUT is very similar to POST, but the requester specifies the name,
         whereas with POST, the server picks the name.
 
-        PUT /api/notebooks/path/Name.ipynb
+        PUT /api/contents/path/Name.ipynb
           Save notebook at ``path/Name.ipynb``. Notebook structure is specified
           in `content` key of JSON request body. If content is not specified,
           create a new empty notebook.
-        PUT /api/notebooks/path/Name.ipynb?copy=OtherNotebook.ipynb
+        PUT /api/contents/path/Name.ipynb?copy=OtherNotebook.ipynb
           Copy OtherNotebook to Name
         """
         if name is None:
@@ -204,34 +187,34 @@ class NotebookHandler(IPythonHandler):
             if copy_from:
                 if model.get('content'):
                     raise web.HTTPError(400, "Can't upload and copy at the same time.")
-                self._copy_notebook(copy_from, path, name)
-            elif self.notebook_manager.notebook_exists(name, path):
-                self._save_notebook(model, path, name)
+                self._copy(copy_from, path, name)
+            elif self.contents_manager.file_exists(name, path):
+                self._save(model, path, name)
             else:
-                self._upload_notebook(model, path, name)
+                self._upload(model, path, name)
         else:
             self._create_empty_notebook(path, name)
 
     @web.authenticated
     @json_errors
     def delete(self, path='', name=None):
-        """delete the notebook in the given notebook path"""
-        nbm = self.notebook_manager
-        nbm.delete_notebook(name, path)
+        """delete a file in the given path"""
+        cm = self.contents_manager
+        cm.delete(name, path)
         self.set_status(204)
         self.finish()
 
 
-class NotebookCheckpointsHandler(IPythonHandler):
+class CheckpointsHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('GET', 'POST')
 
     @web.authenticated
     @json_errors
     def get(self, path='', name=None):
-        """get lists checkpoints for a notebook"""
-        nbm = self.notebook_manager
-        checkpoints = nbm.list_checkpoints(name, path)
+        """get lists checkpoints for a file"""
+        cm = self.contents_manager
+        checkpoints = cm.list_checkpoints(name, path)
         data = json.dumps(checkpoints, default=date_default)
         self.finish(data)
 
@@ -239,35 +222,35 @@ class NotebookCheckpointsHandler(IPythonHandler):
     @json_errors
     def post(self, path='', name=None):
         """post creates a new checkpoint"""
-        nbm = self.notebook_manager
-        checkpoint = nbm.create_checkpoint(name, path)
+        cm = self.contents_manager
+        checkpoint = cm.create_checkpoint(name, path)
         data = json.dumps(checkpoint, default=date_default)
-        location = url_path_join(self.base_url, 'api/notebooks',
+        location = url_path_join(self.base_url, 'api/contents',
             path, name, 'checkpoints', checkpoint['id'])
         self.set_header('Location', url_escape(location))
         self.set_status(201)
         self.finish(data)
 
 
-class ModifyNotebookCheckpointsHandler(IPythonHandler):
+class ModifyCheckpointsHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('POST', 'DELETE')
 
     @web.authenticated
     @json_errors
     def post(self, path, name, checkpoint_id):
-        """post restores a notebook from a checkpoint"""
-        nbm = self.notebook_manager
-        nbm.restore_checkpoint(checkpoint_id, name, path)
+        """post restores a file from a checkpoint"""
+        cm = self.contents_manager
+        cm.restore_checkpoint(checkpoint_id, name, path)
         self.set_status(204)
         self.finish()
 
     @web.authenticated
     @json_errors
     def delete(self, path, name, checkpoint_id):
-        """delete clears a checkpoint for a given notebook"""
-        nbm = self.notebook_manager
-        nbm.delete_checkpoint(checkpoint_id, name, path)
+        """delete clears a checkpoint for a given file"""
+        cm = self.contents_manager
+        cm.delete_checkpoint(checkpoint_id, name, path)
         self.set_status(204)
         self.finish()
 
@@ -279,9 +262,9 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
 _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 
 default_handlers = [
-    (r"/api/notebooks%s/checkpoints" % notebook_path_regex, NotebookCheckpointsHandler),
-    (r"/api/notebooks%s/checkpoints/%s" % (notebook_path_regex, _checkpoint_id_regex),
-        ModifyNotebookCheckpointsHandler),
-    (r"/api/notebooks%s" % notebook_path_regex, NotebookHandler),
-    (r"/api/notebooks%s" % path_regex, NotebookHandler),
+    (r"/api/contents%s/checkpoints" % notebook_path_regex, CheckpointsHandler),
+    (r"/api/contents%s/checkpoints/%s" % (notebook_path_regex, _checkpoint_id_regex),
+        ModifyCheckpointsHandler),
+    (r"/api/contents%s" % notebook_path_regex, ContentsHandler),
+    (r"/api/contents%s" % path_regex, ContentsHandler),
 ]

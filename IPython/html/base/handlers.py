@@ -1,4 +1,4 @@
-"""Base Tornado handlers for the notebook."""
+"""Base Tornado handlers for the notebook server."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -141,8 +141,8 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings['kernel_manager']
 
     @property
-    def notebook_manager(self):
-        return self.settings['notebook_manager']
+    def contents_manager(self):
+        return self.settings['contents_manager']
     
     @property
     def cluster_manager(self):
@@ -158,7 +158,7 @@ class IPythonHandler(AuthenticatedHandler):
 
     @property
     def project_dir(self):
-        return self.notebook_manager.notebook_dir
+        return getattr(self.contents_manager, 'root_dir', '/')
     
     #---------------------------------------------------------------
     # CORS

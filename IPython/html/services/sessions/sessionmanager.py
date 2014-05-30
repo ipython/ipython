@@ -32,7 +32,7 @@ from IPython.utils.traitlets import Instance
 class SessionManager(LoggingConfigurable):
 
     kernel_manager = Instance('IPython.html.services.kernels.kernelmanager.MappingKernelManager')
-    notebook_manager = Instance('IPython.html.services.notebooks.nbmanager.NotebookManager', args=())
+    contents_manager = Instance('IPython.html.services.contents.manager.ContentsManager', args=())
     
     # Session database initialized below
     _cursor = None
@@ -77,7 +77,7 @@ class SessionManager(LoggingConfigurable):
         """Creates a session and returns its model"""
         session_id = self.new_session_id()
         # allow nbm to specify kernels cwd
-        kernel_path = self.notebook_manager.get_kernel_path(name=name, path=path)
+        kernel_path = self.contents_manager.get_kernel_path(name=name, path=path)
         kernel_id = self.kernel_manager.start_kernel(path=kernel_path,
                                                      kernel_name=kernel_name)
         return self.save_session(session_id, name=name, path=path,

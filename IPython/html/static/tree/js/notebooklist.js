@@ -148,7 +148,7 @@ define([
         var url = utils.url_join_encode(
                 this.base_url,
                 'api',
-                'notebooks',
+                'contents',
                 this.notebook_path
         );
         $.ajax(url, settings);
@@ -328,7 +328,7 @@ define([
                                 };
                                 var url = utils.url_join_encode(
                                     notebooklist.base_url,
-                                    'api/notebooks',
+                                    'api/contents',
                                     notebooklist.notebook_path,
                                     nbname
                                 );
@@ -375,7 +375,7 @@ define([
 
                 var url = utils.url_join_encode(
                     that.base_url,
-                    'api/notebooks',
+                    'api/contents',
                     that.notebook_path,
                     nbname
                 );
@@ -419,7 +419,7 @@ define([
         };
         var url = utils.url_join_encode(
             base_url,
-            'api/notebooks',
+            'api/contents',
             path
         );
         $.ajax(url, settings);

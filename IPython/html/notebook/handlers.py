@@ -35,12 +35,12 @@ class NotebookHandler(IPythonHandler):
         """get renders the notebook template if a name is given, or 
         redirects to the '/files/' handler if the name is not given."""
         path = path.strip('/')
-        nbm = self.notebook_manager
+        cm = self.contents_manager
         if name is None:
             raise web.HTTPError(500, "This shouldn't be accessible: %s" % self.request.uri)
         
         # a .ipynb filename was given
-        if not nbm.notebook_exists(name, path):
+        if not cm.file_exists(name, path):
             raise web.HTTPError(404, u'Notebook does not exist: %s/%s' % (path, name))
         name = url_escape(name)
         path = url_escape(path)
@@ -55,8 +55,8 @@ class NotebookHandler(IPythonHandler):
 
 class NotebookRedirectHandler(IPythonHandler):
     def get(self, path=''):
-        nbm = self.notebook_manager
-        if nbm.path_exists(path):
+        cm = self.contents_manager
+        if cm.path_exists(path):
             # it's a *directory*, redirect to /tree
             url = url_path_join(self.base_url, 'tree', path)
         else:
@@ -68,7 +68,7 @@ class NotebookRedirectHandler(IPythonHandler):
                 # but so is the files handler itself,
                 # so it should work until both are cleaned up.
                 parts = path.split('/')
-                files_path = os.path.join(nbm.notebook_dir, *parts)
+                files_path = os.path.join(cm.root_dir, *parts)
                 if not os.path.exists(files_path):
                     self.log.warn("Deprecated files/ URL: %s", path)
                     path = path.replace('/files/', '/', 1)

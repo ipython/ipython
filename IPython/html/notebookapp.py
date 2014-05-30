@@ -55,8 +55,8 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH
 from .base.handlers import Template404
 from .log import log_request
 from .services.kernels.kernelmanager import MappingKernelManager
-from .services.notebooks.nbmanager import NotebookManager
-from .services.notebooks.filenbmanager import FileNotebookManager
+from .services.contents.manager import ContentsManager
+from .services.contents.filemanager import FileContentsManager
 from .services.clusters.clustermanager import ClusterManager
 from .services.sessions.sessionmanager import SessionManager
 
@@ -121,19 +121,19 @@ def load_handlers(name):
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, ipython_app, kernel_manager, notebook_manager,
+    def __init__(self, ipython_app, kernel_manager, contents_manager,
                  cluster_manager, session_manager, kernel_spec_manager, log,
                  base_url, settings_overrides, jinja_env_options):
 
         settings = self.init_settings(
-            ipython_app, kernel_manager, notebook_manager, cluster_manager,
+            ipython_app, kernel_manager, contents_manager, cluster_manager,
             session_manager, kernel_spec_manager, log, base_url,
             settings_overrides, jinja_env_options)
         handlers = self.init_handlers(settings)
 
         super(NotebookWebApplication, self).__init__(handlers, **settings)
 
-    def init_settings(self, ipython_app, kernel_manager, notebook_manager,
+    def init_settings(self, ipython_app, kernel_manager, contents_manager,
                       cluster_manager, session_manager, kernel_spec_manager,
                       log, base_url, settings_overrides,
                       jinja_env_options=None):
@@ -165,7 +165,7 @@ class NotebookWebApplication(web.Application):
             
             # managers
             kernel_manager=kernel_manager,
-            notebook_manager=notebook_manager,
+            contents_manager=contents_manager,
             cluster_manager=cluster_manager,
             session_manager=session_manager,
             kernel_spec_manager=kernel_spec_manager,
@@ -193,18 +193,20 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('nbconvert.handlers'))
         handlers.extend(load_handlers('kernelspecs.handlers'))
         handlers.extend(load_handlers('services.kernels.handlers'))
-        handlers.extend(load_handlers('services.notebooks.handlers'))
+        handlers.extend(load_handlers('services.contents.handlers'))
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
         # FIXME: /files/ should be handled by the Contents service when it exists
-        nbm = settings['notebook_manager']
-        if hasattr(nbm, 'notebook_dir'):
-            handlers.extend([
-            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : nbm.notebook_dir}),
+        cm = settings['contents_manager']
+        if hasattr(cm, 'root_dir'):
+            handlers.append(
+            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : cm.root_dir}),
+        )
+        handlers.append(
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
-        ])
+        )
         # prepend base_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
@@ -263,11 +265,6 @@ flags['no-mathjax']=(
     """
 )
 
-# Add notebook manager flags
-flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
-               'Auto-save a .py script everytime the .ipynb notebook is saved',
-               'Do not auto-save .py scripts for every notebook'))
-
 aliases = dict(base_aliases)
 
 aliases.update({
@@ -302,7 +299,7 @@ class NotebookApp(BaseIPythonApplication):
     
     classes = [
         KernelManager, ProfileDir, Session, MappingKernelManager,
-        NotebookManager, FileNotebookManager, NotebookNotary,
+        ContentsManager, FileContentsManager, NotebookNotary,
     ]
     flags = Dict(flags)
     aliases = Dict(aliases)
@@ -557,7 +554,7 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    notebook_manager_class = DottedObjectName('IPython.html.services.notebooks.filenbmanager.FileNotebookManager',
+    contents_manager_class = DottedObjectName('IPython.html.services.contents.filemanager.FileContentsManager',
         config=True,
         help='The notebook manager class to use.'
     )
@@ -621,7 +618,7 @@ class NotebookApp(BaseIPythonApplication):
             raise TraitError("No such notebook dir: %r" % new)
         
         # setting App.notebook_dir implies setting notebook and kernel dirs as well
-        self.config.FileNotebookManager.notebook_dir = new
+        self.config.FileContentsManager.root_dir = new
         self.config.MappingKernelManager.root_dir = new
         
 
@@ -658,12 +655,12 @@ class NotebookApp(BaseIPythonApplication):
             parent=self, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
-        kls = import_item(self.notebook_manager_class)
-        self.notebook_manager = kls(parent=self, log=self.log)
+        kls = import_item(self.contents_manager_class)
+        self.contents_manager = kls(parent=self, log=self.log)
         kls = import_item(self.session_manager_class)
         self.session_manager = kls(parent=self, log=self.log,
                                    kernel_manager=self.kernel_manager,
-                                   notebook_manager=self.notebook_manager)
+                                   contents_manager=self.contents_manager)
         kls = import_item(self.cluster_manager_class)
         self.cluster_manager = kls(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
@@ -688,7 +685,7 @@ class NotebookApp(BaseIPythonApplication):
         self.webapp_settings['allow_credentials'] = self.allow_credentials
         
         self.web_app = NotebookWebApplication(
-            self, self.kernel_manager, self.notebook_manager, 
+            self, self.kernel_manager, self.contents_manager,
             self.cluster_manager, self.session_manager, self.kernel_spec_manager,
             self.log, self.base_url, self.webapp_settings,
             self.jinja_environment_options
@@ -838,7 +835,7 @@ class NotebookApp(BaseIPythonApplication):
 
     def notebook_info(self):
         "Return the current working directory and the server url information"
-        info = self.notebook_manager.info_string() + "\n"
+        info = self.contents_manager.info_string() + "\n"
         info += "%d active kernels \n" % len(self.kernel_manager._kernels)
         return info + "The IPython Notebook is running at: %s" % self.display_url
 
