@@ -163,7 +163,7 @@ class APITest(NotebookTestBase):
         expected = [ u'a.ipynb', u'b.ipynb', u'name with spaces.ipynb', u'unicodé.ipynb']
         expected = { normalize('NFC', name) for name in expected }
         self.assertEqual(nbnames, expected)
-        
+
         nbs = notebooks_only(self.nb_api.list('ordering').json())
         nbnames = [n['name'] for n in nbs]
         expected = ['A.ipynb', 'b.ipynb', 'C.ipynb']
@@ -344,4 +344,3 @@ class APITest(NotebookTestBase):
         self.assertEqual(r.status_code, 204)
         cps = self.nb_api.get_checkpoints('a.ipynb', 'foo').json()
         self.assertEqual(cps, [])
-

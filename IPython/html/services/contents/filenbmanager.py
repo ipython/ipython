@@ -27,10 +27,10 @@ def sort_key(item):
 #-----------------------------------------------------------------------------
 
 class FileNotebookManager(NotebookManager):
-    
+
     save_script = Bool(False, config=True,
         help="""Automatically create a Python script when saving the notebook.
-        
+
         For easier use of import, %run and %load across notebooks, a
         <notebook-name>.py script will be created next to any
         <notebook-name>.ipynb on each save.  This can also be set with the
@@ -38,7 +38,7 @@ class FileNotebookManager(NotebookManager):
         """
     )
     notebook_dir = Unicode(getcwd(), config=True)
-    
+
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
         if not os.path.isabs(new):
@@ -47,19 +47,19 @@ class FileNotebookManager(NotebookManager):
             return
         if not os.path.exists(new) or not os.path.isdir(new):
             raise TraitError("notebook dir %r is not a directory" % new)
-    
+
     checkpoint_dir = Unicode('.ipynb_checkpoints', config=True,
         help="""The directory name in which to keep notebook checkpoints
-        
+
         This is a path relative to the notebook's own directory.
-        
+
         By default, it is .ipynb_checkpoints
         """
     )
-    
+
     def _copy(self, src, dest):
         """copy src to dest
-        
+
         like shutil.copy2, but log errors in copystat
         """
         shutil.copyfile(src, dest)
@@ -67,7 +67,7 @@ class FileNotebookManager(NotebookManager):
             shutil.copystat(src, dest)
         except OSError as e:
             self.log.debug("copystat on %s failed", dest, exc_info=True)
-    
+
     def get_notebook_names(self, path=''):
         """List all notebook names in the notebook dir and path."""
         path = path.strip('/')
@@ -80,13 +80,13 @@ class FileNotebookManager(NotebookManager):
 
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
-        
+
         Parameters
         ----------
         path : string
             The path to check. This is an API path (`/` separated,
             relative to base notebook-dir).
-        
+
         Returns
         -------
         exists : bool
@@ -98,18 +98,18 @@ class FileNotebookManager(NotebookManager):
 
     def is_hidden(self, path):
         """Does the API style path correspond to a hidden directory or file?
-        
+
         Parameters
         ----------
         path : string
             The path to check. This is an API path (`/` separated,
             relative to base notebook-dir).
-        
+
         Returns
         -------
         exists : bool
             Whether the path is hidden.
-        
+
         """
         path = path.strip('/')
         os_path = self._get_os_path(path=path)
@@ -204,13 +204,13 @@ class FileNotebookManager(NotebookManager):
     def list_notebooks(self, path):
         """Returns a list of dictionaries that are the standard model
         for all notebooks in the relative 'path'.
-        
+
         Parameters
         ----------
         path : str
             the URL path that describes the relative path for the
             listed notebooks
-        
+
         Returns
         -------
         notebooks : list of dicts
@@ -225,7 +225,7 @@ class FileNotebookManager(NotebookManager):
 
     def get_notebook(self, name, path='', content=True):
         """ Takes a path and name for a notebook and returns its model
-        
+
         Parameters
         ----------
         name : str
@@ -233,11 +233,11 @@ class FileNotebookManager(NotebookManager):
         path : str
             the URL path that describes the relative path for
             the notebook
-            
+
         Returns
         -------
         model : dict
-            the notebook model. If contents=True, returns the 'contents' 
+            the notebook model. If contents=True, returns the 'contents'
             dict in the model as well.
         """
         path = path.strip('/')
@@ -284,9 +284,9 @@ class FileNotebookManager(NotebookManager):
         # Save the notebook file
         os_path = self._get_os_path(new_name, new_path)
         nb = current.to_notebook_json(model['content'])
-        
+
         self.check_and_sign(nb, new_name, new_path)
-        
+
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
         try:
@@ -325,7 +325,7 @@ class FileNotebookManager(NotebookManager):
         os_path = self._get_os_path(name, path)
         if not os.path.isfile(os_path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % os_path)
-        
+
         # clear checkpoints
         for checkpoint in self.list_checkpoints(name, path):
             checkpoint_id = checkpoint['id']
@@ -333,7 +333,7 @@ class FileNotebookManager(NotebookManager):
             if os.path.isfile(cp_path):
                 self.log.debug("Unlinking checkpoint %s", cp_path)
                 os.unlink(cp_path)
-        
+
         self.log.debug("Unlinking notebook %s", os_path)
         os.unlink(os_path)
 
@@ -343,7 +343,7 @@ class FileNotebookManager(NotebookManager):
         new_path = new_path.strip('/')
         if new_name == old_name and new_path == old_path:
             return
-        
+
         new_os_path = self._get_os_path(new_name, new_path)
         old_os_path = self._get_os_path(old_name, old_path)
 
@@ -375,9 +375,9 @@ class FileNotebookManager(NotebookManager):
         # Move the .py script
         if self.save_script:
             shutil.move(old_py_path, new_py_path)
-  
+
     # Checkpoint-related utilities
-    
+
     def get_checkpoint_path(self, checkpoint_id, name, path=''):
         """find the path to a checkpoint"""
         path = path.strip('/')
@@ -404,9 +404,9 @@ class FileNotebookManager(NotebookManager):
             last_modified = last_modified,
         )
         return info
-        
+
     # public checkpoint API
-    
+
     def create_checkpoint(self, name, path=''):
         """Create a checkpoint from the current state of a notebook"""
         path = path.strip('/')
@@ -416,13 +416,13 @@ class FileNotebookManager(NotebookManager):
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         self.log.debug("creating checkpoint for notebook %s", name)
         self._copy(nb_path, cp_path)
-        
+
         # return the checkpoint info
         return self.get_checkpoint_model(checkpoint_id, name, path)
-    
+
     def list_checkpoints(self, name, path=''):
         """list the checkpoints for a given notebook
-        
+
         This notebook manager currently only supports one checkpoint per notebook.
         """
         path = path.strip('/')
@@ -432,8 +432,8 @@ class FileNotebookManager(NotebookManager):
             return []
         else:
             return [self.get_checkpoint_model(checkpoint_id, name, path)]
-        
-    
+
+
     def restore_checkpoint(self, checkpoint_id, name, path=''):
         """restore a notebook to a checkpointed state"""
         path = path.strip('/')
@@ -450,7 +450,7 @@ class FileNotebookManager(NotebookManager):
             current.read(f, u'json')
         self._copy(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
-    
+
     def delete_checkpoint(self, checkpoint_id, name, path=''):
         """delete a notebook's checkpoint"""
         path = path.strip('/')
@@ -461,7 +461,7 @@ class FileNotebookManager(NotebookManager):
             )
         self.log.debug("unlinking %s", cp_path)
         os.unlink(cp_path)
-    
+
     def info_string(self):
         return "Serving notebooks from local directory: %s" % self.notebook_dir
 
