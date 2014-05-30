@@ -22,9 +22,7 @@ from subprocess import Popen, PIPE
 import tempfile
 
 import zmq
-
-# external imports
-from IPython.external.ssh import tunnel
+from zmq.ssh import tunnel
 
 # IPython imports
 from IPython.config import LoggingConfigurable

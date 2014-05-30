@@ -18,6 +18,7 @@ from pprint import pprint
 pjoin = os.path.join
 
 import zmq
+from zmq.ssh import tunnel
 
 from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
@@ -32,7 +33,6 @@ from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
-from IPython.external.ssh import tunnel
 
 from IPython.parallel import Reference
 from IPython.parallel import error
