@@ -74,6 +74,13 @@ class OutStream(object):
             return
         self._pipe_poller = zmq.Poller()
         self._pipe_poller.register(self._pipe_in, zmq.POLLIN)
+        if IOLoop.initialized():
+            # subprocess flush should trigger flush
+            # if kernel is idle
+            IOLoop.instance().add_handler(self._pipe_in,
+                lambda s, event: self.flush(),
+                IOLoop.READ,
+            )
     
     def _setup_pipe_out(self):
         # must be new context after fork
