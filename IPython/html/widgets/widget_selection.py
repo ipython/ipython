@@ -14,7 +14,7 @@ Represents an enumeration using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 
-from collections import OrderedDict
+from collections import OrderedDict, Iterable, Mapping
 from threading import Lock
 
 from .widget import DOMWidget
@@ -56,7 +56,7 @@ class _SelectionWidget(DOMWidget):
         if 'values' in kwargs:
             values = kwargs['values']
             # convert list values to an dict of {str(v):v}
-            if isinstance(values, list):
+            if not isinstance(values, Mapping) and isinstance(values, Iterable):
                 # preserve list order with an OrderedDict
                 kwargs['values'] = OrderedDict((unicode_type(v), v) for v in values)
             # python3.3 turned on hash randomization by default - this means that sometimes, randomly
