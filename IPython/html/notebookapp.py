@@ -155,7 +155,7 @@ class NotebookWebApplication(web.Application):
         # Get the Translations instance. If no language is specified
         # e.g. language == "", it will default to native English.
         translations = gettext.translation("ipynotebook",
-                os.path.join(os.path.dirname(__file__), "locale"),
+                os.path.join(os.path.dirname(__file__), "translations"),
                 [language], fallback=True)
         env.install_gettext_translations(translations)
 
