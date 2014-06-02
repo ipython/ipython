@@ -1,3 +1,8 @@
+"""Tornado handlers for nbconvert."""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import io
 import os
 import zipfile
@@ -73,7 +78,7 @@ class NbconvertFileHandler(IPythonHandler):
         exporter = get_exporter(format, config=self.config, log=self.log)
         
         path = path.strip('/')
-        model = self.contents_manager.get(name=name, path=path)
+        model = self.contents_manager.get_model(name=name, path=path)
 
         self.set_header('Last-Modified', model['last_modified'])
         

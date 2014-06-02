@@ -70,7 +70,7 @@ class TestFileContentsManager(TestCase):
         self.assertEqual(cp_subdir, os.path.join(root, subd, fm.checkpoint_dir, cp_name))
 
 
-class TestNotebookManager(TestCase):
+class TestContentsManager(TestCase):
 
     def setUp(self):
         self._temp_dir = TemporaryDirectory()
@@ -105,7 +105,7 @@ class TestNotebookManager(TestCase):
         name = model['name']
         path = model['path']
 
-        full_model = cm.get(name, path)
+        full_model = cm.get_model(name, path)
         nb = full_model['content']
         self.add_code_cell(nb)
 
@@ -140,7 +140,7 @@ class TestNotebookManager(TestCase):
         path = model['path']
 
         # Check that we 'get' on the notebook we just created
-        model2 = cm.get(name, path)
+        model2 = cm.get_model(name, path)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
         self.assertIn('path', model2)
@@ -151,7 +151,7 @@ class TestNotebookManager(TestCase):
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
         model = cm.create_notebook(None, sub_dir)
-        model2 = cm.get(name, sub_dir)
+        model2 = cm.get_model(name, sub_dir)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
         self.assertIn('path', model2)
@@ -175,7 +175,7 @@ class TestNotebookManager(TestCase):
         self.assertEqual(model['name'], 'test.ipynb')
 
         # Make sure the old name is gone
-        self.assertRaises(HTTPError, cm.get, name, path)
+        self.assertRaises(HTTPError, cm.get_model, name, path)
 
         # Test in sub-directory
         # Create a directory and notebook in that directory
@@ -195,7 +195,7 @@ class TestNotebookManager(TestCase):
         self.assertEqual(model['path'], sub_dir.strip('/'))
 
         # Make sure the old name is gone
-        self.assertRaises(HTTPError, cm.get, name, path)
+        self.assertRaises(HTTPError, cm.get_model, name, path)
 
     def test_save(self):
         cm = self.contents_manager
@@ -205,7 +205,7 @@ class TestNotebookManager(TestCase):
         path = model['path']
 
         # Get the model with 'content'
-        full_model = cm.get(name, path)
+        full_model = cm.get_model(name, path)
 
         # Save the notebook
         model = cm.save(full_model, name, path)
@@ -222,7 +222,7 @@ class TestNotebookManager(TestCase):
         model = cm.create_notebook(None, sub_dir)
         name = model['name']
         path = model['path']
-        model = cm.get(name, path)
+        model = cm.get_model(name, path)
 
         # Change the name in the model for rename
         model = cm.save(model, name, path)
@@ -241,7 +241,7 @@ class TestNotebookManager(TestCase):
         cm.delete(name, path)
 
         # Check that a 'get' on the deleted notebook raises and error
-        self.assertRaises(HTTPError, cm.get, name, path)
+        self.assertRaises(HTTPError, cm.get_model, name, path)
 
     def test_copy(self):
         cm = self.contents_manager
@@ -262,12 +262,12 @@ class TestNotebookManager(TestCase):
         cm = self.contents_manager
         nb, name, path = self.new_notebook()
 
-        untrusted = cm.get(name, path)['content']
+        untrusted = cm.get_model(name, path)['content']
         assert not cm.notary.check_cells(untrusted)
 
         # print(untrusted)
         cm.trust_notebook(name, path)
-        trusted = cm.get(name, path)['content']
+        trusted = cm.get_model(name, path)['content']
         # print(trusted)
         assert cm.notary.check_cells(trusted)
 
@@ -281,7 +281,7 @@ class TestNotebookManager(TestCase):
                 assert not cell.trusted
 
         cm.trust_notebook(name, path)
-        nb = cm.get(name, path)['content']
+        nb = cm.get_model(name, path)['content']
         for cell in nb.worksheets[0].cells:
             if cell.cell_type == 'code':
                 assert cell.trusted
@@ -295,7 +295,7 @@ class TestNotebookManager(TestCase):
         assert not cm.notary.check_signature(nb)
 
         cm.trust_notebook(name, path)
-        nb = cm.get(name, path)['content']
+        nb = cm.get_model(name, path)['content']
         cm.mark_trusted_cells(nb, name, path)
         cm.check_and_sign(nb, name, path)
         assert cm.notary.check_signature(nb)

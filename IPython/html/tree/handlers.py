@@ -1,27 +1,11 @@
-"""Tornado handlers for the tree view.
+"""Tornado handlers for the tree view."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from tornado import web
 from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
 from ..utils import url_path_join, url_escape
-
-#-----------------------------------------------------------------------------
-# Handlers
-#-----------------------------------------------------------------------------
 
 
 class TreeHandler(IPythonHandler):

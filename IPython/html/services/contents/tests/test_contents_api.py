@@ -1,6 +1,7 @@
 # coding: utf-8
 """Test the contents webservice API."""
 
+import base64
 import io
 import json
 import os
@@ -23,11 +24,11 @@ from IPython.utils.data import uniq_stable
 
 # TODO: Remove this after we create the contents web service and directories are
 # no longer listed by the notebook web service.
-def notebooks_only(nb_list):
-    return [nb for nb in nb_list if nb['type']=='notebook']
+def notebooks_only(dir_model):
+    return [nb for nb in dir_model['content'] if nb['type']=='notebook']
 
-def dirs_only(nb_list):
-    return [x for x in nb_list if x['type']=='directory']
+def dirs_only(dir_model):
+    return [x for x in dir_model['content'] if x['type']=='directory']
 
 
 class API(object):
@@ -112,8 +113,20 @@ class APITest(NotebookTestBase):
     del dirs[0]  # remove ''
     top_level_dirs = {normalize('NFC', d.split('/')[0]) for d in dirs}
 
+    @staticmethod
+    def _blob_for_name(name):
+        return name.encode('utf-8') + b'\xFF'
+
+    @staticmethod
+    def _txt_for_name(name):
+        return u'%s text file' % name
+
     def setUp(self):
         nbdir = self.notebook_dir.name
+        self.blob = os.urandom(100)
+        self.b64_blob = base64.encodestring(self.blob).decode('ascii')
+
+
 
         for d in (self.dirs + self.hidden_dirs):
             d.replace('/', os.sep)
@@ -122,10 +135,20 @@ class APITest(NotebookTestBase):
 
         for d, name in self.dirs_nbs:
             d = d.replace('/', os.sep)
+            # create a notebook
             with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w',
                          encoding='utf-8') as f:
                 nb = new_notebook(name=name)
                 write(nb, f, format='ipynb')
+
+            # create a text file
+            with io.open(pjoin(nbdir, d, '%s.txt' % name), 'w',
+                         encoding='utf-8') as f:
+                f.write(self._txt_for_name(name))
+
+            # create a binary file
+            with io.open(pjoin(nbdir, d, '%s.blob' % name), 'wb') as f:
+                f.write(self._blob_for_name(name))
 
         self.api = API(self.base_url())
 
@@ -178,17 +201,48 @@ class APITest(NotebookTestBase):
         with assert_http_error(404):
             self.api.list('nonexistant')
 
-    def test_get_contents(self):
+    def test_get_nb_contents(self):
         for d, name in self.dirs_nbs:
             nb = self.api.read('%s.ipynb' % name, d+'/').json()
             self.assertEqual(nb['name'], u'%s.ipynb' % name)
+            self.assertEqual(nb['type'], 'notebook')
+            self.assertIn('content', nb)
+            self.assertEqual(nb['format'], 'json')
             self.assertIn('content', nb)
             self.assertIn('metadata', nb['content'])
             self.assertIsInstance(nb['content']['metadata'], dict)
 
+    def test_get_contents_no_such_file(self):
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
             self.api.read('q.ipynb', 'foo')
+
+    def test_get_text_file_contents(self):
+        for d, name in self.dirs_nbs:
+            model = self.api.read(u'%s.txt' % name, d+'/').json()
+            self.assertEqual(model['name'], u'%s.txt' % name)
+            self.assertIn('content', model)
+            self.assertEqual(model['format'], 'text')
+            self.assertEqual(model['type'], 'file')
+            self.assertEqual(model['content'], self._txt_for_name(name))
+
+        # Name that doesn't exist - should be a 404
+        with assert_http_error(404):
+            self.api.read('q.txt', 'foo')
+
+    def test_get_binary_file_contents(self):
+        for d, name in self.dirs_nbs:
+            model = self.api.read(u'%s.blob' % name, d+'/').json()
+            self.assertEqual(model['name'], u'%s.blob' % name)
+            self.assertIn('content', model)
+            self.assertEqual(model['format'], 'base64')
+            self.assertEqual(model['type'], 'file')
+            b64_data = base64.encodestring(self._blob_for_name(name)).decode('ascii')
+            self.assertEqual(model['content'], b64_data)
+
+        # Name that doesn't exist - should be a 404
+        with assert_http_error(404):
+            self.api.read('q.txt', 'foo')
 
     def _check_nb_created(self, resp, name, path):
         self.assertEqual(resp.status_code, 201)

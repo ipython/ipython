@@ -11,15 +11,15 @@ from IPython.html.utils import url_path_join, url_escape
 from IPython.utils.jsonutil import date_default
 
 from IPython.html.base.handlers import (IPythonHandler, json_errors,
-                                    notebook_path_regex, path_regex,
-                                    notebook_name_regex)
+                                    file_path_regex, path_regex,
+                                    file_name_regex)
 
 
 class ContentsHandler(IPythonHandler):
 
     SUPPORTED_METHODS = (u'GET', u'PUT', u'PATCH', u'POST', u'DELETE')
 
-    def location_url(self, name, path=''):
+    def location_url(self, name, path):
         """Return the full URL location of a file.
 
         Parameters
@@ -49,25 +49,19 @@ class ContentsHandler(IPythonHandler):
         * GET with path and no filename lists files in a directory
         * GET with path and filename returns file contents model
         """
-        cm = self.contents_manager
-        # Check to see if a filename was given
-        if name is None:
-            # TODO: Remove this after we create the contents web service and directories are
-            # no longer listed by the notebook web service. This should only handle notebooks
-            # and not directories.
-            dirs = cm.list_dirs(path)
+        path = path or ''
+        model = self.contents_manager.get_model(name=name, path=path)
+        if model['type'] == 'directory':
+            # resort listing to group directories at the top
+            dirs = []
             files = []
-            index = []
-            for nb in cm.list_files(path):
-                if nb['name'].lower() == 'index.ipynb':
-                    index.append(nb)
+            for entry in model['content']:
+                if entry['type'] == 'directory':
+                    dirs.append(entry)
                 else:
-                    files.append(nb)
-            files = index + dirs + files
-            self.finish(json.dumps(files, default=date_default))
-            return
-        # get and return notebook representation
-        model = cm.get(name, path)
+                    # do we also want to group notebooks separate from files?
+                    files.append(entry)
+            model['content'] = dirs + files
         self._finish_model(model, location=False)
 
     @web.authenticated
@@ -148,7 +142,15 @@ class ContentsHandler(IPythonHandler):
         """
 
         if name is not None:
+            path = u'{}/{}'.format(path, name)
+
+        cm = self.contents_manager
+
+        if cm.file_exists(path):
             raise web.HTTPError(400, "Only POST to directories. Use PUT for full names.")
+
+        if not cm.path_exists(path):
+            raise web.HTTPError(404, "No such directory: %s" % path)
 
         model = self.get_json_body()
 
@@ -200,6 +202,7 @@ class ContentsHandler(IPythonHandler):
     def delete(self, path='', name=None):
         """delete a file in the given path"""
         cm = self.contents_manager
+        self.log.warn('delete %s:%s', path, name)
         cm.delete(name, path)
         self.set_status(204)
         self.finish()
@@ -262,9 +265,9 @@ class ModifyCheckpointsHandler(IPythonHandler):
 _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 
 default_handlers = [
-    (r"/api/contents%s/checkpoints" % notebook_path_regex, CheckpointsHandler),
-    (r"/api/contents%s/checkpoints/%s" % (notebook_path_regex, _checkpoint_id_regex),
+    (r"/api/contents%s/checkpoints" % file_path_regex, CheckpointsHandler),
+    (r"/api/contents%s/checkpoints/%s" % (file_path_regex, _checkpoint_id_regex),
         ModifyCheckpointsHandler),
-    (r"/api/contents%s" % notebook_path_regex, ContentsHandler),
+    (r"/api/contents%s" % file_path_regex, ContentsHandler),
     (r"/api/contents%s" % path_regex, ContentsHandler),
 ]

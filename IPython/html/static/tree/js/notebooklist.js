@@ -161,7 +161,8 @@ define([
             message = param.msg;
         }
         var item = null;
-        var len = data.length;
+        var content = data.content;
+        var len = content.length;
         this.clear_list();
         if (len === 0) {
             item = this.new_notebook_item(0);
@@ -177,12 +178,12 @@ define([
             offset = 1;
         }
         for (var i=0; i<len; i++) {
-            if (data[i].type === 'directory') {
-                var name = data[i].name;
+            if (content[i].type === 'directory') {
+                var name = content[i].name;
                 item = this.new_notebook_item(i+offset);
                 this.add_dir(path, name, item);
             } else {
-                var name = data[i].name;
+                var name = content[i].name;
                 item = this.new_notebook_item(i+offset);
                 this.add_link(path, name, item);
                 name = utils.url_path_join(path, name);

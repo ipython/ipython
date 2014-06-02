@@ -416,6 +416,8 @@ class TrailingSlashHandler(web.RequestHandler):
 path_regex = r"(?P<path>(?:/.*)*)"
 notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
 notebook_path_regex = "%s/%s" % (path_regex, notebook_name_regex)
+file_name_regex = r"(?P<name>[^/]+)"
+file_path_regex = "%s/%s" % (path_regex, file_name_regex)
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings

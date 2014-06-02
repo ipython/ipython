@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import base64
 import io
 import os
 import glob
@@ -56,17 +57,29 @@ class FileContentsManager(ContentsManager):
         except OSError as e:
             self.log.debug("copystat on %s failed", dest, exc_info=True)
 
-    def get_names(self, path=''):
-        """List all filenames in the path (relative to root_dir)."""
-        path = path.strip('/')
-        if not os.path.isdir(self._get_os_path(path=path)):
-            raise web.HTTPError(404, 'Directory not found: ' + path)
-        names = glob.glob(self._get_os_path('*', path))
-        names = [ os.path.basename(name) for name in names if os.path.isfile(name)]
-        return names
+    def _get_os_path(self, name=None, path=''):
+        """Given a filename and a URL path, return its file system
+        path.
+
+        Parameters
+        ----------
+        name : string
+            A filename
+        path : string
+            The relative URL path (with '/' as separator) to the named
+            file.
+
+        Returns
+        -------
+        path : string
+            API path to be evaluated relative to root_dir.
+        """
+        if name is not None:
+            path = path + '/' + name
+        return to_os_path(path, self.root_dir)
 
     def path_exists(self, path):
-        """Does the API-style path (directory) actually exist?
+        """Does the API-style path refer to an extant directory?
 
         Parameters
         ----------
@@ -102,29 +115,8 @@ class FileContentsManager(ContentsManager):
         os_path = self._get_os_path(path=path)
         return is_hidden(os_path, self.root_dir)
 
-    def _get_os_path(self, name=None, path=''):
-        """Given a filename and a URL path, return its file system
-        path.
-
-        Parameters
-        ----------
-        name : string
-            A filename
-        path : string
-            The relative URL path (with '/' as separator) to the named
-            file.
-
-        Returns
-        -------
-        path : string
-            API path to be evaluated relative to root_dir.
-        """
-        if name is not None:
-            path = path + '/' + name
-        return to_os_path(path, self.root_dir)
-
     def file_exists(self, name, path=''):
-        """Returns a True if the file exists, else returns False.
+        """Returns True if the file exists, else returns False.
 
         Parameters
         ----------
@@ -141,105 +133,105 @@ class FileContentsManager(ContentsManager):
         nbpath = self._get_os_path(name, path=path)
         return os.path.isfile(nbpath)
 
-    # TODO: Remove this after we create the contents web service and directories are
-    # no longer listed by the notebook web service.
-    def list_dirs(self, path):
-        """List the directories for a given API style path."""
+    def exists(self, name=None, path=''):
+        """Returns True if the path [and name] exists, else returns False.
+
+        Parameters
+        ----------
+        name : string
+            The name of the file you are checking.
+        path : string
+            The relative path to the file's directory (with '/' as separator)
+
+        Returns
+        -------
+        bool
+        """
         path = path.strip('/')
-        os_path = self._get_os_path('', path)
+        os_path = self._get_os_path(name, path=path)
+        return os.path.exists(os_path)
+
+    def _base_model(self, name, path=''):
+        """Build the common base of a contents model"""
+        os_path = self._get_os_path(name, path)
+        info = os.stat(os_path)
+        last_modified = tz.utcfromtimestamp(info.st_mtime)
+        created = tz.utcfromtimestamp(info.st_ctime)
+        # Create the notebook model.
+        model = {}
+        model['name'] = name
+        model['path'] = path
+        model['last_modified'] = last_modified
+        model['created'] = created
+        model['content'] = None
+        model['format'] = None
+        return model
+
+    def _dir_model(self, name, path='', content=True):
+        """Build a model for a directory
+
+        if content is requested, will include a listing of the directory
+        """
+        os_path = self._get_os_path(name, path)
+
         if not os.path.isdir(os_path):
             raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
         elif is_hidden(os_path, self.root_dir):
             self.log.info("Refusing to serve hidden directory, via 404 Error")
             raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
-        dir_names = os.listdir(os_path)
-        dirs = []
-        for name in dir_names:
-            os_path = self._get_os_path(name, path)
-            if os.path.isdir(os_path) and not is_hidden(os_path, self.root_dir)\
-                    and self.should_list(name):
-                try:
-                    model = self.get_dir_model(name, path)
-                except IOError:
-                    pass
-                dirs.append(model)
-        dirs = sorted(dirs, key=sort_key)
-        return dirs
 
-    # TODO: Remove this after we create the contents web service and directories are
-    # no longer listed by the notebook web service.
-    def get_dir_model(self, name, path=''):
-        """Get the directory model given a directory name and its API style path"""
-        path = path.strip('/')
-        os_path = self._get_os_path(name, path)
-        if not os.path.isdir(os_path):
-            raise IOError('directory does not exist: %r' % os_path)
-        info = os.stat(os_path)
-        last_modified = tz.utcfromtimestamp(info.st_mtime)
-        created = tz.utcfromtimestamp(info.st_ctime)
-        # Create the notebook model.
-        model ={}
-        model['name'] = name
-        model['path'] = path
-        model['last_modified'] = last_modified
-        model['created'] = created
+        if name is None:
+            if '/' in path:
+                path, name = path.rsplit('/', 1)
+            else:
+                name = ''
+        model = self._base_model(name, path)
         model['type'] = 'directory'
+        dir_path = u'{}/{}'.format(path, name)
+        if content:
+            contents = []
+            for os_path in glob.glob(self._get_os_path('*', dir_path)):
+                name = os.path.basename(os_path)
+                if self.should_list(name) and not is_hidden(os_path, self.root_dir):
+                    contents.append(self.get_model(name=name, path=dir_path, content=False))
+
+            model['content'] = sorted(contents, key=sort_key)
+
         return model
 
-    def list_files(self, path):
-        """Returns a list of dictionaries that are the standard model
-        for all notebooks in the relative 'path'.
+    def _file_model(self, name, path='', content=True):
+        """Build a model for a file
 
-        Parameters
-        ----------
-        path : str
-            the URL path that describes the relative path for the
-            listed notebooks
-
-        Returns
-        -------
-        notebooks : list of dicts
-            a list of the notebook models without 'content'
+        if content is requested, include the file contents.
+        Text files will be unicode, binary files will be base64-encoded.
         """
-        path = path.strip('/')
-        names = self.get_names(path)
-        notebooks = [self.get(name, path, content=False)
-                        for name in names if self.should_list(name)]
-        notebooks = sorted(notebooks, key=sort_key)
-        return notebooks
+        model = self._base_model(name, path)
+        model['type'] = 'file'
+        if content:
+            os_path = self._get_os_path(name, path)
+            try:
+                with io.open(os_path, 'r', encoding='utf-8') as f:
+                    model['content'] = f.read()
+            except UnicodeError as e:
+                with io.open(os_path, 'rb') as f:
+                    bcontent = f.read()
+                    model['content'] = base64.encodestring(bcontent).decode('ascii')
+                    model['format'] = 'base64'
+            else:
+                model['format'] = 'text'
+        return model
 
-    def get(self, name, path='', content=True):
-        """ Takes a path and name for a notebook and returns its model
 
-        Parameters
-        ----------
-        name : str
-            the name of the notebook
-        path : str
-            the URL path that describes the relative path for
-            the notebook
+    def _notebook_model(self, name, path='', content=True):
+        """Build a notebook model
 
-        Returns
-        -------
-        model : dict
-            the notebook model. If contents=True, returns the 'contents'
-            dict in the model as well.
+        if content is requested, the notebook content will be populated
+        as a JSON structure (not double-serialized)
         """
-        path = path.strip('/')
-        if not self.file_exists(name=name, path=path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
-        os_path = self._get_os_path(name, path)
-        info = os.stat(os_path)
-        last_modified = tz.utcfromtimestamp(info.st_mtime)
-        created = tz.utcfromtimestamp(info.st_ctime)
-        # Create the notebook model.
-        model ={}
-        model['name'] = name
-        model['path'] = path
-        model['last_modified'] = last_modified
-        model['created'] = created
+        model = self._base_model(name, path)
         model['type'] = 'notebook'
         if content:
+            os_path = self._get_os_path(name, path)
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
                     nb = current.read(f, u'json')
@@ -247,6 +239,38 @@ class FileContentsManager(ContentsManager):
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
             self.mark_trusted_cells(nb, name, path)
             model['content'] = nb
+            model['format'] = 'json'
+        return model
+
+    def get_model(self, name, path='', content=True):
+        """ Takes a path and name for an entity and returns its model
+
+        Parameters
+        ----------
+        name : str
+            the name of the target
+        path : str
+            the URL path that describes the relative path for
+            the notebook
+
+        Returns
+        -------
+        model : dict
+            the contents model. If content=True, returns the contents
+            of the file or directory as well.
+        """
+        path = path.strip('/')
+
+        if not self.exists(name=name, path=path):
+            raise web.HTTPError(404, u'No such file or directory: %s/%s' % (path, name))
+
+        os_path = self._get_os_path(name, path)
+        if os.path.isdir(os_path):
+            model = self._dir_model(name, path, content)
+        elif name.endswith('.ipynb'):
+            model = self._notebook_model(name, path, content)
+        else:
+            model = self._file_model(name, path, content)
         return model
 
     def save(self, model, name='', path=''):
@@ -281,7 +305,7 @@ class FileContentsManager(ContentsManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
 
-        model = self.get(new_name, new_path, content=False)
+        model = self.get_model(new_name, new_path, content=False)
         return model
 
     def update(self, model, name, path=''):
@@ -291,7 +315,7 @@ class FileContentsManager(ContentsManager):
         new_path = model.get('path', path).strip('/')
         if path != new_path or name != new_name:
             self.rename(name, path, new_name, new_path)
-        model = self.get(new_name, new_path, content=False)
+        model = self.get_model(new_name, new_path, content=False)
         return model
 
     def delete(self, name, path=''):
