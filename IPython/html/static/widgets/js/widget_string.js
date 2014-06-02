@@ -113,6 +113,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
                     this.$label.show();
                 }
             }
@@ -185,6 +186,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
                     this.$label.show();
                 }
             }

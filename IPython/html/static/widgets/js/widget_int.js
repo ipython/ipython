@@ -32,7 +32,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             // Put the slider in a container 
             this.$slider_container = $('<div />')
                 .addClass('widget-hslider')
-                .append(this.$slider)
+                .append(this.$slider);
             this.$el_to_style = this.$slider_container; // Set default element to style
             this.$el.append(this.$slider_container);
             
@@ -113,6 +113,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
                     this.$label.show();
                 }
                 
@@ -192,6 +193,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
                     this.$label.show();
                 }
             }
@@ -294,6 +296,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 this.$label.hide();
             } else {
                 this.$label.text(description);
+                MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
                 this.$label.show();
             }
             return ProgressView.__super__.update.apply(this);
