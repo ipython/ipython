@@ -20,7 +20,7 @@ div#header, div#site {
     {% endblock h1_error %}
     {% block error_detail %}
     {% if message %}
-    <p>The error was:</p>
+    <p>{% trans %}The error was:{% endtrans %}</p>
     <div class="traceback-wrapper">
     <pre class="traceback">{{message}}</pre>
     </div>

@@ -23,9 +23,9 @@ data-notebook-path="{{notebook_path}}"
 
 <div id="tab_content" class="tabbable">
     <ul id="tabs" class="nav nav-tabs">
-        <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
-        <li><a href="#running" data-toggle="tab">Running</a></li>
-        <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
+        <li class="active"><a href="#notebooks" data-toggle="tab">{% trans %}Notebooks{% endtrans %}</a></li>
+        <li><a href="#running" data-toggle="tab">{% trans %}Running{% endtrans %}</a></li>
+        <li><a href="#clusters" data-toggle="tab">{% trans %}Clusters{% endtrans %}</a></li>
     </ul>
 
     <div class="tab-content">
@@ -41,7 +41,7 @@ data-notebook-path="{{notebook_path}}"
             </div>
             <div class="span4 clearfix">
                 <span id="notebook_buttons" class="pull-right">
-                    <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
+                    <button id="new_notebook" title="Create new notebook" class="btn btn-small">{% trans %}New Notebook{% endtrans %}</button>
                     <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small"><i class="icon-refresh"></i></button>
                 </span>
             </div>
@@ -65,7 +65,7 @@ data-notebook-path="{{notebook_path}}"
 
         <div id="running_toolbar" class="row-fluid">
             <div class="span8">
-                <span id="running_list_info">Currently running IPython notebooks</span>
+                <span id="running_list_info">{% trans %}Currently running IPython notebooks{% endtrans %}</span>
             </div>
             <div class="span4" class="clearfix">
                 <span id="running_buttons" class="pull-right">
@@ -76,7 +76,7 @@ data-notebook-path="{{notebook_path}}"
 
         <div id="running_list">
             <div id="running_list_header" class="row-fluid list_header"> 
-                <div> There are no notebooks running. </div>
+                <div> {% trans %}There are no notebooks running.{% endtrans %} </div>
             </div> 
         </div>
     </div>
@@ -85,7 +85,7 @@ data-notebook-path="{{notebook_path}}"
 
         <div id="cluster_toolbar" class="row-fluid">
             <div class="span8">
-                <span id="cluster_list_info">IPython parallel computing clusters</span>
+                <span id="cluster_list_info">{% trans %}IPython parallel computing clusters{% endtrans %}</span>
             </div>
             <div class="span4" class="clearfix">
                 <span id="cluster_buttons" class="pull-right">
@@ -96,10 +96,10 @@ data-notebook-path="{{notebook_path}}"
 
         <div id="cluster_list">
             <div id="cluster_list_header" class="row-fluid list_header">
-                <div class="profile_col span4">profile</div>
-                <div class="status_col span3">status</div>
-                <div class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</div>
-                <div class="action_col span2">action</div>
+                <div class="profile_col span4">{% trans %}profile{% endtrans %}</div>
+                <div class="status_col span3">{% trans %}status{% endtrans %}</div>
+                <div class="engines_col span3" title="{% trans %}Enter the number of engines to start or empty for default{% endtrans %}">{% trans %}# of engines{% endtrans %}</div>
+                <div class="action_col span2">{% trans %}action{% endtrans %}</div>
             </div>
         </div>
     </div>

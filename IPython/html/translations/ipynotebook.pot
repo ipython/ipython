@@ -1,0 +1,434 @@
+# Translations template for PROJECT.
+# Copyright (C) 2014 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2014-05-29 17:46+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#: IPython/html/templates/404.html:3
+msgid "You are requesting a page that does not exist!"
+msgstr ""
+
+#: IPython/html/templates/error.html:23
+msgid "The error was:"
+msgstr ""
+
+#: IPython/html/templates/login.html:22
+msgid "Password:"
+msgstr ""
+
+#: IPython/html/templates/login.html:25
+msgid "Log in"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:53
+msgid "File"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:56
+msgid "Make a new notebook (Opens a new window)"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:57
+msgid "New"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:59
+msgid "Opens a new window with the Dashboard view"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:60
+msgid "Open..."
+msgstr ""
+
+#: IPython/html/templates/notebook.html:64
+msgid "Open a copy of this notebook's contents and start a new kernel"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:65
+msgid "Make a Copy..."
+msgstr ""
+
+#: IPython/html/templates/notebook.html:66
+msgid "Rename..."
+msgstr ""
+
+#: IPython/html/templates/notebook.html:67
+msgid "Save and Checkpoint"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:70
+msgid "Revert to Checkpoint"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:80
+msgid "Print Preview"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:81
+msgid "Download as"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:92
+msgid "Trust the output of this notebook"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:93
+msgid "Trust Notebook"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:96
+msgid "Shutdown this notebook's kernel, and close this window"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:97
+msgid "Close and halt"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:100
+msgid "Edit"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:102
+msgid "Cut Cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:103
+msgid "Copy Cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:104
+msgid "Paste Cell Above"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:105
+msgid "Paste Cell Below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:106
+msgid "Paste Cell &amp; Replace"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:107
+msgid "Delete Cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:108
+msgid "Undo Delete Cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:110
+msgid "Split Cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:111
+msgid "Merge Cell Above"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:112
+msgid "Merge Cell Below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:114
+msgid "Move Cell Up"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:115
+msgid "Move Cell Down"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:117
+msgid "Edit Notebook Metadata"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:120
+msgid "View"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:123
+msgid "Show/Hide the IPython Notebook logo and notebook title (above menu bar)"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:124
+msgid "Toggle Header"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:126
+msgid "Show/Hide the action icons (below menu bar)"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:127
+msgid "Toggle Toolbar"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:130
+msgid "Insert"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:133
+msgid "Insert an empty Code cell above the currently active cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:134
+msgid "Insert Cell Above"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:136
+msgid "Insert an empty Code cell below the currently active cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:137
+msgid "Insert Cell Below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:140
+msgid "Cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:142
+msgid "Run this cell, and move cursor to the next one"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:143
+msgid "Run"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:144
+msgid "Run this cell, select below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:145
+msgid "Run and Select Below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:146
+msgid "Run this cell, insert below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:147
+msgid "Run and Insert Below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:148
+msgid "Run all cells in the notebook"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:149
+msgid "Run All"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:150
+msgid "Run all cells above (but not including) this cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:151
+msgid "Run All Above"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:152
+msgid "Run this cell and all cells below it"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:153
+msgid "Run All Below"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:156
+msgid ""
+"All cells in the notebook have a cell type. By default, new cells are "
+"created as 'Code' cells"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:157
+msgid "Cell Type"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:160
+msgid ""
+"Contents will be sent to the kernel for execution, and output will "
+"display in the footer of cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:161
+msgid "Code"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:163
+msgid "Contents will be rendered as HTML and serve as explanatory text"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:164
+msgid "Markdown"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:166
+msgid "Contents will pass through nbconvert unmodified"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:167
+msgid "Raw NBConvert"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:169
+#, python-format
+msgid "Heading %(level)d"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:174
+msgid "Current Output"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:177
+msgid "Hide/Show the output of the current cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:178
+#: IPython/html/templates/notebook.html:194
+msgid "Toggle"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:181
+msgid "Scroll the output of the current cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:182
+#: IPython/html/templates/notebook.html:198
+msgid "Toggle Scrolling"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:185
+msgid "Clear the output of the current cell"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:186
+#: IPython/html/templates/notebook.html:202
+msgid "Clear"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:190
+msgid "All Output"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:193
+msgid "Hide/Show the output of all cells"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:197
+msgid "Scroll the output of all cells"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:201
+msgid "Clear the output of all cells"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:208
+msgid "Kernel"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:211
+msgid "Send KeyboardInterrupt (CTRL-C) to the Kernel"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:212
+msgid "Interrupt"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:215
+msgid "Restart"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:218
+msgid "Help"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:220
+msgid "A quick tour of the notebook user interface"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:220
+msgid "User Interface Tour"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:221
+msgid "Opens a tooltip with all keyboard shortcuts"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:221
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: IPython/html/templates/page.html:46
+msgid ""
+"\n"
+"      IPython Notebook requires JavaScript.<br>\n"
+"      Please enable it to proceed."
+msgstr ""
+
+#: IPython/html/templates/page.html:61
+msgid "Logout"
+msgstr ""
+
+#: IPython/html/templates/page.html:63
+msgid "Login"
+msgstr ""
+
+#: IPython/html/templates/tree.html:26
+msgid "Notebooks"
+msgstr ""
+
+#: IPython/html/templates/tree.html:27
+msgid "Running"
+msgstr ""
+
+#: IPython/html/templates/tree.html:28
+msgid "Clusters"
+msgstr ""
+
+#: IPython/html/templates/tree.html:44
+msgid "New Notebook"
+msgstr ""
+
+#: IPython/html/templates/tree.html:68
+msgid "Currently running IPython notebooks"
+msgstr ""
+
+#: IPython/html/templates/tree.html:79
+msgid "There are no notebooks running."
+msgstr ""
+
+#: IPython/html/templates/tree.html:88
+msgid "IPython parallel computing clusters"
+msgstr ""
+
+#: IPython/html/templates/tree.html:99
+msgid "profile"
+msgstr ""
+
+#: IPython/html/templates/tree.html:100
+msgid "status"
+msgstr ""
+
+#: IPython/html/templates/tree.html:101
+msgid "Enter the number of engines to start or empty for default"
+msgstr ""
+
+#: IPython/html/templates/tree.html:101
+msgid "# of engines"
+msgstr ""
+
+#: IPython/html/templates/tree.html:102
+msgid "action"
+msgstr ""
+

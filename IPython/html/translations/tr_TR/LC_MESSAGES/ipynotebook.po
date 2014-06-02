@@ -1,0 +1,442 @@
+# Turkish (Turkey) translations for IPython notebook.
+# This file is distributed under the same license as the IPython notebook
+# project.
+# Ozan Çağlayan <ozancag@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2014-05-29 17:46+0300\n"
+"PO-Revision-Date: 2014-05-29 13:08+0300\n"
+"Last-Translator: Ozan Çağlayan <ozancag@gmail.com>\n"
+"Language-Team: Turkish <>\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#: IPython/html/templates/404.html:3
+msgid "You are requesting a page that does not exist!"
+msgstr "Mevcut olmayan bir sayfa isteği gönderdiniz!"
+
+#: IPython/html/templates/error.html:23
+msgid "The error was:"
+msgstr "Hata:"
+
+#: IPython/html/templates/login.html:22
+msgid "Password:"
+msgstr "Parola:"
+
+#: IPython/html/templates/login.html:25
+msgid "Log in"
+msgstr "Giriş yap"
+
+#: IPython/html/templates/notebook.html:53
+msgid "File"
+msgstr "Dosya"
+
+#: IPython/html/templates/notebook.html:56
+msgid "Make a new notebook (Opens a new window)"
+msgstr "Yeni bir defter oluştur (Yeni pencerede açılır)"
+
+#: IPython/html/templates/notebook.html:57
+msgid "New"
+msgstr "Yeni"
+
+#: IPython/html/templates/notebook.html:59
+msgid "Opens a new window with the Dashboard view"
+msgstr ""
+
+#: IPython/html/templates/notebook.html:60
+msgid "Open..."
+msgstr "Aç..."
+
+#: IPython/html/templates/notebook.html:64
+msgid "Open a copy of this notebook's contents and start a new kernel"
+msgstr "Bu defterin bir kopyasını aç ve yeni bir çekirdek başlat"
+
+#: IPython/html/templates/notebook.html:65
+msgid "Make a Copy..."
+msgstr "Bir Kopya Oluştur..."
+
+#: IPython/html/templates/notebook.html:66
+msgid "Rename..."
+msgstr "Yeniden adlandır..."
+
+#: IPython/html/templates/notebook.html:67
+msgid "Save and Checkpoint"
+msgstr "Kaydet ve Denetim Noktası Oluştur"
+
+#: IPython/html/templates/notebook.html:70
+msgid "Revert to Checkpoint"
+msgstr "Denetim Noktasına Dön"
+
+#: IPython/html/templates/notebook.html:80
+msgid "Print Preview"
+msgstr "Baskı Önizleme"
+
+#: IPython/html/templates/notebook.html:81
+msgid "Download as"
+msgstr "Farklı indir"
+
+#: IPython/html/templates/notebook.html:92
+msgid "Trust the output of this notebook"
+msgstr "Bu defterin çıktısına güven"
+
+#: IPython/html/templates/notebook.html:93
+msgid "Trust Notebook"
+msgstr "Deftere Güven"
+
+#: IPython/html/templates/notebook.html:96
+msgid "Shutdown this notebook's kernel, and close this window"
+msgstr "Bu defterin çekirdeğini ve bu pencereyi kapat"
+
+#: IPython/html/templates/notebook.html:97
+msgid "Close and halt"
+msgstr "Kapat ve sonlandır"
+
+#: IPython/html/templates/notebook.html:100
+msgid "Edit"
+msgstr "Düzenle"
+
+#: IPython/html/templates/notebook.html:102
+msgid "Cut Cell"
+msgstr "Hücreyi Kes"
+
+#: IPython/html/templates/notebook.html:103
+msgid "Copy Cell"
+msgstr "Hücreyi Kopyala"
+
+#: IPython/html/templates/notebook.html:104
+msgid "Paste Cell Above"
+msgstr "Hücreyi Yukarıya Yapıştır"
+
+#: IPython/html/templates/notebook.html:105
+msgid "Paste Cell Below"
+msgstr "Hücreyi Aşağıya Yapıştır"
+
+#: IPython/html/templates/notebook.html:106
+msgid "Paste Cell &amp; Replace"
+msgstr "Hücreyi Yapıştır &amp; Değiştir"
+
+#: IPython/html/templates/notebook.html:107
+msgid "Delete Cell"
+msgstr "Hücreyi Sil"
+
+#: IPython/html/templates/notebook.html:108
+msgid "Undo Delete Cell"
+msgstr "Hücre Silmeyi Geri Al"
+
+#: IPython/html/templates/notebook.html:110
+msgid "Split Cell"
+msgstr "Hücreyi Böl"
+
+#: IPython/html/templates/notebook.html:111
+msgid "Merge Cell Above"
+msgstr "Hücreyi Yukarıdakiyle Birleştir"
+
+#: IPython/html/templates/notebook.html:112
+msgid "Merge Cell Below"
+msgstr "Hücreyi Aşağıdakiyle Birleştir"
+
+#: IPython/html/templates/notebook.html:114
+msgid "Move Cell Up"
+msgstr "Hücreyi Yukarı Taşı"
+
+#: IPython/html/templates/notebook.html:115
+msgid "Move Cell Down"
+msgstr "Hücreyi Aşağı Taşı"
+
+#: IPython/html/templates/notebook.html:117
+msgid "Edit Notebook Metadata"
+msgstr "Defter Önbilgisini Düzenle"
+
+#: IPython/html/templates/notebook.html:120
+msgid "View"
+msgstr "Görünüm"
+
+#: IPython/html/templates/notebook.html:123
+msgid "Show/Hide the IPython Notebook logo and notebook title (above menu bar)"
+msgstr ""
+"IPython Notebook logosunu ve defter başlığını (menünün üzerinde) "
+"göster/gizle"
+
+#: IPython/html/templates/notebook.html:124
+msgid "Toggle Header"
+msgstr "Başlığı Göster/Gizle"
+
+#: IPython/html/templates/notebook.html:126
+msgid "Show/Hide the action icons (below menu bar)"
+msgstr "Eylem simgelerini (menünün altındaki) göster/gizle"
+
+#: IPython/html/templates/notebook.html:127
+msgid "Toggle Toolbar"
+msgstr "Araç Çubuğunu Göster/Gizle"
+
+#: IPython/html/templates/notebook.html:130
+msgid "Insert"
+msgstr "Ekle"
+
+#: IPython/html/templates/notebook.html:133
+msgid "Insert an empty Code cell above the currently active cell"
+msgstr "Şu anda etkin olan hücrenin yukarısına boş bir Kod hücresi ekle"
+
+#: IPython/html/templates/notebook.html:134
+msgid "Insert Cell Above"
+msgstr "Hücreyi Yukarıya Ekle"
+
+#: IPython/html/templates/notebook.html:136
+msgid "Insert an empty Code cell below the currently active cell"
+msgstr "Şu anda etkin olan hücrenin aşağısına boş bir Kod hücresi ekle"
+
+#: IPython/html/templates/notebook.html:137
+msgid "Insert Cell Below"
+msgstr "Hücreyi Aşağıya Ekle"
+
+#: IPython/html/templates/notebook.html:140
+msgid "Cell"
+msgstr "Hücre"
+
+#: IPython/html/templates/notebook.html:142
+msgid "Run this cell, and move cursor to the next one"
+msgstr "Bu hücreyi çalıştır ve imleci sıradakine götür"
+
+#: IPython/html/templates/notebook.html:143
+msgid "Run"
+msgstr "Çalıştır"
+
+#: IPython/html/templates/notebook.html:144
+msgid "Run this cell, select below"
+msgstr "Bu hücreyi çalıştır, aşağıdakini seç"
+
+#: IPython/html/templates/notebook.html:145
+msgid "Run and Select Below"
+msgstr "Çalıştır ve Aşağıdakini Seç"
+
+#: IPython/html/templates/notebook.html:146
+msgid "Run this cell, insert below"
+msgstr "Bu hücreyi çalıştır, aşağısına ekle"
+
+#: IPython/html/templates/notebook.html:147
+msgid "Run and Insert Below"
+msgstr "Çalıştır ve Aşağıya Ekle"
+
+#: IPython/html/templates/notebook.html:148
+msgid "Run all cells in the notebook"
+msgstr "Defterdeki tüm hücreleri çalıştır"
+
+#: IPython/html/templates/notebook.html:149
+msgid "Run All"
+msgstr "Tümünü Çalıştır"
+
+#: IPython/html/templates/notebook.html:150
+msgid "Run all cells above (but not including) this cell"
+msgstr "Bu hücrenin yukarısındaki (kendisi hariç) tüm hücreleri çalıştır"
+
+#: IPython/html/templates/notebook.html:151
+msgid "Run All Above"
+msgstr "Yukarıdakileri Çalıştır"
+
+#: IPython/html/templates/notebook.html:152
+msgid "Run this cell and all cells below it"
+msgstr "Bu hücreyi ve aşağıdaki hücreleri çalıştır"
+
+#: IPython/html/templates/notebook.html:153
+msgid "Run All Below"
+msgstr "Aşağıdakileri Çalıştır"
+
+#: IPython/html/templates/notebook.html:156
+msgid ""
+"All cells in the notebook have a cell type. By default, new cells are "
+"created as 'Code' cells"
+msgstr ""
+"Defterdeki tüm hücrelerin bir türü vardır. Yeni hücreler öntanımlı olarak"
+" 'Kod' türünden yaratılır"
+
+#: IPython/html/templates/notebook.html:157
+msgid "Cell Type"
+msgstr "Hücre Türü"
+
+#: IPython/html/templates/notebook.html:160
+msgid ""
+"Contents will be sent to the kernel for execution, and output will "
+"display in the footer of cell"
+msgstr ""
+"İçerik çalıştırılmak üzere çekirdeğe gönderilir ve çıktı hücrenin altında"
+" gösterilir"
+
+#: IPython/html/templates/notebook.html:161
+msgid "Code"
+msgstr "Kod"
+
+#: IPython/html/templates/notebook.html:163
+msgid "Contents will be rendered as HTML and serve as explanatory text"
+msgstr "İçerik açıklayıcı metin olarak kullanılmak için HTML biçeminde üretilecek"
+
+#: IPython/html/templates/notebook.html:164
+msgid "Markdown"
+msgstr "Markdown"
+
+#: IPython/html/templates/notebook.html:166
+msgid "Contents will pass through nbconvert unmodified"
+msgstr "İçerik nbconvert tarafından işlenmez, ham olarak geçer"
+
+#: IPython/html/templates/notebook.html:167
+msgid "Raw NBConvert"
+msgstr "Ham NBConvert"
+
+#: IPython/html/templates/notebook.html:169
+#, python-format
+msgid "Heading %(level)d"
+msgstr "Başlık %(level)d"
+
+#: IPython/html/templates/notebook.html:174
+msgid "Current Output"
+msgstr "Mevcut Çıktı"
+
+#: IPython/html/templates/notebook.html:177
+msgid "Hide/Show the output of the current cell"
+msgstr "Etkin hücrenin çıktısını gizle/göster"
+
+#: IPython/html/templates/notebook.html:178
+#: IPython/html/templates/notebook.html:194
+msgid "Toggle"
+msgstr "Göster/Gizle"
+
+#: IPython/html/templates/notebook.html:181
+msgid "Scroll the output of the current cell"
+msgstr "Şu anki hücrenin çıktısını kaydır"
+
+#: IPython/html/templates/notebook.html:182
+#: IPython/html/templates/notebook.html:198
+msgid "Toggle Scrolling"
+msgstr "Kaydırmayı Aç/Kapa"
+
+#: IPython/html/templates/notebook.html:185
+msgid "Clear the output of the current cell"
+msgstr "Mevcut hücrenin çıktısını temizle"
+
+#: IPython/html/templates/notebook.html:186
+#: IPython/html/templates/notebook.html:202
+msgid "Clear"
+msgstr "Temizle"
+
+#: IPython/html/templates/notebook.html:190
+msgid "All Output"
+msgstr "Tüm Çıktı"
+
+#: IPython/html/templates/notebook.html:193
+msgid "Hide/Show the output of all cells"
+msgstr "Tüm hücrelerin çıktısını gizle/göster"
+
+#: IPython/html/templates/notebook.html:197
+msgid "Scroll the output of all cells"
+msgstr "Hücrelerin çıktısını kaydır"
+
+#: IPython/html/templates/notebook.html:201
+msgid "Clear the output of all cells"
+msgstr "Tüm hücrelerin çıktılarını temizle"
+
+#: IPython/html/templates/notebook.html:208
+msgid "Kernel"
+msgstr "Çekirdek"
+
+#: IPython/html/templates/notebook.html:211
+msgid "Send KeyboardInterrupt (CTRL-C) to the Kernel"
+msgstr "Çekirdeğe klavye kesmesi (CTRL-C) gönder"
+
+#: IPython/html/templates/notebook.html:212
+msgid "Interrupt"
+msgstr "Durdur"
+
+#: IPython/html/templates/notebook.html:215
+msgid "Restart"
+msgstr "Yeniden başlat"
+
+#: IPython/html/templates/notebook.html:218
+msgid "Help"
+msgstr "Yardım"
+
+#: IPython/html/templates/notebook.html:220
+msgid "A quick tour of the notebook user interface"
+msgstr "Defter arayüzüne dair hızlı bir tanıtım turu"
+
+#: IPython/html/templates/notebook.html:220
+msgid "User Interface Tour"
+msgstr "Kullanıcı Arayüz Turu"
+
+#: IPython/html/templates/notebook.html:221
+msgid "Opens a tooltip with all keyboard shortcuts"
+msgstr "Tüm klavye kısayollarını gösteren bir pencere açar"
+
+#: IPython/html/templates/notebook.html:221
+msgid "Keyboard Shortcuts"
+msgstr "Klavye Kısayolları"
+
+#: IPython/html/templates/page.html:46
+msgid ""
+"\n"
+"      IPython Notebook requires JavaScript.<br>\n"
+"      Please enable it to proceed."
+msgstr ""
+"\n"
+"      IPython Notebook JavaScript'e ihtiyaç duymaktadır.<br>\n"
+"      Devam etmek için lütfen etkinleştirin."
+
+#: IPython/html/templates/page.html:61
+msgid "Logout"
+msgstr "Çıkış Yap"
+
+#: IPython/html/templates/page.html:63
+msgid "Login"
+msgstr "Giriş Yap"
+
+#: IPython/html/templates/tree.html:26
+msgid "Notebooks"
+msgstr "Defterler"
+
+#: IPython/html/templates/tree.html:27
+msgid "Running"
+msgstr "Çalışanlar"
+
+#: IPython/html/templates/tree.html:28
+msgid "Clusters"
+msgstr "Öbekler"
+
+#: IPython/html/templates/tree.html:44
+msgid "New Notebook"
+msgstr "Yeni Defter"
+
+#: IPython/html/templates/tree.html:68
+msgid "Currently running IPython notebooks"
+msgstr "Şu anda çalışan IPython defterleri"
+
+#: IPython/html/templates/tree.html:79
+msgid "There are no notebooks running."
+msgstr "Çalışan defter yok."
+
+#: IPython/html/templates/tree.html:88
+msgid "IPython parallel computing clusters"
+msgstr "IPython paralel işleme öbekleri"
+
+#: IPython/html/templates/tree.html:99
+msgid "profile"
+msgstr "profil"
+
+#: IPython/html/templates/tree.html:100
+msgid "status"
+msgstr "durum"
+
+#: IPython/html/templates/tree.html:101
+msgid "Enter the number of engines to start or empty for default"
+msgstr "Başlatılacak motor sayısını belirtin, öntanımlı için boş bırakın"
+
+#: IPython/html/templates/tree.html:101
+msgid "# of engines"
+msgstr "motor (engine) sayısı"
+
+#: IPython/html/templates/tree.html:102
+msgid "action"
+msgstr "eylem"
