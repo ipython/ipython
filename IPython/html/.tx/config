@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.com
+
+[ipython-notebook.messages]
+source_file = translations/ipynotebook.pot
+file_filter = translations/<lang>/LC_MESSAGES/ipynotebook.po
+source_lang = en
+type = PO
