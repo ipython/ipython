@@ -505,4 +505,5 @@ def _handle_reconnection(comm, msg):
     comm.on_msg(_handle_msg)
 
 ip = get_ipython()
-ip.comm_manager.register_target('WidgetModel', _handle_reconnection)
+if hasattr(ip, 'comm_manager'):
+    ip.comm_manager.register_target('WidgetModel', _handle_reconnection)
