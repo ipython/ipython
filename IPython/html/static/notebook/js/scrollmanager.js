@@ -79,9 +79,6 @@ define([], function(){
         $('#notebook').animate({'scrollTop': $('#notebook').scrollTop() + pages * $('#notebook').height()}, this.animation_speed);
     };
 
-    // For convinience, add the ScrollManager class to the global namespace
-    IPython.ScrollManager = ScrollManager;
     // Return naemspace for require.js loads
     return ScrollManager;
-
 });
