@@ -35,7 +35,7 @@ consider calling super even if it is a leave block, we might insert more blocks 
                     {%- endblock input_group -%}
                     {%- if cell.widgets is defined and cell.widgets | length > 0 -%}
                         {%- block widget_group scoped -%}
-                            {%- for widget in cell.widgets -%}
+                            {%- for model_id in cell.widgets -%}
                                 {%- block widget scoped -%}
                                 {%- endblock widget -%}
                             {%- endfor -%}

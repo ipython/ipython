@@ -112,5 +112,5 @@ IPython.widgets.set_widget("{{ model_id }}", JSON.parse('{{ nb.widgets[model_id]
 {%- endblock widget_group -%}
 
 {%- block widget scoped -%}
-IPython.widgets.display_widget("{{ widget.id }}", "widgetarea{{ worksheet.cells.index(cell) }}"); 
+IPython.widgets.display_widget("{{ model_id }}", "widgetarea{{ worksheet.cells.index(cell) }}"); 
 {%- endblock widget -%}

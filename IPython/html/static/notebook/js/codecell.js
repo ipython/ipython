@@ -164,7 +164,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
                 widget_area.slideUp('', function(){ 
                     that.clear_widgets();
                 });
-                })
+            })
             .appendTo(widget_prompt);
 
         var output = $('<div></div>');
@@ -518,15 +518,16 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
 
 
     CodeCell.prototype._load_widgets = function () {
-        // Load the widgets stored in the cell metadata.
+        // Load the widgets stored in the cell data.
         if (this.kernel) {
             if (this.saved_widgets) {
-                var cached_widgets = this.metadata.widgets;
-                for (var i = 0; i < cached_widgets.length; i++) {
-                    var widget = cached_widgets[i];
+                for (var i = 0; i < this.saved_widgets.length; i++) {
+                    var model_id = this.saved_widgets[i];
                     var widget_manager = this.kernel.widget_manager;
-                    var model = widget_manager.get_model(widget.id);
-                    widget_manager.display_cell_view(this, model);
+                    var model = widget_manager.get_model(model_id);
+                    if (model) {
+                        widget_manager.display_cell_view(this, model);
+                    }
                 }
             }
         }

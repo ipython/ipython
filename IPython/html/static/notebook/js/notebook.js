@@ -1855,7 +1855,7 @@ define([
                 model.set_state($.extend(this.widgets[model_id].state, {disabled: true}));
             }
         }
-    }
+    };
 
     /**
      * Save the widgets in the widget dict.
@@ -1879,7 +1879,7 @@ define([
             }
         }
         this.widgets = widget_states;
-    }
+    };
 
     /**
      * Dump this notebook into a JSON-friendly object.
