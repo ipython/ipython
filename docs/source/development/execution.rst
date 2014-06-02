@@ -14,7 +14,7 @@ The execution of use code consists of the following phases:
 
 .. seealso::
 
-    :doc:`config/callbacks`
+    :doc:`/config/callbacks`
 
 
 To understand how the ``code`` field is executed, one must know that Python

@@ -13,7 +13,7 @@ def code_to_line(code, cursor_pos):
     """Turn a multiline code block and cursor position into a single line
     and new cursor position.
     
-    For adapting complete_ and object_info_requests.
+    For adapting ``complete_`` and ``object_info_request``.
     """
     for line in code.splitlines(True):
         n = len(line)
