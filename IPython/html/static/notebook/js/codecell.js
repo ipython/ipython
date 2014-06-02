@@ -519,15 +519,13 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
 
     CodeCell.prototype._load_widgets = function () {
         // Load the widgets stored in the cell data.
-        if (this.kernel) {
-            if (this.saved_widgets) {
-                for (var i = 0; i < this.saved_widgets.length; i++) {
-                    var model_id = this.saved_widgets[i];
-                    var widget_manager = this.kernel.widget_manager;
-                    var model = widget_manager.get_model(model_id);
-                    if (model) {
-                        widget_manager.display_cell_view(this, model);
-                    }
+        if (this.kernel && this.saved_widgets) {
+            for (var i = 0; i < this.saved_widgets.length; i++) {
+                var widget_manager = this.kernel.widget_manager;
+                var model_id = this.saved_widgets[i];
+                var model = widget_manager.get_model(model_id);
+                if (model) {
+                    widget_manager.display_cell_view(this, model);
                 }
             }
         }

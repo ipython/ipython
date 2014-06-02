@@ -9,7 +9,7 @@ define([
     'widgets/js/init',
 ], function(IPython, $, utils, comm, widgetmanager) {
     "use strict";
-
+    
     // Initialization and connection.
     /**
      * A Kernel Class to communicate with the Python kernel
@@ -208,13 +208,23 @@ define([
         // has the same identity
         evt.target.send(this.session_id + ':' + document.cookie);
         
+        // If all channels are ready, trigger started event.
+        if (this.channels_ready()) {
+            this.events.trigger('status_started.Kernel', {kernel: this});
+        }
+    };
+    
+    /**
+     * Check if the websockets corresponding to the channels have been opened.
+     * @method channels_ready
+     */
+    Kernel.prototype.channels_ready = function () {
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
-            // if any channel is not ready, don't trigger event.
-            if ( !channels[i].readyState ) return;
+            // If any channel is not ready, return false.
+            if ( !channels[i].readyState ) return false;
         }
-        // all events ready, trigger started event.
-        this.events.trigger('status_started.Kernel', {kernel: this});
+        return true;
     };
     
     /**

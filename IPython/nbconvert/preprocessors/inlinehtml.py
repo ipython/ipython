@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 import os
+import io
 import shutil
 
 from IPython.utils.traitlets import Unicode, Bool
@@ -76,7 +77,7 @@ class InlineHTMLPreprocessor(Preprocessor):
             
         for path in paths:
             sheet_filename = os.path.join(DEFAULT_STATIC_FILES_PATH, *path)
-            with open(sheet_filename, encoding='utf-8') as f:
+            with io.open(sheet_filename, encoding='utf-8') as f:
                 css.append(f.read())
 
         # Add pygments CSS
@@ -101,12 +102,12 @@ class InlineHTMLPreprocessor(Preprocessor):
             for path in [
                 ('components', 'requirejs', 'require.js'),
                 ('components', 'jquery', 'jquery.min.js')]:
-                with open(os.path.join(DEFAULT_STATIC_FILES_PATH, *path), encoding='utf-8') as f:
+                with io.open(os.path.join(DEFAULT_STATIC_FILES_PATH, *path), encoding='utf-8') as f:
                     self.js_code.append((path[-1] ,f.read()))
 
             # Inline staticwidgets.min.js
             if has_widgets:
-                with open(src_staticwidgets, encoding='utf-8') as f:
+                with io.open(src_staticwidgets, encoding='utf-8') as f:
                     self.js_code.append(('IPython static widgets', f.read()))
 
             else:

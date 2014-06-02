@@ -49,8 +49,25 @@ define(["widgets/js/manager",
             }
         },
 
+        reconnect: function (model_id) {
+            // Send a custom msg over the comm.
+            if (this.comm !== undefined) {
+                var data = {method: 'reconnect', 'model_id': model_id};
+                this.comm.send(data);
+                this.pending_msgs++;
+            }
+        },
+
         _handle_comm_closed: function (msg) {
             // Handle when a widget is closed.
+            this.trigger('comm:close');
+            // Don't actually clean-up the widget when the underlying comm is
+            // closed.  Instead just "disable" it.
+            this.set('disabled', true);
+        },
+
+        _handle_close: function () {
+            // Handle when a widget is closed from the back-end.
             this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
@@ -72,6 +89,9 @@ define(["widgets/js/manager",
                     break;
                 case 'display':
                     this.widget_manager.display_view(msg, this);
+                    break;
+                case 'close':
+                    this._handle_close();
                     break;
             }
         },

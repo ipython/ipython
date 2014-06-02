@@ -126,7 +126,7 @@ define([
             target_name : this.target_name,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_open", content, callbacks, metadata);
+        return this._send("comm_open", content, callbacks, metadata);
     };
     
     Comm.prototype.send = function (data, callbacks, metadata) {
@@ -134,7 +134,7 @@ define([
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_msg", content, callbacks, metadata);
+        return this._send("comm_msg", content, callbacks, metadata);
     };
     
     Comm.prototype.close = function (data, callbacks, metadata) {
@@ -142,7 +142,27 @@ define([
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_close", content, callbacks, metadata);
+        return this._send("comm_close", content, callbacks, metadata);
+    };
+    
+    Comm.prototype._send = function (msg_type, content, callbacks, metadata) {
+        // Sends a comm shell msg.
+
+        // If the kernel exists and is ready, send the message.  Otherwise,
+        // cache the message and send it when the kernel is ready.
+        if (this.kernel && this.kernel.channels_ready()) {
+            return this.kernel.send_shell_message.apply(this.kernel, arguments);
+        } else {
+            var that = this;
+            var that_args = arguments;
+            $([IPython.events]).on('status_started.Kernel', function () {
+                return that.kernel.send_shell_message.apply(that.kernel, that_args);
+            });
+            // Message was queued for when the sockets finish connecting, return
+            // null since we don't have a return value from the kernel at this
+            // point.
+            return null;
+        }
     };
     
     // methods for registering callbacks for incoming messages

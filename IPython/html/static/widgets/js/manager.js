@@ -192,11 +192,29 @@ define([
             //      Create a model of the specified target using the model_id if
             //      a model doesn't alread exist.
             var model = this._models[model_id];
-            if (model !== undefined && model.id == model_id) {
+            if (model) {
                 return model;
             }
 
             if (target) {
+                // Try creating a new comm to reconnect the widget to the 
+                // back-end.
+                if (this.comm_manager) {
+                    var comm = this.comm_manager.new_comm(target); 
+                    if (comm) {
+                        model = new WidgetManager._model_types[target](this, comm.comm_id, comm);
+                        // Register the model under the original id and the id
+                        // of the new comm that will be used.
+                        this._models[comm.comm_id] = model;
+                        this._models[model_id] = model;
+                        // Try to reconnect.
+                        model.reconnect(model_id);
+                        return model;
+                    }
+                }
+
+                // The comm wasn't created, so create a dummy model instead.
+                // One which isn't connect to any comm.
                 model = new WidgetManager._model_types[target](this, model_id);
                 this._models[model_id] = model;
                 return model;
