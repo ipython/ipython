@@ -280,6 +280,7 @@ class NbConvertApp(BaseIPythonApplication):
             if self.output_base:
                 notebook_name = self.output_base
             resources = {}
+            resources['profile_dir'] = self.profile_dir.location
             resources['unique_key'] = notebook_name
             resources['output_files_dir'] = '%s_files' % notebook_name
             self.log.info("Support files will be in %s", os.path.join(resources['output_files_dir'], ''))
