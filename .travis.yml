@@ -14,7 +14,7 @@ before_install:
     - time sudo add-apt-repository -y ppa:pcarrier/ppa
     - time sudo apt-get update
     - time sudo apt-get install pandoc casperjs nodejs libzmq3-dev
-    - time pip install -f https://nipy.bic.berkeley.edu/wheelhouse/travis jinja2 sphinx pygments tornado requests mock pyzmq
+    - time pip install -f https://nipy.bic.berkeley.edu/wheelhouse/travis jinja2 sphinx pygments tornado requests mock pyzmq jsonschema jsonpointer
 install:
     - time python setup.py install -q 
 script:

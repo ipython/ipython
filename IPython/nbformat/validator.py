@@ -2,8 +2,8 @@ from __future__ import print_function
 import json
 import os
 
-from IPython.external.jsonschema import Draft3Validator, SchemaError
-import IPython.external.jsonpointer as jsonpointer
+from jsonschema import Draft4Validator, SchemaError
+import jsonpointer as jsonpointer
 from IPython.utils.py3compat import iteritems
 
 
