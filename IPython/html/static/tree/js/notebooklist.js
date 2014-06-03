@@ -161,11 +161,12 @@ define([
             message = param.msg;
         }
         var item = null;
-        var content = data.content;
-        var len = content.length;
+        var model = null;
+        var list = data.content;
+        var len = list.length;
         this.clear_list();
         if (len === 0) {
-            item = this.new_notebook_item(0);
+            item = this.new_item(0);
             var span12 = item.children().first();
             span12.empty();
             span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message));
@@ -173,31 +174,24 @@ define([
         var path = this.notebook_path;
         var offset = 0;
         if (path !== '') {
-            item = this.new_notebook_item(0);
-            this.add_dir(path, '..', item);
+            item = this.new_item(0);
+            model = {
+                type: 'directory',
+                name: '..',
+                path: path,
+            };
+            this.add_link(model, item);
             offset = 1;
         }
         for (var i=0; i<len; i++) {
-            if (content[i].type === 'directory') {
-                var name = content[i].name;
-                item = this.new_notebook_item(i+offset);
-                this.add_dir(path, name, item);
-            } else {
-                var name = content[i].name;
-                item = this.new_notebook_item(i+offset);
-                this.add_link(path, name, item);
-                name = utils.url_path_join(path, name);
-                if(this.sessions[name] === undefined){
-                    this.add_delete_button(item);
-                } else {
-                    this.add_shutdown_button(item,this.sessions[name]);
-                }
-            }
+            model = list[i];
+            item = this.new_item(i+offset);
+            this.add_link(model, item);
         }
     };
 
 
-    NotebookList.prototype.new_notebook_item = function (index) {
+    NotebookList.prototype.new_item = function (index) {
         var item = $('<div/>').addClass("list_item").addClass("row");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
@@ -220,47 +214,57 @@ define([
     };
 
 
-    NotebookList.prototype.add_dir = function (path, name, item) {
+    NotebookList.icons = {
+        directory: 'folder_icon',
+        notebook: 'notebook_icon',
+        file: 'file_icon',
+    };
+
+    NotebookList.uri_prefixes = {
+        directory: 'tree',
+        notebook: 'notebooks',
+        file: 'files',
+    };
+
+
+    NotebookList.prototype.add_link = function (model, item) {
+        var path = model.path,
+            name = model.name;
         item.data('name', name);
         item.data('path', path);
         item.find(".item_name").text(name);
-        item.find(".item_icon").addClass('folder_icon').addClass('icon-fixed-width');
+        var icon = NotebookList.icons[model.type];
+        var uri_prefix = NotebookList.uri_prefixes[model.type];
+        item.find(".item_icon").addClass(icon).addClass('icon-fixed-width');
         item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
                     this.base_url,
-                    "tree",
+                    uri_prefix,
                     path,
                     name
                 )
             );
+        var path_name = utils.url_path_join(path, name);
+        if (model.type == 'file') {
+            this.add_delete_button(item);
+        } else if (model.type == 'notebook') {
+            if(this.sessions[path_name] === undefined){
+                this.add_delete_button(item);
+            } else {
+                this.add_shutdown_button(item, this.sessions[path_name]);
+            }
+        }
     };
 
 
-    NotebookList.prototype.add_link = function (path, nbname, item) {
-        item.data('nbname', nbname);
-        item.data('path', path);
-        item.find(".item_name").text(nbname);
-        item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
-        item.find("a.item_link")
-            .attr('href',
-                utils.url_join_encode(
-                    this.base_url,
-                    "notebooks",
-                    path,
-                    nbname
-                )
-            ).attr('target','_blank');
-    };
-
-
-    NotebookList.prototype.add_name_input = function (nbname, item) {
-        item.data('nbname', nbname);
+    NotebookList.prototype.add_name_input = function (name, item) {
+        item.data('name', name);
         item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
         item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("nbname_input")
-            .attr('value', utils.splitext(nbname)[0])
+            .attr('value', utils.splitext(name)[0])
             .attr('size', '30')
             .attr('type', 'text')
         );
@@ -308,10 +312,10 @@ define([
                 // We use the nbname and notebook_id from the parent notebook_item element's
                 // data because the outer scopes values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var nbname = parent_item.data('nbname');
-                var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
+                var name = parent_item.data('name');
+                var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
                 dialog.modal({
-                    title : "Delete notebook",
+                    title : "Delete file",
                     body : message,
                     buttons : {
                         Delete : {
@@ -331,7 +335,7 @@ define([
                                     notebooklist.base_url,
                                     'api/contents',
                                     notebooklist.notebook_path,
-                                    nbname
+                                    name
                                 );
                                 $.ajax(url, settings);
                             }
@@ -442,7 +446,8 @@ define([
         });
     };
     
-    // Backwards compatability.    
+
+    // Backwards compatability.
     IPython.NotebookList = NotebookList;
 
     return {'NotebookList': NotebookList};
