@@ -256,7 +256,7 @@ var IPython = (function (IPython) {
             var html = marked.parser(marked.lexer(text));
             html = IPython.mathjaxutils.replace_math(html, math);
             html = security.sanitize_html(html);
-            html = $(html);
+            html = $($.parseHTML(html));
             // links in markdown cells should open in new tabs
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             this.set_rendered(html);
@@ -428,7 +428,7 @@ var IPython = (function (IPython) {
             var html = marked.parser(marked.lexer(text));
             html = IPython.mathjaxutils.replace_math(html, math);
             html = security.sanitize_html(html);
-            var h = $(html);
+            var h = $($.parseHTML(html));
             // add id and linkback anchor
             var hash = h.text().replace(/ /g, '-');
             h.attr('id', hash);
