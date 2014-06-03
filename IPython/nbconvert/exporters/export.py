@@ -18,6 +18,7 @@ from .pdf import PDFExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
 from .rst import RSTExporter
+from .notebook import NotebookExporter
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -130,6 +131,7 @@ exporter_map = dict(
     markdown=MarkdownExporter,
     python=PythonExporter,
     rst=RSTExporter,
+    notebook=NotebookExporter,
 )
 
 def _make_exporter(name, E):
