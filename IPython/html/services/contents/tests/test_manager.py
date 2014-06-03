@@ -101,7 +101,7 @@ class TestContentsManager(TestCase):
 
     def new_notebook(self):
         cm = self.contents_manager
-        model = cm.create_notebook()
+        model = cm.create_file()
         name = model['name']
         path = model['path']
 
@@ -112,10 +112,10 @@ class TestContentsManager(TestCase):
         cm.save(full_model, name, path)
         return nb, name, path
 
-    def test_create_notebook(self):
+    def test_create_file(self):
         cm = self.contents_manager
         # Test in root directory
-        model = cm.create_notebook()
+        model = cm.create_file()
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
@@ -125,7 +125,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_notebook(None, sub_dir)
+        model = cm.create_file(None, sub_dir)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
@@ -135,7 +135,7 @@ class TestContentsManager(TestCase):
     def test_get(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.create_notebook()
+        model = cm.create_file()
         name = model['name']
         path = model['path']
 
@@ -150,7 +150,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_notebook(None, sub_dir)
+        model = cm.create_file(None, sub_dir)
         model2 = cm.get_model(name, sub_dir)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
@@ -162,7 +162,7 @@ class TestContentsManager(TestCase):
     def test_update(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.create_notebook()
+        model = cm.create_file()
         name = model['name']
         path = model['path']
 
@@ -181,7 +181,7 @@ class TestContentsManager(TestCase):
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_notebook(None, sub_dir)
+        model = cm.create_file(None, sub_dir)
         name = model['name']
         path = model['path']
 
@@ -200,7 +200,7 @@ class TestContentsManager(TestCase):
     def test_save(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.create_notebook()
+        model = cm.create_file()
         name = model['name']
         path = model['path']
 
@@ -219,7 +219,7 @@ class TestContentsManager(TestCase):
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_notebook(None, sub_dir)
+        model = cm.create_file(None, sub_dir)
         name = model['name']
         path = model['path']
         model = cm.get_model(name, path)
@@ -248,7 +248,7 @@ class TestContentsManager(TestCase):
         path = u'å b'
         name = u'nb √.ipynb'
         os.mkdir(os.path.join(cm.root_dir, path))
-        orig = cm.create_notebook({'name' : name}, path=path)
+        orig = cm.create_file({'name' : name}, path=path)
 
         # copy with unspecified name
         copy = cm.copy(name, path=path)

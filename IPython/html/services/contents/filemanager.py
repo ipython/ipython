@@ -196,6 +196,7 @@ class FileContentsManager(ContentsManager):
                     contents.append(self.get_model(name=name, path=dir_path, content=False))
 
             model['content'] = sorted(contents, key=sort_key)
+            model['format'] = 'json'
 
         return model
 
@@ -273,12 +274,48 @@ class FileContentsManager(ContentsManager):
             model = self._file_model(name, path, content)
         return model
 
+    def _save_notebook(self, os_path, model, name='', path=''):
+        # Save the notebook file
+        nb = current.to_notebook_json(model['content'])
+
+        self.check_and_sign(nb, name, path)
+
+        if 'name' in nb['metadata']:
+            nb['metadata']['name'] = u''
+
+        with io.open(os_path, 'w', encoding='utf-8') as f:
+            current.write(nb, f, u'json')
+
+    def _save_file(self, os_path, model, name='', path=''):
+        fmt = model.get('format', None)
+        if fmt not in {'text', 'base64'}:
+            raise web.HTTPError(400, "Must specify format of file contents as 'text' or 'base64'")
+        try:
+            content = model['content']
+            if fmt == 'text':
+                bcontent = content.encode('utf8')
+            else:
+                b64_bytes = content.encode('ascii')
+                bcontent = base64.decodestring(b64_bytes)
+        except Exception as e:
+            raise web.HTTPError(400, u'Encoding error saving %s: %s' % (os_path, e))
+        with io.open(os_path, 'wb') as f:
+            f.write(bcontent)
+
+    def _save_directory(self, os_path, model, name='', path=''):
+        if not os.path.exists(os_path):
+            os.mkdir(os_path)
+        elif not os.path.isdir(os_path):
+            raise web.HTTPError(400, u'Not a directory: %s' % (os_path))
+
     def save(self, model, name='', path=''):
-        """Save the notebook model and return the model with no content."""
+        """Save the file model and return the model with no content."""
         path = path.strip('/')
 
         if 'content' not in model:
-            raise web.HTTPError(400, u'No notebook JSON data provided')
+            raise web.HTTPError(400, u'No file content provided')
+        if 'type' not in model:
+            raise web.HTTPError(400, u'No file type provided')
 
         # One checkpoint should always exist
         if self.file_exists(name, path) and not self.list_checkpoints(name, path):
@@ -290,20 +327,21 @@ class FileContentsManager(ContentsManager):
         if path != new_path or name != new_name:
             self.rename(name, path, new_name, new_path)
 
-        # Save the notebook file
         os_path = self._get_os_path(new_name, new_path)
-        nb = current.to_notebook_json(model['content'])
-
-        self.check_and_sign(nb, new_name, new_path)
-
-        if 'name' in nb['metadata']:
-            nb['metadata']['name'] = u''
+        self.log.debug("Saving %s", os_path)
         try:
-            self.log.debug("Autosaving notebook %s", os_path)
-            with io.open(os_path, 'w', encoding='utf-8') as f:
-                current.write(nb, f, u'json')
+            if model['type'] == 'notebook':
+                self._save_notebook(os_path, model, new_name, new_path)
+            elif model['type'] == 'file':
+                self._save_file(os_path, model, new_name, new_path)
+            elif model['type'] == 'directory':
+                self._save_directory(os_path, model, new_name, new_path)
+            else:
+                raise web.HTTPError(400, "Unhandled contents type: %s" % model['type'])
+        except web.HTTPError:
+            raise
         except Exception as e:
-            raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
+            raise web.HTTPError(400, u'Unexpected error while saving file: %s %s' % (os_path, e))
 
         model = self.get_model(new_name, new_path, content=False)
         return model

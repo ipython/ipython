@@ -155,16 +155,23 @@ class ContentsManager(LoggingConfigurable):
                 break
         return name
 
-    def create_notebook(self, model=None, path=''):
+    def create_file(self, model=None, path='', ext='.ipynb'):
         """Create a new notebook and return its model with no content."""
         path = path.strip('/')
         if model is None:
             model = {}
         if 'content' not in model:
-            metadata = current.new_metadata(name=u'')
-            model['content'] = current.new_notebook(metadata=metadata)
+            if ext == '.ipynb':
+                metadata = current.new_metadata(name=u'')
+                model['content'] = current.new_notebook(metadata=metadata)
+                model.setdefault('type', 'notebook')
+                model.setdefault('format', 'json')
+            else:
+                model['content'] = ''
+                model.setdefault('type', 'file')
+                model.setdefault('format', 'text')
         if 'name' not in model:
-            model['name'] = self.increment_filename('Untitled.ipynb', path)
+            model['name'] = self.increment_filename('Untitled' + ext, path)
 
         model['path'] = path
         model = self.save(model, model['name'], model['path'])

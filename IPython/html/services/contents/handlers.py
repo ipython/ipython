@@ -99,20 +99,20 @@ class ContentsHandler(IPythonHandler):
         if name:
             model['name'] = name
 
-        model = self.contents_manager.create_notebook(model, path)
+        model = self.contents_manager.create_file(model, path)
         self.set_status(201)
         self._finish_model(model)
 
-    def _create_empty_notebook(self, path, name=None):
-        """Create an empty notebook in path
+    def _create_empty_file(self, path, name=None, ext='.ipynb'):
+        """Create an empty file in path
 
         If name specified, create it in path/name.
         """
-        self.log.info(u"Creating new notebook in %s/%s", path, name or '')
+        self.log.info(u"Creating new file in %s/%s", path, name or '')
         model = {}
         if name:
             model['name'] = name
-        model = self.contents_manager.create_notebook(model, path=path)
+        model = self.contents_manager.create_file(model, path=path, ext=ext)
         self.set_status(201)
         self._finish_model(model)
 
@@ -137,7 +137,8 @@ class ContentsHandler(IPythonHandler):
         POST /api/contents/path
           New untitled notebook in path. If content specified, upload a
           notebook, otherwise start empty.
-        POST /api/contents/path?copy=OtherNotebook.ipynb
+        POST /api/contents/path
+          with body {"copy_from" : "OtherNotebook.ipynb"}
           New copy of OtherNotebook in path
         """
 
@@ -156,14 +157,17 @@ class ContentsHandler(IPythonHandler):
 
         if model is not None:
             copy_from = model.get('copy_from')
-            if copy_from:
-                if model.get('content'):
+            ext = model.get('ext', '.ipynb')
+            if model.get('content') is not None:
+                if copy_from:
                     raise web.HTTPError(400, "Can't upload and copy at the same time.")
+                self._upload(model, path)
+            elif copy_from:
                 self._copy(copy_from, path)
             else:
-                self._upload(model, path)
+                self._create_empty_file(path, ext=ext)
         else:
-            self._create_empty_notebook(path)
+            self._create_empty_file(path)
 
     @web.authenticated
     @json_errors
@@ -195,7 +199,7 @@ class ContentsHandler(IPythonHandler):
             else:
                 self._upload(model, path, name)
         else:
-            self._create_empty_notebook(path, name)
+            self._create_empty_file(path, name)
 
     @web.authenticated
     @json_errors

@@ -1885,6 +1885,8 @@ define([
         var model = {};
         model.name = this.notebook_name;
         model.path = this.notebook_path;
+        model.type = 'notebook';
+        model.format = 'json';
         model.content = this.toJSON();
         model.content.nbformat = this.nbformat;
         model.content.nbformat_minor = this.nbformat_minor;
