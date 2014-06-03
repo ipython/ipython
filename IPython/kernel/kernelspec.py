@@ -13,11 +13,13 @@ from IPython.utils.traitlets import HasTraits, List, Unicode, Dict
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
     if programdata:
-        SYSTEM_KERNEL_DIR = pjoin(programdata, 'ipython', 'kernels')
+        SYSTEM_KERNEL_DIRS = [pjoin(programdata, 'ipython', 'kernels')]
     else:  # PROGRAMDATA is not defined by default on XP.
-        SYSTEM_KERNEL_DIR = None
+        SYSTEM_KERNEL_DIRS = []
 else:
-    SYSTEM_KERNEL_DIR = "/usr/share/ipython/kernels"
+    SYSTEM_KERNEL_DIRS = ["/usr/share/ipython/kernels",
+                          "/usr/local/share/ipython/kernels",
+                         ]
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
@@ -80,8 +82,7 @@ class KernelSpecManager(HasTraits):
         help="List of kernel directories to search. Later ones take priority over earlier."    
     )    
     def _kernel_dirs_default(self):
-        return [
-            SYSTEM_KERNEL_DIR,
+        return SYSTEM_KERNEL_DIRS + [
             self.user_kernel_dir,
         ]
 
@@ -151,7 +152,10 @@ class KernelSpecManager(HasTraits):
         kernel_name = kernel_name.lower()
 
         if system:
-            destination = os.path.join(SYSTEM_KERNEL_DIR, kernel_name)
+            if SYSTEM_KERNEL_DIRS:
+                destination = os.path.join(SYSTEM_KERNEL_DIRS[-1], kernel_name)
+            else:
+                raise EnvironmentError("No system kernel directory is available")
         else:
             destination = os.path.join(self.user_kernel_dir, kernel_name)
 
