@@ -214,6 +214,16 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
         server, port = server.split(':')
         ssh += " -p %s" % port
         
+    cmd = "%s -O check %s" % (ssh, server)
+    (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+    if not exitstatus:
+        pid = int(output[output.find("(pid=")+5:output.find(")")]) 
+        cmd = "%s -O forward -L 127.0.0.1:%i:%s:%i %s" % (
+            ssh, lport, remoteip, rport, server)
+        (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
+        if not exitstatus:
+            atexit.register(_stop_tunnel, cmd.replace("forward", "cancel", 1))
+            return pid
     cmd = "%s -f -S none -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
         ssh, lport, remoteip, rport, server, timeout)
     tunnel = pexpect.spawn(cmd)
@@ -239,6 +249,9 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
                 password = getpass("%s's password: "%(server))
             tunnel.sendline(password)
             failed = True
+
+def _stop_tunnel(cmd):
+    pexpect.run(cmd)
 
 def _split_server(server):
     if '@' in server:
