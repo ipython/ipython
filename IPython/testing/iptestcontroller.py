@@ -307,7 +307,7 @@ class JSController(TestController):
                     # get invalid JSON; it should be ready next iteration.
                     pass
                 else:
-                return
+                    return
             time.sleep(0.1)
         print("Notebook server-info file never arrived: %s" % self.server_info_file,
             file=sys.stderr
