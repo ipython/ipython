@@ -341,7 +341,7 @@ class Widget(LoggingConfigurable):
 
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
-    _css = Dict(sync=True) # Internal CSS property dict
+    _css = List(sync=True) # Internal CSS property list: (selector, key, value)
 
     def get_css(self, key, selector=""):
         """Get a CSS property of the widget.
@@ -384,18 +384,17 @@ class DOMWidget(Widget):
             of the view that should be styled with common CSS (see 
             `$el_to_style` in the Javascript code).
         """
-        if not selector in self._css:
-            self._css[selector] = {}
-        my_css = self._css[selector]
-        
         if value is None:
             css_dict = dict_or_key
         else:
             css_dict = {dict_or_key: value}
         
         for (key, value) in css_dict.items():
-            if not (key in my_css and value == my_css[key]):
-                my_css[key] = value
+            # First remove the selector/key pair from the css list if it exists.
+            # Then add the selector/key pair and new value to the bottom of the 
+            # list.
+            self._css = [x for x in self._css if not (x[0]==selector and x[1]==key)]
+            self._css += [(selector, key, value)]
         self.send_state('_css')
 
     def add_class(self, class_names, selector=""):

@@ -411,16 +411,16 @@ function(WidgetManager, _, Backbone){
      
             var css = this.model.get('_css');
             if (css === undefined) {return;}
-            var that = this;
-            _.each(css, function(css_traits, selector){
+            for (var i = 0; i < css.length; i++) {
                 // Apply the css traits to all elements that match the selector.
-                var elements = that._get_selector_element(selector);
+                var selector = css[i][0];
+                var elements = this._get_selector_element(selector);
                 if (elements.length > 0) {
-                    _.each(css_traits, function(css_value, css_key){
-                        elements.css(css_key, css_value);
-                    });
+                    var trait_key = css[i][1];
+                    var trait_value = css[i][2];
+                    elements.css(trait_key ,trait_value);
                 }
-            });
+            }
         },
 
         _get_selector_element: function (selector) {
