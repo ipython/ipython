@@ -888,6 +888,8 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
+                var cursor = source_cell.code_mirror.getCursor();
+                target_cell.code_mirror.setCursor(cursor);
                 this.set_dirty(true);
             }
         }
@@ -921,6 +923,8 @@ var IPython = (function (IPython) {
                 if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
+                var cursor = source_cell.code_mirror.getCursor();
+                target_cell.code_mirror.setCursor(cursor);
                 this.set_dirty(true);
             }
         }
@@ -952,6 +956,8 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
+                var cursor = source_cell.code_mirror.getCursor();
+                target_cell.code_mirror.setCursor(cursor);
                 this.set_dirty(true);
             }
         }
@@ -988,6 +994,8 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
+                var cursor = source_cell.code_mirror.getCursor();
+                target_cell.code_mirror.setCursor(cursor);
                 if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
