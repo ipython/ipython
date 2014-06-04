@@ -176,7 +176,11 @@ var IPython = (function (IPython) {
             } else {
                 var name = data[i].name;
                 item = this.new_notebook_item(i+offset);
+                var last_modified = data[i].last_modified;
+                var d = new Date(data[i].last_modified);
+                d = d.format('mmm dd HH:MM');
                 this.add_link(path, name, item);
+                this.add_last_modified(d, item);
                 name = utils.url_path_join(path, name);
                 if(this.sessions[name] === undefined){
                     this.add_delete_button(item);
@@ -189,19 +193,19 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook_item = function (index) {
-        var item = $('<div/>').addClass("list_item").addClass("row-fluid");
+        var item = $('<div/>').addClass("list_item row-fluid enable_overflow");
+        var last_modified = $('<div>').addClass("span5 last_modified");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
-        item.append($("<div/>").addClass("span12").append(
+        item.append($("<div/>").addClass("span4").append(
             $('<i/>').addClass('item_icon')
         ).append(
             $("<a/>").addClass("item_link").append(
                 $("<span/>").addClass("item_name")
-            )
-        ).append(
-            $('<div/>').addClass("item_buttons btn-group pull-right")
-        ));
-        
+        )));
+        item.append(last_modified);
+        item.append($('<div/>').addClass("span3 item_buttons btn-group pull-right"));
+
         if (index === -1) {
             this.element.append(item);
         } else {
@@ -243,6 +247,12 @@ var IPython = (function (IPython) {
                 )
             ).attr('target','_blank');
     };
+
+
+     NotebookList.prototype.add_last_modified = function (date_last_modified, item) {
+         item.find(".last_modified")
+            .prepend(date_last_modified);
+         };
 
 
     NotebookList.prototype.add_name_input = function (nbname, item) {
