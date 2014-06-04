@@ -8,6 +8,7 @@ import hashlib
 
 from IPython.utils import path
 from IPython.utils.traitlets import Unicode
+from IPython.utils.py3compat import str_to_bytes
 from .base import Preprocessor
 
 class CSSHTMLHeaderPreprocessor(Preprocessor):
@@ -80,5 +81,5 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
         """Compute the hash of a file."""
         md5 = hashlib.md5()
         with open(filename) as f:
-            md5.update(f.read())
+            md5.update(str_to_bytes(f.read()))
         return md5.digest()
