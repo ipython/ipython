@@ -234,7 +234,7 @@ var IPython = (function (IPython) {
 
     MarkdownCell.options_default = {
         cm_config: {
-            mode: 'gfm'
+            mode: 'ipythongfm'
         },
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     };
