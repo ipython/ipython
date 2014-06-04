@@ -35,8 +35,17 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.model.on('change:_titles', function(model, value, options) {
                 this.update_titles(value);
             }, this);
+            var that = this;
             this.model.on('displayed', function() {
                 this.update_titles();
+                // Trigger model displayed events for any models that are child to 
+                // this model when this model is displayed.
+                that.is_displayed = true;
+                for (var property in that.child_views) {
+                    if (that.child_views.hasOwnProperty(property)) {
+                        that.child_views[property].model.trigger('displayed');
+                    }
+                }
             }, this);
         },
 
@@ -125,6 +134,11 @@ define(["widgets/js/widget"], function(WidgetManager){
 
             this.update();
             this.update_titles();
+
+            // Trigger the displayed event if this model is displayed.
+            if (this.is_displayed) {
+                model.trigger('displayed');
+            }
         },
     });
     WidgetManager.register_widget_view('AccordionView', AccordionView);
@@ -153,6 +167,17 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.model.on('change:_children', function(model, value, options) {
                 this.update_children(model.previous('_children'), value);
             }, this);
+
+            // Trigger model displayed events for any models that are child to 
+            // this model when this model is displayed.
+            this.model.on('displayed', function(){
+                that.is_displayed = true;
+                for (var property in that.child_views) {
+                    if (that.child_views.hasOwnProperty(property)) {
+                        that.child_views[property].model.trigger('displayed');
+                    }
+                }
+            });
         },
 
         update_children: function(old_list, new_list) {
@@ -206,6 +231,11 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .append(view.$el)
                 .appendTo(this.$tab_contents);
             view.parent_container = contents_div;
+
+            // Trigger the displayed event if this model is displayed.
+            if (this.is_displayed) {
+                model.trigger('displayed');
+            }
         },
 
         update: function(options) {

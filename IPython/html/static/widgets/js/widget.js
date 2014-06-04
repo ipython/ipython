@@ -313,6 +313,7 @@ function(WidgetManager, _, Backbone){
             if (view !== undefined) {
                 delete this.child_views[child_model.id];
                 view.remove();
+                child_model.views.pop(view);
             }
         },
 

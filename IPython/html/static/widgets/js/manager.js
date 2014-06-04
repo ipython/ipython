@@ -120,7 +120,6 @@
                 var parameters = {model: model, options: options};
                 view = new ViewType(parameters);
                 view.render();
-                model.views.push(view);
                 model.on('destroy', view.remove, view);
                 return view;
             }
@@ -198,9 +197,13 @@
 
         WidgetManager.prototype._handle_comm_open = function (comm, msg) {
             // Handle when a comm is opened.
+            var that = this;
             var model_id = comm.comm_id;
             var widget_type_name = msg.content.target_name;
             var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
+            widget_model.on('comm:close', function () {
+              delete that._models[model_id];
+            });
             this._models[model_id] = widget_model;
         };
         
