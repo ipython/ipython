@@ -1,18 +1,10 @@
-"""IPython Notebook Exporter class"""
+"""NotebookExporter class"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 from .exporter import Exporter
 from IPython.nbformat import current as nbformat
-
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class NotebookExporter(Exporter):
     """
@@ -27,5 +19,3 @@ class NotebookExporter(Exporter):
         nb_copy, resources = super(NotebookExporter, self).from_notebook_node(nb, resources, **kw)
         output = nbformat.writes_json(nb_copy)
         return output, resources
-
-

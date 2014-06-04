@@ -1,32 +1,15 @@
-"""
-Module with tests for notebook.py
-"""
+"""Tests for notebook.py"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 from .base import ExportersTestsBase
 from ..notebook import NotebookExporter
-
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestNotebookExporter(ExportersTestsBase):
     """Contains test functions for notebook.py"""
 
     exporter_class = NotebookExporter
-
-    def test_constructor(self):
-        """
-        Can a NotebookExporter be constructed?
-        """
-        NotebookExporter()
-
 
     def test_export(self):
         """
@@ -37,4 +20,3 @@ class TestNotebookExporter(ExportersTestsBase):
         (output, resources) = NotebookExporter().from_filename(self._get_notebook())
         assert len(output) > 0
         assert output == file_contents
-
