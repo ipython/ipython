@@ -20,7 +20,7 @@ import re
 #-----------------------------------------------------------------------------
 
 LATEX_RE_SUBS = (
-    (re.compile(r'\.\.\.+'), r'\\ldots'),
+    (re.compile(r'\.\.\.+'), r'{\\ldots}'),
 )
 
 # Latex substitutions for escaping latex.
