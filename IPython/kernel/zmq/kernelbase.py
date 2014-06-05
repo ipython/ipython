@@ -47,7 +47,7 @@ ipython_version = release.version
 language_version = sys.version.split()[0]
 
 
-class Kernel(Configurable):
+class KernelBase(Configurable):
 
     #---------------------------------------------------------------------------
     # Kernel interface
@@ -137,7 +137,7 @@ class Kernel(Configurable):
 
 
     def __init__(self, **kwargs):
-        super(Kernel, self).__init__(**kwargs)
+        super(KernelBase, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
         self.shell = self.shell_class.instance(parent=self,
