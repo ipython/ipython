@@ -257,12 +257,10 @@ class JSController(TestController):
     def wait(self, *pargs, **kwargs):
         """Wait for the JSController to finish"""
         ret = super(JSController, self).wait(*pargs, **kwargs)
-        # If this is a SlimerJS controller, echo the captured output.
+        # If this is a SlimerJS controller, check the captured stdout for
+        # errors.  Otherwise, just return the return code.
         if self.engine == 'slimerjs':
-            # Echo captured output.
             stdout = bytes_to_str(self.stdout)
-            print(stdout)
-            # Return True if a failure occured.
             return self.slimer_failure.search(strip_ansi(stdout))
         else:
             return ret
@@ -376,7 +374,7 @@ def prepare_controllers(options):
         else:
             js_testgroups = all_js_groups()
 
-    engine = 'phantomjs' if have['phantomjs'] and not options.slimerjs else 'slimerjs'
+    engine = 'slimerjs' if options.slimerjs else 'phantomjs'
     c_js = [JSController(name, engine=engine) for name in js_testgroups]
     c_py = [PyTestController(name, options) for name in py_testgroups]
 

@@ -17,7 +17,7 @@ casper.notebook_test(function () {
     this.then(function () {
         if (this.slimerjs) {
             // When running in xvfb, the Slimer window doesn't always have focus
-            // immediately.  By clicking on a new element on the page we ccan force
+            // immediately.  By clicking on a new element on the page we can force
             // it to gain focus.
             this.click_cell_editor(1);
             this.click_cell_editor(0);

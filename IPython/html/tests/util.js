@@ -464,7 +464,7 @@ casper.notebook_test = function(test) {
     }
     
     // Make sure to remove the onbeforeunload callback.  This callback is 
-    // responsable for the "Are you sure you want to quit?" type messages.
+    // responsible for the "Are you sure you want to quit?" type messages.
     // PhantomJS ignores these prompts, SlimerJS does not which causes hangs.
     this.then(function(){
         this.evaluate(function(){
