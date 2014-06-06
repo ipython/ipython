@@ -218,6 +218,8 @@ def all_js_groups():
 class JSController(TestController):
     """Run CasperJS tests """
     requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3']
+    display_slimer_output = False
+
     def __init__(self, section, enabled=True, engine='phantomjs'):
         """Create new test runner."""
         TestController.__init__(self)
@@ -249,10 +251,13 @@ class JSController(TestController):
 
     def launch(self, buffer_output):
         # If the engine is SlimerJS, we need to buffer the output because
-        # SlimerJS does not support exit codes, therefor CasperJS always returns
-        # 0 which is a false positive.
-        buffer_output = (self.engine == 'slimerjs') or buffer_output
-        super(JSController, self).launch(buffer_output=buffer_output)
+        # SlimerJS does not support exit codes, so CasperJS always returns 0.
+        if self.engine == 'slimerjs' and not buffer_output:
+            self.display_slimer_output = True
+            return super(JSController, self).launch(buffer_output=True)
+
+        else:
+            return super(JSController, self).launch(buffer_output=buffer_output)
 
     def wait(self, *pargs, **kwargs):
         """Wait for the JSController to finish"""
@@ -261,8 +266,12 @@ class JSController(TestController):
         # errors.  Otherwise, just return the return code.
         if self.engine == 'slimerjs':
             stdout = bytes_to_str(self.stdout)
-            print(stdout)
-            return self.slimer_failure.search(strip_ansi(stdout))
+            if self.display_slimer_output:
+                print(stdout)
+            if ret != 0:
+                # This could still happen e.g. if it's stopped by SIGINT
+                return ret
+            return bool(self.slimer_failure.search(strip_ansi(stdout)))
         else:
             return ret
 
