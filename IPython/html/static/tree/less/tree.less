@@ -11,14 +11,14 @@
 // are not less variables so we have to track them statically.
 @btn_small_height: 24px;
 @btn_mini_height: 22px;
-@dark_dashboard_color: darken(@border_color, 30%);
+@dark_dashboard_color: @breadcrumb-color;
 
 ul#tabs {
     margin-bottom: @dashboard_tb_pad;
 }
 
 ul#tabs a {
-    padding-top: @dashboard_tb_pad;
+    padding-top: @dashboard_tb_pad + 2px;
     padding-bottom: @dashboard_tb_pad;
 }
 

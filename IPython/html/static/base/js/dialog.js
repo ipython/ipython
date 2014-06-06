@@ -128,7 +128,7 @@ IPython.dialog = (function (IPython) {
             autoIndent: true,
             mode: 'application/json',
         });
-        IPython.dialog.modal({
+        var modal = IPython.dialog.modal({
             title: "Edit " + name + " Metadata",
             body: dialogform,
             buttons: {
@@ -149,7 +149,8 @@ IPython.dialog = (function (IPython) {
                 Cancel: {}
             }
         });
-        editor.refresh();
+
+        modal.on('shown.bs.modal', function(){ editor.refresh(); });
     };
     
     return {

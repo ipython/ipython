@@ -75,7 +75,7 @@ var IPython = (function (IPython) {
         ).append(
             $("<br/>")
         ).append(
-            $('<input/>').attr('type','text').attr('size','25')
+            $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
             .val(IPython.notebook.get_notebook_name())
         );
         IPython.dialog.modal({
