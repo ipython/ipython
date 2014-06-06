@@ -261,6 +261,7 @@ class JSController(TestController):
         # errors.  Otherwise, just return the return code.
         if self.engine == 'slimerjs':
             stdout = bytes_to_str(self.stdout)
+            print(stdout)
             return self.slimer_failure.search(strip_ansi(stdout))
         else:
             return ret
