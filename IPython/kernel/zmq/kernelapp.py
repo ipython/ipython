@@ -25,7 +25,7 @@ from IPython.core.shellapp import (
 from IPython.utils import io
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
-    Any, Instance, Dict, Unicode, Integer, Bool, DottedObjectName,
+    Any, Instance, Dict, Unicode, Integer, Bool, DottedObjectName, Type,
 )
 from IPython.utils.importstring import import_item
 from IPython.kernel import write_connection_file
@@ -102,7 +102,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     flags = Dict(kernel_flags)
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
-    kernel_class = DottedObjectName('IPython.kernel.zmq.ipkernel.Kernel', config=True,
+    kernel_class = Type('IPython.kernel.zmq.ipkernel.Kernel', config=True,
     help="""The Kernel subclass to be used.
     
     This should allow easy re-use of the IPKernelApp entry point
