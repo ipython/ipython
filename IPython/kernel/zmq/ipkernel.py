@@ -68,6 +68,10 @@ class Kernel(KernelBase):
     def banner(self):
         return self.shell.banner
 
+    def start(self):
+        self.shell.exit_now = False
+        super(Kernel, self).start()
+
     def set_parent(self, ident, parent):
         """Overridden from parent to tell the display hook and output streams
         about the parent message.

@@ -225,7 +225,6 @@ class KernelBase(Configurable):
 
     def start(self):
         """register dispatchers for streams"""
-        self.shell.exit_now = False
         if self.control_stream:
             self.control_stream.on_recv(self.dispatch_control, copy=False)
 
@@ -374,6 +373,12 @@ class KernelBase(Configurable):
 
         self._publish_status(u'idle', parent)
 
+    def do_execute(self, code, silent, store_history=True,
+                   user_experssions=None, allow_stdin=False):
+        """Execute user code. Must be overridden by subclasses.
+        """
+        raise NotImplementedError
+
     def complete_request(self, stream, ident, parent):
         content = parent['content']
         code = content['code']
@@ -385,6 +390,15 @@ class KernelBase(Configurable):
                                            matches, parent, ident)
         self.log.debug("%s", completion_msg)
 
+    def do_complete(self, code, cursor_pos):
+        """Override in subclasses to find completions.
+        """
+        return {'matches' : [],
+                'cursor_end' : cursor_pos,
+                'cursor_start' : cursor_pos,
+                'metadata' : {},
+                'status' : 'ok'}
+
     def inspect_request(self, stream, ident, parent):
         content = parent['content']
         
@@ -395,6 +409,11 @@ class KernelBase(Configurable):
         msg = self.session.send(stream, 'inspect_reply',
                                 reply_content, parent, ident)
         self.log.debug("%s", msg)
+
+    def do_inspect(self, code, cursor_pos, detail_level=0):
+        """Override in subclasses to allow introspection.
+        """
+        return {'status': 'ok', 'data':{}, 'metadata':{}, 'found':False}
 
     def history_request(self, stream, ident, parent):
         # We need to pull these out, as passing **kwargs doesn't work with
@@ -415,6 +434,12 @@ class KernelBase(Configurable):
         msg = self.session.send(stream, 'history_reply',
                                 reply_content, parent, ident)
         self.log.debug("%s", msg)
+
+    def do_history(self, hist_access_type, output, raw, session=None, start=None,
+                   stop=None, n=None, pattern=None, unique=False):
+        """Override in subclasses to access history.
+        """
+        return {'history': []}
 
     def connect_request(self, stream, ident, parent):
         if self._recorded_ports is not None:
@@ -454,6 +479,12 @@ class KernelBase(Configurable):
         loop = ioloop.IOLoop.instance()
         loop.add_timeout(time.time()+0.1, loop.stop)
 
+    def do_shutdown(self, restart):
+        """Override in subclasses to do things when the frontend shuts down the
+        kernel.
+        """
+        return {'status': 'ok', 'restart': restart}
+
     #---------------------------------------------------------------------------
     # Engine methods
     #---------------------------------------------------------------------------
@@ -488,6 +519,11 @@ class KernelBase(Configurable):
 
         self._publish_status(u'idle', parent)
 
+    def do_apply(self, content, bufs, msg_id, reply_metadata):
+        """Override in subclasses to support the IPython parallel framework.
+        """
+        raise NotImplementedError
+
     #---------------------------------------------------------------------------
     # Control messages
     #---------------------------------------------------------------------------
@@ -512,6 +548,13 @@ class KernelBase(Configurable):
         content = self.do_clear()
         self.session.send(stream, 'clear_reply', ident=idents, parent=parent,
                 content = content)
+
+    def do_clear(self):
+        """Override in subclasses to clear the namespace
+        
+        This is only required for IPython.parallel.
+        """
+        raise NotImplementedError
 
     #---------------------------------------------------------------------------
     # Protected interface
