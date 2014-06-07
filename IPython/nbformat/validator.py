@@ -37,11 +37,11 @@ def validate(nbjson):
         schema_json = json.load(fh)
 
     # resolve internal references
-    v3schema = resolve_ref(schema_json)
-    v3schema = jsonpointer.resolve_pointer(v3schema, '/notebook')
+    schema = resolve_ref(schema_json)
+    schema = jsonpointer.resolve_pointer(schema, '/notebook')
 
     # count how many errors there are
-    v = Draft3Validator(v3schema)
+    v = Draft4Validator(schema)
     errors = list(v.iter_errors(nbjson))
     return errors
 
