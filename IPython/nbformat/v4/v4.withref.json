@@ -244,7 +244,7 @@
                 },
                 "text/plain": {
                     "description": "The stream's text output, represented as an array of strings.",
-                    "type": ["string", "array"]
+                    "oneOf": {"$ref": "/definitions/misc/multiline_string"}
                 }
             }
         },
@@ -293,7 +293,7 @@
             },
             "source": {
                 "description": "Contents of the cell, represented as an array of lines.",
-                "type": ["string", "array"]
+                "oneOf": {"$ref": "/definitions/misc/multiline_string"}
             },
             "prompt_number": {
                 "description": "The code cell's prompt number. Will be null if the cell has not been run.",
@@ -303,14 +303,21 @@
             "mimetype": {
                 "^[a-zA-Z0-9+-]+/[a-zA-Z0-9+-]+$": {
                     "description": "The cell's mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
-                    "type": ["string", "array"]
+                    "oneOf": {"$ref": "/definitions/misc/multiline_string"}
                 }
             },
             "output_metadata": {
                 "description": "Cell output metadata.",
                 "type": "object",
                 "additionalProperties": true
-            }
+            },
+            "multiline_string": [
+                {"type": "string"},
+                {
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            ]
         }
     }
 }
