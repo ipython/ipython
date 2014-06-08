@@ -55,7 +55,14 @@ class RevealHelpPreprocessor(Preprocessor):
                     worksheet.cells[index - 1].metadata.slide_helper = 'slide_end'
                 if cell.metadata.slide_type in ['subslide']:
                     worksheet.cells[index - 1].metadata.slide_helper = 'subslide_end'
-
+                if cell.metadata.slide_type in ['fragment']:
+                    try:
+                        i = 1
+                        while 1:
+                            worksheet.cells[index + i].metadata.frag_helper = 'fragment_end'
+                            i += 1
+                    except IndexError as e:
+                        pass #Last cell doesn't have a next one
 
         if not isinstance(resources['reveal'], dict):
             resources['reveal'] = {}

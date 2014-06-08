@@ -10,7 +10,13 @@
     <section>
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['-'] -%}
-    {{ super() }}
+    {%- if cell.metadata.frag_helper in ['fragment_end'] -%}
+        <div class="fragment">
+        {{ super() }}
+        </div>
+    {%- else -%}
+        {{ super() }}
+    {%- endif -%}
 {%- elif cell.metadata.slide_type in ['skip'] -%}
     <div style=display:none>
     {{ super() }}
