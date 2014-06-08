@@ -65,8 +65,8 @@ class RevealHelpPreprocessor(Preprocessor):
                         worksheet.cells[index + i].metadata.frag_number = index
                         i += 1
                 #Restart the slide_helper when the cell status is changed
-                #to "do nothing".
-                if cell.metadata.slide_type in ['-']:
+                #to other types.
+                if cell.metadata.slide_type in ['-', 'skip', 'notes', 'fragment']:
                     worksheet.cells[index - 1].metadata.slide_helper = '-'
 
         if not isinstance(resources['reveal'], dict):
