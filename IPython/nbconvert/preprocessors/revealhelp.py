@@ -49,20 +49,22 @@ class RevealHelpPreprocessor(Preprocessor):
                 #Make sure the cell has slideshow metadata.
                 cell.metadata.slide_type = cell.get('metadata', {}).get('slideshow', {}).get('slide_type', '-')
 
-                #Get the slide type.  If type is start of subslide or slide,
+                #Get the slide type. If type is start of subslide or slide,
                 #end the last subslide/slide.
                 if cell.metadata.slide_type in ['slide']:
                     worksheet.cells[index - 1].metadata.slide_helper = 'slide_end'
                 if cell.metadata.slide_type in ['subslide']:
                     worksheet.cells[index - 1].metadata.slide_helper = 'subslide_end'
+                #Prevent the rendering of "do nothing" cells before fragments
                 if cell.metadata.slide_type in ['fragment']:
-                    try:
-                        i = 1
-                        while 1:
-                            worksheet.cells[index + i].metadata.frag_helper = 'fragment_end'
-                            i += 1
-                    except IndexError as e:
-                        pass #Last cell doesn't have a next one
+                    i = 1
+                    while i < len(worksheet.cells) - index:
+                        worksheet.cells[index + i].metadata.frag_helper = 'fragment_end'
+                        i += 1
+                #Restart the slide_helper when the cell status is changed
+                #to "do nothing".
+                if cell.metadata.slide_type in ['-']:
+                    worksheet.cells[index - 1].metadata.slide_helper = '-'
 
         if not isinstance(resources['reveal'], dict):
             resources['reveal'] = {}
