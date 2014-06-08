@@ -56,10 +56,13 @@ class RevealHelpPreprocessor(Preprocessor):
                 if cell.metadata.slide_type in ['subslide']:
                     worksheet.cells[index - 1].metadata.slide_helper = 'subslide_end'
                 #Prevent the rendering of "do nothing" cells before fragments
+                #Group fragments passing frag_number to the data-fragment-index
                 if cell.metadata.slide_type in ['fragment']:
+                    worksheet.cells[index].metadata.frag_number = index
                     i = 1
                     while i < len(worksheet.cells) - index:
                         worksheet.cells[index + i].metadata.frag_helper = 'fragment_end'
+                        worksheet.cells[index + i].metadata.frag_number = index
                         i += 1
                 #Restart the slide_helper when the cell status is changed
                 #to "do nothing".
