@@ -761,8 +761,8 @@ button.close{padding:0;cursor:pointer;background:transparent;border:0;-webkit-ap
 .modal-header{padding:15px;border-bottom:1px solid #e5e5e5;min-height:16.428571429px}
 .modal-header .close{margin-top:-2px}
 .modal-title{margin:0;line-height:1.428571429}
-.modal-body{position:relative;padding:20px}
-.modal-footer{margin-top:15px;padding:19px 20px 20px;text-align:right;border-top:1px solid #e5e5e5}.modal-footer .btn+.btn{margin-left:5px;margin-bottom:0}
+.modal-body{position:relative;padding:15px}
+.modal-footer{margin-top:15px;padding:14px 15px 15px;text-align:right;border-top:1px solid #e5e5e5}.modal-footer .btn+.btn{margin-left:5px;margin-bottom:0}
 .modal-footer .btn-group .btn+.btn{margin-left:-1px}
 .modal-footer .btn-block+.btn-block{margin-left:0}
 @media (min-width:768px){.modal-dialog{width:600px;margin:30px auto} .modal-content{-webkit-box-shadow:0 5px 15px rgba(0,0,0,0.5);box-shadow:0 5px 15px rgba(0,0,0,0.5)} .modal-sm{width:300px}}@media (min-width:992px){.modal-lg{width:900px}}.tooltip{position:absolute;z-index:1030;display:block;visibility:visible;font-size:12px;line-height:1.4;opacity:0;filter:alpha(opacity=0)}.tooltip.in{opacity:.9;filter:alpha(opacity=90)}
@@ -1240,7 +1240,6 @@ a .icon-rotate-90:before,a .icon-rotate-180:before,a .icon-rotate-270:before,a .
 .icon-vk:before{content:"\f189"}
 .icon-weibo:before{content:"\f18a"}
 .icon-renren:before{content:"\f18b"}
-.modal-footer{padding:7px}
 .modal.fade .modal-dialog{-webkit-transform:translate(0, 0);-ms-transform:translate(0, 0);transform:translate(0, 0)}
 code{color:#000}
 pre{font-size:inherit;line-height:inherit}
@@ -1475,7 +1474,7 @@ p{margin-bottom:0}
 .ctb_global_show .ctb_show.ctb_hideshow{display:block}
 .ctb_global_show .ctb_show+.input_area,.ctb_global_show .ctb_show+div.text_cell_input{border-top-right-radius:0;border-top-left-radius:0}
 .celltoolbar{font-size:87%;padding-top:3px}
-.celltoolbar select{font-size:87%}
+.celltoolbar select{font-size:87%;height:22px}
 .celltoolbar label{margin-left:5px;margin-right:5px}
 .completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;border-radius:4px;-webkit-box-shadow:0 6px 10px -1px #adadad;box-shadow:0 6px 10px -1px #adadad}
 .completions select{background:#fff;outline:none;border:none;padding:0;margin:0;overflow:auto;font-family:monospace;font-size:110%;color:#000;width:auto}
