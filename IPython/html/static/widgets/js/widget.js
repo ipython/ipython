@@ -283,7 +283,8 @@ function(WidgetManager, _, Backbone){
             // Public constructor.
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.child_views = [];
+            this.child_model_views = {};
+            this.child_views = {};
             this.model.views.push(this);
         },
 
@@ -303,17 +304,34 @@ function(WidgetManager, _, Backbone){
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
             var child_view = this.model.widget_manager.create_view(child_model, options || {}, this);
-            this.child_views[child_model.id] = child_view;
+            
+            // Associate the view id with the model id.
+            if (this.child_model_views[child_model.id] === undefined) {
+                this.child_model_views[child_model.id] = [];
+            }
+            this.child_model_views[child_model.id].push(child_view.id);
+
+            // Remember the view by id.
+            this.child_views[child_view.id] = child_view;
             return child_view;
         },
 
         delete_child_view: function(child_model, options) {
             // Delete a child view that was previously created using create_child_view.
-            var view = this.child_views[child_model.id];
-            if (view !== undefined) {
-                delete this.child_views[child_model.id];
-                view.remove();
-                child_model.views.pop(view);
+            var view_ids = this.child_model_views[child_model.id];
+            if (view_ids !== undefined) {
+
+                // Remove every view associate with the model id.
+                for (var i =0; i < view_ids.length; i++) {
+                    var view_id = view_ids[i];
+                    var view = this.child_views[view_id];
+                    views.remove();
+                    delete this.child_views[view_id];
+                    child_model.views.pop(view);
+                }
+
+                // Remove the view list specific to this model.
+                delete this.child_model_views[child_model.id];
             }
         },
 
@@ -332,14 +350,36 @@ function(WidgetManager, _, Backbone){
 
 
             // removed items
-            _.each(_.difference(old_list, new_list), function(item, index, list) {
+            _.each(this.difference(old_list, new_list), function(item, index, list) {
                 removed_callback(item);
             }, this);
 
             // added items
-            _.each(_.difference(new_list, old_list), function(item, index, list) {
+            _.each(this.difference(new_list, old_list), function(item, index, list) {
                 added_callback(item);
             }, this);
+        },
+
+        difference: function(a, b) {
+            // Calculate the difference of two lists by contents.
+            //
+            // This function is like the underscore difference function
+            // except it will not fail when given a list with duplicates.
+            // i.e.:
+            //    diff([1, 2, 2, 3], [3, 2])
+            //    Underscores results:
+            //        [1]
+            //    This method:
+            //        [1, 2]
+            var contents = a.slice(0);
+            var found_index;
+            for (var i = 0; i < b.length; i++) {
+                found_index = _.indexOf(contents, b[i]);
+                if (found_index >= 0) {
+                    contents.splice(found_index, 1);
+                }
+            }
+            return contents;
         },
 
         callbacks: function(){
@@ -411,16 +451,16 @@ function(WidgetManager, _, Backbone){
      
             var css = this.model.get('_css');
             if (css === undefined) {return;}
-            for (var i = 0; i < css.length; i++) {
+            var that = this;
+            _.each(css, function(css_traits, selector){
                 // Apply the css traits to all elements that match the selector.
-                var selector = css[i][0];
-                var elements = this._get_selector_element(selector);
+                var elements = that._get_selector_element(selector);
                 if (elements.length > 0) {
-                    var trait_key = css[i][1];
-                    var trait_value = css[i][2];
-                    elements.css(trait_key ,trait_value);
+                    _.each(css_traits, function(css_value, css_key){
+                        elements.css(css_key, css_value);
+                    });
                 }
-            }
+            });
         },
 
         _get_selector_element: function (selector) {
