@@ -15,7 +15,7 @@ Contains tests class for validator.py
 import os
 
 from .base import TestsBase
-from IPython.external.jsonschema import SchemaError
+from jsonschema import SchemaError
 from ..current import read
 from ..validator import schema_path, isvalid, validate, resolve_ref
 
