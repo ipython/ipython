@@ -393,8 +393,15 @@ class InteractiveShell(SingletonConfigurable):
             '"\e[B": history-search-forward',
             '"\C-k": kill-line',
             '"\C-u": unix-line-discard',
-        ], allow_none=False, config=True)
-
+        ], config=True)
+    
+    _custom_readline_config = False
+    
+    def _readline_parse_and_bind_changed(self, name, old, new):
+        # notice that readline config is customized
+        # indicates that it should have higher priority than inputrc
+        self._custom_readline_config = True
+    
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
                                   default_value='last_expr', config=True, 
                                   help="""
@@ -1877,6 +1884,17 @@ class InteractiveShell(SingletonConfigurable):
             else:
                 self.readline_startup_hook = readline.set_startup_hook
 
+            # Readline config order:
+            # - IPython config (default value)
+            # - custom inputrc
+            # - IPython config (user customized)
+            
+            # load IPython config before inputrc if default
+            # skip if libedit because parse_and_bind syntax is different
+            if not self._custom_readline_config and not readline.uses_libedit:
+                for rlcommand in self.readline_parse_and_bind:
+                    readline.parse_and_bind(rlcommand)
+
             # Load user's initrc file (readline config)
             # Or if libedit is used, load editrc.
             inputrc_name = os.environ.get('INPUTRC')
@@ -1891,14 +1909,10 @@ class InteractiveShell(SingletonConfigurable):
                 except:
                     warn('Problems reading readline initialization file <%s>'
                          % inputrc_name)
-
-            # Configure readline according to user's prefs
-            # This is only done if GNU readline is being used.  If libedit
-            # is being used (as on Leopard) the readline config is
-            # not run as the syntax for libedit is different.
-            if not readline.uses_libedit:
+            
+            # load IPython config after inputrc if user has customized
+            if self._custom_readline_config:
                 for rlcommand in self.readline_parse_and_bind:
-                    #print "loading rl:",rlcommand  # dbg
                     readline.parse_and_bind(rlcommand)
 
             # Remove some chars from the delimiters list.  If we encounter
