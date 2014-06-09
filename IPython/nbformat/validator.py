@@ -2,7 +2,8 @@ from __future__ import print_function
 import json
 import os
 
-from jsonschema import Draft4Validator, SchemaError
+from jsonschema import SchemaError
+from jsonschema import Draft3Validator as Validator
 import jsonpointer as jsonpointer
 from IPython.utils.py3compat import iteritems
 
@@ -41,7 +42,7 @@ def validate(nbjson):
     schema = jsonpointer.resolve_pointer(schema, '/notebook')
 
     # count how many errors there are
-    v = Draft4Validator(schema)
+    v = Validator(schema)
     errors = list(v.iter_errors(nbjson))
     return errors
 
