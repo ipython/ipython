@@ -1472,6 +1472,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                 self._control.setFocus()
             else:
                 self.layout().setCurrentWidget(self._control)
+                # re-enable buffer truncation after paging
+                self._control.document().setMaximumBlockCount(self.buffer_size)
             return True
 
         elif key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return,
@@ -1903,6 +1905,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             if self.paging == 'custom':
                 self.custom_page_requested.emit(text)
             else:
+                # disable buffer truncation during paging
+                self._control.document().setMaximumBlockCount(0)
                 self._page_control.clear()
                 cursor = self._page_control.textCursor()
                 if html:
