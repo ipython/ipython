@@ -50,7 +50,7 @@ IPython.dialog = (function (IPython) {
         for (var label in options.buttons) {
             var btn_opts = options.buttons[label];
             var button = $("<button/>")
-                .addClass("btn btn-default")
+                .addClass("btn btn-default btn-sm")
                 .attr("data-dismiss", "modal")
                 .text(label);
             if (btn_opts.click) {
