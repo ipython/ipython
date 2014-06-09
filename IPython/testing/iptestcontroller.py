@@ -20,12 +20,14 @@ import signal
 import sys
 import subprocess
 import time
+import re
 
 from .iptest import have, test_group_names as py_test_group_names, test_sections, StreamCapturer
 from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.nbconvert.filters.ansi import strip_ansi
 
 try:
     # Python >= 3.3
@@ -133,6 +135,7 @@ class TestController(object):
 
     __del__ = cleanup
 
+
 class PyTestController(TestController):
     """Run Python tests using IPython.testing.iptest"""
     #: str, Python command to execute in subprocess
@@ -199,6 +202,7 @@ class PyTestController(TestController):
         self.cmd[2] = self.pycmd
         super(PyTestController, self).launch(buffer_output=buffer_output)
 
+
 js_prefix = 'js/'
 
 def get_js_test_dir():
@@ -214,15 +218,19 @@ def all_js_groups():
 class JSController(TestController):
     """Run CasperJS tests """
     requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3']
-    def __init__(self, section, enabled=True):
+    display_slimer_output = False
+
+    def __init__(self, section, enabled=True, engine='phantomjs'):
         """Create new test runner."""
         TestController.__init__(self)
+        self.engine = engine
         self.section = section
         self.enabled = enabled
+        self.slimer_failure = re.compile('^FAIL.*', flags=re.MULTILINE)
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
         test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
-        self.cmd = ['casperjs', 'test', includes, test_cases]
+        self.cmd = ['casperjs', 'test', includes, test_cases, '--engine=%s' % self.engine]
 
     def setup(self):
         self.ipydir = TemporaryDirectory()
@@ -240,13 +248,39 @@ class JSController(TestController):
         else:
             # don't launch tests if the server didn't start
             self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
-    
+
+    def launch(self, buffer_output):
+        # If the engine is SlimerJS, we need to buffer the output because
+        # SlimerJS does not support exit codes, so CasperJS always returns 0.
+        if self.engine == 'slimerjs' and not buffer_output:
+            self.display_slimer_output = True
+            return super(JSController, self).launch(buffer_output=True)
+
+        else:
+            return super(JSController, self).launch(buffer_output=buffer_output)
+
+    def wait(self, *pargs, **kwargs):
+        """Wait for the JSController to finish"""
+        ret = super(JSController, self).wait(*pargs, **kwargs)
+        # If this is a SlimerJS controller, check the captured stdout for
+        # errors.  Otherwise, just return the return code.
+        if self.engine == 'slimerjs':
+            stdout = bytes_to_str(self.stdout)
+            if self.display_slimer_output:
+                print(stdout)
+            if ret != 0:
+                # This could still happen e.g. if it's stopped by SIGINT
+                return ret
+            return bool(self.slimer_failure.search(strip_ansi(stdout)))
+        else:
+            return ret
+
     def print_extra_info(self):
         print("Running tests with notebook directory %r" % self.nbdir.name)
 
     @property
     def will_run(self):
-        return self.enabled and all(have[a] for a in self.requirements)
+        return self.enabled and all(have[a] for a in self.requirements + [self.engine])
 
     def _init_server(self):
         "Start the notebook server in a separate process"
@@ -350,7 +384,8 @@ def prepare_controllers(options):
         else:
             js_testgroups = all_js_groups()
 
-    c_js = [JSController(name) for name in js_testgroups]
+    engine = 'slimerjs' if options.slimerjs else 'phantomjs'
+    c_js = [JSController(name, engine=engine) for name in js_testgroups]
     c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
@@ -454,6 +489,9 @@ def run_iptestall(options):
     inc_slow : bool
       Include slow tests, like IPython.parallel. By default, these tests aren't
       run.
+
+    slimerjs : bool
+      Use slimerjs if it's installed instead of phantomjs for casperjs tests.
 
     xunit : bool
       Produce Xunit XML output. This is written to multiple foo.xunit.xml files.
@@ -581,6 +619,8 @@ argparser.add_argument('testgroups', nargs='*',
                     'all tests.')
 argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
+argparser.add_argument('--slimerjs', action='store_true',
+                    help="Use slimerjs if it's installed instead of phantomjs for casperjs tests.")
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                     help='Run test sections in parallel. This starts as many '
                     'processes as you have cores, or you can specify a number.')

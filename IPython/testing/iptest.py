@@ -148,6 +148,8 @@ have['jinja2'] = test_for('jinja2')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['casperjs'] = is_cmd_found('casperjs')
+have['phantomjs'] = is_cmd_found('phantomjs')
+have['slimerjs'] = is_cmd_found('slimerjs')
 
 min_zmq = (2,1,11)
 

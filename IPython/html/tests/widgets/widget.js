@@ -1,9 +1,15 @@
 var xor = function (a, b) {return !a ^ !b;}; 
-var isArray = function (a) {return toString.call(a) === "[object Array]" || toString.call(a) === "[object RuntimeArray]";};
+var isArray = function (a) {
+    try {
+        return Object.toString.call(a) === "[object Array]" || Object.toString.call(a) === "[object RuntimeArray]";
+    } catch (e) {
+        return Array.isArray(a);
+    }
+};
 var recursive_compare = function(a, b) {
     // Recursively compare two objects.
     var same = true;
-    same = same && !xor(a instanceof Object, b instanceof Object);
+    same = same && !xor(a instanceof Object || typeof a == 'object', b instanceof Object || typeof b == 'object');
     same = same && !xor(isArray(a), isArray(b));
 
     if (same) {

@@ -1,7 +1,6 @@
 //
 // Utility functions for the HTML notebook's CasperJS tests.
 //
-
 casper.get_notebook_server = function () {
     // Get the URL of a notebook server on which to run tests.
     port = casper.cli.get("port");
@@ -30,6 +29,15 @@ casper.open_new_notebook = function () {
         });
         $([IPython.events]).on('status_busy.Kernel',function () {
             IPython._status = 'busy';
+        });
+    });
+
+    // Because of the asynchronous nature of SlimerJS (Gecko), we need to make
+    // sure the notebook has actually been loaded into the IPython namespace
+    // before running any tests.
+    this.waitFor(function() {
+        return this.evaluate(function () {
+            return IPython.notebook;
         });
     });
 };
@@ -409,11 +417,63 @@ casper.cell_has_class = function(index, classes) {
     }, {i : index, c: classes});
 };
 
+casper.is_cell_rendered = function (index) {
+    return this.evaluate(function(i) {
+        return !!IPython.notebook.get_cell(i).rendered;
+    }, {i:index});
+};
+
+casper.assert_colors_equal = function (hex_color, local_color, msg) {
+    // Tests to see if two colors are equal.
+    //
+    // Parameters
+    // hex_color: string
+    //      Hexadecimal color code, with or without preceeding hash character.
+    // local_color: string
+    //      Local color representation.  Can either be hexadecimal (default for 
+    //      phantom) or rgb (default for slimer).
+
+    // Remove parentheses, hashes, semi-colons, and space characters.
+    hex_color = hex_color.replace(/[\(\); #]/, '');
+    local_color = local_color.replace(/[\(\); #]/, '');
+
+    // If the local color is rgb, clean it up and replace 
+    if (local_color.substr(0,3).toLowerCase() == 'rgb') {
+        components = local_color.substr(3).split(',');
+        local_color = '';
+        for (var i = 0; i < components.length; i++) {
+            var part = parseInt(components[i]).toString(16);
+            while (part.length < 2) part = '0' + part;
+            local_color += part;
+        }
+    }
+    
+    this.test.assertEquals(hex_color.toUpperCase(), local_color.toUpperCase(), msg);
+};
+
 casper.notebook_test = function(test) {
     // Wrap a notebook test to reduce boilerplate.
     this.open_new_notebook();
-    this.then(test);
 
+    // Echo whether or not we are running this test using SlimerJS
+    if (this.evaluate(function(){
+        return typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+    })) { 
+        console.log('This test is running in SlimerJS.'); 
+        this.slimerjs = true;
+    }
+    
+    // Make sure to remove the onbeforeunload callback.  This callback is 
+    // responsible for the "Are you sure you want to quit?" type messages.
+    // PhantomJS ignores these prompts, SlimerJS does not which causes hangs.
+    this.then(function(){
+        this.evaluate(function(){
+            window.onbeforeunload = function(){};
+        });    
+    });
+
+    this.then(test);
+    
     // Kill the kernel and delete the notebook.
     this.shutdown_current_kernel();
     // This is still broken but shouldn't be a problem for now.

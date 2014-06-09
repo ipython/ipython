@@ -108,8 +108,11 @@ casper.notebook_test(function () {
 
         // Clear the int textbox value and then set it to 1 by emulating
         // keyboard presses.
-        this.cell_element_function(int_text2.index, int_text2.query, 'val', ['']);
-        this.sendKeys(int_text2.query, '1');
+        this.evaluate(function(q){
+            var textbox = IPython.notebook.element.find(q);
+            textbox.val('1');
+            textbox.trigger('keyup');
+        }, {q: int_text2.query});
     });
 
     this.wait_for_widget(int_text2);
@@ -121,8 +124,11 @@ casper.notebook_test(function () {
 
         // Clear the int textbox value and then set it to 120 by emulating
         // keyboard presses.
-        this.cell_element_function(int_text2.index, int_text2.query, 'val', ['']);
-        this.sendKeys(int_text2.query, '120');
+        this.evaluate(function(q){
+            var textbox = IPython.notebook.element.find(q);
+            textbox.val('120');
+            textbox.trigger('keyup');
+        }, {q: int_text2.query});
     });
 
     this.wait_for_widget(int_text2);
@@ -134,8 +140,11 @@ casper.notebook_test(function () {
 
         // Clear the int textbox value and then set it to 'hello world' by 
         // emulating keyboard presses.  'hello world' should get filtered...
-        this.cell_element_function(int_text2.index, int_text2.query, 'val', ['']);
-        this.sendKeys(int_text2.query, 'hello world');
+        this.evaluate(function(q){
+            var textbox = IPython.notebook.element.find(q);
+            textbox.val('hello world');
+            textbox.trigger('keyup');
+        }, {q: int_text2.query});
     });
 
     this.wait_for_widget(int_text2);
