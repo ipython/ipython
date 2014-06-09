@@ -1475,6 +1475,7 @@ p{margin-bottom:0}
 .ctb_global_show .ctb_show.ctb_hideshow{display:block}
 .ctb_global_show .ctb_show+.input_area,.ctb_global_show .ctb_show+div.text_cell_input{border-top-right-radius:0;border-top-left-radius:0}
 .celltoolbar{font-size:87%;padding-top:3px}
+.celltoolbar select{font-size:87%}
 .celltoolbar label{margin-left:5px;margin-right:5px}
 .completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;border-radius:4px;-webkit-box-shadow:0 6px 10px -1px #adadad;box-shadow:0 6px 10px -1px #adadad}
 .completions select{background:#fff;outline:none;border:none;padding:0;margin:0;overflow:auto;font-family:monospace;font-size:110%;color:#000;width:auto}
