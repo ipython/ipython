@@ -48,10 +48,50 @@ following methods and attributes:
      using :meth:`~IPython.kernel.zmq.kernelbase.KernelBase.send_response`.
      See :doc:`messaging` for details of the different message types.
 
-To launch your kernel::
+To launch your kernel, add this at the end of your module::
 
-    from IPython.kernel.zmq.kernelapp import IPKernelApp
-    IPKernelApp.launch_instance(kernel_class=MyKernel)
+    if __name__ == '__main__':
+        from IPython.kernel.zmq.kernelapp import IPKernelApp
+        IPKernelApp.launch_instance(kernel_class=MyKernel)
+
+Example
+-------
+
+``echokernel.py`` will simply echo any input it's given to stdout::
+
+    from IPython.kernel.zmq.kernelbase import KernelBase
+
+    class EchoKernel(KernelBase):
+        implementation = 'Echo'
+        implementation_version = '1.0'
+        language = 'no-op'
+        language_version = '0.1'
+        banner = "Echo kernel - as useful as a parrot"
+
+        def do_execute(self, code, silent, store_history=True, user_experssions=None,
+                       allow_stdin=False):
+            if not silent:
+                stream_content = {'name': 'stdout', 'data':code}
+                self.send_response(self.iopub_socket, 'stream', stream_content)
+
+            return {'status': 'ok',
+                    # The base class increments the execution count
+                    'execution_count': self.execution_count,
+                    'payload': [],
+                    'user_expressions': {},
+                   }
+
+    if __name__ == '__main__':
+        from IPython.kernel.zmq.kernelapp import IPKernelApp
+        IPKernelApp.launch_instance(kernel_class=EchoKernel)
+
+Here's the Kernel spec ``kernel.json`` file for this::
+
+    {"argv":["python","-m","echokernel", "-f", "{connection_file}"],
+     "display_name":"Echo",
+     "language":"no-op"
+    }
+
 
 Optional steps
 --------------
