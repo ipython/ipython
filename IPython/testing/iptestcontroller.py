@@ -27,7 +27,7 @@ from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.nbconvert.filters.ansi import strip_ansi
+from IPython.utils.text import strip_ansi
 
 try:
     # Python >= 3.3
