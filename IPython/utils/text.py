@@ -491,6 +491,17 @@ def strip_email_quotes(text):
             text = '\n'.join([ ln[strip:] for ln in lines])
     return text
 
+def strip_ansi(source):
+    """
+    Remove ansi escape codes from text.
+    
+    Parameters
+    ----------
+    source : str
+        Source to remove the ansi from
+    """
+    return re.sub(r'\033\[(\d|;)+?m', '', source)
+
 
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.

@@ -14,6 +14,7 @@
 
 import re
 from IPython.utils import coloransi
+from IPython.utils.text import strip_ansi
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -25,19 +26,6 @@ __all__ = [
     'single_ansi2latex',
     'ansi2latex'
 ]
-
-def strip_ansi(source):
-    """
-    Remove ansi from text
-    
-    Parameters
-    ----------
-    source : str
-        Source to remove the ansi from
-    """
-    
-    return re.sub(r'\033\[(\d|;)+?m', '', source)
-
 
 ansi_colormap = {
     '30': 'ansiblack',

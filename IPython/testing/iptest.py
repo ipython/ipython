@@ -147,6 +147,8 @@ have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
+have['jsonschema'] = test_for('jsonschema')
+have['jsonpointer'] = test_for('jsonpointer')
 have['casperjs'] = is_cmd_found('casperjs')
 have['phantomjs'] = is_cmd_found('phantomjs')
 have['slimerjs'] = is_cmd_found('slimerjs')
@@ -266,7 +268,7 @@ test_sections['qt'].requires('zmq', 'qt', 'pygments')
 
 # html:
 sec = test_sections['html']
-sec.requires('zmq', 'tornado', 'requests', 'sqlite3')
+sec.requires('zmq', 'tornado', 'requests', 'sqlite3', 'jsonschema', 'jsonpointer')
 # The notebook 'static' directory contains JS, css and other
 # files for web serving.  Occasionally projects may put a .py
 # file in there (MathJax ships a conf.py), so we might as
@@ -284,7 +286,7 @@ test_sections['config'].exclude('profile')
 
 # nbconvert:
 sec = test_sections['nbconvert']
-sec.requires('pygments', 'jinja2')
+sec.requires('pygments', 'jinja2', 'jsonschema', 'jsonpointer')
 # Exclude nbconvert directories containing config files used to test.
 # Executing the config files with iptest would cause an exception.
 sec.exclude('tests.files')
@@ -292,6 +294,9 @@ sec.exclude('exporters.tests.files')
 if not have['tornado']:
     sec.exclude('nbconvert.post_processors.serve')
     sec.exclude('nbconvert.post_processors.tests.test_serve')
+
+# nbformat:
+test_sections['nbformat'].requires('jsonschema', 'jsonpointer')
 
 #-----------------------------------------------------------------------------
 # Functions and classes

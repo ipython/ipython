@@ -371,7 +371,8 @@ tclass.py: deleting object: C-third
         
         with tt.AssertNotPrints('SystemExit'):
             _ip.magic('run -e %s' % self.fname)
-    
+
+    @dec.skip_without('IPython.nbformat.current')  # Requires jsonschema
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
         from IPython.nbformat import current

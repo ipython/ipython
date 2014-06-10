@@ -27,7 +27,7 @@ from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.nbconvert.filters.ansi import strip_ansi
+from IPython.utils.text import strip_ansi
 
 try:
     # Python >= 3.3
@@ -217,7 +217,8 @@ def all_js_groups():
 
 class JSController(TestController):
     """Run CasperJS tests """
-    requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3']
+    requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3',
+                     'jsonschema', 'jsonpointer']
     display_slimer_output = False
 
     def __init__(self, section, enabled=True, engine='phantomjs'):
