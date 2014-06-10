@@ -12,6 +12,7 @@
 #-----------------------------------------------------------------------------
 
 import IPython.testing.tools as tt
+from IPython.testing.decorators import skip_without
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -36,5 +37,6 @@ def test_locate_help():
 def test_locate_profile_help():
     tt.help_all_output_test("locate profile")
 
+@skip_without('IPython.nbformat.current')  # Requires jsonschema to be installed
 def test_trust_help():
     tt.help_all_output_test("trust")
