@@ -221,12 +221,12 @@ class JSController(TestController):
                      'jsonschema', 'jsonpointer']
     display_slimer_output = False
 
-    def __init__(self, section, enabled=True, engine='phantomjs'):
+    def __init__(self, section, xunit=True, engine='phantomjs'):
         """Create new test runner."""
         TestController.__init__(self)
         self.engine = engine
         self.section = section
-        self.enabled = enabled
+        self.xunit = xunit
         self.slimer_failure = re.compile('^FAIL.*', flags=re.MULTILINE)
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
@@ -240,7 +240,10 @@ class JSController(TestController):
         self.dirs.append(self.nbdir)
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
         os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
-        
+
+        if self.xunit:
+            self.add_xunit()
+
         # start the ipython notebook, so we get the port number
         self.server_port = 0
         self._init_server()
@@ -249,6 +252,10 @@ class JSController(TestController):
         else:
             # don't launch tests if the server didn't start
             self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
+
+    def add_xunit(self):
+        xunit_file = os.path.abspath(self.section.replace('/','.') + '.xunit.xml')
+        self.cmd.append('--xunit=%s' % xunit_file)
 
     def launch(self, buffer_output):
         # If the engine is SlimerJS, we need to buffer the output because
@@ -281,7 +288,7 @@ class JSController(TestController):
 
     @property
     def will_run(self):
-        return self.enabled and all(have[a] for a in self.requirements + [self.engine])
+        return all(have[a] for a in self.requirements + [self.engine])
 
     def _init_server(self):
         "Start the notebook server in a separate process"
@@ -386,7 +393,7 @@ def prepare_controllers(options):
             js_testgroups = all_js_groups()
 
     engine = 'slimerjs' if options.slimerjs else 'phantomjs'
-    c_js = [JSController(name, engine=engine) for name in js_testgroups]
+    c_js = [JSController(name, xunit=options.xunit, engine=engine) for name in js_testgroups]
     c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
