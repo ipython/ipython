@@ -1269,7 +1269,7 @@ div.error>h1{font-size:500%;line-height:normal}
 div.error>p{font-size:200%;line-height:normal}
 div.traceback-wrapper{text-align:left;max-width:800px;margin:auto}
 body{background-color:#fff;position:absolute;left:0;right:0;top:0;bottom:0;overflow:visible}
-div#header{display:none;margin-bottom:0;padding-left:30px;padding-bottom:5px;border-bottom:1px solid #e7e7e7;-webkit-box-shadow:0 1px 10px rgba(0,0,0,0.05);box-shadow:0 1px 10px rgba(0,0,0,0.05)}
+div#header{display:none;margin-bottom:0;padding-left:30px;padding-bottom:5px;border-bottom:1px solid #e7e7e7}
 #ipython_notebook{padding-left:0}
 #noscript{width:auto;padding-top:16px;padding-bottom:16px;text-align:center;font-size:22px;color:#f00;font-weight:bold}
 #ipython_notebook img{font-family:Verdana,"Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;height:24px;text-decoration:none;color:#000}
@@ -1460,7 +1460,7 @@ div.cell.text_cell.rendered{padding:0}
 body{background-color:#fff}
 body.notebook_app{overflow:hidden}
 @media (max-width:767px){body.notebook_app{padding-left:0;padding-right:0}}span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%}
-div#notebook_panel{margin:0 0 0 0;padding:0;-webkit-box-shadow:0 -1px 10px rgba(0,0,0,0.05);box-shadow:0 -1px 10px rgba(0,0,0,0.05)}
+div#notebook_panel{margin:0 0 0 0;padding:0;-webkit-box-shadow:inset 1px 4px 9px -6px rgba(0,0,0,0.25);box-shadow:inset 1px 4px 9px -6px rgba(0,0,0,0.25)}
 div#notebook{font-size:14px;line-height:20px;overflow-y:scroll;overflow-x:auto;width:100%;padding:1em 0 1em 0;margin:0;border-top:1px solid #e7e7e7;outline:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}
 div.ui-widget-content{border:1px solid #ababab;outline:none}
 pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:.4em;padding-left:2em}
@@ -1479,7 +1479,7 @@ p{margin-bottom:0}
 .completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;border-radius:4px;-webkit-box-shadow:0 6px 10px -1px #adadad;box-shadow:0 6px 10px -1px #adadad}
 .completions select{background:#fff;outline:none;border:none;padding:0;margin:0;overflow:auto;font-family:monospace;font-size:110%;color:#000;width:auto}
 .completions select option.context{color:#3071a9}
-#menubar{margin-top:0;margin-bottom:-19px;position:relative;z-index:1000;}#menubar .navbar{border-top:1px;border-radius:0 0 4px 4px}
+#menubar{margin-top:0;margin-bottom:-19px;position:relative}#menubar .navbar{border-top:1px;border-radius:0 0 4px 4px}
 #menubar li.dropdown{line-height:12px}#menubar li.dropdown a{padding-top:6px;padding-bottom:5px}
 #menubar ul.navbar-right{padding-top:2px}
 .nav-wrapper{border-bottom:1px solid #e7e7e7}
