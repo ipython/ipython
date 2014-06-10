@@ -20,8 +20,8 @@
           baseUrl: '{{static_url("", include_version=False)}}',
           paths: {
             nbextensions : '{{ base_url }}nbextensions',
-            underscore : '{{static_url("components/underscore/underscore-min.js")}}',
-            backbone : '{{static_url("components/backbone/backbone-min.js")}}',
+            underscore : 'components/underscore/underscore-min',
+            backbone : 'components/backbone/backbone-min',
           },
           shim: {
             underscore: {
@@ -75,14 +75,8 @@
 {% endblock %}
 </div>
 
-<script src="{{static_url("components/jquery/jquery.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("components/jquery-ui/ui/minified/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("components/bootstrap/js/bootstrap.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("base/js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("base/js/page.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("auth/js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
-
 {% block script %}
+<script src="{{static_url("base/js/pagemain.js") }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
 <script src="{{static_url("custom/custom.js") }}" type="text/javascript" charset="utf-8"></script>

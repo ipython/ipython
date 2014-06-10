@@ -1,13 +1,10 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Utilities
-//============================================================================
-
-IPython.namespace('IPython.utils');
-
-IPython.utils = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+], function(IPython, $){
     "use strict";
     
     IPython.load_extensions = function () {
@@ -528,8 +525,8 @@ IPython.utils = (function (IPython) {
         }
         console.log(msg);
     };
-    
-    return {
+
+    var Utils = {
         regex_split : regex_split,
         uuid : uuid,
         fixConsole : fixConsole,
@@ -553,5 +550,7 @@ IPython.utils = (function (IPython) {
         log_ajax_error : log_ajax_error,
     };
 
-}(IPython));
-
+    // Register self in the global namespace for convenience.
+    IPython.Utils = Utils;
+    return Utils;
+}); 
