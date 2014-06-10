@@ -429,8 +429,6 @@ class FileNotebookManager(NotebookManager):
         checkpoint_id = u"checkpoint"
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         self.log.debug("creating checkpoint for notebook %s", name)
-        if not os.path.exists(self.checkpoint_dir):
-            os.mkdir(self.checkpoint_dir)
         self._copy(nb_path, cp_path)
         
         # return the checkpoint info
