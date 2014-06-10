@@ -716,7 +716,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Shows a call tip, if appropriate, at the current cursor location.
         """
         # Decide if it makes sense to show a call tip
-        if not self.enable_calltips:
+        if not self.enable_calltips or not self.kernel_client.shell_channel.is_alive():
             return False
         cursor_pos = self._get_input_buffer_cursor_pos()
         code = self.input_buffer
