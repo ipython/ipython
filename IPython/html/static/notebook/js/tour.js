@@ -67,13 +67,13 @@ var tour_steps = [
     title: "Back to Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
+    onHide: function(tour) { $('#help_menu').parent().children('a').click(); },
     content: "Pressing <code>Esc</code> or clicking outside of the input text area takes you back to Command Mode."
   }, {
     element: '#keyboard_shortcuts',
     title: "Keyboard Shortcuts",
     placement: 'bottom',
-    onShow: function(tour) { $('#help_menu').parent().addClass('open'); },
-    onHide: function(tour) { $('#help_menu').parent().removeClass('open'); },
+    onHide: function(tour) { $('#help_menu').parent().children('a').click(); },
     content: "You can click here to get a list of all of the keyboard shortcuts."
   }, {
     element: "#kernel_indicator",
