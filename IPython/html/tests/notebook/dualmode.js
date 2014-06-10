@@ -47,14 +47,22 @@ casper.notebook_test(function () {
         this.evaluate(function(){
             $('#keyboard_shortcuts a').click();
         }, {});
+    });
+    // Wait for the dialog to fade in completely.
+    this.wait(1000);
+    this.then(function () {
 
         this.trigger_keydown('k');
         this.validate_notebook_state('k in command mode while keyboard help is up', 'command', 3);
 
         // Close keyboard help
         this.evaluate(function(){
-            $('div.modal button.close').click();
+            $('div.modal-footer button.btn-default').click();
         }, {});
+    });
+    // Wait for the dialog to fade out completely.
+    this.wait(1000);
+    this.then(function () {
 
         this.trigger_keydown('k');
         this.validate_notebook_state('k in command mode', 'command', 2);
