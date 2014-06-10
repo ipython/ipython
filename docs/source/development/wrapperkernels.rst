@@ -128,7 +128,9 @@ relevant section of the :doc:`messaging spec <messaging>`.
 
    .. method:: do_history(hist_access_type, output, raw, session=None, start=None, stop=None, n=None, pattern=None, unique=False)
 
-     History access
+     History access. Only the relevant parameters for the type of history
+     request concerned will be passed, so your method definition must have defaults
+     for all the arguments shown with defaults here.
 
      .. seealso::
      

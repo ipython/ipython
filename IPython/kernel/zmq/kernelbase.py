@@ -416,19 +416,9 @@ class KernelBase(Configurable):
         return {'status': 'ok', 'data':{}, 'metadata':{}, 'found':False}
 
     def history_request(self, stream, ident, parent):
-        # We need to pull these out, as passing **kwargs doesn't work with
-        # unicode keys before Python 2.6.5.
         content = parent['content']
 
-        reply_content = self.do_history(content['hist_access_type'],
-                                        content['output'], content['raw'],
-                                        content.get('session', None),
-                                        content.get('start', None),
-                                        content.get('stop', None),
-                                        content.get('n', None),
-                                        content.get('pattern', None),
-                                        content.get('unique', False),
-                                       )
+        reply_content = self.do_history(**content)
 
         reply_content = json_clean(reply_content)
         msg = self.session.send(stream, 'history_reply',
