@@ -77,7 +77,7 @@ var IPython = (function (IPython) {
         var element = $('<div/>');
 
         // The documentation
-        var doc = $('<div/>').addClass('alert');
+        var doc = $('<div/>').addClass('alert alert-warning');
         doc.append(
             $('<button/>').addClass('close').attr('data-dismiss','alert').html('&times;')
         ).append(

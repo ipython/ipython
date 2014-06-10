@@ -31,12 +31,12 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .appendTo(this.$el);
             this.$el_to_style = this.$buttongroup; // Set default element to style
             this.$droplabel = $('<button />')
-                .addClass('btn')
+                .addClass('btn btn-default')
                 .addClass('widget-combo-btn')
                 .html("&nbsp;")
                 .appendTo(this.$buttongroup);
             this.$dropbutton = $('<button />')
-                .addClass('btn')
+                .addClass('btn btn-default')
                 .addClass('dropdown-toggle')
                 .addClass('widget-combo-carrot-btn')
                 .attr('data-toggle', 'dropdown')
@@ -246,7 +246,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                     if (!$item_element.length) {
                         $item_element = $('<button/>')
                             .attr('type', 'button')
-                            .addClass('btn')
+                            .addClass('btn btn-default')
                             .html(item_html)
                             .appendTo(that.$buttongroup)
                             .attr('data-value', item)
@@ -310,7 +310,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('widget-hlabel')
                 .hide();
             this.$listbox = $('<select />')
-                .addClass('widget-listbox')
+                .addClass('widget-listbox form-control')
                 .attr('size', 6)
                 .appendTo(this.$el);
             this.$el_to_style = this.$listbox; // Set default element to style

@@ -1,4 +1,5 @@
 /* CSS for the cell toolbar */
+@celltoolbar-height: 29px;
 
 .celltoolbar {
     border: thin solid #CFCFCF;
@@ -7,7 +8,8 @@
     border-radius : 3px 3px 0px 0px;
     width:100%;
     -webkit-box-pack: end;
-    height:22px;
+    height: @celltoolbar-height;
+    padding-right: 4px;
     .hbox();
     .reverse();
 }
@@ -15,13 +17,7 @@
 .ctb_hideshow {
     display:none;
     vertical-align:bottom;
-    padding-right: 2px;
 }
-
-.celltoolbar > div {
-   padding-top: 0px;
-}
-
 
 /* ctb_show is added to the ctb_hideshow div to show the cell toolbar.
    Cell toolbars are only shown when the ctb_global_show class is also set.
@@ -37,40 +33,17 @@
     border-top-left-radius: 0px;
 }
 
-.celltoolbar .button_container select {
-    margin: 10px;
-    margin-top: 1px;
-    margin-bottom: 0px;
-    padding:0;
+.celltoolbar {
     font-size: 87%;
-    width:auto;
-    display:inline-block;
-    height:18px;
-    line-height:18px;
-    vertical-align:top;
+    padding-top: 3px;
 }
 
-.celltoolbar label{
-    display:inline-block;
-    height:15px;
-    line-height:15px;
-    vertical-align:top;
+.celltoolbar select {
+    font-size: 87%;
+    height: 22px;
 }
 
-.celltoolbar label span {
-    font-size: 85%;
-}
-
-.celltoolbar input[type=checkbox] {
-    margin: 0px;
-    margin-left: 4px;
-    margin-right: 4px;
-}
-
-
-.celltoolbar .ui-button {
-    border: none;
-    vertical-align:top;
-    height:20px;
-    min-width:30px;
+.celltoolbar label {
+    margin-left: 5px;
+    margin-right: 5px;
 }

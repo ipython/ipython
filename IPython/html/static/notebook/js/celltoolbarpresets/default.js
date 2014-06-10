@@ -27,7 +27,7 @@
     var add_raw_edit_button = function(div, cell) {
         var button_container = div;
         var button = $('<button/>')
-            .addClass("btn btn-mini")
+            .addClass("btn btn-default btn-xs")
             .text("Edit Metadata")
             .click( function () {
                 raw_edit(cell);

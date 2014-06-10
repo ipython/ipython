@@ -9,16 +9,16 @@
 @dashboard_lr_pad: 7px;
 // These are the total heights of the Bootstrap small and mini buttons. These values
 // are not less variables so we have to track them statically.
-@btn_small_height: 26px;
+@btn_small_height: 24px;
 @btn_mini_height: 22px;
-@dark_dashboard_color: darken(@border_color, 30%);
+@dark_dashboard_color: @breadcrumb-color;
 
 ul#tabs {
     margin-bottom: @dashboard_tb_pad;
 }
 
 ul#tabs a {
-    padding-top: @dashboard_tb_pad;
+    padding-top: @dashboard_tb_pad + 2px;
     padding-bottom: @dashboard_tb_pad;
 }
 
@@ -38,6 +38,11 @@ ul.breadcrumb {
 
 .list_toolbar {
     padding: @dashboard_tb_pad 0 @dashboard_tb_pad 0;
+    vertical-align: middle;
+
+    .tree-buttons {
+        padding-top: 2px;
+    }
 }
 
 .list_toolbar [class*="span"] {
@@ -73,12 +78,15 @@ ul.breadcrumb {
   a {text-decoration: none;}
 }
 
+.action_col {
+    text-align: right;
+}
+
 .list_header>div, .list_item>div {
     padding-top: @dashboard_tb_pad;
     padding-bottom: @dashboard_tb_pad;
     padding-left: @dashboard_lr_pad;
     padding-right: @dashboard_lr_pad;
-    height: @btn_mini_height;
     line-height: @btn_mini_height;
 }
 
@@ -106,7 +114,7 @@ input.nbname_input, input.engine_num_input {
     // These settings give these inputs a height that matches @btn_mini_height = 22
     padding-top: 3px;
     padding-bottom: 3px;
-    height: 14px;
+    height: @btn_mini_height;
     line-height: 14px;
     margin: 0px;
 }
@@ -125,6 +133,11 @@ input.engine_num_input {
     background-color: transparent;
     font-weight: bold;
    
+}
+
+.tab-content .row {
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 .folder_icon:before {

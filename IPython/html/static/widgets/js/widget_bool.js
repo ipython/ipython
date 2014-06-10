@@ -76,7 +76,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             // Called when view is rendered.
             var that = this;
             this.setElement($('<button />')
-                .addClass('btn')
+                .addClass('btn btn-default')
                 .attr('type', 'button')
                 .on('click', function (e) {
                     e.preventDefault();

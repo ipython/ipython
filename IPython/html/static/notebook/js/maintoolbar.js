@@ -92,7 +92,7 @@ var IPython = (function (IPython) {
                         }
                 }
             ],'move_up_down');
-
+        
 
         this.add_buttons_group([
                 {
@@ -122,11 +122,12 @@ var IPython = (function (IPython) {
                 }
             ],'run_int');
     };
-
+    
     MainToolBar.prototype.add_celltype_list = function () {
         this.element
             .append($('<select/>')
                 .attr('id','cell_type')
+                .addClass('form-control select-xs')
                 // .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
@@ -146,6 +147,7 @@ var IPython = (function (IPython) {
         var select = $('<select/>')
             // .addClass('ui-widget-content')
             .attr('id', 'ctb_select')
+            .addClass('form-control select-xs')
             .append($('<option/>').attr('value', '').text('None'));
         this.element.append(label).append(select);
         select.change(function() {
@@ -180,7 +182,7 @@ var IPython = (function (IPython) {
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
-
+        
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {

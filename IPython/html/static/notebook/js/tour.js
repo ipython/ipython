@@ -11,21 +11,15 @@
 
 var tour_steps = [
   { 
-    element: $("#ipython_notebook"),
     title: "Welcome to the Notebook Tour",
     placement: 'bottom',
+    orphan: true,
     content: "This tour will take 2 minutes.",
-    backdrop: true,
   }, {
     element: "#notebook_name",
     title: "Filename",
     placement: 'bottom',
     content: "Click here to change the filename for this notebook."
-  }, {
-    element: "#checkpoint_status",
-    title: "Checkpoint Status",
-    placement: 'bottom',
-    content: "Information about the last time this notebook was saved."
   }, {
     element: $("#menus").parent(),
     placement: 'bottom',
@@ -68,13 +62,13 @@ var tour_steps = [
     title: "Back to Command Mode",
     placement: 'bottom',
     onShow: function(tour) { IPython.notebook.command_mode(); },
+    onHide: function(tour) { $('#help_menu').parent().children('a').click(); },
     content: "Pressing <code>Esc</code> or clicking outside of the input text area takes you back to Command Mode."
   }, {
     element: '#keyboard_shortcuts',
     title: "Keyboard Shortcuts",
     placement: 'bottom',
-    onShow: function(tour) { $('#help_menu').parent().addClass('open'); },
-    onHide: function(tour) { $('#help_menu').parent().removeClass('open'); },
+    onHide: function(tour) { $('#help_menu').parent().children('a').click(); },
     content: "You can click here to get a list of all of the keyboard shortcuts."
   }, {
     element: "#kernel_indicator",
@@ -101,18 +95,17 @@ var tour_steps = [
     title: "Notification Area",
     content: "Messages in response to user actions (Save, Interrupt, etc) appear here."
   }, {
-    element: "#ipython_notebook",
     title: "Fin.",
     placement: 'bottom',
-    backdrop: true,
+    orphan: true,
     content: "This concludes the IPython Notebook User Interface Tour. Happy hacking!",
   }
 ];
 
-var tour_style = "<div class='popover tour' style='position:relative'>\
+var tour_style = "<div class='popover tour'>\
   <div class='arrow'></div>\
     <div style='position:absolute; top:7px; right:7px'>\
-        <button class='btn btn-sm icon-remove' data-role='end'></button></div>\
+        <button class='btn btn-default btn-sm icon-remove' data-role='end'></button></div>\
   <h3 class='popover-title'></h3>\
   <div class='popover-content'></div>\
   <div class='popover-navigation'>\
@@ -153,7 +146,8 @@ IPython = (function (IPython) {
             onPause: toggle_pause_play,
             onResume: toggle_pause_play,
             steps: this.tour_steps,
-            template: tour_style
+            template: tour_style,
+            orphan: true
         });
         
     };

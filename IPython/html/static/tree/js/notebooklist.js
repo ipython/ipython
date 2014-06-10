@@ -189,10 +189,10 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook_item = function (index) {
-        var item = $('<div/>').addClass("list_item").addClass("row-fluid");
+        var item = $('<div/>').addClass("list_item").addClass("row");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
-        item.append($("<div/>").addClass("span12").append(
+        item.append($("<div/>").addClass("col-md-12").append(
             $('<i/>').addClass('item_icon')
         ).append(
             $("<a/>").addClass("item_link").append(
@@ -265,7 +265,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_shutdown_button = function (item, session) {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini btn-danger").
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-danger").
             click(function (e) {
                 var settings = {
                     processData : false,
@@ -292,7 +292,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini").
+        var delete_button = $("<button/>").text("Delete").addClass("btn btn-default btn-xs").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
@@ -339,7 +339,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
-            .addClass('btn btn-primary btn-mini upload_button')
+            .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
                 var nbname = item.find('.item_name > input').val();
                 if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {
@@ -375,7 +375,7 @@ var IPython = (function (IPython) {
                 return false;
             });
         var cancel_button = $('<button/>').text("Cancel")
-            .addClass("btn btn-mini")
+            .addClass("btn btn-default btn-xs")
             .click(function (e) {
                 console.log('cancel click');
                 item.remove();

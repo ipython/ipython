@@ -13,7 +13,7 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-    $('button#login_submit').addClass("btn");
+    $('button#login_submit').addClass("btn btn-default");
     IPython.page.show();
     $('input#password_input').focus();
 

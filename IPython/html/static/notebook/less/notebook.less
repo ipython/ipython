@@ -1,6 +1,6 @@
 
 body {
-    background-color:   @bodyBackground;
+    background-color:   @body-bg;
 }
 
 body.notebook_app {
@@ -26,7 +26,7 @@ span#notebook_name {
 div#notebook_panel {
     margin: 0px 0px 0px 0px;
     padding: 0px;
-    .box-shadow(0 -1px 10px rgba(0,0,0,.1));
+    .box-shadow(@notebook-shadow);
 }
 div#notebook {
     font-size: @notebook_font_size;
@@ -37,7 +37,7 @@ div#notebook {
     /* This spaces the cell away from the edge of the notebook area */
     padding: 1em 0 1em 0;
     margin: 0px;
-    border-top: 1px solid @border_color;
+    border-top: 1px solid @navbar-default-border;
     outline: none;
     .border-box-sizing();
 }
@@ -65,7 +65,7 @@ p.dialog {
 pre, code, kbd, samp { white-space: pre-wrap; }
 
 #fonttest {
-    font-family: @monoFontFamily;
+    font-family: @font-family-monospace;
 }
 
 p {

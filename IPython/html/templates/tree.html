@@ -30,8 +30,8 @@ data-notebook-path="{{notebook_path}}"
 
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
-        <div id="notebook_toolbar" class="row-fluid">
-            <div class="span8">
+        <div id="notebook_toolbar" class="row">
+            <div class="col-md-8 no-padding">
                 <form id='alternate_upload'  class='alternate_upload' >
                     <span id="notebook_list_info" style="position:absolute" >
                         To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
@@ -39,21 +39,21 @@ data-notebook-path="{{notebook_path}}"
                     <input type="file" name="datafile" class="fileinput" multiple='multiple'>
                 </form>
             </div>
-            <div class="span4 clearfix">
+            <div class="col-md-4 no-padding tree-buttons">
                 <span id="notebook_buttons" class="pull-right">
-                    <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
-                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="new_notebook" title="Create new notebook" class="btn btn-default btn-xs">New Notebook</button>
+                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-xs"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="notebook_list">
-          <div id="notebook_list_header" class="row-fluid list_header">
+          <div id="notebook_list_header" class="row list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
-                    <li><a href="{{breadcrumbs[0][0]}}"><i class="icon-home"></i></a><span>/</span></li>
+                    <li><a href="{{breadcrumbs[0][0]}}"><i class="icon-home"></i></a></li>
                     {% for crumb in breadcrumbs[1:] %}
-                        <li><a href="{{crumb[0]}}">{{crumb[1]}}</a> <span>/</span></li>
+                        <li><a href="{{crumb[0]}}">{{crumb[1]}}</a></li>
                     {% endfor %}
                 </ul>
               </div>
@@ -63,19 +63,19 @@ data-notebook-path="{{notebook_path}}"
     
     <div id="running" class="tab-pane">
 
-        <div id="running_toolbar" class="row-fluid">
-            <div class="span8">
+        <div id="running_toolbar" class="row">
+            <div class="col-md-8 no-padding">
                 <span id="running_list_info">Currently running IPython notebooks</span>
             </div>
-            <div class="span4" class="clearfix">
+            <div class="col-md-4 no-padding tree-buttons">
                 <span id="running_buttons" class="pull-right">
-                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="running_list">
-            <div id="running_list_header" class="row-fluid list_header"> 
+            <div id="running_list_header" class="row list_header"> 
                 <div> There are no notebooks running. </div>
             </div> 
         </div>
@@ -83,23 +83,23 @@ data-notebook-path="{{notebook_path}}"
     
     <div id="clusters" class="tab-pane">
 
-        <div id="cluster_toolbar" class="row-fluid">
-            <div class="span8">
+        <div id="cluster_toolbar" class="row">
+            <div class="col-md-8 no-padding">
                 <span id="cluster_list_info">IPython parallel computing clusters</span>
             </div>
-            <div class="span4" class="clearfix">
+            <div class="col-md-4 no-padding tree-buttons">
                 <span id="cluster_buttons" class="pull-right">
-                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-small"><i class="icon-refresh"></i></button>
+                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-xs"><i class="icon-refresh"></i></button>
                 </span>
             </div>
         </div>
 
         <div id="cluster_list">
-            <div id="cluster_list_header" class="row-fluid list_header">
-                <div class="profile_col span4">profile</div>
-                <div class="status_col span3">status</div>
-                <div class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</div>
-                <div class="action_col span2">action</div>
+            <div id="cluster_list_header" class="row list_header">
+                <div class="profile_col col-md-4">profile</div>
+                <div class="status_col col-md-3">status</div>
+                <div class="engines_col col-md-3" title="Enter the number of engines to start or empty for default"># of engines</div>
+                <div class="action_col col-md-2">action</div>
             </div>
         </div>
     </div>

@@ -20,7 +20,7 @@ define(["widgets/js/widget"], function(WidgetManager){
         render : function(){
             // Called when view is rendered.
             this.setElement($("<button />")
-                .addClass('btn'));
+                .addClass('btn btn-default'));
 
             this.update(); // Set defaults.
         },

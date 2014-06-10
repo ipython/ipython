@@ -50,25 +50,23 @@
 </noscript>
 
 <div id="header" class="navbar navbar-static-top">
-  <div class="navbar-inner navbar-nobg">
-    <div class="container">
-    <div id="ipython_notebook" class="nav brand pull-left"><a href="{{base_url}}tree/{{notebook_path}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
+  <div class="container">
+  <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="{{base_url}}tree/{{notebook_path}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
 
-    {% block login_widget %}
+  {% block login_widget %}
 
-      <span id="login_widget">
-        {% if logged_in %}
-          <button id="logout">Logout</button>
-        {% elif login_available and not logged_in %}
-          <button id="login">Login</button>
-        {% endif %}
-      </span>
+    <span id="login_widget">
+      {% if logged_in %}
+        <button id="logout">Logout</button>
+      {% elif login_available and not logged_in %}
+        <button id="login">Login</button>
+      {% endif %}
+    </span>
 
-    {% endblock %}
+  {% endblock %}
 
-    {% block header %}
-    {% endblock %}
-    </div>
+  {% block header %}
+  {% endblock %}
   </div>
 </div>
 
@@ -79,7 +77,7 @@
 
 <script src="{{static_url("components/jquery/jquery.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("components/jquery-ui/ui/minified/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("components/bootstrap/bootstrap/js/bootstrap.min.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("components/bootstrap/js/bootstrap.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("base/js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("base/js/page.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("auth/js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>

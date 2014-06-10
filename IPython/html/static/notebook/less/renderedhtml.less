@@ -1,6 +1,6 @@
 .rendered_html {
 
-    color: @textColor;
+    color: @text-color;
     em {font-style: italic;}
     strong {font-weight: bold;}
     u {text-decoration: underline;}
@@ -25,10 +25,10 @@
     h5:first-child {margin-top: 1em;}
     h6:first-child {margin-top: 1em;}
 
-    ul {list-style:disc; margin: 0em 2em;}
+    ul {list-style:disc; margin: 0em 2em; padding-left: 0px;}
     ul ul {list-style:square; margin: 0em 2em;}
     ul ul ul {list-style:circle; margin: 0em 2em;}
-    ol {list-style:decimal; margin: 0em 2em;}
+    ol {list-style:decimal; margin: 0em 2em; padding-left: 0px;}
     ol ol {list-style:upper-alpha; margin: 0em 2em;}
     ol ol ol {list-style:lower-alpha; margin: 0em 2em;}
     ol ol ol ol {list-style:lower-roman; margin: 0em 2em;}
@@ -46,8 +46,8 @@
 
     pre, code {
         border:             0;
-        background-color:   @bodyBackground;
-        color:              @textColor;
+        background-color:   @body-bg;
+        color:              @text-color;
         font-size:          100%;
         padding:            0px;
     }

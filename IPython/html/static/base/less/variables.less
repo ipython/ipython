@@ -1,19 +1,37 @@
 // Our customizations to bootstrap go here.
 
-@textColor:             @black;
-@baseFontSize:          13px;
-@monoFontFamily:        monospace;  // to allow user to customize their fonts
-@navbarHeight:          36px;
+@black: #000;
+@text-color: @black;
+@font-size-base: 13px;
+@font-family-monospace: monospace;  // to allow user to customize their fonts
+@navbar-height: 36px;
+@breadcrumb-color: darken(@border_color, 30%);
+@blockquote-font-size: inherit;
+@modal-inner-padding: 15px;
 
+// Disable modal slide-in from top animation.
+.modal {
+  &.fade .modal-dialog {
+    .translate(0, 0);
+  }
+}
+
+// Set the default code color.
 code {
   color: @black; // default code color in bootstrap is #d14 (crimson / amaranth)
 }
 
+// Override bootstrap pre element styling.
 pre {
   // bootstrap has pre defaults that we don't want to inherit.
   // start pre tag defaults based on the surrounding context instead.
   font-size: inherit;
   line-height: inherit;
+}
+
+// Disable bold labels in BS3
+label {
+    font-weight: normal;
 }
 
 // Our own global variables for all pages go here

@@ -35,7 +35,7 @@
     /* Horizontal Label */
     min-width      : 10ex;
     padding-right  : 8px;
-    padding-top    : 3px;
+    padding-top    : 5px;
     text-align     : right;
     vertical-align : text-top;
 }
@@ -49,7 +49,7 @@
 
 .widget-hreadout {
     padding-left   : 8px;
-    padding-top    : 3px;
+    padding-top    : 5px;
     text-align     : left;
     vertical-align : text-top;
 }
@@ -97,10 +97,10 @@
     overflow      : visible;
 
     /* Default size of the slider */
-    width        : 348px; 
+    width        : 350px; 
     height       : 5px;
     max-height   : 5px;
-    margin-top   : 11px;
+    margin-top   : 13px;
     margin-bottom: 10px;
     
     /* Style the slider track */
@@ -171,7 +171,7 @@
 
 .widget-listbox {
     /* Listbox */
-    width         : 364px;
+    width         : 350px;
     margin-bottom : 0px;
 }
 
@@ -183,9 +183,10 @@
 
 .widget-progress {
     /* Progress Bar */
-    width : 363px;
+    margin-top: 6px;
+    width : 350px;
 
-    .bar {
+    .progress-bar {
         /* Disable progress bar animation */
         -webkit-transition : none;
         -moz-transition    : none;
@@ -197,7 +198,7 @@
 
 .widget-combo-btn {
     /* ComboBox Main Button */
-    min-width : 138px; /* + 26px drop arrow btn = 164px */
+    min-width : 125px;
 }
 
 .widget-box {
@@ -228,6 +229,10 @@
     /* Single line horizontal widgets */
     .widget-hbox();
     height : 30px;
+
+    input[type="checkbox"] {
+        margin-top: 9px;
+    }
 }
 
 .widget-vbox {
@@ -268,6 +273,10 @@
     .border-box-sizing();
     
     padding-top: 4px;
+
+    label {
+        margin-top: 0px;
+    }
 }
 
 .docked-widget-modal {

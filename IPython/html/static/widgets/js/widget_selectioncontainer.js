@@ -19,10 +19,10 @@ define(["widgets/js/widget"], function(WidgetManager){
     var AccordionView = IPython.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
-            var guid = 'accordion' + IPython.utils.uuid();
+            var guid = 'panel-group' + IPython.utils.uuid();
             this.$el
                 .attr('id', guid)
-                .addClass('accordion');
+                .addClass('panel-group');
             this.containers = [];
             this.model_containers = {};
             this.update_children([], this.model.get('_children'));
@@ -60,7 +60,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 var accordian = that.containers[page_index];
                 if (accordian !== undefined) {
                     accordian
-                        .find('.accordion-heading')
+                        .find('.panel-heading')
                         .find('.accordion-toggle')
                         .text(title);
                 }
@@ -71,9 +71,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             // Only update the selection if the selection wasn't triggered
             // by the front-end.  It must be triggered by the back-end.
             if (options === undefined || options.updated_view != this) {
-                this.containers[old_index].find('.accordion-body').collapse('hide');
+                this.containers[old_index].find('.panel-collapse').collapse('hide');
                 if (0 <= new_index && new_index < this.containers.length) {
-                    this.containers[new_index].find('.accordion-body').collapse('show');
+                    this.containers[new_index].find('.panel-collapse').collapse('show');
                 }
             }
         },
@@ -101,10 +101,10 @@ define(["widgets/js/widget"], function(WidgetManager){
             var index = this.containers.length;
             var uuid = IPython.utils.uuid();
             var accordion_group = $('<div />')
-                .addClass('accordion-group')
+                .addClass('panel panel-default')
                 .appendTo(this.$el);
             var accordion_heading = $('<div />')
-                .addClass('accordion-heading')
+                .addClass('panel-heading')
                 .appendTo(accordion_group);
             var that = this;
             var accordion_toggle = $('<a />')
@@ -122,10 +122,10 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .text('Page ' + index)
                 .appendTo(accordion_heading);
             var accordion_body = $('<div />', {id: uuid})
-                .addClass('accordion-body collapse')
+                .addClass('panel-collapse collapse')
                 .appendTo(accordion_group);
             var accordion_inner = $('<div />')
-                .addClass('accordion-inner')
+                .addClass('panel-body')
                 .appendTo(accordion_body);
             var container_index = this.containers.push(accordion_group) - 1;
             accordion_group.container_index = container_index;

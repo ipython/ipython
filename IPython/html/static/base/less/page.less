@@ -20,10 +20,14 @@ body {
 div#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
+    margin-bottom: 0px;
+    padding-left: 30px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid @navbar-default-border;
 }
 
 #ipython_notebook {
-    padding-left: 16px;
+    padding-left: 0px;
 }
 
 #noscript {
@@ -69,19 +73,14 @@ span#login_widget {
     text-transform: none;
 }
 
-.navbar-nobg {
-    background-color: transparent;
-    background-image: none;
-}
-
 #header > span {
   margin-top: 10px;
 }
 
 // class for stretching dialogs to fill the screen
-.modal_stretch {
+.modal_stretch .modal-dialog {
     .vbox();
-    height: 80%;
+    min-height: 80%;
     .modal-body {
         max-height: none;
         flex: 1;
@@ -89,9 +88,8 @@ span#login_widget {
 }
 
 @media (min-width: 768px) {
-    .modal {
+    .modal .modal-dialog {
         width: 700px;
-        margin-left: -350px;
     }
 }
 

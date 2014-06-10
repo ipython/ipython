@@ -102,7 +102,7 @@ div.output_subarea {
 /* all text output has this class: */
 div.output_text {
     text-align: left;
-    color: @textColor;
+    color: @text-color;
     /* This has to match that of the the CodeMirror class line-height below */  
     line-height: @code_line_height;
 }
@@ -143,7 +143,7 @@ div.output_javascript:empty {
 /* raw_input styles */
 
 div.raw_input_container {
-    font-family: @monoFontFamily;
+    font-family: @font-family-monospace;
     // for some reason, em padding doesn't compute the same for raw_input
     // that is not the first input, but px does
     padding-top: 5px;
