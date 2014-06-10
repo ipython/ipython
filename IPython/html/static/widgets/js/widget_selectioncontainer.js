@@ -25,9 +25,9 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('panel-group');
             this.containers = [];
             this.model_containers = {};
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
             }, this);
             this.model.on('change:selected_index', function(model, value, options) {
                 this.update_selected_index(model.previous('selected_index'), value, options);
@@ -163,9 +163,9 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('tab-content')
                 .appendTo(this.$el);
             this.containers = [];
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
             }, this);
 
             // Trigger model displayed events for any models that are child to 
@@ -190,12 +190,11 @@ define(["widgets/js/widget"], function(WidgetManager){
 
         remove_child_model: function(model) {
             // Called when a child is removed from children list.
-            var view = this.child_views[model.id];
+            var view = this.delete_child_view(model);
             this.containers.splice(view.parent_tab.tab_text_index, 1);
             view.parent_tab.remove();
             view.parent_container.remove();
             view.remove();
-            this.delete_child_view(model);
         },
 
         add_child_model: function(model) {

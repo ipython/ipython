@@ -15,16 +15,14 @@ class ContainerWidget(DOMWidget):
     # Child widgets in the container.
     # Using a tuple here to force reassignment to update the list.
     # When a proper notifying-list trait exists, that is what should be used here.
-    children = Tuple()
-    _children = Tuple(sync=True)
-
+    children = Tuple(sync=True)
 
     def __init__(self, **kwargs):
         super(ContainerWidget, self).__init__(**kwargs)
         self.on_displayed(ContainerWidget._fire_children_displayed)
 
     def _fire_children_displayed(self):
-        for child in self._children:
+        for child in self.children:
             child._handle_displayed()
 
 

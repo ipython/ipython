@@ -321,18 +321,20 @@ function(WidgetManager, _, Backbone){
             var view_ids = this.child_model_views[child_model.id];
             if (view_ids !== undefined) {
 
-                // Remove every view associate with the model id.
-                for (var i =0; i < view_ids.length; i++) {
-                    var view_id = view_ids[i];
-                    var view = this.child_views[view_id];
-                    views.remove();
-                    delete this.child_views[view_id];
-                    child_model.views.pop(view);
+                // Only delete the first view in the list.
+                var view_id = view_ids[0];
+                var view = this.child_views[view_id];
+                delete this.child_views[view_id];
+                delete view_ids[0];
+                child_model.views.pop(view);
+            
+                // Remove the view list specific to this model if it is empty.
+                if (view_ids.length === 0) {
+                    delete this.child_model_views[child_model.id];
                 }
-
-                // Remove the view list specific to this model.
-                delete this.child_model_views[child_model.id];
+                return view;
             }
+            return null;
         },
 
         do_diff: function(old_list, new_list, removed_callback, added_callback) {

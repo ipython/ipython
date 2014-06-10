@@ -22,9 +22,9 @@ define(["widgets/js/widget"], function(WidgetManager) {
             this.$el.addClass('widget-container')
                 .addClass('vbox');
             this.children={};
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
             }, this);
             this.update();
 
@@ -51,8 +51,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
         remove_child_model: function(model) {
             // Called when a model is removed from the children list.
-            this.child_views[model.id].remove();
-            this.delete_child_view(model);
+            this.delete_child_view(model).remove();
         },
 
         add_child_model: function(model) {
@@ -187,9 +186,9 @@ define(["widgets/js/widget"], function(WidgetManager) {
             this._shown_once = false;
             this.popped_out = true;
 
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
             }, this);
             this.update();
 
@@ -257,8 +256,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
         remove_child_model: function(model) {
             // Called when a child is removed from children list.
-            this.child_views[model.id].remove();
-            this.delete_child_view(model);
+            this.delete_child_view(model).remove();
         },
 
         add_child_model: function(model) {
