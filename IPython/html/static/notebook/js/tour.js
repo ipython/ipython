@@ -20,12 +20,7 @@ var tour_steps = [
     title: "Filename",
     placement: 'bottom',
     content: "Click here to change the filename for this notebook."
-  }, /*{
-    element: "#checkpoint_status",
-    title: "Checkpoint Status",
-    placement: 'bottom',
-    content: "Information about the last time this notebook was saved."
-  },*/ {
+  }, {
     element: $("#menus").parent(),
     placement: 'bottom',
     backdrop: true,
