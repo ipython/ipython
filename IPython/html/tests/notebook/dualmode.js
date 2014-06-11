@@ -48,10 +48,27 @@ casper.notebook_test(function () {
             $('#keyboard_shortcuts a').click();
         }, {});
     });
-    // Wait for the dialog to fade in completely.
-    this.wait(1000);
-    this.then(function () {
 
+    // Wait for the dialog to fade in completely.
+    this.waitForSelector('div.modal', function() {
+        this.evaluate(function(){
+            IPython.modal_shown = false;
+            $('div.modal').on('shown.bs.modal', function (){
+                IPython.modal_shown = true;
+            });
+            $('div.modal').on('hidden.bs.modal', function (){
+                IPython.modal_shown = false;
+            });
+        });
+        
+    });
+
+    this.waitFor(function () {
+        return this.evaluate(function(){
+            return IPython.modal_shown;
+        });
+    },
+    function() {
         this.trigger_keydown('k');
         this.validate_notebook_state('k in command mode while keyboard help is up', 'command', 3);
 
@@ -60,9 +77,14 @@ casper.notebook_test(function () {
             $('div.modal-footer button.btn-default').click();
         }, {});
     });
+
     // Wait for the dialog to fade out completely.
-    this.wait(1000);
-    this.then(function () {
+    this.waitFor(function () {
+        return this.evaluate(function(){
+            return !IPython.modal_shown;
+        });
+    },
+    function() {
 
         this.trigger_keydown('k');
         this.validate_notebook_state('k in command mode', 'command', 2);
