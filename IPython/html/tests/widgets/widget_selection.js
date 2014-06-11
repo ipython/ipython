@@ -105,6 +105,9 @@ casper.notebook_test(function () {
         this.test.assert(verify_selection(this, 2), 'List selection updated view states correctly.');
 
         // Verify that selecting a multibutton option updates all of the others.
+        // Bootstrap3 has changed the toggle button group behavior.  Two clicks
+        // are required to actually select an item.
+        this.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(4)', 'click');
         this.cell_element_function(selection_index, multibtn_selector + ' .btn:nth-child(4)', 'click');
     });
     this.wait_for_idle();
