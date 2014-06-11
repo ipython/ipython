@@ -87,7 +87,7 @@ define([
         return modal.modal(options);
     };
 
-    var edit_metadata = function (md, callback, name) {
+    var edit_metadata = function (md, callback, name, keyboard_manager, notebook) {
         name = name || "Cell";
         var error_div = $('<div/>').css('color', 'red');
         var message = 
@@ -141,7 +141,7 @@ define([
                 },
                 Cancel: {}
             }
-        });
+        }, keyboard_manager, notebook);
 
         modal.on('shown.bs.modal', function(){ editor.refresh(); });
     };

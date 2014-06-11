@@ -1,22 +1,17 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2014  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Running Kernels List
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'base/js/utils',
+    'base/js/events',
+], function(IPython, $, Utils, Events) {
     "use strict";
 
-    var utils = IPython.utils;
-        
     var SesssionList = function (options) {
         this.sessions = {};
-        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
     };
     
     SesssionList.prototype.load_sessions = function(){
@@ -27,9 +22,9 @@ var IPython = (function (IPython) {
             type : "GET",
             dataType : "json",
             success : $.proxy(that.sessions_loaded, this),
-            error : utils.log_ajax_error,
+            error : Utils.log_ajax_error,
         };
-        var url = utils.url_join_encode(this.base_url, 'api/sessions');
+        var url = Utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
     };
 
@@ -38,16 +33,17 @@ var IPython = (function (IPython) {
         var len = data.length;
         var nb_path;
         for (var i=0; i<len; i++) {
-            nb_path = utils.url_path_join(
+            nb_path = Utils.url_path_join(
                 data[i].notebook.path,
                 data[i].notebook.name
             );
             this.sessions[nb_path] = data[i].id;
         }
-        $([IPython.events]).trigger('sessions_loaded.Dashboard', this.sessions);
+        Events.trigger('sessions_loaded.Dashboard', this.sessions);
     };
+
+    // Backwards compatability.
     IPython.SesssionList = SesssionList;
 
-    return IPython;
-
-}(IPython));
+    return SesssionList;
+});

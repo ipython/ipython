@@ -1,18 +1,12 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// NotebookList
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'base/js/utils',
+], function(IPython, $, Utils) {
     "use strict";
-    
-    var utils = IPython.utils;
 
     var ClusterList = function (selector, options) {
         this.selector = selector;
@@ -23,8 +17,8 @@ var IPython = (function (IPython) {
         }
         options = options || {};
         this.options = options;
-        this.base_url = options.base_url || utils.get_body_data("baseUrl");
-        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || Utils.get_body_data("notebookPath");
     };
 
     ClusterList.prototype.style = function () {
@@ -50,9 +44,9 @@ var IPython = (function (IPython) {
             type : "GET",
             dataType : "json",
             success : $.proxy(this.load_list_success, this),
-            error : utils.log_ajax_error,
+            error : Utils.log_ajax_error,
         };
-        var url = utils.url_join_encode(this.base_url, 'clusters');
+        var url = Utils.url_join_encode(this.base_url, 'clusters');
         $.ajax(url, settings);
     };
 
@@ -76,8 +70,8 @@ var IPython = (function (IPython) {
 
     var ClusterItem = function (element, options) {
         this.element = $(element);
-        this.base_url = options.base_url || utils.get_body_data("baseUrl");
-        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || Utils.get_body_data("notebookPath");
         this.data = null;
         this.style();
     };
@@ -132,11 +126,11 @@ var IPython = (function (IPython) {
                     },
                     error : function (xhr, status, error) {
                         status_col.text("error starting cluster");
-                        utils.log_ajax_error(xhr, status, error);
+                        Utils.log_ajax_error(xhr, status, error);
                     }
                 };
                 status_col.text('starting');
-                var url = utils.url_join_encode(
+                var url = Utils.url_join_encode(
                     that.base_url,
                     'clusters',
                     that.data.profile,
@@ -188,11 +182,9 @@ var IPython = (function (IPython) {
         });
     };
 
-
+    // For backwards compatability.
     IPython.ClusterList = ClusterList;
     IPython.ClusterItem = ClusterItem;
 
-    return IPython;
-
-}(IPython));
-
+    return ClusterList;
+});

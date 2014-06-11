@@ -13,7 +13,6 @@ define([
     'auth/js/loginwidget',
     'components/jquery-ui/ui/minified/jquery-ui.min',
     'components/bootstrap/js/bootstrap.min',
-    'base/js/dialog',
 ], function(
     IPython, 
     $, 
@@ -28,13 +27,13 @@ define([
     page = new Page();
 
     var opts = {
-        base_url : Utils.get_body_data("baseUrl"),
-        notebook_path : Utils.get_body_data("notebookPath"),
+        base_url: Utils.get_body_data("baseUrl"),
+        notebook_path: Utils.get_body_data("notebookPath"),
     };
     session_list = new SesssionList(opts);
     notebook_list = new NotebookList('#notebook_list', opts, undefined, session_list);
     cluster_list = new ClusterList('#cluster_list', opts);
-    kernel_list = new KernelList('#running_list', opts);
+    kernel_list = new KernelList('#running_list', opts, session_list);
     login_widget = new LoginWidget('#login_widget', opts);
 
     $('#new_notebook').button().click(function (e) {

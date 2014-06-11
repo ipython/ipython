@@ -1,24 +1,18 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2014  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Running Kernels List
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'tree/js/notebooklist',
+], function(IPython, $, NotebookList) {
     "use strict";
 
-    var utils = IPython.utils;
-
-    var KernelList = function (selector, options) {
-        IPython.NotebookList.call(this, selector, options, 'running');
+    var KernelList = function (selector, options, session_list) {
+        NotebookList.call(this, selector, options, 'running', session_list);
     };
 
-    KernelList.prototype = Object.create(IPython.NotebookList.prototype);
+    KernelList.prototype = Object.create(NotebookList.prototype);
 
     KernelList.prototype.sessions_loaded = function (d) {
         this.sessions = d;
@@ -31,10 +25,10 @@ var IPython = (function (IPython) {
         }
        
         $('#running_list_header').toggle($.isEmptyObject(d));
-    }
+    };
     
+    // Backwards compatability.
     IPython.KernelList = KernelList;
 
-    return IPython;
-
-}(IPython));
+    return KernelList;
+});
