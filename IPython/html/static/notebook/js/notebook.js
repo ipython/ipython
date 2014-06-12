@@ -43,8 +43,10 @@ define([
      * @constructor
      * @param {String} selector A jQuery selector for the notebook's DOM element
      * @param {Object} [options] A config object
+     * @param {Object} [events] An events object
      */
-    var Notebook = function (selector, options) {
+    var Notebook = function (selector, options, events) {
+        this.events = events || new Events();
         this.keyboard_manager = new KeyboardManager();
         this.keyboard = new Keyboard();
         this.save_widget = new SaveWidget('span#save_widget');
@@ -159,35 +161,35 @@ define([
     Notebook.prototype.bind_events = function () {
         var that = this;
 
-        $([Events]).on('set_next_input.Notebook', function (event, data) {
+        this.events.on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
             var new_cell = that.insert_cell_below('code',index);
             new_cell.set_text(data.text);
             that.dirty = true;
         });
 
-        $([Events]).on('set_dirty.Notebook', function (event, data) {
+        this.events.on('set_dirty.Notebook', function (event, data) {
             that.dirty = data.value;
         });
 
-        $([Events]).on('trust_changed.Notebook', function (event, data) {
+        this.events.on('trust_changed.Notebook', function (event, data) {
             that.trusted = data.value;
         });
 
-        $([Events]).on('select.Cell', function (event, data) {
+        this.events.on('select.Cell', function (event, data) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
         });
 
-        $([Events]).on('edit_mode.Cell', function (event, data) {
+        this.events.on('edit_mode.Cell', function (event, data) {
             that.handle_edit_mode(data.cell);
         });
 
-        $([Events]).on('command_mode.Cell', function (event, data) {
+        this.events.on('command_mode.Cell', function (event, data) {
             that.handle_command_mode(data.cell);
         });
 
-        $([Events]).on('status_autorestarting.Kernel', function () {
+        this.events.on('status_autorestarting.Kernel', function () {
             Dialog.modal({
                 title: "Kernel Restarting",
                 body: "The kernel appears to have died. It will restart automatically.",
@@ -268,7 +270,7 @@ define([
         if (this.dirty == value) {
             return;
         }
-        $([Events]).trigger('set_dirty.Notebook', {value: value});
+        this.events.trigger('set_dirty.Notebook', {value: value});
     };
 
     /**
@@ -531,11 +533,11 @@ define([
             var cell = this.get_cell(index);
             cell.select();
             if (cell.cell_type === 'heading') {
-                $([Events]).trigger('selected_cell_type_changed.Notebook',
+                this.events.trigger('selected_cell_type_changed.Notebook',
                     {'cell_type':cell.cell_type,level:cell.level}
                 );
             } else {
-                $([Events]).trigger('selected_cell_type_changed.Notebook',
+                this.events.trigger('selected_cell_type_changed.Notebook',
                     {'cell_type':cell.cell_type}
                 );
             }
@@ -597,7 +599,7 @@ define([
         if (this.mode !== 'command') {
             cell.command_mode();
             this.mode = 'command';
-            $([Events]).trigger('command_mode.Notebook');
+            this.events.trigger('command_mode.Notebook');
             this.keyboard_manager.command_mode();
         }
     };
@@ -627,7 +629,7 @@ define([
         if (cell && this.mode !== 'edit') {
             cell.edit_mode();
             this.mode = 'edit';
-            $([Events]).trigger('edit_mode.Notebook');
+            this.events.trigger('edit_mode.Notebook');
             this.keyboard_manager.edit_mode();
         }
     };
@@ -743,7 +745,7 @@ define([
                 this.undelete_index = i;
                 this.undelete_below = false;
             }
-            $([Events]).trigger('delete.Cell', {'cell': cell, 'index': i});
+            this.events.trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
         }
         return this;
@@ -823,7 +825,7 @@ define([
 
             if(this._insert_element_at_index(cell.element,index)) {
                 cell.render();
-                $([Events]).trigger('create.Cell', {'cell': cell, 'index': index});
+                this.events.trigger('create.Cell', {'cell': cell, 'index': index});
                 cell.refresh();
                 // We used to select the cell after we refresh it, but there
                 // are now cases were this method is called where select is
@@ -1058,7 +1060,7 @@ define([
                 }
             }
             this.set_dirty(true);
-            $([Events]).trigger('selected_cell_type_changed.Notebook',
+            this.events.trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
             );
         }
@@ -1717,7 +1719,7 @@ define([
         }
         if (trusted != this.trusted) {
             this.trusted = trusted;
-            $([Events]).trigger("trust_changed.Notebook", trusted);
+            this.events.trigger("trust_changed.Notebook", trusted);
         }
         if (content.worksheets.length > 1) {
             Dialog.modal({
@@ -1762,7 +1764,7 @@ define([
         };
         if (trusted != this.trusted) {
             this.trusted = trusted;
-            $([Events]).trigger("trust_changed.Notebook", trusted);
+            this.events.trigger("trust_changed.Notebook", trusted);
         }
         return data;
     };
@@ -1787,10 +1789,10 @@ define([
                     that.save_notebook();
                 }
             }, interval);
-            $([Events]).trigger("autosave_enabled.Notebook", interval);
+            this.events.trigger("autosave_enabled.Notebook", interval);
         } else {
             this.autosave_timer = null;
-            $([Events]).trigger("autosave_disabled.Notebook");
+            this.events.trigger("autosave_disabled.Notebook");
         }
     };
     
@@ -1825,7 +1827,7 @@ define([
                 settings[key] = extra_settings[key];
             }
         }
-        $([Events]).trigger('notebook_saving.Notebook');
+        this.events.trigger('notebook_saving.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -1846,7 +1848,7 @@ define([
      */
     Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
         this.set_dirty(false);
-        $([Events]).trigger('notebook_saved.Notebook');
+        this.events.trigger('notebook_saved.Notebook');
         this._update_autosave_interval(start);
         if (this._checkpoint_after_save) {
             this.create_checkpoint();
@@ -1883,7 +1885,7 @@ define([
      * @param {String} error HTTP error message
      */
     Notebook.prototype.save_notebook_error = function (xhr, status, error) {
-        $([Events]).trigger('notebook_save_failed.Notebook', [xhr, status, error]);
+        this.events.trigger('notebook_save_failed.Notebook', [xhr, status, error]);
     };
 
     /**
@@ -1924,7 +1926,7 @@ define([
                                 cell.output_area.trusted = true;
                             }
                         }
-                        $([Events]).on('notebook_saved.Notebook', function () {
+                        this.events.on('notebook_saved.Notebook', function () {
                             window.location.reload();
                         });
                         nb.save_notebook();
@@ -2010,7 +2012,7 @@ define([
             success : $.proxy(that.rename_success, this),
             error : $.proxy(that.rename_error, this)
         };
-        $([Events]).trigger('rename_notebook.Notebook', data);
+        this.events.trigger('rename_notebook.Notebook', data);
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2043,7 +2045,7 @@ define([
         var name = this.notebook_name = json.name;
         var path = json.path;
         this.session.rename_notebook(name, path);
-        $([Events]).trigger('notebook_renamed.Notebook', json);
+        this.events.trigger('notebook_renamed.Notebook', json);
     };
 
     Notebook.prototype.rename_error = function (xhr, status, error) {
@@ -2052,7 +2054,7 @@ define([
             $("<p/>").addClass("rename-message")
             .text('This notebook name already exists.')
         );
-        $([Events]).trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
+        this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         Dialog.modal({
             title: "Notebook Rename Error!",
             body: dialog,
@@ -2096,7 +2098,7 @@ define([
             success : $.proxy(this.load_notebook_success,this),
             error : $.proxy(this.load_notebook_error,this),
         };
-        $([Events]).trigger('notebook_loading.Notebook');
+        this.events.trigger('notebook_loading.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2181,7 +2183,7 @@ define([
 
         // now that we're fully loaded, it is safe to restore save functionality
         delete(this.save_notebook);
-        $([Events]).trigger('notebook_loaded.Notebook');
+        this.events.trigger('notebook_loaded.Notebook');
     };
 
     /**
@@ -2193,7 +2195,7 @@ define([
      * @param {String} error HTTP error message
      */
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
-        $([Events]).trigger('notebook_load_failed.Notebook', [xhr, status, error]);
+        this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         var msg;
         if (xhr.status === 400) {
             msg = error;
@@ -2281,7 +2283,7 @@ define([
         } else {
             this.last_checkpoint = null;
         }
-        $([Events]).trigger('checkpoints_listed.Notebook', [data]);
+        this.events.trigger('checkpoints_listed.Notebook', [data]);
     };
 
     /**
@@ -2293,7 +2295,7 @@ define([
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.list_checkpoints_error = function (xhr, status, error_msg) {
-        $([Events]).trigger('list_checkpoints_failed.Notebook');
+        this.events.trigger('list_checkpoints_failed.Notebook');
     };
     
     /**
@@ -2327,7 +2329,7 @@ define([
     Notebook.prototype.create_checkpoint_success = function (data, status, xhr) {
         data = $.parseJSON(data);
         this.add_checkpoint(data);
-        $([Events]).trigger('checkpoint_created.Notebook', data);
+        this.events.trigger('checkpoint_created.Notebook', data);
     };
 
     /**
@@ -2339,7 +2341,7 @@ define([
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.create_checkpoint_error = function (xhr, status, error_msg) {
-        $([Events]).trigger('checkpoint_failed.Notebook');
+        this.events.trigger('checkpoint_failed.Notebook');
     };
     
     Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
@@ -2388,7 +2390,7 @@ define([
      * @param {String} checkpoint ID
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
-        $([Events]).trigger('notebook_restoring.Notebook', checkpoint);
+        this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2413,7 +2415,7 @@ define([
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.restore_checkpoint_success = function (data, status, xhr) {
-        $([Events]).trigger('checkpoint_restored.Notebook');
+        this.events.trigger('checkpoint_restored.Notebook');
         this.load_notebook(this.notebook_name, this.notebook_path);
     };
 
@@ -2426,7 +2428,7 @@ define([
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.restore_checkpoint_error = function (xhr, status, error_msg) {
-        $([Events]).trigger('checkpoint_restore_failed.Notebook');
+        this.events.trigger('checkpoint_restore_failed.Notebook');
     };
     
     /**
@@ -2436,7 +2438,7 @@ define([
      * @param {String} checkpoint ID
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
-        $([Events]).trigger('notebook_restoring.Notebook', checkpoint);
+        this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2461,7 +2463,7 @@ define([
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.delete_checkpoint_success = function (data, status, xhr) {
-        $([Events]).trigger('checkpoint_deleted.Notebook', data);
+        this.events.trigger('checkpoint_deleted.Notebook', data);
         this.load_notebook(this.notebook_name, this.notebook_path);
     };
 
@@ -2474,7 +2476,7 @@ define([
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
-        $([Events]).trigger('checkpoint_delete_failed.Notebook');
+        this.events.trigger('checkpoint_delete_failed.Notebook');
     };
 
 

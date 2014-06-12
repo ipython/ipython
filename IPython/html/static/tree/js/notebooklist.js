@@ -5,9 +5,8 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-    'base/js/events',
     'base/js/dialog',
-], function(IPython, $, Utils, Events, Dialog) {
+], function(IPython, $, Utils, Dialog) {
     "use strict";
     
     var NotebookList = function (selector, options, element_name, session_list) {
@@ -25,8 +24,10 @@ define([
         this.sessions = {};
         this.base_url = options.base_url || Utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || Utils.get_body_data("notebookPath");
-        $([Events]).on('sessions_loaded.Dashboard', 
-            function(e, d) { that.sessions_loaded(d); });
+        if (this.session_list && this.session_list.events) {
+            this.session_list.events.on('sessions_loaded.Dashboard', 
+                function(e, d) { that.sessions_loaded(d); });
+        }
     };
 
     NotebookList.prototype.style = function () {

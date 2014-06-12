@@ -5,11 +5,11 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-    'base/js/events',
-], function(IPython, $, Utils, Events) {
+], function(IPython, $, Utils) {
     "use strict";
 
-    var SesssionList = function (options) {
+    var SesssionList = function (options, events) {
+        this.events = events;
         this.sessions = {};
         this.base_url = options.base_url || Utils.get_body_data("baseUrl");
     };
@@ -39,7 +39,7 @@ define([
             );
             this.sessions[nb_path] = data[i].id;
         }
-        Events.trigger('sessions_loaded.Dashboard', this.sessions);
+        this.events.trigger('sessions_loaded.Dashboard', this.sessions);
     };
 
     // Backwards compatability.
