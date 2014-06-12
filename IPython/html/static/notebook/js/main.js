@@ -1,6 +1,7 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
+var ipython = ipython || {};
 require([
     'base/js/namespace',
     'notebook/js/notebook',
@@ -83,15 +84,13 @@ require([
     $([Events]).trigger('app_initialized.NotebookApp');
     notebook.load_notebook(opts.notebook_name, opts.notebook_path);
 
-    // Backwards compatability.
-    IPython.page = page;
-    IPython.layout_manager = layout_manager;
-    IPython.notebook = notebook;
-    IPython.pager = pager;
-    IPython.quick_help = quick_help;
-    IPython.login_widget = login_widget;
-    IPython.menubar = menubar;
-    IPython.toolbar = toolbar;
-    IPython.notification_area = notification_area;
-    IPython.notification_area = notification_area;
+    ipython.page = page;
+    ipython.layout_manager = layout_manager;
+    ipython.notebook = notebook;
+    ipython.pager = pager;
+    ipython.quick_help = quick_help;
+    ipython.login_widget = login_widget;
+    ipython.menubar = menubar;
+    ipython.toolbar = toolbar;
+    ipython.notification_area = notification_area;
 });

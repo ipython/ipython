@@ -1,7 +1,8 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-define([
+var ipython = ipython || {};
+require([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/page',
@@ -100,12 +101,10 @@ define([
     }
 
     // For backwards compatability.
-    IPython.page = page;
-    IPython.notebook_list = notebook_list;
-    IPython.cluster_list = cluster_list;
-    IPython.session_list = session_list;
-    IPython.kernel_list = kernel_list;
-    IPython.login_widget = login_widget;
-
-    return page;
+    ipython.page = page;
+    ipython.notebook_list = notebook_list;
+    ipython.cluster_list = cluster_list;
+    ipython.session_list = session_list;
+    ipython.kernel_list = kernel_list;
+    ipython.login_widget = login_widget;
 });
