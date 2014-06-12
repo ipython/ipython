@@ -1,26 +1,23 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// ToolBar
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'notebook/js/toolbar',
+], function(IPython, $, Toolbar) {
     "use strict";
 
-    var MainToolBar = function (selector) {
-        IPython.ToolBar.apply(this, arguments);
+    var MainToolBar = function (selector, notebook) {
+        ToolBar.apply(this, arguments);
+        this.notebook = notebook;
         this.construct();
         this.add_celltype_list();
         this.add_celltoolbar_list();
         this.bind_events();
     };
 
-    MainToolBar.prototype = new IPython.ToolBar();
+    MainToolBar.prototype = new ToolBar();
 
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([
@@ -29,7 +26,7 @@ var IPython = (function (IPython) {
                     label : 'Save and Checkpoint',
                     icon : 'icon-save',
                     callback : function () {
-                        IPython.notebook.save_checkpoint();
+                        this.notebook.save_checkpoint();
                         }
                 }
             ]);
@@ -40,9 +37,9 @@ var IPython = (function (IPython) {
                     label : 'Insert Cell Below',
                     icon : 'icon-plus-sign',
                     callback : function () {
-                        IPython.notebook.insert_cell_below('code');
-                        IPython.notebook.select_next();
-                        IPython.notebook.focus_cell();
+                        this.notebook.insert_cell_below('code');
+                        this.notebook.select_next();
+                        this.notebook.focus_cell();
                         }
                 }
             ],'insert_above_below');
@@ -53,7 +50,7 @@ var IPython = (function (IPython) {
                     label : 'Cut Cell',
                     icon : 'icon-cut',
                     callback : function () {
-                        IPython.notebook.cut_cell();
+                        this.notebook.cut_cell();
                         }
                 },
                 {
@@ -61,7 +58,7 @@ var IPython = (function (IPython) {
                     label : 'Copy Cell',
                     icon : 'icon-copy',
                     callback : function () {
-                        IPython.notebook.copy_cell();
+                        this.notebook.copy_cell();
                         }
                 },
                 {
@@ -69,7 +66,7 @@ var IPython = (function (IPython) {
                     label : 'Paste Cell Below',
                     icon : 'icon-paste',
                     callback : function () {
-                        IPython.notebook.paste_cell_below();
+                        this.notebook.paste_cell_below();
                         }
                 }
             ],'cut_copy_paste');
@@ -80,7 +77,7 @@ var IPython = (function (IPython) {
                     label : 'Move Cell Up',
                     icon : 'icon-arrow-up',
                     callback : function () {
-                        IPython.notebook.move_cell_up();
+                        this.notebook.move_cell_up();
                         }
                 },
                 {
@@ -88,7 +85,7 @@ var IPython = (function (IPython) {
                     label : 'Move Cell Down',
                     icon : 'icon-arrow-down',
                     callback : function () {
-                        IPython.notebook.move_cell_down();
+                        this.notebook.move_cell_down();
                         }
                 }
             ],'move_up_down');
@@ -101,7 +98,7 @@ var IPython = (function (IPython) {
                     icon : 'icon-play',
                     callback : function () {
                         // emulate default shift-enter behavior
-                        IPython.notebook.execute_cell_and_select_below();
+                        this.notebook.execute_cell_and_select_below();
                     }
                 },
                 {
@@ -109,7 +106,7 @@ var IPython = (function (IPython) {
                     label : 'Interrupt',
                     icon : 'icon-stop',
                     callback : function () {
-                        IPython.notebook.session.interrupt_kernel();
+                        this.notebook.session.interrupt_kernel();
                         }
                 },
                 {
@@ -117,7 +114,7 @@ var IPython = (function (IPython) {
                     label : 'Restart Kernel',
                     icon : 'icon-repeat',
                     callback : function () {
-                        IPython.notebook.restart_kernel();
+                        this.notebook.restart_kernel();
                         }
                 }
             ],'run_int');
@@ -151,14 +148,14 @@ var IPython = (function (IPython) {
             .append($('<option/>').attr('value', '').text('None'));
         this.element.append(label).append(select);
         select.change(function() {
-                var val = $(this).val()
-                if (val =='') {
+                var val = $(this).val();
+                if (val ==='') {
                     IPython.CellToolbar.global_hide();
-                    delete IPython.notebook.metadata.celltoolbar;
+                    delete this.notebook.metadata.celltoolbar;
                 } else {
                     IPython.CellToolbar.global_show();
                     IPython.CellToolbar.activate_preset(val);
-                    IPython.notebook.metadata.celltoolbar = val;
+                    this.notebook.metadata.celltoolbar = val;
                 }
             });
         // Setup the currently registered presets.
@@ -186,23 +183,23 @@ var IPython = (function (IPython) {
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
-                IPython.notebook.to_code();
+                this.notebook.to_code();
             } else if (cell_type === 'markdown')  {
-                IPython.notebook.to_markdown();
+                this.notebook.to_markdown();
             } else if (cell_type === 'raw')  {
-                IPython.notebook.to_raw();
+                this.notebook.to_raw();
             } else if (cell_type === 'heading1')  {
-                IPython.notebook.to_heading(undefined, 1);
+                this.notebook.to_heading(undefined, 1);
             } else if (cell_type === 'heading2')  {
-                IPython.notebook.to_heading(undefined, 2);
+                this.notebook.to_heading(undefined, 2);
             } else if (cell_type === 'heading3')  {
-                IPython.notebook.to_heading(undefined, 3);
+                this.notebook.to_heading(undefined, 3);
             } else if (cell_type === 'heading4')  {
-                IPython.notebook.to_heading(undefined, 4);
+                this.notebook.to_heading(undefined, 4);
             } else if (cell_type === 'heading5')  {
-                IPython.notebook.to_heading(undefined, 5);
+                this.notebook.to_heading(undefined, 5);
             } else if (cell_type === 'heading6')  {
-                IPython.notebook.to_heading(undefined, 6);
+                this.notebook.to_heading(undefined, 6);
             }
         });
         $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
@@ -214,8 +211,8 @@ var IPython = (function (IPython) {
         });
     };
 
+    // Backwards compatability.
     IPython.MainToolBar = MainToolBar;
 
-    return IPython;
-
-}(IPython));
+    return MainToolBar;
+});

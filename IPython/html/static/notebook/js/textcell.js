@@ -446,6 +446,7 @@ var IPython = (function (IPython) {
         return cont;
     };
 
+//  TODO: RETURN IN THIS NAMESPACE!
     IPython.TextCell = TextCell;
     IPython.MarkdownCell = MarkdownCell;
     IPython.RawCell = RawCell;

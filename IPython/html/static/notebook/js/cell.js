@@ -1,3 +1,22 @@
+"components/codemirror/lib/codemirror.js",
+// Set codemirror version.
+// CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
+"components/codemirror/addon/mode/loadmode.js",
+"components/codemirror/addon/mode/multiplex.js",
+"components/codemirror/addon/mode/overlay.js",
+"components/codemirror/addon/edit/matchbrackets.js",
+"components/codemirror/addon/edit/closebrackets.js",
+"components/codemirror/addon/comment/comment.js",
+"components/codemirror/mode/htmlmixed/htmlmixed.js",
+"components/codemirror/mode/xml/xml.js",
+"components/codemirror/mode/javascript/javascript.js",
+"components/codemirror/mode/css/css.js",
+"components/codemirror/mode/rst/rst.js",
+"components/codemirror/mode/markdown/markdown.js",
+"components/codemirror/mode/python/python.js",
+"notebook/js/codemirror-ipython.js",
+"notebook/js/codemirror-ipythongfm.js",
+
 //----------------------------------------------------------------------------
 //  Copyright (C) 2008-2011  The IPython Development Team
 //

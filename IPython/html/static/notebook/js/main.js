@@ -1,78 +1,57 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// On document ready
-//============================================================================
-
-// for the time beeing, we have to pass marked as a parameter here,
-// as injecting require.js make marked not to put itself in the globals,
-// which make both this file fail at setting marked configuration, and textcell.js
-// which search marked into global.
-require(['components/marked/lib/marked',
-         'widgets/js/init',
-         'components/bootstrap-tour/build/js/bootstrap-tour.min'],
-
-function (marked) {
+require([
+    'base/js/namespace',
+    'notebook/js/notebook',
+    'base/js/utils',
+    'base/js/page',
+    'notebook/js/layoutmanager',
+    'base/js/events',
+    'auth/js/loginwidget',
+    'notebook/js/maintoolbar',
+    'notebook/js/pager',
+    'notebook/js/quickhelp',
+    'notebook/js/menubar',
+    'notebook/js/notificationarea',
+], function(
+    IPython, 
+    Notebook, 
+    Utils, 
+    Page, 
+    LayoutManager, 
+    Events,
+    LoginWidget, 
+    MainToolBar, 
+    Pager, 
+    QuickHelp, 
+    MenuBar, 
+    NotificationArea 
+    ) {
     "use strict";
-
-    window.marked = marked;
-
-    // monkey patch CM to be able to syntax highlight cell magics
-    // bug reported upstream,
-    // see https://github.com/marijnh/CodeMirror2/issues/670
-    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-        console.log('patching CM for undefined indent');
-        CodeMirror.modes.null = function() {
-            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
-        };
-    }
-
-    CodeMirror.patchedGetMode = function(config, mode){
-            var cmmode = CodeMirror.getMode(config, mode);
-            if(cmmode.indent === null) {
-                console.log('patch mode "' , mode, '" on the fly');
-                cmmode.indent = function(){return 0;};
-            }
-            return cmmode;
-        };
-    // end monkey patching CodeMirror
-
-    IPython.mathjaxutils.init();
 
     $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
 
     var opts = {
-        base_url : IPython.utils.get_body_data("baseUrl"),
-        notebook_path : IPython.utils.get_body_data("notebookPath"),
-        notebook_name : IPython.utils.get_body_data('notebookName')
+        base_url : Utils.get_body_data("baseUrl"),
+        notebook_path : Utils.get_body_data("notebookPath"),
+        notebook_name : Utils.get_body_data('notebookName')
     };
 
-    IPython.page = new IPython.Page();
-    IPython.layout_manager = new IPython.LayoutManager();
-    IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
-    IPython.quick_help = new IPython.QuickHelp();
-    try {
-        IPython.tour = new IPython.NotebookTour();
-    } catch (e) {
-        console.log("Failed to instantiate Notebook Tour", e);
-    }
-    IPython.login_widget = new IPython.LoginWidget('span#login_widget', opts);
-    IPython.notebook = new IPython.Notebook('div#notebook', opts);
-    IPython.keyboard_manager = new IPython.KeyboardManager();
-    IPython.save_widget = new IPython.SaveWidget('span#save_widget');
-    IPython.menubar = new IPython.MenuBar('#menubar', opts);
-    IPython.toolbar = new IPython.MainToolBar('#maintoolbar-container');
-    IPython.tooltip = new IPython.Tooltip();
-    IPython.notification_area = new IPython.NotificationArea('#notification_area');
-    IPython.notification_area.init_notification_widgets();
+    page = new Page();
+    pager = new Pager('div#pager', 'div#pager_splitter');
+    layout_manager = new LayoutManager(pager);
+    notebook = new Notebook('div#notebook', opts);
+    login_widget = new LoginWidget('span#login_widget', opts);
+    toolbar = new MainToolBar('#maintoolbar-container');
+    quick_help = new QuickHelp();
+    menubar = new MenuBar('#menubar', opts);
 
-    IPython.layout_manager.do_resize();
+    notification_area = new NotificationArea('#notification_area');
+    notification_area.init_notification_widgets();
+
+    layout_manager.do_resize();
 
     $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
                      '<span id="test2" style="font-weight: bold;">x</span>'+
@@ -85,43 +64,34 @@ function (marked) {
     }
     $('#fonttest').remove();
 
-    IPython.page.show();
+    page.show();
 
-    IPython.layout_manager.do_resize();
+    layout_manager.do_resize();
     var first_load = function () {
-        IPython.layout_manager.do_resize();
+        layout_manager.do_resize();
         var hash = document.location.hash;
         if (hash) {
             document.location.hash = '';
             document.location.hash = hash;
         }
-        IPython.notebook.set_autosave_interval(IPython.notebook.minimum_autosave_interval);
+        notebook.set_autosave_interval(notebook.minimum_autosave_interval);
         // only do this once
-        $([IPython.events]).off('notebook_loaded.Notebook', first_load);
+        $([Events]).off('notebook_loaded.Notebook', first_load);
     };
     
-    $([IPython.events]).on('notebook_loaded.Notebook', first_load);
-    $([IPython.events]).trigger('app_initialized.NotebookApp');
-    IPython.notebook.load_notebook(opts.notebook_name, opts.notebook_path);
+    $([Events]).on('notebook_loaded.Notebook', first_load);
+    $([Events]).trigger('app_initialized.NotebookApp');
+    notebook.load_notebook(opts.notebook_name, opts.notebook_path);
 
-    if (marked) {
-        marked.setOptions({
-            gfm : true,
-            tables: true,
-            langPrefix: "language-",
-            highlight: function(code, lang) {
-                if (!lang) {
-                    // no language, no highlight
-                    return code;
-                }
-                var highlighted;
-                try {
-                    highlighted = hljs.highlight(lang, code, false);
-                } catch(err) {
-                    highlighted = hljs.highlightAuto(code);
-                }
-                return highlighted.value;
-            }
-        });
-    }
+    // Backwards compatability.
+    IPython.page = page;
+    IPython.layout_manager = layout_manager;
+    IPython.notebook = notebook;
+    IPython.pager = pager;
+    IPython.quick_help = quick_help;
+    IPython.login_widget = login_widget;
+    IPython.menubar = menubar;
+    IPython.toolbar = toolbar;
+    IPython.notification_area = notification_area;
+    IPython.notification_area = notification_area;
 });
