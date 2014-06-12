@@ -1,112 +1,24 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-
-"components/google-caja/html-css-sanitizer-minified",
-
-"components/highlight.js/build/highlight.pack",
-"dateformat/date.format",
-"base/js/security",
-"services/kernels/js/kernel",
-"services/kernels/js/comm",
-"notebook/js/mathjaxutils",
-"notebook/js/outputarea",
-"notebook/js/cell",
-"notebook/js/codecell",
-"notebook/js/completer",
-"notebook/js/notificationwidget",
-"notebook/js/notificationarea",
-"notebook/js/tooltip",
-"notebook/js/config",
-"notebook/js/main",
-"notebook/js/contexthint",
-"notebook/js/celltoolbarpresets/default",
-"notebook/js/celltoolbarpresets/rawcell",
-"notebook/js/celltoolbarpresets/slideshow"
-
-IPython.mathjaxutils.init();
-
-'components/marked/lib/marked',
-'widgets/js/init',
-'components/bootstrap-tour/build/js/bootstrap-tour.min'
-
-window.marked = marked;
-
-if (marked) {
-    marked.setOptions({
-        gfm : true,
-        tables: true,
-        langPrefix: "language-",
-        highlight: function(code, lang) {
-            if (!lang) {
-                // no language, no highlight
-                return code;
-            }
-            var highlighted;
-            try {
-                highlighted = hljs.highlight(lang, code, false);
-            } catch(err) {
-                highlighted = hljs.highlightAuto(code);
-            }
-            return highlighted.value;
-        }
-    });
-}
-
-// monkey patch CM to be able to syntax highlight cell magics
-// bug reported upstream,
-// see https://github.com/marijnh/CodeMirror2/issues/670
-if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-    console.log('patching CM for undefined indent');
-    CodeMirror.modes.null = function() {
-        return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
-    };
-}
-
-CodeMirror.patchedGetMode = function(config, mode){
-        var cmmode = CodeMirror.getMode(config, mode);
-        if(cmmode.indent === null) {
-            console.log('patch mode "' , mode, '" on the fly');
-            cmmode.indent = function(){return 0;};
-        }
-        return cmmode;
-    };
-// end monkey patching CodeMirror
-
-
-"notebook/js/tour",
-    Tour, 
-
-    try {
-        tour = new Tour();
-    } catch (e) {
-        tour = undefined;
-        console.log("Failed to instantiate Notebook Tour", e);
-    }
-
-    IPython.tour = tour;
-
-"notebook/js/tooltip",
-    Tooltip, 
-    tooltip = new Tooltip();
-    IPython.tooltip = tooltip;
-
-
 define([
-    "base/js/namespace",
-    "components/jquery/jquery.min",
-    "base/js/utils",
-    "notebook/js/keyboardmanager",
-    "notebook/js/savewidget",
-    "base/js/events",
-    "base/js/dialog",
-    "notebook/js/textcell",
-    "notebook/js/codecell",
-    "services/sessions/js/session",
-    "notebook/js/celltoolbar",
-    "base/js/keyboard",
-    "components/jquery-ui/ui/minified/jquery-ui.min",
-    "components/bootstrap/js/bootstrap.min",
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'base/js/utils',
+    'notebook/js/keyboardmanager',
+    'notebook/js/savewidget',
+    'base/js/events',
+    'base/js/dialog',
+    'notebook/js/textcell',
+    'notebook/js/codecell',
+    'services/sessions/js/session',
+    'notebook/js/celltoolbar',
+    'base/js/keyboard',
+    'components/jquery-ui/ui/minified/jquery-ui.min',
+    'components/bootstrap/js/bootstrap.min',
+    'components/marked/lib/marked',
+    'widgets/js/init',
+    'notebook/js/mathjaxutils',
 ], function (
     IPython, 
     $, 
@@ -119,17 +31,10 @@ define([
     CodeCell, 
     Session, 
     CellToolbar, 
-    Keyboard
+    Keyboard,
+    marked,
+    MathJax
     ) {
-
-    keyboard_manager = new KeyboardManager();
-    save_widget = new SaveWidget('span#save_widget');
-    keyboard = new Keyboard();
-
-    // Backwards compatability.
-    IPython.keyboard_manager = keyboard_manager;
-    IPython.save_widget = save_widget;
-    IPython.keyboard = keyboard;
 
     /**
      * A notebook contains and manages cells.
@@ -140,6 +45,41 @@ define([
      * @param {Object} [options] A config object
      */
     var Notebook = function (selector, options) {
+        this.keyboard_manager = new KeyboardManager();
+        this.keyboard = new Keyboard();
+        this.save_widget = new SaveWidget('span#save_widget');
+
+        this.mathjaxutils = MathJax();
+        this.mathjaxutils.init();
+
+        
+        window.marked = window.marked || marked;
+        if (marked) {
+            marked.setOptions({
+                gfm : true,
+                tables: true,
+                langPrefix: "language-",
+                highlight: function(code, lang) {
+                    if (!lang) {
+                        // no language, no highlight
+                        return code;
+                    }
+                    var highlighted;
+                    try {
+                        highlighted = hljs.highlight(lang, code, false);
+                    } catch(err) {
+                        highlighted = hljs.highlightAuto(code);
+                    }
+                    return highlighted.value;
+                }
+            });
+        }
+
+        // Backwards compatability.
+        IPython.keyboard_manager = this.keyboard_manager;
+        IPython.save_widget = this.save_widget;
+        IPython.keyboard = this.keyboard;
+
         this.options = options = options || {};
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
@@ -658,7 +598,7 @@ define([
             cell.command_mode();
             this.mode = 'command';
             $([Events]).trigger('command_mode.Notebook');
-            keyboard_manager.command_mode();
+            this.keyboard_manager.command_mode();
         }
     };
 
@@ -688,7 +628,7 @@ define([
             cell.edit_mode();
             this.mode = 'edit';
             $([Events]).trigger('edit_mode.Notebook');
-            keyboard_manager.edit_mode();
+            this.keyboard_manager.edit_mode();
         }
     };
 
@@ -2121,14 +2061,14 @@ define([
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                        save_widget.rename_notebook();
+                        this.save_widget.rename_notebook();
                 }}
                 },
             open : function (event, ui) {
                 var that = $(this);
                 // Upon ENTER, click the OK button.
                 that.find('input[type="text"]').keydown(function (event, ui) {
-                    if (event.which === keyboard.keycodes.enter) {
+                    if (event.which === this.keyboard.keycodes.enter) {
                         that.find('.btn-primary').first().click();
                     }
                 });

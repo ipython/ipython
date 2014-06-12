@@ -17,6 +17,35 @@
 "notebook/js/codemirror-ipython.js",
 "notebook/js/codemirror-ipythongfm.js",
 
+
+// monkey patch CM to be able to syntax highlight cell magics
+// bug reported upstream,
+// see https://github.com/marijnh/CodeMirror2/issues/670
+if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
+    console.log('patching CM for undefined indent');
+    CodeMirror.modes.null = function() {
+        return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
+    };
+}
+
+CodeMirror.patchedGetMode = function(config, mode){
+        var cmmode = CodeMirror.getMode(config, mode);
+        if(cmmode.indent === null) {
+            console.log('patch mode "' , mode, '" on the fly');
+            cmmode.indent = function(){return 0;};
+        }
+        return cmmode;
+    };
+// end monkey patching CodeMirror
+
+
+"notebook/js/tooltip",
+    Tooltip, 
+    tooltip = new Tooltip();
+    IPython.tooltip = tooltip;
+
+
+
 //----------------------------------------------------------------------------
 //  Copyright (C) 2008-2011  The IPython Development Team
 //

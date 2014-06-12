@@ -5,6 +5,9 @@
 // OutputArea
 //============================================================================
 
+
+"components/google-caja/html-css-sanitizer-minified",
+
 /**
  * @module IPython
  * @namespace IPython

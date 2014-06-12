@@ -11,6 +11,19 @@
  * @submodule MenuBar
  */
 
+'components/bootstrap-tour/build/js/bootstrap-tour.min'
+"notebook/js/tour",
+    Tour, 
+
+    try {
+        tour = new Tour();
+    } catch (e) {
+        tour = undefined;
+        console.log("Failed to instantiate Notebook Tour", e);
+    }
+
+    IPython.tour = tour;
+
 
 var IPython = (function (IPython) {
     "use strict";
