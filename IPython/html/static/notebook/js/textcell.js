@@ -1,27 +1,13 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// TextCell
-//============================================================================
-
-
-
-/**
-    A module that allow to create different type of Text Cell
-    @module IPython
-    @namespace IPython
- */
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'notebook/js/cell',
+    'base/js/security',
+], function(IPython, $, Cell, Security) {
     "use strict";
-
-    // TextCell base class
-    var keycodes = IPython.keyboard.keycodes;
-    var security = IPython.security;
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
@@ -29,12 +15,13 @@ var IPython = (function (IPython) {
      *
      * @class TextCell
      * @constructor TextCell
-     * @extend IPython.Cell
+     * @extend Cell
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
      *      @param [options.placeholder] {string} default string to use when souce in empty for rendering (only use in some TextCell subclass)
      */
-    var TextCell = function (options) {
+    var TextCell = function (options, events, config, mathjaxutils) {
+        // TODO: Config is IPython.config
         // in all TextCell/Cell subclasses
         // do not assign most of members here, just pass it down
         // in the options dict potentially overwriting what you wish.
@@ -48,13 +35,14 @@ var IPython = (function (IPython) {
         options = this.mergeopt(TextCell,options,{cm_config:cm_overwrite_options});
 
         this.cell_type = this.cell_type || 'text';
+        this.mathjaxutils = mathjaxutils;
 
-        IPython.Cell.apply(this, [options]);
+        Cell.apply(this, [options], events);
 
         this.rendered = false;
     };
 
-    TextCell.prototype = new IPython.Cell();
+    TextCell.prototype = new Cell();
 
     TextCell.options_default = {
         cm_config : {
@@ -71,7 +59,7 @@ var IPython = (function (IPython) {
      * @private
      */
     TextCell.prototype.create_element = function () {
-        IPython.Cell.prototype.create_element.apply(this, arguments);
+        Cell.prototype.create_element.apply(this, arguments);
 
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
@@ -79,7 +67,7 @@ var IPython = (function (IPython) {
         var prompt = $('<div/>').addClass('prompt input_prompt');
         cell.append(prompt);
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new IPython.CellToolbar(this);
+        this.celltoolbar = new CellToolbar(this);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
@@ -99,12 +87,12 @@ var IPython = (function (IPython) {
      * @method bind_event
      */
     TextCell.prototype.bind_events = function () {
-        IPython.Cell.prototype.bind_events.apply(this);
+        Cell.prototype.bind_events.apply(this);
         var that = this;
 
         this.element.dblclick(function () {
             if (that.selected === false) {
-                $([IPython.events]).trigger('select.Cell', {'cell':that});
+                this.events.trigger('select.Cell', {'cell':that});
             }
             var cont = that.unrender();
             if (cont) {
@@ -116,7 +104,7 @@ var IPython = (function (IPython) {
     // Cell level actions
     
     TextCell.prototype.select = function () {
-        var cont = IPython.Cell.prototype.select.apply(this);
+        var cont = Cell.prototype.select.apply(this);
         if (cont) {
             if (this.mode === 'edit') {
                 this.code_mirror.refresh();
@@ -127,7 +115,7 @@ var IPython = (function (IPython) {
 
     TextCell.prototype.unrender = function () {
         if (this.read_only) return;
-        var cont = IPython.Cell.prototype.unrender.apply(this);
+        var cont = Cell.prototype.unrender.apply(this);
         if (cont) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
@@ -191,7 +179,7 @@ var IPython = (function (IPython) {
      * @method fromJSON
      */
     TextCell.prototype.fromJSON = function (data) {
-        IPython.Cell.prototype.fromJSON.apply(this, arguments);
+        Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
@@ -211,7 +199,7 @@ var IPython = (function (IPython) {
      * @return {object} cell data serialised to json
      */
     TextCell.prototype.toJSON = function () {
-        var data = IPython.Cell.prototype.toJSON.apply(this);
+        var data = Cell.prototype.toJSON.apply(this);
         data.source = this.get_text();
         if (data.source == this.placeholder) {
             data.source = "";
@@ -245,17 +233,17 @@ var IPython = (function (IPython) {
      * @method render
      */
     MarkdownCell.prototype.render = function () {
-        var cont = IPython.TextCell.prototype.render.apply(this);
+        var cont = TextCell.prototype.render.apply(this);
         if (cont) {
             var text = this.get_text();
             var math = null;
             if (text === "") { text = this.placeholder; }
-            var text_and_math = IPython.mathjaxutils.remove_math(text);
+            var text_and_math = this.mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            html = IPython.mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
+            html = this.mathjaxutils.replace_math(html, math);
+            html = Security.sanitize_html(html);
             html = $($.parseHTML(html));
             // links in markdown cells should open in new tabs
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
@@ -273,7 +261,7 @@ var IPython = (function (IPython) {
     /**
      * @class RawCell
      * @constructor RawCell
-     * @extends IPython.TextCell
+     * @extends TextCell
      */
     var RawCell = function (options) {
 
@@ -309,12 +297,12 @@ var IPython = (function (IPython) {
      * @method auto_highlight
      */
     RawCell.prototype.auto_highlight = function () {
-        this._auto_highlight(IPython.config.raw_cell_highlight);
+        this._auto_highlight(config.raw_cell_highlight);
     };
 
     /** @method render **/
     RawCell.prototype.render = function () {
-        var cont = IPython.TextCell.prototype.render.apply(this);
+        var cont = TextCell.prototype.render.apply(this);
         if (cont){
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
@@ -327,12 +315,12 @@ var IPython = (function (IPython) {
 
     /**
      * @class HeadingCell
-     * @extends IPython.TextCell
+     * @extends TextCell
      */
 
     /**
      * @constructor HeadingCell
-     * @extends IPython.TextCell
+     * @extends TextCell
      */
     var HeadingCell = function (options) {
         options = this.mergeopt(HeadingCell, options);
@@ -412,22 +400,21 @@ var IPython = (function (IPython) {
         return r.children().first().html();
     };
 
-
     HeadingCell.prototype.render = function () {
-        var cont = IPython.TextCell.prototype.render.apply(this);
+        var cont = TextCell.prototype.render.apply(this);
         if (cont) {
             var text = this.get_text();
             var math = null;
             // Markdown headings must be a single line
             text = text.replace(/\n/g, ' ');
             if (text === "") { text = this.placeholder; }
-            text = Array(this.level + 1).join("#") + " " + text;
-            var text_and_math = IPython.mathjaxutils.remove_math(text);
+            text = new Array(this.level + 1).join("#") + " " + text;
+            var text_and_math = this.mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            html = IPython.mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
+            html = this.mathjaxutils.replace_math(html, math);
+            html = Security.sanitize_html(html);
             var h = $($.parseHTML(html));
             // add id and linkback anchor
             var hash = h.text().replace(/ /g, '-');
@@ -446,14 +433,17 @@ var IPython = (function (IPython) {
         return cont;
     };
 
-//  TODO: RETURN IN THIS NAMESPACE!
+    // Backwards compatability.
     IPython.TextCell = TextCell;
     IPython.MarkdownCell = MarkdownCell;
     IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
 
-
-    return IPython;
-
-}(IPython));
-
+    Cells = {
+        'TextCell': TextCell,
+        'MarkdownCell': MarkdownCell,
+        'RawCell': RawCell,
+        'HeadingCell': HeadingCell,
+    };
+    return Cells;
+});

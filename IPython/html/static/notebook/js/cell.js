@@ -1,73 +1,51 @@
-"components/codemirror/lib/codemirror.js",
-// Set codemirror version.
-// CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
-"components/codemirror/addon/mode/loadmode.js",
-"components/codemirror/addon/mode/multiplex.js",
-"components/codemirror/addon/mode/overlay.js",
-"components/codemirror/addon/edit/matchbrackets.js",
-"components/codemirror/addon/edit/closebrackets.js",
-"components/codemirror/addon/comment/comment.js",
-"components/codemirror/mode/htmlmixed/htmlmixed.js",
-"components/codemirror/mode/xml/xml.js",
-"components/codemirror/mode/javascript/javascript.js",
-"components/codemirror/mode/css/css.js",
-"components/codemirror/mode/rst/rst.js",
-"components/codemirror/mode/markdown/markdown.js",
-"components/codemirror/mode/python/python.js",
-"notebook/js/codemirror-ipython.js",
-"notebook/js/codemirror-ipythongfm.js",
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'components/codemirror/lib/codemirror.js',
+    'base/js/utils',
 
-// monkey patch CM to be able to syntax highlight cell magics
-// bug reported upstream,
-// see https://github.com/marijnh/CodeMirror2/issues/670
-if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-    console.log('patching CM for undefined indent');
-    CodeMirror.modes.null = function() {
-        return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
-    };
-}
-
-CodeMirror.patchedGetMode = function(config, mode){
-        var cmmode = CodeMirror.getMode(config, mode);
-        if(cmmode.indent === null) {
-            console.log('patch mode "' , mode, '" on the fly');
-            cmmode.indent = function(){return 0;};
-        }
-        return cmmode;
-    };
-// end monkey patching CodeMirror
-
-
-"notebook/js/tooltip",
-    Tooltip, 
-    tooltip = new Tooltip();
-    IPython.tooltip = tooltip;
-
-
-
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
-
-//============================================================================
-// Cell
-//============================================================================
-/**
- * An extendable module that provide base functionnality to create cell for notebook.
- * @module IPython
- * @namespace IPython
- * @submodule Cell
- */
-
-var IPython = (function (IPython) {
+    // Set codemirror version.
+    // CodeMirror.modeURL = '{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}';
+    'components/codemirror/addon/mode/loadmode.js',
+    'components/codemirror/addon/mode/multiplex.js',
+    'components/codemirror/addon/mode/overlay.js',
+    'components/codemirror/addon/edit/matchbrackets.js',
+    'components/codemirror/addon/edit/closebrackets.js',
+    'components/codemirror/addon/comment/comment.js',
+    'components/codemirror/mode/htmlmixed/htmlmixed.js',
+    'components/codemirror/mode/xml/xml.js',
+    'components/codemirror/mode/javascript/javascript.js',
+    'components/codemirror/mode/css/css.js',
+    'components/codemirror/mode/rst/rst.js',
+    'components/codemirror/mode/markdown/markdown.js',
+    'components/codemirror/mode/python/python.js',
+    'notebook/js/codemirror-ipython.js',
+    'notebook/js/codemirror-ipythongfm.js',
+], function(IPython, $, CodeMirror, Utils) {
     "use strict";
 
-    var utils = IPython.utils;
-    var keycodes = IPython.keyboard.keycodes;
+    // monkey patch CM to be able to syntax highlight cell magics
+    // bug reported upstream,
+    // see https://github.com/marijnh/CodeMirror2/issues/670
+    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
+        console.log('patching CM for undefined indent');
+        CodeMirror.modes.null = function() {
+            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
+        };
+    }
+
+    CodeMirror.patchedGetMode = function(config, mode){
+            var cmmode = CodeMirror.getMode(config, mode);
+            if(cmmode.indent === null) {
+                console.log('patch mode "' , mode, '" on the fly');
+                cmmode.indent = function(){return 0;};
+            }
+            return cmmode;
+        };
+    // end monkey patching CodeMirror
 
     /**
      * The Base `Cell` class from which to inherit
@@ -80,8 +58,8 @@ var IPython = (function (IPython) {
      * @param {object|undefined} [options]
      *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
      */
-    var Cell = function (options) {
-
+    var Cell = function (keyboard_manager) {
+        this.keyboard_manager = keyboard_manager;
         options = this.mergeopt(Cell, options);
         // superclass default overwrite our default
         
@@ -94,7 +72,7 @@ var IPython = (function (IPython) {
         // load this from metadata later ?
         this.user_highlight = 'auto';
         this.cm_config = options.cm_config;
-        this.cell_id = utils.uuid();
+        this.cell_id = Utils.uuid();
         this._options = options;
 
         // For JS VM engines optimization, attributes should be all set (even
@@ -130,7 +108,7 @@ var IPython = (function (IPython) {
     // FIXME: Workaround CM Bug #332 (Safari segfault on drag)
     // by disabling drag/drop altogether on Safari
     // https://github.com/marijnh/CodeMirror/issues/332    
-    if (utils.browser[0] == "Safari") {
+    if (Utils.browser[0] == "Safari") {
         Cell.options_default.cm_config.dragDrop = false;
     }
 
@@ -180,27 +158,27 @@ var IPython = (function (IPython) {
         // We trigger events so that Cell doesn't have to depend on Notebook.
         that.element.click(function (event) {
             if (!that.selected) {
-                $([IPython.events]).trigger('select.Cell', {'cell':that});
+                that.events.trigger('select.Cell', {'cell':that});
             }
         });
         that.element.focusin(function (event) {
             if (!that.selected) {
-                $([IPython.events]).trigger('select.Cell', {'cell':that});
+                that.events.trigger('select.Cell', {'cell':that});
             }
         });
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
-                $([IPython.events]).trigger("set_dirty.Notebook", {value: true});
+                that.events.trigger("set_dirty.Notebook", {value: true});
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
-                $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+                that.events.trigger('edit_mode.Cell', {cell: that});
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                $([IPython.events]).trigger('command_mode.Cell', {cell: that});
+                that.events.trigger('command_mode.Cell', {cell: that});
             });
         }
     };
@@ -219,7 +197,7 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var that = this;
-        var shortcuts = IPython.keyboard_manager.edit_shortcuts;
+        var shortcuts = this.keyboard_manager.edit_shortcuts;
 
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
@@ -597,9 +575,9 @@ var IPython = (function (IPython) {
         this.code_mirror.setOption('mode', default_mode);
     };
 
+    // Backwards compatability.
     IPython.Cell = Cell;
 
-    return IPython;
+    return Cell;
 
-}(IPython));
-
+});

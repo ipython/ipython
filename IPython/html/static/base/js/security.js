@@ -1,19 +1,11 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2014  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Utilities
-//============================================================================
-IPython.namespace('IPython.security');
-
-IPython.security = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min'
+], function(IPython, $) {
     "use strict";
-
-    var utils = IPython.utils;
     
     var noop = function (x) { return x; };
     
@@ -121,6 +113,4 @@ IPython.security = (function (IPython) {
         caja: caja,
         sanitize_html: sanitize_html
     };
-
-}(IPython));
-
+});

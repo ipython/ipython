@@ -5,11 +5,13 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'notebook/js/toolbar',
-], function(IPython, $, Toolbar) {
+    'notebook/js/celltoolbar',
+], function(IPython, $, Toolbar, CellToolbar) {
     "use strict";
 
-    var MainToolBar = function (selector, notebook) {
+    var MainToolBar = function (selector, layout_manager, notebook, events) {
         ToolBar.apply(this, arguments);
+        this.events = events;
         this.notebook = notebook;
         this.construct();
         this.add_celltype_list();
@@ -150,27 +152,27 @@ define([
         select.change(function() {
                 var val = $(this).val();
                 if (val ==='') {
-                    IPython.CellToolbar.global_hide();
+                    CellToolbar.global_hide();
                     delete this.notebook.metadata.celltoolbar;
                 } else {
-                    IPython.CellToolbar.global_show();
-                    IPython.CellToolbar.activate_preset(val);
+                    CellToolbar.global_show();
+                    CellToolbar.activate_preset(val);
                     this.notebook.metadata.celltoolbar = val;
                 }
             });
         // Setup the currently registered presets.
-        var presets = IPython.CellToolbar.list_presets();
+        var presets = CellToolbar.list_presets();
         for (var i=0; i<presets.length; i++) {
             var name = presets[i];
             select.append($('<option/>').attr('value', name).text(name));
         }
         // Setup future preset registrations.
-        $([IPython.events]).on('preset_added.CellToolbar', function (event, data) {
+        this.events.on('preset_added.CellToolbar', function (event, data) {
             var name = data.name;
             select.append($('<option/>').attr('value', name).text(name));
         });
         // Update select value when a preset is activated.
-        $([IPython.events]).on('preset_activated.CellToolbar', function (event, data) {
+        this.events.on('preset_activated.CellToolbar', function (event, data) {
             if (select.val() !== data.name)
                 select.val(data.name);
         });
@@ -202,7 +204,7 @@ define([
                 this.notebook.to_heading(undefined, 6);
             }
         });
-        $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
+        this.events.on('selected_cell_type_changed.Notebook', function (event, data) {
             if (data.cell_type === 'heading') {
                 that.element.find('#cell_type').val(data.cell_type+data.level);
             } else {

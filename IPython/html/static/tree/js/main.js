@@ -33,7 +33,7 @@ require([
         base_url: Utils.get_body_data("baseUrl"),
         notebook_path: Utils.get_body_data("notebookPath"),
     };
-    events = new Events();
+    events = $([new Events()]);
     session_list = new SesssionList(opts, events);
     notebook_list = new NotebookList('#notebook_list', opts, undefined, session_list);
     cluster_list = new ClusterList('#cluster_list', opts);

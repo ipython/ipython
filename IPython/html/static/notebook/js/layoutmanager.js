@@ -7,9 +7,8 @@ define([
 ], function(IPython, $) {
     "use strict";
 
-    var LayoutManager = function (pager) {
+    var LayoutManager = function () {
         this.bind_events();
-        this.pager = pager;
     };
 
     LayoutManager.prototype.bind_events = function () {
@@ -39,14 +38,15 @@ define([
         var app_height = this.app_height();  // content height
 
         $('#ipython-main-app').height(app_height);  // content+padding+border height
-
-        var pager_height = this.pager.percentage_height*app_height;
-        var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
-        $('div#pager').outerHeight(pager_height);
-        if (this.pager.expanded) {
-            $('div#notebook').outerHeight(app_height-pager_height-pager_splitter_height);
-        } else {
-            $('div#notebook').outerHeight(app_height-pager_splitter_height);
+        if (this.pager) {
+            var pager_height = this.pager.percentage_height*app_height;
+            var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
+            $('div#pager').outerHeight(pager_height);
+            if (this.pager.expanded) {
+                $('div#notebook').outerHeight(app_height-pager_height-pager_splitter_height);
+            } else {
+                $('div#notebook').outerHeight(app_height-pager_splitter_height);
+            }    
         }
     };
 

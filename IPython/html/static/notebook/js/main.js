@@ -4,6 +4,7 @@
 var ipython = ipython || {};
 require([
     'base/js/namespace',
+    'components/jquery/jquery.min',
     'notebook/js/notebook',
     'base/js/utils',
     'base/js/page',
@@ -17,6 +18,7 @@ require([
     'notebook/js/notificationarea',
 ], function(
     IPython, 
+    $,
     Notebook, 
     Utils, 
     Page, 
@@ -41,12 +43,13 @@ require([
     };
 
     page = new Page();
-    pager = new Pager('div#pager', 'div#pager_splitter');
-    layout_manager = new LayoutManager(pager);
-    events = new Events();
+    layout_manager = new LayoutManager();
+    pager = new Pager('div#pager', 'div#pager_splitter', layout_manager);
+    layout_manager.pager = pager;
+    events = $([new Events()]);
     notebook = new Notebook('div#notebook', opts, events);
     login_widget = new LoginWidget('span#login_widget', opts);
-    toolbar = new MainToolBar('#maintoolbar-container');
+    toolbar = new MainToolBar('#maintoolbar-container', notebook, events);
     quick_help = new QuickHelp();
     menubar = new MenuBar('#menubar', opts);
 

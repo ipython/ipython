@@ -1,3 +1,9 @@
+
+"notebook/js/tooltip",
+    Tooltip, 
+    tooltip = new Tooltip();
+    IPython.tooltip = tooltip;
+
 //----------------------------------------------------------------------------
 //  Copyright (C) 2008-2011  The IPython Development Team
 //

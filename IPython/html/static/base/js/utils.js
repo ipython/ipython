@@ -550,7 +550,8 @@ define([
         log_ajax_error : log_ajax_error,
     };
 
-    // Register self in the global namespace for convenience.
+    // Backwards compatability.
     IPython.Utils = Utils;
+    
     return Utils;
 }); 

@@ -1,16 +1,18 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Pager
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'notebook/js/toolbar',
+    'notebook/js/celltoolbar',
+], function(IPython, $, Toolbar, CellToolbar) {
     "use strict";
 
     var utils = IPython.utils;
 
-    var Pager = function (pager_selector, pager_splitter_selector) {
+    var Pager = function (pager_selector, pager_splitter_selector, layout_manager, events) {
+        this.events = events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager_button_area');
         var that = this;
@@ -23,7 +25,7 @@ var IPython = (function (IPython) {
                         drag: function(event, ui) {
                             // recalculate the amount of space the pager should take
                             var pheight = ($(document.body).height()-event.clientY-4);
-                            var downprct = pheight/IPython.layout_manager.app_height();
+                            var downprct = pheight/layout_manager.app_height();
                                 downprct = Math.min(0.9, downprct);
                             if (downprct < 0.1) {
                                 that.percentage_height = 0.1;
@@ -32,7 +34,7 @@ var IPython = (function (IPython) {
                                 that.percentage_height = downprct;
                                 that.expand({'duration':0});
                             }
-                            IPython.layout_manager.do_resize();
+                            layout_manager.do_resize();
                        }
             });
         this.expanded = false;
@@ -47,22 +49,22 @@ var IPython = (function (IPython) {
             $('<a>').attr('role', "button")
                     .attr('title',"Open the pager in an external window")
                     .addClass('ui-button')
-                    .click(function(){that.detach()})
+                    .click(function(){that.detach();})
                     .attr('style','position: absolute; right: 20px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-extlink")
                     )
-        )
+        );
         this.pager_button_area.append(
             $('<a>').attr('role', "button")
                     .attr('title',"Close the pager")
                     .addClass('ui-button')
-                    .click(function(){that.collapse()})
+                    .click(function(){that.collapse();})
                     .attr('style','position: absolute; right: 5px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-close")
                     )
-        )
+        );
     };
 
     Pager.prototype.style = function () {
@@ -105,7 +107,7 @@ var IPython = (function (IPython) {
             that.toggle();
         });
 
-        $([IPython.events]).on('open_with_text.Pager', function (event, payload) {
+        this.events.on('open_with_text.Pager', function (event, payload) {
             // FIXME: support other mime types
             if (payload.data['text/plain'] && payload.data['text/plain'] !== "") {
                 that.clear();
@@ -171,10 +173,8 @@ var IPython = (function (IPython) {
         this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
     };
 
-
+    // Backwards compatability.
     IPython.Pager = Pager;
 
-    return IPython;
-
-}(IPython));
-
+    return Pager;
+});

@@ -46,7 +46,7 @@ define([
      * @param {Object} [events] An events object
      */
     var Notebook = function (selector, options, events) {
-        this.events = events || new Events();
+        this.events = events || $([new Events()]);
         this.keyboard_manager = new KeyboardManager();
         this.keyboard = new Keyboard();
         this.save_widget = new SaveWidget('span#save_widget');
