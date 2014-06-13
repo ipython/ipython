@@ -5,9 +5,7 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-    'notebook/js/keyboardmanager',
     'notebook/js/savewidget',
-    'base/js/events',
     'base/js/dialog',
     'notebook/js/textcell',
     'notebook/js/codecell',
@@ -23,9 +21,7 @@ define([
     IPython, 
     $, 
     Utils, 
-    KeyboardManager, 
     SaveWidget, 
-    Events, 
     Dialog, 
     Cells, 
     CodeCell, 
@@ -45,9 +41,9 @@ define([
      * @param {Object} [options] A config object
      * @param {Object} [events] An events object
      */
-    var Notebook = function (selector, options, events) {
-        this.events = events || $([new Events()]);
-        this.keyboard_manager = new KeyboardManager();
+    var Notebook = function (selector, options, events, keyboard_manager) {
+        this.events = events;
+        this.keyboard_manager = keyboard_manager;
         this.keyboard = new Keyboard();
         this.save_widget = new SaveWidget('span#save_widget');
 

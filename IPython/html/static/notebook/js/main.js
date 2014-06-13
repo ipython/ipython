@@ -16,6 +16,7 @@ require([
     'notebook/js/quickhelp',
     'notebook/js/menubar',
     'notebook/js/notificationarea',
+    'notebook/js/keyboardmanager',
 ], function(
     IPython, 
     $,
@@ -29,7 +30,8 @@ require([
     Pager, 
     QuickHelp, 
     MenuBar, 
-    NotificationArea 
+    NotificationArea, 
+    KeyboardManager
     ) {
     "use strict";
 
@@ -44,13 +46,14 @@ require([
 
     page = new Page();
     layout_manager = new LayoutManager();
-    pager = new Pager('div#pager', 'div#pager_splitter', layout_manager);
-    layout_manager.pager = pager;
+    keyboard_manager = new KeyboardManager();
     events = $([new Events()]);
-    notebook = new Notebook('div#notebook', opts, events);
+    pager = new Pager('div#pager', 'div#pager_splitter', layout_manager, events);
+    layout_manager.pager = pager;
+    notebook = new Notebook('div#notebook', opts, events, keyboard_manager);
     login_widget = new LoginWidget('span#login_widget', opts);
     toolbar = new MainToolBar('#maintoolbar-container', notebook, events);
-    quick_help = new QuickHelp();
+    quick_help = new QuickHelp(undefined, keyboard_manager, events);
     menubar = new MenuBar('#menubar', opts);
 
     notification_area = new NotificationArea('#notification_area');
@@ -98,4 +101,5 @@ require([
     ipython.toolbar = toolbar;
     ipython.notification_area = notification_area;
     ipython.events = events;
+    ipython.keyboard_manager = keyboard_manager;
 });

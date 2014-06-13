@@ -4,12 +4,9 @@
 define([
     'base/js/namespace',
     'components/jquery/jquery.min',
-    'notebook/js/toolbar',
-    'notebook/js/celltoolbar',
-], function(IPython, $, Toolbar, CellToolbar) {
+    'base/js/utils',
+], function(IPython, $, Utils) {
     "use strict";
-
-    var utils = IPython.utils;
 
     var Pager = function (pager_selector, pager_splitter_selector, layout_manager, events) {
         this.events = events;
@@ -170,7 +167,7 @@ define([
     Pager.prototype.append_text = function (text) {
         // The only user content injected with this HTML call is escaped by
         // the fixConsole() method.
-        this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
+        this.pager_element.find(".container").append($('<pre/>').html(Utils.fixCarriageReturn(Utils.fixConsole(text))));
     };
 
     // Backwards compatability.
