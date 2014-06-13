@@ -1,15 +1,16 @@
 div.cell {
     border: 1px solid transparent;
     .vbox();
-
+    .corner-all();
+    border-width: thin;
+    border-style: solid;
+    
     &.selected {
-        .corner-all;
-        border : thin @border_color solid;
+        border-color: @border_color;
     }
     
     &.edit_mode {
-        .corner-all;
-        border : thin green solid;
+        border-color: green;
     }
 }
 
