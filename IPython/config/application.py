@@ -385,10 +385,14 @@ class Application(SingletonConfigurable):
     @catch_config_error
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv."""
-        subapp,help = self.subcommands.get(subc)
+        subapp, help = self.subcommands.get(subc)
 
         if isinstance(subapp, string_types):
-            subapp = import_item(subapp)
+            try:
+                subapp = import_item(subapp)
+            except ImportError as e:
+                print("%s %s dependency not met: %s" % (self.name, subc, e), file=sys.stderr)
+                self.exit(1)
 
         # clear existing instances
         self.__class__.clear_instance()
