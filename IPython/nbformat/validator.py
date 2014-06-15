@@ -7,10 +7,10 @@ try:
     from jsonschema import Draft3Validator as Validator
 except ImportError as e:
     verbose_msg = """
+
+    IPython depends on the jsonschema package: https://pypi.python.org/pypi/jsonschema
     
-    The `jsonschema` packages is now a hard dependency for IPython
-    
-    You can install it using `pip install jsonschema`
+    Please install it first.
     """
     raise ImportError(e.message + verbose_msg)
 import jsonpointer as jsonpointer
