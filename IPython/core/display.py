@@ -500,9 +500,8 @@ class Javascript(TextDisplayObject):
         downloaded and then displayed.
 
         In the Notebook, the containing element will be available as `element`,
-        and jQuery will be available.  The output area starts hidden, so if
-        the js appends content to `element` that should be visible, then
-        it must call `container.show()` to unhide the area.
+        and jQuery will be available.  Content appended to `element` will be
+        visible in the output area. 
 
         Parameters
         ----------
