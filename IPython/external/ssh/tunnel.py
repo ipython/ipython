@@ -27,6 +27,7 @@ import socket
 from multiprocessing import Process
 from getpass import getpass, getuser
 import warnings
+from IPython.utils.py3compat import xrange
 
 try:
     with warnings.catch_warnings():
