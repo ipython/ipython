@@ -13,7 +13,18 @@ except ImportError as e:
     Please install it first.
     """
     raise ImportError(e.message + verbose_msg)
-import jsonpointer as jsonpointer
+
+try:
+    import jsonpointer as jsonpointer
+except ImportError as e:
+    verbose_msg = """
+
+    IPython depends on the jsonpointer package: https://pypi.python.org/pypi/jsonpointer
+    
+    Please install it first.
+    """
+    raise ImportError(e.message + verbose_msg)
+
 from IPython.utils.py3compat import iteritems
 
 
