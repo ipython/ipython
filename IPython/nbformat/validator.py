@@ -2,8 +2,17 @@ from __future__ import print_function
 import json
 import os
 
-from jsonschema import SchemaError
-from jsonschema import Draft3Validator as Validator
+try:
+    from jsonschema import SchemaError
+    from jsonschema import Draft3Validator as Validator
+except ImportError as e:
+    verbose_msg = """
+    
+    The `jsonschema` packages is now a hard dependency for IPython
+    
+    You can install it using `pip install jsonschema`
+    """
+    raise ImportError(e.message + verbose_msg)
 import jsonpointer as jsonpointer
 from IPython.utils.py3compat import iteritems
 
