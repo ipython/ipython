@@ -6,12 +6,13 @@ define([
     'components/jquery/jquery.min',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, Utils, Dialog) {
+], function(IPython, $, utils, Dialog) {
     "use strict";
-    var platform = Utils.platform;
+    var platform = utils.platform;
 
     var QuickHelp = function (selector, keyboard_manager, events) {
         this.keyboard_manager = keyboard_manager;
+        keyboard_manager.quick_help = this;
         this.events = events;
     };
 

@@ -1,22 +1,11 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// SelectionContainerWidget
-//============================================================================
+define([
+    "widgets/js/widget",
+], function(widget){
 
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["widgets/js/widget"], function(WidgetManager){
-
-    var AccordionView = IPython.DOMWidgetView.extend({
+    var AccordionView = widget.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
             var guid = 'panel-group' + IPython.utils.uuid();
@@ -141,10 +130,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             }
         },
     });
-    WidgetManager.register_widget_view('AccordionView', AccordionView);
     
 
-    var TabView = IPython.DOMWidgetView.extend({    
+    var TabView = widget.DOMWidgetView.extend({    
         initialize: function() {
             // Public constructor.
             this.containers = [];
@@ -268,5 +256,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.containers[index].tab('show');
         },
     });
-    WidgetManager.register_widget_view('TabView', TabView);
+
+    return {
+        'AccordionView': AccordionView,
+        'TabView': TabView,
+    };
 });

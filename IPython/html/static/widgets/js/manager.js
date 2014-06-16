@@ -1,27 +1,8 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// WidgetModel, WidgetView, and WidgetManager
-//============================================================================
-/**
- * Base Widget classes
- * @module IPython
- * @namespace IPython
- * @submodule widget
- */
-
-(function () {
-    "use strict";
-
-    // Use require.js 'define' method so that require.js is intelligent enough to
-    // syncronously load everything within this file when it is being 'required' 
-    // elsewhere.
-    define(["underscore",
+define([
+    "underscore",
              "backbone",
             ], function (_, Backbone) {
 
@@ -208,7 +189,8 @@
             this._models[model_id] = widget_model;
         };
         
+    // For backwards compatability.
         IPython.WidgetManager = WidgetManager;
-        return IPython.WidgetManager;
+
+    return WidgetManager;
     });
-}());

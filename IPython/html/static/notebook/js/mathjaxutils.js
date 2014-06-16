@@ -1,18 +1,11 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// MathJax utility functions
-//============================================================================
-
-
-IPython.namespace('IPython.mathjaxutils');
-
-IPython.mathjaxutils = (function (IPython) {
+define([
+    'components/jquery/jquery.min',
+    'base/js/utils',
+    'base/js/dialog',
+], function($, utils, Dialog) {
     "use strict";
 
     var init = function () {
@@ -75,7 +68,7 @@ IPython.mathjaxutils = (function (IPython) {
                         "which will prevent this dialog from appearing."
                     )
                 );
-            IPython.dialog.modal({
+            Dialog.modal({
                 title : "Failed to retrieve MathJax from '" + window.mathjax_url + "'",
                 body : message,
                 buttons : {
@@ -110,7 +103,7 @@ IPython.mathjaxutils = (function (IPython) {
         .replace(/</g, "&lt;") // use HTML entity for <
         .replace(/>/g, "&gt;") // use HTML entity for >
         ;
-        if (IPython.utils.browser === 'msie') {
+        if (utils.browser === 'msie') {
             block = block.replace(/(%[^\n]*)\n/g, "$1<br/>\n");
         }
         while (j > i) {
@@ -159,7 +152,7 @@ IPython.mathjaxutils = (function (IPython) {
             de_tilde = function (text) { return text; };
         }
 
-        var blocks = IPython.utils.regex_split(text.replace(/\r\n?/g, "\n"),MATHSPLIT);
+        var blocks = utils.regex_split(text.replace(/\r\n?/g, "\n"),MATHSPLIT);
 
         for (var i = 1, m = blocks.length; i < m; i += 2) {
             var block = blocks[i];
@@ -247,5 +240,4 @@ IPython.mathjaxutils = (function (IPython) {
         remove_math : remove_math,
         replace_math : replace_math
     };
-
-}(IPython));
+});

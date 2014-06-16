@@ -5,12 +5,12 @@ define([
     'base/js/namespace',
     'base/js/utils',
     'components/jquery/jquery.min',
-], function(IPython, Utils, $){
+], function(IPython, utils, $){
     "use strict";
 
     var LoginWidget = function (selector, options) {
         options = options || {};
-        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -27,13 +27,13 @@ define([
     LoginWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find("button#logout").click(function () {
-            window.location = Utils.url_join_encode(
+            window.location = utils.url_join_encode(
                 that.base_url,
                 "logout"
             );
         });
         this.element.find("button#login").click(function () {
-            window.location = Utils.url_join_encode(
+            window.location = utils.url_join_encode(
                 that.base_url,
                 "login"
             );

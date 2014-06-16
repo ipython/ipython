@@ -5,7 +5,7 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-], function(IPython, $, Utils) {
+], function(IPython, $, utils) {
     "use strict";
 
     var ClusterList = function (selector, options) {
@@ -17,8 +17,8 @@ define([
         }
         options = options || {};
         this.options = options;
-        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
-        this.notebook_path = options.notebook_path || Utils.get_body_data("notebookPath");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
     };
 
     ClusterList.prototype.style = function () {
@@ -44,9 +44,9 @@ define([
             type : "GET",
             dataType : "json",
             success : $.proxy(this.load_list_success, this),
-            error : Utils.log_ajax_error,
+            error : utils.log_ajax_error,
         };
-        var url = Utils.url_join_encode(this.base_url, 'clusters');
+        var url = utils.url_join_encode(this.base_url, 'clusters');
         $.ajax(url, settings);
     };
 
@@ -70,8 +70,8 @@ define([
 
     var ClusterItem = function (element, options) {
         this.element = $(element);
-        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
-        this.notebook_path = options.notebook_path || Utils.get_body_data("notebookPath");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
         this.data = null;
         this.style();
     };
@@ -126,11 +126,11 @@ define([
                     },
                     error : function (xhr, status, error) {
                         status_col.text("error starting cluster");
-                        Utils.log_ajax_error(xhr, status, error);
+                        utils.log_ajax_error(xhr, status, error);
                     }
                 };
                 status_col.text('starting');
-                var url = Utils.url_join_encode(
+                var url = utils.url_join_encode(
                     that.base_url,
                     'clusters',
                     that.data.profile,

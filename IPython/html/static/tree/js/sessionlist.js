@@ -5,13 +5,13 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-], function(IPython, $, Utils) {
+], function(IPython, $, utils) {
     "use strict";
 
     var SesssionList = function (options, events) {
         this.events = events;
         this.sessions = {};
-        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
     };
     
     SesssionList.prototype.load_sessions = function(){
@@ -22,9 +22,9 @@ define([
             type : "GET",
             dataType : "json",
             success : $.proxy(that.sessions_loaded, this),
-            error : Utils.log_ajax_error,
+            error : utils.log_ajax_error,
         };
-        var url = Utils.url_join_encode(this.base_url, 'api/sessions');
+        var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
     };
 
@@ -33,7 +33,7 @@ define([
         var len = data.length;
         var nb_path;
         for (var i=0; i<len; i++) {
-            nb_path = Utils.url_path_join(
+            nb_path = utils.url_path_join(
                 data[i].notebook.path,
                 data[i].notebook.name
             );

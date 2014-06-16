@@ -24,7 +24,7 @@ define([
     'components/codemirror/mode/python/python.js',
     'notebook/js/codemirror-ipython.js',
     'notebook/js/codemirror-ipythongfm.js',
-], function(IPython, $, CodeMirror, Utils) {
+], function(IPython, $, CodeMirror, utils) {
     "use strict";
 
     // monkey patch CM to be able to syntax highlight cell magics
@@ -72,7 +72,7 @@ define([
         // load this from metadata later ?
         this.user_highlight = 'auto';
         this.cm_config = options.cm_config;
-        this.cell_id = Utils.uuid();
+        this.cell_id = utils.uuid();
         this._options = options;
 
         // For JS VM engines optimization, attributes should be all set (even
@@ -108,7 +108,7 @@ define([
     // FIXME: Workaround CM Bug #332 (Safari segfault on drag)
     // by disabling drag/drop altogether on Safari
     // https://github.com/marijnh/CodeMirror/issues/332    
-    if (Utils.browser[0] == "Safari") {
+    if (utils.browser[0] == "Safari") {
         Cell.options_default.cm_config.dragDrop = false;
     }
 

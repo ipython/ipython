@@ -5,7 +5,7 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-], function(IPython, $, Utils) {
+], function(IPython, $, utils) {
     "use strict";
 
     var Pager = function (pager_selector, pager_splitter_selector, layout_manager, events) {
@@ -14,6 +14,7 @@ define([
         this.pager_button_area = $('#pager_button_area');
         var that = this;
         this.percentage_height = 0.40;
+        layout_manager.pager = this;
         this.pager_splitter_element = $(pager_splitter_selector)
             .draggable({
                         containment: 'window',
@@ -167,7 +168,7 @@ define([
     Pager.prototype.append_text = function (text) {
         // The only user content injected with this HTML call is escaped by
         // the fixConsole() method.
-        this.pager_element.find(".container").append($('<pre/>').html(Utils.fixCarriageReturn(Utils.fixConsole(text))));
+        this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
     };
 
     // Backwards compatability.

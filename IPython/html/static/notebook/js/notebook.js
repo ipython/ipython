@@ -5,31 +5,28 @@ define([
     'base/js/namespace',
     'components/jquery/jquery.min',
     'base/js/utils',
-    'notebook/js/savewidget',
     'base/js/dialog',
     'notebook/js/textcell',
     'notebook/js/codecell',
     'services/sessions/js/session',
     'notebook/js/celltoolbar',
+    'components/marked/lib/marked',
+    'notebook/js/mathjaxutils',
     'base/js/keyboard',
     'components/jquery-ui/ui/minified/jquery-ui.min',
     'components/bootstrap/js/bootstrap.min',
-    'components/marked/lib/marked',
-    'widgets/js/init',
-    'notebook/js/mathjaxutils',
 ], function (
     IPython, 
     $, 
-    Utils, 
-    SaveWidget, 
+    utils, 
     Dialog, 
     Cells, 
     CodeCell, 
     Session, 
     CellToolbar, 
-    Keyboard,
     marked,
-    MathJax
+    mathjaxutils,
+    keyboard
     ) {
 
     /**
@@ -41,14 +38,15 @@ define([
      * @param {Object} [options] A config object
      * @param {Object} [events] An events object
      */
-    var Notebook = function (selector, options, events, keyboard_manager) {
+    var Notebook = function (selector, options, events, keyboard_manager, save_widget) {
+        this.config = undefined; // TODO
         this.events = events;
         this.keyboard_manager = keyboard_manager;
-        this.keyboard = new Keyboard();
-        this.save_widget = new SaveWidget('span#save_widget');
-
-        this.mathjaxutils = MathJax();
-        this.mathjaxutils.init();
+        keyboard_manager.notebook = this;
+        this.save_widget = save_widget;
+        save_widget.notebook = this;
+        
+        mathjaxutils.init();
 
         
         window.marked = window.marked || marked;
@@ -809,7 +807,7 @@ define([
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
-                cell = new CodeCell(this.kernel);
+                cell = new CodeCell(this.kernel, undefined, this.events, this.config, this.keyboard_manager);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 cell = new Cells.MarkdownCell();

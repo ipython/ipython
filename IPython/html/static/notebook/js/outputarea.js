@@ -1,22 +1,15 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// OutputArea
-//============================================================================
-
-
-"components/google-caja/html-css-sanitizer-minified",
-
-/**
- * @module IPython
- * @namespace IPython
- * @submodule OutputArea
- */
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'base/js/utils',
+    'base/js/security',
+    'base/js/keyboard',
+    'notebook/js/mathjaxutils',
+], function(IPython, $, utils, security, keyboard, mathjaxutils) {
     "use strict";
-
-    var utils = IPython.utils;
 
     /**
      * @class OutputArea
@@ -24,8 +17,10 @@ var IPython = (function (IPython) {
      * @constructor
      */
 
-    var OutputArea = function (selector, prompt_area) {
+    var OutputArea = function (selector, prompt_area, events, keyboard_manager) {
         this.selector = selector;
+        this.events = events;
+        this.keyboard_manager = keyboard_manager;
         this.wrapper = $(selector);
         this.outputs = [];
         this.collapsed = false;
@@ -104,7 +99,7 @@ var IPython = (function (IPython) {
 
         this.element.resize(function () {
             // FIXME: Firefox on Linux misbehaves, so automatic scrolling is disabled
-            if ( IPython.utils.browser[0] === "Firefox" ) {
+            if ( utils.browser[0] === "Firefox" ) {
                 return;
             }
             // maybe scroll output,
@@ -518,7 +513,7 @@ var IPython = (function (IPython) {
                 if (!this.trusted && !OutputArea.safe_outputs[type]) {
                     // not trusted, sanitize HTML
                     if (type==='text/html' || type==='text/svg') {
-                        value = IPython.security.sanitize_html(value);
+                        value = security.sanitize_html(value);
                     } else {
                         // don't display if we don't know how to sanitize it
                         console.log("Ignoring untrusted " + type + " output.");
@@ -534,7 +529,7 @@ var IPython = (function (IPython) {
                 if (['image/png', 'image/jpeg'].indexOf(type) < 0 && handle_inserted !== undefined) {
                     setTimeout(handle_inserted, 0);
                 }
-                $([IPython.events]).trigger('output_appended.OutputArea', [type, value, md, toinsert]);
+                this.events.trigger('output_appended.OutputArea', [type, value, md, toinsert]);
                 return toinsert;
             }
         }
@@ -545,7 +540,7 @@ var IPython = (function (IPython) {
     var append_html = function (html, md, element) {
         var type = 'text/html';
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
-        IPython.keyboard_manager.register_events(toinsert);
+        this.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
         element.append(toinsert);
         return toinsert;
@@ -555,11 +550,11 @@ var IPython = (function (IPython) {
     var append_markdown = function(markdown, md, element) {
         var type = 'text/markdown';
         var toinsert = this.create_output_subarea(md, "output_markdown", type);
-        var text_and_math = IPython.mathjaxutils.remove_math(markdown);
+        var text_and_math = mathjaxutils.remove_math(markdown);
         var text = text_and_math[0];
         var math = text_and_math[1];
         var html = marked.parser(marked.lexer(text));
-        html = IPython.mathjaxutils.replace_math(html, math);
+        html = mathjaxutils.replace_math(html, math);
         toinsert.append(html);
         element.append(toinsert);
         return toinsert;
@@ -570,7 +565,7 @@ var IPython = (function (IPython) {
         // We just eval the JS code, element appears in the local scope.
         var type = 'application/javascript';
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
-        IPython.keyboard_manager.register_events(toinsert);
+        this.keyboard_manager.register_events(toinsert);
         element.append(toinsert);
 
         // Fix for ipython/issues/5293, make sure `element` is the area which
@@ -761,7 +756,7 @@ var IPython = (function (IPython) {
                 .keydown(function (event, ui) {
                     // make sure we submit on enter,
                     // and don't re-execute the *cell* on shift-enter
-                    if (event.which === IPython.keyboard.keycodes.enter) {
+                    if (event.which === keyboard.keycodes.enter) {
                         that._submit_raw_input();
                         return false;
                     }
@@ -773,7 +768,7 @@ var IPython = (function (IPython) {
         var raw_input = area.find('input.raw_input');
         // Register events that enable/disable the keyboard manager while raw
         // input is focused.
-        IPython.keyboard_manager.register_events(raw_input);
+        this.keyboard_manager.register_events(raw_input);
         // Note, the following line used to read raw_input.focus().focus().
         // This seemed to be needed otherwise only the cell would be focused.
         // But with the modal UI, this seems to work fine with one call to focus().
@@ -799,7 +794,7 @@ var IPython = (function (IPython) {
         container.parent().remove();
         // replace with plaintext version in stdout
         this.append_output(content, false);
-        $([IPython.events]).trigger('send_input_reply.Kernel', value);
+        this.events.trigger('send_input_reply.Kernel', value);
     }
 
 
@@ -990,8 +985,8 @@ var IPython = (function (IPython) {
         "application/pdf" : append_pdf
     };
 
+    // For backwards compatability.
     IPython.OutputArea = OutputArea;
 
-    return IPython;
-
-}(IPython));
+    return OutputArea;
+});

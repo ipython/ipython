@@ -20,7 +20,7 @@ require([
     $, 
     Events,
     Page, 
-    Utils, 
+    utils, 
     NotebookList, 
     ClusterList, 
     SesssionList, 
@@ -30,8 +30,8 @@ require([
     page = new Page();
 
     var opts = {
-        base_url: Utils.get_body_data("baseUrl"),
-        notebook_path: Utils.get_body_data("notebookPath"),
+        base_url: utils.get_body_data("baseUrl"),
+        notebook_path: utils.get_body_data("notebookPath"),
     };
     events = $([new Events()]);
     session_list = new SesssionList(opts, events);

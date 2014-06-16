@@ -6,7 +6,7 @@ define([
     'components/jquery/jquery.min',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, Utils, Dialog) {
+], function(IPython, $, utils, Dialog) {
     "use strict";
     
     var NotebookList = function (selector, options, element_name, session_list) {
@@ -22,8 +22,8 @@ define([
         }
         this.notebooks_list = [];
         this.sessions = {};
-        this.base_url = options.base_url || Utils.get_body_data("baseUrl");
-        this.notebook_path = options.notebook_path || Utils.get_body_data("notebookPath");
+        this.base_url = options.base_url || utils.get_body_data("baseUrl");
+        this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
         if (this.session_list && this.session_list.events) {
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
@@ -67,7 +67,7 @@ define([
             var f = files[i];
             var reader = new FileReader();
             reader.readAsText(f);
-            var name_and_ext = Utils.splitext(f.name);
+            var name_and_ext = utils.splitext(f.name);
             var file_ext = name_and_ext[1];
             if (file_ext === '.ipynb') {
                 var item = that.new_notebook_item(0);
@@ -130,12 +130,12 @@ define([
             dataType : "json",
             success : $.proxy(this.list_loaded, this),
             error : $.proxy( function(xhr, status, error){
-                Utils.log_ajax_error(xhr, status, error);
+                utils.log_ajax_error(xhr, status, error);
                 that.list_loaded([], null, null, {msg:"Error connecting to server."});
                              },this)
         };
 
-        var url = Utils.url_join_encode(
+        var url = utils.url_join_encode(
                 this.base_url,
                 'api',
                 'notebooks',
@@ -175,7 +175,7 @@ define([
                 var name = data[i].name;
                 item = this.new_notebook_item(i+offset);
                 this.add_link(path, name, item);
-                name = Utils.url_path_join(path, name);
+                name = utils.url_path_join(path, name);
                 if(this.sessions[name] === undefined){
                     this.add_delete_button(item);
                 } else {
@@ -216,7 +216,7 @@ define([
         item.find(".item_icon").addClass('folder_icon').addClass('icon-fixed-width');
         item.find("a.item_link")
             .attr('href',
-                Utils.url_join_encode(
+                utils.url_join_encode(
                     this.base_url,
                     "tree",
                     path,
@@ -233,7 +233,7 @@ define([
         item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
         item.find("a.item_link")
             .attr('href',
-                Utils.url_join_encode(
+                utils.url_join_encode(
                     this.base_url,
                     "notebooks",
                     path,
@@ -249,7 +249,7 @@ define([
         item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("nbname_input")
-            .attr('value', Utils.splitext(nbname)[0])
+            .attr('value', utils.splitext(nbname)[0])
             .attr('size', '30')
             .attr('type', 'text')
         );
@@ -273,9 +273,9 @@ define([
                     success : function () {
                         that.load_sessions();
                     },
-                    error : Utils.log_ajax_error,
+                    error : utils.log_ajax_error,
                 };
-                var url = Utils.url_join_encode(
+                var url = utils.url_join_encode(
                     that.base_url,
                     'api/sessions',
                     session
@@ -314,9 +314,9 @@ define([
                                     success : function (data, status, xhr) {
                                         parent_item.remove();
                                     },
-                                    error : Utils.log_ajax_error,
+                                    error : utils.log_ajax_error,
                                 };
-                                var url = Utils.url_join_encode(
+                                var url = utils.url_join_encode(
                                     notebooklist.base_url,
                                     'api/notebooks',
                                     notebooklist.notebook_path,
@@ -360,10 +360,10 @@ define([
                         that.add_link(path, nbname, item);
                         that.add_delete_button(item);
                     },
-                    error : Utils.log_ajax_error,
+                    error : utils.log_ajax_error,
                 };
 
-                var url = Utils.url_join_encode(
+                var url = utils.url_join_encode(
                     that.base_url,
                     'api/notebooks',
                     that.notebook_path,
@@ -397,7 +397,7 @@ define([
             success : function (data, status, xhr) {
                 var notebook_name = data.name;
                 window.open(
-                    Utils.url_join_encode(
+                    utils.url_join_encode(
                         base_url,
                         'notebooks',
                         path,
@@ -407,7 +407,7 @@ define([
             },
             error : $.proxy(this.new_notebook_failed, this),
         };
-        var url = Utils.url_join_encode(
+        var url = utils.url_join_encode(
             base_url,
             'api/notebooks',
             path
@@ -417,7 +417,7 @@ define([
     
     
     NotebookList.prototype.new_notebook_failed = function (xhr, status, error) {
-        Utils.log_ajax_error(xhr, status, error);
+        utils.log_ajax_error(xhr, status, error);
         var msg;
         if (xhr.responseJSON && xhr.responseJSON.message) {
             msg = xhr.responseJSON.message;

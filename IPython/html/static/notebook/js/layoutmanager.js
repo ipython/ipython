@@ -9,6 +9,7 @@ define([
 
     var LayoutManager = function () {
         this.bind_events();
+        this.pager = undefined;
     };
 
     LayoutManager.prototype.bind_events = function () {

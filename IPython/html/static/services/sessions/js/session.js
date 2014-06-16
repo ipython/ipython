@@ -1,19 +1,14 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notebook
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'components/jquery/jquery.min',
+    'base/js/utils',
+    'services/kernels/js/kernel',
+], function(IPython, $, utils, Kernel) {
     "use strict";
-    
-    var utils = IPython.utils;
-    
+
     var Session = function(notebook, options){
         this.kernel = null;
         this.id = null;
@@ -92,7 +87,7 @@ var IPython = (function (IPython) {
     Session.prototype._handle_start_success = function (data, status, xhr) {
         this.id = data.id;
         var kernel_service_url = utils.url_path_join(this.base_url, "api/kernels");
-        this.kernel = new IPython.Kernel(kernel_service_url);
+        this.kernel = new Kernel(kernel_service_url, notebook.events);
         this.kernel._kernel_started(data.kernel);
     };
     
@@ -114,8 +109,8 @@ var IPython = (function (IPython) {
         this.kernel.kill();
     };
     
+    // For backwards compatability.
     IPython.Session = Session;
 
-    return IPython;
-
-}(IPython));
+    return Session;
+});
