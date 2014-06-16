@@ -8,6 +8,7 @@ class KernelSpecResourceHandler(web.StaticFileHandler, IPythonHandler):
     def initialize(self):
         web.StaticFileHandler.initialize(self, path='')
 
+    @web.authenticated
     def get(self, kernel_name, path, include_body=True):
         ksm = self.kernel_spec_manager
         try:
@@ -16,7 +17,8 @@ class KernelSpecResourceHandler(web.StaticFileHandler, IPythonHandler):
             raise web.HTTPError(404, u'Kernel spec %s not found' % kernel_name)
         self.log.debug("Serving kernel resource from: %s", self.root)
         return web.StaticFileHandler.get(self, path, include_body=include_body)
-    
+
+    @web.authenticated
     def head(self, kernel_name, path):
         self.get(kernel_name, path, include_body=False)
 
