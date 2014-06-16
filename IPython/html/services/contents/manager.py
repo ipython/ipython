@@ -18,7 +18,10 @@ class ContentsManager(LoggingConfigurable):
     def _notary_default(self):
         return sign.NotebookNotary(parent=self)
 
-    hide_globs = List(Unicode, [u'__pycache__'], config=True, help="""
+    hide_globs = List(Unicode, [
+            u'__pycache__', '*.pyc', '*.pyo',
+            '.DS_Store', '*.so', '*.dylib', '*~',
+        ], config=True, help="""
         Glob patterns to hide in file and directory listings.
     """)
 
@@ -60,14 +63,14 @@ class ContentsManager(LoggingConfigurable):
         raise NotImplementedError
 
     def file_exists(self, name, path=''):
-        """Returns a True if the notebook exists. Else, returns False.
+        """Returns a True if the file exists. Else, returns False.
 
         Parameters
         ----------
         name : string
-            The name of the notebook you are checking.
+            The name of the file you are checking.
         path : string
-            The relative path to the notebook (with '/' as separator)
+            The relative path to the file's directory (with '/' as separator)
 
         Returns
         -------
@@ -87,38 +90,38 @@ class ContentsManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
     def get_model(self, name, path='', content=True):
-        """Get the notebook model with or without content."""
+        """Get the model of a file or directory with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
     def save(self, model, name, path=''):
-        """Save the notebook and return the model with no content."""
+        """Save the file or directory and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
     def update(self, model, name, path=''):
-        """Update the notebook and return the model with no content."""
+        """Update the file or directory and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
     def delete(self, name, path=''):
-        """Delete notebook by name and path."""
+        """Delete file or directory by name and path."""
         raise NotImplementedError('must be implemented in a subclass')
 
     def create_checkpoint(self, name, path=''):
-        """Create a checkpoint of the current state of a notebook
+        """Create a checkpoint of the current state of a file
 
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
 
     def list_checkpoints(self, name, path=''):
-        """Return a list of checkpoints for a given notebook"""
+        """Return a list of checkpoints for a given file"""
         return []
 
     def restore_checkpoint(self, checkpoint_id, name, path=''):
-        """Restore a notebook from one of its checkpoints"""
+        """Restore a file from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
     def delete_checkpoint(self, checkpoint_id, name, path=''):
-        """delete a checkpoint for a notebook"""
+        """delete a checkpoint for a file"""
         raise NotImplementedError("must be implemented in a subclass")
 
     def info_string(self):
@@ -139,7 +142,7 @@ class ContentsManager(LoggingConfigurable):
         filename : unicode
             The name of a file, including extension
         path : unicode
-            The URL path of the notebooks directory
+            The URL path of the target's directory
 
         Returns
         -------
@@ -156,7 +159,7 @@ class ContentsManager(LoggingConfigurable):
         return name
 
     def create_file(self, model=None, path='', ext='.ipynb'):
-        """Create a new notebook and return its model with no content."""
+        """Create a new file or directory and return its model with no content."""
         path = path.strip('/')
         if model is None:
             model = {}

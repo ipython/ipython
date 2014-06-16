@@ -19,10 +19,6 @@ from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path
 
-def sort_key(item):
-    """Case-insensitive sorting."""
-    return item['name'].lower()
-
 
 class FileContentsManager(ContentsManager):
 
@@ -38,9 +34,9 @@ class FileContentsManager(ContentsManager):
             raise TraitError("%r is not a directory" % new)
 
     checkpoint_dir = Unicode('.ipynb_checkpoints', config=True,
-        help="""The directory name in which to keep notebook checkpoints
+        help="""The directory name in which to keep file checkpoints
 
-        This is a path relative to the notebook's own directory.
+        This is a path relative to the file's own directory.
 
         By default, it is .ipynb_checkpoints
         """
@@ -157,7 +153,7 @@ class FileContentsManager(ContentsManager):
         info = os.stat(os_path)
         last_modified = tz.utcfromtimestamp(info.st_mtime)
         created = tz.utcfromtimestamp(info.st_ctime)
-        # Create the notebook model.
+        # Create the base model.
         model = {}
         model['name'] = name
         model['path'] = path
@@ -189,13 +185,12 @@ class FileContentsManager(ContentsManager):
         model['type'] = 'directory'
         dir_path = u'{}/{}'.format(path, name)
         if content:
-            contents = []
+            model['content'] = contents = []
             for os_path in glob.glob(self._get_os_path('*', dir_path)):
                 name = os.path.basename(os_path)
                 if self.should_list(name) and not is_hidden(os_path, self.root_dir):
                     contents.append(self.get_model(name=name, path=dir_path, content=False))
 
-            model['content'] = sorted(contents, key=sort_key)
             model['format'] = 'json'
 
         return model
@@ -204,7 +199,7 @@ class FileContentsManager(ContentsManager):
         """Build a model for a file
 
         if content is requested, include the file contents.
-        Text files will be unicode, binary files will be base64-encoded.
+        UTF-8 text files will be unicode, binary files will be base64-encoded.
         """
         model = self._base_model(name, path)
         model['type'] = 'file'
@@ -251,8 +246,7 @@ class FileContentsManager(ContentsManager):
         name : str
             the name of the target
         path : str
-            the URL path that describes the relative path for
-            the notebook
+            the URL path that describes the relative path for the target
 
         Returns
         -------
@@ -275,6 +269,7 @@ class FileContentsManager(ContentsManager):
         return model
 
     def _save_notebook(self, os_path, model, name='', path=''):
+        """save a notebook file"""
         # Save the notebook file
         nb = current.to_notebook_json(model['content'])
 
@@ -287,6 +282,7 @@ class FileContentsManager(ContentsManager):
             current.write(nb, f, u'json')
 
     def _save_file(self, os_path, model, name='', path=''):
+        """save a non-notebook file"""
         fmt = model.get('format', None)
         if fmt not in {'text', 'base64'}:
             raise web.HTTPError(400, "Must specify format of file contents as 'text' or 'base64'")
@@ -303,6 +299,7 @@ class FileContentsManager(ContentsManager):
             f.write(bcontent)
 
     def _save_directory(self, os_path, model, name='', path=''):
+        """create a directory"""
         if not os.path.exists(os_path):
             os.mkdir(os_path)
         elif not os.path.isdir(os_path):
@@ -442,7 +439,7 @@ class FileContentsManager(ContentsManager):
         # only the one checkpoint ID:
         checkpoint_id = u"checkpoint"
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
-        self.log.debug("creating checkpoint for notebook %s", name)
+        self.log.debug("creating checkpoint for %s", name)
         self._copy(src_path, cp_path)
 
         # return the checkpoint info

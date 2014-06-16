@@ -15,6 +15,16 @@ from IPython.html.base.handlers import (IPythonHandler, json_errors,
                                     file_name_regex)
 
 
+def sort_key(model):
+    """key function for case-insensitive sort by name and type"""
+    iname = model['name'].lower()
+    type_key = {
+        'directory' : '0',
+        'notebook'  : '1',
+        'file'      : '2',
+    }.get(model['type'], '9')
+    return u'%s%s' % (type_key, iname)
+
 class ContentsHandler(IPythonHandler):
 
     SUPPORTED_METHODS = (u'GET', u'PUT', u'PATCH', u'POST', u'DELETE')
@@ -52,16 +62,9 @@ class ContentsHandler(IPythonHandler):
         path = path or ''
         model = self.contents_manager.get_model(name=name, path=path)
         if model['type'] == 'directory':
-            # resort listing to group directories at the top
-            dirs = []
-            files = []
-            for entry in model['content']:
-                if entry['type'] == 'directory':
-                    dirs.append(entry)
-                else:
-                    # do we also want to group notebooks separate from files?
-                    files.append(entry)
-            model['content'] = dirs + files
+            # group listing by type, then by name (case-insensitive)
+            # FIXME: front-ends shouldn't rely on this sorting
+            model['content'].sort(key=sort_key)
         self._finish_model(model, location=False)
 
     @web.authenticated
@@ -130,9 +133,9 @@ class ContentsHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self, path='', name=None):
-        """Create a new notebook in the specified path.
+        """Create a new file or directory in the specified path.
 
-        POST creates new notebooks. The server always decides on the notebook name.
+        POST creates new files or directories. The server always decides on the name.
 
         POST /api/contents/path
           New untitled notebook in path. If content specified, upload a
