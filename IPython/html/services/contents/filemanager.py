@@ -357,7 +357,13 @@ class FileContentsManager(ContentsManager):
         """Delete file by name and path."""
         path = path.strip('/')
         os_path = self._get_os_path(name, path)
-        if not os.path.isfile(os_path):
+        rm = os.unlink
+        if os.path.isdir(os_path):
+            listing = os.listdir(os_path)
+            # don't delete non-empty directories (checkpoints dir doesn't count)
+            if listing and listing != ['.ipynb_checkpoints']:
+                raise web.HTTPError(400, u'Directory %s not empty' % os_path)
+        elif not os.path.isfile(os_path):
             raise web.HTTPError(404, u'File does not exist: %s' % os_path)
 
         # clear checkpoints
@@ -368,8 +374,12 @@ class FileContentsManager(ContentsManager):
                 self.log.debug("Unlinking checkpoint %s", cp_path)
                 os.unlink(cp_path)
 
-        self.log.debug("Unlinking file %s", os_path)
-        os.unlink(os_path)
+        if os.path.isdir(os_path):
+            self.log.debug("Removing directory %s", os_path)
+            shutil.rmtree(os_path)
+        else:
+            self.log.debug("Unlinking file %s", os_path)
+            rm(os_path)
 
     def rename(self, old_name, old_path, new_name, new_path):
         """Rename a file."""

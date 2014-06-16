@@ -69,6 +69,9 @@ class API(object):
     def upload(self, name, body, path='/'):
         return self._req('PUT', url_path_join(path, name), body)
 
+    def mkdir(self, name, path='/'):
+        return self._req('PUT', url_path_join(path, name), json.dumps({'type': 'directory'}))
+
     def copy(self, copy_from, copy_to, path='/'):
         body = json.dumps({'copy_from':copy_from})
         return self._req('PUT', url_path_join(path, copy_to), body)
@@ -299,9 +302,7 @@ class APITest(NotebookTestBase):
         self._check_created(resp, u'Upload tést.ipynb', u'å b')
 
     def test_mkdir(self):
-        model = {'type': 'directory'}
-        resp = self.api.upload(u'New ∂ir', path=u'å b',
-                                              body=json.dumps(model))
+        resp = self.api.mkdir(u'New ∂ir', path=u'å b')
         self._check_created(resp, u'New ∂ir', u'å b', type='directory')
 
     def test_upload_txt(self):
@@ -362,6 +363,11 @@ class APITest(NotebookTestBase):
         resp = self.api.copy(u'ç d.ipynb', u'cøpy.ipynb', path=u'å b')
         self._check_created(resp, u'cøpy.ipynb', u'å b')
 
+    def test_copy_dir_400(self):
+        # can't copy directories
+        with assert_http_error(400):
+            resp = self.api.copy(u'å b', u'å c')
+
     def test_delete(self):
         for d, name in self.dirs_nbs:
             resp = self.api.delete('%s.ipynb' % name, d)
@@ -370,6 +376,20 @@ class APITest(NotebookTestBase):
         for d in self.dirs + ['/']:
             nbs = notebooks_only(self.api.list(d).json())
             self.assertEqual(len(nbs), 0)
+
+    def test_delete_dirs(self):
+        # depth-first delete everything, so we don't try to delete empty directories
+        for name in sorted(self.dirs + ['/'], key=len, reverse=True):
+            listing = self.api.list(name).json()['content']
+            for model in listing:
+                self.api.delete(model['name'], model['path'])
+        listing = self.api.list('/').json()['content']
+        self.assertEqual(listing, [])
+
+    def test_delete_non_empty_dir(self):
+        """delete non-empty dir raises 400"""
+        with assert_http_error(400):
+            self.api.delete(u'å b')
 
     def test_rename(self):
         resp = self.api.rename('a.ipynb', 'foo', 'z.ipynb')

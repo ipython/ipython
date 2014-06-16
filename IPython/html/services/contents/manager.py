@@ -7,6 +7,8 @@ from fnmatch import fnmatch
 import itertools
 import os
 
+from tornado.web import HTTPError
+
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current, sign
 from IPython.utils.traitlets import Instance, Unicode, List
@@ -187,6 +189,8 @@ class ContentsManager(LoggingConfigurable):
         """
         path = path.strip('/')
         model = self.get_model(from_name, path)
+        if model['type'] == 'directory':
+            raise HTTPError(400, "Can't copy directories")
         if not to_name:
             base, ext = os.path.splitext(from_name)
             copy_name = u'{0}-Copy{1}'.format(base, ext)
