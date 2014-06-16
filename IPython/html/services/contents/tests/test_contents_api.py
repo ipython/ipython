@@ -247,12 +247,16 @@ class APITest(NotebookTestBase):
         with assert_http_error(404):
             self.api.read('q.txt', 'foo')
 
-    def _check_nb_created(self, resp, name, path):
+    def _check_created(self, resp, name, path, type='notebook'):
         self.assertEqual(resp.status_code, 201)
         location_header = py3compat.str_to_unicode(resp.headers['Location'])
         self.assertEqual(location_header, url_escape(url_path_join(u'/api/contents', path, name)))
-        self.assertEqual(resp.json()['name'], name)
-        assert os.path.isfile(pjoin(
+        rjson = resp.json()
+        self.assertEqual(rjson['name'], name)
+        self.assertEqual(rjson['path'], path)
+        self.assertEqual(rjson['type'], type)
+        isright = os.path.isdir if type == 'directory' else os.path.isfile
+        assert isright(pjoin(
             self.notebook_dir.name,
             path.replace('/', os.sep),
             name,
@@ -260,19 +264,19 @@ class APITest(NotebookTestBase):
 
     def test_create_untitled(self):
         resp = self.api.create_untitled(path=u'å b')
-        self._check_nb_created(resp, 'Untitled0.ipynb', u'å b')
+        self._check_created(resp, 'Untitled0.ipynb', u'å b')
 
         # Second time
         resp = self.api.create_untitled(path=u'å b')
-        self._check_nb_created(resp, 'Untitled1.ipynb', u'å b')
+        self._check_created(resp, 'Untitled1.ipynb', u'å b')
 
         # And two directories down
         resp = self.api.create_untitled(path='foo/bar')
-        self._check_nb_created(resp, 'Untitled0.ipynb', 'foo/bar')
+        self._check_created(resp, 'Untitled0.ipynb', 'foo/bar')
 
     def test_create_untitled_txt(self):
         resp = self.api.create_untitled(path='foo/bar', ext='.txt')
-        self._check_nb_created(resp, 'Untitled0.txt', 'foo/bar')
+        self._check_created(resp, 'Untitled0.txt', 'foo/bar', type='file')
 
         resp = self.api.read(path='foo/bar', name='Untitled0.txt')
         model = resp.json()
@@ -285,14 +289,20 @@ class APITest(NotebookTestBase):
         nbmodel = {'content': nb, 'type': 'notebook'}
         resp = self.api.upload_untitled(path=u'å b',
                                               body=json.dumps(nbmodel))
-        self._check_nb_created(resp, 'Untitled0.ipynb', u'å b')
+        self._check_created(resp, 'Untitled0.ipynb', u'å b')
 
     def test_upload(self):
         nb = new_notebook(name=u'ignored')
         nbmodel = {'content': nb, 'type': 'notebook'}
         resp = self.api.upload(u'Upload tést.ipynb', path=u'å b',
                                               body=json.dumps(nbmodel))
-        self._check_nb_created(resp, u'Upload tést.ipynb', u'å b')
+        self._check_created(resp, u'Upload tést.ipynb', u'å b')
+
+    def test_mkdir(self):
+        model = {'type': 'directory'}
+        resp = self.api.upload(u'New ∂ir', path=u'å b',
+                                              body=json.dumps(model))
+        self._check_created(resp, u'New ∂ir', u'å b', type='directory')
 
     def test_upload_txt(self):
         body = u'ünicode téxt'
@@ -338,7 +348,7 @@ class APITest(NotebookTestBase):
         nbmodel = {'content': nb, 'type': 'notebook'}
         resp = self.api.upload(u'Upload tést.ipynb', path=u'å b',
                                               body=json.dumps(nbmodel))
-        self._check_nb_created(resp, u'Upload tést.ipynb', u'å b')
+        self._check_created(resp, u'Upload tést.ipynb', u'å b')
         resp = self.api.read(u'Upload tést.ipynb', u'å b')
         data = resp.json()
         self.assertEqual(data['content']['nbformat'], current.nbformat)
@@ -346,11 +356,11 @@ class APITest(NotebookTestBase):
 
     def test_copy_untitled(self):
         resp = self.api.copy_untitled(u'ç d.ipynb', path=u'å b')
-        self._check_nb_created(resp, u'ç d-Copy0.ipynb', u'å b')
+        self._check_created(resp, u'ç d-Copy0.ipynb', u'å b')
 
     def test_copy(self):
         resp = self.api.copy(u'ç d.ipynb', u'cøpy.ipynb', path=u'å b')
-        self._check_nb_created(resp, u'cøpy.ipynb', u'å b')
+        self._check_created(resp, u'cøpy.ipynb', u'å b')
 
     def test_delete(self):
         for d, name in self.dirs_nbs:
