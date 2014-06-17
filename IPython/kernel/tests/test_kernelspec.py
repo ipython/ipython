@@ -57,7 +57,7 @@ class KernelSpecTests(unittest.TestCase):
                                      kernel_name='tstinstalled',
                                      replace=True)
     
-    @onlyif(os.name != 'nt' and os.getuid() != 0, "needs Unix system and non-root uid")
+    @onlyif(os.name != 'nt' and not os.access('/usr/share', os.W_OK), "needs Unix system without root privileges")
     def test_cant_install_kernel_spec(self):
         with self.assertRaises(OSError):
             self.ksm.install_kernel_spec(self.installable_kernel,
