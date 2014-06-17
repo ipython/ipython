@@ -3,12 +3,13 @@
 
 define([
     "widgets/js/widget",
-], function(widget){
+    "base/js/utils",
+], function(widget, utils){
 
     var AccordionView = widget.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
-            var guid = 'panel-group' + IPython.utils.uuid();
+            var guid = 'panel-group' + utils.uuid();
             this.$el
                 .attr('id', guid)
                 .addClass('panel-group');
@@ -88,7 +89,7 @@ define([
             // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
-            var uuid = IPython.utils.uuid();
+            var uuid = utils.uuid();
             var accordion_group = $('<div />')
                 .addClass('panel panel-default')
                 .appendTo(this.$el);
@@ -141,7 +142,7 @@ define([
 
         render: function(){
             // Called when view is rendered.
-            var uuid = 'tabs'+IPython.utils.uuid();
+            var uuid = 'tabs'+utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
@@ -189,7 +190,7 @@ define([
             // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
-            var uuid = IPython.utils.uuid();
+            var uuid = utils.uuid();
 
             var that = this;
             var tab = $('<li />')

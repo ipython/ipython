@@ -208,20 +208,20 @@ function(WidgetManager, _, Backbone){
 
         _pack_models: function(value) {
             // Replace models with model ids recursively.
+            var that = this;
+            var packed;
             if (value instanceof Backbone.Model) {
                 return value.id;
 
             } else if ($.isArray(value)) {
-                var packed = [];
-                var that = this;
+                packed = [];
                 _.each(value, function(sub_value, key) {
                     packed.push(that._pack_models(sub_value));
                 });
                 return packed;
 
             } else if (value instanceof Object) {
-                var packed = {};
-                var that = this;
+                packed = {};
                 _.each(value, function(sub_value, key) {
                     packed[key] = that._pack_models(sub_value);
                 });

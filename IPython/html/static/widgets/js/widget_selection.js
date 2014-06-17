@@ -3,7 +3,8 @@
 
 define([
     "widgets/js/widget",
-], function(widget){
+    "base/js/utils",
+], function(widget, utils){
 
     var DropdownView = widget.DOMWidgetView.extend({
         render : function(){
@@ -226,7 +227,7 @@ define([
                     if (item.trim().length == 0) {
                         item_html = "&nbsp;";
                     } else {
-                        item_html = IPython.utils.escape_html(item);
+                        item_html = utils.escape_html(item);
                     }
                     var item_query = '[data-value="' + item + '"]';
                     var $item_element = that.$buttongroup.find(item_query);
