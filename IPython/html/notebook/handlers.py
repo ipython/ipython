@@ -60,20 +60,23 @@ class NotebookRedirectHandler(IPythonHandler):
             # it's a *directory*, redirect to /tree
             url = url_path_join(self.base_url, 'tree', path)
         else:
+            orig_path = path
             # otherwise, redirect to /files
-            if '/files/' in path:
+            parts = path.split('/')
+            path = '/'.join(parts[:-1])
+            name = parts[-1]
+
+            if not cm.file_exists(name=name, path=path) and 'files' in parts:
                 # redirect without files/ iff it would 404
                 # this preserves pre-2.0-style 'files/' links
-                # FIXME: this is hardcoded based on notebook_path,
-                # but so is the files handler itself,
-                # so it should work until both are cleaned up.
-                parts = path.split('/')
-                files_path = os.path.join(cm.root_dir, *parts)
-                if not os.path.exists(files_path):
-                    self.log.warn("Deprecated files/ URL: %s", path)
-                    path = path.replace('/files/', '/', 1)
+                self.log.warn("Deprecated files/ URL: %s", orig_path)
+                parts.remove('files')
+                path = '/'.join(parts[:-1])
+
+            if not cm.file_exists(name=name, path=path):
+                raise web.HTTPError(404)
             
-            url = url_path_join(self.base_url, 'files', path)
+            url = url_path_join(self.base_url, 'files', path, name)
         url = url_escape(url)
         self.log.debug("Redirecting %s to %s", self.request.path, url)
         self.redirect(url)
