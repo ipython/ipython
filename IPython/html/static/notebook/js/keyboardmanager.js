@@ -56,7 +56,7 @@ var IPython = (function (IPython) {
         default_common_shortcuts['cmd-s'] =
             {
                 help    : 'save notebook',
-                help_index : 'fb',
+                help_index : 'bi',
                 handler : function (event) {
                     IPython.notebook.save_checkpoint();
                     event.preventDefault();
@@ -67,7 +67,7 @@ var IPython = (function (IPython) {
         default_common_shortcuts['ctrl-s'] =
             {
                 help    : 'save notebook',
-                help_index : 'fb',
+                help_index : 'bi',
                 handler : function (event) {
                     IPython.notebook.save_checkpoint();
                     event.preventDefault();
@@ -232,7 +232,7 @@ var IPython = (function (IPython) {
         },
         'shift-v' : {
             help    : 'paste cell above',
-            help_index : 'eg',
+            help_index : 'bf',
             handler : function (event) {
                 IPython.notebook.paste_cell_above();
                 return false;
@@ -357,7 +357,7 @@ var IPython = (function (IPython) {
         },
         'shift-o' : {
             help    : 'toggle output scrolling',
-            help_index : 'gc',
+            help_index : 'bh',
             handler : function (event) {
                 IPython.notebook.toggle_output_scroll();
                 return false;
@@ -365,7 +365,7 @@ var IPython = (function (IPython) {
         },
         's' : {
             help    : 'save notebook',
-            help_index : 'fa',
+            help_index : 'bj',
             handler : function (event) {
                 IPython.notebook.save_checkpoint();
                 return false;
@@ -373,7 +373,7 @@ var IPython = (function (IPython) {
         },
         'ctrl-j' : {
             help    : 'move cell down',
-            help_index : 'eb',
+            help_index : 'bd',
             handler : function (event) {
                 IPython.notebook.move_cell_down();
                 return false;
@@ -381,7 +381,7 @@ var IPython = (function (IPython) {
         },
         'ctrl-k' : {
             help    : 'move cell up',
-            help_index : 'ea',
+            help_index : 'be',
             handler : function (event) {
                 IPython.notebook.move_cell_up();
                 return false;
@@ -431,7 +431,7 @@ var IPython = (function (IPython) {
         },
         'shift-m' : {
             help    : 'merge cell below',
-            help_index : 'ek',
+            help_index : 'bg',
             handler : function (event) {
                 IPython.notebook.merge_cell_below();
                 return false;
