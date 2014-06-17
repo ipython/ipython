@@ -98,12 +98,12 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def open(self, kernel_id):
+        self.kernel_id = cast_unicode(kernel_id, 'ascii')
         # Check to see that origin matches host directly, including ports
         if not self.same_origin():
             self.log.warn("Cross Origin WebSocket Attempt.")
             raise web.HTTPError(404)
 
-        self.kernel_id = cast_unicode(kernel_id, 'ascii')
         self.session = Session(config=self.config)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
