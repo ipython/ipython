@@ -33,6 +33,7 @@ class _BoundedFloatWidget(_FloatWidget):
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
         DOMWidget.__init__(self, *pargs, **kwargs)
+        self._validate('value', None, self.value)
         self.on_trait_change(self._validate, ['value', 'min', 'max'])
 
     def _validate(self, name, old, new):
