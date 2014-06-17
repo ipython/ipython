@@ -3,6 +3,7 @@ import os
 from os.path import join as pjoin
 import unittest
 
+from IPython.testing.decorators import onlyif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.kernel import kernelspec
 
@@ -13,7 +14,8 @@ sample_kernel_json = {'argv':['cat', '{connection_file}'],
 
 class KernelSpecTests(unittest.TestCase):
     def setUp(self):
-        self.tempdir = td = TemporaryDirectory()
+        td = TemporaryDirectory()
+        self.addCleanup(td.cleanup)
         self.sample_kernel_dir = pjoin(td.name, 'kernels', 'Sample')
         os.makedirs(self.sample_kernel_dir)
         json_file = pjoin(self.sample_kernel_dir, 'kernel.json')
@@ -21,9 +23,12 @@ class KernelSpecTests(unittest.TestCase):
             json.dump(sample_kernel_json, f)
 
         self.ksm = kernelspec.KernelSpecManager(ipython_dir=td.name)
-
-    def tearDown(self):
-        self.tempdir.cleanup()
+        
+        td2 = TemporaryDirectory()
+        self.addCleanup(td2.cleanup)
+        self.installable_kernel = td2.name
+        with open(pjoin(self.installable_kernel, 'kernel.json'), 'w') as f:
+            json.dump(sample_kernel_json, f)
 
     def test_find_kernel_specs(self):
         kernels = self.ksm.find_kernel_specs()
@@ -37,3 +42,24 @@ class KernelSpecTests(unittest.TestCase):
         self.assertEqual(ks.language, sample_kernel_json['language'])
         self.assertEqual(ks.codemirror_mode, sample_kernel_json['language'])
         self.assertEqual(ks.env, {})
+    
+    def test_install_kernel_spec(self):
+        self.ksm.install_kernel_spec(self.installable_kernel,
+                                     kernel_name='tstinstalled')
+        self.assertIn('tstinstalled', self.ksm.find_kernel_specs())
+        
+        with self.assertRaises(OSError):
+            self.ksm.install_kernel_spec(self.installable_kernel,
+                                         kernel_name='tstinstalled')
+        
+        # Smoketest that this succeeds
+        self.ksm.install_kernel_spec(self.installable_kernel,
+                                     kernel_name='tstinstalled',
+                                     replace=True)
+    
+    @onlyif(os.name != 'nt' and not os.access('/usr/share', os.W_OK), "needs Unix system without root privileges")
+    def test_cant_install_kernel_spec(self):
+        with self.assertRaises(OSError):
+            self.ksm.install_kernel_spec(self.installable_kernel,
+                                         kernel_name='tstinstalled',
+                                         system=True)
