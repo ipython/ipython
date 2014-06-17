@@ -4,7 +4,7 @@
 var ipython = ipython || {};
 require([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/events',
     'base/js/page',
     'base/js/utils',

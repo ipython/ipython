@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'notebook/js/textcell',
 ], function(IPython, $, TextCell) {
     "use strict";
@@ -220,7 +220,9 @@ define([
             CellToolbar.rebuild_all();
         }
 
-        this.events.trigger('preset_activated.CellToolbar', {name: preset_name});
+        if (this.events) {
+            this.events.trigger('preset_activated.CellToolbar', {name: preset_name});
+        }
     };
 
 

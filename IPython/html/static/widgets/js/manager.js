@@ -9,12 +9,12 @@ define([
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
-    var WidgetManager = function (comm_manager, keyboard_manager, notebook) {
+    var WidgetManager = function (comm_manager, notebook) {
         // Public constructor
         WidgetManager._managers.push(this);
 
         // Attach a comm manager to the 
-        this.keyboard_manager = keyboard_manager;
+        this.keyboard_manager = notebook.keyboard_manager;
         this.notebook = notebook;
         this.comm_manager = comm_manager;
         this._models = {}; /* Dictionary of model ids and model instances */

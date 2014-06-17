@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'notebook/js/tour',
     'components/bootstrap-tour/build/js/bootstrap-tour.min',
@@ -49,12 +49,13 @@ define([
     };
 
     MenuBar.prototype.style = function () {
+        var that = this;
         this.element.addClass('border-box-sizing');
         this.element.find("li").click(function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
-                var i = this.notebook.get_selected_index();
-                this.notebook.select(i);
+                var i = that.notebook.get_selected_index();
+                that.notebook.select(i);
             }
         );
     };

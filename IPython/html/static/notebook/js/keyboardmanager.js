@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'base/js/keyboard',
 ], function(IPython, $, utils, keyboard) {
@@ -15,24 +15,24 @@ define([
     // Main keyboard manager for the notebook
     var keycodes = keyboard.keycodes;
 
-    var KeyboardManager = function (pager) {
+    var KeyboardManager = function (pager, events) {
         this.mode = 'command';
         this.enabled = true;
         this.pager = pager;
         this.quick_help = undefined;
         this.notebook = undefined;
         this.bind_events();
-        this.command_shortcuts = new keyboard.ShortcutManager();
+        this.command_shortcuts = new keyboard.ShortcutManager(undefined, events);
         this.command_shortcuts.add_shortcuts(this.get_default_common_shortcuts());
         this.command_shortcuts.add_shortcuts(this.get_default_command_shortcuts());
-        this.edit_shortcuts = new keyboard.ShortcutManager();
+        this.edit_shortcuts = new keyboard.ShortcutManager(undefined, events);
         this.edit_shortcuts.add_shortcuts(this.get_default_common_shortcuts());
         this.edit_shortcuts.add_shortcuts(this.get_default_edit_shortcuts());
     };
 
     KeyboardManager.prototype.get_default_common_shortcuts = function() {
         var that = this;
-        shortcuts = {
+        var shortcuts = {
             'shift' : {
                 help    : '',
                 help_index : '',

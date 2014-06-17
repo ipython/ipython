@@ -3,9 +3,10 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'base/js/keyboard',
+    'notebook/js/contexthint',
 ], function(IPython, $, utils, keyboard) {
     "use strict";
 

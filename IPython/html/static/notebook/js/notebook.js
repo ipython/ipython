@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'base/js/dialog',
     'notebook/js/textcell',
@@ -38,8 +38,8 @@ define([
      * @param {Object} [options] A config object
      * @param {Object} [events] An events object
      */
-    var Notebook = function (selector, options, events, keyboard_manager, save_widget) {
-        this.config = undefined; // TODO
+    var Notebook = function (selector, options, events, keyboard_manager, save_widget, config) {
+        this.config = config;
         this.events = events;
         this.keyboard_manager = keyboard_manager;
         keyboard_manager.notebook = this;
@@ -807,14 +807,14 @@ define([
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
-                cell = new CodeCell(this.kernel, undefined, this.events, this.config, this.keyboard_manager);
+                cell = new CodeCell(this.kernel, this.options, this.events, this.config, this.keyboard_manager, this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new Cells.MarkdownCell();
+                cell = new Cells.MarkdownCell(this.options, this.events, this.config, this.keyboard_manager, this);
             } else if (type === 'raw') {
-                cell = new Cells.RawCell();
+                cell = new Cells.RawCell(this.options, this.events, this.config, this.keyboard_manager, this);
             } else if (type === 'heading') {
-                cell = new Cells.HeadingCell();
+                cell = new Cells.HeadingCell(this.options, this.events, this.config, this.keyboard_manager, this);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {

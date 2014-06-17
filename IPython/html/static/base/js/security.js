@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'components/google-caja/html-css-sanitizer-minified',
 ], function(IPython, $) {
     "use strict";

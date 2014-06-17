@@ -3,10 +3,11 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'base/js/dialog',
     'base/js/keyboard',
+    'dateformat/date.format',
 ], function(IPython, $, utils, Dialog, keyboard) {
     "use strict";
 

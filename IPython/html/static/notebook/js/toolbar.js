@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
 ], function(IPython, $) {
     "use strict";
 
@@ -97,5 +97,5 @@ define([
     // Backwards compatability.
     IPython.ToolBar = ToolBar;
 
-    return Toolbar;
+    return ToolBar;
 });

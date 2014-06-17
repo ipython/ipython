@@ -3,10 +3,12 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'notebook/js/cell',
     'base/js/security',
-], function(IPython, $, Cell, Security) {
+    'notebook/js/mathjaxutils',
+    'notebook/js/celltoolbar',
+], function(IPython, $, Cell, Security, mathjaxutils, CellToolbar) {
     "use strict";
 
     /**
@@ -20,13 +22,15 @@ define([
      *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
      *      @param [options.placeholder] {string} default string to use when souce in empty for rendering (only use in some TextCell subclass)
      */
-    var TextCell = function (options, events, config, mathjaxutils) {
-        // TODO: Config is IPython.config
+    var TextCell = function (options, events, config, keyboard_manager, notebook) {
         // in all TextCell/Cell subclasses
         // do not assign most of members here, just pass it down
         // in the options dict potentially overwriting what you wish.
         // they will be assigned in the base class.
-
+        this.notebook = notebook;
+        this.events = events;
+        this.config = config;
+        
         // we cannot put this as a class key as it has handle to "this".
         var cm_overwrite_options  = {
             onKeyEvent: $.proxy(this.handle_keyevent,this)
@@ -35,9 +39,9 @@ define([
         options = this.mergeopt(TextCell,options,{cm_config:cm_overwrite_options});
 
         this.cell_type = this.cell_type || 'text';
-        this.mathjaxutils = mathjaxutils;
+        mathjaxutils = mathjaxutils;
 
-        Cell.apply(this, [options], events);
+        Cell.apply(this, [options, keyboard_manager, events]);
 
         this.rendered = false;
     };
@@ -67,7 +71,7 @@ define([
         var prompt = $('<div/>').addClass('prompt input_prompt');
         cell.append(prompt);
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new CellToolbar(this);
+        this.celltoolbar = new CellToolbar(this, this.events, this.notebook);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
@@ -158,7 +162,6 @@ define([
     /**
      * setter :{{#crossLink "TextCell/set_rendered"}}{{/crossLink}}
      * @method get_rendered
-     * @return {html} html of rendered element
      * */
     TextCell.prototype.get_rendered = function() {
         return this.element.find('div.text_cell_render').html();
@@ -213,11 +216,11 @@ define([
      * @constructor MarkdownCell
      * @extends IPython.HTMLCell
      */
-    var MarkdownCell = function (options) {
+    var MarkdownCell = function (options, events, config, keyboard_manager) {
         options = this.mergeopt(MarkdownCell, options);
 
         this.cell_type = 'markdown';
-        TextCell.apply(this, [options]);
+        TextCell.apply(this, [options, events, config, keyboard_manager]);
     };
 
     MarkdownCell.options_default = {
@@ -238,11 +241,11 @@ define([
             var text = this.get_text();
             var math = null;
             if (text === "") { text = this.placeholder; }
-            var text_and_math = this.mathjaxutils.remove_math(text);
+            var text_and_math = mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            html = this.mathjaxutils.replace_math(html, math);
+            html = mathjaxutils.replace_math(html, math);
             html = Security.sanitize_html(html);
             html = $($.parseHTML(html));
             // links in markdown cells should open in new tabs
@@ -263,10 +266,10 @@ define([
      * @constructor RawCell
      * @extends TextCell
      */
-    var RawCell = function (options) {
+    var RawCell = function (options, events, config, keyboard_manager) {
 
         options = this.mergeopt(RawCell,options);
-        TextCell.apply(this, [options]);
+        TextCell.apply(this, [options, events, config, keyboard_manager]);
         this.cell_type = 'raw';
         // RawCell should always hide its rendered div
         this.element.find('div.text_cell_render').hide();
@@ -297,7 +300,7 @@ define([
      * @method auto_highlight
      */
     RawCell.prototype.auto_highlight = function () {
-        this._auto_highlight(config.raw_cell_highlight);
+        this._auto_highlight(this.config.raw_cell_highlight);
     };
 
     /** @method render **/
@@ -322,12 +325,12 @@ define([
      * @constructor HeadingCell
      * @extends TextCell
      */
-    var HeadingCell = function (options) {
+    var HeadingCell = function (options, events, config, keyboard_manager) {
         options = this.mergeopt(HeadingCell, options);
 
         this.level = 1;
         this.cell_type = 'heading';
-        TextCell.apply(this, [options]);
+        TextCell.apply(this, [options, events, config, keyboard_manager]);
 
         /**
          * heading level of the cell, use getter and setter to access
@@ -409,11 +412,11 @@ define([
             text = text.replace(/\n/g, ' ');
             if (text === "") { text = this.placeholder; }
             text = new Array(this.level + 1).join("#") + " " + text;
-            var text_and_math = this.mathjaxutils.remove_math(text);
+            var text_and_math = mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            html = this.mathjaxutils.replace_math(html, math);
+            html = mathjaxutils.replace_math(html, math);
             html = Security.sanitize_html(html);
             var h = $($.parseHTML(html));
             // add id and linkback anchor
@@ -439,7 +442,7 @@ define([
     IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
 
-    Cells = {
+    var Cells = {
         'TextCell': TextCell,
         'MarkdownCell': MarkdownCell,
         'RawCell': RawCell,

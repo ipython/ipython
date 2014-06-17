@@ -3,10 +3,11 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, utils, Dialog) {
+    'notebook/js/notificationwidget',
+], function(IPython, $, utils, Dialog, NotificationWidget) {
     "use strict";
 
     var NotificationArea = function (selector, events, save_widget, notebook) {
@@ -61,7 +62,7 @@ define([
         }
         var div = $('<div/>').attr('id','notification_'+name);
         $(this.selector).append(div);
-        this.widget_dict[name] = new IPython.NotificationWidget('#notification_'+name);
+        this.widget_dict[name] = new NotificationWidget('#notification_'+name);
         return this.widget_dict[name];
     };
 
@@ -228,5 +229,5 @@ define([
 
     IPython.NotificationArea = NotificationArea;
 
-    return IPython;
+    return NotificationArea;
 });

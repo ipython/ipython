@@ -3,35 +3,15 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
-    'components/codemirror/lib/codemirror.js',
+    'jquery',
     'base/js/utils',
-
-    // Set codemirror version.
-    // CodeMirror.modeURL = '{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}';
-    'components/codemirror/addon/mode/loadmode.js',
-    'components/codemirror/addon/mode/multiplex.js',
-    'components/codemirror/addon/mode/overlay.js',
-    'components/codemirror/addon/edit/matchbrackets.js',
-    'components/codemirror/addon/edit/closebrackets.js',
-    'components/codemirror/addon/comment/comment.js',
-    'components/codemirror/mode/htmlmixed/htmlmixed.js',
-    'components/codemirror/mode/xml/xml.js',
-    'components/codemirror/mode/javascript/javascript.js',
-    'components/codemirror/mode/css/css.js',
-    'components/codemirror/mode/rst/rst.js',
-    'components/codemirror/mode/markdown/markdown.js',
-    'components/codemirror/mode/python/python.js',
-    'notebook/js/codemirror-ipython.js',
-    'notebook/js/codemirror-ipythongfm.js',
-], function(IPython, $, CodeMirror, utils) {
+], function(IPython, $, utils) {
     "use strict";
 
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
     // see https://github.com/marijnh/CodeMirror2/issues/670
     if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-        console.log('patching CM for undefined indent');
         CodeMirror.modes.null = function() {
             return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
         };
@@ -58,8 +38,9 @@ define([
      * @param {object|undefined} [options]
      *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
      */
-    var Cell = function (keyboard_manager) {
+    var Cell = function (options, keyboard_manager, events) {
         this.keyboard_manager = keyboard_manager;
+        this.events = events;
         options = this.mergeopt(Cell, options);
         // superclass default overwrite our default
         

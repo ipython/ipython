@@ -2,7 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'base/js/dialog',
 ], function($, utils, Dialog) {

@@ -3,14 +3,14 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'notebook/js/toolbar',
     'notebook/js/celltoolbar',
 ], function(IPython, $, Toolbar, CellToolbar) {
     "use strict";
 
     var MainToolBar = function (selector, layout_manager, notebook, events) {
-        ToolBar.apply(this, arguments);
+        Toolbar.apply(this, arguments);
         this.events = events;
         this.notebook = notebook;
         this.construct();
@@ -19,7 +19,7 @@ define([
         this.bind_events();
     };
 
-    MainToolBar.prototype = new ToolBar();
+    MainToolBar.prototype = new Toolbar();
 
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([

@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'components/jquery-ui/ui/minified/jquery-ui.min',
     'components/bootstrap/js/bootstrap.min',
     'auth/js/loginwidget'

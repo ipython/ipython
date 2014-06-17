@@ -4,7 +4,7 @@
 var ipython = ipython || {};
 require([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'notebook/js/notebook',
     'base/js/utils',
     'base/js/page',
@@ -18,6 +18,7 @@ require([
     'notebook/js/notificationarea',
     'notebook/js/savewidget',
     'notebook/js/keyboardmanager',
+    'notebook/js/config',
 ], function(
     IPython, 
     $,
@@ -33,32 +34,33 @@ require([
     MenuBar, 
     NotificationArea, 
     SaveWidget, 
-    KeyboardManager
+    KeyboardManager,
+    config
     ) {
     "use strict";
 
     $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
 
-    var opts = {
+    var options = {
         base_url : utils.get_body_data("baseUrl"),
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
 
-    page = new Page();
-    layout_manager = new LayoutManager();
-    events = $([new Events()]);
-    pager = new Pager('div#pager', 'div#pager_splitter', layout_manager, events);
-    keyboard_manager = new KeyboardManager(pager);
-    save_widget = new SaveWidget('span#save_widget', events, keyboard);
-    notebook = new Notebook('div#notebook', opts, events, keyboard_manager, save_widget, keyboard);
-    login_widget = new LoginWidget('span#login_widget', opts);
-    toolbar = new MainToolBar('#maintoolbar-container', notebook, events);
-    quick_help = new QuickHelp(undefined, keyboard_manager, events);
-    menubar = new MenuBar('#menubar', opts, notebook, layout_manager, events, save_widget, quick_help);
-
-    notification_area = new NotificationArea('#notification_area', events, save_widget, notebook);
+    var user_config = $.extend({}, config.default_config);
+    var page = new Page();
+    var layout_manager = new LayoutManager();
+    var events = $([new Events()]);
+    var pager = new Pager('div#pager', 'div#pager_splitter', layout_manager, events);
+    var keyboard_manager = new KeyboardManager(pager, events);
+    var save_widget = new SaveWidget('span#save_widget', events);
+    var notebook = new Notebook('div#notebook', options, events, keyboard_manager, save_widget, user_config);
+    var login_widget = new LoginWidget('span#login_widget', options);
+    var toolbar = new MainToolBar('#maintoolbar-container', layout_manager, notebook, events);
+    var quick_help = new QuickHelp(undefined, keyboard_manager, events);
+    var menubar = new MenuBar('#menubar', options, notebook, layout_manager, events, save_widget, quick_help);
+    var notification_area = new NotificationArea('#notification_area', events, save_widget, notebook);
     notification_area.init_notification_widgets();
 
     layout_manager.do_resize();
@@ -91,7 +93,7 @@ require([
     
     events.on('notebook_loaded.Notebook', first_load);
     events.trigger('app_initialized.NotebookApp');
-    notebook.load_notebook(opts.notebook_name, opts.notebook_path);
+    notebook.load_notebook(options.notebook_name, options.notebook_path);
 
     ipython.page = page;
     ipython.layout_manager = layout_manager;
@@ -105,5 +107,5 @@ require([
     ipython.events = events;
     ipython.keyboard_manager = keyboard_manager;
     ipython.save_widget = save_widget;
-    ipython.keyboard = keyboard;
+    ipython.config = user_config;
 });

@@ -3,14 +3,15 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'notebook/js/tooltip',
     'base/js/keyboard',
     'notebook/js/cell',
     'notebook/js/outputarea',
     'notebook/js/completer',
-], function(IPython, $, utils, Tooltip, keyboard, Cell, OutputArea, Completer) {
+    'notebook/js/celltoolbar',
+], function(IPython, $, utils, Tooltip, keyboard, Cell, OutputArea, Completer, CellToolbar) {
     "use strict";
 
     /* local util for codemirror */
@@ -52,8 +53,9 @@ define([
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
-    var CodeCell = function (kernel, options, events, config, keyboard_manager) {
+    var CodeCell = function (kernel, options, events, config, keyboard_manager, notebook) {
         this.kernel = kernel || null;
+        this.notebook = notebook;
         this.collapsed = false;
         this.tooltip = new Tooltip(events);
         this.events = events;
@@ -74,7 +76,7 @@ define([
 
         options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
 
-        Cell.apply(this,[options, keyboard_manager]);
+        Cell.apply(this,[options, keyboard_manager, events]);
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";
@@ -123,7 +125,7 @@ define([
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new CellToolbar(this);
+        this.celltoolbar = new CellToolbar(this, this.events, this.notebook);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);

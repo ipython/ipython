@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
 ], function(IPython, $) {
     "use strict";
     
@@ -146,7 +146,7 @@ define([
         modal.on('shown.bs.modal', function(){ editor.refresh(); });
     };
     
-    Dialog = {
+    var Dialog = {
         modal : modal,
         edit_metadata : edit_metadata,
     };

@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
 ], function(IPython, $) {
     "use strict";
 
@@ -129,8 +129,8 @@ define([
             // TODO: remove the onPause/onResume logic once pi's patch has been
             // merged upstream to make this work via data-resume-class and 
             // data-resume-text attributes.
-            onPause: toggle_pause_play,
-            onResume: toggle_pause_play,
+            onPause: this.toggle_pause_play,
+            onResume: this.toggle_pause_play,
             steps: this.tour_steps,
             template: tour_style,
             orphan: true

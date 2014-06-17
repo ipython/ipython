@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'base/js/utils',
     'services/kernels/js/comm',
     'widgets/js/init',
@@ -15,8 +15,8 @@ define([
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (kernel_service_url, events) {
-        this.events = events;
+    var Kernel = function (kernel_service_url, notebook) {
+        this.events = notebook.events;
         this.kernel_id = null;
         this.shell_channel = null;
         this.iopub_channel = null;
@@ -39,7 +39,7 @@ define([
         this.bind_events();
         this.init_iopub_handlers();
         this.comm_manager = new comm.CommManager(this);
-        this.widget_manager = new WidgetManager(this.comm_manager);
+        this.widget_manager = new WidgetManager(this.comm_manager, notebook);
         
         this.last_msg_id = null;
         this.last_msg_callbacks = {};
@@ -605,8 +605,8 @@ define([
         }
     };
 
-
+    // Backwards compatability.
     IPython.Kernel = Kernel;
 
-    return IPython;
+    return Kernel;
 });

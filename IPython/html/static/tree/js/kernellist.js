@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'components/jquery/jquery.min',
+    'jquery',
     'tree/js/notebooklist',
 ], function(IPython, $, NotebookList) {
     "use strict";
