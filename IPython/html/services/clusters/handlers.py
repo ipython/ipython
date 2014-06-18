@@ -1,24 +1,11 @@
-"""Tornado handlers for cluster web service.
+"""Tornado handlers for cluster web service."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+import json
 
 from tornado import web
-
-from zmq.utils import jsonapi
 
 from ...base.handlers import IPythonHandler
 
@@ -31,14 +18,14 @@ class MainClusterHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
-        self.finish(jsonapi.dumps(self.cluster_manager.list_profiles()))
+        self.finish(json.dumps(self.cluster_manager.list_profiles()))
 
 
 class ClusterProfileHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, profile):
-        self.finish(jsonapi.dumps(self.cluster_manager.profile_info(profile)))
+        self.finish(json.dumps(self.cluster_manager.profile_info(profile)))
 
 
 class ClusterActionHandler(IPythonHandler):
@@ -54,7 +41,7 @@ class ClusterActionHandler(IPythonHandler):
                 data = cm.start_cluster(profile, int(n))
         if action == 'stop':
             data = cm.stop_cluster(profile)
-        self.finish(jsonapi.dumps(data))
+        self.finish(json.dumps(data))
 
 
 #-----------------------------------------------------------------------------
