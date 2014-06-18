@@ -18,6 +18,7 @@ __all__ = ['Inspector','InspectColors']
 import inspect
 import linecache
 import os
+from textwrap import dedent
 import types
 import io as stdlib_io
 
@@ -28,6 +29,7 @@ except ImportError:
 
 # IPython's own
 from IPython.core import page
+from IPython.lib.pretty import pretty
 from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -43,7 +45,8 @@ from IPython.utils.py3compat import cast_unicode, string_types, PY3
 _func_call_docstring = types.FunctionType.__call__.__doc__
 _object_init_docstring = object.__init__.__doc__
 _builtin_type_docstrings = {
-    t.__doc__ for t in (types.ModuleType, types.MethodType, types.FunctionType)
+    inspect.getdoc(t) for t in (types.ModuleType, types.MethodType,
+                                types.FunctionType, property)
 }
 
 _builtin_func_type = type(all)
@@ -150,33 +153,68 @@ def getdoc(obj):
         return None
 
 
-def getsource(obj,is_binary=False):
+def getsource(obj, oname=''):
     """Wrapper around inspect.getsource.
 
     This can be modified by other projects to provide customized source
     extraction.
 
-    Inputs:
+    Parameters
+    ----------
+    obj : object
+        an object whose source code we will attempt to extract
+    oname : str
+        (optional) a name under which the object is known
 
-    - obj: an object whose source code we will attempt to extract.
+    Returns
+    -------
+    src : unicode or None
 
-    Optional inputs:
+    """
 
-    - is_binary: whether the object is known to come from a binary source.
-      This implementation will skip returning any output for binary objects, but
-      custom extractors may know how to meaningfully process them."""
+    if isinstance(obj, property):
+        sources = []
+        for attrname in ['fget', 'fset', 'fdel']:
+            fn = getattr(obj, attrname)
+            if fn is not None:
+                encoding = get_encoding(fn)
+                oname_prefix = ('%s.' % oname) if oname else ''
+                sources.append(cast_unicode(
+                    ''.join(('# ', oname_prefix, attrname)),
+                    encoding=encoding))
+                if inspect.isfunction(fn):
+                    sources.append(dedent(getsource(fn)))
+                else:
+                    # Default str/repr only prints function name,
+                    # pretty.pretty prints module name too.
+                    sources.append(cast_unicode(
+                        '%s%s = %s\n' % (
+                            oname_prefix, attrname, pretty(fn)),
+                        encoding=encoding))
+        if sources:
+            return '\n'.join(sources)
+        else:
+            return None
 
-    if is_binary:
-        return None
     else:
-        # get source if obj was decorated with @decorator
-        if hasattr(obj,"__wrapped__"):
+        # Get source for non-property objects.
+
+        # '__wrapped__' attribute is used by some decorators (e.g. ones defined
+        # functools) to provide access to the decorated function.
+        if hasattr(obj, "__wrapped__"):
             obj = obj.__wrapped__
+
         try:
             src = inspect.getsource(obj)
         except TypeError:
-            if hasattr(obj,'__class__'):
-                src = inspect.getsource(obj.__class__)
+            # The object itself provided no meaningful source, try looking for
+            # its class definition instead.
+            if hasattr(obj, '__class__'):
+                try:
+                    src = inspect.getsource(obj.__class__)
+                except TypeError:
+                    return None
+
         encoding = get_encoding(obj)
         return cast_unicode(src, encoding=encoding)
 
@@ -457,15 +495,18 @@ class Inspector:
         else:
             page.page('\n'.join(lines))
 
-    def psource(self,obj,oname=''):
+    def psource(self, obj, oname=''):
         """Print the source code for an object."""
 
         # Flush the source cache because inspect can return out-of-date source
         linecache.checkcache()
         try:
-            src = getsource(obj)
-        except:
-            self.noinfo('source',oname)
+            src = getsource(obj, oname=oname)
+        except Exception:
+            src = None
+
+        if src is None:
+            self.noinfo('source', oname)
         else:
             page.page(self.format(src))
 
@@ -696,32 +737,25 @@ class Inspector:
             elif fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
             out['file'] = fname
-        
-        # Docstrings only in detail 0 mode, since source contains them (we
-        # avoid repetitions).  If source fails, we add them back, see below.
-        if ds and detail_level == 0:
-                out['docstring'] = ds
 
-        # Original source code for any callable
+        # Original source code for a callable, class or property.
         if detail_level:
             # Flush the source cache because inspect can return out-of-date
             # source
             linecache.checkcache()
-            source = None
             try:
-                try:
-                    source = getsource(obj, binary_file)
-                except TypeError:
-                    if hasattr(obj, '__class__'):
-                        source = getsource(obj.__class__, binary_file)
-                if source is not None:
-                    out['source'] = source.rstrip()
+                if isinstance(obj, property) or not binary_file:
+                    src = getsource(obj, oname)
+                    if src is not None:
+                        src = src.rstrip()
+                    out['source'] = src
+
             except Exception:
                 pass
 
-            if ds and source is None:
-                out['docstring'] = ds
-
+        # Add docstring only if no source is to be shown (avoid repetitions).
+        if ds and out.get('source', None) is None:
+            out['docstring'] = ds
 
         # Constructor docstring for classes
         if inspect.isclass(obj):
@@ -823,7 +857,6 @@ class Inspector:
                     argspec_dict['varkw'] = argspec_dict.pop('keywords')
 
         return object_info(**out)
-
 
     def psearch(self,pattern,ns_table,ns_search=[],
                 ignore_case=False,show_all=False):
