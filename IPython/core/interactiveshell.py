@@ -2328,6 +2328,11 @@ class InteractiveShell(SingletonConfigurable):
             ec = subprocess.call(cmd, shell=True, executable=os.environ.get('SHELL', None))
             # exit code is positive for program failure, or negative for
             # terminating signal number.
+            
+            # Interpret ec > 128 as signal
+            # Some shells (csh, fish) don't follow sh/bash conventions for exit codes
+            if ec > 128:
+                ec = -(ec - 128)
         
         # We explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.

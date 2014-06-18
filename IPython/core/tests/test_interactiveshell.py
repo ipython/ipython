@@ -25,9 +25,12 @@ from os.path import join
 import nose.tools as nt
 
 from IPython.core.inputtransformer import InputTransformer
-from IPython.testing.decorators import skipif, skip_win32, onlyif_unicode_paths
+from IPython.testing.decorators import (
+    skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
+)
 from IPython.testing import tools as tt
 from IPython.utils import io
+from IPython.utils.process import find_cmd
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type, PY3
 
@@ -436,7 +439,7 @@ class ExitCodeChecks(tt.TempFileMixin):
     def test_exit_code_error(self):
         self.system('exit 1')
         self.assertEqual(ip.user_ns['_exit_code'], 1)
-
+    
     @skipif(not hasattr(signal, 'SIGALRM'))
     def test_exit_code_signal(self):
         self.mktmp("import signal, time\n"
@@ -444,6 +447,18 @@ class ExitCodeChecks(tt.TempFileMixin):
                    "time.sleep(1)\n")
         self.system("%s %s" % (sys.executable, self.fname))
         self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGALRM)
+    
+    @onlyif_cmds_exist("csh")
+    def test_exit_code_signal_csh(self):
+        SHELL = os.environ.get('SHELL', None)
+        os.environ['SHELL'] = find_cmd("csh")
+        try:
+            self.test_exit_code_signal()
+        finally:
+            if SHELL is not None:
+                os.environ['SHELL'] = SHELL
+            else:
+                del os.environ['SHELL']
 
 class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
     system = ip.system_raw
