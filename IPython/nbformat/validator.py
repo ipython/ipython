@@ -2,9 +2,29 @@ from __future__ import print_function
 import json
 import os
 
-from jsonschema import SchemaError
-from jsonschema import Draft3Validator as Validator
-import jsonpointer as jsonpointer
+try:
+    from jsonschema import SchemaError
+    from jsonschema import Draft3Validator as Validator
+except ImportError as e:
+    verbose_msg = """
+
+    IPython depends on the jsonschema package: https://pypi.python.org/pypi/jsonschema
+    
+    Please install it first.
+    """
+    raise ImportError(e.message + verbose_msg)
+
+try:
+    import jsonpointer as jsonpointer
+except ImportError as e:
+    verbose_msg = """
+
+    IPython depends on the jsonpointer package: https://pypi.python.org/pypi/jsonpointer
+    
+    Please install it first.
+    """
+    raise ImportError(e.message + verbose_msg)
+
 from IPython.utils.py3compat import iteritems
 
 
