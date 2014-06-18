@@ -2,10 +2,8 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
+import json
 from tornado import web
-
-from zmq.utils import jsonapi
 
 from ...base.handlers import IPythonHandler, json_errors
 
@@ -24,7 +22,7 @@ class MainKernelSpecHandler(IPythonHandler):
             results.append(d)
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(jsonapi.dumps(results))
+        self.finish(json.dumps(results))
 
 
 class KernelSpecHandler(IPythonHandler):
