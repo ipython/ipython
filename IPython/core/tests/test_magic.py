@@ -385,6 +385,7 @@ def test_time3():
 def test_time_futures():
     "Test %time with __future__ environments"
     ip = get_ipython()
+    ip.autocall = 0
     ip.run_cell("from __future__ import division")
     with tt.AssertPrints('0.25'):
         ip.run_line_magic('time', 'print(1/4)')
