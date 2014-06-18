@@ -159,6 +159,10 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings['session_manager']
     
     @property
+    def kernel_spec_manager(self):
+        return self.settings['kernel_spec_manager']
+
+    @property
     def project_dir(self):
         return self.notebook_manager.notebook_dir
     

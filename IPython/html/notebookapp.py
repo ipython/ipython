@@ -67,12 +67,13 @@ from IPython.core.application import (
 )
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel import KernelManager
+from IPython.kernel.kernelspec import KernelSpecManager
 from IPython.kernel.zmq.session import default_secure, Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
-    Dict, Unicode, Integer, List, Bool, Bytes,
+    Dict, Unicode, Integer, List, Bool, Bytes, Instance,
     DottedObjectName, TraitError,
 )
 from IPython.utils import py3compat
@@ -118,19 +119,21 @@ def load_handlers(name):
 class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, notebook_manager,
-                 cluster_manager, session_manager, log, base_url,
-                 settings_overrides, jinja_env_options):
+                 cluster_manager, session_manager, kernel_spec_manager, log,
+                 base_url, settings_overrides, jinja_env_options):
 
         settings = self.init_settings(
             ipython_app, kernel_manager, notebook_manager, cluster_manager,
-            session_manager, log, base_url, settings_overrides, jinja_env_options)
+            session_manager, kernel_spec_manager, log, base_url,
+            settings_overrides, jinja_env_options)
         handlers = self.init_handlers(settings)
 
         super(NotebookWebApplication, self).__init__(handlers, **settings)
 
     def init_settings(self, ipython_app, kernel_manager, notebook_manager,
-                      cluster_manager, session_manager, log, base_url,
-                      settings_overrides, jinja_env_options=None):
+                      cluster_manager, session_manager, kernel_spec_manager,
+                      log, base_url, settings_overrides,
+                      jinja_env_options=None):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_url will always be unicode, which will in turn
         # make the patterns unicode, and ultimately result in unicode
@@ -162,6 +165,7 @@ class NotebookWebApplication(web.Application):
             notebook_manager=notebook_manager,
             cluster_manager=cluster_manager,
             session_manager=session_manager,
+            kernel_spec_manager=kernel_spec_manager,
 
             # IPython stuff
             nbextensions_path = ipython_app.nbextensions_path,
@@ -183,11 +187,13 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('auth.logout'))
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
+        handlers.extend(load_handlers('kernelspecs.handlers'))
         handlers.extend(load_handlers('services.kernels.handlers'))
         handlers.extend(load_handlers('services.notebooks.handlers'))
         handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
+        handlers.extend(load_handlers('services.kernelspecs.handlers'))
         # FIXME: /files/ should be handled by the Contents service when it exists
         nbm = settings['notebook_manager']
         if hasattr(nbm, 'notebook_dir'):
@@ -510,6 +516,11 @@ class NotebookApp(BaseIPythonApplication):
         help='The cluster manager class to use.'
     )
 
+    kernel_spec_manager = Instance(KernelSpecManager)
+
+    def _kernel_spec_manager_default(self):
+        return KernelSpecManager(ipython_dir=self.ipython_dir)
+
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
               "sent by the upstream reverse proxy. Necessary if the proxy handles SSL")
@@ -616,7 +627,7 @@ class NotebookApp(BaseIPythonApplication):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, 
-            self.cluster_manager, self.session_manager,
+            self.cluster_manager, self.session_manager, self.kernel_spec_manager,
             self.log, self.base_url, self.webapp_settings,
             self.jinja_environment_options
         )

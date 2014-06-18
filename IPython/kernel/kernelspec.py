@@ -50,6 +50,17 @@ class KernelSpec(HasTraits):
         with io.open(kernel_file, 'r', encoding='utf-8') as f:
             kernel_dict = json.load(f)
         return cls(resource_dir=resource_dir, **kernel_dict)
+    
+    def to_dict(self):
+        return dict(argv=self.argv,
+                    env=self.env,
+                    display_name=self.display_name,
+                    language=self.language,
+                    codemirror_mode=self.codemirror_mode,
+                   )
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
 def _is_kernel_dir(path):
     """Is ``path`` a kernel directory?"""
