@@ -15,7 +15,7 @@ _ipython_get_flags()
     fi
     # matplotlib and profile don't need the = and the
     # version without simplifies the special cased completion
-    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--matplotlib=$//" -e "s/^--profile=$/--profile /")
+    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--matplotlib=$//" -e "s/^--profile=$/--profile /"  -e "$ s/^/\n-h\n--help\n--help-all\n/")
     __ipython_complete_last="$url $var"
     __ipython_complete_last_res="$opts"
 }
