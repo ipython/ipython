@@ -24,8 +24,8 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate history nbconvert "
-    local opts=""
+    local subcommands="notebook qtconsole console kernel profile locate history nbconvert kernelspec "
+    local opts="help"
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
         __ipython_complete_baseopts="${opts}"
@@ -53,10 +53,10 @@ _ipython()
             "locate" | "profile")
                 _ipython_get_flags $mode
                 ;;
-            "history")
+            "history" | "kernelspec")
                 if [[ $COMP_CWORD -ge 3 ]]; then
                     # 'history trim' and 'history clear' covered by next line
-                    _ipython_get_flags history\ "${COMP_WORDS[2]}"
+                    _ipython_get_flags $mode\ "${COMP_WORDS[2]}"
                 else
                     _ipython_get_flags $mode
 
@@ -80,6 +80,15 @@ _ipython()
             opts="--"
         else
             opts="trim 	clear "
+        fi
+        local IFS=$'\t\n'
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ $mode == "kernelspec" ]]; then
+        if [[ $COMP_CWORD -ge 3 ]]; then
+            # drop into flags
+            opts="--"
+        else
+            opts="list 	install "
         fi
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
