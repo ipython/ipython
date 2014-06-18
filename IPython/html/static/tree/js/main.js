@@ -70,7 +70,8 @@ $(document).ready(function () {
     enable_autorefresh();
 
     IPython.page.show();
-    
+    $([IPython.events]).trigger('app_initialized.DashboardApp');
+
     // bound the upload method to the on change of the file select list
     $("#alternate_upload").change(function (event){
         IPython.notebook_list.handleFilesUpload(event,'form');
