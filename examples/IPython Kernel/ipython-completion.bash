@@ -93,7 +93,13 @@ _ipython()
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ $mode == "locate" ]]; then
-        opts="profile"
+        if [[ $COMP_CWORD -ge 3 ]]; then
+            # drop into flags
+            opts="--"
+        else
+            opts="profile "
+        fi
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ ${prev} == "--matplotlib"* ]] || [[ ${prev} == "--gui"* ]]; then
         if [ -z "$__ipython_complete_matplotlib" ]; then
