@@ -55,6 +55,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 // one-to-one mapping with the corrosponding keys of the model.
                 var jquery_slider_keys = ['step', 'max', 'min', 'disabled'];
                 var that = this;
+                that.$slider.slider({});
                 _.each(jquery_slider_keys, function(key, i) {
                     var model_value = that.model.get(key);
                     if (model_value !== undefined) {

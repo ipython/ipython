@@ -286,6 +286,7 @@ function(WidgetManager, _, Backbone){
             this.child_model_views = {};
             this.child_views = {};
             this.model.views.push(this);
+            this.id = this.id || IPython.utils.uuid();
         },
 
         update: function(){
@@ -304,6 +305,7 @@ function(WidgetManager, _, Backbone){
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
             var child_view = this.model.widget_manager.create_view(child_model, options || {}, this);
+            child_view.id = child_view.id || IPython.utils.uuid();
             
             // Associate the view id with the model id.
             if (this.child_model_views[child_model.id] === undefined) {
@@ -325,7 +327,7 @@ function(WidgetManager, _, Backbone){
                 var view_id = view_ids[0];
                 var view = this.child_views[view_id];
                 delete this.child_views[view_id];
-                delete view_ids[0];
+                view_ids.splice(0,1);
                 child_model.views.pop(view);
             
                 // Remove the view list specific to this model if it is empty.
@@ -363,7 +365,6 @@ function(WidgetManager, _, Backbone){
 
                 // Remove the non-matching items from the old list.
                 for (var j = i; j < old_list.length; j++) {
-                    console.log(j, old_list.length, old_list[j]);
                     removed_callback(old_list[j]);
                 }
 
