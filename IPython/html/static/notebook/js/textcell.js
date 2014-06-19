@@ -10,6 +10,7 @@ define([
     'notebook/js/celltoolbar',
 ], function(IPython, $, cell, security, mathjaxutils, celltoolbar) {
     "use strict";
+    var Cell = cell.Cell;
 
     /**
      * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
@@ -41,12 +42,12 @@ define([
         this.cell_type = this.cell_type || 'text';
         mathjaxutils = mathjaxutils;
 
-        cell.Cell.apply(this, [options, keyboard_manager, events]);
+        Cell.apply(this, [options, keyboard_manager, events]);
 
         this.rendered = false;
     };
 
-    TextCell.prototype = new cell.Cell();
+    TextCell.prototype = new Cell();
 
     TextCell.options_default = {
         cm_config : {
@@ -63,7 +64,7 @@ define([
      * @private
      */
     TextCell.prototype.create_element = function () {
-        cell.Cell.prototype.create_element.apply(this, arguments);
+        Cell.prototype.create_element.apply(this, arguments);
 
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
@@ -91,7 +92,7 @@ define([
      * @method bind_event
      */
     TextCell.prototype.bind_events = function () {
-        cell.Cell.prototype.bind_events.apply(this);
+        Cell.prototype.bind_events.apply(this);
         var that = this;
 
         this.element.dblclick(function () {
@@ -108,7 +109,7 @@ define([
     // Cell level actions
     
     TextCell.prototype.select = function () {
-        var cont = cell.Cell.prototype.select.apply(this);
+        var cont = Cell.prototype.select.apply(this);
         if (cont) {
             if (this.mode === 'edit') {
                 this.code_mirror.refresh();
@@ -119,7 +120,7 @@ define([
 
     TextCell.prototype.unrender = function () {
         if (this.read_only) return;
-        var cont = cell.Cell.prototype.unrender.apply(this);
+        var cont = Cell.prototype.unrender.apply(this);
         if (cont) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
@@ -182,7 +183,7 @@ define([
      * @method fromJSON
      */
     TextCell.prototype.fromJSON = function (data) {
-        cell.Cell.prototype.fromJSON.apply(this, arguments);
+        Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
@@ -202,7 +203,7 @@ define([
      * @return {object} cell data serialised to json
      */
     TextCell.prototype.toJSON = function () {
-        var data = cell.Cell.prototype.toJSON.apply(this);
+        var data = Cell.prototype.toJSON.apply(this);
         data.source = this.get_text();
         if (data.source == this.placeholder) {
             data.source = "";
@@ -246,7 +247,7 @@ define([
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             html = mathjaxutils.replace_math(html, math);
-            html = security.Security.sanitize_html(html);
+            html = security.sanitize_html(html);
             html = $($.parseHTML(html));
             // links in markdown cells should open in new tabs
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
@@ -417,7 +418,7 @@ define([
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             html = mathjaxutils.replace_math(html, math);
-            html = security.Security.sanitize_html(html);
+            html = security.sanitize_html(html);
             var h = $($.parseHTML(html));
             // add id and linkback anchor
             var hash = h.text().replace(/ /g, '-');

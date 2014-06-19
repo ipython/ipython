@@ -193,5 +193,5 @@ define([
         this._models[model_id] = widget_model;
     };
 
-    return WidgetManager;
+    return {'WidgetManager': WidgetManager};
 });

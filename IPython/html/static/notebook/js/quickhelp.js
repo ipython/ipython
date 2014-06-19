@@ -73,8 +73,8 @@ define([
             $(this.shortcut_dialog).modal("toggle");
             return;
         }
-        var command_shortcuts = keyboard_manager.command_shortcuts.help();
-        var edit_shortcuts = keyboard_manager.edit_shortcuts.help();
+        var command_shortcuts = this.keyboard_manager.command_shortcuts.help();
+        var edit_shortcuts = this.keyboard_manager.edit_shortcuts.help();
         var help, shortcut;
         var i, half, n;
         var element = $('<div/>');
@@ -113,7 +113,7 @@ define([
     };
 
     QuickHelp.prototype.build_command_help = function () {
-        var command_shortcuts = keyboard_manager.command_shortcuts.help();
+        var command_shortcuts = this.keyboard_manager.command_shortcuts.help();
         return build_div('<h4>Command Mode (press <code>Esc</code> to enable)</h4>', command_shortcuts);
     };
 
@@ -137,7 +137,7 @@ define([
     };
 
     QuickHelp.prototype.build_edit_help = function (cm_shortcuts) {
-        var edit_shortcuts = keyboard_manager.edit_shortcuts.help();
+        var edit_shortcuts = this.keyboard_manager.edit_shortcuts.help();
         jQuery.merge(cm_shortcuts, edit_shortcuts);
         return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', cm_shortcuts);
     };

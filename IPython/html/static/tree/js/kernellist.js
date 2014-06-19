@@ -12,7 +12,7 @@ define([
         notebooklist.NotebookList.call(this, selector, options, 'running', session_list);
     };
 
-    KernelList.prototype = Object.create(NotebookList.prototype);
+    KernelList.prototype = Object.create(notebooklist.NotebookList.prototype);
 
     KernelList.prototype.sessions_loaded = function (d) {
         this.sessions = d;

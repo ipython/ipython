@@ -67,7 +67,7 @@ define([
 
     SaveWidget.prototype.rename_notebook = function () {
         var that = this;
-        var dialog = $('<div/>').append(
+        var dialog_body = $('<div/>').append(
             $("<p/>").addClass("rename-message")
                 .text('Enter a new notebook name:')
         ).append(
@@ -78,7 +78,7 @@ define([
         );
         dialog.modal({
             title: "Rename Notebook",
-            body: dialog,
+            body: dialog_body,
             buttons : {
                 "Cancel": {},
                 "OK": {

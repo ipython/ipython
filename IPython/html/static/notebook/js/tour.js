@@ -22,7 +22,9 @@ define([
 
     var NotebookTour = function (notebook, events) {
         var that = this;
+        this.notebook = notebook;
         this.step_duration = 0;
+        this.events = events;
         this.tour_steps = [
             { 
                 title: "Welcome to the Notebook Tour",
@@ -51,31 +53,31 @@ define([
                 title: "Mode Indicator",
                 placement: 'bottom',
                 content: "The Notebook has two modes: Edit Mode and Command Mode. In this area, an indicator can appear to tell you which mode you are in.",
-                onShow: function(tour) { command_icon_hack(); }
+                onShow: function(tour) { that.command_icon_hack(); }
             }, {
                 element: "#modal_indicator",
                 title: "Command Mode",
                 placement: 'bottom',
-                onShow: function(tour) { that.notebook.command_mode(); command_icon_hack(); },
-                onNext: function(tour) { edit_mode(); },
+                onShow: function(tour) { notebook.command_mode(); that.command_icon_hack(); },
+                onNext: function(tour) { that.edit_mode(); },
                 content: "Right now you are in Command Mode, and many keyboard shortcuts are available. In this mode, no icon is displayed in the indicator area."
             }, {
                 element: "#modal_indicator",
                 title: "Edit Mode",
                 placement: 'bottom',
-                onShow: function(tour) { edit_mode(); },
+                onShow: function(tour) { that.edit_mode(); },
                 content: "Pressing <code>Enter</code> or clicking in the input text area of the cell switches to Edit Mode."
             }, {
                 element: '.selected',
                 title: "Edit Mode",
                 placement: 'bottom',
-                onShow: function(tour) { edit_mode(); },
+                onShow: function(tour) { that.edit_mode(); },
                 content: "Notice that the border around the currently active cell changed color. Typing will insert text into the currently active cell."
             }, {
                 element: '.selected',
                 title: "Back to Command Mode",
                 placement: 'bottom',
-                onShow: function(tour) { that.notebook.command_mode(); },
+                onShow: function(tour) { notebook.command_mode(); },
                 onHide: function(tour) { $('#help_menu').parent().children('a').click(); },
                 content: "Pressing <code>Esc</code> or clicking outside of the input text area takes you back to Command Mode."
             }, {

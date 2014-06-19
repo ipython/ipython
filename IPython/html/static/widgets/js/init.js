@@ -12,16 +12,16 @@ define([
     "widgets/js/widget_selection",
     "widgets/js/widget_selectioncontainer",
     "widgets/js/widget_string",
-], function(WidgetManager) { 
+], function(widgetmanager) { 
 
     // Register all of the loaded views with the widget manager.
     for (var i = 1; i < arguments.length; i++) {
         for (var target_name in arguments[i]) {
             if (arguments[i].hasOwnProperty(target_name)) {
-                WidgetManager.register_widget_view(target_name, arguments[i][target_name]);
+                widgetmanager.WidgetManager.register_widget_view(target_name, arguments[i][target_name]);
             }
         }
     }
 
-    return {'WidgetManager': WidgetManager}; 
+    return {'WidgetManager': widgetmanager.WidgetManager}; 
 });

@@ -560,5 +560,4 @@ define([
     IPython.Cell = Cell;
 
     return {'Cell': Cell};
-
 });

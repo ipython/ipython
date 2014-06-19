@@ -6,11 +6,11 @@ define([
     'jquery',
     'notebook/js/toolbar',
     'notebook/js/celltoolbar',
-], function(IPython, $, Toolbar, CellToolbar) {
+], function(IPython, $, toolbar, celltoolbar) {
     "use strict";
 
     var MainToolBar = function (selector, layout_manager, notebook, events) {
-        toolbar.Toolbar.apply(this, arguments);
+        toolbar.ToolBar.apply(this, arguments);
         this.events = events;
         this.notebook = notebook;
         this.construct();
@@ -19,16 +19,17 @@ define([
         this.bind_events();
     };
 
-    MainToolBar.prototype = new toolbar.Toolbar();
+    MainToolBar.prototype = new toolbar.ToolBar();
 
     MainToolBar.prototype.construct = function () {
+        var that = this;
         this.add_buttons_group([
                 {
                     id : 'save_b',
                     label : 'Save and Checkpoint',
                     icon : 'icon-save',
                     callback : function () {
-                        this.notebook.save_checkpoint();
+                        that.notebook.save_checkpoint();
                         }
                 }
             ]);
@@ -39,9 +40,9 @@ define([
                     label : 'Insert Cell Below',
                     icon : 'icon-plus-sign',
                     callback : function () {
-                        this.notebook.insert_cell_below('code');
-                        this.notebook.select_next();
-                        this.notebook.focus_cell();
+                        that.notebook.insert_cell_below('code');
+                        that.notebook.select_next();
+                        that.notebook.focus_cell();
                         }
                 }
             ],'insert_above_below');
@@ -52,7 +53,7 @@ define([
                     label : 'Cut Cell',
                     icon : 'icon-cut',
                     callback : function () {
-                        this.notebook.cut_cell();
+                        that.notebook.cut_cell();
                         }
                 },
                 {
@@ -60,7 +61,7 @@ define([
                     label : 'Copy Cell',
                     icon : 'icon-copy',
                     callback : function () {
-                        this.notebook.copy_cell();
+                        that.notebook.copy_cell();
                         }
                 },
                 {
@@ -68,7 +69,7 @@ define([
                     label : 'Paste Cell Below',
                     icon : 'icon-paste',
                     callback : function () {
-                        this.notebook.paste_cell_below();
+                        that.notebook.paste_cell_below();
                         }
                 }
             ],'cut_copy_paste');
@@ -79,7 +80,7 @@ define([
                     label : 'Move Cell Up',
                     icon : 'icon-arrow-up',
                     callback : function () {
-                        this.notebook.move_cell_up();
+                        that.notebook.move_cell_up();
                         }
                 },
                 {
@@ -87,7 +88,7 @@ define([
                     label : 'Move Cell Down',
                     icon : 'icon-arrow-down',
                     callback : function () {
-                        this.notebook.move_cell_down();
+                        that.notebook.move_cell_down();
                         }
                 }
             ],'move_up_down');
@@ -100,7 +101,7 @@ define([
                     icon : 'icon-play',
                     callback : function () {
                         // emulate default shift-enter behavior
-                        this.notebook.execute_cell_and_select_below();
+                        that.notebook.execute_cell_and_select_below();
                     }
                 },
                 {
@@ -108,7 +109,7 @@ define([
                     label : 'Interrupt',
                     icon : 'icon-stop',
                     callback : function () {
-                        this.notebook.session.interrupt_kernel();
+                        that.notebook.session.interrupt_kernel();
                         }
                 },
                 {
@@ -116,7 +117,7 @@ define([
                     label : 'Restart Kernel',
                     icon : 'icon-repeat',
                     callback : function () {
-                        this.notebook.restart_kernel();
+                        that.notebook.restart_kernel();
                         }
                 }
             ],'run_int');
@@ -153,11 +154,11 @@ define([
                 var val = $(this).val();
                 if (val ==='') {
                     celltoolbar.CellToolbar.global_hide();
-                    delete this.notebook.metadata.celltoolbar;
+                    delete that.notebook.metadata.celltoolbar;
                 } else {
                     celltoolbar.CellToolbar.global_show();
                     celltoolbar.CellToolbar.activate_preset(val);
-                    this.notebook.metadata.celltoolbar = val;
+                    that.notebook.metadata.celltoolbar = val;
                 }
             });
         // Setup the currently registered presets.
@@ -185,23 +186,23 @@ define([
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
-                this.notebook.to_code();
+                that.notebook.to_code();
             } else if (cell_type === 'markdown')  {
-                this.notebook.to_markdown();
+                that.notebook.to_markdown();
             } else if (cell_type === 'raw')  {
-                this.notebook.to_raw();
+                that.notebook.to_raw();
             } else if (cell_type === 'heading1')  {
-                this.notebook.to_heading(undefined, 1);
+                that.notebook.to_heading(undefined, 1);
             } else if (cell_type === 'heading2')  {
-                this.notebook.to_heading(undefined, 2);
+                that.notebook.to_heading(undefined, 2);
             } else if (cell_type === 'heading3')  {
-                this.notebook.to_heading(undefined, 3);
+                that.notebook.to_heading(undefined, 3);
             } else if (cell_type === 'heading4')  {
-                this.notebook.to_heading(undefined, 4);
+                that.notebook.to_heading(undefined, 4);
             } else if (cell_type === 'heading5')  {
-                this.notebook.to_heading(undefined, 5);
+                that.notebook.to_heading(undefined, 5);
             } else if (cell_type === 'heading6')  {
-                this.notebook.to_heading(undefined, 6);
+                that.notebook.to_heading(undefined, 6);
             }
         });
         this.events.on('selected_cell_type_changed.Notebook', function (event, data) {

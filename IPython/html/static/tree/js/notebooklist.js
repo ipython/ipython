@@ -82,10 +82,10 @@ define([
                     that.add_upload_button(nbitem);
                 };
             } else {
-                var dialog = 'Uploaded notebooks must be .ipynb files';
+                var dialog_body = 'Uploaded notebooks must be .ipynb files';
                 dialog.modal({
                     title : 'Invalid file type',
-                    body : dialog,
+                    body : dialog_body,
                     buttons : {'OK' : {'class' : 'btn-primary'}}
                 });
             }
