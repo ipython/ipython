@@ -343,5 +343,5 @@ define([
     // Backwards compatability.
     IPython.MenuBar = MenuBar;
 
-    return MenuBar;
+    return {'MenuBar': MenuBar};
 });

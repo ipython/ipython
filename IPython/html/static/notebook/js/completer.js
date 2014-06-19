@@ -383,5 +383,5 @@ define([
     // For backwards compatability.
     IPython.Completer = Completer;
 
-    return Completer;
+    return {'Completer': Completer};
 });

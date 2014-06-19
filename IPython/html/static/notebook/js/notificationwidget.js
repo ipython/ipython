@@ -73,5 +73,5 @@ define([
     // For backwards compatability.
     IPython.NotificationWidget = NotificationWidget;
 
-    return NotificationWidget;
+    return {'NotificationWidget': NotificationWidget};
 });

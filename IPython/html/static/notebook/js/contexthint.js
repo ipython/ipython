@@ -94,5 +94,5 @@ define([], function() {
         return filterd;
     };
 
-    return CodeMirror.contextHint;
+    return {'contextHint': CodeMirror.contextHint};
 });

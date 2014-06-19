@@ -511,5 +511,5 @@ define([
     // Backwards compatability.
     IPython.CodeCell = CodeCell;
 
-    return CodeCell;
+    return {'CodeCell': CodeCell};
 });

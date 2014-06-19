@@ -45,5 +45,5 @@ define([
     // Backwards compatability.
     IPython.SesssionList = SesssionList;
 
-    return SesssionList;
+    return {'SesssionList': SesssionList};
 });

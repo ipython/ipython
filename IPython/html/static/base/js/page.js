@@ -44,5 +44,5 @@ define([
 
     // Register self in the global namespace for convenience.
     IPython.Page = Page;
-    return Page;
+    return {'Page': Page};
 });

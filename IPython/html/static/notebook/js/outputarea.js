@@ -988,5 +988,5 @@ define([
     // For backwards compatability.
     IPython.OutputArea = OutputArea;
 
-    return OutputArea;
+    return {'OutputArea': OutputArea};
 });

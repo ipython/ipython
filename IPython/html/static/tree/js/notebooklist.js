@@ -434,5 +434,5 @@ define([
     // Backwards compatability.    
     IPython.NotebookList = NotebookList;
 
-    return NotebookList;
+    return {'NotebookList': NotebookList};
 });

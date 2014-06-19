@@ -169,5 +169,5 @@ define([
     // Backwards compatability.
     IPython.QuickHelp = QuickHelp;
 
-    return QuickHelp;
+    return {'QuickHelp': QuickHelp};
 });

@@ -30,5 +30,5 @@ define([
     // Backwards compatability.
     IPython.KernelList = KernelList;
 
-    return KernelList;
+    return {'KernelList': KernelList};
 });

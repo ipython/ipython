@@ -229,5 +229,5 @@ define([
 
     IPython.NotificationArea = NotificationArea;
 
-    return NotificationArea;
+    return {'NotificationArea': NotificationArea};
 });

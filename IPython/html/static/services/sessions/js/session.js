@@ -112,5 +112,5 @@ define([
     // For backwards compatability.
     IPython.Session = Session;
 
-    return Session;
+    return {'Session': Session};
 });

@@ -167,6 +167,6 @@ define([
     // Backwards compatability.
     IPython.SaveWidget = SaveWidget;
 
-    return SaveWidget;
+    return {'SaveWidget': SaveWidget};
 
 });

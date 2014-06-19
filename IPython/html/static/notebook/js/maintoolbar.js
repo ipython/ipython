@@ -216,5 +216,5 @@ define([
     // Backwards compatability.
     IPython.MainToolBar = MainToolBar;
 
-    return MainToolBar;
+    return {'MainToolBar': MainToolBar};
 });

@@ -164,7 +164,7 @@ define([
     // For backwards compatability.
     IPython.NotebookTour = NotebookTour;
 
-    return NotebookTour;
+    return {'NotebookTour': NotebookTour};
 
 });
 

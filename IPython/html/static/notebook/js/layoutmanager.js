@@ -54,5 +54,5 @@ define([
     // Backwards compatability.
     IPython.LayoutManager = LayoutManager;
 
-    return LayoutManager;
+    return {'LayoutManager': LayoutManager};
 });

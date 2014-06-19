@@ -128,5 +128,5 @@ define([], function() {
         return dateFormat(this, mask, utc);
     };
 
-    return dateFormat;
+    return {'dateFormat': dateFormat};
 });

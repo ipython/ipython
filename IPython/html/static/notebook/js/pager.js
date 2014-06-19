@@ -174,5 +174,5 @@ define([
     // Backwards compatability.
     IPython.Pager = Pager;
 
-    return Pager;
+    return {'Pager': Pager};
 });

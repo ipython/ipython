@@ -411,5 +411,5 @@ define([
     // Backwards compatability.
     IPython.CellToolbar = CellToolbar;
 
-    return CellToolbar;
+    return {'CellToolbar': CellToolbar};
 });

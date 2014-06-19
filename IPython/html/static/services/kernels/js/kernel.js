@@ -608,5 +608,5 @@ define([
     // Backwards compatability.
     IPython.Kernel = Kernel;
 
-    return Kernel;
+    return {'Kernel': Kernel};
 });

@@ -15,5 +15,5 @@ define(['base/js/namespace'], function(IPython) {
     // Backwards compatability.
     IPython.Events = Events;
     
-    return Events;
+    return {'Events': Events};
 });

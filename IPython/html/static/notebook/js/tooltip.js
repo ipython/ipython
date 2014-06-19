@@ -331,5 +331,5 @@ define([
     // Backwards compatability.
     IPython.Tooltip = Tooltip;
 
-    return Tooltip;
+    return {'Tooltip': Tooltip};
 });

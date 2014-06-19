@@ -2477,5 +2477,5 @@ define([
     // For backwards compatability.
     IPython.Notebook = Notebook;
 
-    return Notebook;
+    return {'Notebook': Notebook};
 });

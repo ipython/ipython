@@ -43,5 +43,5 @@ define([
     // Set module variables
     IPython.LoginWidget = LoginWidget;
 
-    return LoginWidget;
+    return {'LoginWidget': LoginWidget};
 });

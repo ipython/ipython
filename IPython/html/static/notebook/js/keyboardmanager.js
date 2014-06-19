@@ -555,6 +555,5 @@ define([
     // For backwards compatability.
     IPython.KeyboardManager = KeyboardManager;
 
-    return KeyboardManager;
-
+    return {'KeyboardManager': KeyboardManager};
 });

@@ -154,5 +154,5 @@ define([
     // Backwards compatability.
     IPython.Dialog = Dialog;
 
-    return Dialog;
+    return {'Dialog': Dialog};
 });

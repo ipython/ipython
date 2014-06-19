@@ -559,6 +559,6 @@ define([
     // Backwards compatability.
     IPython.Cell = Cell;
 
-    return Cell;
+    return {'Cell': Cell};
 
 });

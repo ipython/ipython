@@ -186,5 +186,8 @@ define([
     IPython.ClusterList = ClusterList;
     IPython.ClusterItem = ClusterItem;
 
-    return ClusterList;
+    return {
+        'ClusterList': ClusterList,
+        'ClusterItem': ClusterItem,
+    };
 });

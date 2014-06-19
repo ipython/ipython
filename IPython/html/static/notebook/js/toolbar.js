@@ -97,5 +97,5 @@ define([
     // Backwards compatability.
     IPython.ToolBar = ToolBar;
 
-    return ToolBar;
+    return {'ToolBar': ToolBar};
 });
